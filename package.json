@@ -2,7 +2,7 @@
   "name": "wisdomPet",
   "version": "1.0.0",
   "scripts": {
-    "pack": "electron-packager . 'Wisdom Pet' --out ~/Desktop/WisdomPet --overwrite --icon ./icons/icon"
+    "pack": "electron-packager . 'YellowFruit' --out ~/Desktop/WisdomPet --overwrite --icon ./icons/icon"
   },
   "main": "app/main.js",
   "devDependencies": {
