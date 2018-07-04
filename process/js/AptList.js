@@ -1,10 +1,18 @@
 var React = require('react');
 
-var AptList = React.createClass({
-  handleDelete: function() {
+class AptList extends React.Component{
+
+  constructor(props) {
+    super(props);
+    this.handleDelete = this.handleDelete.bind(this);
+  }
+
+  handleDelete() {
     this.props.onDelete(this.props.whichItem);
-  },
-  render: function() {
+  }
+
+  render() {
+  //render: function() {
     return(
       <li className="pet-item media">
         <div className="media-left">
@@ -23,6 +31,6 @@ var AptList = React.createClass({
       </li>
     )
   }
-});
+};
 
 module.exports = AptList;

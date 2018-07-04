@@ -14,79 +14,87 @@ var Toolbar = require('./Toolbar');
 var HeaderNav = require('./HeaderNav');
 var AddAppointment = require('./AddAppointment');
 
-var MainInterface = React.createClass({
-  getInitialState: function() {
-    return {
+class MainInterface extends React.Component{
+
+  constructor(props) {
+    super(props);
+    this.state = {
       aptBodyVisible: false,
       orderBy: 'petName',
       orderDir: 'asc',
       queryText: '',
       myAppointments: loadApts
-    }//return
-  }, //getInitialState
+    };
+    this.toggleAptDisplay = this.toggleAptDisplay.bind(this);
+    this.showAbout = this.showAbout.bind(this);
+    this.addItem = this.addItem.bind(this);
+    this.deleteMessage = this.deleteMessage.bind(this);
+    this.reOrder = this.reOrder.bind(this);
+    this.searchApts = this.searchApts.bind(this);
+  }
 
-  componentDidMount: function() {
+  componentDidMount() {
     ipc.on('addAppointment', function(event,message) {
       this.toggleAptDisplay();
     }.bind(this));
-  }, //componentDidMount
+  } //componentDidMount
 
-  componentWillUnmount: function() {
+  componentWillUnmount() {
     ipc.removeListener('addAppointment', function(event,message) {
       this.toggleAptDisplay();
     }.bind(this));
-  }, //componentDidMount
+  } //componentWillUnmount
 
-  componentDidUpdate: function() {
+  componentDidUpdate() {
     fs.writeFile(dataLocation, JSON.stringify(this.state.myAppointments), 'utf8', function(err) {
       if (err) {
         console.log(err);
       }
     });//writeFile
-  }, //componentDidUpdate
+  } //componentDidUpdate
 
-  toggleAptDisplay: function() {
+  toggleAptDisplay() {
     var tempVisibility = !this.state.aptBodyVisible;
     this.setState({
       aptBodyVisible: tempVisibility
     }); //setState
-  }, //toggleAptDisplay
+  } //toggleAptDisplay
 
-  showAbout:function() {
+  showAbout() {
     ipc.sendSync('openInfoWindow');
-  }, //showAbout
+  } //showAbout
 
-  addItem: function(tempItem) {
+  addItem(tempItem) {
     var tempApts = this.state.myAppointments;
     tempApts.push(tempItem);
     this.setState({
       myAppointments: tempApts,
       aptBodyVisible: false
     }) //setState
-  }, //addItem
+  } //addItem
 
-  deleteMessage: function(item) {
+  deleteMessage(item) {
     var allApts = this.state.myAppointments;
     var newApts = _.without(allApts, item);
     this.setState({
       myAppointments: newApts
     }); //setState
-  }, //deleteMessage
+  } //deleteMessage
 
-  reOrder: function(orderBy, orderDir) {
+  reOrder(orderBy, orderDir) {
     this.setState({
       orderBy: orderBy,
       orderDir: orderDir
     }) //setState
-  }, //reOrder
+  } //reOrder
 
-  searchApts: function(query) {
+  searchApts(query) {
     this.setState({
       queryText: query
     }); //setState
-  }, //searchApts
+  } //searchApts
 
-  render: function() {
+  render() {
     var filteredApts = [];
     var queryText = this.state.queryText;
     var orderBy = this.state.orderBy;
@@ -153,7 +161,7 @@ var MainInterface = React.createClass({
       </div>
     );
   } //render
-});//MainInterface
+};//MainInterface
 
 ReactDOM.render(
   <MainInterface />,

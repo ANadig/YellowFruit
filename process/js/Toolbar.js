@@ -1,16 +1,22 @@
 var React = require('react');
 
-var Toolbar = React.createClass({
+class Toolbar extends React.Component{
 
-  createAppointments: function() {
+  constructor(props) {
+    super(props);
+    this.createAppointments = this.createAppointments.bind(this);
+    this.toggleAbout = this.toggleAbout.bind(this);
+  }
+
+  createAppointments() {
     this.props.handleToggle();
-  }, //createAppointments
+  } //createAppointments
 
-  toggleAbout: function() {
+  toggleAbout() {
     this.props.handleAbout();
-  }, //toggleAbout
+  } //toggleAbout
 
-  render: function() {
+  render() {
     return(
       <div className="toolbar">
         <div className="toolbar-item" onClick={this.createAppointments}>
@@ -24,6 +30,6 @@ var Toolbar = React.createClass({
       </div>
     ) //return
   } //render
-}); //Toolbar
+}; //Toolbar
 
 module.exports = Toolbar;

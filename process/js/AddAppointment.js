@@ -15,13 +15,19 @@ function formatDate(date, divider) {
   return ('' + year + divider + month + divider + day);
 }
 
-var AddAppointment = React.createClass({
+class AddAppointment extends React.Component{
 
-  toggleAptDisplay: function() {
+  constructor(props) {
+    super(props);
+    this.toggleAptDisplay = this.toggleAptDisplay.bind(this);
+    this.handleAdd = this.handleAdd.bind(this);
+  }
+
+  toggleAptDisplay() {
     this.props.handleToggle();
-  },
+  }
 
-  handleAdd: function(e) {
+  handleAdd(e) {
     e.preventDefault();
     var tempItem = {
       petName: this.inputPetName.value,
@@ -37,10 +43,10 @@ var AddAppointment = React.createClass({
     this.inputAptDate.value = formatDate(defaultDate, '-');
     this.inputAptTime.value = '09:00';
     this.inputAptNotes.value = '';
-    
-  }, //handleAdd
 
-  render: function() {
+  } //handleAdd
+
+  render() {
     return(
       <div className="modal fade" id="addAppointment" tabIndex="-1" role="dialog">
         <div className="modal-dialog" role="document">
@@ -101,6 +107,6 @@ var AddAppointment = React.createClass({
       </div>
     ) //return
   } //render
-}); //AddAppointment
+}; //AddAppointment
 
 module.exports=AddAppointment;
