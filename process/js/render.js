@@ -9,10 +9,10 @@ var ipc = electron.ipcRenderer;
 
 var React = require('react');
 var ReactDOM = require('react-dom');
-var AptList = require('./AptList');
+var TeamList = require('./TeamList');
 var Toolbar = require('./Toolbar');
 var HeaderNav = require('./HeaderNav');
-var AddAppointment = require('./AddAppointment');
+var AddTeam = require('./AddTeam');
 
 class MainInterface extends React.Component{
 
@@ -23,7 +23,8 @@ class MainInterface extends React.Component{
       orderBy: 'petName',
       orderDir: 'asc',
       queryText: '',
-      myAppointments: loadApts
+      myAppointments: loadApts,
+      activePane: 'teams'
     };
     this.toggleAptDisplay = this.toggleAptDisplay.bind(this);
     this.showAbout = this.showAbout.bind(this);
@@ -124,7 +125,7 @@ class MainInterface extends React.Component{
 
     filteredApts=filteredApts.map(function(item, index) {
       return(
-        <AptList key = {index}
+        <TeamList key = {index}
           singleItem = {item}
           whichItem =  {item}
           onDelete = {this.deleteMessage}
@@ -145,7 +146,7 @@ class MainInterface extends React.Component{
             handleToggle = {this.toggleAptDisplay}
             handleAbout = {this.showAbout}
           />
-          <AddAppointment
+          <AddTeam
             handleToggle = {this.toggleAptDisplay}
             addApt = {this.addItem}
           />

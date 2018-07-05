@@ -1,6 +1,6 @@
 var React = require('react');
 
-class AptList extends React.Component{
+class TeamList extends React.Component{
 
   constructor(props) {
     super(props);
@@ -33,4 +33,4 @@ class AptList extends React.Component{
   }
 };
 
-module.exports = AptList;
+module.exports = TeamList;

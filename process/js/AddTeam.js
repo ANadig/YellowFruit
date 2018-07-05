@@ -15,7 +15,7 @@ function formatDate(date, divider) {
   return ('' + year + divider + month + divider + day);
 }
 
-class AddAppointment extends React.Component{
+class AddTeam extends React.Component{
 
   constructor(props) {
     super(props);
@@ -109,4 +109,4 @@ class AddAppointment extends React.Component{
   } //render
 }; //AddAppointment
 
-module.exports=AddAppointment;
+module.exports=AddTeam;
