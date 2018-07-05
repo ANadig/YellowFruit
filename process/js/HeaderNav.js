@@ -26,6 +26,12 @@ class HeaderNav extends React.Component{
       <nav className="navigation navbar navbar-default">
         <div className="container-fluid">
           <div className="navbar-header"><a className="navbar-brand" href="#">YellowFruit</a></div>
+          <div className="toolbar-item">
+              <span className="toolbar-item-text">Teams</span>
+          </div>
+          <div className="toolbar-item">
+              <span className="toolbar-item-text">Games</span>
+          </div>
           <div className="navbar-form navbar-right search-appointments">
               <div className="input-group">
                 <input id="SearchApts" onChange={this.handleSearch} placeholder="Search" autoFocus type="text" className="form-control" aria-label="Search Appointments" />

@@ -2,14 +2,15 @@ var $ = jQuery = require('jquery');
 var _ = require('lodash');
 var bootstrap = require('bootstrap');
 var fs = eRequire('fs');
-var loadApts = JSON.parse(fs.readFileSync(dataLocation));
+var loadTeams = JSON.parse(fs.readFileSync(teamDataLocation));
+var loadGames = JSON.parse(fs.readFileSync(gameDataLocation));
 
 var electron = eRequire('electron');
 var ipc = electron.ipcRenderer;
 
 var React = require('react');
 var ReactDOM = require('react-dom');
-var TeamList = require('./TeamList');
+var TeamListEntry = require('./TeamListEntry');
 var Toolbar = require('./Toolbar');
 var HeaderNav = require('./HeaderNav');
 var AddTeam = require('./AddTeam');
@@ -23,8 +24,9 @@ class MainInterface extends React.Component{
       orderBy: 'petName',
       orderDir: 'asc',
       queryText: '',
-      myAppointments: loadApts,
-      activePane: 'teams'
+      myAppointments: loadTeams,
+      myGames: loadGames,
+      activePane: 'teams'  //either 'teams' or 'games'
     };
     this.toggleAptDisplay = this.toggleAptDisplay.bind(this);
     this.showAbout = this.showAbout.bind(this);
@@ -47,7 +49,7 @@ class MainInterface extends React.Component{
   } //componentWillUnmount
 
   componentDidUpdate() {
-    fs.writeFile(dataLocation, JSON.stringify(this.state.myAppointments), 'utf8', function(err) {
+    fs.writeFile(teamDataLocation, JSON.stringify(this.state.myAppointments), 'utf8', function(err) {
       if (err) {
         console.log(err);
       }
@@ -125,7 +127,7 @@ class MainInterface extends React.Component{
 
     filteredApts=filteredApts.map(function(item, index) {
       return(
-        <TeamList key = {index}
+        <TeamListEntry key = {index}
           singleItem = {item}
           whichItem =  {item}
           onDelete = {this.deleteMessage}
@@ -153,8 +155,12 @@ class MainInterface extends React.Component{
           <div className="container">
            <div className="row">
              <div className="appointments col-sm-12">
-               <h2 className="appointments-headline">Current Appointments</h2>
+               <h2 className="appointments-headline">List of Teams</h2>
                <ul className="item-list media-list">{filteredApts}</ul>
+               <button type="button" className="btn btn-success">Add Team</button>
+               <h2 className="appointments-headline">List of Games</h2>
+               <ul className="item-list media-list">{filteredApts}</ul>
+               <button type="button" className="btn btn-success">Add Game</button>
              </div>{/* col-sm-12 */}
            </div>{/* row */}
           </div>{/* container */}

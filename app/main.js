@@ -16,6 +16,8 @@ function toggleWindow(whichWindow) {
 app.on('ready', function() {
   var appWindow, infoWindow;
   appWindow = new BrowserWindow({
+    width: 1200,
+    height: 700,
     show: false
   }); //appWindow
 
