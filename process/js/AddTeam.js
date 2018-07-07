@@ -36,7 +36,7 @@ class AddTeam extends React.Component{
       aptNotes: this.inputAptNotes.value,
     } //tempitems
 
-    this.props.addApt(tempItem);
+    this.props.addTeam(tempItem);
 
     this.inputPetName.value = '';
     this.inputPetOwner.value = '';

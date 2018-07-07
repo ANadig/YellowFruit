@@ -14,6 +14,8 @@ var TeamListEntry = require('./TeamListEntry');
 var Toolbar = require('./Toolbar');
 var HeaderNav = require('./HeaderNav');
 var AddTeam = require('./AddTeam');
+var TeamList = require('./TeamList');
+var GameList = require('./GameList');
 
 class MainInterface extends React.Component{
 
@@ -24,16 +26,18 @@ class MainInterface extends React.Component{
       orderBy: 'petName',
       orderDir: 'asc',
       queryText: '',
-      myAppointments: loadTeams,
+      myTeams: loadTeams,
       myGames: loadGames,
-      activePane: 'teams'  //either 'teams' or 'games'
+      activePane: 'teamsPane'  //either 'teams' or 'games'
     };
     this.toggleAptDisplay = this.toggleAptDisplay.bind(this);
     this.showAbout = this.showAbout.bind(this);
     this.addItem = this.addItem.bind(this);
-    this.deleteMessage = this.deleteMessage.bind(this);
+    this.deleteTeam = this.deleteTeam.bind(this);
+    this.deleteGame = this.deleteGame.bind(this);
     this.reOrder = this.reOrder.bind(this);
-    this.searchApts = this.searchApts.bind(this);
+    this.searchLists = this.searchLists.bind(this);
+    this.setPane = this.setPane.bind(this);
   }
 
   componentDidMount() {
@@ -49,11 +53,16 @@ class MainInterface extends React.Component{
   } //componentWillUnmount
 
   componentDidUpdate() {
-    fs.writeFile(teamDataLocation, JSON.stringify(this.state.myAppointments), 'utf8', function(err) {
+    fs.writeFile(teamDataLocation, JSON.stringify(this.state.myTeams), 'utf8', function(err) {
       if (err) {
         console.log(err);
       }
-    });//writeFile
+    });//writeFile - teams
+    fs.writeFile(gameDataLocation, JSON.stringify(this.state.myGames), 'utf8', function(err) {
+      if (err) {
+        console.log(err);
+      }
+    });//writeFile - games
   } //componentDidUpdate
 
   toggleAptDisplay() {
@@ -68,21 +77,29 @@ class MainInterface extends React.Component{
   } //showAbout
 
   addItem(tempItem) {
-    var tempApts = this.state.myAppointments;
+    var tempApts = this.state.myTeams;
     tempApts.push(tempItem);
     this.setState({
-      myAppointments: tempApts,
+      myTeams: tempApts,
       aptBodyVisible: false
     }) //setState
   } //addItem
 
-  deleteMessage(item) {
-    var allApts = this.state.myAppointments;
-    var newApts = _.without(allApts, item);
+  deleteTeam(item) {
+    var allTeams = this.state.myTeams;
+    var newTeams = _.without(allTeams, item);
     this.setState({
-      myAppointments: newApts
+      myTeams: newTeams
     }); //setState
-  } //deleteMessage
+  } //deleteTeam
+
+  deleteGame(item) {
+    var allGames = this.state.myGames;
+    var newGames = _.without(allGames, item);
+    this.setState({
+      myGames: newGames
+    }); //setState
+  } //deleteGame
 
   reOrder(orderBy, orderDir) {
     this.setState({
@@ -91,18 +108,27 @@ class MainInterface extends React.Component{
     }) //setState
   } //reOrder
 
-  searchApts(query) {
+  searchLists(query) {
     this.setState({
       queryText: query
     }); //setState
-  } //searchApts
+  } //searchLists
+
+  setPane(pane) {
+    this.setState({
+      activePane: pane
+    });
+  } //setPane
 
   render() {
-    var filteredApts = [];
+    var filteredTeams = [];
+    var filteredGames = [];
     var queryText = this.state.queryText;
     var orderBy = this.state.orderBy;
     var orderDir = this.state.orderDir;
-    var myAppointments = this.state.myAppointments;
+    var myTeams = this.state.myTeams;
+    var myGames = this.state.myGames;
+    var activePane = this.state.activePane;
 
     if(this.state.aptBodyVisible === true) {
       $('#addAppointment').modal('show');
@@ -110,30 +136,61 @@ class MainInterface extends React.Component{
       $('#addAppointment').modal('hide');
     }
 
-    for (var i = 0; i < myAppointments.length; i++) {
-      if (
-        (myAppointments[i].petName.toLowerCase().indexOf(queryText)!=-1) ||
-        (myAppointments[i].ownerName.toLowerCase().indexOf(queryText)!=-1) ||
-        (myAppointments[i].aptDate.toLowerCase().indexOf(queryText)!=-1) ||
-        (myAppointments[i].aptNotes.toLowerCase().indexOf(queryText)!=-1)
-      ) {
-        filteredApts.push(myAppointments[i]);
+    if (activePane == 'teamsPane') {
+      filteredGames = myGames; // don't filter games
+      //Filter list of teams
+      for (var i = 0; i < myTeams.length; i++) {
+        if (
+          (myTeams[i].petName.toLowerCase().indexOf(queryText)!=-1) ||
+          (myTeams[i].ownerName.toLowerCase().indexOf(queryText)!=-1) ||
+          (myTeams[i].aptDate.toLowerCase().indexOf(queryText)!=-1) ||
+          (myTeams[i].aptNotes.toLowerCase().indexOf(queryText)!=-1)
+        ) {
+          filteredTeams.push(myTeams[i]);
+        }
       }
+      filteredTeams = _.orderBy(filteredTeams, function(item) {
+        return item[orderBy].toLowerCase();
+      }, orderDir); // order array
     }
 
-    filteredApts = _.orderBy(filteredApts, function(item) {
-      return item[orderBy].toLowerCase();
-    }, orderDir); // order array
+    else if (activePane == 'gamesPane') {
+      filteredTeams = myTeams; // don't filter teams
+      //Filter list of games
+      for (var i = 0; i < myGames.length; i++) {
+        if (
+          (myGames[i].petName.toLowerCase().indexOf(queryText)!=-1) ||
+          (myGames[i].ownerName.toLowerCase().indexOf(queryText)!=-1) ||
+          (myGames[i].aptDate.toLowerCase().indexOf(queryText)!=-1) ||
+          (myGames[i].aptNotes.toLowerCase().indexOf(queryText)!=-1)
+        ) {
+          filteredGames.push(myGames[i]);
+        }
+      }
+      filteredGames = _.orderBy(filteredGames, function(item) {
+        return item[orderBy].toLowerCase();
+      }, orderDir); // order array
+    }
 
-    filteredApts=filteredApts.map(function(item, index) {
+    //make a react element for each item in the lists
+    filteredTeams=filteredTeams.map(function(item, index) {
       return(
         <TeamListEntry key = {index}
           singleItem = {item}
           whichItem =  {item}
-          onDelete = {this.deleteMessage}
+          onDelete = {this.deleteTeam}
         />
       ) // return
-    }.bind(this)); //Appointments.map
+    }.bind(this)); //filteredTeams.map
+    filteredGames=filteredGames.map(function(item, index) {
+      return(
+        <TeamListEntry key = {index}
+          singleItem = {item}
+          whichItem =  {item}
+          onDelete = {this.deleteGame}
+        />
+      ) // return
+    }.bind(this)); //filteredGames.map
 
     return(
       <div className="application">
@@ -141,7 +198,8 @@ class MainInterface extends React.Component{
           orderBy = {this.state.orderBy}
           orderDir =  {this.state.orderDir}
           onReOrder = {this.reOrder}
-          onSearch= {this.searchApts}
+          onSearch= {this.searchLists}
+          setPane = {this.setPane}
         />
         <div className="interface">
           <Toolbar
@@ -150,20 +208,16 @@ class MainInterface extends React.Component{
           />
           <AddTeam
             handleToggle = {this.toggleAptDisplay}
-            addApt = {this.addItem}
+            addTeam = {this.addItem}
           />
-          <div className="container">
-           <div className="row">
-             <div className="appointments col-sm-12">
-               <h2 className="appointments-headline">List of Teams</h2>
-               <ul className="item-list media-list">{filteredApts}</ul>
-               <button type="button" className="btn btn-success">Add Team</button>
-               <h2 className="appointments-headline">List of Games</h2>
-               <ul className="item-list media-list">{filteredApts}</ul>
-               <button type="button" className="btn btn-success">Add Game</button>
-             </div>{/* col-sm-12 */}
-           </div>{/* row */}
-          </div>{/* container */}
+          <TeamList
+            whichPaneActive = {activePane}
+            teamList = {filteredTeams}
+          />
+          <GameList
+            whichPaneActive = {activePane}
+            gameList = {filteredGames}
+          />
         </div>{/* interface */}
       </div>
     );

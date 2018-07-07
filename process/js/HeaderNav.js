@@ -7,6 +7,7 @@ class HeaderNav extends React.Component{
     this.handleSort = this.handleSort.bind(this);
     this.handleOrder = this.handleOrder.bind(this);
     this.handleSearch = this.handleSearch.bind(this);
+    this.setPane = this.setPane.bind(this);
   }
 
   handleSort(e) {
@@ -21,16 +22,20 @@ class HeaderNav extends React.Component{
     this.props.onSearch(e.target.value);
   } //handleSearch
 
+  setPane(e) {
+    this.props.setPane(e.target.id);
+  } //setPane
+
   render() {
     return(
       <nav className="navigation navbar navbar-default">
         <div className="container-fluid">
           <div className="navbar-header"><a className="navbar-brand" href="#">YellowFruit</a></div>
           <div className="toolbar-item">
-              <span className="toolbar-item-text">Teams</span>
+              <span className="toolbar-item-text"><a href="#" id="teamsPane" onClick={this.setPane}>Teams</a></span>
           </div>
           <div className="toolbar-item">
-              <span className="toolbar-item-text">Games</span>
+              <span className="toolbar-item-text"><a href="#" id="gamesPane" onClick={this.setPane}>Games</a></span>
           </div>
           <div className="navbar-form navbar-right search-appointments">
               <div className="input-group">
