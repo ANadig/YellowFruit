@@ -22,7 +22,7 @@ class TeamListEntry extends React.Component{
           <div className="pet-head">
             <span className="pet-name">{this.props.singleItem.teamName}</span>
           </div>
-          <div className="apt-notes">{this.props.singleItem.roster}</div>
+          <div className="apt-notes">{this.props.singleItem.roster.join(', ')}</div>
         </div>
       </li>
     )

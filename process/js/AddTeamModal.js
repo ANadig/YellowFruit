@@ -31,7 +31,7 @@ class AddTeamModal extends React.Component{
     e.preventDefault();
     var tempItem = {
       teamName: this.inputTeamName.value,
-      roster: this.inputTmRoster.value,
+      roster: this.inputTmRoster.value.split('\n')
     } //tempitems
 
     this.props.addTeam(tempItem);
