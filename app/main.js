@@ -49,7 +49,7 @@ app.on('ready', function() {
 
   menuTemplate = [
     {
-      label: 'Wisdom Pet',
+      label: 'YellowFruit',
       submenu: [
         {
           label: 'About this App',

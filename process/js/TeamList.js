@@ -2,9 +2,18 @@ var React = require('react');
 
 class TeamList extends React.Component{
 
+  constructor(props) {
+    super(props);
+    this.addTeam = this.addTeam.bind(this);
+  }
+
+  addTeam () {
+    this.props.handleToggle();
+  }
+
   render () {
     if (this.props.whichPaneActive != 'teamsPane') {
-      return ()
+      return null;
     }
     return(
       <div className="container">
@@ -12,7 +21,7 @@ class TeamList extends React.Component{
          <div className="appointments col-sm-12">
            <h2 className="appointments-headline">List of Teams</h2>
            <ul className="item-list media-list">{this.props.teamList}</ul>
-           <button type="button" className="btn btn-success">Add Team</button>
+           <button type="button" className="btn btn-success" onClick={this.addTeam}>Add Team</button>
          </div>
        </div>
       </div>

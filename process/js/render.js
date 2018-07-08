@@ -11,9 +11,11 @@ var ipc = electron.ipcRenderer;
 var React = require('react');
 var ReactDOM = require('react-dom');
 var TeamListEntry = require('./TeamListEntry');
+var GameListEntry = require('./GameListEntry');
 var Toolbar = require('./Toolbar');
 var HeaderNav = require('./HeaderNav');
-var AddTeam = require('./AddTeam');
+var AddTeamModal = require('./AddTeamModal');
+var AddGameModal = require('./AddGameModal');
 var TeamList = require('./TeamList');
 var GameList = require('./GameList');
 
@@ -22,7 +24,8 @@ class MainInterface extends React.Component{
   constructor(props) {
     super(props);
     this.state = {
-      aptBodyVisible: false,
+      TmWindowVisible: false,
+      GmWindowVisible: false,
       orderBy: 'petName',
       orderDir: 'asc',
       queryText: '',
@@ -30,9 +33,11 @@ class MainInterface extends React.Component{
       myGames: loadGames,
       activePane: 'teamsPane'  //either 'teams' or 'games'
     };
-    this.toggleAptDisplay = this.toggleAptDisplay.bind(this);
+    this.toggleTmAddWindow = this.toggleTmAddWindow.bind(this);
+    this.toggleGmAddWindow = this.toggleGmAddWindow.bind(this);
     this.showAbout = this.showAbout.bind(this);
-    this.addItem = this.addItem.bind(this);
+    this.addTeam = this.addTeam.bind(this);
+    this.addGame = this.addGame.bind(this);
     this.deleteTeam = this.deleteTeam.bind(this);
     this.deleteGame = this.deleteGame.bind(this);
     this.reOrder = this.reOrder.bind(this);
@@ -42,13 +47,13 @@ class MainInterface extends React.Component{
 
   componentDidMount() {
     ipc.on('addAppointment', function(event,message) {
-      this.toggleAptDisplay();
+      this.toggleTmAddWindow();
     }.bind(this));
   } //componentDidMount
 
   componentWillUnmount() {
     ipc.removeListener('addAppointment', function(event,message) {
-      this.toggleAptDisplay();
+      this.toggleTmAddWindow();
     }.bind(this));
   } //componentWillUnmount
 
@@ -65,25 +70,41 @@ class MainInterface extends React.Component{
     });//writeFile - games
   } //componentDidUpdate
 
-  toggleAptDisplay() {
-    var tempVisibility = !this.state.aptBodyVisible;
+  toggleTmAddWindow() {
+    var tempVisibility = !this.state.TmWindowVisible;
     this.setState({
-      aptBodyVisible: tempVisibility
+      TmWindowVisible: tempVisibility
     }); //setState
-  } //toggleAptDisplay
+  } //toggleTmAddWindow
+
+  toggleGmAddWindow() {
+    var tempVisibility = !this.state.GmWindowVisible;
+    this.setState({
+      GmWindowVisible: tempVisibility
+    }); //setState
+  } //toggleGmAddWindow
 
   showAbout() {
     ipc.sendSync('openInfoWindow');
   } //showAbout
 
-  addItem(tempItem) {
-    var tempApts = this.state.myTeams;
-    tempApts.push(tempItem);
+  addTeam(tempItem) {
+    var tempTms = this.state.myTeams;
+    tempTms.push(tempItem);
     this.setState({
-      myTeams: tempApts,
-      aptBodyVisible: false
+      myTeams: tempTms,
+      TmWindowVisible: false
     }) //setState
-  } //addItem
+  } //addTeam
+
+  addGame(tempItem) {
+    var tempGms = this.state.myGames;
+    tempGms.push(tempItem);
+    this.setState({
+      myGames: tempGms,
+      GmWindowVisible: false
+    }) //setState
+  } //addTeam
 
   deleteTeam(item) {
     var allTeams = this.state.myTeams;
@@ -130,10 +151,15 @@ class MainInterface extends React.Component{
     var myGames = this.state.myGames;
     var activePane = this.state.activePane;
 
-    if(this.state.aptBodyVisible === true) {
-      $('#addAppointment').modal('show');
+    if(this.state.TmWindowVisible === true) {
+      $('#addTeam').modal('show');
     } else {
-      $('#addAppointment').modal('hide');
+      $('#addTeam').modal('hide');
+    }
+    if(this.state.GmWindowVisible === true) {
+      $('#addGame').modal('show');
+    } else {
+      $('#addGame').modal('hide');
     }
 
     if (activePane == 'teamsPane') {
@@ -184,7 +210,7 @@ class MainInterface extends React.Component{
     }.bind(this)); //filteredTeams.map
     filteredGames=filteredGames.map(function(item, index) {
       return(
-        <TeamListEntry key = {index}
+        <GameListEntry key = {index}
           singleItem = {item}
           whichItem =  {item}
           onDelete = {this.deleteGame}
@@ -203,20 +229,26 @@ class MainInterface extends React.Component{
         />
         <div className="interface">
           <Toolbar
-            handleToggle = {this.toggleAptDisplay}
+            handleToggle = {this.toggleTmAddWindow}
             handleAbout = {this.showAbout}
           />
-          <AddTeam
-            handleToggle = {this.toggleAptDisplay}
-            addTeam = {this.addItem}
+          <AddTeamModal
+            handleToggle = {this.toggleTmAddWindow}
+            addTeam = {this.addTeam}
+          />
+          <AddGameModal
+            handleToggle = {this.toggleGmAddWindow}
+            addGame = {this.addGame}
           />
           <TeamList
             whichPaneActive = {activePane}
             teamList = {filteredTeams}
+            handleToggle = {this.toggleTmAddWindow}
           />
           <GameList
             whichPaneActive = {activePane}
             gameList = {filteredGames}
+            handleToggle = {this.toggleGmAddWindow}
           />
         </div>{/* interface */}
       </div>
