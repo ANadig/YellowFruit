@@ -228,10 +228,6 @@ class MainInterface extends React.Component{
           setPane = {this.setPane}
         />
         <div className="interface">
-          <Toolbar
-            handleToggle = {this.toggleTmAddWindow}
-            handleAbout = {this.showAbout}
-          />
           <AddTeamModal
             handleToggle = {this.toggleTmAddWindow}
             addTeam = {this.addTeam}
