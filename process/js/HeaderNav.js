@@ -44,9 +44,8 @@ class HeaderNav extends React.Component{
                   <button type="button" className="btn btn-info dropdown-toggle"
                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Sort by: <span className="caret"></span></button>
                     <ul className="dropdown-menu dropdown-menu-right">
-                      <li><a href="#" id="petName" onClick={this.handleSort}>Pet Name {(this.props.orderBy === 'petName') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
-                      <li><a href="#" id="aptDate" onClick={this.handleSort}>Date {(this.props.orderBy === 'aptDate') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
-                      <li><a href="#" id="ownerName" onClick={this.handleSort}>Owner  {(this.props.orderBy === 'ownerName') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
+                      <li><a href="#" id="teamName" onClick={this.handleSort}>Team Name {(this.props.orderBy === 'teamName') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
+                      <li><a href="#" id="roster" onClick={this.handleSort}>Roster {(this.props.orderBy === 'roster') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
                       <li role="separator" className="divider"></li>
                       <li><a href="#" id="asc" onClick={this.handleOrder}>Asc {(this.props.orderDir === 'asc') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
                       <li><a href="#" id="desc" onClick={this.handleOrder}>Desc {(this.props.orderDir === 'desc') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>

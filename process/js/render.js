@@ -26,7 +26,7 @@ class MainInterface extends React.Component{
     this.state = {
       TmWindowVisible: false,
       GmWindowVisible: false,
-      orderBy: 'petName',
+      orderBy: 'teamName',
       orderDir: 'asc',
       queryText: '',
       myTeams: loadTeams,
@@ -167,10 +167,8 @@ class MainInterface extends React.Component{
       //Filter list of teams
       for (var i = 0; i < myTeams.length; i++) {
         if (
-          (myTeams[i].petName.toLowerCase().indexOf(queryText)!=-1) ||
-          (myTeams[i].ownerName.toLowerCase().indexOf(queryText)!=-1) ||
-          (myTeams[i].aptDate.toLowerCase().indexOf(queryText)!=-1) ||
-          (myTeams[i].aptNotes.toLowerCase().indexOf(queryText)!=-1)
+          (myTeams[i].teamName.toLowerCase().indexOf(queryText)!=-1) ||
+          (myTeams[i].roster.toLowerCase().indexOf(queryText)!=-1)
         ) {
           filteredTeams.push(myTeams[i]);
         }
@@ -193,9 +191,10 @@ class MainInterface extends React.Component{
           filteredGames.push(myGames[i]);
         }
       }
-      filteredGames = _.orderBy(filteredGames, function(item) {
-        return item[orderBy].toLowerCase();
-      }, orderDir); // order array
+      // don't sort games right now
+      // filteredGames = _.orderBy(filteredGames, function(item) {
+      //   return item[orderBy].toLowerCase();
+      // }, orderDir); // order array
     }
 
     //make a react element for each item in the lists

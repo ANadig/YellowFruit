@@ -30,19 +30,14 @@ class AddTeamModal extends React.Component{
   handleAdd(e) {
     e.preventDefault();
     var tempItem = {
-      petName: this.inputPetName.value,
-      ownerName: this.inputPetOwner.value,
-      aptDate: this.inputAptDate.value + ' ' + this.inputAptTime.value,
-      aptNotes: this.inputAptNotes.value,
+      teamName: this.inputTeamName.value,
+      roster: this.inputTmRoster.value,
     } //tempitems
 
     this.props.addTeam(tempItem);
 
-    this.inputPetName.value = '';
-    this.inputPetOwner.value = '';
-    this.inputAptDate.value = formatDate(defaultDate, '-');
-    this.inputAptTime.value = '09:00';
-    this.inputAptNotes.value = '';
+    this.inputTeamName.value = '';
+    this.inputTmRoster.value = '';
 
   } //handleAdd
 
@@ -58,39 +53,17 @@ class AddTeamModal extends React.Component{
 
             <form className="modal-body add-appointment form-horizontal" onSubmit={this.handleAdd}>
               <div className="form-group">
-                <label className="col-sm-3 control-label" htmlFor="petName">Pet Name</label>
+                <label className="col-sm-3 control-label" htmlFor="petName">Team</label>
                 <div className="col-sm-9">
                   <input type="text" className="form-control"
-                    id="petName" ref={(ref) => this.inputPetName = ref } placeholder="Pet's Name" />
+                    id="petName" ref={(ref) => this.inputTeamName = ref } placeholder="Team Name" />
                 </div>
               </div>
               <div className="form-group">
-                <label className="col-sm-3 control-label" htmlFor="petOwner">Pet Owner</label>
-                <div className="col-sm-9">
-                  <input type="text" className="form-control"
-                    id="petOwner"  ref={(ref) => this.inputPetOwner = ref } placeholder="Owner's Name" />
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="col-sm-3 control-label" htmlFor="aptDate">Date</label>
-                <div className="col-sm-9">
-                  <input type="date" className="form-control"
-                    id="aptDate"  ref={(ref) => this.inputAptDate = ref }
-                    defaultValue={formatDate(defaultDate, '-')} />
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="col-sm-3 control-label" htmlFor="aptTime">Time</label>
-                <div className="col-sm-9">
-                  <input type="time" className="form-control"
-                    id="aptTime"  ref={(ref) => this.inputAptTime = ref } defaultValue={'09:00'} />
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="col-sm-3 control-label" htmlFor="aptNotes">Apt. Notes</label>
+                <label className="col-sm-3 control-label" htmlFor="aptNotes">Roster</label>
                 <div className="col-sm-9">
                   <textarea className="form-control" rows="4" cols="50"
-                    id="aptNotes"  ref={(ref) => this.inputAptNotes = ref } placeholder="Appointment Notes"></textarea>
+                    id="aptNotes"  ref={(ref) => this.inputTmRoster = ref } placeholder="One player per line"></textarea>
                 </div>
               </div>
               <div className="form-group">
