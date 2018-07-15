@@ -183,10 +183,8 @@ class MainInterface extends React.Component{
       //Filter list of games
       for (var i = 0; i < myGames.length; i++) {
         if (
-          (myGames[i].petName.toLowerCase().indexOf(queryText)!=-1) ||
-          (myGames[i].ownerName.toLowerCase().indexOf(queryText)!=-1) ||
-          (myGames[i].aptDate.toLowerCase().indexOf(queryText)!=-1) ||
-          (myGames[i].aptNotes.toLowerCase().indexOf(queryText)!=-1)
+          (myGames[i].team1.toLowerCase().indexOf(queryText)!=-1) ||
+          (myGames[i].team2.toLowerCase().indexOf(queryText)!=-1)
         ) {
           filteredGames.push(myGames[i]);
         }
@@ -234,6 +232,7 @@ class MainInterface extends React.Component{
           <AddGameModal
             handleToggle = {this.toggleGmAddWindow}
             addGame = {this.addGame}
+            teamData = {myTeams}
           />
           <TeamList
             whichPaneActive = {activePane}

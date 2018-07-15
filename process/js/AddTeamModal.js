@@ -56,14 +56,16 @@ class AddTeamModal extends React.Component{
                 <label className="col-sm-3 control-label" htmlFor="petName">Team</label>
                 <div className="col-sm-9">
                   <input type="text" className="form-control"
-                    id="petName" name="teamName" onChange={this.handleChange} placeholder="Team Name" />
+                    id="petName" name="teamName" onChange={this.handleChange}
+                    value={this.state.teamName} placeholder="Team Name" />
                 </div>
               </div>
               <div className="form-group">
                 <label className="col-sm-3 control-label" htmlFor="aptNotes">Roster</label>
                 <div className="col-sm-9">
                   <textarea className="form-control" rows="4" cols="50"
-                    id="aptNotes" name="teamRoster" onChange={this.handleChange} placeholder="One player per line"></textarea>
+                    id="aptNotes" name="teamRoster" onChange={this.handleChange}
+                    value={this.state.teamRoster} placeholder="One player per line"></textarea>
                 </div>
               </div>
               <div className="form-group">
