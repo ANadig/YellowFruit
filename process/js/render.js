@@ -168,7 +168,7 @@ class MainInterface extends React.Component{
       for (var i = 0; i < myTeams.length; i++) {
         if (
           (myTeams[i].teamName.toLowerCase().indexOf(queryText)!=-1) ||
-          (myTeams[i].roster.toLowerCase().indexOf(queryText)!=-1)
+          (myTeams[i].roster.join(', ').toLowerCase().indexOf(queryText)!=-1)
         ) {
           filteredTeams.push(myTeams[i]);
         }

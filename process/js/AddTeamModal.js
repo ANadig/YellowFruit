@@ -1,27 +1,26 @@
 var React = require('react');
 
-var defaultDate = new Date();
-defaultDate.setDate(defaultDate.getDate() + 14);
-
-function formatDate(date, divider) {
-  var someday = new Date(date);
-  var month = someday.getUTCMonth() + 1;
-  var day = someday.getUTCDate();
-  var year = someday.getUTCFullYear();
-
-  if (month <= 9) { month = '0' + month; }
-  if (day <= 9) { day = '0' + day; }
-
-  return ('' + year + divider + month + divider + day);
-}
-
 class AddTeamModal extends React.Component{
 
   constructor(props) {
     super(props);
+    this.state = {
+      teamName: '',
+      teamRoster: ''
+    };
     this.toggleTmAddWindow = this.toggleTmAddWindow.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
+    this.handleChange = this.handleChange.bind(this);
   }
+
+  handleChange(e) {
+    const target = e.target;
+    const value = target.value;
+    const name = target.name;
+    var partialState = {};
+    partialState[name] = value;
+    this.setState(partialState);
+  } //handleChange
 
   toggleTmAddWindow() {
     this.props.handleToggle();
@@ -30,15 +29,16 @@ class AddTeamModal extends React.Component{
   handleAdd(e) {
     e.preventDefault();
     var tempItem = {
-      teamName: this.inputTeamName.value,
-      roster: this.inputTmRoster.value.split('\n')
+      teamName: this.state.teamName,
+      roster: this.state.teamRoster.split('\n')
     } //tempitems
 
     this.props.addTeam(tempItem);
 
-    this.inputTeamName.value = '';
-    this.inputTmRoster.value = '';
-
+    this.setState({
+      teamName: '',
+      teamRoster: ''
+    });
   } //handleAdd
 
   render() {
@@ -56,14 +56,14 @@ class AddTeamModal extends React.Component{
                 <label className="col-sm-3 control-label" htmlFor="petName">Team</label>
                 <div className="col-sm-9">
                   <input type="text" className="form-control"
-                    id="petName" ref={(ref) => this.inputTeamName = ref } placeholder="Team Name" />
+                    id="petName" name="teamName" onChange={this.handleChange} placeholder="Team Name" />
                 </div>
               </div>
               <div className="form-group">
                 <label className="col-sm-3 control-label" htmlFor="aptNotes">Roster</label>
                 <div className="col-sm-9">
                   <textarea className="form-control" rows="4" cols="50"
-                    id="aptNotes"  ref={(ref) => this.inputTmRoster = ref } placeholder="One player per line"></textarea>
+                    id="aptNotes" name="teamRoster" onChange={this.handleChange} placeholder="One player per line"></textarea>
                 </div>
               </div>
               <div className="form-group">

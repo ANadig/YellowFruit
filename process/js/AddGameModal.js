@@ -1,27 +1,32 @@
 var React = require('react');
 
-var defaultDate = new Date();
-defaultDate.setDate(defaultDate.getDate() + 14);
-
-function formatDate(date, divider) {
-  var someday = new Date(date);
-  var month = someday.getUTCMonth() + 1;
-  var day = someday.getUTCDate();
-  var year = someday.getUTCFullYear();
-
-  if (month <= 9) { month = '0' + month; }
-  if (day <= 9) { day = '0' + day; }
-
-  return ('' + year + divider + month + divider + day);
-}
-
 class AddGameModal extends React.Component{
 
   constructor(props) {
     super(props);
+    this.state = {
+      round: '',
+      team1: '',
+      team2: '',
+      score1: '',
+      score2: '',
+      players1: [],
+      players2: [],
+      notes: ''
+    };
     this.toggleGmAddWindow = this.toggleGmAddWindow.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
-  }
+    this.handleChange = this.handleChange.bind(this);
+  } //constructor
+
+  handleChange(e) {
+    const target = e.target;
+    const value = target.value;
+    const name = target.name;
+    var partialState = {};
+    partialState[name] = value;
+    this.setState(partialState);
+  } //handleChange
 
   toggleGmAddWindow() {
     this.props.handleToggle();
@@ -49,7 +54,7 @@ class AddGameModal extends React.Component{
   render() {
     return(
       <div className="modal fade" id="addGame" tabIndex="-1" role="dialog">
-        <div className="modal-dialog" role="document">
+        <div className="modal-dialog modal-lg" role="document">
           <div className="modal-content">
             <div className="modal-header">
               <button type="button" className="close" onClick={this.toggleGmAddWindow} aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -58,39 +63,52 @@ class AddGameModal extends React.Component{
 
             <form className="modal-body add-appointment form-horizontal" onSubmit={this.handleAdd}>
               <div className="form-group">
-                <label className="col-sm-3 control-label" htmlFor="petName">Pet Name</label>
-                <div className="col-sm-9">
-                  <input type="text" className="form-control"
-                    id="petName" ref={(ref) => this.inputPetName = ref } placeholder="Pet's Name" />
-                </div>
+                <select id="tm1Name" name="team1" onChange={this.handleChange}>
+                  <option value="a">First Option</option>
+                  <option value="b">Second Option</option>
+                </select>
+                <input type="number" className="form-control"
+                  id="tm1Score" name="score1" onChange={this.handleChange}/>
+                <select id="tm2Name" name="team2" onChange={this.handleChange}>
+                  <option value="a">First Option</option>
+                  <option value="b">Second Option</option>
+                </select>
+                <input type="number" className="form-control"
+                  id="tm2Score" name="score2" onChange={this.handleChange}/>
               </div>
+
+              <table><tbody>
+                <tr>
+                  <th/>
+                  <th>15</th>
+                  <th>10</th>
+                  <th>-5</th>
+                </tr>
+                <tr>
+                  <td>Player 1</td>
+                  <td>
+                    <input type="number" className="form-control"
+                      id="tm1Score" size="3" ref={(ref) => this.inputP1Pwr = ref }/>
+                  </td>
+                  <td>
+                    <input type="number" className="form-control"
+                      id="tm1Score" ref={(ref) => this.inputP1Get = ref }/>
+                  </td>
+                  <td>
+                    <input type="number" className="form-control"
+                      id="tm1Score" ref={(ref) => this.inputP1Neg = ref }/>
+                  </td>
+                </tr>
+
+              </tbody>
+              </table>
+
+
               <div className="form-group">
-                <label className="col-sm-3 control-label" htmlFor="petOwner">Pet Owner</label>
-                <div className="col-sm-9">
-                  <input type="text" className="form-control"
-                    id="petOwner"  ref={(ref) => this.inputPetOwner = ref } placeholder="Owner's Name" />
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="col-sm-3 control-label" htmlFor="aptDate">Date</label>
-                <div className="col-sm-9">
-                  <input type="date" className="form-control"
-                    id="aptDate"  ref={(ref) => this.inputAptDate = ref }
-                    defaultValue={formatDate(defaultDate, '-')} />
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="col-sm-3 control-label" htmlFor="aptTime">Time</label>
-                <div className="col-sm-9">
-                  <input type="time" className="form-control"
-                    id="aptTime"  ref={(ref) => this.inputAptTime = ref } defaultValue={'09:00'} />
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="col-sm-3 control-label" htmlFor="aptNotes">Apt. Notes</label>
+                <label className="col-sm-3 control-label" htmlFor="aptNotes">Game Notes</label>
                 <div className="col-sm-9">
                   <textarea className="form-control" rows="4" cols="50"
-                    id="aptNotes"  ref={(ref) => this.inputAptNotes = ref } placeholder="Appointment Notes"></textarea>
+                    id="aptNotes"  name="notes" onChange={this.handleChange} placeholder="Notes about this game"></textarea>
                 </div>
               </div>
               <div className="form-group">
@@ -102,7 +120,7 @@ class AddGameModal extends React.Component{
                 </div>
               </div>
             </form>
-          </div>
+          </div> /* modal-content */
         </div>
       </div>
     ) //return
