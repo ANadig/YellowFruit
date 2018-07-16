@@ -20,6 +20,7 @@ class AddGameModal extends React.Component{
     this.toggleGmAddWindow = this.toggleGmAddWindow.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.updatePlayer = this.updatePlayer.bind(this);
   } //constructor
 
   handleChange(e) {
@@ -31,7 +32,41 @@ class AddGameModal extends React.Component{
     this.setState(partialState);
   } //handleChange
 
+  updatePlayer(whichTeam, index, whichStat, value, playerName){
+    var tempAry = [];
+    if(whichTeam == 1) {
+      tempAry = this.state.players1;
+      if (tempAry[index] == undefined) {
+        tempAry[index] = {'name': playerName};
+      }
+      tempAry[index][whichStat] = value;
+      this.setState({
+        players1: tempAry
+      });
+    }
+    else if(whichTeam == 2) {
+      tempAry = this.state.players2;
+      if (tempAry[index] == undefined) {
+        tempAry[index] = {'name': playerName};
+      }
+      tempAry[index][whichStat] = value;
+      this.setState({
+        players2: tempAry
+      });
+    }
+  } // updatePlayer
+
   toggleGmAddWindow() {
+    this.setState({
+      round: '',
+      team1: 'nullTeam',
+      team2: 'nullTeam',
+      score1: '',
+      score2: '',
+      players1: [],
+      players2: [],
+      notes: ''
+    });
     this.props.handleToggle();
   }
 
@@ -83,10 +118,13 @@ class AddGameModal extends React.Component{
       team1PlayerRows = team1Obj.roster.map(function(item, index){
         return(
           <PlayerRow key={index}
+            rowNo={index}
             playerName={item}
+            whichTeam={1}
+            updatePlayer={this.updatePlayer}
           />
         )
-      });
+      }.bind(this));
     }
 
     if(this.state.team2 != 'nullTeam' && this.state.team2 != '') {
@@ -96,10 +134,13 @@ class AddGameModal extends React.Component{
       team2PlayerRows = team2Obj.roster.map(function(item, index){
         return(
           <PlayerRow key={index}
+            rowNo={index}
             playerName={item}
+            whichTeam={2}
+            updatePlayer={this.updatePlayer}
           />
         )
-      });
+      }.bind(this));
     }
 
     return(
@@ -137,6 +178,7 @@ class AddGameModal extends React.Component{
                 <tbody>
                   <tr>
                     <th/>
+                    <th>TUH</th>
                     <th>15</th>
                     <th>10</th>
                     <th>-5</th>
@@ -149,6 +191,7 @@ class AddGameModal extends React.Component{
                 <tbody>
                   <tr>
                     <th/>
+                    <th>TUH</th>
                     <th>15</th>
                     <th>10</th>
                     <th>-5</th>
