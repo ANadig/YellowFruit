@@ -1,6 +1,6 @@
 var $ = jQuery = require('jquery');
 var _ = require('lodash');
-var bootstrap = require('bootstrap');
+var materialize = require('materialize-css');
 var fs = eRequire('fs');
 var loadTeams = JSON.parse(fs.readFileSync(teamDataLocation));
 var loadGames = JSON.parse(fs.readFileSync(gameDataLocation));
@@ -151,15 +151,12 @@ class MainInterface extends React.Component{
     var myGames = this.state.myGames;
     var activePane = this.state.activePane;
 
+    $('.modal').modal(); //initialize all modals
     if(this.state.TmWindowVisible === true) {
-      $('#addTeam').modal('show');
-    } else {
-      $('#addTeam').modal('hide');
+      $('#addTeam').modal('open');
     }
     if(this.state.GmWindowVisible === true) {
-      $('#addGame').modal('show');
-    } else {
-      $('#addGame').modal('hide');
+      $('#addGame').modal('open');
     }
 
     if (activePane == 'teamsPane') {

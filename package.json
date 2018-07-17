@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "QB Stats Program",
   "scripts": {
-    "pack": "electron-packager . 'YellowFruit' --out ~/Desktop/WisdomPet --overwrite --icon ./icons/icon"
+    "pack": "electron-packager . 'YellowFruit' --out ~/Desktop/YellowFruit --overwrite --icon ./icons/icon"
   },
   "main": "app/main.js",
   "devDependencies": {
@@ -20,7 +20,7 @@
   "dependencies": {
     "popper.js": "^1.14.3",
     "jquery": "^3.3.1",
-    "bootstrap": "^4.1.1",
+    "materialize-css": "^1.0.0",
     "lodash": "^4.17.10",
     "electron-reload": "^1.2.5"
   }

@@ -28,35 +28,42 @@ class HeaderNav extends React.Component{
 
   render() {
     return(
-      <nav className="navigation navbar navbar-default">
-        <div className="container-fluid">
-          <div className="navbar-header"><a className="navbar-brand" href="#">YellowFruit</a></div>
-          <div className="toolbar-item">
-              <span className="toolbar-item-text"><a href="#" id="teamsPane" onClick={this.setPane}>Teams</a></span>
-          </div>
-          <div className="toolbar-item">
-              <span className="toolbar-item-text"><a href="#" id="gamesPane" onClick={this.setPane}>Games</a></span>
-          </div>
-          <div className="navbar-form navbar-right search-appointments">
-              <div className="input-group">
-                <input id="SearchApts" onChange={this.handleSearch} placeholder="Search" autoFocus type="text" className="form-control" aria-label="Search Appointments" />
-                <div className="input-group-btn">
-                  <button type="button" className="btn btn-info dropdown-toggle"
-                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Sort by: <span className="caret"></span></button>
-                    <ul className="dropdown-menu dropdown-menu-right">
-                      <li><a href="#" id="teamName" onClick={this.handleSort}>Team Name {(this.props.orderBy === 'teamName') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
-                      <li><a href="#" id="roster" onClick={this.handleSort}>Roster {(this.props.orderBy === 'roster') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
-                      <li role="separator" className="divider"></li>
-                      <li><a href="#" id="asc" onClick={this.handleOrder}>Asc {(this.props.orderDir === 'asc') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
-                      <li><a href="#" id="desc" onClick={this.handleOrder}>Desc {(this.props.orderDir === 'desc') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
-                    </ul>
-                </div>{/* input-group-btn */}
-            </div>{/* input-group */}
-          </div>{/* navbar-form */}
-        </div>{/* container-fluid */}
+      <nav>
+        <div className="nav-wrapper">
+          <a className="brand-logo" href="#">YellowFruit</a>
+          <ul id="nav-mobile" className="right">
+            <li><a href="#" id="teamsPane" onClick={this.setPane}>Teams</a></li>
+            <li><a href="#" id="gamesPane" onClick={this.setPane}>Games</a></li>
+            <li>
+              <form>
+                <div className="input-field">
+                  <input id="search" type="search" onChange={this.handleSearch} placeholder="Search" autoFocus type="text" className="form-control" aria-label="Search Appointments" />
+                </div>
+              </form>
+            </li>
+          </ul>
+        </div>
       </nav>
+
     ) // return
   }//render
 }; //HeaderNav
 
 module.exports = HeaderNav;
+
+
+/*  TODO: re-implement sorting
+
+    <div className="input-group">
+    <div className="input-group-btn">
+      <button type="button" className="btn btn-info dropdown-toggle"
+        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Sort by: <span className="caret"></span></button>
+        <ul className="dropdown-menu dropdown-menu-right">
+          <li><a href="#" id="teamName" onClick={this.handleSort}>Team Name {(this.props.orderBy === 'teamName') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
+          <li><a href="#" id="roster" onClick={this.handleSort}>Roster {(this.props.orderBy === 'roster') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
+          <li role="separator" className="divider"></li>
+          <li><a href="#" id="asc" onClick={this.handleOrder}>Asc {(this.props.orderDir === 'asc') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
+          <li><a href="#" id="desc" onClick={this.handleOrder}>Desc {(this.props.orderDir === 'desc') ? <span className="glyphicon glyphicon-ok"></span>:null}</a></li>
+        </ul>
+    </div>
+  </div> */

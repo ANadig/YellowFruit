@@ -43,7 +43,7 @@ class AddTeamModal extends React.Component{
 
   render() {
     return(
-      <div className="modal fade" id="addTeam" tabIndex="-1" role="dialog">
+      <div className="modal" id="addTeam" tabIndex="-1" role="dialog">
         <div className="modal-dialog" role="document">
           <div className="modal-content">
             <div className="modal-header">
