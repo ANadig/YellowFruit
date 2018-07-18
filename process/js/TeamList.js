@@ -9,7 +9,7 @@ class TeamList extends React.Component{
   }
 
   addTeam () {
-    this.props.handleToggle();
+    this.props.openModal();
   }
 
 

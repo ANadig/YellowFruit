@@ -8,7 +8,7 @@ class AddTeamModal extends React.Component{
       teamName: '',
       teamRoster: ''
     };
-    this.toggleTmAddWindow = this.toggleTmAddWindow.bind(this);
+    this.resetState = this.resetState.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
     this.handleChange = this.handleChange.bind(this);
   }
@@ -22,8 +22,11 @@ class AddTeamModal extends React.Component{
     this.setState(partialState);
   } //handleChange
 
-  toggleTmAddWindow() {
-    this.props.handleToggle();
+  resetState() {
+    this.setState({
+      teamName: '',
+      teamRoster: ''
+    });
   }
 
   handleAdd(e) {
@@ -35,16 +38,21 @@ class AddTeamModal extends React.Component{
 
     this.props.addTeam(tempItem);
 
-    this.setState({
-      teamName: '',
-      teamRoster: ''
-    });
+    this.resetState();
   } //handleAdd
+
+  componentDidUpdate(prevProps) {
+    if(this.props.forceReset) {
+      this.resetState();
+      //seting mainInterface's forceReset to false will avoid infinite loop
+      this.props.onForceReset();
+    }
+  }
 
   render() {
     return(
       <div className="modal" id="addTeam">
-        <button type="button" className="modal-close" onClick={this.toggleTmAddWindow}><span aria-hidden="true">&times;</span></button>
+        <button type="button" className="modal-close"><span aria-hidden="true">&times;</span></button>
         <h4>Add a Team</h4>
 
         <form onSubmit={this.handleAdd}>
@@ -56,7 +64,7 @@ class AddTeamModal extends React.Component{
           <textarea rows="4" cols="50"
             id="aptNotes" name="teamRoster" onChange={this.handleChange}
             value={this.state.teamRoster} placeholder="One player per line"></textarea>
-          <button type="button" className="modal-close"  onClick={this.toggleTmAddWindow}>Cancel</button>&nbsp;
+          <button type="button" className="modal-close">Cancel</button>&nbsp;
           <button type="submit" className="modal-close">Add Team</button>
         </form>
       </div>

@@ -8,7 +8,7 @@ class GameList extends React.Component{
   }
 
   addGame () {
-    this.props.handleToggle();
+    this.props.openModal();
   }
 
   render () {

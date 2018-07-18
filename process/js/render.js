@@ -24,18 +24,20 @@ class MainInterface extends React.Component{
   constructor(props) {
     super(props);
     this.state = {
-      TmWindowVisible: false,
-      GmWindowVisible: false,
+      tmWindowVisible: false,
+      gmWindowVisible: false,
       orderBy: 'teamName',
       orderDir: 'asc',
       queryText: '',
       myTeams: loadTeams,
       myGames: loadGames,
-      activePane: 'teamsPane'  //either 'teams' or 'games'
+      activePane: 'teamsPane',  //either 'teamsPane' or 'gamesPane'
+      forceResetForms: false
     };
-    this.toggleTmAddWindow = this.toggleTmAddWindow.bind(this);
-    this.toggleGmAddWindow = this.toggleGmAddWindow.bind(this);
-    this.closeModals = this.closeModals.bind(this);
+    this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
+    this.openGameAddWindow = this.openGameAddWindow.bind(this);
+    this.onModalClose = this.onModalClose.bind(this);
+    this.onForceReset = this.onForceReset.bind(this);
     this.showAbout = this.showAbout.bind(this);
     this.addTeam = this.addTeam.bind(this);
     this.addGame = this.addGame.bind(this);
@@ -48,13 +50,13 @@ class MainInterface extends React.Component{
 
   componentDidMount() {
     ipc.on('addAppointment', function(event,message) {
-      this.toggleTmAddWindow();
+      this.openTeamAddWindow();
     }.bind(this));
   } //componentDidMount
 
   componentWillUnmount() {
     ipc.removeListener('addAppointment', function(event,message) {
-      this.toggleTmAddWindow();
+      this.openTeamAddWindow();
     }.bind(this));
   } //componentWillUnmount
 
@@ -71,24 +73,29 @@ class MainInterface extends React.Component{
     });//writeFile - games
   } //componentDidUpdate
 
-  toggleTmAddWindow() {
-    var tempVisibility = !this.state.TmWindowVisible;
+  openTeamAddWindow() {
     this.setState({
-      TmWindowVisible: tempVisibility
-    }); //setState
-  } //toggleTmAddWindow
+      tmWindowVisible: true
+    });
+  }
 
-  toggleGmAddWindow() {
-    var tempVisibility = !this.state.GmWindowVisible;
+  openGameAddWindow() {
     this.setState({
-      GmWindowVisible: tempVisibility
-    }); //setState
-  } //toggleGmAddWindow
+      gmWindowVisible: true
+    });
+  }
 
-  closeModals() {
+  onModalClose() {
     this.setState({
-      TmWindowVisible: false,
-      GmWindowVisible: false
+      tmWindowVisible: false,
+      gmWindowVisible: false,
+      forceResetForms: true
+    });
+  }
+
+  onForceReset() {
+    this.setState({
+      forceResetForms: false
     });
   }
 
@@ -101,7 +108,7 @@ class MainInterface extends React.Component{
     tempTms.push(tempItem);
     this.setState({
       myTeams: tempTms,
-      TmWindowVisible: false
+      tmWindowVisible: false
     }) //setState
   } //addTeam
 
@@ -110,7 +117,7 @@ class MainInterface extends React.Component{
     tempGms.push(tempItem);
     this.setState({
       myGames: tempGms,
-      GmWindowVisible: false
+      gmWindowVisible: false
     }) //setState
   } //addTeam
 
@@ -159,11 +166,13 @@ class MainInterface extends React.Component{
     var myGames = this.state.myGames;
     var activePane = this.state.activePane;
 
-    $('.modal').modal({onCloseStart: this.closeModals}); //initialize all modals
-    if(this.state.TmWindowVisible === true) {
+    $('.modal').modal({
+      onCloseEnd: this.onModalClose
+    }); //initialize all modals
+    if(this.state.tmWindowVisible === true) {
       $('#addTeam').modal('open');
     }
-    if(this.state.GmWindowVisible === true) {
+    if(this.state.gmWindowVisible === true) {
       $('#addGame').modal('open');
     }
 
@@ -231,23 +240,25 @@ class MainInterface extends React.Component{
         />
         <div className="interface">
           <AddTeamModal
-            handleToggle = {this.toggleTmAddWindow}
             addTeam = {this.addTeam}
+            forceReset = {this.state.forceResetForms}
+            onForceReset = {this.onForceReset}
           />
           <AddGameModal
-            handleToggle = {this.toggleGmAddWindow}
             addGame = {this.addGame}
             teamData = {myTeams}
+            forceReset = {this.state.forceResetForms}
+            onForceReset = {this.onForceReset}
           />
           <TeamList
             whichPaneActive = {activePane}
             teamList = {filteredTeams}
-            handleToggle = {this.toggleTmAddWindow}
+            openModal = {this.openTeamAddWindow}
           />
           <GameList
             whichPaneActive = {activePane}
             gameList = {filteredGames}
-            handleToggle = {this.toggleGmAddWindow}
+            openModal = {this.openGameAddWindow}
           />
         </div>{/* interface */}
       </div>
