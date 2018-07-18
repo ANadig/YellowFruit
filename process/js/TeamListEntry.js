@@ -13,7 +13,7 @@ class TeamListEntry extends React.Component{
 
   render() {
     return(
-      <li className="pet-item media">
+      <li className="pet-item">
         <div className="media-left">
           <a className="pet-delete btn" onClick={this.handleDelete}>
           <i className="material-icons">delete</i></a>

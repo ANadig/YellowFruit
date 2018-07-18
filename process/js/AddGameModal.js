@@ -144,82 +144,76 @@ class AddGameModal extends React.Component{
     }
 
     return(
-      <div className="modal fade" id="addGame" tabIndex="-1" role="dialog">
-        <div className="modal-dialog modal-lg" role="document">
-          <div className="modal-content">
-            <div className="modal-header">
-              <button type="button" className="close" onClick={this.toggleGmAddWindow} aria-label="Close"><span aria-hidden="true">&times;</span></button>
-              <h4 className="modal-title">Add a Game</h4>
-            </div>
+      <div className="modal" id="addGame">
+        <button type="button" className="modal-close" onClick={this.toggleGmAddWindow} aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4>Add a Game</h4>
 
-            <form className="modal-body add-appointment form-horizontal" onSubmit={this.handleAdd}>
-              <div className="form-group">
-                <label className="col-sm-3 control-label" htmlFor="roundInput">Round</label>
-                <input type="number" className="form-control" id="roundInput"
-                  name="round" value={this.state.round} onChange={this.handleChange}/>
-              </div>
-              <div className="form-group">
-                <select id="tm1Name" name="team1" value={this.state.team1} onChange={this.handleChange}>
-                  <option value="nullTeam">Select...</option>
-                  {teamOptions}
-                </select>
-                <input type="number" className="form-control"
-                  id="tm1Score" name="score1" value={this.state.score1} onChange={this.handleChange}/>
-                <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleChange}>
-                  <option value="nullTeam">Select...</option>
-                  {teamOptions}
-                </select>
-                <input type="number" className="form-control"
-                  id="tm2Score" name="score2" value={this.state.score2} onChange={this.handleChange}/>
-              </div>
-
-
-              <table>
-                <tbody>
-                  <tr>
-                    <th/>
-                    <th>TUH</th>
-                    <th>15</th>
-                    <th>10</th>
-                    <th>-5</th>
-                  </tr>
-                  {team1PlayerRows}
-                </tbody>
-              </table>
-
-              <table>
-                <tbody>
-                  <tr>
-                    <th/>
-                    <th>TUH</th>
-                    <th>15</th>
-                    <th>10</th>
-                    <th>-5</th>
-                  </tr>
-                  {team2PlayerRows}
-                </tbody>
-              </table>
-
-
-              <div className="form-group">
-                <label className="col-sm-3 control-label" htmlFor="aptNotes">Game Notes</label>
-                <div className="col-sm-9">
-                  <textarea className="form-control" rows="4" cols="50"
-                    id="aptNotes"  name="notes" onChange={this.handleChange}
-                    value={this.state.notes} placeholder="Notes about this game"></textarea>
-                </div>
-              </div>
-              <div className="form-group">
-                <div className="col-sm-offset-3 col-sm-9">
-                  <div className="pull-right">
-                    <button type="button" className="btn btn-default"  onClick={this.toggleGmAddWindow}>Cancel</button>&nbsp;
-                    <button type="submit" className="btn btn-primary">Add Game</button>
-                  </div>
-                </div>
-              </div>
-            </form>
+        <form className="modal-body add-appointment form-horizontal" onSubmit={this.handleAdd}>
+          <div className="form-group">
+            <label className="col-sm-3 control-label" htmlFor="roundInput">Round</label>
+            <input type="number" className="form-control" id="roundInput"
+              name="round" value={this.state.round} onChange={this.handleChange}/>
           </div>
-        </div>
+          <div className="form-group">
+            <select id="tm1Name" name="team1" value={this.state.team1} onChange={this.handleChange}>
+              <option value="nullTeam">Select...</option>
+              {teamOptions}
+            </select>
+            <input type="number" className="form-control"
+              id="tm1Score" name="score1" value={this.state.score1} onChange={this.handleChange}/>
+            <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleChange}>
+              <option value="nullTeam">Select...</option>
+              {teamOptions}
+            </select>
+            <input type="number" className="form-control"
+              id="tm2Score" name="score2" value={this.state.score2} onChange={this.handleChange}/>
+          </div>
+
+
+          <table>
+            <tbody>
+              <tr>
+                <th/>
+                <th>TUH</th>
+                <th>15</th>
+                <th>10</th>
+                <th>-5</th>
+              </tr>
+              {team1PlayerRows}
+            </tbody>
+          </table>
+
+          <table>
+            <tbody>
+              <tr>
+                <th/>
+                <th>TUH</th>
+                <th>15</th>
+                <th>10</th>
+                <th>-5</th>
+              </tr>
+              {team2PlayerRows}
+            </tbody>
+          </table>
+
+
+          <div className="form-group">
+            <label className="col-sm-3 control-label" htmlFor="aptNotes">Game Notes</label>
+            <div className="col-sm-9">
+              <textarea className="form-control" rows="4" cols="50"
+                id="aptNotes"  name="notes" onChange={this.handleChange}
+                value={this.state.notes} placeholder="Notes about this game"></textarea>
+            </div>
+          </div>
+          <div className="form-group">
+            <div className="col-sm-offset-3 col-sm-9">
+              <div className="pull-right">
+                <button type="button" className="modal-close"  onClick={this.toggleGmAddWindow}>Cancel</button>&nbsp;
+                <button type="submit" className="modal-close">Add Game</button>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
     ) //return
   } //render

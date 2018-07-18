@@ -9611,62 +9611,6 @@ h6 {
   margin: 0;
 }
 
-.navbar {
-  margin-bottom: 0;
-  border-radius: 0;
-  background-image: url("../images/wisdompetlogo.svg");
-  background-repeat: no-repeat;
-  background-size: 40px;
-  background-position: 10px;
-}
-
-@media only screen
-  and (max-width: 768px) {
-  .navbar-header {
-    display: none;
-  }
-
-  .navbar {
-    background-image: none;
-  }
-}
-
-.navbar-default .navbar-brand {
-  color: white;
-  padding-left: 60px;
-}
-
-.navbar-default {
-  background-color: #194759;
-  border: none;
-}
-
-.navbar-brand {
-  font-weight: bold;
-}
-
-.navbar-form {
-  border: none;
-  box-shadow: none;
-}
-
-.navbar-form .form-control {
-  border: none;
-  border-radius: 4px;
-  box-shadow: none;
-}
-
-.navbar-form .btn-info {
-  background-color: #3E8C84;
-  border-color: #2B746B;
-}
-
-.navbar-form .btn-info:focus,
-.navbar-form .btn-info.focus {
-  background-color: #2B746B;
-  border-color: #286D64;
-}
-
 .main {
   background: white;
 }
@@ -9676,48 +9620,6 @@ h6 {
 .interface {
   display: flex;
   background: #D8F2F0;
-}
-
-.toolbar {
-  background-color: #296B73;
-  min-width: 200px;
-  color: white;
-  font-size: 1.1em;
-  height: 100vh;
-  padding-top: 10px;
-}
-
-@media only screen
-  and (max-width: 768px) {
-  .toolbar {
-    min-width: 55px;
-  }
-}
-
-.toolbar-item {
-  cursor: pointer;
-  padding: 10px 20px;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.toolbar-item:hover {
-  background-color: #133748;
-}
-
-.toolbar-item-button {
-  margin-right: 10px;
-}
-
-@media only screen and (max-width: 768px) {
-  .toolbar-item-text {
-    display: none;
-  }
-
-  .toolbar-item-button {
-    font-size: 20px;
-  }
 }
 
 /**  Interface Styles **/

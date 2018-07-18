@@ -12,7 +12,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var TeamListEntry = require('./TeamListEntry');
 var GameListEntry = require('./GameListEntry');
-var Toolbar = require('./Toolbar');
+//var Toolbar = require('./Toolbar');
 var HeaderNav = require('./HeaderNav');
 var AddTeamModal = require('./AddTeamModal');
 var AddGameModal = require('./AddGameModal');
@@ -35,6 +35,7 @@ class MainInterface extends React.Component{
     };
     this.toggleTmAddWindow = this.toggleTmAddWindow.bind(this);
     this.toggleGmAddWindow = this.toggleGmAddWindow.bind(this);
+    this.closeModals = this.closeModals.bind(this);
     this.showAbout = this.showAbout.bind(this);
     this.addTeam = this.addTeam.bind(this);
     this.addGame = this.addGame.bind(this);
@@ -83,6 +84,13 @@ class MainInterface extends React.Component{
       GmWindowVisible: tempVisibility
     }); //setState
   } //toggleGmAddWindow
+
+  closeModals() {
+    this.setState({
+      TmWindowVisible: false,
+      GmWindowVisible: false
+    });
+  }
 
   showAbout() {
     ipc.sendSync('openInfoWindow');
@@ -151,7 +159,7 @@ class MainInterface extends React.Component{
     var myGames = this.state.myGames;
     var activePane = this.state.activePane;
 
-    $('.modal').modal(); //initialize all modals
+    $('.modal').modal({onCloseStart: this.closeModals}); //initialize all modals
     if(this.state.TmWindowVisible === true) {
       $('#addTeam').modal('open');
     }

@@ -21,8 +21,8 @@ class GameListEntry extends React.Component{
     return(
       <li className="pet-item media">
         <div className="media-left">
-          <button className="pet-delete btn btn-xs btn-danger" onClick={this.handleDelete}>
-          <span className="glyphicon glyphicon-remove"></span></button>
+          <a className="pet-delete btn" onClick={this.handleDelete}>
+          <i className="material-icons">delete</i></a>
         </div>
         <div className="pet-info media-body">
           <div className="pet-head">

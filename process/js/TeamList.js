@@ -1,4 +1,5 @@
 var React = require('react');
+var $ = jQuery = require('jquery');
 
 class TeamList extends React.Component{
 
@@ -10,6 +11,7 @@ class TeamList extends React.Component{
   addTeam () {
     this.props.handleToggle();
   }
+
 
   render () {
     if (this.props.whichPaneActive != 'teamsPane') {
