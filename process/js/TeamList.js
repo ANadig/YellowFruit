@@ -19,13 +19,13 @@ class TeamList extends React.Component{
     }
     return(
       <div className="container">
-       <div className="row">
-         <div className="appointments col-sm-12">
-           <h2 className="appointments-headline">List of Teams</h2>
-           <ul className="item-list media-list">{this.props.teamList}</ul>
-           <button type="button" className="btn btn-success" onClick={this.addTeam}>Add Team</button>
-         </div>
-       </div>
+        <h2 className="appointments-headline">List of Teams</h2>
+        <ul className="item-list">{this.props.teamList}</ul>
+        <div className="fixed-action-btn btn-floating-div" >
+          <button className="btn-floating btn-large green" title="Add a team" onClick={this.addTeam}>
+            <i className="large material-icons">add</i>
+          </button>
+        </div>
       </div>
     )
   }

@@ -14,15 +14,15 @@ class TeamListEntry extends React.Component{
   render() {
     return(
       <li className="pet-item">
-        <div className="media-left">
-          <a className="pet-delete btn" onClick={this.handleDelete}>
-          <i className="material-icons">delete</i></a>
-        </div>
-        <div className="pet-info media-body">
-          <div className="pet-head">
+        <div className="row">
+          <div className="col s11 pet-info">
             <span className="pet-name">{this.props.singleItem.teamName}</span>
+            <div className="apt-notes">{this.props.singleItem.roster.join(', ')}</div>
           </div>
-          <div className="apt-notes">{this.props.singleItem.roster.join(', ')}</div>
+          <div className="col s1">
+            <button className="pet-delete btn red" title="Remove this team" onClick={this.handleDelete}>
+            <i className="material-icons">delete</i></button>
+          </div>
         </div>
       </li>
     )

@@ -142,60 +142,68 @@ class AddGameModal extends React.Component{
 
     return(
       <div className="modal" id="addGame">
-        <button type="button" className="modal-close" onClick={this.resetState}><span>&times;</span></button>
-        <h4>Add a Game</h4>
+        <div className="modal-content">
+          <button type="button" className="modal-close" onClick={this.resetState}><span>&times;</span></button>
+          <h4>Add a Game</h4>
 
-        <form onSubmit={this.handleAdd}>
-          <label className="col-sm-3 control-label" htmlFor="roundInput">Round</label>
-          <input type="number" className="form-control" id="roundInput"
-            name="round" placeholder="Round#" value={this.state.round} onChange={this.handleChange}/>
-          <select id="tm1Name" name="team1" value={this.state.team1} onChange={this.handleChange}>
-            <option value="nullTeam">Select...</option>
-            {teamOptions}
-          </select>
-          <input type="number" className="form-control"
-            id="tm1Score" name="score1" placeholder="Tm 1 Score" value={this.state.score1} onChange={this.handleChange}/>
-          <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleChange}>
-            <option value="nullTeam">Select...</option>
-            {teamOptions}
-          </select>
-          <input type="number" className="form-control"
-            id="tm2Score" name="score2" placeholder="Tm 2 Score" value={this.state.score2} onChange={this.handleChange}/>
+          <form onSubmit={this.handleAdd}>
+            <label className="col-sm-3 control-label" htmlFor="roundInput">Round</label>
+            <input type="number" className="form-control" id="roundInput"
+              name="round" placeholder="Round#" value={this.state.round} onChange={this.handleChange}/>
+            <div className="input-field">
+              <select id="tm1Name" name="team1" value={this.state.team1} onChange={this.handleChange}>
+                <option value="nullTeam">Select...</option>
+                {teamOptions}
+              </select>
+            </div>
+            <input type="number" className="form-control"
+              id="tm1Score" name="score1" placeholder="Tm 1 Score" value={this.state.score1} onChange={this.handleChange}/>
+            <div className="input-field">
+              <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleChange}>
+                <option value="nullTeam">Select...</option>
+                {teamOptions}
+              </select>
+            </div>
+            <input type="number" className="form-control"
+              id="tm2Score" name="score2" placeholder="Tm 2 Score" value={this.state.score2} onChange={this.handleChange}/>
 
-          <table>
-            <tbody>
-              <tr>
-                <th/>
-                <th>TUH</th>
-                <th>15</th>
-                <th>10</th>
-                <th>-5</th>
-              </tr>
-              {team1PlayerRows}
-            </tbody>
-          </table>
+            <table>
+              <tbody>
+                <tr>
+                  <th/>
+                  <th>TUH</th>
+                  <th>15</th>
+                  <th>10</th>
+                  <th>-5</th>
+                </tr>
+                {team1PlayerRows}
+              </tbody>
+            </table>
 
-          <table>
-            <tbody>
-              <tr>
-                <th/>
-                <th>TUH</th>
-                <th>15</th>
-                <th>10</th>
-                <th>-5</th>
-              </tr>
-              {team2PlayerRows}
-            </tbody>
-          </table>
+            <table>
+              <tbody>
+                <tr>
+                  <th/>
+                  <th>TUH</th>
+                  <th>15</th>
+                  <th>10</th>
+                  <th>-5</th>
+                </tr>
+                {team2PlayerRows}
+              </tbody>
+            </table>
 
 
-          <label className="col-sm-3 control-label" htmlFor="aptNotes">Game Notes</label>
-          <textarea className="form-control" rows="4" cols="50"
-            id="aptNotes"  name="notes" onChange={this.handleChange}
-            value={this.state.notes} placeholder="Notes about this game"></textarea>
-          <button type="button" className="modal-close"  onClick={this.resetState}>Cancel</button>&nbsp;
-          <button type="submit" className="modal-close">Add Game</button>
-        </form>
+            <label className="col-sm-3 control-label" htmlFor="aptNotes">Game Notes</label>
+            <textarea className="form-control" rows="4" cols="50"
+              id="aptNotes"  name="notes" onChange={this.handleChange}
+              value={this.state.notes} placeholder="Notes about this game"></textarea>
+            <div className="modal-footer">
+              <button type="button" className="modal-close"  onClick={this.resetState}>Cancel</button>&nbsp;
+              <button type="submit" className="modal-close">Add Game</button>
+            </div>
+          </form>
+        </div>
       </div>
     ) //return
   } //render

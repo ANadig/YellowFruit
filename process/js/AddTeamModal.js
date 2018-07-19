@@ -52,21 +52,29 @@ class AddTeamModal extends React.Component{
   render() {
     return(
       <div className="modal" id="addTeam">
-        <button type="button" className="modal-close"><span aria-hidden="true">&times;</span></button>
-        <h4>Add a Team</h4>
+        <div className="modal-content">
+          <button type="button" className="modal-close"><span aria-hidden="true">&times;</span></button>
+          <h4>Add a Team</h4>
 
-        <form onSubmit={this.handleAdd}>
-          <label htmlFor="petName">Team</label>
-          <input type="text"
-            id="petName" name="teamName" onChange={this.handleChange}
-            value={this.state.teamName} placeholder="Team Name" />
-          <label htmlFor="aptNotes">Roster</label>
-          <textarea rows="4" cols="50"
-            id="aptNotes" name="teamRoster" onChange={this.handleChange}
-            value={this.state.teamRoster} placeholder="One player per line"></textarea>
-          <button type="button" className="modal-close">Cancel</button>&nbsp;
-          <button type="submit" className="modal-close">Add Team</button>
-        </form>
+          <form onSubmit={this.handleAdd}>
+            <div className="input-field">
+              <label htmlFor="teamName">Team</label>
+              <input type="text"
+                id="teamName" name="teamName" onChange={this.handleChange}
+                value={this.state.teamName} placeholder="Team Name" />
+            </div>
+            <div className="input-field">
+              <label htmlFor="teamRoster">Roster</label>
+              <textarea className="materialize-textarea"
+                id="teamRoster" name="teamRoster" onChange={this.handleChange}
+                value={this.state.teamRoster} placeholder="One player per line"></textarea>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="modal-close">Cancel</button>&nbsp;
+              <button type="submit" className="modal-close">Add Team</button>
+            </div>
+          </form>
+        </div>
       </div>
     ) //return
   } //render

@@ -166,6 +166,8 @@ class MainInterface extends React.Component{
     var myGames = this.state.myGames;
     var activePane = this.state.activePane;
 
+    $('select').formSelect(); //initialize all dropdowns
+    $('.fixed-action-btn').floatingActionButton(); //initialize floating button
     $('.modal').modal({
       onCloseEnd: this.onModalClose
     }); //initialize all modals
@@ -231,13 +233,6 @@ class MainInterface extends React.Component{
 
     return(
       <div className="application">
-        <HeaderNav
-          orderBy = {this.state.orderBy}
-          orderDir =  {this.state.orderDir}
-          onReOrder = {this.reOrder}
-          onSearch= {this.searchLists}
-          setPane = {this.setPane}
-        />
         <div className="interface">
           <AddTeamModal
             addTeam = {this.addTeam}
@@ -250,16 +245,51 @@ class MainInterface extends React.Component{
             forceReset = {this.state.forceResetForms}
             onForceReset = {this.onForceReset}
           />
-          <TeamList
-            whichPaneActive = {activePane}
-            teamList = {filteredTeams}
-            openModal = {this.openTeamAddWindow}
-          />
-          <GameList
-            whichPaneActive = {activePane}
-            gameList = {filteredGames}
-            openModal = {this.openGameAddWindow}
-          />
+
+          <div className="row">
+            <div id="main-window" className="col s12 m12 l8">
+              <HeaderNav
+                orderBy = {this.state.orderBy}
+                orderDir =  {this.state.orderDir}
+                onReOrder = {this.reOrder}
+                onSearch= {this.searchLists}
+                setPane = {this.setPane}
+              />
+              <TeamList
+                whichPaneActive = {activePane}
+                teamList = {filteredTeams}
+                openModal = {this.openTeamAddWindow}
+              />
+              <GameList
+                whichPaneActive = {activePane}
+                gameList = {filteredGames}
+                openModal = {this.openGameAddWindow}
+              />
+            </div>
+            <div id="stat-sidebar" className="col l4 hide-on-med-and-down">
+              Stuff in the sidebar!
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+              <p>another line</p>
+            </div>
+
+          </div>
         </div>{/* interface */}
       </div>
     );

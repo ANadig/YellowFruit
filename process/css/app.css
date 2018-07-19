@@ -44,6 +44,13 @@ html {
   box-sizing: border-box;
 }
 
+body,html {
+  margin: 0;
+  padding:0;
+  height: 100%;
+  overflow: hidden
+}
+
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
@@ -53,22 +60,31 @@ h1, h2, h3, h4, h5, h6 {
   background: white;
 }
 
-/** Toolbar **/
-
-.interface {
-  display: flex;
-  background: #D8F2F0;
+#main-window {
+  position: absolute;
+  overflow-y: scroll;
+  top: 0;
+  bottom: 0;
 }
 
+#stat-sidebar {
+    position: fixed;
+    right: 0;
+    overflow-y: scroll;
+    top: 0;
+    bottom: 0;
+}
+
+
+/* don't put the floating buttons on the sidebar */
+@media screen and (min-width: 993px) {
+  .btn-floating-div {
+      right: 37%;
+  }
+}
 
 
 /**  Interface Styles **/
-
-.toolbar-addheading {
-  cursor: pointer;
-  -webkit-user-select: none;
-  user-select: none;          /* Likely future */
-}
 
 .appointments {
   margin-top: 15px;
@@ -91,13 +107,12 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
 }
 
-.item-list .pet-item {
-  padding: 10px;
+.item-list .pet-item:nth-child(even) {
+    background: rgba(255,0,255,.5);
 }
 
-.item-list .pet-item:nth-child(2n) {
-    background: rgba(255,255,255,.5);
-    border-radius: 5px;
+.item-list .pet-item:nth-child(odd) {
+    background: #D8F2F0;
 }
 
 .item-list .pet-item:last-child {
