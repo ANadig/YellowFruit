@@ -53,25 +53,24 @@ class AddTeamModal extends React.Component{
     return(
       <div className="modal" id="addTeam">
         <div className="modal-content">
-          <button type="button" className="modal-close"><span aria-hidden="true">&times;</span></button>
           <h4>Add a Team</h4>
 
           <form onSubmit={this.handleAdd}>
-            <div className="input-field">
-              <label htmlFor="teamName">Team</label>
-              <input type="text"
-                id="teamName" name="teamName" onChange={this.handleChange}
-                value={this.state.teamName} placeholder="Team Name" />
+            <div className="row">
+              <div className="input-field">
+                <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
+                <label htmlFor="teamName">Team Name</label>
+              </div>
             </div>
-            <div className="input-field">
-              <label htmlFor="teamRoster">Roster</label>
-              <textarea className="materialize-textarea"
-                id="teamRoster" name="teamRoster" onChange={this.handleChange}
-                value={this.state.teamRoster} placeholder="One player per line"></textarea>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="modal-close">Cancel</button>&nbsp;
-              <button type="submit" className="modal-close">Add Team</button>
+            <div className="row">
+              <div className="input-field">
+                <textarea className="materialize-textarea" id="teamRoster" name="teamRoster" onChange={this.handleChange} value={this.state.teamRoster} placeholder="One player per line"></textarea>
+                <label htmlFor="teamRoster">Roster</label>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="modal-close btn grey">Cancel</button>&nbsp;
+                <button type="submit" className="modal-close btn green">Add Team</button>
+              </div>
             </div>
           </form>
         </div>

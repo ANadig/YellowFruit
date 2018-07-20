@@ -231,7 +231,7 @@ class MainInterface extends React.Component{
       ) // return
     }.bind(this)); //filteredGames.map
 
-    return(
+    return( 
       <div className="application">
         <div className="interface">
           <AddTeamModal

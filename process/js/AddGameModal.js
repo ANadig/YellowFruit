@@ -9,6 +9,7 @@ class AddGameModal extends React.Component{
     super(props);
     this.state = {
       round: '',
+      tuhtot: '',
       team1: 'nullTeam',
       team2: 'nullTeam',
       score1: '',
@@ -59,6 +60,7 @@ class AddGameModal extends React.Component{
   resetState() {
     this.setState({
       round: '',
+      tuhtot: '',
       team1: 'nullTeam',
       team2: 'nullTeam',
       score1: '',
@@ -73,6 +75,7 @@ class AddGameModal extends React.Component{
     e.preventDefault();
     var tempItem = {
       round: this.state.round,
+      tuhtot: this.state.tuhtot,
       team1: this.state.team1,
       team2: this.state.team2,
       score1: this.state.score1,
@@ -143,55 +146,86 @@ class AddGameModal extends React.Component{
     return(
       <div className="modal" id="addGame">
         <div className="modal-content">
-          <button type="button" className="modal-close" onClick={this.resetState}><span>&times;</span></button>
-          <h4>Add a Game</h4>
-
           <form onSubmit={this.handleAdd}>
-            <label className="col-sm-3 control-label" htmlFor="roundInput">Round</label>
-            <input type="number" className="form-control" id="roundInput"
-              name="round" placeholder="Round#" value={this.state.round} onChange={this.handleChange}/>
-            <div className="input-field">
-              <select id="tm1Name" name="team1" value={this.state.team1} onChange={this.handleChange}>
-                <option value="nullTeam">Select...</option>
-                {teamOptions}
-              </select>
+            <div className="row game-entry-top-row">
+              <div className="col s4">
+                <h4>Add a Game</h4>
+              </div>
+              <div className="input-field col s4">
+                <input id="round" type="number" className="validate" name="round" value={this.state.round} onChange={this.handleChange}/>
+                <label htmlFor="round">Round No.</label>
+              </div>
+              <div className="input-field col s4">
+                <input id="tuhtot" type="number" className="validate" name="tuhtot" value={this.state.tuhtot} onChange={this.handleChange}/>
+                <label htmlFor="tuhtot">Toss-ups</label>
+              </div>
             </div>
-            <input type="number" className="form-control"
-              id="tm1Score" name="score1" placeholder="Tm 1 Score" value={this.state.score1} onChange={this.handleChange}/>
-            <div className="input-field">
-              <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleChange}>
-                <option value="nullTeam">Select...</option>
-                {teamOptions}
-              </select>
+
+            <div className="row game-entry-2nd-row">
+              <div className="input-field col s8 m3 l4">
+                <select id="tm1Name" name="team1" value={this.state.team1} onChange={this.handleChange}>
+                  <option value="nullTeam">Select a team...</option>
+                  {teamOptions}
+                </select>
+              </div>
+              <div className="input-field col s4 m2 l1">
+                <input type="number" className="validate" id="tm1Score" name="score1" value={this.state.score1} onChange={this.handleChange}/>
+                <label htmlFor="tm1Score">Score</label>
+              </div>
+              <div className="col m2 hide-on-small-only">
+                <div className="match-divider">
+                  &mdash;
+                </div>
+              </div>
+              <div className="input-field col s4 m2 l1">
+                <input type="number" className="validate" id="tm2Score" name="score2" value={this.state.score2} onChange={this.handleChange}/>
+                <label htmlFor="tm2Score">Score</label>
+              </div>
+              <div className="input-field col s8 m3 l4">
+                <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleChange}>
+                  <option value="nullTeam">Select a team...</option>
+                  {teamOptions}
+                </select>
+              </div>
             </div>
-            <input type="number" className="form-control"
-              id="tm2Score" name="score2" placeholder="Tm 2 Score" value={this.state.score2} onChange={this.handleChange}/>
 
-            <table>
-              <tbody>
-                <tr>
-                  <th/>
-                  <th>TUH</th>
-                  <th>15</th>
-                  <th>10</th>
-                  <th>-5</th>
-                </tr>
-                {team1PlayerRows}
-              </tbody>
-            </table>
+            <div className="row">
+              <div className="col s12 m6">
+                <table className="striped player-table">
+                  <thead>
+                    <tr>
+                      <th/>
+                      <th>TUH</th>
+                      <th>15</th>
+                      <th>10</th>
+                      <th>-5</th>
+                      <th>Tot.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {team1PlayerRows}
+                  </tbody>
+                </table>
+              </div>
+              <div className="col s12 m6">
+                <table className="striped player-table">
+                  <thead>
+                    <tr>
+                      <th/>
+                      <th>TUH</th>
+                      <th>15</th>
+                      <th>10</th>
+                      <th>-5</th>
+                      <th>Tot.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {team2PlayerRows}
+                  </tbody>
+                </table>
+              </div>
 
-            <table>
-              <tbody>
-                <tr>
-                  <th/>
-                  <th>TUH</th>
-                  <th>15</th>
-                  <th>10</th>
-                  <th>-5</th>
-                </tr>
-                {team2PlayerRows}
-              </tbody>
-            </table>
+            </div>
 
 
             <label className="col-sm-3 control-label" htmlFor="aptNotes">Game Notes</label>
@@ -199,8 +233,8 @@ class AddGameModal extends React.Component{
               id="aptNotes"  name="notes" onChange={this.handleChange}
               value={this.state.notes} placeholder="Notes about this game"></textarea>
             <div className="modal-footer">
-              <button type="button" className="modal-close"  onClick={this.resetState}>Cancel</button>&nbsp;
-              <button type="submit" className="modal-close">Add Game</button>
+              <button type="button" className="modal-close btn grey" onClick={this.resetState}>Cancel</button>&nbsp;
+              <button type="submit" className="modal-close btn green">Add Game</button>
             </div>
           </form>
         </div>

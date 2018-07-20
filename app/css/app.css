@@ -9628,6 +9628,7 @@ h6 {
   overflow-y: scroll;
   top: 0;
   bottom: 0;
+  padding: 0;
 }
 
 #stat-sidebar {
@@ -9644,6 +9645,33 @@ h6 {
   .btn-floating-div {
     right: 37%;
   }
+}
+
+#addGame {
+  width: 95%;
+  top: 3%;
+  max-height: 85%;
+}
+
+.modal h4 {
+  margin-top: 0.35em;
+}
+
+.game-entry-top-row {
+  margin-bottom: 0px;
+}
+
+.game-entry-2nd-row {
+  margin-bottom: 0px;
+}
+
+.match-divider {
+  padding: 2em 0 0 36%;
+}
+
+.player-table td {
+  padding: 0px 5px;
+  /* overrides 15px 5px */
 }
 
 /**  Interface Styles **/

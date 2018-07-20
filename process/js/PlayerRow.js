@@ -13,6 +13,7 @@ class PlayerRow extends React.Component{
       negs: ''
     };
     this.handleChange = this.handleChange.bind(this);
+    this.getTotalPts = this.getTotalPts.bind(this);
   }
 
   handleChange(e){
@@ -24,6 +25,10 @@ class PlayerRow extends React.Component{
     this.setState(partialState);
 
     this.props.updatePlayer(this.props.whichTeam, this.props.rowNo, name, value, this.props.playerName);
+  }
+
+  getTotalPts(){
+    return 15*this.state.powers + 10*this.state.gets - 5*this.state.negs;
   }
 
   render(){
@@ -49,6 +54,9 @@ class PlayerRow extends React.Component{
           <input type="number" className="form-control"
           id={'negs'+this.props.rowNo+this.props.whichTeam} size="3"
           name="negs" value={this.state.negs} onChange={this.handleChange}/>
+        </td>
+        <td>
+          <input disabled id={'tot'+this.props.rowNo+this.props.whichTeam} size="3" value={this.getTotalPts()}/>
         </td>
       </tr>
     )
