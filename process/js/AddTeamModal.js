@@ -4,11 +4,13 @@ class AddTeamModal extends React.Component{
 
   constructor(props) {
     super(props);
+    // console.log("Props.teamData: " + this.props.teamData.teamName + ", " + this.props.teamData.roster);
     this.state = {
       teamName: '',
-      teamRoster: ''
+      rosterString: ''
     };
     this.resetState = this.resetState.bind(this);
+    this.loadTeam = this.loadTeam.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
     this.handleChange = this.handleChange.bind(this);
   }
@@ -25,15 +27,22 @@ class AddTeamModal extends React.Component{
   resetState() {
     this.setState({
       teamName: '',
-      teamRoster: ''
+      rosterString: ''
     });
+  }
+
+  loadTeam() {
+    this.setState({
+      teamName: this.props.teamToLoad.teamName,
+      rosterString: this.props.teamToLoad.roster.join('\n')
+    })
   }
 
   handleAdd(e) {
     e.preventDefault();
     var tempItem = {
       teamName: this.state.teamName,
-      roster: this.state.teamRoster.split('\n')
+      roster: this.state.rosterString.split('\n')
     } //tempitems
 
     this.props.addTeam(tempItem);
@@ -44,8 +53,13 @@ class AddTeamModal extends React.Component{
   componentDidUpdate(prevProps) {
     if(this.props.forceReset) {
       this.resetState();
-      //seting mainInterface's forceReset to false will avoid infinite loop
+      //setting mainInterface's forceReset to false will avoid infinite loop
       this.props.onForceReset();
+    }
+    if(this.props.teamToLoad != null) {
+      this.loadTeam();
+      //setting mainInterface's editWhichTeam to null will avoid infinite loop
+      this.props.onLoadTeamInModal();
     }
   }
 
@@ -64,8 +78,8 @@ class AddTeamModal extends React.Component{
             </div>
             <div className="row">
               <div className="input-field">
-                <textarea className="materialize-textarea" id="teamRoster" name="teamRoster" onChange={this.handleChange} value={this.state.teamRoster} placeholder="One player per line" />
-                <label htmlFor="teamRoster">Roster</label>
+                <textarea className="materialize-textarea" id="rosterString" name="rosterString" onChange={this.handleChange} value={this.state.rosterString} placeholder="One player per line" />
+                <label htmlFor="rosterString">Roster</label>
               </div>
             </div>
               <div className="modal-footer">

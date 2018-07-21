@@ -9726,7 +9726,19 @@ h6 {
   opacity: 1;
 }
 
+.collection-item .item-edit {
+  display: none;
+  opacity: 0;
+  transition: all 1s;
+}
+
+.collection-item:hover .item-edit {
+  display: inline-block;
+  opacity: 1;
+}
+
 .collection-item .team-name {
+  display: inline-block;
   font-weight: bold;
   color: black;
   font-size: 1.3em;

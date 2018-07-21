@@ -32,7 +32,8 @@ class MainInterface extends React.Component{
       myTeams: loadTeams,
       myGames: loadGames,
       activePane: 'teamsPane',  //either 'teamsPane' or 'gamesPane'
-      forceResetForms: false
+      forceResetForms: false,
+      editWhichTeam: null
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -43,6 +44,8 @@ class MainInterface extends React.Component{
     this.addGame = this.addGame.bind(this);
     this.deleteTeam = this.deleteTeam.bind(this);
     this.deleteGame = this.deleteGame.bind(this);
+    this.openTeamForEdit = this.openTeamForEdit.bind(this);
+    this.onLoadTeamInModal = this.onLoadTeamInModal.bind(this);
     this.reOrder = this.reOrder.bind(this);
     this.searchLists = this.searchLists.bind(this);
     this.setPane = this.setPane.bind(this);
@@ -137,6 +140,27 @@ class MainInterface extends React.Component{
     }); //setState
   } //deleteGame
 
+  openTeamForEdit(item) {
+    this.setState({
+      editWhichTeam: item
+    });
+    this.openTeamAddWindow();
+  }
+
+  onLoadTeamInModal() {
+    this.setState({
+      editWhichTeam: null
+    });
+  }
+
+  // getTeamToEdit() {
+  //   var team = this.state.editWhichTeam;
+  //   if(team == 'loadBlankForm') {
+  //     return {teamName: '', roster: []};
+  //   }
+  //   return _.find(this.state.myTeams, function(o) { return o.teamName == team; });
+  // }
+
   reOrder(orderBy, orderDir) {
     this.setState({
       orderBy: orderBy,
@@ -218,6 +242,7 @@ class MainInterface extends React.Component{
           singleItem = {item}
           whichItem =  {item}
           onDelete = {this.deleteTeam}
+          onOpenTeam = {this.openTeamForEdit}
         />
       ) // return
     }.bind(this)); //filteredTeams.map
@@ -235,6 +260,8 @@ class MainInterface extends React.Component{
       <div className="application">
         <div className="interface">
           <AddTeamModal
+            teamToLoad = {this.state.editWhichTeam}
+            onLoadTeamInModal = {this.onLoadTeamInModal}
             addTeam = {this.addTeam}
             forceReset = {this.state.forceResetForms}
             onForceReset = {this.onForceReset}
