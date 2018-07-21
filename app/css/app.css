@@ -9645,7 +9645,7 @@ h6 {
   bottom: 0;
 }
 
-/* don't put the floating buttons on the sidebar */
+/* keep things out of the sidebar */
 
 @media screen and (min-width: 993px) {
   .btn-floating-div {
@@ -9694,7 +9694,7 @@ h6 {
 
 /**  old stuff from the demo **/
 
-.item-list {
+/* .item-list {
   margin: 0;
   padding: 0;
   list-style-type: none;
@@ -9703,35 +9703,36 @@ h6 {
 }
 
 .item-list .qb-item:nth-child(even) {
-  background: #ef9a9a;
+    background: #ef9a9a;
 }
 
 .item-list .qb-item:nth-child(odd) {
-  background: #ffebee;
+    background: #ffebee;
 }
 
 .item-list .qb-item:last-child {
   border-bottom: none;
-}
+} */
 
-.item-list .qb-item .item-delete {
+.collection-item .item-delete {
+  right: 0px;
   display: none;
   opacity: 0;
   transition: all 1s;
 }
 
-.item-list  .qb-item:hover .item-delete {
+.collection-item:hover .item-delete {
   display: block;
   opacity: 1;
 }
 
-.item-list .team-name {
+.collection-item .team-name {
   font-weight: bold;
   color: black;
   font-size: 1.3em;
-  padding: 20px;
 }
 
+/*
 .item-list .game-name {
   font-weight: bold;
   color: black;
@@ -9740,7 +9741,7 @@ h6 {
 
 .item-list .item-notes {
   font-style: italic;
-}
+} */
 
 #page-info {
   background: transparent;

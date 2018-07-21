@@ -26,15 +26,19 @@ class HeaderNav extends React.Component{
     this.props.setPane(e.target.id);
   } //setPane
 
+  isActive(pane) {
+    return this.props.whichPaneActive == pane ? 'active' : '';
+  }
+
   render() {
     return(
       <div className="navbar-fixed">
         <nav className="qb-nav">
           <div className="nav-wrapper">
-            <a className="brand-logo" href="#">YellowFruit</a>
+            <a className="brand-logo hide-on-med-and-down">YellowFruit</a>
             <ul id="nav-mobile" className="right">
-              <li><a href="#" id="teamsPane" onClick={this.setPane}>Teams</a></li>
-              <li><a href="#" id="gamesPane" onClick={this.setPane}>Games</a></li>
+              <li className={this.isActive("teamsPane")}><a id="teamsPane" onClick={this.setPane}>Teams</a></li>
+              <li className={this.isActive("gamesPane")}><a id="gamesPane" onClick={this.setPane}>Games</a></li>
               <li>
                 <form>
                   <div className="input-field">

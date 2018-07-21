@@ -13,18 +13,15 @@ class TeamListEntry extends React.Component{
 
   render() {
     return(
-      <li className="qb-item">
-        <div className="row team-listing">
-          <div className="col s11">
-            <span className="team-name">{this.props.singleItem.teamName}</span>
-            <div className="item-notes">{this.props.singleItem.roster.join(', ')}</div>
-          </div>
-          <div className="col s1">
-            <button className="item-delete btn red" title="Remove this team" onClick={this.handleDelete}>
-            <i className="material-icons">delete</i></button>
-          </div>
+      <a className="collection-item" title="Edit this team">
+
+        <div>
+          <span className="team-name">{this.props.singleItem.teamName}</span>
+          <button className="secondary-content btn-flat item-delete" title="Remove this team" onClick={this.handleDelete}>
+          <i className="material-icons">delete</i></button>
+          <br/>{this.props.singleItem.roster.join(', ')}
         </div>
-      </li>
+      </a>
     )
   }
 };

@@ -254,6 +254,7 @@ class MainInterface extends React.Component{
                 onReOrder = {this.reOrder}
                 onSearch= {this.searchLists}
                 setPane = {this.setPane}
+                whichPaneActive = {activePane}
               />
               <TeamList
                 whichPaneActive = {activePane}
