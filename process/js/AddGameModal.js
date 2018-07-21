@@ -131,9 +131,11 @@ class AddGameModal extends React.Component{
     return totScore-tuPts;
   }
 
+  // returns ppb rounded to two decimal places,
+  // or an em-dash if no bonuses heard
   ppb(whichTeam) {
     var bHeard = this.bHeard(whichTeam);
-    return bHeard == 0 ? (<span>&mdash;</span>) : (this.bPts(whichTeam)/bHeard);
+    return bHeard == 0 ? (<span>&mdash;</span>) : (this.bPts(whichTeam)/bHeard).toFixed(2);
   }
 
   render() {
@@ -267,10 +269,10 @@ class AddGameModal extends React.Component{
 
             <div className="row">
               <div className="col s6">
-                Bonuses: {this.bHeard(1)} heard | {this.bPts(1)} pts | {this.ppb(1)} ppb
+                Bonuses:&emsp;{this.bHeard(1)} heard&emsp;|&emsp;{this.bPts(1)} pts&emsp;|&emsp;{this.ppb(1)} ppb
               </div>
               <div className="col s6">
-                Bonuses: {this.bHeard(2)} heard | {this.bPts(2)} pts | {this.ppb(2)} ppb
+                Bonuses:&emsp;{this.bHeard(2)} heard&emsp;|&emsp;{this.bPts(2)} pts&emsp;|&emsp;{this.ppb(2)} ppb
               </div>
             </div>
 

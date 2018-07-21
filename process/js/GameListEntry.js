@@ -19,18 +19,16 @@ class GameListEntry extends React.Component{
 
   render() {
     return(
-      <li className="pet-item">
+      <li className="qb-item">
         <div className="row">
-          <div className="col s11 pet-info">
-            <div className="pet-head">
-              <span className="pet-name">
-                {this.getScoreString()}
-              </span>
-            </div>
-            <div className="apt-notes">{this.props.singleItem.notes}</div>
+          <div className="col s11">
+            <span className="game-name"> 
+              {this.getScoreString()}
+            </span>
+            <div className="item-notes">{this.props.singleItem.notes}</div>
           </div>
           <div className="col s1">
-            <button className="pet-delete btn red" title="Remove this game" onClick={this.handleDelete}>
+            <button className="item-delete btn red" title="Remove this game" onClick={this.handleDelete}>
             <i className="material-icons">delete</i></button>
           </div>
         </div>

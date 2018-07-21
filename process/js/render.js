@@ -231,7 +231,7 @@ class MainInterface extends React.Component{
       ) // return
     }.bind(this)); //filteredGames.map
 
-    return( 
+    return(
       <div className="application">
         <div className="interface">
           <AddTeamModal
@@ -298,5 +298,5 @@ class MainInterface extends React.Component{
 
 ReactDOM.render(
   <MainInterface />,
-  document.getElementById('petAppointments')
+  document.getElementById('statsInterface')
 ); //render

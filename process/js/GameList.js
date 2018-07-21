@@ -17,7 +17,7 @@ class GameList extends React.Component{
     }
     return(
       <div className="container">
-        <h2 className="appointments-headline">List of Games</h2>
+        <h2>List of Games</h2>
         <ul className="item-list media-list">{this.props.gameList}</ul>
         <div className="fixed-action-btn btn-floating-div">
           <button className="btn-floating btn-large green" title="Add a game" onClick={this.addGame}>

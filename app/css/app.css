@@ -9623,6 +9623,12 @@ h6 {
   background: white;
 }
 
+.load-graphic {
+  margin: auto;
+  text-align: center;
+  padding: 20%;
+}
+
 #main-window {
   position: absolute;
   overflow-y: scroll;
@@ -9678,16 +9684,11 @@ h6 {
   margin-top: 1.7em;
 }
 
+.team-listing {
+  margin: 0;
+}
+
 /**  old stuff from the demo **/
-
-.appointments {
-  margin-top: 15px;
-}
-
-.appointments .appointments-headline {
-  margin-bottom: 10px;
-  color: #174152;
-}
 
 .item-list {
   margin: 0;
@@ -9697,50 +9698,43 @@ h6 {
   line-height: 120%;
 }
 
-.item-list .media {
-  margin-top: 0;
+.item-list .qb-item:nth-child(even) {
+  background: #ef9a9a;
 }
 
-.item-list .pet-item:nth-child(even) {
-  background: rgba(255,0,255,.5);
+.item-list .qb-item:nth-child(odd) {
+  background: #ffebee;
 }
 
-.item-list .pet-item:nth-child(odd) {
-  background: #D8F2F0;
-}
-
-.item-list .pet-item:last-child {
+.item-list .qb-item:last-child {
   border-bottom: none;
 }
 
-.item-list .pet-item .pet-delete {
+.item-list .qb-item .item-delete {
   display: none;
   opacity: 0;
   transition: all 1s;
 }
 
-.item-list  .pet-item:hover .pet-delete {
+.item-list  .qb-item:hover .item-delete {
   display: block;
   opacity: 1;
 }
 
-.item-list .pet-name {
+.item-list .team-name {
   font-weight: bold;
-  color: #296B73;
+  color: black;
+  font-size: 1.3em;
+  padding: 20px;
+}
+
+.item-list .game-name {
+  font-weight: bold;
+  color: black;
   font-size: 1.3em;
 }
 
-.item-list .apt-notes {
-  font-style: italic;
-}
-
-.item-list .label-item {
-  font-weight: bold;
-  color: #D03B3B;
-  padding-right: 10px;
-}
-
-.item-list .apt-date {
+.item-list .item-notes {
   font-style: italic;
 }
 
