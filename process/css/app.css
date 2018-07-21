@@ -88,6 +88,9 @@ h1, h2, h3, h4, h5, h6 {
   .btn-floating-div {
       right: 37%;
   }
+  .qb-nav {
+    width: 65.3%;
+  }
 }
 
 #addGame {

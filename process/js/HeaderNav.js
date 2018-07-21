@@ -28,23 +28,24 @@ class HeaderNav extends React.Component{
 
   render() {
     return(
-      <nav>
-        <div className="nav-wrapper">
-          <a className="brand-logo" href="#">YellowFruit</a>
-          <ul id="nav-mobile" className="right">
-            <li><a href="#" id="teamsPane" onClick={this.setPane}>Teams</a></li>
-            <li><a href="#" id="gamesPane" onClick={this.setPane}>Games</a></li>
-            <li>
-              <form>
-                <div className="input-field">
-                  <input id="search" type="search" onChange={this.handleSearch} placeholder="Search" autoFocus type="text" className="form-control" aria-label="Search Appointments" />
-                </div>
-              </form>
-            </li>
-          </ul>
-        </div>
-      </nav>
-
+      <div className="navbar-fixed">
+        <nav className="qb-nav">
+          <div className="nav-wrapper">
+            <a className="brand-logo" href="#">YellowFruit</a>
+            <ul id="nav-mobile" className="right">
+              <li><a href="#" id="teamsPane" onClick={this.setPane}>Teams</a></li>
+              <li><a href="#" id="gamesPane" onClick={this.setPane}>Games</a></li>
+              <li>
+                <form>
+                  <div className="input-field">
+                    <input id="search" type="search" onChange={this.handleSearch} placeholder="Search" autoFocus type="text" className="form-control" aria-label="Search Appointments" />
+                  </div>
+                </form>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </div>
     ) // return
   }//render
 }; //HeaderNav

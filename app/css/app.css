@@ -9651,6 +9651,10 @@ h6 {
   .btn-floating-div {
     right: 37%;
   }
+
+  .qb-nav {
+    width: 65.3%;
+  }
 }
 
 #addGame {
