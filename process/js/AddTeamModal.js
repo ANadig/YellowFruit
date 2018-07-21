@@ -64,14 +64,14 @@ class AddTeamModal extends React.Component{
             </div>
             <div className="row">
               <div className="input-field">
-                <textarea className="materialize-textarea" id="teamRoster" name="teamRoster" onChange={this.handleChange} value={this.state.teamRoster} placeholder="One player per line"></textarea>
+                <textarea className="materialize-textarea" id="teamRoster" name="teamRoster" onChange={this.handleChange} value={this.state.teamRoster} placeholder="One player per line" />
                 <label htmlFor="teamRoster">Roster</label>
               </div>
+            </div>
               <div className="modal-footer">
                 <button type="button" className="modal-close btn grey">Cancel</button>&nbsp;
                 <button type="submit" className="modal-close btn green">Add Team</button>
               </div>
-            </div>
           </form>
         </div>
       </div>

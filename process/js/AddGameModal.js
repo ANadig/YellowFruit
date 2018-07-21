@@ -10,6 +10,8 @@ class AddGameModal extends React.Component{
     this.state = {
       round: '',
       tuhtot: '',
+      ottu: '',
+      forfeit: false,
       team1: 'nullTeam',
       team2: 'nullTeam',
       score1: '',
@@ -26,7 +28,7 @@ class AddGameModal extends React.Component{
 
   handleChange(e) {
     const target = e.target;
-    const value = target.value;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
     var partialState = {};
     partialState[name] = value;
@@ -61,6 +63,8 @@ class AddGameModal extends React.Component{
     this.setState({
       round: '',
       tuhtot: '',
+      ottu: '',
+      forfeit: false,
       team1: 'nullTeam',
       team2: 'nullTeam',
       score1: '',
@@ -76,6 +80,8 @@ class AddGameModal extends React.Component{
     var tempItem = {
       round: this.state.round,
       tuhtot: this.state.tuhtot,
+      ottu: this.state.ottu,
+      forfeit: this.state.forfeit,
       team1: this.state.team1,
       team2: this.state.team2,
       score1: this.state.score1,
@@ -96,6 +102,38 @@ class AddGameModal extends React.Component{
       //seting mainInterface's forceReset to false will avoid infinite loop
       this.props.onForceReset();
     }
+  }
+
+  bHeard(whichTeam) {
+    var tot=0, pwr, gt;
+    var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
+    for(var p in players) {
+      pwr = parseFloat(players[p]["powers"]);
+      gt = parseFloat(players[p]["gets"]);
+      tot = isNaN(pwr) ? tot : tot+pwr;
+      tot = isNaN(gt) ? tot : tot+gt;
+    }
+    return tot;
+  }
+
+  bPts(whichTeam) {
+    var tuPts=0, pwr, gt, ng;
+    var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
+    var totScore = whichTeam == 1 ? this.state.score1 : this.state.score2;
+    for(var p in players) {
+      pwr = parseFloat(players[p]["powers"]);
+      gt = parseFloat(players[p]["gets"]);
+      ng = parseFloat(players[p]["negs"]);
+      tuPts = isNaN(pwr) ? tuPts : tuPts+(15*pwr);
+      tuPts = isNaN(gt) ? tuPts : tuPts+(10*gt);
+      tuPts = isNaN(ng) ? tuPts : tuPts-(5*ng)
+    }
+    return totScore-tuPts;
+  }
+
+  ppb(whichTeam) {
+    var bHeard = this.bHeard(whichTeam);
+    return bHeard == 0 ? (<span>&mdash;</span>) : (this.bPts(whichTeam)/bHeard);
   }
 
   render() {
@@ -148,15 +186,15 @@ class AddGameModal extends React.Component{
         <div className="modal-content">
           <form onSubmit={this.handleAdd}>
             <div className="row game-entry-top-row">
-              <div className="col s4">
+              <div className="col s6">
                 <h4>Add a Game</h4>
               </div>
-              <div className="input-field col s4">
-                <input id="round" type="number" className="validate" name="round" value={this.state.round} onChange={this.handleChange}/>
+              <div className="input-field col s3">
+                <input id="round" type="number" name="round" value={this.state.round} onChange={this.handleChange}/>
                 <label htmlFor="round">Round No.</label>
               </div>
-              <div className="input-field col s4">
-                <input id="tuhtot" type="number" className="validate" name="tuhtot" value={this.state.tuhtot} onChange={this.handleChange}/>
+              <div className="input-field col s3">
+                <input id="tuhtot" type="number" name="tuhtot" value={this.state.tuhtot} onChange={this.handleChange}/>
                 <label htmlFor="tuhtot">Toss-ups</label>
               </div>
             </div>
@@ -169,7 +207,7 @@ class AddGameModal extends React.Component{
                 </select>
               </div>
               <div className="input-field col s4 m2 l1">
-                <input type="number" className="validate" id="tm1Score" name="score1" value={this.state.score1} onChange={this.handleChange}/>
+                <input type="number" id="tm1Score" name="score1" value={this.state.score1} onChange={this.handleChange}/>
                 <label htmlFor="tm1Score">Score</label>
               </div>
               <div className="col m2 hide-on-small-only">
@@ -178,7 +216,7 @@ class AddGameModal extends React.Component{
                 </div>
               </div>
               <div className="input-field col s4 m2 l1">
-                <input type="number" className="validate" id="tm2Score" name="score2" value={this.state.score2} onChange={this.handleChange}/>
+                <input type="number" id="tm2Score" name="score2" value={this.state.score2} onChange={this.handleChange}/>
                 <label htmlFor="tm2Score">Score</label>
               </div>
               <div className="input-field col s8 m3 l4">
@@ -227,11 +265,34 @@ class AddGameModal extends React.Component{
 
             </div>
 
+            <div className="row">
+              <div className="col s6">
+                Bonuses: {this.bHeard(1)} heard | {this.bPts(1)} pts | {this.ppb(1)} ppb
+              </div>
+              <div className="col s6">
+                Bonuses: {this.bHeard(2)} heard | {this.bPts(2)} pts | {this.ppb(2)} ppb
+              </div>
+            </div>
 
-            <label className="col-sm-3 control-label" htmlFor="aptNotes">Game Notes</label>
-            <textarea className="form-control" rows="4" cols="50"
-              id="aptNotes"  name="notes" onChange={this.handleChange}
-              value={this.state.notes} placeholder="Notes about this game"></textarea>
+            <div className="row">
+              <div className="input-field col s6 m8">
+                <textarea className="materialize-textarea" id="gameNotes" name="notes" onChange={this.handleChange} value={this.state.notes} />
+                <label htmlFor="gameNotes">Notes about this game</label>
+              </div>
+              <div className="input-field col s3 m2">
+                <input id="ottu" type="number" name="ottu" value={this.state.ottu} onChange={this.handleChange}/>
+                <label htmlFor="ottu">Overtime TU</label>
+              </div>
+              <div className="col s3 m2 forfeit-ctrl">
+                <label>
+                  <input type="checkbox" name="forfeit" checked={this.state.forfeit} onChange={this.handleChange}/>
+                  <span>Forfeit?</span>
+                </label>
+              </div>
+            </div>
+
+
+
             <div className="modal-footer">
               <button type="button" className="modal-close btn grey" onClick={this.resetState}>Cancel</button>&nbsp;
               <button type="submit" className="modal-close btn green">Add Game</button>

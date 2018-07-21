@@ -103,15 +103,19 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .match-divider {
-  padding: 2em 0 0 36%;
+  padding: 2em 0 0 42%;
 }
 
 .player-table td {
   padding: 0px 5px; /* overrides 15px 5px */
 }
 
+.forfeit-ctrl {
+  margin-top: 1.7em
+}
 
-/**  Interface Styles **/
+
+/**  old stuff from the demo **/
 
 .appointments {
   margin-top: 15px;

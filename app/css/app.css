@@ -9666,7 +9666,7 @@ h6 {
 }
 
 .match-divider {
-  padding: 2em 0 0 36%;
+  padding: 2em 0 0 42%;
 }
 
 .player-table td {
@@ -9674,7 +9674,11 @@ h6 {
   /* overrides 15px 5px */
 }
 
-/**  Interface Styles **/
+.forfeit-ctrl {
+  margin-top: 1.7em;
+}
+
+/**  old stuff from the demo **/
 
 .appointments {
   margin-top: 15px;
