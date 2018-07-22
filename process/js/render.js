@@ -56,6 +56,8 @@ class MainInterface extends React.Component{
     this.reOrder = this.reOrder.bind(this);
     this.searchLists = this.searchLists.bind(this);
     this.setPane = this.setPane.bind(this);
+
+    this.printGames = this.printGames.bind(this);
   }
 
   componentDidMount() {
@@ -71,13 +73,11 @@ class MainInterface extends React.Component{
   } //componentWillUnmount
 
   componentDidUpdate() {
-    // console.log(this.state.myTeams);
     fs.writeFile(teamDataLocation, JSON.stringify(this.state.myTeams), 'utf8', function(err) {
       if (err) {
         console.log(err);
       }
     });//writeFile - teams
-    // console.log(this.state.myGames);
     fs.writeFile(gameDataLocation, JSON.stringify(this.state.myGames), 'utf8', function(err) {
       if (err) {
         console.log(err);
@@ -118,7 +118,7 @@ class MainInterface extends React.Component{
   } //showAbout
 
   addTeam(tempItem) {
-    var tempTms = this.state.myTeams;
+    var tempTms = this.state.myTeams.slice();
     tempTms.push(tempItem);
     this.setState({
       myTeams: tempTms,
@@ -127,7 +127,7 @@ class MainInterface extends React.Component{
   } //addTeam
 
   addGame(tempItem) {
-    var tempGms = this.state.myGames;
+    var tempGms = this.state.myGames.slice();
     tempGms.push(tempItem);
     this.setState({
       myGames: tempGms,
@@ -136,7 +136,7 @@ class MainInterface extends React.Component{
   } //addTeam
 
   modifyTeam(oldTeam, newTeam) {
-    var tempTeamAry = this.state.myTeams;
+    var tempTeamAry = this.state.myTeams.slice();
     var oldTeamIdx = _.indexOf(tempTeamAry, oldTeam);
     tempTeamAry[oldTeamIdx] = newTeam;
     this.setState({
@@ -146,7 +146,7 @@ class MainInterface extends React.Component{
   }
 
   modifyGame(oldGame, newGame) {
-    var tempGameAry = this.state.myGames;
+    var tempGameAry = this.state.myGames.slice();
     var oldGameIdx = _.indexOf(tempGameAry, oldGame);
     tempGameAry[oldGameIdx] = newGame;
     this.setState({
@@ -218,6 +218,10 @@ class MainInterface extends React.Component{
     });
   } //setPane
 
+  printGames() {
+    console.log(this.state.myGames);
+  }
+
   render() {
     var filteredTeams = [];
     var filteredGames = [];
@@ -241,7 +245,7 @@ class MainInterface extends React.Component{
     }
 
     if (activePane == 'teamsPane') {
-      filteredGames = myGames; // don't filter games
+      filteredGames = myGames.slice(); // don't filter games
       //Filter list of teams
       for (var i = 0; i < myTeams.length; i++) {
         if (
@@ -257,7 +261,7 @@ class MainInterface extends React.Component{
     }
 
     else if (activePane == 'gamesPane') {
-      filteredTeams = myTeams; // don't filter teams
+      filteredTeams = myTeams.slice(); // don't filter teams
       //Filter list of games
       for (var i = 0; i < myGames.length; i++) {
         if (
@@ -295,6 +299,9 @@ class MainInterface extends React.Component{
       ) // return
     }.bind(this)); //filteredGames.map
 
+    console.log(this.state.editWhichGame);
+    console.log($.extend(true, {}, this.state.editWhichGame));
+
     return(
       <div className="application">
         <div className="interface">
@@ -313,9 +320,10 @@ class MainInterface extends React.Component{
             addOrEdit = {this.state.gmAddOrEdit}
             addGame = {this.addGame}
             modifyGame = {this.modifyGame}
-            teamData = {myTeams}
+            teamData = {myTeams.slice()} //copy array to prevent unwanted state updates
             forceReset = {this.state.forceResetForms}
             onForceReset = {this.onForceReset}
+            printGames = {this.printGames}
           />
 
           <div className="row">

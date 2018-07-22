@@ -42,9 +42,11 @@ class AddGameModal extends React.Component{
   updatePlayer(whichTeam, index, whichStat, value, playerName){
     var tempAry = [];
     if(whichTeam == 1) {
-      tempAry = this.state.players1;
+      tempAry = this.state.players1.slice();
       if (tempAry[index] == undefined) {
-        tempAry[index] = {'name': playerName};
+        //need to initialize each attribute so we don't set
+        //null values in a controlled component
+        tempAry[index] = {'name': playerName, 'tuh': '', 'powers': '', 'gets': '', 'negs': ''};
       }
       tempAry[index][whichStat] = value;
       this.setState({
@@ -52,9 +54,11 @@ class AddGameModal extends React.Component{
       });
     }
     else if(whichTeam == 2) {
-      tempAry = this.state.players2;
+      tempAry = this.state.players2.slice();
       if (tempAry[index] == undefined) {
-        tempAry[index] = {'name': playerName};
+        //need to initialize each attribute so we don't set
+        //null values in a controlled component
+        tempAry[index] = {'name': playerName, 'tuh': '', 'powers': '', 'gets': '', 'negs': ''};
       }
       tempAry[index][whichStat] = value;
       this.setState({
@@ -211,8 +215,8 @@ class AddGameModal extends React.Component{
         team1Name = orig.team1;
         team2Name = orig.team2;
       }
-      // if gameToLoad and originalGameLoaded are both null, it means that the
-      // modal is being closed, so we don't care about any of this.
+      // if gameToLoad and originalGameLoaded are both null or undefined,
+      //it means that the modal is closed, so we don't care about any of this.
       else {
         return [null,null];
       }
@@ -237,8 +241,6 @@ class AddGameModal extends React.Component{
 
       return [team1Options, team2Options];
     }
-
-
   }
 
   render() {
@@ -251,12 +253,14 @@ class AddGameModal extends React.Component{
       var team1Obj = teamData.find(function(item){
         return item.teamName == this.state.team1
       }.bind(this));
+      var players1Copy = this.state.players1.slice();
       team1PlayerRows = team1Obj.roster.map(function(item, index){
         return(
           <PlayerRow key={team1Obj.teamName + index}
             rowNo={index}
             playerName={item}
             whichTeam={1}
+            initialData={players1Copy[index]}
             updatePlayer={this.updatePlayer}
           />
         )
@@ -267,13 +271,16 @@ class AddGameModal extends React.Component{
       var team2Obj = teamData.find(function(item){
         return item.teamName == this.state.team2
       }.bind(this));
+      var players2Copy = this.state.players2.slice();
       team2PlayerRows = team2Obj.roster.map(function(item, index){
         return(
           <PlayerRow key={team2Obj.teamName + index}
             rowNo={index}
             playerName={item}
             whichTeam={2}
+            initialData={players2Copy[index]}
             updatePlayer={this.updatePlayer}
+            printGames={this.props.printGames}
           />
         )
       }.bind(this));

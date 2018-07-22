@@ -1,7 +1,7 @@
 [
   {
     "round": 1,
-    "tuHeard": 20,
+    "tuhtot": 20,
     "team1": "Onalaska",
     "team2": "Hudson",
     "score1": "255",
@@ -17,14 +17,10 @@
       {"name": "Omar","tuh": 20, "powers": 0, "gets": 3, "negs": 0},
       {"name": "Penny","tuh": 20, "powers": 1, "gets": 0, "negs": 1}],
     "notes": "free-text notes about the game",
-    "petName": "Buffy",
-    "ownerName": "Hassum Harrod",
-    "aptDate": "2016-06-20 15:30",
-    "aptNotes": "This Chihuahua has not eaten for three days and is lethargic"
   },
   {
     "round": 2,
-    "tuHeard": 20,
+    "tuhtot": 20,
     "team1": "Onalaska",
     "team2": "Hudson",
     "score1": "205",
@@ -40,19 +36,15 @@
       {"name": "Omar","tuh": 20, "powers": 0, "gets": 3, "negs": 0},
       {"name": "Penny","tuh": 20, "powers": 1, "gets": 0, "negs": 1}],
     "notes": "free-text notes about the game",
-    "petName": "Buffy",
-    "ownerName": "Hassum Harrod",
-    "aptDate": "2016-06-20 15:30",
-    "aptNotes": "This Chihuahua has not eaten for three days and is lethargic"
   },
   {
     "round": 3,
-    "tuHeard": 20,
+    "tuhtot": 20,
     "team1": "Onalaska",
     "team2": "Hudson",
     "score1": "295",
     "score2": "210",
-    "players1": 
+    "players1":
       [{"name": "Isaac","tuh": 20, "powers": 1, "gets": 3, "negs": 1},
         {"name": "Jess","tuh": 20, "powers": 0, "gets": 2, "negs": 0},
         {"name": "Kirk","tuh": 20, "powers": 0, "gets": 0, "negs": 0},
@@ -63,9 +55,5 @@
       {"name": "Omar","tuh": 20, "powers": 0, "gets": 3, "negs": 0},
       {"name": "Penny","tuh": 20, "powers": 1, "gets": 0, "negs": 1}],
     "notes": "free-text notes about the game",
-    "petName": "Buffy",
-    "ownerName": "Hassum Harrod",
-    "aptDate": "2016-06-20 15:30",
-    "aptNotes": "This Chihuahua has not eaten for three days and is lethargic"
   }
 ]
