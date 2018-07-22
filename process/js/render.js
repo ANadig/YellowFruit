@@ -299,8 +299,9 @@ class MainInterface extends React.Component{
       ) // return
     }.bind(this)); //filteredGames.map
 
-    console.log(this.state.editWhichGame);
-    console.log($.extend(true, {}, this.state.editWhichGame));
+    //need to make a deep copy of this object
+    //to prevent player stats from updating before I tell them to
+    var gameToLoadCopy = this.state.editWhichGame == null ? null : $.extend(true, {}, this.state.editWhichGame);
 
     return(
       <div className="application">
@@ -315,7 +316,8 @@ class MainInterface extends React.Component{
             onForceReset = {this.onForceReset}
           />
           <AddGameModal
-            gameToLoad = {this.state.editWhichGame}
+            // gameToLoad = {this.state.editWhichGame}
+            gameToLoad = {gameToLoadCopy}
             onLoadGameInModal = {this.onLoadGameInModal}
             addOrEdit = {this.state.gmAddOrEdit}
             addGame = {this.addGame}
