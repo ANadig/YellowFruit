@@ -1,4 +1,5 @@
 var React = require('react');
+var M = require('materialize-css');
 
 class AddTeamModal extends React.Component{
 
@@ -7,7 +8,8 @@ class AddTeamModal extends React.Component{
     // console.log("Props.teamData: " + this.props.teamData.teamName + ", " + this.props.teamData.roster);
     this.state = {
       teamName: '',
-      rosterString: ''
+      rosterString: '',
+      originalTeamLoaded: null
     };
     this.resetState = this.resetState.bind(this);
     this.loadTeam = this.loadTeam.bind(this);
@@ -27,15 +29,17 @@ class AddTeamModal extends React.Component{
   resetState() {
     this.setState({
       teamName: '',
-      rosterString: ''
+      rosterString: '',
+      originalTeamLoaded: null
     });
   }
 
   loadTeam() {
     this.setState({
       teamName: this.props.teamToLoad.teamName,
-      rosterString: this.props.teamToLoad.roster.join('\n')
-    })
+      rosterString: this.props.teamToLoad.roster.join('\n'),
+      originalTeamLoaded: this.props.teamToLoad
+    });
   }
 
   handleAdd(e) {
@@ -45,12 +49,26 @@ class AddTeamModal extends React.Component{
       roster: this.state.rosterString.split('\n')
     } //tempitems
 
-    this.props.addTeam(tempItem);
+    if(this.props.addOrEdit == 'add') {
+      this.props.addTeam(tempItem);
+    }
+    else {
+      this.props.modifyTeam(this.state.originalTeamLoaded, tempItem);
+    }
 
     this.resetState();
   } //handleAdd
 
+  getModalHeader() {
+    return this.props.addOrEdit == 'add' ? 'New team' : 'Edit team';
+  }
+
+  getSubmitCaption() {
+    return this.props.addOrEdit == 'add' ? 'Add team' : 'Save team';
+  }
+
   componentDidUpdate(prevProps) {
+    M.updateTextFields();
     if(this.props.forceReset) {
       this.resetState();
       //setting mainInterface's forceReset to false will avoid infinite loop
@@ -67,13 +85,13 @@ class AddTeamModal extends React.Component{
     return(
       <div className="modal" id="addTeam">
         <div className="modal-content">
-          <h4>Add a Team</h4>
+          <h4>{this.getModalHeader()}</h4>
 
           <form onSubmit={this.handleAdd}>
             <div className="row">
               <div className="input-field">
                 <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
-                <label htmlFor="teamName">Team Name</label>
+                <label className="active" htmlFor="teamName">Team Name</label>
               </div>
             </div>
             <div className="row">
@@ -84,7 +102,7 @@ class AddTeamModal extends React.Component{
             </div>
               <div className="modal-footer">
                 <button type="button" className="modal-close btn grey">Cancel</button>&nbsp;
-                <button type="submit" className="modal-close btn green">Add Team</button>
+                <button type="submit" className="modal-close btn green">{this.getSubmitCaption()}</button>
               </div>
           </form>
         </div>

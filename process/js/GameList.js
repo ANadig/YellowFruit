@@ -17,7 +17,7 @@ class GameList extends React.Component{
     }
     return(
       <div className="container">
-        <ul className="item-list media-list">{this.props.gameList}</ul>
+        <ul className="collection">{this.props.gameList}</ul>
         <div className="fixed-action-btn btn-floating-div">
           <button className="btn-floating btn-large green" title="Add a game" onClick={this.addGame}>
             <i className="large material-icons">add</i>

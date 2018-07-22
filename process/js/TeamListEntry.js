@@ -19,7 +19,6 @@ class TeamListEntry extends React.Component{
   render() {
     return(
       <a className="collection-item">
-
         <div>
           <div className="team-name">
             {this.props.singleItem.teamName}

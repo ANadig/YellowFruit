@@ -1,6 +1,6 @@
 var $ = jQuery = require('jquery');
 var _ = require('lodash');
-var materialize = require('materialize-css');
+var M = require('materialize-css');
 var fs = eRequire('fs');
 var loadTeams = JSON.parse(fs.readFileSync(teamDataLocation));
 var loadGames = JSON.parse(fs.readFileSync(gameDataLocation));
@@ -33,7 +33,10 @@ class MainInterface extends React.Component{
       myGames: loadGames,
       activePane: 'teamsPane',  //either 'teamsPane' or 'gamesPane'
       forceResetForms: false,
-      editWhichTeam: null
+      editWhichTeam: null,
+      tmAddOrEdit: 'add', //either 'add' or 'edit'
+      editWhichGame: null,
+      gmAddOrEdit: 'add'
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -42,10 +45,14 @@ class MainInterface extends React.Component{
     this.showAbout = this.showAbout.bind(this);
     this.addTeam = this.addTeam.bind(this);
     this.addGame = this.addGame.bind(this);
+    this.modifyTeam = this.modifyTeam.bind(this);
+    this.modifyGame = this.modifyGame.bind(this);
     this.deleteTeam = this.deleteTeam.bind(this);
     this.deleteGame = this.deleteGame.bind(this);
     this.openTeamForEdit = this.openTeamForEdit.bind(this);
+    this.openGameForEdit = this.openGameForEdit.bind(this);
     this.onLoadTeamInModal = this.onLoadTeamInModal.bind(this);
+    this.onLoadGameInModal = this.onLoadGameInModal.bind(this);
     this.reOrder = this.reOrder.bind(this);
     this.searchLists = this.searchLists.bind(this);
     this.setPane = this.setPane.bind(this);
@@ -64,11 +71,13 @@ class MainInterface extends React.Component{
   } //componentWillUnmount
 
   componentDidUpdate() {
+    // console.log(this.state.myTeams);
     fs.writeFile(teamDataLocation, JSON.stringify(this.state.myTeams), 'utf8', function(err) {
       if (err) {
         console.log(err);
       }
     });//writeFile - teams
+    // console.log(this.state.myGames);
     fs.writeFile(gameDataLocation, JSON.stringify(this.state.myGames), 'utf8', function(err) {
       if (err) {
         console.log(err);
@@ -98,7 +107,9 @@ class MainInterface extends React.Component{
 
   onForceReset() {
     this.setState({
-      forceResetForms: false
+      forceResetForms: false,
+      tmAddOrEdit: 'add',
+      gmAddOrEdit: 'add'
     });
   }
 
@@ -124,6 +135,26 @@ class MainInterface extends React.Component{
     }) //setState
   } //addTeam
 
+  modifyTeam(oldTeam, newTeam) {
+    var tempTeamAry = this.state.myTeams;
+    var oldTeamIdx = _.indexOf(tempTeamAry, oldTeam);
+    tempTeamAry[oldTeamIdx] = newTeam;
+    this.setState({
+      myTeams: tempTeamAry,
+      tmWindowVisible: false
+    });
+  }
+
+  modifyGame(oldGame, newGame) {
+    var tempGameAry = this.state.myGames;
+    var oldGameIdx = _.indexOf(tempGameAry, oldGame);
+    tempGameAry[oldGameIdx] = newGame;
+    this.setState({
+      myGames: tempGameAry,
+      gmWindowVisible: false
+    });
+  }
+
   deleteTeam(item) {
     var allTeams = this.state.myTeams;
     var newTeams = _.without(allTeams, item);
@@ -142,9 +173,18 @@ class MainInterface extends React.Component{
 
   openTeamForEdit(item) {
     this.setState({
-      editWhichTeam: item
+      editWhichTeam: item,
+      tmAddOrEdit: 'edit'
     });
     this.openTeamAddWindow();
+  }
+
+  openGameForEdit(item) {
+    this.setState({
+      editWhichGame: item,
+      gmAddOrEdit: 'edit'
+    });
+    this.openGameAddWindow();
   }
 
   onLoadTeamInModal() {
@@ -153,13 +193,11 @@ class MainInterface extends React.Component{
     });
   }
 
-  // getTeamToEdit() {
-  //   var team = this.state.editWhichTeam;
-  //   if(team == 'loadBlankForm') {
-  //     return {teamName: '', roster: []};
-  //   }
-  //   return _.find(this.state.myTeams, function(o) { return o.teamName == team; });
-  // }
+  onLoadGameInModal() {
+    this.setState({
+      editWhichGame: null
+    });
+  }
 
   reOrder(orderBy, orderDir) {
     this.setState({
@@ -252,6 +290,7 @@ class MainInterface extends React.Component{
           singleItem = {item}
           whichItem =  {item}
           onDelete = {this.deleteGame}
+          onOpenGame = {this.openGameForEdit}
         />
       ) // return
     }.bind(this)); //filteredGames.map
@@ -262,12 +301,18 @@ class MainInterface extends React.Component{
           <AddTeamModal
             teamToLoad = {this.state.editWhichTeam}
             onLoadTeamInModal = {this.onLoadTeamInModal}
+            addOrEdit = {this.state.tmAddOrEdit}
             addTeam = {this.addTeam}
+            modifyTeam = {this.modifyTeam}
             forceReset = {this.state.forceResetForms}
             onForceReset = {this.onForceReset}
           />
           <AddGameModal
+            gameToLoad = {this.state.editWhichGame}
+            onLoadGameInModal = {this.onLoadGameInModal}
+            addOrEdit = {this.state.gmAddOrEdit}
             addGame = {this.addGame}
+            modifyGame = {this.modifyGame}
             teamData = {myTeams}
             forceReset = {this.state.forceResetForms}
             onForceReset = {this.onForceReset}

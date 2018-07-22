@@ -1,4 +1,5 @@
 var React = require('react');
+var M = require('materialize-css');
 var TeamOption = require('./TeamOption');
 var PlayerRow = require('./PlayerRow');
 
@@ -18,7 +19,8 @@ class AddGameModal extends React.Component{
       score2: '',
       players1: [],
       players2: [],
-      notes: ''
+      notes: '',
+      originalGameLoaded: null
     };
     this.resetState = this.resetState.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
@@ -71,7 +73,27 @@ class AddGameModal extends React.Component{
       score2: '',
       players1: [],
       players2: [],
-      notes: ''
+      notes: '',
+      originalGameLoaded: null
+    });
+  }
+
+  loadGame() {
+    //why do I have to list these out like this? Because it crashes if I do otherwise.
+    //why does it crash? I have no idea.
+    this.setState({
+      round: this.props.gameToLoad.round,
+      tuhtot: this.props.gameToLoad.tuhtot,
+      ottu: this.props.gameToLoad.ottu,
+      forfeit: this.props.gameToLoad.forfeit,
+      team1: this.props.gameToLoad.team1,
+      team2: this.props.gameToLoad.team2,
+      score1: this.props.gameToLoad.score1,
+      score2: this.props.gameToLoad.score2,
+      players1: this.props.gameToLoad.players1,
+      players2: this.props.gameToLoad.players2,
+      notes: this.props.gameToLoad.notes,
+      originalGameLoaded: this.props.gameToLoad
     });
   }
 
@@ -91,16 +113,27 @@ class AddGameModal extends React.Component{
       notes: this.state.notes
     } //tempitems
 
-    this.props.addGame(tempItem);
+    if(this.props.addOrEdit == 'add') {
+      this.props.addGame(tempItem);
+    }
+    else {
+      this.props.modifyGame(this.state.originalGameLoaded, tempItem);
+    }
 
     this.resetState();
   } //handleAdd
 
   componentDidUpdate(prevProps) {
+    M.updateTextFields();
     if(this.props.forceReset) {
       this.resetState();
       //seting mainInterface's forceReset to false will avoid infinite loop
       this.props.onForceReset();
+    }
+    if(this.props.gameToLoad != null) {
+      this.loadGame();
+      //setting mainInterface's editWhichGame to null will avoid infinite loop
+      this.props.onLoadGameInModal();
     }
   }
 
@@ -193,7 +226,7 @@ class AddGameModal extends React.Component{
               </div>
               <div className="input-field col s3">
                 <input id="round" type="number" name="round" value={this.state.round} onChange={this.handleChange}/>
-                <label htmlFor="round">Round No.</label>
+                <label className="active" htmlFor="round">Round No.</label>
               </div>
               <div className="input-field col s3">
                 <input id="tuhtot" type="number" name="tuhtot" value={this.state.tuhtot} onChange={this.handleChange}/>

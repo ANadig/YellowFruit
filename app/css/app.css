@@ -9665,6 +9665,7 @@ h6 {
 
 .modal h4 {
   margin-top: 0.35em;
+  margin-bottom: 1em;
 }
 
 .game-entry-top-row {
@@ -9744,12 +9745,14 @@ h6 {
   font-size: 1.3em;
 }
 
-/*
-.item-list .game-name {
+.collection-item .game-name {
+  display: inline-block;
   font-weight: bold;
   color: black;
   font-size: 1.3em;
 }
+
+/*
 
 .item-list .item-notes {
   font-style: italic;
