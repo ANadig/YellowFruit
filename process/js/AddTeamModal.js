@@ -91,7 +91,7 @@ class AddTeamModal extends React.Component{
             <div className="row">
               <div className="input-field">
                 <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
-                <label className="active" htmlFor="teamName">Team Name</label>
+                <label htmlFor="teamName">Team Name</label>
               </div>
             </div>
             <div className="row">

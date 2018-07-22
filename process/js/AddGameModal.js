@@ -1,4 +1,5 @@
 var React = require('react');
+var _ = require('lodash');
 var M = require('materialize-css');
 var TeamOption = require('./TeamOption');
 var PlayerRow = require('./PlayerRow');
@@ -26,6 +27,7 @@ class AddGameModal extends React.Component{
     this.handleAdd = this.handleAdd.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.updatePlayer = this.updatePlayer.bind(this);
+    this.getTeamOptions = this.getTeamOptions.bind(this);
   } //constructor
 
   handleChange(e) {
@@ -179,18 +181,71 @@ class AddGameModal extends React.Component{
     return this.props.addOrEdit == 'add' ? 'Add game' : 'Save game';
   }
 
+  //returns an array of length 2. 1st element is the correctly ordered list of options for
+  //the team1 field. 2nd element likewise for team 2.
+  //I'm programmatically putting the selected team at the top upon opening a game,
+  //because I can't otherwise get it to automatically show as the selected option
+  getTeamOptions() {
+    var teamData = this.props.teamData;
+    teamData = _.orderBy(teamData, function(item) { return item.teamName.toLowerCase(); });
+    if(this.props.addOrEdit == 'add') {
+      var teamOptions = teamData.map(function(item, index) {
+        return(<TeamOption key={index} teamName={teamData[index].teamName}/>);
+      });
+      var nullOption = (<option key={-1} value="nullTeam" disabled>Select a team...</option>);
+      teamOptions = [nullOption].concat(teamOptions);
+      return [teamOptions, teamOptions];
+    }
+    if(this.props.addOrEdit == 'edit') {
+      //need to look at gameToLoad because state won't be populated with game data
+      //until the next render. Need to look at originalGameLoaded for subsequent
+      //renders, because gameToLoad will be null.
+      var gameToLoad = this.props.gameToLoad;
+      var orig = this.state.originalGameLoaded;
+      var team1Name, team2Name;
+      if(gameToLoad != null) {
+        team1Name = gameToLoad.team1;
+        team2Name = gameToLoad.team2;
+      }
+      else if(orig != null) {
+        team1Name = orig.team1;
+        team2Name = orig.team2;
+      }
+      // if gameToLoad and originalGameLoaded are both null, it means that the
+      // modal is being closed, so we don't care about any of this.
+      else {
+        return [null,null];
+      }
+      //get team1 options
+      var team1Others = _.without(teamData, _.find(teamData, function(o) {
+        return o.teamName == team1Name;
+      }.bind(this)));
+      var team1Options = team1Others.map(function(item, index) {
+        return(<TeamOption key={index} teamName={team1Others[index].teamName}/>);
+      });
+      var defaultOption1 = (<TeamOption key={-1} teamName={team1Name}/>);
+      team1Options = [defaultOption1].concat(team1Options);
+      // do the same for team2
+      var team2Others = _.without(teamData, _.find(teamData, function(o) {
+        return o.teamName == team2Name;
+      }.bind(this)));
+      var team2Options = team2Others.map(function(item, index) {
+        return(<TeamOption key={index} teamName={team2Others[index].teamName}/>);
+      });
+      var defaultOption2 = (<TeamOption key={-1} teamName={team2Name}/>);
+      team2Options = [defaultOption2].concat(team2Options);
+
+      return [team1Options, team2Options];
+    }
+
+
+  }
+
   render() {
     var teamData = this.props.teamData
     var team1PlayerRows = null;
     var team2PlayerRows = null;
-
-    var teamOptions = teamData.map(function(item, index) {
-      return(
-        <TeamOption key={index}
-          teamName={teamData[index].teamName}
-        />
-      ) //return
-    });
+    var [team1Options, team2Options] = this.getTeamOptions();
 
     if(this.state.team1 != 'nullTeam' && this.state.team1 != '') {
       var team1Obj = teamData.find(function(item){
@@ -198,7 +253,7 @@ class AddGameModal extends React.Component{
       }.bind(this));
       team1PlayerRows = team1Obj.roster.map(function(item, index){
         return(
-          <PlayerRow key={index}
+          <PlayerRow key={team1Obj.teamName + index}
             rowNo={index}
             playerName={item}
             whichTeam={1}
@@ -214,7 +269,7 @@ class AddGameModal extends React.Component{
       }.bind(this));
       team2PlayerRows = team2Obj.roster.map(function(item, index){
         return(
-          <PlayerRow key={index}
+          <PlayerRow key={team2Obj.teamName + index}
             rowNo={index}
             playerName={item}
             whichTeam={2}
@@ -234,7 +289,7 @@ class AddGameModal extends React.Component{
               </div>
               <div className="input-field col s3">
                 <input id="round" type="number" name="round" value={this.state.round} onChange={this.handleChange}/>
-                <label className="active" htmlFor="round">Round No.</label>
+                <label htmlFor="round">Round No.</label>
               </div>
               <div className="input-field col s3">
                 <input id="tuhtot" type="number" name="tuhtot" value={this.state.tuhtot} onChange={this.handleChange}/>
@@ -245,8 +300,7 @@ class AddGameModal extends React.Component{
             <div className="row game-entry-2nd-row">
               <div className="input-field col s8 m3 l4">
                 <select id="tm1Name" name="team1" value={this.state.team1} onChange={this.handleChange}>
-                  <option value="nullTeam">Select a team...</option>
-                  {teamOptions}
+                  {team1Options}
                 </select>
               </div>
               <div className="input-field col s4 m2 l1">
@@ -264,8 +318,7 @@ class AddGameModal extends React.Component{
               </div>
               <div className="input-field col s8 m3 l4">
                 <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleChange}>
-                  <option value="nullTeam">Select a team...</option>
-                  {teamOptions}
+                  {team2Options}
                 </select>
               </div>
             </div>
@@ -317,7 +370,7 @@ class AddGameModal extends React.Component{
               </div>
             </div>
 
-            <div className="row">
+            <div className="row game-entry-bottom-row">
               <div className="input-field col s6 m8">
                 <textarea className="materialize-textarea" id="gameNotes" name="notes" onChange={this.handleChange} value={this.state.notes} />
                 <label htmlFor="gameNotes">Notes about this game</label>

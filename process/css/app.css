@@ -95,8 +95,9 @@ h1, h2, h3, h4, h5, h6 {
 
 #addGame {
   width: 95%;
-  top: 3%;
-  max-height: 85%;
+  margin-top: -9vh;
+  max-height: 97%;
+  min-height: 97%;
 }
 
 .modal h4 {
@@ -109,6 +110,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .game-entry-2nd-row {
+  margin-bottom: 0px;
+}
+
+.game-entry-bottom-row {
   margin-bottom: 0px;
 }
 
