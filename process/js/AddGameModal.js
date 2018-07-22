@@ -171,6 +171,14 @@ class AddGameModal extends React.Component{
     return bHeard == 0 ? (<span>&mdash;</span>) : (this.bPts(whichTeam)/bHeard).toFixed(2);
   }
 
+  getModalHeader() {
+    return this.props.addOrEdit == 'add' ? 'New game' : 'Edit game';
+  }
+
+  getSubmitCaption() {
+    return this.props.addOrEdit == 'add' ? 'Add game' : 'Save game';
+  }
+
   render() {
     var teamData = this.props.teamData
     var team1PlayerRows = null;
@@ -222,7 +230,7 @@ class AddGameModal extends React.Component{
           <form onSubmit={this.handleAdd}>
             <div className="row game-entry-top-row">
               <div className="col s6">
-                <h4>Add a Game</h4>
+                <h4>{this.getModalHeader()}</h4>
               </div>
               <div className="input-field col s3">
                 <input id="round" type="number" name="round" value={this.state.round} onChange={this.handleChange}/>
@@ -330,7 +338,7 @@ class AddGameModal extends React.Component{
 
             <div className="modal-footer">
               <button type="button" className="modal-close btn grey" onClick={this.resetState}>Cancel</button>&nbsp;
-              <button type="submit" className="modal-close btn green">Add Game</button>
+              <button type="submit" className="modal-close btn green">{this.getSubmitCaption()}</button>
             </div>
           </form>
         </div>
