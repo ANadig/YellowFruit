@@ -7,6 +7,7 @@ class GameList extends React.Component{
     this.addGame = this.addGame.bind(this);
   }
 
+  //tell the mainInterface to open a New Game form
   addGame () {
     this.props.openModal();
   }

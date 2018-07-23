@@ -17,6 +17,8 @@ class AddTeamModal extends React.Component{
     this.handleChange = this.handleChange.bind(this);
   }
 
+  //called any time a value in the form changes
+  //this is a controlled component, so the state is the single source of truth
   handleChange(e) {
     const target = e.target;
     const value = target.value;
@@ -26,6 +28,7 @@ class AddTeamModal extends React.Component{
     this.setState(partialState);
   } //handleChange
 
+  //once we're done with the form, erase the data from state
   resetState() {
     this.setState({
       teamName: '',
@@ -34,6 +37,9 @@ class AddTeamModal extends React.Component{
     });
   }
 
+  //populate form with the existing team's data
+  //Also, keep a pointer to this team so the mainInterface can remember
+  //which team to modify
   loadTeam() {
     this.setState({
       teamName: this.props.teamToLoad.teamName,
@@ -42,6 +48,8 @@ class AddTeamModal extends React.Component{
     });
   }
 
+  //called when the form is submitted. Tell the mainInterface to create
+  //a new team or modify an existing one as appropriate
   handleAdd(e) {
     e.preventDefault();
     var tempItem = {
@@ -59,15 +67,18 @@ class AddTeamModal extends React.Component{
     this.resetState();
   } //handleAdd
 
+  //title at the top left
   getModalHeader() {
     return this.props.addOrEdit == 'add' ? 'New team' : 'Edit team';
   }
 
+  //for the green button at the bottom
   getSubmitCaption() {
     return this.props.addOrEdit == 'add' ? 'Add team' : 'Save team';
   }
 
   componentDidUpdate(prevProps) {
+    //needed so that labels aren't on top of data when the edit form opens
     M.updateTextFields();
     if(this.props.forceReset) {
       this.resetState();

@@ -4,6 +4,9 @@ var React = require('react');
 
 class PlayerRow extends React.Component{
 
+  //copying props into state on initialize so that fields can populate upon
+  //opening a game for editing. PlayersRows are created with a key that's unique
+  //to the team, so new rows are created anytime the team changes.
   constructor(props) {
     super(props);
     var init = props.initialData;
@@ -28,6 +31,8 @@ class PlayerRow extends React.Component{
     this.getTotalPts = this.getTotalPts.bind(this);
   }
 
+  //update state, with changes to the form, then tell the AddGameModal to do
+  //likewise
   handleChange(e){
     const target = e.target;
     const value = target.value;
@@ -38,6 +43,7 @@ class PlayerRow extends React.Component{
     this.props.updatePlayer(this.props.whichTeam, this.props.rowNo, name, value, this.props.playerName);
   }
 
+  //the total number of points score by the player in this game
   getTotalPts(){
     return 15*this.state.powers + 10*this.state.gets - 5*this.state.negs;
   }

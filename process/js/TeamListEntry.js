@@ -8,10 +8,12 @@ class TeamListEntry extends React.Component{
     this.selectTeam = this.selectTeam.bind(this);
   }
 
+  //tell the mainInterface to delete me
   handleDelete() {
     this.props.onDelete(this.props.whichItem);
   }
 
+  //tell the mainInterface to open the modal to edit me
   selectTeam() {
     this.props.onOpenTeam(this.props.whichItem);
   }

@@ -30,6 +30,8 @@ class AddGameModal extends React.Component{
     this.getTeamOptions = this.getTeamOptions.bind(this);
   } //constructor
 
+  //called any time a value in the form changes
+  //this is a controlled component, so the state is the single source of truth
   handleChange(e) {
     const target = e.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
@@ -39,6 +41,8 @@ class AddGameModal extends React.Component{
     this.setState(partialState);
   } //handleChange
 
+  //called when a playerRow updates its state, so that this component
+  //updates its state at the same time.
   updatePlayer(whichTeam, index, whichStat, value, playerName){
     var tempAry = [];
     if(whichTeam == 1) {
@@ -67,6 +71,7 @@ class AddGameModal extends React.Component{
     }
   } // updatePlayer
 
+  //once we're done with the form, erase the data from state
   resetState() {
     this.setState({
       round: '',
@@ -84,6 +89,9 @@ class AddGameModal extends React.Component{
     });
   }
 
+  //populate form with the existing game's data
+  //Also, keep a pointer to this game so the mainInterface can remember
+  //which game to modify
   loadGame() {
     //why do I have to list these out like this? Because it crashes if I do otherwise.
     //why does it crash? I have no idea.
@@ -103,6 +111,8 @@ class AddGameModal extends React.Component{
     });
   }
 
+  //called when the form is submitted. Tell the mainInterface to create
+  //a new game or modify an existing one as appropriate
   handleAdd(e) {
     e.preventDefault();
     var tempItem = {
@@ -130,6 +140,7 @@ class AddGameModal extends React.Component{
   } //handleAdd
 
   componentDidUpdate(prevProps) {
+    //needed so that labels aren't on top of data when the edit form opens
     M.updateTextFields();
     if(this.props.forceReset) {
       this.resetState();
@@ -143,6 +154,7 @@ class AddGameModal extends React.Component{
     }
   }
 
+  //calculate bonuses heard. returns a number
   bHeard(whichTeam) {
     var tot=0, pwr, gt;
     var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
@@ -155,6 +167,7 @@ class AddGameModal extends React.Component{
     return tot;
   }
 
+  //calculate total bonus points. returns a number
   bPts(whichTeam) {
     var tuPts=0, pwr, gt, ng;
     var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
@@ -177,10 +190,12 @@ class AddGameModal extends React.Component{
     return bHeard == 0 ? (<span>&mdash;</span>) : (this.bPts(whichTeam)/bHeard).toFixed(2);
   }
 
+  //title at the top left
   getModalHeader() {
     return this.props.addOrEdit == 'add' ? 'New game' : 'Edit game';
   }
 
+  //for the green button at the bottom
   getSubmitCaption() {
     return this.props.addOrEdit == 'add' ? 'Add game' : 'Save game';
   }

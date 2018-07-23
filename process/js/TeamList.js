@@ -8,10 +8,10 @@ class TeamList extends React.Component{
     this.addTeam = this.addTeam.bind(this);
   }
 
+  //tell the mainInterface to open a new team form
   addTeam () {
     this.props.openModal();
   }
-
 
   render () {
     if (this.props.whichPaneActive != 'teamsPane') {

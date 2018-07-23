@@ -25,10 +25,12 @@ class StatSidebar extends React.Component{
     return g.wins + g.losses + g.ties;
   }
 
+  //points per game. 0 if no games played
   getPpg(g) {
     return this.getGamesPlayed(g) == 0 ? 0 : (g.points / this.getGamesPlayed(g));
   }
 
+  //points per bonus. 0 if no games played
   getPpb(g) {
     return g.bHeard == 0 ? 0 : (g.bPts / g.bHeard);
   }

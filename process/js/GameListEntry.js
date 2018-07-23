@@ -8,21 +8,31 @@ class GameListEntry extends React.Component{
     this.selectGame = this.selectGame.bind(this);
   }
 
+  //tell the mainInterface to delete me
   handleDelete() {
     this.props.onDelete(this.props.whichItem);
   }
 
+  //returns e.g. ['Round 1: ', 'Central A 310', 'Memorial A 250', ' (OT)']
   getScoreStrings(){
     var strAry = ['Round' + this.props.singleItem.round + ': '];
     strAry.push(this.props.singleItem.team1 + " " + this.props.singleItem.score1);
     strAry.push(this.props.singleItem.team2 + " " + this.props.singleItem.score2);
+    if(this.props.singleItem.ottu > 0) {
+      strAry.push(' (OT)');
+    }
+    else {
+      strAry.push('');
+    }
     return strAry;
   }
 
+  //add formating to team1 if they won
   team1Format() {
     return this.props.singleItem.score1 > this.props.singleItem.score2 ? 'winner' : '';
   }
 
+  //add formatting to team2 if they won
   team2Format() {
     return this.props.singleItem.score2 > this.props.singleItem.score1 ? 'winner' : '';
   }
@@ -44,9 +54,8 @@ class GameListEntry extends React.Component{
     return lineScore;
   }
 
+  //tell the mainInterface to open my game for editing
   selectGame() {
-    // console.log("whichItem");
-    // console.log(this.props.whichItem);
     this.props.onOpenGame(this.props.whichItem);
   }
 
@@ -61,6 +70,7 @@ class GameListEntry extends React.Component{
             <span className={this.team1Format()}>{scoreStrings[1]}</span>
             ,&nbsp;
             <span className={this.team2Format()}>{scoreStrings[2]}</span>
+            {scoreStrings[3]}
             <button className="btn-flat item-edit" title="Edit this game" onClick={this.selectGame}>
             <i className="material-icons">edit</i></button>
           </div>
