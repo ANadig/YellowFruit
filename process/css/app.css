@@ -182,14 +182,14 @@ h1, h2, h3, h4, h5, h6 {
 .collection-item .team-name {
   display: inline-block;
   font-weight: bold;
-  color: black;
+  color: #616161;
   font-size: 1.3em;
 }
 
 .collection-item .game-name {
   display: inline-block;
   font-weight: bold;
-  color: black;
+  color: #616161;
   font-size: 1.3em;
 }
 

@@ -280,7 +280,6 @@ class AddGameModal extends React.Component{
             whichTeam={2}
             initialData={players2Copy[index]}
             updatePlayer={this.updatePlayer}
-            printGames={this.props.printGames}
           />
         )
       }.bind(this));

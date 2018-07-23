@@ -18,6 +18,23 @@ class GameListEntry extends React.Component{
       this.props.singleItem.team2 + " " + this.props.singleItem.score2;
   }
 
+  //returns e.g. "Central A: Alice 2/4/1, Bob 0/1/0, Carol 1/0/2"
+  getTeamLineScore(whichTeam) {
+    var teamName = whichTeam == 1 ? this.props.singleItem.team1 : this.props.singleItem.team2;
+    var players = whichTeam == 1 ? this.props.singleItem.players1 : this.props.singleItem.players2;
+    var lineScore = teamName + ':';
+    for(var p in players) {
+      var powers = players[p].powers == '' ? 0 : players[p].powers;
+      var gets = players[p].gets == '' ? 0 : players[p].gets;
+      var negs = players[p].negs == '' ? 0 : players[p].negs;
+
+      lineScore += ' ' + players[p].name + ' ';
+      lineScore += powers + '/' + gets + '/' + negs;
+      if(p < players.length - 1) { lineScore += ','; }
+    }
+    return lineScore;
+  }
+
   selectGame() {
     // console.log("whichItem");
     // console.log(this.props.whichItem);
@@ -35,9 +52,8 @@ class GameListEntry extends React.Component{
           </div>
           <button className="secondary-content btn-flat item-delete" title="Remove this game" onClick={this.handleDelete}>
           <i className="material-icons">delete</i></button>
-          <br/>{this.props.singleItem.notes}
-          <br/>{JSON.stringify(this.props.singleItem.players1)}
-          <br/>{JSON.stringify(this.props.singleItem.players2)}
+          <br/>{this.getTeamLineScore(1)}
+          <br/>{this.getTeamLineScore(2)}
         </div>
       </a>
     )
