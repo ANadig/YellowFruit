@@ -97,7 +97,6 @@ function getSmallStandings(myTeams,myGames) {
     summary[idx1].bPts += bonusPoints(g,1);
     summary[idx2].bPts += bonusPoints(g,2);
   }
-  console.log(summary);
   return summary;
 }
 

@@ -193,6 +193,10 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 1.3em;
 }
 
+.collection-item .game-name .winner {
+  text-decoration: underline;
+}
+
 /*
 
 .item-list .item-notes {

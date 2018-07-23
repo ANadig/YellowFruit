@@ -12,10 +12,19 @@ class GameListEntry extends React.Component{
     this.props.onDelete(this.props.whichItem);
   }
 
-  getScoreString(){
-    return 'Round ' + this.props.singleItem.round + ': ' +
-      this.props.singleItem.team1 + " " + this.props.singleItem.score1 + ', ' +
-      this.props.singleItem.team2 + " " + this.props.singleItem.score2;
+  getScoreStrings(){
+    var strAry = ['Round' + this.props.singleItem.round + ': '];
+    strAry.push(this.props.singleItem.team1 + " " + this.props.singleItem.score1);
+    strAry.push(this.props.singleItem.team2 + " " + this.props.singleItem.score2);
+    return strAry;
+  }
+
+  team1Format() {
+    return this.props.singleItem.score1 > this.props.singleItem.score2 ? 'winner' : '';
+  }
+
+  team2Format() {
+    return this.props.singleItem.score2 > this.props.singleItem.score1 ? 'winner' : '';
   }
 
   //returns e.g. "Central A: Alice 2/4/1, Bob 0/1/0, Carol 1/0/2"
@@ -42,11 +51,16 @@ class GameListEntry extends React.Component{
   }
 
   render() {
+    var scoreStrings = this.getScoreStrings();
+
     return(
       <a className="collection-item">
         <div>
           <div className="game-name">
-            {this.getScoreString()}
+            {scoreStrings[0]}
+            <span className={this.team1Format()}>{scoreStrings[1]}</span>
+            ,&nbsp;
+            <span className={this.team2Format()}>{scoreStrings[2]}</span>
             <button className="btn-flat item-edit" title="Edit this game" onClick={this.selectGame}>
             <i className="material-icons">edit</i></button>
           </div>
@@ -54,6 +68,7 @@ class GameListEntry extends React.Component{
           <i className="material-icons">delete</i></button>
           <br/>{this.getTeamLineScore(1)}
           <br/>{this.getTeamLineScore(2)}
+          <br/>{this.props.singleItem.notes}
         </div>
       </a>
     )
