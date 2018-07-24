@@ -1,4 +1,6 @@
 var React = require('react');
+var $ = require('jquery');
+var _ = require('lodash');
 var M = require('materialize-css');
 
 class AddTeamModal extends React.Component{
@@ -52,9 +54,14 @@ class AddTeamModal extends React.Component{
   //a new team or modify an existing one as appropriate
   handleAdd(e) {
     e.preventDefault();
+    //split roster into array, trim each element, then remove blank lines
+    var rosterAry = this.state.rosterString.split('\n');
+    rosterAry = rosterAry.map(function(s,idx) { return s.trim(); });
+    rosterAry = _.without(rosterAry, '');
+
     var tempItem = {
-      teamName: this.state.teamName,
-      roster: this.state.rosterString.split('\n')
+      teamName: this.state.teamName.trim(),
+      roster: rosterAry
     } //tempitems
 
     if(this.props.addOrEdit == 'add') {
@@ -77,6 +84,19 @@ class AddTeamModal extends React.Component{
     return this.props.addOrEdit == 'add' ? 'Add team' : 'Save team';
   }
 
+  //verify that the form data can be submitted
+  validateTeam() {
+    if(!this.props.isOpen) { return true; } //just in case
+    if(this.state.teamName.trim() == '') { return false; } //team name can't be just whitespace
+    if(this.state.rosterString.trim() == '') { return false; } //likewise for roster
+    return this.props.validateTeamName(this.state.teamName.trim(), this.state.originalTeamLoaded);
+  }
+
+  //wrapper around validateTeam to add the disabled attribute to the submit button
+  disabledButton() {
+    return this.validateTeam() ? '' : 'disabled';
+  }
+
   componentDidUpdate(prevProps) {
     //needed so that labels aren't on top of data when the edit form opens
     M.updateTextFields();
@@ -93,6 +113,12 @@ class AddTeamModal extends React.Component{
   }
 
   render() {
+
+    //Don't allow Enter key to submit form unless the form is valid
+    $(document).on("keypress", "#addTeam :input:not(textarea)", function(event) {
+      return this.validateTeam() || event.keyCode != 13;
+    }.bind(this));
+
     return(
       <div className="modal" id="addTeam">
         <div className="modal-content">
@@ -112,8 +138,9 @@ class AddTeamModal extends React.Component{
               </div>
             </div>
               <div className="modal-footer">
+                <span>Warning message&emsp;</span>
                 <button type="button" className="modal-close btn grey">Cancel</button>&nbsp;
-                <button type="submit" className="modal-close btn green">{this.getSubmitCaption()}</button>
+                <button type="submit" className={'modal-close btn green ' + this.disabledButton()}>{this.getSubmitCaption()}</button>
               </div>
           </form>
         </div>

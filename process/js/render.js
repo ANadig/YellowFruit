@@ -135,6 +135,7 @@ class MainInterface extends React.Component{
     this.openGameForEdit = this.openGameForEdit.bind(this);
     this.onLoadTeamInModal = this.onLoadTeamInModal.bind(this);
     this.onLoadGameInModal = this.onLoadGameInModal.bind(this);
+    this.validateTeamName = this.validateTeamName.bind(this);
     this.reOrder = this.reOrder.bind(this);
     this.searchLists = this.searchLists.bind(this);
     this.setPane = this.setPane.bind(this);
@@ -281,6 +282,22 @@ class MainInterface extends React.Component{
     });
   }
 
+  //verify that the team name you've entered doesn't already belong
+  //to another team. newTeamName is the form's value. savedTeam is the
+  //existing team that was opened for edit
+  validateTeamName(newTeamName, savedTeam) {
+    var otherTeams;
+    if(savedTeam != null) {
+      otherTeams = _.without(this.state.myTeams, savedTeam);
+    }
+    else {
+      otherTeams = this.state.myTeams;
+    }
+    return _.findIndex(otherTeams, function(t) {
+      return t.teamName == newTeamName;
+    }) == -1;
+  }
+
   reOrder(orderBy, orderDir) {
     this.setState({
       orderBy: orderBy,
@@ -392,6 +409,8 @@ class MainInterface extends React.Component{
             modifyTeam = {this.modifyTeam}
             forceReset = {this.state.forceResetForms}
             onForceReset = {this.onForceReset}
+            isOpen = {this.state.tmWindowVisible}
+            validateTeamName = {this.validateTeamName}
           />
           <AddGameModal
             // gameToLoad = {this.state.editWhichGame}
