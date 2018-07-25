@@ -17,6 +17,7 @@ class AddTeamModal extends React.Component{
     this.loadTeam = this.loadTeam.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.validateTeam = this.validateTeam.bind(this);
   }
 
   //called any time a value in the form changes
@@ -84,17 +85,48 @@ class AddTeamModal extends React.Component{
     return this.props.addOrEdit == 'add' ? 'Add team' : 'Save team';
   }
 
-  //verify that the form data can be submitted
-  validateTeam() {
-    if(!this.props.isOpen) { return true; } //just in case
-    if(this.state.teamName.trim() == '') { return false; } //team name can't be just whitespace
-    if(this.state.rosterString.trim() == '') { return false; } //likewise for roster
-    return this.props.validateTeamName(this.state.teamName.trim(), this.state.originalTeamLoaded);
+  //are there two players with the same name?
+  rosterHasDups() {
+    var rosterAry = this.state.rosterString.split('\n');
+    rosterAry = rosterAry.map(function(item, idx) {
+      return item.toLowerCase().trim();
+    });
+    rosterAry = _.without(rosterAry, '');
+    rosterAry = _.orderBy(rosterAry);
+    // console.log(rosterAry.length);
+    for(var i=0; i < (rosterAry.length - 1); i++) {
+      if (rosterAry[i] == rosterAry[i+1]) { return true; }
+    }
+    return false;
   }
 
-  //wrapper around validateTeam to add the disabled attribute to the submit button
-  disabledButton() {
-    return this.validateTeam() ? '' : 'disabled';
+  //verify that the form data can be submitted
+  //returns [boolean, error level, error message]
+  validateTeam() {
+    if(!this.props.isOpen) { return [true, '', '']; } //just in case
+    var nameValid = this.props.validateTeamName(this.state.teamName.trim(), this.state.originalTeamLoaded);
+    if(!nameValid[0]) { return nameValid; }
+    if(this.rosterHasDups()) { return [true, 'warning', 'Roster contains two or more players with the same name']; }
+    if(this.state.teamName.trim() == '') { return [false, 'silent', '']; } //team name can't be just whitespace
+    if(this.state.rosterString.trim() == '') { return [false, 'silent', '']; } //likewise for roster
+    return [true, '', ''];
+  }
+
+  //add the disabled attribute to the submit button
+  disabledButton(isTeamValid) {
+    return isTeamValid ? '' : 'disabled';
+  }
+
+  //returns a jsx element containing the appropriate icon (or null if no error)
+  getErrorIcon(errorLevel) {
+    if(errorLevel == '') { return null; }
+    if(errorLevel == 'error') {
+      return ( <i className="material-icons red-text text-darken-4 qb-modal-error">error</i> );
+    }
+    if(errorLevel == 'warning') {
+      return ( <i className="material-icons yellow-text text-accent-4 qb-modal-error">warning</i> );
+    }
+
   }
 
   componentDidUpdate(prevProps) {
@@ -114,10 +146,14 @@ class AddTeamModal extends React.Component{
 
   render() {
 
+    var [teamIsValid, errorLevel, errorMessage] = this.validateTeam();
+
+    var errorIcon = this.getErrorIcon(errorLevel);
+
     //Don't allow Enter key to submit form unless the form is valid
     $(document).on("keypress", "#addTeam :input:not(textarea)", function(event) {
-      return this.validateTeam() || event.keyCode != 13;
-    }.bind(this));
+      return teamIsValid || event.keyCode != 13;
+    });
 
     return(
       <div className="modal" id="addTeam">
@@ -138,9 +174,15 @@ class AddTeamModal extends React.Component{
               </div>
             </div>
               <div className="modal-footer">
-                <span>Warning message&emsp;</span>
-                <button type="button" className="modal-close btn grey">Cancel</button>&nbsp;
-                <button type="submit" className={'modal-close btn green ' + this.disabledButton()}>{this.getSubmitCaption()}</button>
+                <div className="row">
+                  <div className="col s5 l8">
+                    {errorIcon}&nbsp;{errorMessage}
+                  </div>
+                  <div className="col s7 l4">
+                    <button type="button" className="modal-close btn grey">Cancel</button>&nbsp;
+                    <button type="submit" className={'modal-close btn green ' + this.disabledButton(teamIsValid)}> {this.getSubmitCaption()}</button>
+                  </div>
+                </div>
               </div>
           </form>
         </div>

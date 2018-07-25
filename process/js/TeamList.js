@@ -21,7 +21,7 @@ class TeamList extends React.Component{
       <div className="container">
         <ul className="collection">{this.props.teamList}</ul>
         <div className="fixed-action-btn btn-floating-div">
-          <button className="btn-floating btn-large green" title="Add a team" onClick={this.addTeam}>
+          <button className="btn-floating btn-large green tooltipped" data-position="left" data-tooltip="Add a team" onClick={this.addTeam}>
             <i className="large material-icons">add</i>
           </button>
         </div>

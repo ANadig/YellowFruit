@@ -166,18 +166,22 @@ class MainInterface extends React.Component{
     });//writeFile - games
   } //componentDidUpdate
 
+  //called by buttons that open the team form
   openTeamAddWindow() {
     this.setState({
       tmWindowVisible: true
     });
   }
 
+  //called by buttons that open the game form
   openGameAddWindow() {
     this.setState({
       gmWindowVisible: true
     });
   }
 
+  //needed so the modals don't stay open on next render.
+  //Also directs the modals to clear their data
   onModalClose() {
     this.setState({
       tmWindowVisible: false,
@@ -186,6 +190,7 @@ class MainInterface extends React.Component{
     });
   }
 
+  //make sure forms only reset data one time aftr they close
   onForceReset() {
     this.setState({
       forceResetForms: false,
@@ -194,10 +199,12 @@ class MainInterface extends React.Component{
     });
   }
 
+  //TODO: delete??
   showAbout() {
     ipc.sendSync('openInfoWindow');
   } //showAbout
 
+  //add the new team, then close the form
   addTeam(tempItem) {
     var tempTms = this.state.myTeams.slice();
     tempTms.push(tempItem);
@@ -207,6 +214,7 @@ class MainInterface extends React.Component{
     }) //setState
   } //addTeam
 
+  //add the new game, then close the form
   addGame(tempItem) {
     var tempGms = this.state.myGames.slice();
     tempGms.push(tempItem);
@@ -216,6 +224,7 @@ class MainInterface extends React.Component{
     }) //setState
   } //addTeam
 
+  //update the appropriate team, then close the form
   modifyTeam(oldTeam, newTeam) {
     var tempTeamAry = this.state.myTeams.slice();
     var oldTeamIdx = _.indexOf(tempTeamAry, oldTeam);
@@ -226,6 +235,7 @@ class MainInterface extends React.Component{
     });
   }
 
+  //update the appropriate game, then close the form
   modifyGame(oldGame, newGame) {
     var tempGameAry = this.state.myGames.slice();
     var oldGameIdx = _.findIndex(tempGameAry, function (o) {
@@ -238,6 +248,7 @@ class MainInterface extends React.Component{
     });
   }
 
+  //permanently delete a team
   deleteTeam(item) {
     var allTeams = this.state.myTeams;
     var newTeams = _.without(allTeams, item);
@@ -246,6 +257,7 @@ class MainInterface extends React.Component{
     }); //setState
   } //deleteTeam
 
+  //permanently delete a game
   deleteGame(item) {
     var allGames = this.state.myGames;
     var newGames = _.without(allGames, item);
@@ -254,6 +266,7 @@ class MainInterface extends React.Component{
     }); //setState
   } //deleteGame
 
+  //tell the team window to load a team
   openTeamForEdit(item) {
     this.setState({
       editWhichTeam: item,
@@ -262,6 +275,7 @@ class MainInterface extends React.Component{
     this.openTeamAddWindow();
   }
 
+  //tell the game window to load a game
   openGameForEdit(item) {
     this.setState({
       editWhichGame: item,
@@ -270,12 +284,14 @@ class MainInterface extends React.Component{
     this.openGameAddWindow();
   }
 
+  //make sure the team form only loads the data once
   onLoadTeamInModal() {
     this.setState({
       editWhichTeam: null
     });
   }
 
+  //make sure the game form only loads the data once
   onLoadGameInModal() {
     this.setState({
       editWhichGame: null
@@ -285,6 +301,7 @@ class MainInterface extends React.Component{
   //verify that the team name you've entered doesn't already belong
   //to another team. newTeamName is the form's value. savedTeam is the
   //existing team that was opened for edit
+  //returns [boolean, error message, tooltip for submit button]
   validateTeamName(newTeamName, savedTeam) {
     var otherTeams;
     if(savedTeam != null) {
@@ -293,9 +310,13 @@ class MainInterface extends React.Component{
     else {
       otherTeams = this.state.myTeams;
     }
-    return _.findIndex(otherTeams, function(t) {
-      return t.teamName == newTeamName;
-    }) == -1;
+    var idx = _.findIndex(otherTeams, function(t) {
+      return t.teamName.toLowerCase() == newTeamName.toLowerCase();
+    });
+    if(idx == -1) { return [true, '', '']; }
+    else {
+      return [false, 'error', 'There is already a team named ' + newTeamName];
+     }
   }
 
   reOrder(orderBy, orderDir) {
@@ -327,8 +348,9 @@ class MainInterface extends React.Component{
     var myGames = this.state.myGames;
     var activePane = this.state.activePane;
 
+    $(document).ready(function(){ $('.tooltipped').tooltip(); }); //initialize tooltips
     $('select').formSelect(); //initialize all dropdowns
-    $('.fixed-action-btn').floatingActionButton(); //initialize floating button
+    $('.fixed-action-btn').floatingActionButton(); //initialize floating buttons
     $('.modal').modal({
       onCloseEnd: this.onModalClose
     }); //initialize all modals

@@ -9664,6 +9664,11 @@ h6 {
   min-height: 97%;
 }
 
+#addTeam {
+  width: 80%;
+  max-height: 80%;
+}
+
 .modal h4 {
   margin-top: 0.35em;
   margin-bottom: 1em;
@@ -9696,6 +9701,15 @@ h6 {
 
 .team-listing {
   margin: 0;
+}
+
+.qb-modal-error {
+  vertical-align: bottom;
+  font-size: 1.7rem;
+}
+
+.qb-modal-buttons {
+  display: inline-block;
 }
 
 /**  old stuff from the demo **/

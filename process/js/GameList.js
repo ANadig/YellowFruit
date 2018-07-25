@@ -20,7 +20,7 @@ class GameList extends React.Component{
       <div className="container">
         <ul className="collection">{this.props.gameList}</ul>
         <div className="fixed-action-btn btn-floating-div">
-          <button className="btn-floating btn-large green" title="Add a game" onClick={this.addGame}>
+          <button className="btn-floating btn-large green tooltipped" data-position="left" data-tooltip="Add a game" onClick={this.addGame}>
             <i className="large material-icons">add</i>
           </button>
         </div>
