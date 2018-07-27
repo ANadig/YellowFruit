@@ -22,6 +22,9 @@ var StatSidebar = require('./StatSidebar');
 
 //skip team1, team2 because comparing arrays is more complicated and I'm lazy
 function gameEqual(g1, g2) {
+  if((g1 == undefined && g2 != undefined) || (g1 != undefined && g2 == undefined)) {
+    return false;
+  }
   return g1.round == g2.round && g1.tuhtot == g2.tuhtot &&
     g1.ottu == g2.ottu && g1.forfeit == g2.forfeit && g1.team1 == g2.team1 &&
     g1.team2 == g2.team2 && g1.score1 == g2.score1 && g1.score2 == g2.score2 &&
@@ -136,6 +139,7 @@ class MainInterface extends React.Component{
     this.onLoadTeamInModal = this.onLoadTeamInModal.bind(this);
     this.onLoadGameInModal = this.onLoadGameInModal.bind(this);
     this.validateTeamName = this.validateTeamName.bind(this);
+    this.hasTeamPlayedInRound = this.hasTeamPlayedInRound.bind(this);
     this.reOrder = this.reOrder.bind(this);
     this.searchLists = this.searchLists.bind(this);
     this.setPane = this.setPane.bind(this);
@@ -301,7 +305,7 @@ class MainInterface extends React.Component{
   //verify that the team name you've entered doesn't already belong
   //to another team. newTeamName is the form's value. savedTeam is the
   //existing team that was opened for edit
-  //returns [boolean, error message, tooltip for submit button]
+  //returns true or false
   validateTeamName(newTeamName, savedTeam) {
     var otherTeams;
     if(savedTeam != null) {
@@ -315,8 +319,21 @@ class MainInterface extends React.Component{
     });
     if(idx == -1) { return [true, '', '']; }
     else {
-      return [false, 'error', 'There is already a team named ' + newTeamName];
+      return false;
      }
+  }
+
+  //has this team already played in this round? originalGameLoaded makes
+  //sure that a game isn't counting itself as a repeat.
+  hasTeamPlayedInRound(teamName, roundNo, originalGameLoaded) {
+    for(var i in this.state.myGames) {
+      var g = this.state.myGames[i];
+      if(!gameEqual(g, originalGameLoaded) && g.round == roundNo &&
+        (g.team1 == teamName || g.team2 == teamName)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   reOrder(orderBy, orderDir) {
@@ -435,15 +452,16 @@ class MainInterface extends React.Component{
             validateTeamName = {this.validateTeamName}
           />
           <AddGameModal
-            // gameToLoad = {this.state.editWhichGame}
             gameToLoad = {gameToLoadCopy}
             onLoadGameInModal = {this.onLoadGameInModal}
             addOrEdit = {this.state.gmAddOrEdit}
             addGame = {this.addGame}
             modifyGame = {this.modifyGame}
-            teamData = {myTeams.slice()} //copy array to prevent unwanted state updates
             forceReset = {this.state.forceResetForms}
             onForceReset = {this.onForceReset}
+            isOpen = {this.state.gmWindowVisible}
+            teamData = {myTeams.slice()} //copy array to prevent unwanted state updates
+            hasTeamPlayedInRound = {this.hasTeamPlayedInRound}
           />
 
           <div className="row">

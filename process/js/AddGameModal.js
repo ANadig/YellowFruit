@@ -1,4 +1,5 @@
 var React = require('react');
+var $ = require('jquery');
 var _ = require('lodash');
 var M = require('materialize-css');
 var TeamOption = require('./TeamOption');
@@ -258,7 +259,126 @@ class AddGameModal extends React.Component{
     }
   }
 
+  validateGame() {
+    if(!this.props.isOpen) { return [true, '', '']; } //just in case
+
+    var team1 = this.state.team1, team2 = this.state.team2;
+    var round = this.state.round, tuhtot = this.state.tuhtot;
+    var score1 = this.state.score1, score2 = this.state.score2;
+    var players1 = this.state.players1, players2 = this.state.players2;
+
+    if(team1 == 'nullTeam' || team2 == 'nullTeam' || team1 == '' || team2 == '' ) {
+      return [false, '', ''];
+    } //teams are required
+    if(team1 == team2) {
+      return [false, 'error', team1 + ' cannot play themselves'];
+    } // a team can't play itself
+    if(round == '') {
+      return [false, '', ''];
+    } //round is required
+    //no team can play more than one game in a particular round
+    var team1AlreadyPlayed = this.props.hasTeamPlayedInRound(team1, round, this.state.originalGameLoaded);
+    var team2AlreadyPlayed = this.props.hasTeamPlayedInRound(team2, round, this.state.originalGameLoaded);
+    if(team1AlreadyPlayed) {
+      if(team2AlreadyPlayed) {
+        return [false, 'error', 'Both teams have already played a game in round ' + round];
+      }
+      return [false, 'error', team1 + ' has already played a game in round ' + round];
+    }
+    if(team2AlreadyPlayed) {
+      return [false, 'error', team2 + ' has already played a game in round ' + round];
+    }
+
+    if(this.state.forfeit) {
+      return [true, '', ''];
+    } //team names and round are the only required info for a forfeit
+    if(tuhtot == '' || parseFloat(tuhtot) <= 0 || score1 == '' || score2 == '') {
+      return [false, '', ''];
+    } //total tuh and total scores are required.
+
+    //no players can have more tossups heard than were read in the match,
+    //and neither team can have no players who have heard tossups
+    var anyPlayerTuHeard = false;
+    for(var p in players1) {
+      if(players1[p].tuh > tuhtot) {
+        return [false, 'error', 'One or more players have heard more than ' + tuhtot + ' tossups'];
+      }
+      if(players1[p].tuh > 0) { anyPlayerTuHeard = true; }
+    }
+    if(!anyPlayerTuHeard) {
+      return [false, 'error', 'No players for ' + team1 + ' have heard any tossups'];
+    }
+    //likewise for team 2
+    anyPlayerTuHeard = false;
+    for(var p in players2) {
+      if(players2[p].tuh > tuhtot) {
+        return [false, 'error', 'One or more players have heard more than ' + tuhtot + ' tossups'];
+      }
+      if(players2[p].tuh > 0) { anyPlayerTuHeard = true; }
+    }
+    if(!anyPlayerTuHeard) {
+      return [false, 'error', 'No players for ' + team2 + ' have heard any tossups'];
+    }
+
+    //PPB can't be over 30 (includes having bonus points but no bonuses heawrd)
+    if(this.ppb(1) > 30 || (this.bPts(1) > 0 && this.bHeard(1) == 0)) {
+      return [false, 'error', team1 + ' has over 30 ppb'];
+    }
+    if(this.ppb(2) > 30 || (this.bPts(2) > 0 && this.bHeard(2) == 0)) {
+      return [false, 'error', team2 + ' has over 30 ppb'];
+    }
+
+    //warn if score isn't divisible by 5
+    if(score1 % 5 != 0 || score2 % 5 != 0) {
+      return [true, 'warning', 'Score is not divisible by 5'];
+    }
+
+    //bonus points shouldn't end in 5
+    if(this.bPts(1) % 10 != 0 || this.bPts(2) % 10 != 0) {
+      return [true, 'warning', 'Bonus points are not divisible by 10'];
+    }
+
+    //if the game has from [1,9] total tossups, that's probably wrong
+    //(this warning is very unlikely to actually be seen)
+    if(tuhtot > 0 && tuhtot < 10) {
+      return [true, 'warning', 'Total tossups of ' + tuhtot + ' may be incorrect'];
+    }
+
+    //warn if the score is a tie
+    if(score1 == score2) {
+      return [true, 'warning', 'This game is a tie'];
+    }
+
+    return [true, '', ''];
+  }//validateGame
+
+  //add the disabled attribute to the submit button
+  disabledButton(isGameValid) {
+    return isGameValid ? '' : 'disabled';
+  }
+
+  //returns a jsx element containing the appropriate icon (or null if no error)
+  getErrorIcon(errorLevel) {
+    if(errorLevel == '') { return null; }
+    if(errorLevel == 'error') {
+      return ( <i className="material-icons red-text text-darken-4 qb-modal-error">error</i> );
+    }
+    if(errorLevel == 'warning') {
+      return ( <i className="material-icons yellow-text text-accent-4 qb-modal-error">warning</i> );
+    }
+  }
+
   render() {
+
+    var [gameIsValid, errorLevel, errorMessage] = this.validateGame();
+
+    var errorIcon = this.getErrorIcon(errorLevel);
+
+    $(document).on("keypress", "#addGame :input:not(textarea)", function(event) {
+      return gameIsValid || event.keyCode != 13;
+    });
+
+
     var teamData = this.props.teamData
     var team1PlayerRows = null;
     var team2PlayerRows = null;
@@ -408,12 +528,18 @@ class AddGameModal extends React.Component{
               </div>
             </div>
 
-
-
             <div className="modal-footer">
-              <button type="button" className="modal-close btn grey" onClick={this.resetState}>Cancel</button>&nbsp;
-              <button type="submit" className="modal-close btn green">{this.getSubmitCaption()}</button>
+              <div className="row">
+                <div className="col s5 l8 qb-validation-msg">
+                  {errorIcon}&nbsp;{errorMessage}
+                </div>
+                <div className="col s7 l4">
+                  <button type="button" className="modal-close btn grey">Cancel</button>&nbsp;
+                  <button type="submit" className={'modal-close btn green ' + this.disabledButton(gameIsValid)}> {this.getSubmitCaption()}</button>
+                </div>
+              </div>
             </div>
+
           </form>
         </div>
       </div>

@@ -104,11 +104,12 @@ class AddTeamModal extends React.Component{
   //returns [boolean, error level, error message]
   validateTeam() {
     if(!this.props.isOpen) { return [true, '', '']; } //just in case
-    var nameValid = this.props.validateTeamName(this.state.teamName.trim(), this.state.originalTeamLoaded);
-    if(!nameValid[0]) { return nameValid; }
-    if(this.rosterHasDups()) { return [true, 'warning', 'Roster contains two or more players with the same name']; }
+    if(!this.props.validateTeamName(this.state.teamName.trim(), this.state.originalTeamLoaded)) {
+      return [false, 'error', 'There is already a team named ' + this.state.teamName];
+    }
     if(this.state.teamName.trim() == '') { return [false, 'silent', '']; } //team name can't be just whitespace
     if(this.state.rosterString.trim() == '') { return [false, 'silent', '']; } //likewise for roster
+    if(this.rosterHasDups()) { return [true, 'warning', 'Roster contains two or more players with the same name']; }
     return [true, '', ''];
   }
 
@@ -126,7 +127,6 @@ class AddTeamModal extends React.Component{
     if(errorLevel == 'warning') {
       return ( <i className="material-icons yellow-text text-accent-4 qb-modal-error">warning</i> );
     }
-
   }
 
   componentDidUpdate(prevProps) {
@@ -175,7 +175,7 @@ class AddTeamModal extends React.Component{
             </div>
               <div className="modal-footer">
                 <div className="row">
-                  <div className="col s5 l8">
+                  <div className="col s5 l8 qb-validation-msg">
                     {errorIcon}&nbsp;{errorMessage}
                   </div>
                   <div className="col s7 l4">

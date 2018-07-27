@@ -138,9 +138,13 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
 
+.qb-validation-msg {
+  text-align: left;
+}
+
 .qb-modal-error {
   vertical-align: bottom;
-  font-size: 1.7rem;
+  font-size: 1.6rem;
 }
 
 .qb-modal-buttons {
