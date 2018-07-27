@@ -109,6 +109,9 @@ class AddTeamModal extends React.Component{
     }
     if(this.state.teamName.trim() == '') { return [false, 'silent', '']; } //team name can't be just whitespace
     if(this.state.rosterString.trim() == '') { return [false, 'silent', '']; } //likewise for roster
+    if(this.state.rosterString.split('\n').length > 30) {
+      return [false, 'error', 'Cannot have more than 30 players on a team'];
+    } // fairly aribitrary limit to make sure no one does anything ridiculous
     if(this.rosterHasDups()) { return [true, 'warning', 'Roster contains two or more players with the same name']; }
     return [true, '', ''];
   }

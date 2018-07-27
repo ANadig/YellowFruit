@@ -78,7 +78,7 @@ class GameListEntry extends React.Component{
           <i className="material-icons">delete</i></button>
           <br/>{this.getTeamLineScore(1)}
           <br/>{this.getTeamLineScore(2)}
-          <br/>{this.props.singleItem.notes}
+          <br/><span className="game-comment"><em>{this.props.singleItem.notes}</em></span>
         </div>
       </a>
     )

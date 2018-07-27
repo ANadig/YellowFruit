@@ -13,6 +13,14 @@ class TeamList extends React.Component{
     this.props.openModal();
   }
 
+  //add the disabled class if the limit on the number of teams has been reached
+  addBtnDisabled() {
+    if(this.props.teamList.length > 200) {
+      return 'disabled';
+    }
+    return '';
+  }
+
   render () {
     if (this.props.whichPaneActive != 'teamsPane') {
       return null;
@@ -21,7 +29,7 @@ class TeamList extends React.Component{
       <div className="container">
         <ul className="collection">{this.props.teamList}</ul>
         <div className="fixed-action-btn btn-floating-div">
-          <button className="btn-floating btn-large green tooltipped" data-position="left" data-tooltip="Add a team" onClick={this.addTeam}>
+          <button className={'btn-floating btn-large green tooltipped ' + this.addBtnDisabled()} data-position="left" data-tooltip="Add a team" onClick={this.addTeam}>
             <i className="large material-icons">add</i>
           </button>
         </div>
