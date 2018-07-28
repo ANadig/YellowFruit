@@ -228,16 +228,74 @@ class MainInterface extends React.Component{
     }) //setState
   } //addTeam
 
-  //update the appropriate team, then close the form
+  //update the appropriate team, close the form, and
+  //update player names in game data if necessary
+  //assumes whitespace has already been removed by TeamModal
   modifyTeam(oldTeam, newTeam) {
-    var tempTeamAry = this.state.myTeams.slice();
-    var oldTeamIdx = _.indexOf(tempTeamAry, oldTeam);
-    tempTeamAry[oldTeamIdx] = newTeam;
+    var tempTeams = this.state.myTeams.slice();
+    var oldTeamIdx = _.indexOf(tempTeams, oldTeam);
+    tempTeams[oldTeamIdx] = newTeam;
+    var tempGames = this.state.myGames.slice();
+
+    // var playersRemoved = oldTeam.roster.length - newTeam.roster.length;
+    // if(playersRemoved > 0) {
+    //   this.removePlayers(tempGames, oldTeam.teamName, playersRemoved);
+    // }
+    for(var i in oldTeam.roster) {
+      // if(i >= newTeam.roster.length) {
+      //   //this.updatePlayerName(tempGames, oldTeam.teamName, i, '[Player deleted]');
+      // }
+      if(oldTeam.roster[i] != newTeam.roster[i]) {
+        this.updatePlayerName(tempGames, oldTeam.teamName, i, newTeam.roster[i]);
+      }
+    }
+
+    if(oldTeam.teamName != newTeam.teamName) {
+      this.updateTeamName(tempGames, oldTeam.teamName, newTeam.teamName);
+    }
+
     this.setState({
-      myTeams: tempTeamAry,
+      myTeams: tempTeams,
+      myGames: tempGames,
       tmWindowVisible: false
     });
+  }//modifyTeam
+
+  //change the name of a given team for all games
+  updateTeamName(gameAry, oldName, newName) {
+    for(var i in gameAry){
+      if(gameAry[i].team1 == oldName) {
+        gameAry[i].team1 = newName;
+      }
+      if(gameAry[i].team2 == oldName) {
+        gameAry[i].team2 = newName;
+      }
+    }
   }
+
+  //change the name of a given player on a given team for all games
+  updatePlayerName(gameAry, teamName, playerNo, newPlayerName) {
+    for(var i in gameAry) {
+      if(teamName == gameAry[i].team1) {
+        gameAry[i].players1[playerNo].name = newPlayerName;
+      }
+      else if(teamName == gameAry[i].team2) {
+        gameAry[i].players2[playerNo].name = newPlayerName;
+      }
+    }
+  }
+
+  //remove the specified number of players from the specified team from each game
+  // removePlayers(gameAry, teamName, numToRemove) {
+  //   for(var i in gameAry) {
+  //     if(teamName == gameAry[i].team1) {
+  //       gameAry[i].players1.splice(gameAry[i].players1.length - numToRemove, numToRemove);
+  //     }
+  //     else if(teamName == gameAry[i].team2) {
+  //       gameAry[i].players2.splice(gameAry[i].players2.length - numToRemove, numToRemove);
+  //     }
+  //   }
+  // }
 
   //update the appropriate game, then close the form
   modifyGame(oldGame, newGame) {

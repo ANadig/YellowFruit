@@ -7,7 +7,6 @@ class AddTeamModal extends React.Component{
 
   constructor(props) {
     super(props);
-    // console.log("Props.teamData: " + this.props.teamData.teamName + ", " + this.props.teamData.roster);
     this.state = {
       teamName: '',
       rosterString: '',

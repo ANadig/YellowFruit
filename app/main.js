@@ -26,9 +26,7 @@ app.on('ready', function() {
   infoWindow = new BrowserWindow({
     width: 400,
     height: 300,
-    transparent: true,
     show: false,
-    frame: false
   }); //infoWindow
 
   infoWindow.loadURL('file://' + __dirname + '/info.html');
@@ -40,7 +38,7 @@ app.on('ready', function() {
   ipc.on('openInfoWindow', function(event, arg){
     event.returnValue='';
     infoWindow.show();
-  }); //closeInfoWindow
+  }); //openInfoWindow
 
   ipc.on('closeInfoWindow', function(event, arg){
     event.returnValue='';
@@ -55,16 +53,6 @@ app.on('ready', function() {
           label: 'About this App',
           accelerator: process.platform === 'darwin' ? 'Command+I': 'Ctrl+I',
           click(item) { toggleWindow(infoWindow)}
-        },{
-          label: 'Add Appointment',
-          accelerator: process.platform === 'darwin' ? 'Command+N':'Ctrl+N',
-          click(item,focusedWindow) {
-            if (focusedWindow) focusedWindow.webContents.send('addAppointment');
-          }
-        },{
-          role: 'help',
-          label: 'Our Website',
-          click() { electron.shell.openExternal('http://raybo.org')}
         },
         {role: 'close'},
         {role: 'quit'}
@@ -72,12 +60,17 @@ app.on('ready', function() {
     },{
       label: 'Edit',
       submenu: [
-        {role: 'undo'},
-        {role: 'redo'},
         {role: 'cut'},
         {role: 'copy'},
         {role: 'paste'},
-        {role: 'selectall'}
+        {type: 'separator'},
+        {
+          label: 'Add Team',
+          accelerator: process.platform === 'darwin' ? 'Command+N':'Ctrl+N',
+          click(item,focusedWindow) {
+            if (focusedWindow) focusedWindow.webContents.send('addAppointment');
+          }
+        }
       ]
     },{
         label: 'View',
@@ -95,13 +88,7 @@ app.on('ready', function() {
             click (item, focusedWindow) {
               if (focusedWindow) focusedWindow.webContents.toggleDevTools()
             }
-          },
-          {type: 'separator'},
-          {role: 'resetzoom'},
-          {role: 'zoomin'},
-          {role: 'zoomout'},
-          {type: 'separator'},
-          {role: 'togglefullscreen'}
+          }
         ]
       },
   ];
