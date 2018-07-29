@@ -31,35 +31,6 @@ function gameEqual(g1, g2) {
     g1.notes == g2.notes;
 }
 
-//bonusesHeard for a single game
-function bonusesHeard (game, whichTeam) {
-  var tot = 0;
-  var players = whichTeam == 1 ? game.players1 : game.players2;
-  for(var p in players) {
-    pwr = parseFloat(players[p]["powers"]);
-    gt = parseFloat(players[p]["gets"]);
-    tot = isNaN(pwr) ? tot : tot+pwr;
-    tot = isNaN(gt) ? tot : tot+gt;
-  }
-  return tot;
-}
-
-//bonus points for a single game
-function bonusPoints(game, whichTeam) {
-  var tuPts = 0;
-  var players = whichTeam == 1 ? game.players1 : game.players2;
-  var totalPoints = whichTeam == 1 ? game.score1 : game.score2;
-  for(var p in players) {
-    pwr = parseFloat(players[p]["powers"]);
-    gt = parseFloat(players[p]["gets"]);
-    ng = parseFloat(players[p]["negs"]);
-    tuPts = isNaN(pwr) ? tuPts : tuPts+(15*pwr);
-    tuPts = isNaN(gt) ? tuPts : tuPts+(10*gt);
-    tuPts = isNaN(ng) ? tuPts : tuPts-(5*ng)
-  }
-  return parseFloat(totalPoints) - tuPts;
-}
-
 function getSmallStandings(myTeams,myGames) {
   var summary = myTeams.map(function(item, index) {
     var obj =
@@ -102,67 +73,6 @@ function getSmallStandings(myTeams,myGames) {
   }
   return summary;
 }
-
-function getStatReportTop() {
-  return '<HTML>' + '\n' +
-    '<HEAD>' + '\n' +
-    '<TITLE>  Team Standings </TITLE>' + '\n' +
-    '</HEAD>' + '\n' +
-    '<BODY>' + '\n' +
-    '<table border=0 width=100%>' + '\n' +
-    '<tr>' + '\n' +
-      '<td><A HREF=standings.html>Standings</A></td>' + '\n' +
-      '<td><A HREF=individuals.html>Individuals</A></td>' + '\n' +
-      '<td><A HREF=games.html>Scoreboard</A></td>' + '\n' +
-      '<td><A HREF=teamdetail.html>Team Detail</A></td>' + '\n' +
-      '<td><A HREF=playerdetail.html>Individual Detail</A></td>' + '\n' +
-      '<td><A HREF=rounds.html>Round Report</A></td>' + '\n' +
-      '<td><A HREF=statkey.html#TeamStandings>Stat Key</A></td>' + '\n' +
-    '</tr>' + '\n' +
-    '</table>' + '\n';
-}
-
-function getStatReportBottom() {
-  return '</BODY>' + '\n' +
-  '</HTML>';
-}
-
-function getStandingsHtml(teams, games) {
-  return  getStatReportTop() +
-    '<H1> Team Standings</H1>' + '\n' +
-    getStatReportBottom();
-}
-
-function getIndividualsHtml(teams, games) {
-  return  getStatReportTop() +
-    '<H1> Individual Statistics</H1>' + '\n' +
-    getStatReportBottom();
-}
-
-function getScoreboardHtml(teams, games) {
-  return  getStatReportTop() +
-    '<H1> Scoreboard</H1>' + '\n' +
-    getStatReportBottom();
-}
-
-function getTeamDetailHtml(teams, games) {
-  return  getStatReportTop() +
-    '<H1> Team Detail</H1>' + '\n' +
-    getStatReportBottom();
-}
-
-function getIndvDetailHtml(teams, games) {
-  return  getStatReportTop() +
-    '<H1> Individual Detail</H1>' + '\n' +
-    getStatReportBottom();
-}
-
-function getRoundReportHtml(teams, games) {
-  return  getStatReportTop() +
-    '<H1> Round Report</H1>' + '\n' +
-    getStatReportBottom();
-}
-
 
 
 

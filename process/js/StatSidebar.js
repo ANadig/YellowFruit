@@ -16,7 +16,7 @@ class StatSidebar extends React.Component{
   //sort by winning percentage, then by ppg
   standingsSort(summary) {
     return _.orderBy(summary, [function(g) {
-      if(this.getGamesPlayed(g) == 0) { return 0.5; }
+      if(this.getGamesPlayed(g) == 0) { return 0; }
       return (g.wins + g.ties/2) / this.getGamesPlayed(g);
     }.bind(this), this.getPpg.bind(this)], ['desc', 'desc']);
   }
