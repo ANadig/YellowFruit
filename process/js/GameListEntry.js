@@ -46,12 +46,12 @@ class GameListEntry extends React.Component{
       var powers = players[p].powers == '' ? 0 : players[p].powers;
       var gets = players[p].gets == '' ? 0 : players[p].gets;
       var negs = players[p].negs == '' ? 0 : players[p].negs;
-
-      lineScore += ' ' + players[p].name + ' ';
-      lineScore += powers + '/' + gets + '/' + negs;
-      if(p < players.length - 1) { lineScore += ','; }
+      if(players[p].tuh > 0) {
+        lineScore += ' ' + p + ' ';
+        lineScore += powers + '/' + gets + '/' + negs + ',';
+      }
     }
-    return lineScore;
+    return lineScore.substr(0, lineScore.length - 1); //remove the comma at the end
   }
 
   //tell the mainInterface to open my game for editing

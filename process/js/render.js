@@ -20,7 +20,7 @@ var TeamList = require('./TeamList');
 var GameList = require('./GameList');
 var StatSidebar = require('./StatSidebar');
 
-//skip team1, team2 because comparing arrays is more complicated and I'm lazy
+//skip players1, players2 because comparing objects is more complicated and I'm lazy
 function gameEqual(g1, g2) {
   if((g1 == undefined && g2 != undefined) || (g1 != undefined && g2 == undefined)) {
     return false;
@@ -103,6 +103,68 @@ function getSmallStandings(myTeams,myGames) {
   return summary;
 }
 
+function getStatReportTop() {
+  return '<HTML>' + '\n' +
+    '<HEAD>' + '\n' +
+    '<TITLE>  Team Standings </TITLE>' + '\n' +
+    '</HEAD>' + '\n' +
+    '<BODY>' + '\n' +
+    '<table border=0 width=100%>' + '\n' +
+    '<tr>' + '\n' +
+      '<td><A HREF=standings.html>Standings</A></td>' + '\n' +
+      '<td><A HREF=individuals.html>Individuals</A></td>' + '\n' +
+      '<td><A HREF=games.html>Scoreboard</A></td>' + '\n' +
+      '<td><A HREF=teamdetail.html>Team Detail</A></td>' + '\n' +
+      '<td><A HREF=playerdetail.html>Individual Detail</A></td>' + '\n' +
+      '<td><A HREF=rounds.html>Round Report</A></td>' + '\n' +
+      '<td><A HREF=statkey.html#TeamStandings>Stat Key</A></td>' + '\n' +
+    '</tr>' + '\n' +
+    '</table>' + '\n';
+}
+
+function getStatReportBottom() {
+  return '</BODY>' + '\n' +
+  '</HTML>';
+}
+
+function getStandingsHtml(teams, games) {
+  return  getStatReportTop() +
+    '<H1> Team Standings</H1>' + '\n' +
+    getStatReportBottom();
+}
+
+function getIndividualsHtml(teams, games) {
+  return  getStatReportTop() +
+    '<H1> Individual Statistics</H1>' + '\n' +
+    getStatReportBottom();
+}
+
+function getScoreboardHtml(teams, games) {
+  return  getStatReportTop() +
+    '<H1> Scoreboard</H1>' + '\n' +
+    getStatReportBottom();
+}
+
+function getTeamDetailHtml(teams, games) {
+  return  getStatReportTop() +
+    '<H1> Team Detail</H1>' + '\n' +
+    getStatReportBottom();
+}
+
+function getIndvDetailHtml(teams, games) {
+  return  getStatReportTop() +
+    '<H1> Individual Detail</H1>' + '\n' +
+    getStatReportBottom();
+}
+
+function getRoundReportHtml(teams, games) {
+  return  getStatReportTop() +
+    '<H1> Round Report</H1>' + '\n' +
+    getStatReportBottom();
+}
+
+
+
 
 class MainInterface extends React.Component{
 
@@ -146,13 +208,13 @@ class MainInterface extends React.Component{
   }
 
   componentDidMount() {
-    ipc.on('addAppointment', function(event,message) {
+    ipc.on('addTeam', function(event,message) {
       this.openTeamAddWindow();
     }.bind(this));
   } //componentDidMount
 
   componentWillUnmount() {
-    ipc.removeListener('addAppointment', function(event,message) {
+    ipc.removeListener('addTeam', function(event,message) {
       this.openTeamAddWindow();
     }.bind(this));
   } //componentWillUnmount
@@ -168,6 +230,42 @@ class MainInterface extends React.Component{
         console.log(err);
       }
     });//writeFile - games
+    var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames);
+    fs.writeFile(standingsLocation, standingsHtml, 'utf8', function(err) {
+      if (err) {
+        console.log(err);
+      }
+    });//writeFile - standings
+    var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames);
+    fs.writeFile(individualsLocation, individualsHtml, 'utf8', function(err) {
+      if (err) {
+        console.log(err);
+      }
+    });//writeFile - individuals
+    var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames);
+    fs.writeFile(scoreboardLocation, scoreboardHtml, 'utf8', function(err) {
+      if (err) {
+        console.log(err);
+      }
+    });//writeFile - scoreboard
+    var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames);
+    fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
+      if (err) {
+        console.log(err);
+      }
+    });//writeFile - team detail
+    var indvDetailHtml = getIndvDetailHtml(this.state.myTeams, this.state.myGames);
+    fs.writeFile(indvDetailLocation, indvDetailHtml, 'utf8', function(err) {
+      if (err) {
+        console.log(err);
+      }
+    });//writeFile - individual Detail
+    var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames);
+    fs.writeFile(roundReportLocation, roundReportHtml, 'utf8', function(err) {
+      if (err) {
+        console.log(err);
+      }
+    });//writeFile - round report
   } //componentDidUpdate
 
   //called by buttons that open the team form
@@ -245,8 +343,8 @@ class MainInterface extends React.Component{
       // if(i >= newTeam.roster.length) {
       //   //this.updatePlayerName(tempGames, oldTeam.teamName, i, '[Player deleted]');
       // }
-      if(oldTeam.roster[i] != newTeam.roster[i]) {
-        this.updatePlayerName(tempGames, oldTeam.teamName, i, newTeam.roster[i]);
+      if(i < newTeam.roster.length && oldTeam.roster[i] != newTeam.roster[i]) {
+        this.updatePlayerName(tempGames, oldTeam.teamName, oldTeam.roster[i], newTeam.roster[i]);
       }
     }
 
@@ -274,13 +372,15 @@ class MainInterface extends React.Component{
   }
 
   //change the name of a given player on a given team for all games
-  updatePlayerName(gameAry, teamName, playerNo, newPlayerName) {
+  updatePlayerName(gameAry, teamName, oldPlayerName, newPlayerName) {
     for(var i in gameAry) {
       if(teamName == gameAry[i].team1) {
-        gameAry[i].players1[playerNo].name = newPlayerName;
+        gameAry[i].players1[newPlayerName] = gameAry[i].players1[oldPlayerName];
+        delete gameAry[i].players1[oldPlayerName];
       }
       else if(teamName == gameAry[i].team2) {
-        gameAry[i].players2[playerNo].name = newPlayerName;
+        gameAry[i].players2[newPlayerName] = gameAry[i].players2[oldPlayerName];
+        delete gameAry[i].players2[oldPlayerName];
       }
     }
   }
@@ -559,4 +659,4 @@ class MainInterface extends React.Component{
 ReactDOM.render(
   <MainInterface />,
   document.getElementById('statsInterface')
-); //render
+);

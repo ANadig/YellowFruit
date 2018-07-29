@@ -40,7 +40,7 @@ class PlayerRow extends React.Component{
     var partialState = {};
     partialState[name] = value;
     this.setState(partialState);
-    this.props.updatePlayer(this.props.whichTeam, this.props.rowNo, name, value, this.props.playerName);
+    this.props.updatePlayer(this.props.whichTeam, name, value, this.props.playerName);
   }
 
   //the total number of points score by the player in this game
@@ -54,20 +54,20 @@ class PlayerRow extends React.Component{
         <td>{this.props.playerName}</td>
         <td>
           <input type="number"
-            id={'tuh'+this.props.rowNo+'-'+this.props.whichTeam} size="3"
+            id={'tuh'+this.props.playerName+'-'+this.props.whichTeam} size="3"
             name="tuh" value={this.state.tuh} onChange={this.handleChange}/>
         </td>
         <td>
-          <input type="number" id={'powers'+this.props.rowNo+'-'+this.props.whichTeam} size="3" name="powers" value={this.state.powers} onChange={this.handleChange}/>
+          <input type="number" id={'powers'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="powers" value={this.state.powers} onChange={this.handleChange}/>
         </td>
         <td>
-          <input type="number" id={'gets'+this.props.rowNo+'-'+this.props.whichTeam} size="3" name="gets" value={this.state.gets} onChange={this.handleChange}/>
+          <input type="number" id={'gets'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="gets" value={this.state.gets} onChange={this.handleChange}/>
         </td>
         <td>
-          <input type="number" id={'negs'+this.props.rowNo+'-'+this.props.whichTeam} size="3" name="negs" value={this.state.negs} onChange={this.handleChange}/>
+          <input type="number" id={'negs'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="negs" value={this.state.negs} onChange={this.handleChange}/>
         </td>
         <td>
-          <input disabled id={'tot'+this.props.rowNo+this.props.whichTeam} size="3" value={this.getTotalPts()}/>
+          <input disabled id={'tot'+this.props.playerName+this.props.whichTeam} size="3" value={this.getTotalPts()}/>
         </td>
       </tr>
     )

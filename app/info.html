@@ -12,15 +12,12 @@
     var ipc = electron.ipcRenderer;
   </script>
 </head>
-<body id="page-info">
-  <main class="info-content">
+<body>
+  <div id="stats-report-page">
     <h3 class="page-headline">Wisdom Pet</h3>
-    <p>
-      Welcome to the Wisdom Pet App.<br>
-      <strong>Version 1.0.0</strong><br>
-      <small>Built with love by <a href="#" onclick="shell.openExternal('http://raybo.org')">Ray Villalobos</a></small>
-    </p>
-    <p><a href="#" onclick="ipc.sendSync('closeInfoWindow')">close window</a></p>
-  </main>
+    Stats report here
+    <p><a href="#" onclick="ipc.sendSync('closeReportWindow')">close window</a></p>
+  </div>
 </body>
+
 </html>

@@ -4,17 +4,32 @@ var Menu = electron.Menu;
 var app = electron.app;
 var ipc = electron.ipcMain;
 var myAppMenu, menuTemplate;
+var reportWindow;
 
-function toggleWindow(whichWindow) {
-  if (whichWindow.isVisible()) {
-    whichWindow.hide();
-  } else {
-    whichWindow.show();
+// load a new report window, or, if one is already open, reload and focus it
+function showReportWindow() {
+  if(reportWindow != undefined && !reportWindow.isDestroyed()) {
+    reportWindow.focus();
+    reportWindow.reload();
   }
-}
+  else {
+    reportWindow = new BrowserWindow({
+      width: 900,
+      height: 500,
+      show: false,
+      autoHideMenuBar: true
+    }); //reportWindow
+
+    reportWindow.loadURL('file://' + __dirname + '/standings.html');
+
+    reportWindow.once('ready-to-show', function () {
+      reportWindow.show();
+    });
+  }
+} //showReportWindow
 
 app.on('ready', function() {
-  var appWindow, infoWindow;
+  var appWindow;
   appWindow = new BrowserWindow({
     width: 1200,
     height: 700,
@@ -23,36 +38,28 @@ app.on('ready', function() {
 
   appWindow.loadURL('file://' + __dirname + '/index.html');
 
-  infoWindow = new BrowserWindow({
-    width: 400,
-    height: 300,
-    show: false,
-  }); //infoWindow
-
-  infoWindow.loadURL('file://' + __dirname + '/info.html');
-
   appWindow.once('ready-to-show', function() {
     appWindow.show();
   }); //ready-to-show
 
-  ipc.on('openInfoWindow', function(event, arg){
-    event.returnValue='';
-    infoWindow.show();
-  }); //openInfoWindow
-
-  ipc.on('closeInfoWindow', function(event, arg){
-    event.returnValue='';
-    infoWindow.hide();
-  }); //closeInfoWindow
+  // ipc.on('openReportWindow', function(event, arg){
+  //   event.returnValue='';
+  //   reportWindow.show();
+  // }); //openreportWindow
+  //
+  // ipc.on('closeReportWindow', function(event, arg){
+  //   event.returnValue='';
+  //   reportWindow.hide();
+  // }); //closereportWindow
 
   menuTemplate = [
     {
       label: 'YellowFruit',
       submenu: [
         {
-          label: 'About this App',
+          label: 'View Full Report',
           accelerator: process.platform === 'darwin' ? 'Command+I': 'Ctrl+I',
-          click(item) { toggleWindow(infoWindow)}
+          click(item) { showReportWindow() }
         },
         {role: 'close'},
         {role: 'quit'}
@@ -66,9 +73,9 @@ app.on('ready', function() {
         {type: 'separator'},
         {
           label: 'Add Team',
-          accelerator: process.platform === 'darwin' ? 'Command+N':'Ctrl+N',
+          accelerator: process.platform === 'darwin' ? 'Command+T':'Ctrl+T',
           click(item,focusedWindow) {
-            if (focusedWindow) focusedWindow.webContents.send('addAppointment');
+            if (focusedWindow) focusedWindow.webContents.send('addTeam');
           }
         }
       ]

@@ -2,6 +2,7 @@
   {
     "round": 1,
     "tuhtot": 20,
+    "forfeit": false,
     "team1": "Onalaska",
     "team2": "Hudson",
     "score1": "255",
@@ -21,6 +22,7 @@
   {
     "round": 2,
     "tuhtot": 20,
+    "forfeit": false,
     "team1": "Onalaska",
     "team2": "Hudson",
     "score1": "205",
@@ -40,6 +42,7 @@
   {
     "round": 3,
     "tuhtot": 20,
+    "forfeit": false,
     "team1": "Onalaska",
     "team2": "Hudson",
     "score1": "295",

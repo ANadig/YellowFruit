@@ -19,8 +19,8 @@ class AddGameModal extends React.Component{
       team2: 'nullTeam',
       score1: '',
       score2: '',
-      players1: [],
-      players2: [],
+      players1: null,
+      players2: null,
       notes: '',
       originalGameLoaded: null
     };
@@ -44,30 +44,31 @@ class AddGameModal extends React.Component{
 
   //called when a playerRow updates its state, so that this component
   //updates its state at the same time.
-  updatePlayer(whichTeam, index, whichStat, value, playerName){
-    var tempAry = [];
+  updatePlayer(whichTeam, whichStat, value, playerName){
     if(whichTeam == 1) {
-      tempAry = this.state.players1.slice();
-      if (tempAry[index] == undefined) {
+      //deep copy of team data to avoid spurious state updates
+      var tempTeam1 = $.extend(true, {}, this.state.players1);
+      if (tempTeam1[playerName] == undefined) {
         //need to initialize each attribute so we don't set
         //null values in a controlled component
-        tempAry[index] = {'name': playerName, 'tuh': '', 'powers': '', 'gets': '', 'negs': ''};
+        tempTeam1[playerName] = {'tuh': '', 'powers': '', 'gets': '', 'negs': ''};
       }
-      tempAry[index][whichStat] = value;
+      tempTeam1[playerName][whichStat] = value;
       this.setState({
-        players1: tempAry
+        players1: tempTeam1
       });
     }
     else if(whichTeam == 2) {
-      tempAry = this.state.players2.slice();
-      if (tempAry[index] == undefined) {
+      //deep copy of team data to avoid spurious state updates
+      var tempTeam2 = $.extend(true, {}, this.state.players2);
+      if (tempTeam2[playerName] == undefined) {
         //need to initialize each attribute so we don't set
         //null values in a controlled component
-        tempAry[index] = {'name': playerName, 'tuh': '', 'powers': '', 'gets': '', 'negs': ''};
+        tempTeam2[playerName] = {'tuh': '', 'powers': '', 'gets': '', 'negs': ''};
       }
-      tempAry[index][whichStat] = value;
+      tempTeam2[playerName][whichStat] = value;
       this.setState({
-        players2: tempAry
+        players2: tempTeam2
       });
     }
   } // updatePlayer
@@ -83,8 +84,8 @@ class AddGameModal extends React.Component{
       team2: 'nullTeam',
       score1: '',
       score2: '',
-      players1: [],
-      players2: [],
+      players1: null,
+      players2: null,
       notes: '',
       originalGameLoaded: null
     });
@@ -378,7 +379,6 @@ class AddGameModal extends React.Component{
       return gameIsValid || event.keyCode != 13;
     });
 
-
     var teamData = this.props.teamData
     var team1PlayerRows = null;
     var team2PlayerRows = null;
@@ -388,14 +388,13 @@ class AddGameModal extends React.Component{
       var team1Obj = teamData.find(function(item){
         return item.teamName == this.state.team1
       }.bind(this));
-      var players1Copy = this.state.players1.slice();
       team1PlayerRows = team1Obj.roster.map(function(item, index){
+        var init = this.state.players1 != null ? this.state.players1[item] : null;
         return(
-          <PlayerRow key={team1Obj.teamName + index}
-            rowNo={index}
+          <PlayerRow key={team1Obj.teamName + item}
             playerName={item}
             whichTeam={1}
-            initialData={players1Copy[index]}
+            initialData={init}
             updatePlayer={this.updatePlayer}
           />
         )
@@ -406,14 +405,13 @@ class AddGameModal extends React.Component{
       var team2Obj = teamData.find(function(item){
         return item.teamName == this.state.team2
       }.bind(this));
-      var players2Copy = this.state.players2.slice();
       team2PlayerRows = team2Obj.roster.map(function(item, index){
+        var init = this.state.players2 != null ? this.state.players2[item] : null;
         return(
-          <PlayerRow key={team2Obj.teamName + index}
-            rowNo={index}
+          <PlayerRow key={team2Obj.teamName + item}
             playerName={item}
             whichTeam={2}
-            initialData={players2Copy[index]}
+            initialData={init}
             updatePlayer={this.updatePlayer}
           />
         )
