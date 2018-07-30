@@ -62,6 +62,14 @@ function teamNegs(game, whichTeam) {
   return totNegs;
 }
 
+function playerPoints(player) {
+  var totPoints = 0;
+  var pwr = parseFloat(player.powers);
+  var gt = parseFloat(player.gets);
+  var ng = parseFloat(player.negs);
+  totPoints += isNaN(pwr) ? 0 : pwr;
+}
+
 function standingsHeader() {
   return '<tr>' + '\n' +
   '<td ALIGN=LEFT><B>Rank</B></td>' + '\n' +
@@ -203,8 +211,124 @@ function compileStandings(myTeams, myGames) {
   return _.orderBy(standings, ['winPct', 'ppg'], ['desc', 'desc']);
 } //compileStandings
 
+//the header for the table in the individual standings
+function individualsHeader() {
+  return '<tr>' + '\n' +
+    '<td ALIGN=LEFT><B>Rank</B></td>' + '\n' +
+    '<td ALIGN=LEFT><B>Player</B></td>' + '\n' +
+    '<td ALIGN=LEFT><B>Team</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>GP</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>15</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>10</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>-5</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>TUH</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>P/TU</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>P/N</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>G/N</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>Pts</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>PPG</B></td>' + '\n' +
+    '</tr>';
+}
 
+//a single row in the individual standings
+function individualsRow(playerEntry, rank) {
+  var rowHtml = '<tr>' + '\n';
+  rowHtml += '<td ALIGN=LEFT>' + rank + '</td>' + '\n';
+  rowHtml += '<td ALIGN=LEFT><A HREF=playerdetail.html#>' + playerEntry.playerName + '</A></td>' + '\n';
+  rowHtml += '<td ALIGN=LEFT>' + playerEntry.teamName + '</td>' + '\n';
+  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.gamesPlayed + '</td>' + '\n';
+  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.powers + '</td>' + '\n';
+  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.gets + '</td>' + '\n';
+  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.negs + '</td>' + '\n';
+  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.tuh + '</td>' + '\n';
+  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.pptu + '</td>' + '\n';
+  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.pPerN + '</td>' + '\n';
+  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.gPerN + '</td>' + '\n';
+  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.points + '</td>' + '\n';
+  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.ppg + '</td>' + '\n';
+  return rowHtml + '</tr>';
+}
 
+//calculate each column of data for the individual standings page
+function compileIndividuals(myTeams, myGames) {
+  var individuals = [];
+  for(var i in myTeams) {
+    var t = myTeams[i];
+    for(var j in t.roster) {
+      var obj = {
+        playerName: t.roster[j],
+        teamName: t.teamName,
+        division: '', //not implemented yet
+        gamesPlayed: 0,
+        powers: 0,
+        gets: 0,
+        negs: 0,
+        tuh: 0,
+        pptu: 0,
+        pPerN: 0,
+        gPerN: 0,
+        points: 0,
+        ppg: 0
+      }
+      individuals.push(obj);
+    }
+  }
+  for(var i in myGames) {
+    var pEntry, tuh, powers, gets, negs;
+    var g = myGames[i];
+    var players1 = g.players1, players2 = g.players2;
+    for(var p in players1) {
+      pEntry = _.find(individuals, function (o) {
+        return o.teamName == g.team1 && o.playerName == p;
+      });
+      tuh = parseFloat(players1[p].tuh);
+      powers = parseFloat(players1[p].powers);
+      gets = parseFloat(players1[p].gets);
+      negs = parseFloat(players1[p].negs);
+      pEntry.gamesPlayed += isNaN(tuh) ? 0 : tuh / parseFloat(g.tuhtot);
+      pEntry.powers += isNaN(powers) ? 0 : powers;
+      pEntry.gets += isNaN(gets) ? 0 : gets;
+      pEntry.negs += isNaN(negs) ? 0 : negs;
+      pEntry.tuh += isNaN(tuh) ? 0 : tuh;
+    }
+    for(var p in players2) {
+      pEntry = _.find(individuals, function (o) {
+        return o.teamName == g.team2 && o.playerName == p;
+      });
+      tuh = parseFloat(players2[p].tuh);
+      powers = parseFloat(players2[p].powers);
+      gets = parseFloat(players2[p].gets);
+      negs = parseFloat(players2[p].negs);
+      pEntry.gamesPlayed += isNaN(tuh) ? 0 : tuh / parseFloat(g.tuhtot);
+      pEntry.powers += isNaN(powers) ? 0 : powers;
+      pEntry.gets += isNaN(gets) ? 0 : gets;
+      pEntry.negs += isNaN(negs) ? 0 : negs;
+      pEntry.tuh += isNaN(tuh) ? 0 : tuh;
+    }
+  } //for loop for each game
+
+  for(var i in individuals) {
+    var p = individuals[i];
+    var pptu = p.tuh == 0 ? 0 : p.points / p.tuh;
+    var pPerN = p.negs == 0 ? 0 : p.powers / p.negs;
+    var gPerN = p.negs == 0 ? 0 : p.gets / p.negs;
+    var totPoints = p.powers*15 + p.gets*10 - p.negs*5;
+    var ppg = p.gamesPlayed == 0 ? 0 : totPoints / p.gamesPlayed;
+
+    p.gamesPlayed = p.gamesPlayed.toFixed(1);
+    p.pptu = pptu.toFixed(2);
+    p.pPerN = pPerN.toFixed(2);
+    p.gPerN = gPerN.toFixed(2);
+    p.points = totPoints;
+    p.ppg = ppg.toFixed(2);
+  }
+
+  return _.orderBy(individuals, function(item) {
+    return parseFloat(item.ppg);
+  }, ['desc']);
+} //compileIndividuals
+
+//the links that appear at the top of every page in the report
 function getStatReportTop() {
   return '<HTML>' + '\n' +
     '<HEAD>' + '\n' +
@@ -224,6 +348,7 @@ function getStatReportTop() {
     '</table>' + '\n';
 }
 
+//closing tags at the end of the page
 function getStatReportBottom() {
   return '</BODY>' + '\n' +
   '</HTML>';
@@ -231,22 +356,24 @@ function getStatReportBottom() {
 
 function getStandingsHtml(teams, games) {
   var standings = compileStandings(teams, games);
-
   var html = getStatReportTop() +
     '<H1> Team Standings</H1>' + '\n' +
     '<table border=1 width=100%>' + standingsHeader();
-
   for(var i in standings) {
     html += standingsRow(standings[i], parseFloat(i)+1);
   }
-
   return html + '\n' + '</table>' + '\n' + getStatReportBottom();
 }//getStandingsHtml
 
 function getIndividualsHtml(teams, games) {
-  return  getStatReportTop() +
+  var individuals = compileIndividuals(teams, games);
+  var html = getStatReportTop() +
     '<H1> Individual Statistics</H1>' + '\n' +
-    getStatReportBottom();
+    '<table border=1 width=100%>' + individualsHeader();
+  for(var i in individuals) {
+    html += individualsRow(individuals[i], parseFloat(i)+1);
+  }
+  return html + '\n' + '</table>' + '\n' +  getStatReportBottom();
 }
 
 function getScoreboardHtml(teams, games) {
