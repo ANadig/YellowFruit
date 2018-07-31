@@ -15,7 +15,7 @@ class GameListEntry extends React.Component{
 
   //returns e.g. ['Round 1: ', 'Central A 310', 'Memorial A 250', ' (OT)']
   getScoreStrings(){
-    var strAry = ['Round' + this.props.singleItem.round + ': '];
+    var strAry = ['Round ' + this.props.singleItem.round + ': '];
     strAry.push(this.props.singleItem.team1 + " " + this.props.singleItem.score1);
     strAry.push(this.props.singleItem.team2 + " " + this.props.singleItem.score2);
     if(this.props.singleItem.ottu > 0) {
