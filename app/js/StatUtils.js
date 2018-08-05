@@ -77,50 +77,52 @@ function playerSlashLine(player) {
 //header row of the team standings
 function standingsHeader() {
   return '<tr>' + '\n' +
-  '<td ALIGN=LEFT><B>Rank</B></td>' + '\n' +
-  '<td ALIGN=LEFT><B>Team</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>W</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>L</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>T</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>Pct</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>PPG</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>PAPG</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>Mrg</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>15</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>10</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>-5</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>TUH</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>PPTH</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>P/N</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>G/N</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>BHrd</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>BPts</B></td>' + '\n' +
-  '<td ALIGN=RIGHT><B>PPB</B></td>' + '\n' +
+  '<td align=left><b>Rank</b></td>' + '\n' +
+  '<td align=left><b>Team</b></td>' + '\n' +
+  '<td align=right><b>W</b></td>' + '\n' +
+  '<td align=right><b>L</b></td>' + '\n' +
+  '<td align=right><b>T</b></td>' + '\n' +
+  '<td align=right><b>Pct</b></td>' + '\n' +
+  '<td align=right><b>PPG</b></td>' + '\n' +
+  '<td align=right><b>PAPG</b></td>' + '\n' +
+  '<td align=right><b>Mrg</b></td>' + '\n' +
+  '<td align=right><b>15</b></td>' + '\n' +
+  '<td align=right><b>10</b></td>' + '\n' +
+  '<td align=right><b>-5</b></td>' + '\n' +
+  '<td align=right><b>TUH</b></td>' + '\n' +
+  '<td align=right><b>PPTH</b></td>' + '\n' +
+  '<td align=right><b>P/N</b></td>' + '\n' +
+  '<td align=right><b>G/N</b></td>' + '\n' +
+  '<td align=right><b>BHrd</b></td>' + '\n' +
+  '<td align=right><b>BPts</b></td>' + '\n' +
+  '<td align=right><b>PPB</b></td>' + '\n' +
   '</tr>'
 }
 
 //one row in the team standings
 function standingsRow(teamEntry, rank) {
+  var linkId = teamEntry.teamName.replace(/\W/g, '');
   var rowHtml = '<tr>';
-  rowHtml += '<td ALIGN=LEFT>' + rank + '</td>' + '\n';
-  rowHtml += '<td ALIGN=LEFT>' + '<A HREF=teamdetail.html#>' + teamEntry.teamName + '</A>' + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.wins + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.losses + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.ties + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.winPct + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.ppg + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.papg + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.margin + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.powers + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.gets + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.negs + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.tuh + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.ppth + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.pPerN + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.gPerN + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.bHeard + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.bPts + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + teamEntry.ppb + '</td>' + '\n';
+  rowHtml += '<td align=left>' + rank + '</td>' + '\n';
+  rowHtml += '<td align=left>' + '<a href=\"teamdetail.html#' + linkId + '\">' +
+    teamEntry.teamName + '</a>' + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.wins + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.losses + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.ties + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.winPct + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.ppg + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.papg + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.margin + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.powers + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.gets + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.negs + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.tuh + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.ppth + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.pPerN + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.gPerN + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.bHeard + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.bPts + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.ppb + '</td>' + '\n';
   return rowHtml + '</tr>';
 }
 
@@ -221,38 +223,41 @@ function compileStandings(myTeams, myGames) {
 //the header for the table in the individual standings
 function individualsHeader() {
   return '<tr>' + '\n' +
-    '<td ALIGN=LEFT><B>Rank</B></td>' + '\n' +
-    '<td ALIGN=LEFT><B>Player</B></td>' + '\n' +
-    '<td ALIGN=LEFT><B>Team</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>GP</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>15</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>10</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>-5</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>TUH</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>P/TU</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>P/N</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>G/N</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>Pts</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>PPG</B></td>' + '\n' +
+    '<td align=left><b>Rank</b></td>' + '\n' +
+    '<td align=left><b>Player</b></td>' + '\n' +
+    '<td align=left><b>Team</b></td>' + '\n' +
+    '<td align=right><b>GP</b></td>' + '\n' +
+    '<td align=right><b>15</b></td>' + '\n' +
+    '<td align=right><b>10</b></td>' + '\n' +
+    '<td align=right><b>-5</b></td>' + '\n' +
+    '<td align=right><b>TUH</b></td>' + '\n' +
+    '<td align=right><b>P/TU</b></td>' + '\n' +
+    '<td align=right><b>P/N</b></td>' + '\n' +
+    '<td align=right><b>G/N</b></td>' + '\n' +
+    '<td align=right><b>Pts</b></td>' + '\n' +
+    '<td align=right><b>PPG</b></td>' + '\n' +
     '</tr>';
 }
 
 //a single row in the individual standings
 function individualsRow(playerEntry, rank) {
+  var linkId = playerEntry.teamName.replace(/\W/g, '') + '-' +
+    playerEntry.playerName.replace(/\W/g, '');
   var rowHtml = '<tr>' + '\n';
-  rowHtml += '<td ALIGN=LEFT>' + rank + '</td>' + '\n';
-  rowHtml += '<td ALIGN=LEFT><A HREF=playerdetail.html#>' + playerEntry.playerName + '</A></td>' + '\n';
-  rowHtml += '<td ALIGN=LEFT>' + playerEntry.teamName + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.gamesPlayed + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.powers + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.gets + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.negs + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.tuh + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.pptu + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.pPerN + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.gPerN + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.points + '</td>' + '\n';
-  rowHtml += '<td ALIGN=RIGHT>' + playerEntry.ppg + '</td>' + '\n';
+  rowHtml += '<td align=left>' + rank + '</td>' + '\n';
+  rowHtml += '<td align=left><a href=\"playerdetail.html#' + linkId + '\">' +
+    playerEntry.playerName + '</a></td>' + '\n';
+  rowHtml += '<td align=left>' + playerEntry.teamName + '</td>' + '\n';
+  rowHtml += '<td align=right>' + playerEntry.gamesPlayed + '</td>' + '\n';
+  rowHtml += '<td align=right>' + playerEntry.powers + '</td>' + '\n';
+  rowHtml += '<td align=right>' + playerEntry.gets + '</td>' + '\n';
+  rowHtml += '<td align=right>' + playerEntry.negs + '</td>' + '\n';
+  rowHtml += '<td align=right>' + playerEntry.tuh + '</td>' + '\n';
+  rowHtml += '<td align=right>' + playerEntry.pptu + '</td>' + '\n';
+  rowHtml += '<td align=right>' + playerEntry.pPerN + '</td>' + '\n';
+  rowHtml += '<td align=right>' + playerEntry.gPerN + '</td>' + '\n';
+  rowHtml += '<td align=right>' + playerEntry.points + '</td>' + '\n';
+  rowHtml += '<td align=right>' + playerEntry.ppg + '</td>' + '\n';
   return rowHtml + '</tr>';
 }
 
@@ -343,7 +348,7 @@ function getRoundsForScoreboard(myGames) {
 
 //the header for each section of the scoreboard
 function scoreboardRoundHeader(roundNo) {
-  return '<FONT SIZE=+1 COLOR=red>Round ' + roundNo + '</FONT>';
+  return '<font size=+1 color=red>Round ' + roundNo + '</font>';
 }
 
 //the html for all the game summaries for a single round
@@ -353,12 +358,12 @@ function scoreboardGameSummaries(myGames, roundNo) {
     var g = myGames[i];
     if(g.round == roundNo) {
       html += '<p>' + '\n';
-      html += '<FONT SIZE=+1>' + g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
+      html += '<font size=+1>' + g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
       if(g.ottu > 0) {
         html += ' (OT)';
       }
-      html += '</FONT><br>' + '\n' +
-        '<FONT SIZE=-1>' + '\n';
+      html += '</font><br>' + '\n' +
+        '<font size=-1>' + '\n';
       html += g.team1 + ': ';
       for(var p in g.players1) {
         var [tuh, pwr, gt, ng] = playerSlashLine(g.players1[p]);
@@ -381,26 +386,26 @@ function scoreboardGameSummaries(myGames, roundNo) {
       html += g.team2 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + '<br>';
     }
   }
-  return html + '</FONT>' + '\n' + '</p>' + '\n';
+  return html + '</font>' + '\n' + '</p>' + '\n';
 }
 
 //header row for the list of a team's games on the team detail page
 function teamDetailGameTableHeader() {
   return '<tr>' + '\n' +
-    '<td ALIGN=LEFT><B>Opponent</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>Result</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>PF</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>PA</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>15</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>10</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>-5</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>TUH</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>PPTH</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>P/N</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>G/N</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>BHrd</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>BPts</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>PPB</B></td>' + '\n' +
+    '<td align=left><b>Opponent</b></td>' + '\n' +
+    '<td align=right><b>Result</b></td>' + '\n' +
+    '<td align=right><b>PF</b></td>' + '\n' +
+    '<td align=right><b>PA</b></td>' + '\n' +
+    '<td align=right><b>15</b></td>' + '\n' +
+    '<td align=right><b>10</b></td>' + '\n' +
+    '<td align=right><b>-5</b></td>' + '\n' +
+    '<td align=right><b>TUH</b></td>' + '\n' +
+    '<td align=right><b>PPTH</b></td>' + '\n' +
+    '<td align=right><b>P/N</b></td>' + '\n' +
+    '<td align=right><b>G/N</b></td>' + '\n' +
+    '<td align=right><b>BHrd</b></td>' + '\n' +
+    '<td align=right><b>BPts</b></td>' + '\n' +
+    '<td align=right><b>PPB</b></td>' + '\n' +
     '</tr>'  + '\n';
 }
 
@@ -436,20 +441,20 @@ function teamDetailGameRow(game, whichTeam) {
   var ppb = bHeard == 0 ? 0 : bPts / bHeard;
 
   var html = '<tr>' + '\n';
-  html += '<td ALIGN=LEFT>' + opponent + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + result + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + score + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + opponentScore + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + powers + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + gets + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + negs + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + game.tuhtot + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + ppth.toFixed(2) + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + pPerN.toFixed(2) + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + gPerN.toFixed(2) + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + bHeard + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + bPts + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + ppb.toFixed(2) + '</td>' + '\n';
+  html += '<td align=left>' + opponent + '</td>' + '\n';
+  html += '<td align=right>' + result + '</td>' + '\n';
+  html += '<td align=right>' + score + '</td>' + '\n';
+  html += '<td align=right>' + opponentScore + '</td>' + '\n';
+  html += '<td align=right>' + powers + '</td>' + '\n';
+  html += '<td align=right>' + gets + '</td>' + '\n';
+  html += '<td align=right>' + negs + '</td>' + '\n';
+  html += '<td align=right>' + game.tuhtot + '</td>' + '\n';
+  html += '<td align=right>' + ppth.toFixed(2) + '</td>' + '\n';
+  html += '<td align=right>' + pPerN.toFixed(2) + '</td>' + '\n';
+  html += '<td align=right>' + gPerN.toFixed(2) + '</td>' + '\n';
+  html += '<td align=right>' + bHeard + '</td>' + '\n';
+  html += '<td align=right>' + bPts + '</td>' + '\n';
+  html += '<td align=right>' + ppb.toFixed(2) + '</td>' + '\n';
   html += '</tr>' + '\n';
   return html;
 }
@@ -457,20 +462,20 @@ function teamDetailGameRow(game, whichTeam) {
 //the totals row of a games table in the team detail page
 function teamDetailTeamSummaryRow(teamSummary) {
   var html = '<tr>' + '\n';
-  html += '<td ALIGN=LEFT><B>Total</B></td>' + '\n';
+  html += '<td align=left><b>Total</b></td>' + '\n';
   html += '<td></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + teamSummary.points + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + teamSummary.ptsAgainst + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + teamSummary.powers + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + teamSummary.gets + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + teamSummary.negs + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + teamSummary.tuh + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + teamSummary.ppth + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + teamSummary.pPerN + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + teamSummary.gPerN + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + teamSummary.bHeard + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + teamSummary.bPts + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + teamSummary.ppb + '</B></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.points + '</b></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.ptsAgainst + '</b></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.powers + '</b></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.gets + '</b></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.negs + '</b></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.tuh + '</b></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.ppth + '</b></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.pPerN + '</b></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.gPerN + '</b></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.bHeard + '</b></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.bPts + '</b></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.ppb + '</b></td>' + '\n';
   html += '</tr>' + '\n';
 
   return html;
@@ -479,36 +484,39 @@ function teamDetailTeamSummaryRow(teamSummary) {
 //header row for the list of a team's players on the team detail page
 function teamDetailPlayerTableHeader() {
   return '<tr>' + '\n' +
-    '<td ALIGN=LEFT><B>Player</B></td>' + '\n' +
-    '<td ALIGN=LEFT><B>Team</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>GP</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>15</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>10</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>-5</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>TUH</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>P/TU</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>P/N</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>G/N</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>Pts</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>PPG</B></td>' + '\n' +
+    '<td align=left><b>Player</b></td>' + '\n' +
+    '<td align=left><b>Team</b></td>' + '\n' +
+    '<td align=right><b>GP</b></td>' + '\n' +
+    '<td align=right><b>15</b></td>' + '\n' +
+    '<td align=right><b>10</b></td>' + '\n' +
+    '<td align=right><b>-5</b></td>' + '\n' +
+    '<td align=right><b>TUH</b></td>' + '\n' +
+    '<td align=right><b>P/TU</b></td>' + '\n' +
+    '<td align=right><b>P/N</b></td>' + '\n' +
+    '<td align=right><b>G/N</b></td>' + '\n' +
+    '<td align=right><b>Pts</b></td>' + '\n' +
+    '<td align=right><b>PPG</b></td>' + '\n' +
     '</tr>' + '\n';
 }
 
 //team detail row for a single player
 function teamDetailPlayerRow(player) {
+  var linkId = player.teamName.replace(/\W/g, '') + '-' +
+    player.playerName.replace(/\W/g, '');
   var html = '<tr>' + '\n';
-  html += '<td ALIGN=LEFT>' + player.playerName + '</td>' + '\n';
-  html += '<td ALIGN=LEFT>' + player.teamName + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + player.gamesPlayed + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + player.powers + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + player.gets + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + player.negs + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + player.tuh + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + player.pptu + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + player.pPerN + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + player.gPerN + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + player.points + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + player.ppg + '</td>' + '\n';
+  html += '<td align=left><a href=\"playerdetail.html#' + linkId + '\">' +
+    player.playerName + '</a></td>' + '\n';
+  html += '<td align=left>' + player.teamName + '</td>' + '\n';
+  html += '<td align=right>' + player.gamesPlayed + '</td>' + '\n';
+  html += '<td align=right>' + player.powers + '</td>' + '\n';
+  html += '<td align=right>' + player.gets + '</td>' + '\n';
+  html += '<td align=right>' + player.negs + '</td>' + '\n';
+  html += '<td align=right>' + player.tuh + '</td>' + '\n';
+  html += '<td align=right>' + player.pptu + '</td>' + '\n';
+  html += '<td align=right>' + player.pPerN + '</td>' + '\n';
+  html += '<td align=right>' + player.gPerN + '</td>' + '\n';
+  html += '<td align=right>' + player.points + '</td>' + '\n';
+  html += '<td align=right>' + player.ppg + '</td>' + '\n';
   html += '</tr>' + '\n';
 
   return html;
@@ -517,16 +525,16 @@ function teamDetailPlayerRow(player) {
 //header row for a table on the player detail page
 function playerDetailTableHeader() {
   return '<tr>' + '\n' +
-    '<td ALIGN=LEFT><B>Opponent</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>GP</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>15</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>10</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>-5</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>TUH</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>P/TU</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>P/N</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>G/N</B></td>' + '\n' +
-    '<td ALIGN=RIGHT><B>Pts</B></td>' + '\n' +
+    '<td align=left><b>Opponent</b></td>' + '\n' +
+    '<td align=right><b>GP</b></td>' + '\n' +
+    '<td align=right><b>15</b></td>' + '\n' +
+    '<td align=right><b>10</b></td>' + '\n' +
+    '<td align=right><b>-5</b></td>' + '\n' +
+    '<td align=right><b>TUH</b></td>' + '\n' +
+    '<td align=right><b>P/TU</b></td>' + '\n' +
+    '<td align=right><b>P/N</b></td>' + '\n' +
+    '<td align=right><b>G/N</b></td>' + '\n' +
+    '<td align=right><b>Pts</b></td>' + '\n' +
     '</tr>' + '\n';
 }
 
@@ -543,16 +551,16 @@ function playerDetailGameRow(player, tuhtot, opponent) {
   var gPerN = negs == 0 ? 0 : gets / negs;
 
   var html = '<tr>' + '\n';
-  html += '<td ALIGN=LEFT>' + opponent + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + gp.toFixed(1) + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + powers + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + gets + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + negs + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + tuh + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + pptu.toFixed(2) + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + pPerN.toFixed(2) + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + gPerN.toFixed(2) + '</td>' + '\n';
-  html += '<td ALIGN=RIGHT>' + points + '</td>' + '\n';
+  html += '<td align=left>' + opponent + '</td>' + '\n';
+  html += '<td align=right>' + gp.toFixed(1) + '</td>' + '\n';
+  html += '<td align=right>' + powers + '</td>' + '\n';
+  html += '<td align=right>' + gets + '</td>' + '\n';
+  html += '<td align=right>' + negs + '</td>' + '\n';
+  html += '<td align=right>' + tuh + '</td>' + '\n';
+  html += '<td align=right>' + pptu.toFixed(2) + '</td>' + '\n';
+  html += '<td align=right>' + pPerN.toFixed(2) + '</td>' + '\n';
+  html += '<td align=right>' + gPerN.toFixed(2) + '</td>' + '\n';
+  html += '<td align=right>' + points + '</td>' + '\n';
   html += '</tr>' + '\n';
   return html;
 }
@@ -560,16 +568,16 @@ function playerDetailGameRow(player, tuhtot, opponent) {
 //total row on the player detail page, using totals from compileIndividuals
 function playerDetailTotalRow(player) {
   var html = '<tr>' + '\n';
-  html += '<td ALIGN=LEFT><B>Total</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + player.gamesPlayed + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + player.powers + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + player.gets + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + player.negs + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + player.tuh + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + player.pptu + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + player.pPerN + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + player.gPerN + '</B></td>' + '\n';
-  html += '<td ALIGN=RIGHT><B>' + player.points + '</B></td>' + '\n';
+  html += '<td align=left><b>Total</b></td>' + '\n';
+  html += '<td align=right><b>' + player.gamesPlayed + '</b></td>' + '\n';
+  html += '<td align=right><b>' + player.powers + '</b></td>' + '\n';
+  html += '<td align=right><b>' + player.gets + '</b></td>' + '\n';
+  html += '<td align=right><b>' + player.negs + '</b></td>' + '\n';
+  html += '<td align=right><b>' + player.tuh + '</b></td>' + '\n';
+  html += '<td align=right><b>' + player.pptu + '</b></td>' + '\n';
+  html += '<td align=right><b>' + player.pPerN + '</b></td>' + '\n';
+  html += '<td align=right><b>' + player.gPerN + '</b></td>' + '\n';
+  html += '<td align=right><b>' + player.points + '</b></td>' + '\n';
   html += '</tr>' + '\n';
   return html;
 }
@@ -617,10 +625,10 @@ function compileRoundSummaries(games) {
 //the header row for the round report
 function roundReportTableHeader() {
   return '<tr>' + '\n' +
-    '<td><B>Round</B></td>' + '\n' +
-    '<td><B>PPG/Team</B></td>' + '\n' +
-    '<td><B>TUPts/TUH</B></td>' + '\n' +
-    '<td><B>PPB</B></td>' + '\n' +
+    '<td><b>Round</b></td>' + '\n' +
+    '<td><b>PPG/Team</b></td>' + '\n' +
+    '<td><b>TUPts/TUH</b></td>' + '\n' +
+    '<td><b>PPB</b></td>' + '\n' +
     '</tr>' + '\n';
 }
 
@@ -643,13 +651,13 @@ function getStatReportTop() {
     '<BODY>' + '\n' +
     '<table border=0 width=100%>' + '\n' +
     '<tr>' + '\n' +
-      '<td><A HREF=standings.html>Standings</A></td>' + '\n' +
-      '<td><A HREF=individuals.html>Individuals</A></td>' + '\n' +
-      '<td><A HREF=games.html>Scoreboard</A></td>' + '\n' +
-      '<td><A HREF=teamdetail.html>Team Detail</A></td>' + '\n' +
-      '<td><A HREF=playerdetail.html>Individual Detail</A></td>' + '\n' +
-      '<td><A HREF=rounds.html>Round Report</A></td>' + '\n' +
-      '<td><A HREF=statkey.html#TeamStandings>Stat Key</A></td>' + '\n' +
+      '<td><a href=standings.html>Standings</a></td>' + '\n' +
+      '<td><a href=individuals.html>Individuals</a></td>' + '\n' +
+      '<td><a href=games.html>Scoreboard</a></td>' + '\n' +
+      '<td><a href=teamdetail.html>Team Detail</a></td>' + '\n' +
+      '<td><a href=playerdetail.html>Individual Detail</a></td>' + '\n' +
+      '<td><a href=rounds.html>Round Report</a></td>' + '\n' +
+      '<td><a href=statkey.html#TeamStandings>Stat Key</a></td>' + '\n' +
     '</tr>' + '\n' +
     '</table>' + '\n';
 }
@@ -663,7 +671,7 @@ function getStatReportBottom() {
 function getStandingsHtml(teams, games) {
   var standings = compileStandings(teams, games);
   var html = getStatReportTop() +
-    '<H1> Team Standings</H1>' + '\n' +
+    '<h1> Team Standings</h1>' + '\n' +
     '<table border=1 width=100%>' + standingsHeader();
   for(var i in standings) {
     html += standingsRow(standings[i], parseFloat(i)+1);
@@ -674,7 +682,7 @@ function getStandingsHtml(teams, games) {
 function getIndividualsHtml(teams, games) {
   var individuals = compileIndividuals(teams, games);
   var html = getStatReportTop() +
-    '<H1> Individual Statistics</H1>' + '\n' +
+    '<h1> Individual Statistics</h1>' + '\n' +
     '<table border=1 width=100%>' + individualsHeader();
   for(var i in individuals) {
     html += individualsRow(individuals[i], parseFloat(i)+1);
@@ -684,7 +692,7 @@ function getIndividualsHtml(teams, games) {
 
 function getScoreboardHtml(teams, games) {
   var html = getStatReportTop() +
-    '<H1> Scoreboard</H1>' + '\n';
+    '<h1> Scoreboard</h1>' + '\n';
   var roundList = getRoundsForScoreboard(games);
   for(var r in roundList) {
     html += scoreboardRoundHeader(roundList[r]);
@@ -700,10 +708,11 @@ function getTeamDetailHtml(teams, games) {
   var individuals = compileIndividuals(teams, games);
 
   var html = getStatReportTop() + '\n' +
-    '<H1> Team Detail</H1>'+ '<br>' + '\n';
+    '<h1> Team Detail</h1>' + '\n';
   for(var i in teams) {
     var teamName = teams[i].teamName;
-    html += '<H2>' + teams[i].teamName + '</H2>' + '\n';
+    var linkId = teamName.replace(/\W/g, '');
+    html += '<h2 id=\"' + linkId + '\">' + teams[i].teamName + '</h2>' + '\n';
     html += '<table border=1 width=100%>' + '\n';
     html += teamDetailGameTableHeader() + '\n';
     for(var j in games) {
@@ -739,11 +748,14 @@ function getPlayerDetailHtml(teams, games) {
     ['asc', 'asc']);
 
   var html = getStatReportTop() +
-    '<H1> Individual Detail</H1>' + '<br>' + '\n';
+    '<h1> Individual Detail</h1>' + '\n';
 
   for(var i in playerTotals) {
     var indvTot = playerTotals[i];
-    html += '<H2>' + indvTot.playerName + ', ' + indvTot.teamName + '</H2>' + '\n';
+    var linkId = indvTot.teamName.replace(/\W/g, '') + '-' +
+      indvTot.playerName.replace(/\W/g, '');
+    html += '<h2 id=\"' + linkId + '\">' +
+      indvTot.playerName + ', ' + indvTot.teamName + '</h2>' + '\n';
     html += '<table border=1 width=100%>' + '\n';
     html += playerDetailTableHeader();
     for(var j in games) {
@@ -774,7 +786,7 @@ function getRoundReportHtml(teams, games) {
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
   var roundSummaries = compileRoundSummaries(games);
   var html = getStatReportTop() +
-    '<H1> Round Report</H1>' + '\n';
+    '<h1> Round Report</h1>' + '\n';
   html += '<table border=1 width=100%>' + '\n';
   html += roundReportTableHeader();
   for(var i in roundSummaries) {
