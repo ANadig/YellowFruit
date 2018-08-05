@@ -40,7 +40,8 @@ function getSmallStandings(myTeams,myGames) {
         ties: 0,
         points: 0,
         bHeard: 0,
-        bPts: 0
+        bPts: 0,
+        forfeits: 0
       };
     return obj;
   }); //map
@@ -52,24 +53,32 @@ function getSmallStandings(myTeams,myGames) {
     var idx2 = _.findIndex(summary, function (o) {
       return o.teamName == g.team2;
     });
-    if(g.score1 > g.score2) {
+    if(g.forfeit) { //team1 is by default the winner of a forfeit
       summary[idx1].wins += 1;
       summary[idx2].losses += 1;
+      summary[idx1].forfeits += 1;
+      summary[idx2].forfeits += 1;
     }
-    else if(g.score2 > g.score1) {
-      summary[idx1].losses += 1;
-      summary[idx2].wins += 1;
+    else { //not a forfeit
+      if(g.score1 > g.score2) {
+        summary[idx1].wins += 1;
+        summary[idx2].losses += 1;
+      }
+      else if(g.score2 > g.score1) {
+        summary[idx1].losses += 1;
+        summary[idx2].wins += 1;
+      }
+      else { //it's a tie
+        summary[idx1].ties += 1;
+        summary[idx2].ties += 1;
+      }
+      summary[idx1].points += parseFloat(g.score1);
+      summary[idx2].points += parseFloat(g.score2);
+      summary[idx1].bHeard += bonusesHeard(g,1);
+      summary[idx2].bHeard += bonusesHeard(g,2);
+      summary[idx1].bPts += bonusPoints(g,1);
+      summary[idx2].bPts += bonusPoints(g,2);
     }
-    else { //it's a tie
-      summary[idx1].ties += 1;
-      summary[idx2].ties += 1;
-    }
-    summary[idx1].points += parseFloat(g.score1);
-    summary[idx2].points += parseFloat(g.score2);
-    summary[idx1].bHeard += bonusesHeard(g,1);
-    summary[idx2].bHeard += bonusesHeard(g,2);
-    summary[idx1].bPts += bonusPoints(g,1);
-    summary[idx2].bPts += bonusPoints(g,2);
   }
   return summary;
 }
@@ -121,62 +130,52 @@ class MainInterface extends React.Component{
     ipc.on('addTeam', function(event,message) {
       this.openTeamAddWindow();
     }.bind(this));
+    ipc.on('compileStatReport', function(event,message) {
+      this.writeStatReport();
+    }.bind(this));
   } //componentDidMount
 
   componentWillUnmount() {
-    ipc.removeListener('addTeam', function(event,message) {
-      this.openTeamAddWindow();
-    }.bind(this));
+    ipc.removeAllListeners('addTeam');
+    ipc.removeAllListeners('compileStatReport');
   } //componentWillUnmount
 
   componentDidUpdate() {
     fs.writeFile(teamDataLocation, JSON.stringify(this.state.myTeams), 'utf8', function(err) {
-      if (err) {
-        console.log(err);
-      }
+      if (err) { console.log(err); }
     });//writeFile - teams
     fs.writeFile(gameDataLocation, JSON.stringify(this.state.myGames), 'utf8', function(err) {
-      if (err) {
-        console.log(err);
-      }
+      if (err) { console.log(err); }
     });//writeFile - games
+  } //componentDidUpdate
+
+  //compile data for the stat report and write it to each html file
+  writeStatReport() {
     var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames);
     fs.writeFile(standingsLocation, standingsHtml, 'utf8', function(err) {
-      if (err) {
-        console.log(err);
-      }
+      if (err) { console.log(err); }
     });//writeFile - standings
     var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames);
     fs.writeFile(individualsLocation, individualsHtml, 'utf8', function(err) {
-      if (err) {
-        console.log(err);
-      }
+      if (err) { console.log(err); }
     });//writeFile - individuals
     var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames);
     fs.writeFile(scoreboardLocation, scoreboardHtml, 'utf8', function(err) {
-      if (err) {
-        console.log(err);
-      }
+      if (err) { console.log(err); }
     });//writeFile - scoreboard
     var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames);
     fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
-      if (err) {
-        console.log(err);
-      }
+      if (err) { console.log(err); }
     });//writeFile - team detail
     var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames);
     fs.writeFile(playerDetailLocation, playerDetailHtml, 'utf8', function(err) {
-      if (err) {
-        console.log(err);
-      }
+      if (err) { console.log(err); }
     });//writeFile - individual Detail
     var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames);
     fs.writeFile(roundReportLocation, roundReportHtml, 'utf8', function(err) {
-      if (err) {
-        console.log(err);
-      }
+      if (err) { console.log(err); }
     });//writeFile - round report
-  } //componentDidUpdate
+  } //writeStatReport
 
   //called by buttons that open the team form
   openTeamAddWindow() {

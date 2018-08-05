@@ -42,6 +42,12 @@ app.on('ready', function() {
     appWindow.show();
   }); //ready-to-show
 
+  appWindow.on('closed', function() {
+    if(reportWindow != undefined && !reportWindow.isDestroyed()) {
+      reportWindow.close();
+    }
+  });
+
   // ipc.on('openReportWindow', function(event, arg){
   //   event.returnValue='';
   //   reportWindow.show();
@@ -59,7 +65,10 @@ app.on('ready', function() {
         {
           label: 'View Full Report',
           accelerator: process.platform === 'darwin' ? 'Command+I': 'Ctrl+I',
-          click(item) { showReportWindow() }
+          click(item, focusedWindow) {
+            focusedWindow.webContents.send('compileStatReport');
+            showReportWindow();
+          }
         },
         {role: 'close'},
         {role: 'quit'}
@@ -75,7 +84,7 @@ app.on('ready', function() {
           label: 'Add Team',
           accelerator: process.platform === 'darwin' ? 'Command+T':'Ctrl+T',
           click(item,focusedWindow) {
-            if (focusedWindow) focusedWindow.webContents.send('addTeam');
+            if (focusedWindow == appWindow) focusedWindow.webContents.send('addTeam');
           }
         }
       ]

@@ -16,24 +16,35 @@ class GameListEntry extends React.Component{
   //returns e.g. ['Round 1: ', 'Central A 310', 'Memorial A 250', ' (OT)']
   getScoreStrings(){
     var strAry = ['Round ' + this.props.singleItem.round + ': '];
-    strAry.push(this.props.singleItem.team1 + " " + this.props.singleItem.score1);
-    strAry.push(this.props.singleItem.team2 + " " + this.props.singleItem.score2);
+    if(this.props.singleItem.forfeit) {
+      strAry[1] = this.props.singleItem.team1;
+      strAry[2] = ' defeats '
+      strAry[3] = this.props.singleItem.team2;
+      strAry[4] = ' by forfeit';
+      return strAry;
+    }
+    //else not a forfeit
+    strAry[1] = this.props.singleItem.team1 + " " + this.props.singleItem.score1;
+    strAry[2] = ', ';
+    strAry[3] = this.props.singleItem.team2 + " " + this.props.singleItem.score2;
     if(this.props.singleItem.ottu > 0) {
-      strAry.push(' (OT)');
+      strAry[4] = ' (OT)';
     }
     else {
-      strAry.push('');
+      strAry[4] = '';
     }
     return strAry;
   }
 
-  //add formating to team1 if they won
+  //add formatting to team1 if they won
   team1Format() {
+    if(this.props.singleItem.forfeit) return 'winner';
     return this.props.singleItem.score1 > this.props.singleItem.score2 ? 'winner' : '';
   }
 
   //add formatting to team2 if they won
   team2Format() {
+    if(this.props.singleItem.forfeit) return '';
     return this.props.singleItem.score2 > this.props.singleItem.score1 ? 'winner' : '';
   }
 
@@ -68,16 +79,16 @@ class GameListEntry extends React.Component{
           <div className="game-name">
             {scoreStrings[0]}
             <span className={this.team1Format()}>{scoreStrings[1]}</span>
-            ,&nbsp;
-            <span className={this.team2Format()}>{scoreStrings[2]}</span>
-            {scoreStrings[3]}
+            {scoreStrings[2]}
+            <span className={this.team2Format()}>{scoreStrings[3]}</span>
+            {scoreStrings[4]}
             <button className="btn-flat item-edit" title="Edit this game" onClick={this.selectGame}>
             <i className="material-icons">edit</i></button>
           </div>
           <button className="secondary-content btn-flat item-delete" title="Remove this game" onClick={this.handleDelete}>
           <i className="material-icons">delete</i></button>
-          <br/>{this.getTeamLineScore(1)}
-          <br/>{this.getTeamLineScore(2)}
+          <br/>{this.props.singleItem.forfeit ? '' : this.getTeamLineScore(1)}
+          <br/>{this.props.singleItem.forfeit ? '' : this.getTeamLineScore(2)}
           <br/><span className="game-comment"><em>{this.props.singleItem.notes}</em></span>
         </div>
       </a>

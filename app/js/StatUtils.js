@@ -150,6 +150,7 @@ function compileStandings(myTeams, myGames) {
         ppb: 0,
         points: 0,
         ptsAgainst: 0,
+        forfeits: 0
       };
     return obj;
   }); //map
@@ -162,43 +163,53 @@ function compileStandings(myTeams, myGames) {
     var team2Line = _.find(standings, function (o) {
       return o.teamName == g.team2;
     });
-    if(g.score1 > g.score2) {
+    if(g.forfeit) { //team1 is by default the winner of a forfeit
       team1Line.wins += 1;
       team2Line.losses += 1;
+      team1Line.forfeits += 1;
+      team2Line.forfeits += 1;
     }
-    else if(g.score2 > g.score1) {
-      team1Line.losses += 1;
-      team2Line.wins += 1;
+    else { //not a forfeit
+      if(g.score1 > g.score2) {
+        team1Line.wins += 1;
+        team2Line.losses += 1;
+      }
+      else if(g.score2 > g.score1) {
+        team1Line.losses += 1;
+        team2Line.wins += 1;
+      }
+      else { //it's a tie
+        team1Line.ties += 1;
+        team2Line.ties += 1;
+      }
+      team1Line.points += parseFloat(g.score1);
+      team2Line.points += parseFloat(g.score2);
+      team1Line.ptsAgainst += parseFloat(g.score2);
+      team2Line.ptsAgainst += parseFloat(g.score1);
+
+      team1Line.tuh += parseFloat(g.tuhtot);
+      team2Line.tuh += parseFloat(g.tuhtot);
+
+      team1Line.powers += teamPowers(g, 1);
+      team2Line.powers += teamPowers(g, 2);
+      team1Line.gets += teamGets(g, 1);
+      team2Line.gets += teamGets(g, 2);
+      team1Line.negs += teamNegs(g, 1);
+      team2Line.negs += teamNegs(g, 2);
+
+      team1Line.bHeard += bonusesHeard(g,1);
+      team2Line.bHeard += bonusesHeard(g,2);
+      team1Line.bPts += bonusPoints(g,1);
+      team2Line.bPts += bonusPoints(g,2);
     }
-    else { //it's a tie
-      team1Line.ties += 1;
-      team2Line.ties += 1;
-    }
-    team1Line.points += parseFloat(g.score1);
-    team2Line.points += parseFloat(g.score2);
-    team1Line.ptsAgainst += parseFloat(g.score2);
-    team2Line.ptsAgainst += parseFloat(g.score1);
-
-    team1Line.tuh += parseFloat(g.tuhtot);
-    team2Line.tuh += parseFloat(g.tuhtot);
-
-    team1Line.powers += teamPowers(g, 1);
-    team2Line.powers += teamPowers(g, 2);
-    team1Line.gets += teamGets(g, 1);
-    team2Line.gets += teamGets(g, 2);
-    team1Line.negs += teamNegs(g, 1);
-    team2Line.negs += teamNegs(g, 2);
-
-    team1Line.bHeard += bonusesHeard(g,1);
-    team2Line.bHeard += bonusesHeard(g,2);
-    team1Line.bPts += bonusPoints(g,1);
-    team2Line.bPts += bonusPoints(g,2);
-  }
+  }//loop over all games
 
   for(var i in standings) {
     var t = standings[i];
-    var gamesPlayed = t.wins + t.losses + t.ties;
-    var winPct = gamesPlayed == 0 ? 0 : (t.wins + t.ties/2) / gamesPlayed;
+    var gamesPlayed = t.wins + t.losses + t.ties - t.forfeits;
+    var gamesPlayedWithForfeits = t.wins + t.losses + t.ties;
+    var winPct = gamesPlayedWithForfeits == 0 ?
+      0 : (t.wins + t.ties/2) / gamesPlayedWithForfeits;
     var ppg = gamesPlayed == 0 ? 0 : t.points / gamesPlayed;
     var papg = gamesPlayed == 0 ? 0 : t.ptsAgainst / gamesPlayed;
     var margin = ppg - papg;
@@ -357,33 +368,39 @@ function scoreboardGameSummaries(myGames, roundNo) {
   for(var i in myGames) {
     var g = myGames[i];
     if(g.round == roundNo) {
-      html += '<p>' + '\n';
-      html += '<font size=+1>' + g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
-      if(g.ottu > 0) {
-        html += ' (OT)';
+      if(g.forfeit) {
+        html += '<font size=+1>' + g.team1 + ' defeats ' +
+          g.team2 + ' by forfeit' + '</font><br>';
       }
-      html += '</font><br>' + '\n' +
-        '<font size=-1>' + '\n';
-      html += g.team1 + ': ';
-      for(var p in g.players1) {
-        var [tuh, pwr, gt, ng] = playerSlashLine(g.players1[p]);
-        html += p + ' ' + pwr + ' ' + gt + ' ' + ng + ' ' + (15*pwr + 10*gt - 5*ng) + ', ';
+      else {
+        html += '<p>' + '\n';
+        html += '<font size=+1>' + g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
+        if(g.ottu > 0) {
+          html += ' (OT)';
+        }
+        html += '</font><br>' + '\n' +
+          '<font size=-1>' + '\n';
+        html += g.team1 + ': ';
+        for(var p in g.players1) {
+          var [tuh, pwr, gt, ng] = playerSlashLine(g.players1[p]);
+          html += p + ' ' + pwr + ' ' + gt + ' ' + ng + ' ' + (15*pwr + 10*gt - 5*ng) + ', ';
+        }
+        html = html.substr(0, html.length - 2); //remove the last comma+space
+        html += '<br>' + '\n';
+        html += g.team2 + ': ';
+        for(var p in g.players2) {
+          var [tuh, pwr, gt, ng] = playerSlashLine(g.players2[p]);
+          html += p + ' ' + pwr + ' ' + gt + ' ' + ng + ' ' + (15*pwr + 10*gt - 5*ng) + ', ';
+        }
+        html = html.substr(0, html.length - 2); //remove the last comma+space
+        html += '<br>' + '\n';
+        var bHeard = bonusesHeard(g, 1), bPts = bonusPoints(g, 1);
+        var ppb = bHeard == 0 ? 0 : bPts / bHeard;
+        html += 'Bonuses: ' + g.team1 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + ', ';
+        bHeard = bonusesHeard(g, 2), bPts = bonusPoints(g, 2);
+        ppb = bHeard == 0 ? 0 : bPts / bHeard;
+        html += g.team2 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + '<br>';
       }
-      html = html.substr(0, html.length - 2); //remove the last comma+space
-      html += '<br>' + '\n';
-      html += g.team2 + ': ';
-      for(var p in g.players2) {
-        var [tuh, pwr, gt, ng] = playerSlashLine(g.players2[p]);
-        html += p + ' ' + pwr + ' ' + gt + ' ' + ng + ' ' + (15*pwr + 10*gt - 5*ng) + ', ';
-      }
-      html = html.substr(0, html.length - 2); //remove the last comma+space
-      html += '<br>' + '\n';
-      var bHeard = bonusesHeard(g, 1), bPts = bonusPoints(g, 1);
-      var ppb = bHeard == 0 ? 0 : bPts / bHeard;
-      html += 'Bonuses: ' + g.team1 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + ', ';
-      bHeard = bonusesHeard(g, 2), bPts = bonusPoints(g, 2);
-      ppb = bHeard == 0 ? 0 : bPts / bHeard;
-      html += g.team2 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + '<br>';
     }
   }
   return html + '</font>' + '\n' + '</p>' + '\n';
@@ -409,11 +426,23 @@ function teamDetailGameTableHeader() {
     '</tr>'  + '\n';
 }
 
+//a mostly-blank row in a team detail table for a forfeit
+function forfeitRow(opponent, result) {
+  return '<tr>' + '\n' +
+    '<td ALIGN=LEFT>' + opponent + '</td>' + '\n' +
+    '<td ALIGN=RIGHT>' + result + '</td>' + '\n' +
+    '<td ALIGN=RIGHT>Forfeit</td>' + '\n' +
+    '</tr>' + '\n';
+}
+
 //team detail row for a single game for a single team
 function teamDetailGameRow(game, whichTeam) {
   var opponent, opponentScore, result, score, players;
   if(whichTeam == 1) {
     opponent = game.team2;
+    if(game.forfeit) { //team1 is arbitrarily the winner of a forfeit
+      return forfeitRow(opponent, 'W');
+    }
     if(game.score1 > game.score2) { result = 'W'; }
     else if(game.score1 < game.score2) { result = 'L'; }
     else {result = 'T'; }
@@ -423,6 +452,9 @@ function teamDetailGameRow(game, whichTeam) {
   }
   else {
     opponent = game.team1;
+    if(game.forfeit) { //team2 is arbitrarily the loser of a forfeit
+      return forfeitRow(opponent, 'L');
+    }
     if(game.score2 > game.score1) { result = 'W'; }
     else if(game.score2 < game.score1) { result = 'L'; }
     else {result = 'T'; }

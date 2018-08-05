@@ -117,17 +117,18 @@ class AddGameModal extends React.Component{
   //a new game or modify an existing one as appropriate
   handleAdd(e) {
     e.preventDefault();
+    var f = this.state.forfeit; //clear irrelevant data if it's a forfeit
     var tempItem = {
       round: this.state.round,
-      tuhtot: this.state.tuhtot,
-      ottu: this.state.ottu,
+      tuhtot: f ? '' : this.state.tuhtot,
+      ottu: f ? '' : this.state.ottu,
       forfeit: this.state.forfeit,
       team1: this.state.team1,
       team2: this.state.team2,
-      score1: this.state.score1,
-      score2: this.state.score2,
-      players1: this.state.players1,
-      players2: this.state.players2,
+      score1: f ? '' : this.state.score1,
+      score2: f ? '' : this.state.score2,
+      players1: f ? null : this.state.players1,
+      players2: f ? null : this.state.players2,
       notes: this.state.notes
     } //tempitems
 
@@ -329,6 +330,11 @@ class AddGameModal extends React.Component{
       return [false, 'error', team2 + ' has over 30 ppb'];
     }
 
+    //both teams combined can't convert more tossups than have been read
+    if(this.bHeard(1) + this.bHeard(2) >  tuhtot) {
+      return [false, 'error', 'Total tossups converted exceeds tossups heard'];
+    }
+
     //warn if score isn't divisible by 5
     if(score1 % 5 != 0 || score2 % 5 != 0) {
       return [true, 'warning', 'Score is not divisible by 5'];
@@ -384,7 +390,7 @@ class AddGameModal extends React.Component{
     var team2PlayerRows = null;
     var [team1Options, team2Options] = this.getTeamOptions();
 
-    if(this.state.team1 != 'nullTeam' && this.state.team1 != '') {
+    if(!this.state.forfeit && this.state.team1 != 'nullTeam' && this.state.team1 != '') {
       var team1Obj = teamData.find(function(item){
         return item.teamName == this.state.team1
       }.bind(this));
@@ -401,7 +407,7 @@ class AddGameModal extends React.Component{
       }.bind(this));
     }
 
-    if(this.state.team2 != 'nullTeam' && this.state.team2 != '') {
+    if(!this.state.forfeit && this.state.team2 != 'nullTeam' && this.state.team2 != '') {
       var team2Obj = teamData.find(function(item){
         return item.teamName == this.state.team2
       }.bind(this));
@@ -431,7 +437,9 @@ class AddGameModal extends React.Component{
                 <label htmlFor="round">Round No.</label>
               </div>
               <div className="input-field col s3">
-                <input id="tuhtot" type="number" name="tuhtot" value={this.state.tuhtot} onChange={this.handleChange}/>
+                <input id="tuhtot" disabled={this.state.forfeit ? 'disabled' : ''}
+                  type="number" name="tuhtot"
+                  value={this.state.forfeit ? '' : this.state.tuhtot} onChange={this.handleChange}/>
                 <label htmlFor="tuhtot">Toss-ups</label>
               </div>
             </div>
@@ -443,7 +451,8 @@ class AddGameModal extends React.Component{
                 </select>
               </div>
               <div className="input-field col s4 m2 l1">
-                <input type="number" id="tm1Score" name="score1" value={this.state.score1} onChange={this.handleChange}/>
+                <input disabled={this.state.forfeit ? 'disabled' : ''} type="number" id="tm1Score" name="score1"
+                  value={this.state.forfeit ? '' : this.state.score1} onChange={this.handleChange}/>
                 <label htmlFor="tm1Score">Score</label>
               </div>
               <div className="col m2 hide-on-small-only">
@@ -452,7 +461,8 @@ class AddGameModal extends React.Component{
                 </div>
               </div>
               <div className="input-field col s4 m2 l1">
-                <input type="number" id="tm2Score" name="score2" value={this.state.score2} onChange={this.handleChange}/>
+                <input disabled={this.state.forfeit ? 'disabled' : ''} type="number" id="tm2Score" name="score2"
+                  value={this.state.forfeit ? '' : this.state.score2} onChange={this.handleChange}/>
                 <label htmlFor="tm2Score">Score</label>
               </div>
               <div className="input-field col s8 m3 l4">
@@ -515,7 +525,8 @@ class AddGameModal extends React.Component{
                 <label htmlFor="gameNotes">Notes about this game</label>
               </div>
               <div className="input-field col s3 m2">
-                <input id="ottu" type="number" name="ottu" value={this.state.ottu} onChange={this.handleChange}/>
+                <input id="ottu" disabled={this.state.forfeit ? 'disabled' : ''} type="number" name="ottu"
+                value={this.state.forfeit ? '' : this.state.ottu} onChange={this.handleChange}/>
                 <label htmlFor="ottu">Overtime TU</label>
               </div>
               <div className="col s3 m2 forfeit-ctrl">

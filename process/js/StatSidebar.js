@@ -8,31 +8,39 @@ var _ = require('lodash');
 //   ties: 0,
 //   points: 0,
 //   bHeard: 0,
-//   bPts: 0
+//   bPts: 0,
+//   forfeits: 0
 // }
 
 class StatSidebar extends React.Component{
 
   //sort by winning percentage, then by ppg
   standingsSort(summary) {
-    return _.orderBy(summary, [function(g) {
-      if(this.getGamesPlayed(g) == 0) { return 0; }
-      return (g.wins + g.ties/2) / this.getGamesPlayed(g);
-    }.bind(this), this.getPpg.bind(this)], ['desc', 'desc']);
+    return _.orderBy(summary,
+      [this.getWinPct.bind(this), this.getPpg.bind(this)], ['desc', 'desc']);
   }
 
-  getGamesPlayed(g) {
-    return g.wins + g.losses + g.ties;
+  getGamesPlayed(t) {
+    return t.wins + t.losses + t.ties - t.forfeits;
+  }
+
+  getGamesPlayedWithForfeits(t) {
+    return t.wins + t.losses + t.ties;
+  }
+
+  getWinPct(t) {
+    if(this.getGamesPlayedWithForfeits(t) == 0) return 0;
+    return (t.wins + t.ties/2) / this.getGamesPlayedWithForfeits(t);
   }
 
   //points per game. 0 if no games played
-  getPpg(g) {
-    return this.getGamesPlayed(g) == 0 ? 0 : (g.points / this.getGamesPlayed(g));
+  getPpg(t) {
+    return this.getGamesPlayed(t) == 0 ? 0 : (t.points / this.getGamesPlayed(t));
   }
 
-  //points per bonus. 0 if no games played
-  getPpb(g) {
-    return g.bHeard == 0 ? 0 : (g.bPts / g.bHeard);
+  //points per bonus. 0 if no bonuses heard
+  getPpb(t) {
+    return t.bHeard == 0 ? 0 : (t.bPts / t.bHeard);
   }
 
   render(){
