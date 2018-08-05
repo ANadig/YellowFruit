@@ -164,8 +164,8 @@ class MainInterface extends React.Component{
         console.log(err);
       }
     });//writeFile - team detail
-    var indvDetailHtml = getIndvDetailHtml(this.state.myTeams, this.state.myGames);
-    fs.writeFile(indvDetailLocation, indvDetailHtml, 'utf8', function(err) {
+    var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames);
+    fs.writeFile(playerDetailLocation, playerDetailHtml, 'utf8', function(err) {
       if (err) {
         console.log(err);
       }

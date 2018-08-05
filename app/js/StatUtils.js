@@ -1,3 +1,5 @@
+//Statutils.js - contains the code for generating the html report
+
 var _ = require('lodash');
 
 //bonusesHeard for a single game
@@ -308,10 +310,10 @@ function compileIndividuals(myTeams, myGames) {
 
   for(var i in individuals) {
     var p = individuals[i];
-    var pptu = p.tuh == 0 ? 0 : p.points / p.tuh;
     var pPerN = p.negs == 0 ? 0 : p.powers / p.negs;
     var gPerN = p.negs == 0 ? 0 : p.gets / p.negs;
     var totPoints = p.powers*15 + p.gets*10 - p.negs*5;
+    var pptu = p.tuh == 0 ? 0 : totPoints / p.tuh;
     var ppg = p.gamesPlayed == 0 ? 0 : totPoints / p.gamesPlayed;
 
     p.gamesPlayed = p.gamesPlayed.toFixed(1);
@@ -508,8 +510,128 @@ function teamDetailPlayerRow(player) {
   html += '<td ALIGN=RIGHT>' + player.points + '</td>' + '\n';
   html += '<td ALIGN=RIGHT>' + player.ppg + '</td>' + '\n';
   html += '</tr>' + '\n';
-  
+
   return html;
+}
+
+//header row for a table on the player detail page
+function playerDetailTableHeader() {
+  return '<tr>' + '\n' +
+    '<td ALIGN=LEFT><B>Opponent</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>GP</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>15</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>10</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>-5</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>TUH</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>P/TU</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>P/N</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>G/N</B></td>' + '\n' +
+    '<td ALIGN=RIGHT><B>Pts</B></td>' + '\n' +
+    '</tr>' + '\n';
+}
+
+//row for one player's game on the player detail page
+function playerDetailGameRow(player, tuhtot, opponent) {
+  var [tuh, powers, gets, negs] = playerSlashLine(player);
+  if(tuh <= 0) {
+    return '';
+  }
+  var gp = tuh / tuhtot;
+  var points = 15*powers + 10*gets - 5*negs;
+  var pptu = points / tuh;
+  var pPerN = negs == 0 ? 0 : powers / negs;
+  var gPerN = negs == 0 ? 0 : gets / negs;
+
+  var html = '<tr>' + '\n';
+  html += '<td ALIGN=LEFT>' + opponent + '</td>' + '\n';
+  html += '<td ALIGN=RIGHT>' + gp.toFixed(1) + '</td>' + '\n';
+  html += '<td ALIGN=RIGHT>' + powers + '</td>' + '\n';
+  html += '<td ALIGN=RIGHT>' + gets + '</td>' + '\n';
+  html += '<td ALIGN=RIGHT>' + negs + '</td>' + '\n';
+  html += '<td ALIGN=RIGHT>' + tuh + '</td>' + '\n';
+  html += '<td ALIGN=RIGHT>' + pptu.toFixed(2) + '</td>' + '\n';
+  html += '<td ALIGN=RIGHT>' + pPerN.toFixed(2) + '</td>' + '\n';
+  html += '<td ALIGN=RIGHT>' + gPerN.toFixed(2) + '</td>' + '\n';
+  html += '<td ALIGN=RIGHT>' + points + '</td>' + '\n';
+  html += '</tr>' + '\n';
+  return html;
+}
+
+//total row on the player detail page, using totals from compileIndividuals
+function playerDetailTotalRow(player) {
+  var html = '<tr>' + '\n';
+  html += '<td ALIGN=LEFT><B>Total</B></td>' + '\n';
+  html += '<td ALIGN=RIGHT><B>' + player.gamesPlayed + '</B></td>' + '\n';
+  html += '<td ALIGN=RIGHT><B>' + player.powers + '</B></td>' + '\n';
+  html += '<td ALIGN=RIGHT><B>' + player.gets + '</B></td>' + '\n';
+  html += '<td ALIGN=RIGHT><B>' + player.negs + '</B></td>' + '\n';
+  html += '<td ALIGN=RIGHT><B>' + player.tuh + '</B></td>' + '\n';
+  html += '<td ALIGN=RIGHT><B>' + player.pptu + '</B></td>' + '\n';
+  html += '<td ALIGN=RIGHT><B>' + player.pPerN + '</B></td>' + '\n';
+  html += '<td ALIGN=RIGHT><B>' + player.gPerN + '</B></td>' + '\n';
+  html += '<td ALIGN=RIGHT><B>' + player.points + '</B></td>' + '\n';
+  html += '</tr>' + '\n';
+  return html;
+}
+
+//aggregate round data for the round report
+function compileRoundSummaries(games) {
+  var summaries = [];
+  for(var i in games) {
+    var game = games[i];
+    var round = game.round;
+    if(summaries[round] == undefined) {
+      summaries[round] = {
+        numberOfGames: 0,
+        totalPoints: 0,
+        tuPts: 0,
+        tuh: 0,
+        bPts: 0,
+        bHeard: 0,
+        ppg: 0,
+        tuPtsPTu: 0,
+        ppb: 0
+      }
+    }
+    if(!game.forfeit) {
+      var smry = summaries[round];
+      smry.numberOfGames += 1;
+      smry.totalPoints += parseFloat(game.score1) + parseFloat(game.score2);
+      smry.tuPts += 15*teamPowers(game, 1) + 15*teamPowers(game, 2) +
+        10*teamGets(game, 1) + 10*teamGets(game, 2) -
+        5*teamNegs(game, 1) - 5*teamNegs(game, 2);
+      smry.tuh += parseFloat(game.tuhtot);
+      smry.bPts += bonusPoints(game, 1) + bonusPoints(game, 2);
+      smry.bHeard += bonusesHeard(game, 1) + bonusesHeard(game, 2);
+    }
+  }
+  for(var i in summaries) {
+    var smry = summaries[i];
+    smry.ppg = smry.totalPoints / (2 * smry.numberOfGames);
+    smry.tuPtsPTu = smry.tuPts / smry.tuh;
+    smry.ppb = smry.bHeard == 0 ? 0 : smry.bPts / smry.bHeard;
+  }
+  return summaries;
+}
+
+//the header row for the round report
+function roundReportTableHeader() {
+  return '<tr>' + '\n' +
+    '<td><B>Round</B></td>' + '\n' +
+    '<td><B>PPG/Team</B></td>' + '\n' +
+    '<td><B>TUPts/TUH</B></td>' + '\n' +
+    '<td><B>PPB</B></td>' + '\n' +
+    '</tr>' + '\n';
+}
+
+//a row of data in the round report
+function roundReportRow(smry, roundNo) {
+  return '<tr>' + '\n' +
+    '<td>' + roundNo + '</td>' + '\n' +
+    '<td>' + smry.ppg.toFixed(1) + '</td>' + '\n' +
+    '<td>' + smry.tuPtsPTu.toFixed(2) + '</td>' + '\n' +
+    '<td>' + smry.ppb.toFixed(2) + '</td>' + '\n' +
+    '</tr>' + '\n';
 }
 
 //the links that appear at the top of every page in the report
@@ -607,14 +729,57 @@ function getTeamDetailHtml(teams, games) {
   return html + getStatReportBottom();
 }
 
-function getIndvDetailHtml(teams, games) {
-  return  getStatReportTop() +
-    '<H1> Individual Detail</H1>' + '\n' +
-    getStatReportBottom();
+function getPlayerDetailHtml(teams, games) {
+  teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
+  games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
+  var playerTotals = compileIndividuals(teams, games);
+  playerTotals = _.orderBy(playerTotals,
+    [function(item) { return item.teamName.toLowerCase(); },
+    function(item) { return item.playerName.toLowerCase(); }],
+    ['asc', 'asc']);
+
+  var html = getStatReportTop() +
+    '<H1> Individual Detail</H1>' + '<br>' + '\n';
+
+  for(var i in playerTotals) {
+    var indvTot = playerTotals[i];
+    html += '<H2>' + indvTot.playerName + ', ' + indvTot.teamName + '</H2>' + '\n';
+    html += '<table border=1 width=100%>' + '\n';
+    html += playerDetailTableHeader();
+    for(var j in games) {
+      var game = games[j];
+      if (game.team1 == indvTot.teamName) {
+        for(var p in game.players1) {
+          if(p == indvTot.playerName) {
+            html += playerDetailGameRow(game.players1[p], game.tuhtot, game.team2);
+          }
+        }
+      }
+      else if (game.team2 == indvTot.teamName) {
+        for(var p in game.players2) {
+          if(p == indvTot.playerName) {
+            html += playerDetailGameRow(game.players2[p], game.tuhtot, game.team1);
+          }
+        }
+      }
+    }
+    html += playerDetailTotalRow(indvTot);
+    html += '</table>' + '<br>' + '\n';
+  }//loop over all players in the tournament
+
+  return html + getStatReportBottom();
 }
 
 function getRoundReportHtml(teams, games) {
-  return  getStatReportTop() +
-    '<H1> Round Report</H1>' + '\n' +
-    getStatReportBottom();
+  games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
+  var roundSummaries = compileRoundSummaries(games);
+  var html = getStatReportTop() +
+    '<H1> Round Report</H1>' + '\n';
+  html += '<table border=1 width=100%>' + '\n';
+  html += roundReportTableHeader();
+  for(var i in roundSummaries) {
+    html += roundReportRow(roundSummaries[i], i);
+  }
+  html += '</table>' + '\n';
+  return html + getStatReportBottom();
 }
