@@ -14,7 +14,7 @@ class PlayerRow extends React.Component{
       this.state = {
         tuh: init.tuh,
         powers: init.powers,
-        gets: init.gets,
+        tens: init.tens,
         negs: init.negs
       };
     }
@@ -22,7 +22,7 @@ class PlayerRow extends React.Component{
       this.state = {
         tuh: '',
         powers: '',
-        gets: '',
+        tens: '',
         negs: ''
       };
     }
@@ -45,7 +45,7 @@ class PlayerRow extends React.Component{
 
   //the total number of points score by the player in this game
   getTotalPts(){
-    return 15*this.state.powers + 10*this.state.gets - 5*this.state.negs;
+    return 15*this.state.powers + 10*this.state.tens - 5*this.state.negs;
   }
 
   render(){
@@ -61,7 +61,7 @@ class PlayerRow extends React.Component{
           <input type="number" id={'powers'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="powers" value={this.state.powers} onChange={this.handleChange}/>
         </td>
         <td>
-          <input type="number" id={'gets'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="gets" value={this.state.gets} onChange={this.handleChange}/>
+          <input type="number" id={'tens'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="tens" value={this.state.tens} onChange={this.handleChange}/>
         </td>
         <td>
           <input type="number" id={'negs'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="negs" value={this.state.negs} onChange={this.handleChange}/>

@@ -51,7 +51,7 @@ class AddGameModal extends React.Component{
       if (tempTeam1[playerName] == undefined) {
         //need to initialize each attribute so we don't set
         //null values in a controlled component
-        tempTeam1[playerName] = {'tuh': '', 'powers': '', 'gets': '', 'negs': ''};
+        tempTeam1[playerName] = {'tuh': '', 'powers': '', 'tens': '', 'negs': ''};
       }
       tempTeam1[playerName][whichStat] = value;
       this.setState({
@@ -64,7 +64,7 @@ class AddGameModal extends React.Component{
       if (tempTeam2[playerName] == undefined) {
         //need to initialize each attribute so we don't set
         //null values in a controlled component
-        tempTeam2[playerName] = {'tuh': '', 'powers': '', 'gets': '', 'negs': ''};
+        tempTeam2[playerName] = {'tuh': '', 'powers': '', 'tens': '', 'negs': ''};
       }
       tempTeam2[playerName][whichStat] = value;
       this.setState({
@@ -163,7 +163,7 @@ class AddGameModal extends React.Component{
     var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
     for(var p in players) {
       pwr = parseFloat(players[p]["powers"]);
-      gt = parseFloat(players[p]["gets"]);
+      gt = parseFloat(players[p]["tens"]);
       tot = isNaN(pwr) ? tot : tot+pwr;
       tot = isNaN(gt) ? tot : tot+gt;
     }
@@ -177,7 +177,7 @@ class AddGameModal extends React.Component{
     var totScore = whichTeam == 1 ? this.state.score1 : this.state.score2;
     for(var p in players) {
       pwr = parseFloat(players[p]["powers"]);
-      gt = parseFloat(players[p]["gets"]);
+      gt = parseFloat(players[p]["tens"]);
       ng = parseFloat(players[p]["negs"]);
       tuPts = isNaN(pwr) ? tuPts : tuPts+(15*pwr);
       tuPts = isNaN(gt) ? tuPts : tuPts+(10*gt);

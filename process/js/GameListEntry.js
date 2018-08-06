@@ -55,11 +55,11 @@ class GameListEntry extends React.Component{
     var lineScore = teamName + ':';
     for(var p in players) {
       var powers = players[p].powers == '' ? 0 : players[p].powers;
-      var gets = players[p].gets == '' ? 0 : players[p].gets;
+      var tens = players[p].tens == '' ? 0 : players[p].tens;
       var negs = players[p].negs == '' ? 0 : players[p].negs;
       if(players[p].tuh > 0) {
         lineScore += ' ' + p + ' ';
-        lineScore += powers + '/' + gets + '/' + negs + ',';
+        lineScore += powers + '/' + tens + '/' + negs + ',';
       }
     }
     return lineScore.substr(0, lineScore.length - 1); //remove the comma at the end

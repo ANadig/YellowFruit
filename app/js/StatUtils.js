@@ -2,13 +2,19 @@
 
 var _ = require('lodash');
 
+//wrapper around toFixed that handles divide-by-zero
+//anything negative is a dummy value indicating a zero denominator
+function formatRate(r, precision) {
+  return isNaN(r) ? '&mdash;&ensp;' : r.toFixed(precision);
+}
+
 //bonusesHeard for a single game
 function bonusesHeard (game, whichTeam) {
   var tot = 0, pwr, gt;
   var players = whichTeam == 1 ? game.players1 : game.players2;
   for(var p in players) {
     pwr = parseFloat(players[p]["powers"]);
-    gt = parseFloat(players[p]["gets"]);
+    gt = parseFloat(players[p]["tens"]);
     tot = isNaN(pwr) ? tot : tot+pwr;
     tot = isNaN(gt) ? tot : tot+gt;
   }
@@ -22,7 +28,7 @@ function bonusPoints(game, whichTeam) {
   var totalPoints = whichTeam == 1 ? game.score1 : game.score2;
   for(var p in players) {
     pwr = parseFloat(players[p]["powers"]);
-    gt = parseFloat(players[p]["gets"]);
+    gt = parseFloat(players[p]["tens"]);
     ng = parseFloat(players[p]["negs"]);
     tuPts = isNaN(pwr) ? tuPts : tuPts+(15*pwr);
     tuPts = isNaN(gt) ? tuPts : tuPts+(10*gt);
@@ -43,14 +49,14 @@ function teamPowers(game, whichTeam) {
 }
 
 //number of 10s for a single team in a single game
-function teamGets(game, whichTeam) {
-  var totGets = 0, gt;
+function teamTens(game, whichTeam) {
+  var totTens = 0, gt;
   var players = whichTeam == 1 ? game.players1 : game.players2;
   for(var p in players) {
-    gt = parseFloat(players[p]["gets"]);
-    totGets = isNaN(gt) ? totGets : totGets+gt;
+    gt = parseFloat(players[p]["tens"]);
+    totTens = isNaN(gt) ? totTens : totTens+gt;
   }
-  return totGets;
+  return totTens;
 }
 
 //number of negs for a single team in a single game
@@ -64,11 +70,11 @@ function teamNegs(game, whichTeam) {
   return totNegs;
 }
 
-//tuh-powers-gets-negs for a player, as an int
+//tuh-powers-tens-negs for a player, as an int
 function playerSlashLine(player) {
   var tuh = parseFloat(player.tuh);
   var pwr = parseFloat(player.powers);
-  var gt = parseFloat(player.gets);
+  var gt = parseFloat(player.tens);
   var ng = parseFloat(player.negs);
   return [isNaN(tuh) ? 0 : tuh, isNaN(pwr) ? 0 : pwr,
     isNaN(gt) ? 0 : gt, isNaN(ng) ? 0 : ng];
@@ -114,7 +120,7 @@ function standingsRow(teamEntry, rank) {
   rowHtml += '<td align=right>' + teamEntry.papg + '</td>' + '\n';
   rowHtml += '<td align=right>' + teamEntry.margin + '</td>' + '\n';
   rowHtml += '<td align=right>' + teamEntry.powers + '</td>' + '\n';
-  rowHtml += '<td align=right>' + teamEntry.gets + '</td>' + '\n';
+  rowHtml += '<td align=right>' + teamEntry.tens + '</td>' + '\n';
   rowHtml += '<td align=right>' + teamEntry.negs + '</td>' + '\n';
   rowHtml += '<td align=right>' + teamEntry.tuh + '</td>' + '\n';
   rowHtml += '<td align=right>' + teamEntry.ppth + '</td>' + '\n';
@@ -139,7 +145,7 @@ function compileStandings(myTeams, myGames) {
         papg: 0,
         margin: 0,
         powers: 0,
-        gets: 0,
+        tens: 0,
         negs: 0,
         tuh: 0,
         ppth: 0,
@@ -192,8 +198,8 @@ function compileStandings(myTeams, myGames) {
 
       team1Line.powers += teamPowers(g, 1);
       team2Line.powers += teamPowers(g, 2);
-      team1Line.gets += teamGets(g, 1);
-      team2Line.gets += teamGets(g, 2);
+      team1Line.tens += teamTens(g, 1);
+      team2Line.tens += teamTens(g, 2);
       team1Line.negs += teamNegs(g, 1);
       team2Line.negs += teamNegs(g, 2);
 
@@ -210,22 +216,23 @@ function compileStandings(myTeams, myGames) {
     var gamesPlayedWithForfeits = t.wins + t.losses + t.ties;
     var winPct = gamesPlayedWithForfeits == 0 ?
       0 : (t.wins + t.ties/2) / gamesPlayedWithForfeits;
-    var ppg = gamesPlayed == 0 ? 0 : t.points / gamesPlayed;
-    var papg = gamesPlayed == 0 ? 0 : t.ptsAgainst / gamesPlayed;
+    var ppg = gamesPlayed == 0 ? 'inf' : t.points / gamesPlayed;
+    var papg = gamesPlayed == 0 ? 'inf' : t.ptsAgainst / gamesPlayed;
     var margin = ppg - papg;
-    var ppth = t.tuh == 0 ? 0 : t.points / t.tuh;
-    var pPerN = t.negs == 0 ? 0 : t.powers / t.negs;
-    var gPerN = t.negs == 0 ? 0 : t.gets / t.negs;
-    var ppb = t.bHeard == 0 ? 0 : t.bPts / t.bHeard;
+    if(isNaN(margin)) margin = 0;
+    var ppth = t.tuh == 0 ? 'inf' : t.points / t.tuh;
+    var pPerN = t.negs == 0 ? 'inf' : t.powers / t.negs;
+    var gPerN = t.negs == 0 ? 'inf' : (t.powers + t.tens) / t.negs;
+    var ppb = t.bHeard == 0 ? 'inf' : t.bPts / t.bHeard;
 
     t.winPct = winPct.toFixed(3);
-    t.ppg = ppg.toFixed(1);
-    t.papg = papg.toFixed(1);
+    t.ppg = formatRate(ppg, 1);
+    t.papg = formatRate(papg, 1);
     t.margin = margin.toFixed(1);
-    t.ppth = ppth.toFixed(2);
-    t.pPerN = pPerN.toFixed(2);
-    t.gPerN = gPerN.toFixed(2);
-    t.ppb = ppb.toFixed(2);
+    t.ppth = formatRate(ppth, 2);
+    t.pPerN = formatRate(pPerN, 2);
+    t.gPerN = formatRate(gPerN, 2);
+    t.ppb = formatRate(ppb, 2);
   }
 
   return _.orderBy(standings, ['winPct', 'ppg'], ['desc', 'desc']);
@@ -261,7 +268,7 @@ function individualsRow(playerEntry, rank) {
   rowHtml += '<td align=left>' + playerEntry.teamName + '</td>' + '\n';
   rowHtml += '<td align=right>' + playerEntry.gamesPlayed + '</td>' + '\n';
   rowHtml += '<td align=right>' + playerEntry.powers + '</td>' + '\n';
-  rowHtml += '<td align=right>' + playerEntry.gets + '</td>' + '\n';
+  rowHtml += '<td align=right>' + playerEntry.tens + '</td>' + '\n';
   rowHtml += '<td align=right>' + playerEntry.negs + '</td>' + '\n';
   rowHtml += '<td align=right>' + playerEntry.tuh + '</td>' + '\n';
   rowHtml += '<td align=right>' + playerEntry.pptu + '</td>' + '\n';
@@ -284,7 +291,7 @@ function compileIndividuals(myTeams, myGames) {
         division: '', //not implemented yet
         gamesPlayed: 0,
         powers: 0,
-        gets: 0,
+        tens: 0,
         negs: 0,
         tuh: 0,
         pptu: 0,
@@ -304,10 +311,10 @@ function compileIndividuals(myTeams, myGames) {
       pEntry = _.find(individuals, function (o) {
         return o.teamName == g.team1 && o.playerName == p;
       });
-      var [tuh, powers, gets, negs] = playerSlashLine(players1[p]);
+      var [tuh, powers, tens, negs] = playerSlashLine(players1[p]);
       pEntry.gamesPlayed += tuh / parseFloat(g.tuhtot);
       pEntry.powers += powers;
-      pEntry.gets += gets;
+      pEntry.tens += tens;
       pEntry.negs += negs;
       pEntry.tuh += tuh;
     }
@@ -315,10 +322,10 @@ function compileIndividuals(myTeams, myGames) {
       pEntry = _.find(individuals, function (o) {
         return o.teamName == g.team2 && o.playerName == p;
       });
-      var [tuh, powers, gets, negs] = playerSlashLine(players2[p]);
+      var [tuh, powers, tens, negs] = playerSlashLine(players2[p]);
       pEntry.gamesPlayed += tuh / parseFloat(g.tuhtot);
       pEntry.powers += powers;
-      pEntry.gets += gets;
+      pEntry.tens += tens;
       pEntry.negs += negs;
       pEntry.tuh += tuh;
     }
@@ -326,23 +333,29 @@ function compileIndividuals(myTeams, myGames) {
 
   for(var i in individuals) {
     var p = individuals[i];
-    var pPerN = p.negs == 0 ? 0 : p.powers / p.negs;
-    var gPerN = p.negs == 0 ? 0 : p.gets / p.negs;
-    var totPoints = p.powers*15 + p.gets*10 - p.negs*5;
-    var pptu = p.tuh == 0 ? 0 : totPoints / p.tuh;
-    var ppg = p.gamesPlayed == 0 ? 0 : totPoints / p.gamesPlayed;
+    var pPerN = p.negs == 0 ? 'inf' : p.powers / p.negs;
+    var gPerN = p.negs == 0 ? 'inf' : (p.powers + p.tens) / p.negs;
+    var totPoints = p.powers*15 + p.tens*10 - p.negs*5;
+    var pptu = p.tuh == 0 ? 'inf' : totPoints / p.tuh;
+    var ppg = p.gamesPlayed == 0 ? 'inf' : totPoints / p.gamesPlayed;
 
     p.gamesPlayed = p.gamesPlayed.toFixed(1);
-    p.pptu = pptu.toFixed(2);
-    p.pPerN = pPerN.toFixed(2);
-    p.gPerN = gPerN.toFixed(2);
+    p.pptu = formatRate(pptu, 2);
+    p.pPerN = formatRate(pPerN, 2);
+    p.gPerN = formatRate(gPerN, 2);
     p.points = totPoints;
-    p.ppg = ppg.toFixed(2);
+    p.ppg = formatRate(ppg, 2);
   }
 
-  return _.orderBy(individuals, function(item) {
-    return parseFloat(item.ppg);
-  }, ['desc']);
+  return _.orderBy(individuals,
+    [function(item) {
+      if(isNaN(item.ppg)) return -999;
+      return parseFloat(item.ppg);
+    },
+    function(item) {
+      return parseFloat(item.gamesPlayed);
+    }],
+    ['desc', 'desc']);//orderBy
 } //compileIndividuals
 
 //a list of the rounds for which there are games
@@ -429,9 +442,9 @@ function teamDetailGameTableHeader() {
 //a mostly-blank row in a team detail table for a forfeit
 function forfeitRow(opponent, result) {
   return '<tr>' + '\n' +
-    '<td ALIGN=LEFT>' + opponent + '</td>' + '\n' +
-    '<td ALIGN=RIGHT>' + result + '</td>' + '\n' +
-    '<td ALIGN=RIGHT>Forfeit</td>' + '\n' +
+    '<td align=left>' + opponent + '</td>' + '\n' +
+    '<td align=right>' + result + '</td>' + '\n' +
+    '<td align=right>Forfeit</td>' + '\n' +
     '</tr>' + '\n';
 }
 
@@ -445,7 +458,7 @@ function teamDetailGameRow(game, whichTeam) {
     }
     if(game.score1 > game.score2) { result = 'W'; }
     else if(game.score1 < game.score2) { result = 'L'; }
-    else {result = 'T'; }
+    else { result = 'T'; }
     score = game.score1;
     opponentScore = game.score2;
     players = game.players1;
@@ -457,20 +470,20 @@ function teamDetailGameRow(game, whichTeam) {
     }
     if(game.score2 > game.score1) { result = 'W'; }
     else if(game.score2 < game.score1) { result = 'L'; }
-    else {result = 'T'; }
+    else { result = 'T'; }
     score = game.score2;
     opponentScore = game.score1;
     players = game.players2;
   }
   var powers = teamPowers(game, whichTeam);
-  var gets = teamGets(game, whichTeam);
+  var tens = teamTens(game, whichTeam);
   var negs = teamNegs(game, whichTeam);
   var ppth = score / game.tuhtot;
-  var pPerN = negs == 0 ? 0 : powers / negs;
-  var gPerN = negs == 0 ? 0 : gets / negs;
+  var pPerN = negs == 0 ? 'inf' : powers / negs;
+  var gPerN = negs == 0 ? 'inf' : (powers + tens) / negs;
   var bHeard = bonusesHeard(game, whichTeam);
   var bPts = bonusPoints(game, whichTeam);
-  var ppb = bHeard == 0 ? 0 : bPts / bHeard;
+  var ppb = bHeard == 0 ? 'inf' : bPts / bHeard;
 
   var html = '<tr>' + '\n';
   html += '<td align=left>' + opponent + '</td>' + '\n';
@@ -478,15 +491,15 @@ function teamDetailGameRow(game, whichTeam) {
   html += '<td align=right>' + score + '</td>' + '\n';
   html += '<td align=right>' + opponentScore + '</td>' + '\n';
   html += '<td align=right>' + powers + '</td>' + '\n';
-  html += '<td align=right>' + gets + '</td>' + '\n';
+  html += '<td align=right>' + tens + '</td>' + '\n';
   html += '<td align=right>' + negs + '</td>' + '\n';
   html += '<td align=right>' + game.tuhtot + '</td>' + '\n';
-  html += '<td align=right>' + ppth.toFixed(2) + '</td>' + '\n';
-  html += '<td align=right>' + pPerN.toFixed(2) + '</td>' + '\n';
-  html += '<td align=right>' + gPerN.toFixed(2) + '</td>' + '\n';
+  html += '<td align=right>' + formatRate(ppth, 2) + '</td>' + '\n';
+  html += '<td align=right>' + formatRate(pPerN, 2) + '</td>' + '\n';
+  html += '<td align=right>' + formatRate(gPerN, 2) + '</td>' + '\n';
   html += '<td align=right>' + bHeard + '</td>' + '\n';
   html += '<td align=right>' + bPts + '</td>' + '\n';
-  html += '<td align=right>' + ppb.toFixed(2) + '</td>' + '\n';
+  html += '<td align=right>' + formatRate(ppb, 2) + '</td>' + '\n';
   html += '</tr>' + '\n';
   return html;
 }
@@ -499,7 +512,7 @@ function teamDetailTeamSummaryRow(teamSummary) {
   html += '<td align=right><b>' + teamSummary.points + '</b></td>' + '\n';
   html += '<td align=right><b>' + teamSummary.ptsAgainst + '</b></td>' + '\n';
   html += '<td align=right><b>' + teamSummary.powers + '</b></td>' + '\n';
-  html += '<td align=right><b>' + teamSummary.gets + '</b></td>' + '\n';
+  html += '<td align=right><b>' + teamSummary.tens + '</b></td>' + '\n';
   html += '<td align=right><b>' + teamSummary.negs + '</b></td>' + '\n';
   html += '<td align=right><b>' + teamSummary.tuh + '</b></td>' + '\n';
   html += '<td align=right><b>' + teamSummary.ppth + '</b></td>' + '\n';
@@ -541,7 +554,7 @@ function teamDetailPlayerRow(player) {
   html += '<td align=left>' + player.teamName + '</td>' + '\n';
   html += '<td align=right>' + player.gamesPlayed + '</td>' + '\n';
   html += '<td align=right>' + player.powers + '</td>' + '\n';
-  html += '<td align=right>' + player.gets + '</td>' + '\n';
+  html += '<td align=right>' + player.tens + '</td>' + '\n';
   html += '<td align=right>' + player.negs + '</td>' + '\n';
   html += '<td align=right>' + player.tuh + '</td>' + '\n';
   html += '<td align=right>' + player.pptu + '</td>' + '\n';
@@ -572,26 +585,26 @@ function playerDetailTableHeader() {
 
 //row for one player's game on the player detail page
 function playerDetailGameRow(player, tuhtot, opponent) {
-  var [tuh, powers, gets, negs] = playerSlashLine(player);
+  var [tuh, powers, tens, negs] = playerSlashLine(player);
   if(tuh <= 0) {
     return '';
   }
   var gp = tuh / tuhtot;
-  var points = 15*powers + 10*gets - 5*negs;
+  var points = 15*powers + 10*tens - 5*negs;
   var pptu = points / tuh;
-  var pPerN = negs == 0 ? 0 : powers / negs;
-  var gPerN = negs == 0 ? 0 : gets / negs;
+  var pPerN = negs == 0 ? 'inf' : powers / negs;
+  var gPerN = negs == 0 ? 'inf' : (powers + tens) / negs;
 
   var html = '<tr>' + '\n';
   html += '<td align=left>' + opponent + '</td>' + '\n';
-  html += '<td align=right>' + gp.toFixed(1) + '</td>' + '\n';
+  html += '<td align=right>' + formatRate(gp, 1) + '</td>' + '\n';
   html += '<td align=right>' + powers + '</td>' + '\n';
-  html += '<td align=right>' + gets + '</td>' + '\n';
+  html += '<td align=right>' + tens + '</td>' + '\n';
   html += '<td align=right>' + negs + '</td>' + '\n';
   html += '<td align=right>' + tuh + '</td>' + '\n';
-  html += '<td align=right>' + pptu.toFixed(2) + '</td>' + '\n';
-  html += '<td align=right>' + pPerN.toFixed(2) + '</td>' + '\n';
-  html += '<td align=right>' + gPerN.toFixed(2) + '</td>' + '\n';
+  html += '<td align=right>' + formatRate(pptu, 2) + '</td>' + '\n';
+  html += '<td align=right>' + formatRate(pPerN, 2) + '</td>' + '\n';
+  html += '<td align=right>' + formatRate(gPerN, 2) + '</td>' + '\n';
   html += '<td align=right>' + points + '</td>' + '\n';
   html += '</tr>' + '\n';
   return html;
@@ -603,7 +616,7 @@ function playerDetailTotalRow(player) {
   html += '<td align=left><b>Total</b></td>' + '\n';
   html += '<td align=right><b>' + player.gamesPlayed + '</b></td>' + '\n';
   html += '<td align=right><b>' + player.powers + '</b></td>' + '\n';
-  html += '<td align=right><b>' + player.gets + '</b></td>' + '\n';
+  html += '<td align=right><b>' + player.tens + '</b></td>' + '\n';
   html += '<td align=right><b>' + player.negs + '</b></td>' + '\n';
   html += '<td align=right><b>' + player.tuh + '</b></td>' + '\n';
   html += '<td align=right><b>' + player.pptu + '</b></td>' + '\n';
@@ -638,7 +651,7 @@ function compileRoundSummaries(games) {
       smry.numberOfGames += 1;
       smry.totalPoints += parseFloat(game.score1) + parseFloat(game.score2);
       smry.tuPts += 15*teamPowers(game, 1) + 15*teamPowers(game, 2) +
-        10*teamGets(game, 1) + 10*teamGets(game, 2) -
+        10*teamTens(game, 1) + 10*teamTens(game, 2) -
         5*teamNegs(game, 1) - 5*teamNegs(game, 2);
       smry.tuh += parseFloat(game.tuhtot);
       smry.bPts += bonusPoints(game, 1) + bonusPoints(game, 2);

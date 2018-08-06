@@ -10,17 +10,17 @@
     "score2": "330",
     "players1":
       {
-        "Isaac H": {"tuh": 20, "powers": 1, "gets": 3, "negs": 1},
-        "Jamie K": {"tuh": 20, "powers": 0, "gets": 2, "negs": 0},
-        "Kirk T": {"tuh": 20, "powers": 0, "gets": 0, "negs": 0},
-        "Leander P": {"tuh": 20, "powers": 0, "gets": 0, "negs": 1}
+        "Isaac H": {"tuh": 20, "powers": 1, "tens": 3, "negs": 1},
+        "Jamie K": {"tuh": 20, "powers": 0, "tens": 2, "negs": 0},
+        "Kirk T": {"tuh": 20, "powers": 0, "tens": 0, "negs": 0},
+        "Leander P": {"tuh": 20, "powers": 0, "tens": 0, "negs": 1}
       },
     "players2":
       {
-         "Michael": {"tuh": 10, "powers": 0, "gets": 0, "negs": 1},
-         "Nathaniel": {"tuh": 20, "powers": 3, "gets": 4, "negs": 1},
-         "Omar": {"tuh": 20, "powers": 0, "gets": 3, "negs": 0},
-         "Penny": {"tuh": 20, "powers": 1, "gets": 0, "negs": 1}
+         "Michael": {"tuh": 10, "powers": 0, "tens": 0, "negs": 1},
+         "Nathaniel": {"tuh": 20, "powers": 3, "tens": 4, "negs": 1},
+         "Omar": {"tuh": 20, "powers": 0, "tens": 3, "negs": 0},
+         "Penny": {"tuh": 20, "powers": 1, "tens": 0, "negs": 1}
       },
     "notes": "free-text notes about the game"
   },
@@ -35,17 +35,17 @@
     "score2": "300",
     "players1":
       {
-        "Isaac H": {"tuh": 20, "powers": 1, "gets": 3, "negs": 1},
-        "Jamie K": {"tuh": 20, "powers": 0, "gets": 2, "negs": 0},
-        "Kirk T": {"tuh": 20, "powers": 0, "gets": 0, "negs": 0},
-        "Leander P": {"tuh": 20, "powers": 0, "gets": 0, "negs": 1}
+        "Isaac H": {"tuh": 20, "powers": 1, "tens": 3, "negs": 1},
+        "Jamie K": {"tuh": 20, "powers": 0, "tens": 2, "negs": 0},
+        "Kirk T": {"tuh": 20, "powers": 0, "tens": 0, "negs": 0},
+        "Leander P": {"tuh": 20, "powers": 0, "tens": 0, "negs": 1}
       },
     "players2":
       {
-         "Michael": {"tuh": 10, "powers": 0, "gets": 0, "negs": 1},
-         "Nathaniel": {"tuh": 20, "powers": 3, "gets": 4, "negs": 1},
-         "Omar": {"tuh": 20, "powers": 0, "gets": 3, "negs": 0},
-         "Penny": {"tuh": 20, "powers": 1, "gets": 0, "negs": 1}
+         "Michael": {"tuh": 10, "powers": 0, "tens": 0, "negs": 1},
+         "Nathaniel": {"tuh": 20, "powers": 3, "tens": 4, "negs": 1},
+         "Omar": {"tuh": 20, "powers": 0, "tens": 3, "negs": 0},
+         "Penny": {"tuh": 20, "powers": 1, "tens": 0, "negs": 1}
       },
     "notes": "free-text notes about the game"
   },
@@ -60,17 +60,17 @@
     "score2": "210",
     "players1":
       {
-        "Isaac H": {"tuh": 20, "powers": 1, "gets": 3, "negs": 1},
-        "Jamie K": {"tuh": 20, "powers": 0, "gets": 2, "negs": 0},
-        "Kirk T": {"tuh": 20, "powers": 0, "gets": 0, "negs": 0},
-        "Leander P": {"tuh": 20, "powers": 0, "gets": 0, "negs": 1}
+        "Isaac H": {"tuh": 20, "powers": 1, "tens": 3, "negs": 1},
+        "Jamie K": {"tuh": 20, "powers": 0, "tens": 2, "negs": 0},
+        "Kirk T": {"tuh": 20, "powers": 0, "tens": 0, "negs": 0},
+        "Leander P": {"tuh": 20, "powers": 0, "tens": 0, "negs": 1}
       },
     "players2":
       {
-         "Michael": {"tuh": 10, "powers": 0, "gets": 0, "negs": 1},
-         "Nathaniel": {"tuh": 20, "powers": 3, "gets": 4, "negs": 1},
-         "Omar": {"tuh": 20, "powers": 0, "gets": 3, "negs": 0},
-         "Penny": {"tuh": 20, "powers": 1, "gets": 0, "negs": 1}
+         "Michael": {"tuh": 10, "powers": 0, "tens": 0, "negs": 1},
+         "Nathaniel": {"tuh": 20, "powers": 3, "tens": 4, "negs": 1},
+         "Omar": {"tuh": 20, "powers": 0, "tens": 3, "negs": 0},
+         "Penny": {"tuh": 20, "powers": 1, "tens": 0, "negs": 1}
       },
     "notes": "free-text notes about the game"
   }
