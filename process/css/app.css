@@ -110,6 +110,15 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 1em;
 }
 
+.modal h6 {
+  margin-top: 1.85em;
+}
+
+.ot-stat-label {
+  margin-top: 2em;
+  text-align: right;
+}
+
 .game-entry-top-row {
   margin-bottom: 0px;
 }

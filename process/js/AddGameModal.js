@@ -22,6 +22,8 @@ class AddGameModal extends React.Component{
       players1: null,
       players2: null,
       notes: '',
+      otPwr1: '', otTen1: '', otNeg1: '',
+      otPwr2: '', otTen2: '', otNeg2: '',
       originalGameLoaded: null
     };
     this.resetState = this.resetState.bind(this);
@@ -87,6 +89,8 @@ class AddGameModal extends React.Component{
       players1: null,
       players2: null,
       notes: '',
+      otPwr1: '', otTen1: '', otNeg1: '',
+      otPwr2: '', otTen2: '', otNeg2: '',
       originalGameLoaded: null
     });
   }
@@ -109,6 +113,12 @@ class AddGameModal extends React.Component{
       players1: this.props.gameToLoad.players1,
       players2: this.props.gameToLoad.players2,
       notes: this.props.gameToLoad.notes,
+      otPwr1: this.props.gameToLoad.otPwr1,
+      otTen1: this.props.gameToLoad.otTen1,
+      otNeg1: this.props.gameToLoad.otNeg1,
+      otPwr2: this.props.gameToLoad.otPwr2,
+      otTen2: this.props.gameToLoad.otTen2,
+      otNeg2: this.props.gameToLoad.otNeg2,
       originalGameLoaded: this.props.gameToLoad
     });
   }
@@ -118,6 +128,7 @@ class AddGameModal extends React.Component{
   handleAdd(e) {
     e.preventDefault();
     var f = this.state.forfeit; //clear irrelevant data if it's a forfeit
+    var ot = this.state.ottu > 0; //clear OT data if no OT
     var tempItem = {
       round: this.state.round,
       tuhtot: f ? '' : this.state.tuhtot,
@@ -129,6 +140,12 @@ class AddGameModal extends React.Component{
       score2: f ? '' : this.state.score2,
       players1: f ? null : this.state.players1,
       players2: f ? null : this.state.players2,
+      otPwr1: f || !ot ? '' : this.state.otPwr1,
+      otTen1: f || !ot ? '' : this.state.otTen1,
+      otNeg1: f || !ot ? '' : this.state.otNeg1,
+      otPwr2: f || !ot ? '' : this.state.otPwr2,
+      otTen2: f || !ot ? '' : this.state.otTen2,
+      otNeg2: f || !ot ? '' : this.state.otNeg2,
       notes: this.state.notes
     } //tempitems
 
@@ -424,6 +441,54 @@ class AddGameModal extends React.Component{
       }.bind(this));
     }
 
+    var overtimeRow = null;
+    if(this.state.ottu > 0) {
+      overtimeRow = (
+        <div className="row game-entry-bottom-row">
+          <div className="col s3 m2">
+            <h6>Overtime TU:</h6>
+          </div>
+          <div className="col s3 m2 ot-stat-label">
+            <span className="">{this.state.team1 + ':'}</span>
+          </div>
+          <div className="input-field col s2 m1">
+            <input id="otPwr1" type="number" name="otPwr1" disabled={this.state.forfeit ? 'disabled' : ''}
+              value={this.state.otPwr1} onChange={this.handleChange}/>
+            <label htmlFor="otPwr1">{'15'}</label>
+          </div>
+          <div className="input-field col s2 m1">
+            <input id="otTen1" type="number" name="otTen1" disabled={this.state.forfeit ? 'disabled' : ''}
+              value={this.state.otTen1} onChange={this.handleChange}/>
+            <label htmlFor="otTen1">{'10'}</label>
+          </div>
+          <div className="input-field col s2 m1">
+            <input id="otNeg1" type="number" name="otNeg1" disabled={this.state.forfeit ? 'disabled' : ''}
+              value={this.state.otNeg1} onChange={this.handleChange}/>
+            <label htmlFor="otNeg1">{'-5'}</label>
+          </div>
+
+          <div className="col s6 m2 ot-stat-label">
+            <span className="">{this.state.team2 + ':'}</span>
+          </div>
+          <div className="input-field col s2 m1">
+            <input id="otPwr2" type="number" name="otPwr2" disabled={this.state.forfeit ? 'disabled' : ''}
+              value={this.state.otPwr2} onChange={this.handleChange}/>
+            <label htmlFor="otPwr2">{'15'}</label>
+          </div>
+          <div className="input-field col s2 m1">
+            <input id="otTen2" type="number" name="otTen2" disabled={this.state.forfeit ? 'disabled' : ''}
+              value={this.state.otTen2} onChange={this.handleChange}/>
+            <label htmlFor="otTen2">{'10'}</label>
+          </div>
+          <div className="input-field col s2 m1">
+            <input id="otNeg2" type="number" name="otNeg2" disabled={this.state.forfeit ? 'disabled' : ''}
+              value={this.state.otNeg2} onChange={this.handleChange}/>
+            <label htmlFor="otNeg2">{'-5'}</label>
+          </div>
+        </div>
+      ); //overtimeRow
+    } // if overtime
+
     return(
       <div className="modal" id="addGame">
         <div className="modal-content">
@@ -536,6 +601,8 @@ class AddGameModal extends React.Component{
                 </label>
               </div>
             </div>
+
+            {overtimeRow}
 
             <div className="modal-footer">
               <div className="row">

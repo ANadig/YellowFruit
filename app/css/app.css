@@ -9674,6 +9674,15 @@ h6 {
   margin-bottom: 1em;
 }
 
+.modal h6 {
+  margin-top: 1.85em;
+}
+
+.ot-stat-label {
+  margin-top: 2em;
+  text-align: right;
+}
+
 .game-entry-top-row {
   margin-bottom: 0px;
 }
