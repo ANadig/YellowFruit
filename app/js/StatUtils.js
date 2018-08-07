@@ -2,39 +2,49 @@
 
 var _ = require('lodash');
 
+//convert string to number but without NaN
+function toNum(str) {
+  return isNaN(+str) ? 0 : +str;
+}
+
 //wrapper around toFixed that handles divide-by-zero
-//anything negative is a dummy value indicating a zero denominator
+//anything not a number is a dummy value indicating a zero denominator
 function formatRate(r, precision) {
   return isNaN(r) ? '&mdash;&ensp;' : r.toFixed(precision);
 }
 
 //bonusesHeard for a single game
 function bonusesHeard (game, whichTeam) {
-  var tot = 0, pwr, gt;
+  var tot = 0;
   var players = whichTeam == 1 ? game.players1 : game.players2;
+  var otPwr = whichTeam == 1 ? game.otPwr1 : game.otPwr2;
+  var otTen = whichTeam == 1 ? game.otTen1 : game.otTen2;
   for(var p in players) {
-    pwr = parseFloat(players[p]["powers"]);
-    gt = parseFloat(players[p]["tens"]);
-    tot = isNaN(pwr) ? tot : tot+pwr;
-    tot = isNaN(gt) ? tot : tot+gt;
+    tot += toNum(players[p].powers) + toNum(players[p].tens);
   }
+  tot -= toNum(otPwr); //subtract TUs converted in overtime
+  tot -= toNum(otTen);
   return tot;
 }
 
 //bonus points for a single game
 function bonusPoints(game, whichTeam) {
-  var tuPts = 0, pwr, gt, ng;
+  var tuPts = 0;
   var players = whichTeam == 1 ? game.players1 : game.players2;
   var totalPoints = whichTeam == 1 ? game.score1 : game.score2;
   for(var p in players) {
-    pwr = parseFloat(players[p]["powers"]);
-    gt = parseFloat(players[p]["tens"]);
-    ng = parseFloat(players[p]["negs"]);
-    tuPts = isNaN(pwr) ? tuPts : tuPts+(15*pwr);
-    tuPts = isNaN(gt) ? tuPts : tuPts+(10*gt);
-    tuPts = isNaN(ng) ? tuPts : tuPts-(5*ng)
+    tuPts += 15*toNum(players[p].powers) +
+      10*toNum(players[p].tens) - 5*toNum(players[p].negs);
   }
-  return parseFloat(totalPoints) - tuPts;
+  return toNum(totalPoints) - tuPts;
+}
+
+//total points from overtime tossups
+function otPoints(game, whichTeam) {
+  var otPwr = whichTeam == 1 ? game.otPwr1 : game.otPwr2;
+  var otTen = whichTeam == 1 ? game.otTen1 : game.otTen2;
+  var otNeg = whichTeam == 1 ? game.otNeg1 : game.otNeg2;
+  return 15*toNum(otPwr) + 10*toNum(otTen) - 5*toNum(otNeg);
 }
 
 //number of powers for a single team in a single game
@@ -42,19 +52,17 @@ function teamPowers(game, whichTeam) {
   var totPowers = 0, pwr;
   var players = whichTeam == 1 ? game.players1 : game.players2;
   for(var p in players) {
-    pwr = parseFloat(players[p]["powers"]);
-    totPowers = isNaN(pwr) ? totPowers : totPowers+pwr
+    totPowers += toNum(players[p].powers);
   }
   return totPowers;
 }
 
 //number of 10s for a single team in a single game
 function teamTens(game, whichTeam) {
-  var totTens = 0, gt;
+  var totTens = 0, tn;
   var players = whichTeam == 1 ? game.players1 : game.players2;
   for(var p in players) {
-    gt = parseFloat(players[p]["tens"]);
-    totTens = isNaN(gt) ? totTens : totTens+gt;
+    totTens += toNum(players[p].tens);
   }
   return totTens;
 }
@@ -64,20 +72,15 @@ function teamNegs(game, whichTeam) {
   var totNegs = 0, ng;
   var players = whichTeam == 1 ? game.players1 : game.players2;
   for(var p in players) {
-    ng = parseFloat(players[p]["negs"]);
-    totNegs = isNaN(ng) ? totNegs : totNegs+ng;
+    totNegs += toNum(players[p].negs);
   }
   return totNegs;
 }
 
 //tuh-powers-tens-negs for a player, as an int
 function playerSlashLine(player) {
-  var tuh = parseFloat(player.tuh);
-  var pwr = parseFloat(player.powers);
-  var gt = parseFloat(player.tens);
-  var ng = parseFloat(player.negs);
-  return [isNaN(tuh) ? 0 : tuh, isNaN(pwr) ? 0 : pwr,
-    isNaN(gt) ? 0 : gt, isNaN(ng) ? 0 : ng];
+  return [toNum(player.tuh), toNum(player.powers),
+    toNum(player.tens), toNum(player.negs)];
 }
 
 //header row of the team standings
@@ -97,7 +100,7 @@ function standingsHeader() {
   '<td align=right><b>-5</b></td>' + '\n' +
   '<td align=right><b>TUH</b></td>' + '\n' +
   '<td align=right><b>PPTH</b></td>' + '\n' +
-  '<td align=right><b>P/N</b></td>' + '\n' +
+  '<td align=right><b>Pwr/N</b></td>' + '\n' +
   '<td align=right><b>G/N</b></td>' + '\n' +
   '<td align=right><b>BHrd</b></td>' + '\n' +
   '<td align=right><b>BPts</b></td>' + '\n' +
@@ -156,7 +159,10 @@ function compileStandings(myTeams, myGames) {
         ppb: 0,
         points: 0,
         ptsAgainst: 0,
-        forfeits: 0
+        forfeits: 0,
+        otPts: 0,
+        otPtsAgainst: 0,
+        ottuh: 0,
       };
     return obj;
   }); //map
@@ -188,13 +194,13 @@ function compileStandings(myTeams, myGames) {
         team1Line.ties += 1;
         team2Line.ties += 1;
       }
-      team1Line.points += parseFloat(g.score1);
-      team2Line.points += parseFloat(g.score2);
-      team1Line.ptsAgainst += parseFloat(g.score2);
-      team2Line.ptsAgainst += parseFloat(g.score1);
+      team1Line.points += +g.score1;
+      team2Line.points += +g.score2;
+      team1Line.ptsAgainst += +g.score2;
+      team2Line.ptsAgainst += +g.score1;
 
-      team1Line.tuh += parseFloat(g.tuhtot);
-      team2Line.tuh += parseFloat(g.tuhtot);
+      team1Line.tuh += +g.tuhtot;
+      team2Line.tuh += +g.tuhtot;
 
       team1Line.powers += teamPowers(g, 1);
       team2Line.powers += teamPowers(g, 2);
@@ -207,6 +213,13 @@ function compileStandings(myTeams, myGames) {
       team2Line.bHeard += bonusesHeard(g,2);
       team1Line.bPts += bonusPoints(g,1);
       team2Line.bPts += bonusPoints(g,2);
+
+      team1Line.otPts += otPoints(g, 1);
+      team2Line.otPts += otPoints(g, 2);
+      team1Line.otPtsAgainst += otPoints(g, 2);
+      team2Line.otPtsAgainst += otPoints(g, 1);
+      team1Line.ottuh += +g.ottu;
+      team2Line.ottuh += +g.ottu;
     }
   }//loop over all games
 
@@ -216,11 +229,10 @@ function compileStandings(myTeams, myGames) {
     var gamesPlayedWithForfeits = t.wins + t.losses + t.ties;
     var winPct = gamesPlayedWithForfeits == 0 ?
       0 : (t.wins + t.ties/2) / gamesPlayedWithForfeits;
-    var ppg = gamesPlayed == 0 ? 'inf' : t.points / gamesPlayed;
-    var papg = gamesPlayed == 0 ? 'inf' : t.ptsAgainst / gamesPlayed;
-    var margin = ppg - papg;
-    if(isNaN(margin)) margin = 0;
-    var ppth = t.tuh == 0 ? 'inf' : t.points / t.tuh;
+    var ppg = gamesPlayed == 0 ? 'inf' : (t.points - t.otPts) / gamesPlayed;
+    var papg = gamesPlayed == 0 ? 'inf' : (t.ptsAgainst - t.otPtsAgainst) / gamesPlayed;
+    var margin = toNum(ppg - papg);
+    var ppth = t.tuh == 0 ? 'inf' : (t.points - t.otPts) / (t.tuh - t.ottuh);
     var pPerN = t.negs == 0 ? 'inf' : t.powers / t.negs;
     var gPerN = t.negs == 0 ? 'inf' : (t.powers + t.tens) / t.negs;
     var ppb = t.bHeard == 0 ? 'inf' : t.bPts / t.bHeard;
@@ -250,7 +262,7 @@ function individualsHeader() {
     '<td align=right><b>-5</b></td>' + '\n' +
     '<td align=right><b>TUH</b></td>' + '\n' +
     '<td align=right><b>P/TU</b></td>' + '\n' +
-    '<td align=right><b>P/N</b></td>' + '\n' +
+    '<td align=right><b>Pwr/N</b></td>' + '\n' +
     '<td align=right><b>G/N</b></td>' + '\n' +
     '<td align=right><b>Pts</b></td>' + '\n' +
     '<td align=right><b>PPG</b></td>' + '\n' +
@@ -312,7 +324,7 @@ function compileIndividuals(myTeams, myGames) {
         return o.teamName == g.team1 && o.playerName == p;
       });
       var [tuh, powers, tens, negs] = playerSlashLine(players1[p]);
-      pEntry.gamesPlayed += tuh / parseFloat(g.tuhtot);
+      pEntry.gamesPlayed += tuh / (+g.tuhtot);
       pEntry.powers += powers;
       pEntry.tens += tens;
       pEntry.negs += negs;
@@ -323,7 +335,7 @@ function compileIndividuals(myTeams, myGames) {
         return o.teamName == g.team2 && o.playerName == p;
       });
       var [tuh, powers, tens, negs] = playerSlashLine(players2[p]);
-      pEntry.gamesPlayed += tuh / parseFloat(g.tuhtot);
+      pEntry.gamesPlayed += tuh / (+g.tuhtot);
       pEntry.powers += powers;
       pEntry.tens += tens;
       pEntry.negs += negs;
@@ -350,10 +362,10 @@ function compileIndividuals(myTeams, myGames) {
   return _.orderBy(individuals,
     [function(item) {
       if(isNaN(item.ppg)) return -999;
-      return parseFloat(item.ppg);
+      return toNum(item.ppg);
     },
     function(item) {
-      return parseFloat(item.gamesPlayed);
+      return toNum(item.gamesPlayed);
     }],
     ['desc', 'desc']);//orderBy
 } //compileIndividuals
@@ -362,7 +374,7 @@ function compileIndividuals(myTeams, myGames) {
 function getRoundsForScoreboard(myGames) {
   var rounds = [];
   for(var i in myGames) {
-    var roundNo = parseFloat(myGames[i].round);
+    var roundNo = toNum(myGames[i].round);
     if(!rounds.includes(roundNo)) {
       rounds.push(roundNo);
     }
@@ -382,7 +394,7 @@ function scoreboardGameSummaries(myGames, roundNo) {
     var g = myGames[i];
     if(g.round == roundNo) {
       if(g.forfeit) {
-        html += '<font size=+1>' + g.team1 + ' defeats ' +
+        html += '<br><font size=+1>' + g.team1 + ' defeats ' +
           g.team2 + ' by forfeit' + '</font><br>';
       }
       else {
@@ -395,15 +407,15 @@ function scoreboardGameSummaries(myGames, roundNo) {
           '<font size=-1>' + '\n';
         html += g.team1 + ': ';
         for(var p in g.players1) {
-          var [tuh, pwr, gt, ng] = playerSlashLine(g.players1[p]);
-          html += p + ' ' + pwr + ' ' + gt + ' ' + ng + ' ' + (15*pwr + 10*gt - 5*ng) + ', ';
+          var [tuh, pwr, tn, ng] = playerSlashLine(g.players1[p]);
+          html += p + ' ' + pwr + ' ' + tn + ' ' + ng + ' ' + (15*pwr + 10*tn - 5*ng) + ', ';
         }
         html = html.substr(0, html.length - 2); //remove the last comma+space
         html += '<br>' + '\n';
         html += g.team2 + ': ';
         for(var p in g.players2) {
-          var [tuh, pwr, gt, ng] = playerSlashLine(g.players2[p]);
-          html += p + ' ' + pwr + ' ' + gt + ' ' + ng + ' ' + (15*pwr + 10*gt - 5*ng) + ', ';
+          var [tuh, pwr, tn, ng] = playerSlashLine(g.players2[p]);
+          html += p + ' ' + pwr + ' ' + tn + ' ' + ng + ' ' + (15*pwr + 10*tn - 5*ng) + ', ';
         }
         html = html.substr(0, html.length - 2); //remove the last comma+space
         html += '<br>' + '\n';
@@ -431,7 +443,7 @@ function teamDetailGameTableHeader() {
     '<td align=right><b>-5</b></td>' + '\n' +
     '<td align=right><b>TUH</b></td>' + '\n' +
     '<td align=right><b>PPTH</b></td>' + '\n' +
-    '<td align=right><b>P/N</b></td>' + '\n' +
+    '<td align=right><b>Pwr/N</b></td>' + '\n' +
     '<td align=right><b>G/N</b></td>' + '\n' +
     '<td align=right><b>BHrd</b></td>' + '\n' +
     '<td align=right><b>BPts</b></td>' + '\n' +
@@ -475,10 +487,11 @@ function teamDetailGameRow(game, whichTeam) {
     opponentScore = game.score1;
     players = game.players2;
   }
+  if(game.ottu > 0) { result += ' (OT)'; }
   var powers = teamPowers(game, whichTeam);
   var tens = teamTens(game, whichTeam);
   var negs = teamNegs(game, whichTeam);
-  var ppth = score / game.tuhtot;
+  var ppth = (score - otPoints(game, whichTeam)) / (game.tuhtot - game.ottu);
   var pPerN = negs == 0 ? 'inf' : powers / negs;
   var gPerN = negs == 0 ? 'inf' : (powers + tens) / negs;
   var bHeard = bonusesHeard(game, whichTeam);
@@ -537,7 +550,7 @@ function teamDetailPlayerTableHeader() {
     '<td align=right><b>-5</b></td>' + '\n' +
     '<td align=right><b>TUH</b></td>' + '\n' +
     '<td align=right><b>P/TU</b></td>' + '\n' +
-    '<td align=right><b>P/N</b></td>' + '\n' +
+    '<td align=right><b>Pwr/N</b></td>' + '\n' +
     '<td align=right><b>G/N</b></td>' + '\n' +
     '<td align=right><b>Pts</b></td>' + '\n' +
     '<td align=right><b>PPG</b></td>' + '\n' +
@@ -577,7 +590,7 @@ function playerDetailTableHeader() {
     '<td align=right><b>-5</b></td>' + '\n' +
     '<td align=right><b>TUH</b></td>' + '\n' +
     '<td align=right><b>P/TU</b></td>' + '\n' +
-    '<td align=right><b>P/N</b></td>' + '\n' +
+    '<td align=right><b>Pwr/N</b></td>' + '\n' +
     '<td align=right><b>G/N</b></td>' + '\n' +
     '<td align=right><b>Pts</b></td>' + '\n' +
     '</tr>' + '\n';
@@ -649,11 +662,12 @@ function compileRoundSummaries(games) {
     if(!game.forfeit) {
       var smry = summaries[round];
       smry.numberOfGames += 1;
-      smry.totalPoints += parseFloat(game.score1) + parseFloat(game.score2);
+      smry.totalPoints += (+game.score1) +
+        (+game.score2) - otPoints(game, 1) - otPoints(game,2);
       smry.tuPts += 15*teamPowers(game, 1) + 15*teamPowers(game, 2) +
         10*teamTens(game, 1) + 10*teamTens(game, 2) -
         5*teamNegs(game, 1) - 5*teamNegs(game, 2);
-      smry.tuh += parseFloat(game.tuhtot);
+      smry.tuh += +game.tuhtot;
       smry.bPts += bonusPoints(game, 1) + bonusPoints(game, 2);
       smry.bHeard += bonusesHeard(game, 1) + bonusesHeard(game, 2);
     }
@@ -688,7 +702,7 @@ function roundReportRow(smry, roundNo) {
 }
 
 //the links that appear at the top of every page in the report
-function getStatReportTop() {
+function getStatReportTop(statKeySection) {
   return '<HTML>' + '\n' +
     '<HEAD>' + '\n' +
     '<TITLE>  Team Standings </TITLE>' + '\n' +
@@ -702,7 +716,7 @@ function getStatReportTop() {
       '<td><a href=teamdetail.html>Team Detail</a></td>' + '\n' +
       '<td><a href=playerdetail.html>Individual Detail</a></td>' + '\n' +
       '<td><a href=rounds.html>Round Report</a></td>' + '\n' +
-      '<td><a href=statkey.html#TeamStandings>Stat Key</a></td>' + '\n' +
+      '<td><a href=statkey.html#' + statKeySection + '>Stat Key</a></td>' + '\n' +
     '</tr>' + '\n' +
     '</table>' + '\n';
 }
@@ -715,7 +729,7 @@ function getStatReportBottom() {
 
 function getStandingsHtml(teams, games) {
   var standings = compileStandings(teams, games);
-  var html = getStatReportTop() +
+  var html = getStatReportTop('TeamStandings') +
     '<h1> Team Standings</h1>' + '\n' +
     '<table border=1 width=100%>' + standingsHeader();
   for(var i in standings) {
@@ -726,7 +740,7 @@ function getStandingsHtml(teams, games) {
 
 function getIndividualsHtml(teams, games) {
   var individuals = compileIndividuals(teams, games);
-  var html = getStatReportTop() +
+  var html = getStatReportTop('IndividualStandings') +
     '<h1> Individual Statistics</h1>' + '\n' +
     '<table border=1 width=100%>' + individualsHeader();
   for(var i in individuals) {
@@ -736,7 +750,7 @@ function getIndividualsHtml(teams, games) {
 }
 
 function getScoreboardHtml(teams, games) {
-  var html = getStatReportTop() +
+  var html = getStatReportTop('Scoreboard') +
     '<h1> Scoreboard</h1>' + '\n';
   var roundList = getRoundsForScoreboard(games);
   for(var r in roundList) {
@@ -748,11 +762,11 @@ function getScoreboardHtml(teams, games) {
 
 function getTeamDetailHtml(teams, games) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
-  games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
+  games = _.orderBy(games, function(item) { return toNum(item.round); }, 'asc');
   var standings = compileStandings(teams, games);
   var individuals = compileIndividuals(teams, games);
 
-  var html = getStatReportTop() + '\n' +
+  var html = getStatReportTop('TeamDetail') + '\n' +
     '<h1> Team Detail</h1>' + '\n';
   for(var i in teams) {
     var teamName = teams[i].teamName;
@@ -792,7 +806,7 @@ function getPlayerDetailHtml(teams, games) {
     function(item) { return item.playerName.toLowerCase(); }],
     ['asc', 'asc']);
 
-  var html = getStatReportTop() +
+  var html = getStatReportTop('IndividualDetail') +
     '<h1> Individual Detail</h1>' + '\n';
 
   for(var i in playerTotals) {
@@ -830,7 +844,7 @@ function getPlayerDetailHtml(teams, games) {
 function getRoundReportHtml(teams, games) {
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
   var roundSummaries = compileRoundSummaries(games);
-  var html = getStatReportTop() +
+  var html = getStatReportTop('RoundReport') +
     '<h1> Round Report</h1>' + '\n';
   html += '<table border=1 width=100%>' + '\n';
   html += roundReportTableHeader();

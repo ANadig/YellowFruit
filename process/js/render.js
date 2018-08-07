@@ -41,7 +41,7 @@ function getSmallStandings(myTeams,myGames) {
         points: 0,
         bHeard: 0,
         bPts: 0,
-        forfeits: 0
+        forfeits: 0,
       };
     return obj;
   }); //map
@@ -72,8 +72,8 @@ function getSmallStandings(myTeams,myGames) {
         summary[idx1].ties += 1;
         summary[idx2].ties += 1;
       }
-      summary[idx1].points += parseFloat(g.score1);
-      summary[idx2].points += parseFloat(g.score2);
+      summary[idx1].points += parseFloat(g.score1) - otPoints(g, 1);
+      summary[idx2].points += parseFloat(g.score2) - otPoints(g, 2);
       summary[idx1].bHeard += bonusesHeard(g,1);
       summary[idx2].bHeard += bonusesHeard(g,2);
       summary[idx1].bPts += bonusPoints(g,1);

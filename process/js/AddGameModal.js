@@ -174,15 +174,23 @@ class AddGameModal extends React.Component{
     }
   }
 
+  //convert string to number but without NaN
+  toNum(str) {
+    return isNaN(+str) ? 0 : +str;
+  }
+
   //calculate bonuses heard. returns a number
   bHeard(whichTeam) {
-    var tot=0, pwr, gt;
+    var tot=0;
     var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
     for(var p in players) {
-      pwr = parseFloat(players[p]["powers"]);
-      gt = parseFloat(players[p]["tens"]);
-      tot = isNaN(pwr) ? tot : tot+pwr;
-      tot = isNaN(gt) ? tot : tot+gt;
+      tot += toNum(players[p].powers) + toNum(players[p].tens);
+    }
+    if(toNum(this.state.ottu) > 0) {
+      var otPwr = whichTeam == 1 ? this.state.otPwr1 : this.state.otPwr2;
+      var otTen = whichTeam == 1 ? this.state.otTen1 : this.state.otTen2;
+      tot -= this.toNum(otPwr); //subtract TUs converted in overtime
+      tot -= this.toNum(otTen);
     }
     return tot;
   }
@@ -193,14 +201,10 @@ class AddGameModal extends React.Component{
     var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
     var totScore = whichTeam == 1 ? this.state.score1 : this.state.score2;
     for(var p in players) {
-      pwr = parseFloat(players[p]["powers"]);
-      gt = parseFloat(players[p]["tens"]);
-      ng = parseFloat(players[p]["negs"]);
-      tuPts = isNaN(pwr) ? tuPts : tuPts+(15*pwr);
-      tuPts = isNaN(gt) ? tuPts : tuPts+(10*gt);
-      tuPts = isNaN(ng) ? tuPts : tuPts-(5*ng)
+      tuPts += 15*this.toNum(players[p].powers) +
+        10*this.toNum(players[p].tens) - 5*this.toNum(players[p].negs);
     }
-    return totScore-tuPts;
+    return totScore - tuPts;
   }
 
   // returns ppb rounded to two decimal places,
@@ -311,7 +315,7 @@ class AddGameModal extends React.Component{
     if(this.state.forfeit) {
       return [true, '', ''];
     } //team names and round are the only required info for a forfeit
-    if(tuhtot == '' || parseFloat(tuhtot) <= 0 || score1 == '' || score2 == '') {
+    if(tuhtot == '' || this.toNum(tuhtot) <= 0 || score1 == '' || score2 == '') {
       return [false, '', ''];
     } //total tuh and total scores are required.
 
@@ -442,7 +446,8 @@ class AddGameModal extends React.Component{
     }
 
     var overtimeRow = null;
-    if(this.state.ottu > 0) {
+    if(this.state.ottu > 0 && !this.state.forfeit &&
+      this.state.team1 != 'nullTeam' && this.state.team2 != 'nullTeam') {
       overtimeRow = (
         <div className="row game-entry-bottom-row">
           <div className="col s3 m2">
@@ -452,17 +457,17 @@ class AddGameModal extends React.Component{
             <span className="">{this.state.team1 + ':'}</span>
           </div>
           <div className="input-field col s2 m1">
-            <input id="otPwr1" type="number" name="otPwr1" disabled={this.state.forfeit ? 'disabled' : ''}
+            <input id="otPwr1" type="number" name="otPwr1"
               value={this.state.otPwr1} onChange={this.handleChange}/>
             <label htmlFor="otPwr1">{'15'}</label>
           </div>
           <div className="input-field col s2 m1">
-            <input id="otTen1" type="number" name="otTen1" disabled={this.state.forfeit ? 'disabled' : ''}
+            <input id="otTen1" type="number" name="otTen1"
               value={this.state.otTen1} onChange={this.handleChange}/>
             <label htmlFor="otTen1">{'10'}</label>
           </div>
           <div className="input-field col s2 m1">
-            <input id="otNeg1" type="number" name="otNeg1" disabled={this.state.forfeit ? 'disabled' : ''}
+            <input id="otNeg1" type="number" name="otNeg1"
               value={this.state.otNeg1} onChange={this.handleChange}/>
             <label htmlFor="otNeg1">{'-5'}</label>
           </div>
@@ -471,17 +476,17 @@ class AddGameModal extends React.Component{
             <span className="">{this.state.team2 + ':'}</span>
           </div>
           <div className="input-field col s2 m1">
-            <input id="otPwr2" type="number" name="otPwr2" disabled={this.state.forfeit ? 'disabled' : ''}
+            <input id="otPwr2" type="number" name="otPwr2"
               value={this.state.otPwr2} onChange={this.handleChange}/>
             <label htmlFor="otPwr2">{'15'}</label>
           </div>
           <div className="input-field col s2 m1">
-            <input id="otTen2" type="number" name="otTen2" disabled={this.state.forfeit ? 'disabled' : ''}
+            <input id="otTen2" type="number" name="otTen2"
               value={this.state.otTen2} onChange={this.handleChange}/>
             <label htmlFor="otTen2">{'10'}</label>
           </div>
           <div className="input-field col s2 m1">
-            <input id="otNeg2" type="number" name="otNeg2" disabled={this.state.forfeit ? 'disabled' : ''}
+            <input id="otNeg2" type="number" name="otNeg2"
               value={this.state.otNeg2} onChange={this.handleChange}/>
             <label htmlFor="otNeg2">{'-5'}</label>
           </div>
