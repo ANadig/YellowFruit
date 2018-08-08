@@ -6,8 +6,6 @@ var fs = eRequire('fs');
 var electron = eRequire('electron');
 var ipc = electron.ipcRenderer;
 
-var currentFile = '';
-
 var React = require('react');
 var ReactDOM = require('react-dom');
 var TeamListEntry = require('./TeamListEntry');
@@ -84,7 +82,6 @@ function getSmallStandings(myTeams,myGames) {
 }
 
 
-
 class MainInterface extends React.Component{
 
   constructor(props) {
@@ -102,7 +99,7 @@ class MainInterface extends React.Component{
       editWhichTeam: null,
       tmAddOrEdit: 'add', //either 'add' or 'edit'
       editWhichGame: null,
-      gmAddOrEdit: 'add'
+      gmAddOrEdit: 'add',
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -135,9 +132,19 @@ class MainInterface extends React.Component{
     }.bind(this));
     ipc.on('saveTournamentAs', function(event,fileName) {
       this.writeJSON(fileName);
+      ipc.sendSync('setWindowTitle',
+        fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
     }.bind(this));
     ipc.on('openTournament', function(event,fileName) {
       this.loadTournament(fileName);
+    }.bind(this));
+    ipc.on('saveExistingTournament', function(event,fileName) {
+      // if(currentFile == '') {
+      //   ipc.sendSync('saveExistingHasFailed');
+      // }
+      // else {
+        this.writeJSON(fileName);
+      //}
     }.bind(this));
   } //componentDidMount
 
@@ -146,6 +153,7 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('compileStatReport');
     ipc.removeAllListeners('saveTournamentAs');
     ipc.removeAllListeners('openTournament');
+    ipc.removeAllListeners('saveExistingTournament');
   } //componentWillUnmount
 
   componentDidUpdate() {
@@ -163,17 +171,20 @@ class MainInterface extends React.Component{
     fs.writeFile(fileName, fileString, 'utf8', function(err) {
       if (err) { console.log(err); }
     });
+    ipc.sendSync('setWindowTitle',
+      fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
   }
 
   loadTournament(fileName) {
-    currentFile = fileName[0]; //open dialog doesn't allow selecting multiple files
-    var fileString = fs.readFileSync(currentFile, 'utf8');
+    var fileString = fs.readFileSync(fileName, 'utf8');
     var [loadTeams, loadGames] = fileString.split('\nDivider_between_teams_and_games\n', 2);
     loadTeams = JSON.parse(loadTeams);
     loadGames = JSON.parse(loadGames);
+    ipc.sendSync('setWindowTitle',
+      fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
     this.setState({
       myTeams: loadTeams,
-      myGames: loadGames
+      myGames: loadGames,
     });
   }
 
@@ -247,9 +258,10 @@ class MainInterface extends React.Component{
   addTeam(tempItem) {
     var tempTms = this.state.myTeams.slice();
     tempTms.push(tempItem);
+    ipc.sendSync('unsavedData');
     this.setState({
       myTeams: tempTms,
-      tmWindowVisible: false
+      tmWindowVisible: false,
     }) //setState
   } //addTeam
 
@@ -257,6 +269,7 @@ class MainInterface extends React.Component{
   addGame(tempItem) {
     var tempGms = this.state.myGames.slice();
     tempGms.push(tempItem);
+    ipc.sendSync('unsavedData');
     this.setState({
       myGames: tempGms,
       gmWindowVisible: false
@@ -289,6 +302,7 @@ class MainInterface extends React.Component{
       this.updateTeamName(tempGames, oldTeam.teamName, newTeam.teamName);
     }
 
+    ipc.sendSync('unsavedData');
     this.setState({
       myTeams: tempTeams,
       myGames: tempGames,
@@ -341,6 +355,7 @@ class MainInterface extends React.Component{
        return gameEqual(o, oldGame)
      });
     tempGameAry[oldGameIdx] = newGame;
+    ipc.sendSync('unsavedData');
     this.setState({
       myGames: tempGameAry,
       gmWindowVisible: false
@@ -351,6 +366,7 @@ class MainInterface extends React.Component{
   deleteTeam(item) {
     var allTeams = this.state.myTeams;
     var newTeams = _.without(allTeams, item);
+    ipc.sendSync('unsavedData');
     this.setState({
       myTeams: newTeams
     }); //setState
@@ -360,6 +376,7 @@ class MainInterface extends React.Component{
   deleteGame(item) {
     var allGames = this.state.myGames;
     var newGames = _.without(allGames, item);
+    ipc.sendSync('unsavedData');
     this.setState({
       myGames: newGames
     }); //setState

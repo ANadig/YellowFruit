@@ -6,6 +6,7 @@ var app = electron.app;
 var ipc = electron.ipcMain;
 var myAppMenu, menuTemplate;
 var reportWindow;
+var currentFile = '';
 
 // load a new report window, or, if one is already open, reload and focus it
 function showReportWindow() {
@@ -35,19 +36,30 @@ function saveTournamentAs(focusedWindow) {
     {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
     (fileName) => {
       if(fileName != undefined) {
+        currentFile = fileName;
         focusedWindow.webContents.send('saveTournamentAs', fileName);
       }
     }
   );
 }
 
+function saveExistingTournament(focusedWindow) {
+  if(currentFile != '') {
+    focusedWindow.webContents.send('saveExistingTournament', currentFile);
+  }
+  else{
+    saveTournamentAs(focusedWindow);
+  }
+}
+
 //load a tournament from file
 function openTournament(focusedWindow) {
   dialog.showOpenDialog(focusedWindow,
     {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
-    (fileName) => {
-      if(fileName != undefined) {
-        focusedWindow.webContents.send('openTournament', fileName);
+    (fileNameAry) => {
+      if(fileNameAry != undefined) {
+        currentFile = fileNameAry[0]; //open dialog doesn't allow selecting multiple files
+        focusedWindow.webContents.send('openTournament', currentFile);
       }
     }
   );
@@ -58,7 +70,8 @@ app.on('ready', function() {
   appWindow = new BrowserWindow({
     width: 1200,
     height: 700,
-    show: false
+    show: false,
+    title: 'YellowFruit - New Tournament'
   }); //appWindow
 
   appWindow.loadURL('file://' + __dirname + '/index.html');
@@ -72,6 +85,24 @@ app.on('ready', function() {
       reportWindow.close();
     }
   });
+
+  ipc.on('setWindowTitle', (event, arg) => {
+    event.returnValue = '';
+    appWindow.setTitle('YellowFruit - ' + arg);
+  });
+
+  ipc.on('unsavedData', (event, arg) => {
+    event.returnValue = '';
+    if(!appWindow.getTitle().endsWith('*')) {
+      appWindow.setTitle(appWindow.getTitle() + '*');
+    }
+  });
+
+  //if render process doesn't have a file to save to, redirect to save-as
+  ipc.on('saveExistingHasFailed', (event, arg) => {
+    saveTournamentAs(appWindow);
+  });
+
 
   // ipc.on('openReportWindow', function(event, arg){
   //   event.returnValue='';
@@ -109,8 +140,9 @@ app.on('ready', function() {
         },
         {
           label: 'Save',
+          accelerator: process.platform === 'darwin' ? 'Command+S':'Ctrl+S',
           click(item, focusedWindow) {
-
+            saveExistingTournament(focusedWindow);
           }
         },
         {type: 'separator'},
