@@ -2,11 +2,11 @@ var $ = jQuery = require('jquery');
 var _ = require('lodash');
 var M = require('materialize-css');
 var fs = eRequire('fs');
-var loadTeams = JSON.parse(fs.readFileSync(teamDataLocation));
-var loadGames = JSON.parse(fs.readFileSync(gameDataLocation));
 
 var electron = eRequire('electron');
 var ipc = electron.ipcRenderer;
+
+var currentFile = '';
 
 var React = require('react');
 var ReactDOM = require('react-dom');
@@ -95,8 +95,8 @@ class MainInterface extends React.Component{
       orderBy: 'teamName',
       orderDir: 'asc',
       queryText: '',
-      myTeams: loadTeams,
-      myGames: loadGames,
+      myTeams: [],
+      myGames: [],
       activePane: 'teamsPane',  //either 'teamsPane' or 'gamesPane'
       forceResetForms: false,
       editWhichTeam: null,
@@ -133,21 +133,49 @@ class MainInterface extends React.Component{
     ipc.on('compileStatReport', function(event,message) {
       this.writeStatReport();
     }.bind(this));
+    ipc.on('saveTournamentAs', function(event,fileName) {
+      this.writeJSON(fileName);
+    }.bind(this));
+    ipc.on('openTournament', function(event,fileName) {
+      this.loadTournament(fileName);
+    }.bind(this));
   } //componentDidMount
 
   componentWillUnmount() {
     ipc.removeAllListeners('addTeam');
     ipc.removeAllListeners('compileStatReport');
+    ipc.removeAllListeners('saveTournamentAs');
+    ipc.removeAllListeners('openTournament');
   } //componentWillUnmount
 
   componentDidUpdate() {
-    fs.writeFile(teamDataLocation, JSON.stringify(this.state.myTeams), 'utf8', function(err) {
-      if (err) { console.log(err); }
-    });//writeFile - teams
-    fs.writeFile(gameDataLocation, JSON.stringify(this.state.myGames), 'utf8', function(err) {
-      if (err) { console.log(err); }
-    });//writeFile - games
+    // fs.writeFile(teamDataLocation, JSON.stringify(this.state.myTeams), 'utf8', function(err) {
+    //   if (err) { console.log(err); }
+    // });//writeFile - teams
+    // fs.writeFile(gameDataLocation, JSON.stringify(this.state.myGames), 'utf8', function(err) {
+    //   if (err) { console.log(err); }
+    // });//writeFile - games
   } //componentDidUpdate
+
+  writeJSON(fileName) {
+    var fileString = JSON.stringify(this.state.myTeams) + '\nDivider_between_teams_and_games\n' +
+      JSON.stringify(this.state.myGames);
+    fs.writeFile(fileName, fileString, 'utf8', function(err) {
+      if (err) { console.log(err); }
+    });
+  }
+
+  loadTournament(fileName) {
+    currentFile = fileName[0]; //open dialog doesn't allow selecting multiple files
+    var fileString = fs.readFileSync(currentFile, 'utf8');
+    var [loadTeams, loadGames] = fileString.split('\nDivider_between_teams_and_games\n', 2);
+    loadTeams = JSON.parse(loadTeams);
+    loadGames = JSON.parse(loadGames);
+    this.setState({
+      myTeams: loadTeams,
+      myGames: loadGames
+    });
+  }
 
   //compile data for the stat report and write it to each html file
   writeStatReport() {

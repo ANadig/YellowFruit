@@ -1,4 +1,5 @@
 var electron = require('electron');
+var dialog = electron.dialog;
 var BrowserWindow = electron.BrowserWindow;
 var Menu = electron.Menu;
 var app = electron.app;
@@ -27,6 +28,30 @@ function showReportWindow() {
     });
   }
 } //showReportWindow
+
+//open file dialog to save as a new file
+function saveTournamentAs(focusedWindow) {
+  dialog.showSaveDialog(focusedWindow,
+    {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
+    (fileName) => {
+      if(fileName != undefined) {
+        focusedWindow.webContents.send('saveTournamentAs', fileName);
+      }
+    }
+  );
+}
+
+//load a tournament from file
+function openTournament(focusedWindow) {
+  dialog.showOpenDialog(focusedWindow,
+    {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
+    (fileName) => {
+      if(fileName != undefined) {
+        focusedWindow.webContents.send('openTournament', fileName);
+      }
+    }
+  );
+}
 
 app.on('ready', function() {
   var appWindow;
@@ -70,6 +95,25 @@ app.on('ready', function() {
             showReportWindow();
           }
         },
+        {
+          label: 'Open',
+          click(item, focusedWindow) {
+            openTournament(focusedWindow);
+          }
+        },
+        {
+          label: 'Save As',
+          click(item, focusedWindow) {
+            saveTournamentAs(focusedWindow);
+          }
+        },
+        {
+          label: 'Save',
+          click(item, focusedWindow) {
+
+          }
+        },
+        {type: 'separator'},
         {role: 'close'},
         {role: 'quit'}
       ]

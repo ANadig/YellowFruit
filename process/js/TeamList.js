@@ -25,6 +25,9 @@ class TeamList extends React.Component{
     if (this.props.whichPaneActive != 'teamsPane') {
       return null;
     }
+    if(this.props.teamList.length == 0) {
+      return (<h2>No teams</h2>);
+    }
     return(
       <div className="container">
         <ul className="collection">{this.props.teamList}</ul>
