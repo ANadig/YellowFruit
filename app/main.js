@@ -4,9 +4,10 @@ var BrowserWindow = electron.BrowserWindow;
 var Menu = electron.Menu;
 var app = electron.app;
 var ipc = electron.ipcMain;
-var myAppMenu, menuTemplate;
+var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate;
 var reportWindow;
 var currentFile = '';
+var unsavedData = false;
 
 // load a new report window, or, if one is already open, reload and focus it
 function showReportWindow() {
@@ -23,6 +24,7 @@ function showReportWindow() {
     }); //reportWindow
 
     reportWindow.loadURL('file://' + __dirname + '/standings.html');
+    reportWindow.setMenu(reportMenu);
 
     reportWindow.once('ready-to-show', function () {
       reportWindow.show();
@@ -43,6 +45,7 @@ function saveTournamentAs(focusedWindow) {
   );
 }
 
+//called from the Save option. If it's a new tournament, redirect to Save As
 function saveExistingTournament(focusedWindow) {
   if(currentFile != '') {
     focusedWindow.webContents.send('saveExistingTournament', currentFile);
@@ -65,6 +68,57 @@ function openTournament(focusedWindow) {
   );
 }
 
+//close the current tournament and start a new one.
+//prompt to save if there's unsaved data for a previously saved Tournament
+//if there's data for a tournament that has never been saved, there's no option
+//to save (because I can't figure out how to wait to clear out the data until
+//after the user has finished Save As)
+function newTournament(focusedWindow) {
+  var willContinue = true;
+  if(unsavedData) {
+    var choice, needToSave;
+    if(currentFile != '') {
+      choice = dialog.showMessageBox(
+        focusedWindow,
+        {
+          type: 'warning',
+          buttons: ['&Save and continue', 'Continue without s&aving', 'Go ba&ck'],
+          defaultId: 2,
+          cancelId: 2,
+          title: 'YellowFruit',
+          message: 'You have unsaved data.'
+        }
+      );
+      willContinue = choice != 2;
+      needToSave = choice == 0;
+    }
+    else { //no current file
+      choice = dialog.showMessageBox(
+        focusedWindow,
+        {
+          type: 'warning',
+          buttons: ['Continue without s&aving', 'Go ba&ck'],
+          defaultId: 1,
+          cancelId: 1,
+          title: 'YellowFruit',
+          message: 'You have unsaved data.'
+        }
+      );
+      willContinue = choice == 0;
+      needToSave = false;
+    }
+    if(needToSave) {
+      saveExistingTournament(focusedWindow);
+    }
+  } // if unsaved data
+  if(willContinue) {
+    focusedWindow.webContents.send('newTournament');
+    currentFile = '';
+    focusedWindow.setTitle('New Tournament');
+  }
+}
+
+//initialize window and menubars and set up ipc listeners
 app.on('ready', function() {
   var appWindow;
   appWindow = new BrowserWindow({
@@ -80,11 +134,32 @@ app.on('ready', function() {
     appWindow.show();
   }); //ready-to-show
 
-  appWindow.on('closed', function() {
-    if(reportWindow != undefined && !reportWindow.isDestroyed()) {
-      reportWindow.close();
+  appWindow.on('close', function(e) {
+    var willClose = true;
+    if(unsavedData) {
+      var choice = dialog.showMessageBox(
+        appWindow,
+        {
+          type: 'warning',
+          buttons: ['Quit &Anyway', 'Go Ba&ck'],
+          defaultId: 1,
+          cancelId: 1,
+          title: 'YellowFruit',
+          message: 'You have unsaved data.'
+        }
+      );
+      willClose = choice == 0;
     }
-  });
+    if(willClose) {
+      if(reportWindow != undefined && !reportWindow.isDestroyed()) {
+        reportWindow.close();
+      }
+    }
+    else {
+      e.preventDefault();
+    }
+  });//appwindow.on close
+
 
   ipc.on('setWindowTitle', (event, arg) => {
     event.returnValue = '';
@@ -96,27 +171,18 @@ app.on('ready', function() {
     if(!appWindow.getTitle().endsWith('*')) {
       appWindow.setTitle(appWindow.getTitle() + '*');
     }
+    unsavedData = true;
   });
 
   //if render process doesn't have a file to save to, redirect to save-as
-  ipc.on('saveExistingHasFailed', (event, arg) => {
-    saveTournamentAs(appWindow);
+  ipc.on('successfulSave', (event, arg) => {
+    event.returnValue = '';
+    unsavedData = false;
   });
 
-
-  // ipc.on('openReportWindow', function(event, arg){
-  //   event.returnValue='';
-  //   reportWindow.show();
-  // }); //openreportWindow
-  //
-  // ipc.on('closeReportWindow', function(event, arg){
-  //   event.returnValue='';
-  //   reportWindow.hide();
-  // }); //closereportWindow
-
-  menuTemplate = [
+  mainMenuTemplate = [
     {
-      label: 'YellowFruit',
+      label: '&YellowFruit',
       submenu: [
         {
           label: 'View Full Report',
@@ -127,7 +193,15 @@ app.on('ready', function() {
           }
         },
         {
+          label: 'New Tournament',
+          accelerator: process.platform === 'darwin' ? 'Command+N': 'Ctrl+N',
+          click(item, focusedWindow) {
+            newTournament(focusedWindow);
+          }
+        },
+        {
           label: 'Open',
+          accelerator: process.platform === 'darwin' ? 'Command+O': 'Ctrl+O',
           click(item, focusedWindow) {
             openTournament(focusedWindow);
           }
@@ -147,10 +221,9 @@ app.on('ready', function() {
         },
         {type: 'separator'},
         {role: 'close'},
-        {role: 'quit'}
       ]
     },{
-      label: 'Edit',
+      label: '&Edit',
       submenu: [
         {role: 'cut'},
         {role: 'copy'},
@@ -162,10 +235,17 @@ app.on('ready', function() {
           click(item,focusedWindow) {
             if (focusedWindow == appWindow) focusedWindow.webContents.send('addTeam');
           }
+        },
+        {
+          label: 'Add Game',
+          accelerator: process.platform === 'darwin' ? 'Command+G':'Ctrl+G',
+          click(item,focusedWindow) {
+            if (focusedWindow == appWindow) focusedWindow.webContents.send('addGame');
+          }
         }
       ]
     },{
-        label: 'View',
+        label: '&View',
         submenu: [
           {
             label: 'Reload',
@@ -183,9 +263,18 @@ app.on('ready', function() {
           }
         ]
       },
-  ];
+  ]; // mainMenuTemplate
 
-  myAppMenu = Menu.buildFromTemplate(menuTemplate);
-  Menu.setApplicationMenu(myAppMenu);
+  reportMenuTemplate = [
+    {
+      label: 'YellowFruit',
+      submenu: [{role: 'close'}]
+    }
+  ]; // reportMenuTemplate
+
+  mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+  reportMenu = Menu.buildFromTemplate(reportMenuTemplate);
+  // Menu.setApplicationMenu(mainMenu);
+  appWindow.setMenu(mainMenu);
 
 }); //app is ready

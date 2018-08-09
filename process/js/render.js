@@ -99,7 +99,7 @@ class MainInterface extends React.Component{
       editWhichTeam: null,
       tmAddOrEdit: 'add', //either 'add' or 'edit'
       editWhichGame: null,
-      gmAddOrEdit: 'add',
+      gmAddOrEdit: 'add'
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -124,27 +124,30 @@ class MainInterface extends React.Component{
   }
 
   componentDidMount() {
-    ipc.on('addTeam', function(event,message) {
+    ipc.on('addTeam', function(event, message) {
       this.openTeamAddWindow();
     }.bind(this));
-    ipc.on('compileStatReport', function(event,message) {
+    ipc.on('addGame', function(event, message) {
+      this.openGameAddWindow();
+    }.bind(this));
+    ipc.on('compileStatReport', function(event, message) {
       this.writeStatReport();
     }.bind(this));
-    ipc.on('saveTournamentAs', function(event,fileName) {
+    ipc.on('saveTournamentAs', function(event, fileName) {
       this.writeJSON(fileName);
       ipc.sendSync('setWindowTitle',
         fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
+      ipc.sendSync('successfulSave');
     }.bind(this));
-    ipc.on('openTournament', function(event,fileName) {
+    ipc.on('openTournament', function(event, fileName) {
       this.loadTournament(fileName);
     }.bind(this));
-    ipc.on('saveExistingTournament', function(event,fileName) {
-      // if(currentFile == '') {
-      //   ipc.sendSync('saveExistingHasFailed');
-      // }
-      // else {
-        this.writeJSON(fileName);
-      //}
+    ipc.on('saveExistingTournament', function(event, fileName) {
+      this.writeJSON(fileName);
+      ipc.sendSync('successfulSave');
+    }.bind(this));
+    ipc.on('newTournament', function(event) {
+      this.resetState();
     }.bind(this));
   } //componentDidMount
 
@@ -154,6 +157,7 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('saveTournamentAs');
     ipc.removeAllListeners('openTournament');
     ipc.removeAllListeners('saveExistingTournament');
+    ipc.removeAllListeners('newTournament');
   } //componentWillUnmount
 
   componentDidUpdate() {
@@ -215,6 +219,24 @@ class MainInterface extends React.Component{
       if (err) { console.log(err); }
     });//writeFile - round report
   } //writeStatReport
+
+  resetState() {
+    this.setState({
+      tmWindowVisible: false,
+      gmWindowVisible: false,
+      orderBy: 'teamName',
+      orderDir: 'asc',
+      queryText: '',
+      myTeams: [],
+      myGames: [],
+      activePane: 'teamsPane',  //either 'teamsPane' or 'gamesPane'
+      forceResetForms: false,
+      editWhichTeam: null,
+      tmAddOrEdit: 'add', //either 'add' or 'edit'
+      editWhichGame: null,
+      gmAddOrEdit: 'add'
+    });
+  }
 
   //called by buttons that open the team form
   openTeamAddWindow() {
