@@ -57,15 +57,24 @@ function saveExistingTournament(focusedWindow) {
 
 //load a tournament from file
 function openTournament(focusedWindow) {
-  dialog.showOpenDialog(focusedWindow,
-    {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
-    (fileNameAry) => {
-      if(fileNameAry != undefined) {
-        currentFile = fileNameAry[0]; //open dialog doesn't allow selecting multiple files
-        focusedWindow.webContents.send('openTournament', currentFile);
-      }
+  var willContinue = true, needToSave = false;
+  if(unsavedData) {
+    [willContinue, needToSave] = unsavedDataDialog(focusedWindow);
+    if(needToSave) {
+      saveExistingTournament(focusedWindow);
     }
-  );
+  }
+  if(willContinue) {
+    dialog.showOpenDialog(focusedWindow,
+      {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
+      (fileNameAry) => {
+        if(fileNameAry != undefined) {
+          currentFile = fileNameAry[0]; //open dialog doesn't allow selecting multiple files
+          focusedWindow.webContents.send('openTournament', currentFile);
+        }
+      }
+    );
+  }
 }
 
 //close the current tournament and start a new one.
@@ -74,48 +83,54 @@ function openTournament(focusedWindow) {
 //to save (because I can't figure out how to wait to clear out the data until
 //after the user has finished Save As)
 function newTournament(focusedWindow) {
-  var willContinue = true;
+  var willContinue = true, needToSave = false;
   if(unsavedData) {
-    var choice, needToSave;
-    if(currentFile != '') {
-      choice = dialog.showMessageBox(
-        focusedWindow,
-        {
-          type: 'warning',
-          buttons: ['&Save and continue', 'Continue without s&aving', 'Go ba&ck'],
-          defaultId: 2,
-          cancelId: 2,
-          title: 'YellowFruit',
-          message: 'You have unsaved data.'
-        }
-      );
-      willContinue = choice != 2;
-      needToSave = choice == 0;
-    }
-    else { //no current file
-      choice = dialog.showMessageBox(
-        focusedWindow,
-        {
-          type: 'warning',
-          buttons: ['Continue without s&aving', 'Go ba&ck'],
-          defaultId: 1,
-          cancelId: 1,
-          title: 'YellowFruit',
-          message: 'You have unsaved data.'
-        }
-      );
-      willContinue = choice == 0;
-      needToSave = false;
-    }
+    [willContinue, needToSave] = unsavedDataDialog(focusedWindow);
     if(needToSave) {
       saveExistingTournament(focusedWindow);
     }
-  } // if unsaved data
+  }
   if(willContinue) {
     focusedWindow.webContents.send('newTournament');
     currentFile = '';
     focusedWindow.setTitle('New Tournament');
   }
+}
+
+//generic dialog modal for unsaved data
+function unsavedDataDialog(focusedWindow) {
+  var choice, willContinue, needToSave;
+  if(currentFile != '') {
+    choice = dialog.showMessageBox(
+      focusedWindow,
+      {
+        type: 'warning',
+        buttons: ['&Save and continue', 'Continue without s&aving', 'Go ba&ck'],
+        defaultId: 2,
+        cancelId: 2,
+        title: 'YellowFruit',
+        message: 'You have unsaved data.'
+      }
+    );
+    willContinue = choice != 2;
+    needToSave = choice == 0;
+  }
+  else { //no current file
+    choice = dialog.showMessageBox(
+      focusedWindow,
+      {
+        type: 'warning',
+        buttons: ['Continue without s&aving', 'Go ba&ck'],
+        defaultId: 1,
+        cancelId: 1,
+        title: 'YellowFruit',
+        message: 'You have unsaved data.'
+      }
+    );
+    willContinue = choice == 0;
+    needToSave = false;
+  }
+  return [willContinue, needToSave];
 }
 
 //initialize window and menubars and set up ipc listeners

@@ -181,9 +181,11 @@ class MainInterface extends React.Component{
 
   loadTournament(fileName) {
     var fileString = fs.readFileSync(fileName, 'utf8');
-    var [loadTeams, loadGames] = fileString.split('\nDivider_between_teams_and_games\n', 2);
-    loadTeams = JSON.parse(loadTeams);
-    loadGames = JSON.parse(loadGames);
+    if(fileString != '') {
+      var [loadTeams, loadGames] = fileString.split('\nDivider_between_teams_and_games\n', 2);
+      loadTeams = JSON.parse(loadTeams);
+      loadGames = JSON.parse(loadGames);
+    }
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
     this.setState({
