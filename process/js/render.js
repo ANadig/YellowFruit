@@ -131,7 +131,7 @@ class MainInterface extends React.Component{
       this.openGameAddWindow();
     }.bind(this));
     ipc.on('compileStatReport', function(event, message) {
-      this.writeStatReport();
+      this.writeStatReport('');
     }.bind(this));
     ipc.on('saveTournamentAs', function(event, fileName) {
       this.writeJSON(fileName);
@@ -149,6 +149,9 @@ class MainInterface extends React.Component{
     ipc.on('newTournament', function(event) {
       this.resetState();
     }.bind(this));
+    ipc.on('exportHtmlReport', function(event, fileStart) {
+      this.writeStatReport(fileStart);
+    }.bind(this));
   } //componentDidMount
 
   componentWillUnmount() {
@@ -158,6 +161,7 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('openTournament');
     ipc.removeAllListeners('saveExistingTournament');
     ipc.removeAllListeners('newTournament');
+    ipc.removeAllListeners('exportHtmlReport');
   } //componentWillUnmount
 
   componentDidUpdate() {
@@ -195,31 +199,54 @@ class MainInterface extends React.Component{
   }
 
   //compile data for the stat report and write it to each html file
-  writeStatReport() {
-    var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames);
+  writeStatReport(fileStart) {
+    if(fileStart == '') {
+      var standingsLocation = defaultStandingsLocation;
+      var individualsLocation = defaultIndividualsLocation;
+      var scoreboardLocation = defaultScoreboardLocation;
+      var teamDetailLocation = defaultTeamDetailLocation;
+      var playerDetailLocation = defaultPlayerDetailLocation;
+      var roundReportLocation = defaultRoundReportLocation;
+      var statKeyLocation = defaultStatKeyLocation;
+    }
+    else {
+      fileStart = fileStart + '_';
+      var standingsLocation = fileStart + 'standings.html';
+      var individualsLocation = fileStart + 'individuals.html';
+      var scoreboardLocation = fileStart + 'games.html';
+      var teamDetailLocation = fileStart + 'teamdetail.html';
+      var playerDetailLocation = fileStart + 'playerdetail.html';
+      var roundReportLocation = fileStart + 'rounds.html';
+      var statKeyLocation = fileStart + 'statKey.html';
+    }
+    var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames, fileStart);
     fs.writeFile(standingsLocation, standingsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - standings
-    var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames);
+    var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames, fileStart);
     fs.writeFile(individualsLocation, individualsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individuals
-    var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames);
+    var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames, fileStart);
     fs.writeFile(scoreboardLocation, scoreboardHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - scoreboard
-    var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames);
+    var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames, fileStart);
     fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - team detail
-    var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames);
+    var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames, fileStart);
     fs.writeFile(playerDetailLocation, playerDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individual Detail
-    var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames);
+    var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames, fileStart);
     fs.writeFile(roundReportLocation, roundReportHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - round report
+    var statKeyHtml = getStatKeyHtml(fileStart);
+    fs.writeFile(statKeyLocation, statKeyHtml, 'utf8', function(err) {
+      if (err) { console.log(err); }
+    });//writeFile - stat key
   } //writeStatReport
 
   resetState() {

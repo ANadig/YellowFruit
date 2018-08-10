@@ -1,6 +1,8 @@
 //Statutils.js - contains the code for generating the html report
 
 var _ = require('lodash');
+var fs = require('fs');
+var Path = require('path');
 
 //convert string to number but without NaN
 function toNum(str) {
@@ -109,11 +111,11 @@ function standingsHeader() {
 }
 
 //one row in the team standings
-function standingsRow(teamEntry, rank) {
+function standingsRow(teamEntry, rank, fileStart) {
   var linkId = teamEntry.teamName.replace(/\W/g, '');
   var rowHtml = '<tr>';
   rowHtml += '<td align=left>' + rank + '</td>' + '\n';
-  rowHtml += '<td align=left>' + '<a href=\"teamdetail.html#' + linkId + '\">' +
+  rowHtml += '<td align=left>' + '<a href=\"' + fileStart + 'teamdetail.html#' + linkId + '\">' +
     teamEntry.teamName + '</a>' + '</td>' + '\n';
   rowHtml += '<td align=right>' + teamEntry.wins + '</td>' + '\n';
   rowHtml += '<td align=right>' + teamEntry.losses + '</td>' + '\n';
@@ -270,12 +272,12 @@ function individualsHeader() {
 }
 
 //a single row in the individual standings
-function individualsRow(playerEntry, rank) {
+function individualsRow(playerEntry, rank, fileStart) {
   var linkId = playerEntry.teamName.replace(/\W/g, '') + '-' +
     playerEntry.playerName.replace(/\W/g, '');
   var rowHtml = '<tr>' + '\n';
   rowHtml += '<td align=left>' + rank + '</td>' + '\n';
-  rowHtml += '<td align=left><a href=\"playerdetail.html#' + linkId + '\">' +
+  rowHtml += '<td align=left><a href=\"' + fileStart + 'playerdetail.html#' + linkId + '\">' +
     playerEntry.playerName + '</a></td>' + '\n';
   rowHtml += '<td align=left>' + playerEntry.teamName + '</td>' + '\n';
   rowHtml += '<td align=right>' + playerEntry.gamesPlayed + '</td>' + '\n';
@@ -558,11 +560,11 @@ function teamDetailPlayerTableHeader() {
 }
 
 //team detail row for a single player
-function teamDetailPlayerRow(player) {
+function teamDetailPlayerRow(player, fileStart) {
   var linkId = player.teamName.replace(/\W/g, '') + '-' +
     player.playerName.replace(/\W/g, '');
   var html = '<tr>' + '\n';
-  html += '<td align=left><a href=\"playerdetail.html#' + linkId + '\">' +
+  html += '<td align=left><a href=\"' + fileStart + 'playerdetail.html#' + linkId + '\">' +
     player.playerName + '</a></td>' + '\n';
   html += '<td align=left>' + player.teamName + '</td>' + '\n';
   html += '<td align=right>' + player.gamesPlayed + '</td>' + '\n';
@@ -702,7 +704,7 @@ function roundReportRow(smry, roundNo) {
 }
 
 //the links that appear at the top of every page in the report
-function getStatReportTop(statKeySection) {
+function getStatReportTop(statKeySection, fileStart) {
   return '<HTML>' + '\n' +
     '<HEAD>' + '\n' +
     '<TITLE>  Team Standings </TITLE>' + '\n' +
@@ -710,13 +712,13 @@ function getStatReportTop(statKeySection) {
     '<BODY>' + '\n' +
     '<table border=0 width=100%>' + '\n' +
     '<tr>' + '\n' +
-      '<td><a href=standings.html>Standings</a></td>' + '\n' +
-      '<td><a href=individuals.html>Individuals</a></td>' + '\n' +
-      '<td><a href=games.html>Scoreboard</a></td>' + '\n' +
-      '<td><a href=teamdetail.html>Team Detail</a></td>' + '\n' +
-      '<td><a href=playerdetail.html>Individual Detail</a></td>' + '\n' +
-      '<td><a href=rounds.html>Round Report</a></td>' + '\n' +
-      '<td><a href=statkey.html#' + statKeySection + '>Stat Key</a></td>' + '\n' +
+      '<td><a href=' + fileStart + 'standings.html>Standings</a></td>' + '\n' +
+      '<td><a href=' + fileStart + 'individuals.html>Individuals</a></td>' + '\n' +
+      '<td><a href=' + fileStart + 'games.html>Scoreboard</a></td>' + '\n' +
+      '<td><a href=' + fileStart + 'teamdetail.html>Team Detail</a></td>' + '\n' +
+      '<td><a href=' + fileStart + 'playerdetail.html>Individual Detail</a></td>' + '\n' +
+      '<td><a href=' + fileStart + 'rounds.html>Round Report</a></td>' + '\n' +
+      '<td><a href=' + fileStart + 'statkey.html#' + statKeySection + '>Stat Key</a></td>' + '\n' +
     '</tr>' + '\n' +
     '</table>' + '\n';
 }
@@ -727,30 +729,30 @@ function getStatReportBottom() {
   '</HTML>';
 }
 
-function getStandingsHtml(teams, games) {
+function getStandingsHtml(teams, games, fileStart) {
   var standings = compileStandings(teams, games);
-  var html = getStatReportTop('TeamStandings') +
+  var html = getStatReportTop('TeamStandings', fileStart) +
     '<h1> Team Standings</h1>' + '\n' +
     '<table border=1 width=100%>' + standingsHeader();
   for(var i in standings) {
-    html += standingsRow(standings[i], parseFloat(i)+1);
+    html += standingsRow(standings[i], parseFloat(i)+1, fileStart);
   }
   return html + '\n' + '</table>' + '\n' + getStatReportBottom();
 }//getStandingsHtml
 
-function getIndividualsHtml(teams, games) {
+function getIndividualsHtml(teams, games, fileStart) {
   var individuals = compileIndividuals(teams, games);
-  var html = getStatReportTop('IndividualStandings') +
+  var html = getStatReportTop('IndividualStandings', fileStart) +
     '<h1> Individual Statistics</h1>' + '\n' +
     '<table border=1 width=100%>' + individualsHeader();
   for(var i in individuals) {
-    html += individualsRow(individuals[i], parseFloat(i)+1);
+    html += individualsRow(individuals[i], parseFloat(i)+1, fileStart);
   }
   return html + '\n' + '</table>' + '\n' +  getStatReportBottom();
 }
 
-function getScoreboardHtml(teams, games) {
-  var html = getStatReportTop('Scoreboard') +
+function getScoreboardHtml(teams, games, fileStart) {
+  var html = getStatReportTop('Scoreboard', fileStart) +
     '<h1> Scoreboard</h1>' + '\n';
   var roundList = getRoundsForScoreboard(games);
   for(var r in roundList) {
@@ -760,13 +762,13 @@ function getScoreboardHtml(teams, games) {
   return html + '\n' + getStatReportBottom();
 }
 
-function getTeamDetailHtml(teams, games) {
+function getTeamDetailHtml(teams, games, fileStart) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return toNum(item.round); }, 'asc');
   var standings = compileStandings(teams, games);
   var individuals = compileIndividuals(teams, games);
 
-  var html = getStatReportTop('TeamDetail') + '\n' +
+  var html = getStatReportTop('TeamDetail', fileStart) + '\n' +
     '<h1> Team Detail</h1>' + '\n';
   for(var i in teams) {
     var teamName = teams[i].teamName;
@@ -789,7 +791,7 @@ function getTeamDetailHtml(teams, games) {
     html += teamDetailPlayerTableHeader() + '\n';
     for(var i in individuals) {
       if(individuals[i].teamName == teamName) {
-        html += teamDetailPlayerRow(individuals[i]);
+        html += teamDetailPlayerRow(individuals[i], fileStart);
       }
     }
     html += '</table>' + '<br>' + '\n';
@@ -797,7 +799,7 @@ function getTeamDetailHtml(teams, games) {
   return html + getStatReportBottom();
 }
 
-function getPlayerDetailHtml(teams, games) {
+function getPlayerDetailHtml(teams, games, fileStart) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
   var playerTotals = compileIndividuals(teams, games);
@@ -806,7 +808,7 @@ function getPlayerDetailHtml(teams, games) {
     function(item) { return item.playerName.toLowerCase(); }],
     ['asc', 'asc']);
 
-  var html = getStatReportTop('IndividualDetail') +
+  var html = getStatReportTop('IndividualDetail', fileStart) +
     '<h1> Individual Detail</h1>' + '\n';
 
   for(var i in playerTotals) {
@@ -841,10 +843,10 @@ function getPlayerDetailHtml(teams, games) {
   return html + getStatReportBottom();
 }
 
-function getRoundReportHtml(teams, games) {
+function getRoundReportHtml(teams, games, fileStart) {
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
   var roundSummaries = compileRoundSummaries(games);
-  var html = getStatReportTop('RoundReport') +
+  var html = getStatReportTop('RoundReport', fileStart) +
     '<h1> Round Report</h1>' + '\n';
   html += '<table border=1 width=100%>' + '\n';
   html += roundReportTableHeader();
@@ -853,4 +855,11 @@ function getRoundReportHtml(teams, games) {
   }
   html += '</table>' + '\n';
   return html + getStatReportBottom();
+}
+
+function getStatKeyHtml(fileStart) {
+  var html = getStatReportTop('', fileStart);
+  var statKeyBodyLocation = Path.resolve(__dirname, 'statKeyBody.html');
+  html += fs.readFileSync(statKeyBodyLocation, 'utf8');
+  return html + getStatReportBottom;
 }

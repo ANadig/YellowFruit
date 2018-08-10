@@ -32,6 +32,18 @@ function showReportWindow() {
   }
 } //showReportWindow
 
+function exportHtmlReport(focusedWindow) {
+  dialog.showSaveDialog(focusedWindow,
+    {filters: [{name: 'HTML Webpages', extensions: ['html']}]},
+    (fileName) => {
+      if(fileName == undefined) { return; }
+      var fileStart = fileName.replace(/.html/i, '');
+      fileStart = fileStart.replace(/_(standings|individuals|games|teamdetail|playerdetail|rounds|statkey)/i, '');
+      focusedWindow.webContents.send('exportHtmlReport', fileStart);
+    }
+  );
+}
+
 //open file dialog to save as a new file
 function saveTournamentAs(focusedWindow) {
   dialog.showSaveDialog(focusedWindow,
@@ -207,6 +219,14 @@ app.on('ready', function() {
             showReportWindow();
           }
         },
+        {
+          label: 'Export Full Report',
+          accelerator: process.platform === 'darwin' ? 'Command+U': 'Ctrl+U',
+          click(item, focusedWindow) {
+            exportHtmlReport(focusedWindow);
+          }
+        },
+        {type: 'separator'},
         {
           label: 'New Tournament',
           accelerator: process.platform === 'darwin' ? 'Command+N': 'Ctrl+N',
