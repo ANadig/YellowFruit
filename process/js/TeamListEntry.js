@@ -18,7 +18,26 @@ class TeamListEntry extends React.Component{
     this.props.onOpenTeam(this.props.whichItem);
   }
 
+  getDeleteButton() {
+    if(this.props.numGamesPlayed == 0) {
+      return (
+        <button className="secondary-content btn-flat item-delete" title="Remove this team" onClick={this.handleDelete}>
+        <i className="material-icons">delete</i></button>
+      );
+    }
+    var gameWord = this.props.numGamesPlayed == 1 ? 'game' : 'games';
+    var tooltip = this.props.singleItem.teamName + ' has played ' + this.props.numGamesPlayed + ' ' + gameWord;
+    return (
+      <span className="secondary-content btn-flat disabled-item-delete tooltipped"
+        data-tooltip={tooltip} data-position="left">
+      <i className="material-icons">delete</i></span>
+    );
+  }
+
   render() {
+
+    var deleteButton = this.getDeleteButton();
+
     return(
       <a className="collection-item">
         <div>
@@ -27,8 +46,7 @@ class TeamListEntry extends React.Component{
             <button className="btn-flat item-edit" title="Edit this team" onClick={this.selectTeam}>
             <i className="material-icons">edit</i></button>
           </div>
-          <button className="secondary-content btn-flat item-delete" title="Remove this team" onClick={this.handleDelete}>
-          <i className="material-icons">delete</i></button>
+          {deleteButton}
           <br/>{this.props.singleItem.roster.join(', ')}
         </div>
       </a>

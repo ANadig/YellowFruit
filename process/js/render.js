@@ -582,6 +582,7 @@ class MainInterface extends React.Component{
           whichItem =  {item}
           onDelete = {this.deleteTeam}
           onOpenTeam = {this.openTeamForEdit}
+          numGamesPlayed = {gamesPlayed(item, myGames)}
         />
       ) // return
     }.bind(this)); //filteredTeams.map

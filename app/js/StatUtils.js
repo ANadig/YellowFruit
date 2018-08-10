@@ -15,6 +15,16 @@ function formatRate(r, precision) {
   return isNaN(r) ? '&mdash;&ensp;' : r.toFixed(precision);
 }
 
+function gamesPlayed(team, games) {
+  var count = 0;
+  for(var i in games) {
+    if(games[i].team1 == team.teamName || games[i].team2 == team.teamName) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
 //bonusesHeard for a single game
 function bonusesHeard (game, whichTeam) {
   var tot = 0;
