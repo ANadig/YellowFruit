@@ -4,6 +4,7 @@ var BrowserWindow = electron.BrowserWindow;
 var Menu = electron.Menu;
 var app = electron.app;
 var ipc = electron.ipcMain;
+var Path = require('path');
 var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate;
 var reportWindow;
 var currentFile = '';
@@ -20,7 +21,8 @@ function showReportWindow() {
       width: 900,
       height: 500,
       show: false,
-      autoHideMenuBar: true
+      autoHideMenuBar: true,
+      icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
     }); //reportWindow
 
     reportWindow.loadURL('file://' + __dirname + '/standings.html');
@@ -152,7 +154,8 @@ app.on('ready', function() {
     width: 1200,
     height: 700,
     show: false,
-    title: 'YellowFruit - New Tournament'
+    title: 'YellowFruit - New Tournament',
+    icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
   }); //appWindow
 
   appWindow.loadURL('file://' + __dirname + '/index.html');

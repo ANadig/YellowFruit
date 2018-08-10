@@ -35,14 +35,13 @@ class HeaderNav extends React.Component{
       <div className="navbar-fixed">
         <nav className="qb-nav">
           <div className="nav-wrapper">
-            <a className="brand-logo hide-on-med-and-down">YellowFruit</a>
             <ul id="nav-mobile" className="right">
               <li className={this.isActive("teamsPane")}><a id="teamsPane" onClick={this.setPane}>Teams</a></li>
               <li className={this.isActive("gamesPane")}><a id="gamesPane" onClick={this.setPane}>Games</a></li>
               <li>
                 <form>
-                  <div className="input-field">
-                    <input id="search" type="search" onChange={this.handleSearch} placeholder="Search" autoFocus type="text" className="form-control" aria-label="Search Appointments" />
+                  <div className="input-field qb-search">
+                    <input id="search" className="qb-search-input" type="search" onChange={this.handleSearch} placeholder="Search" autoFocus type="text" className="form-control" aria-label="Search Appointments" />
                   </div>
                 </form>
               </li>

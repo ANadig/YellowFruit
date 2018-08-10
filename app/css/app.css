@@ -9626,7 +9626,7 @@ h6 {
 .load-graphic {
   margin: auto;
   text-align: center;
-  padding: 20%;
+  padding-top: 35vh;
 }
 
 #main-window {
@@ -9655,6 +9655,14 @@ h6 {
   .qb-nav {
     width: 65.3%;
   }
+}
+
+.qb-nav {
+  background-color: #f9a825;
+}
+
+.qb-search {
+  padding-left: 5px;
 }
 
 #addGame {
@@ -9750,6 +9758,15 @@ h6 {
 .item-list .qb-item:last-child {
   border-bottom: none;
 } */
+
+.zero-state-container {
+  height: 85%;
+}
+
+.qb-zero-state {
+  padding-top: 37vh;
+  text-align: center;
+}
 
 .collection-item .item-delete {
   right: 0px;
