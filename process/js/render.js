@@ -641,12 +641,14 @@ class MainInterface extends React.Component{
                 whichPaneActive = {activePane}
                 teamList = {filteredTeams}
                 openModal = {this.openTeamAddWindow}
+                totalTeams = {myTeams.length}
               />
               <GameList
                 whichPaneActive = {activePane}
                 gameList = {filteredGames}
                 openModal = {this.openGameAddWindow}
                 numberOfTeams = {myTeams.length}
+                totalGames = {myGames.length}
               />
             </div>
             <div id="stat-sidebar" className="col l4 hide-on-med-and-down">

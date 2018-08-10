@@ -73,7 +73,7 @@ function saveExistingTournament(focusedWindow) {
 function openTournament(focusedWindow) {
   var willContinue = true, needToSave = false;
   if(unsavedData) {
-    [willContinue, needToSave] = unsavedDataDialog(focusedWindow);
+    [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Open Tournament');
     if(needToSave) {
       saveExistingTournament(focusedWindow);
     }
@@ -85,6 +85,7 @@ function openTournament(focusedWindow) {
         if(fileNameAry != undefined) {
           currentFile = fileNameAry[0]; //open dialog doesn't allow selecting multiple files
           focusedWindow.webContents.send('openTournament', currentFile);
+          unsavedData = false;
         }
       }
     );
@@ -99,7 +100,7 @@ function openTournament(focusedWindow) {
 function newTournament(focusedWindow) {
   var willContinue = true, needToSave = false;
   if(unsavedData) {
-    [willContinue, needToSave] = unsavedDataDialog(focusedWindow);
+    [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Create New Tournament');
     if(needToSave) {
       saveExistingTournament(focusedWindow);
     }
@@ -108,11 +109,12 @@ function newTournament(focusedWindow) {
     focusedWindow.webContents.send('newTournament');
     currentFile = '';
     focusedWindow.setTitle('New Tournament');
+    unsavedData = false;
   }
 }
 
 //generic dialog modal for unsaved data
-function unsavedDataDialog(focusedWindow) {
+function unsavedDataDialog(focusedWindow, caption) {
   var choice, willContinue, needToSave;
   if(currentFile != '') {
     choice = dialog.showMessageBox(
@@ -122,7 +124,7 @@ function unsavedDataDialog(focusedWindow) {
         buttons: ['&Save and continue', 'Continue without s&aving', 'Go ba&ck'],
         defaultId: 2,
         cancelId: 2,
-        title: 'YellowFruit',
+        title: 'YellowFruit - ' + caption,
         message: 'You have unsaved data.'
       }
     );

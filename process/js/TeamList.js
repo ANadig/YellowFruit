@@ -27,11 +27,18 @@ class TeamList extends React.Component{
       return null;
     }
     if(this.props.teamList.length == 0) {
+      var message;
+      if(this.props.totalTeams == 0) {
+        message = 'Add a team to get started';
+      }
+      else { //there are teams, but they've all been excluded based on the search
+        message = 'Your search did not match any teams';
+      }
       return (
         <div className="zero-state-container">
           <div className="qb-zero-state">
-            <img src="banana-bunch.png" width="80" height="55"/>
-            <h5>Add a team to get started</h5>
+            <img src="banana-bunch.png" width="80" height="55"/><br/><br/>
+            <h6>{message}</h6>
           </div>
           <div className="fixed-action-btn btn-floating-div">
             <button className={'btn-floating btn-large green tooltipped ' + this.addBtnDisabled()} data-position="left" data-tooltip="Add a team" onClick={this.addTeam}>
