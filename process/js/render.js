@@ -152,6 +152,9 @@ class MainInterface extends React.Component{
     ipc.on('exportHtmlReport', function(event, fileStart) {
       this.writeStatReport(fileStart);
     }.bind(this));
+    ipc.on('clearSearch', function(event) {
+      this.clearSearch();
+    }.bind(this));
   } //componentDidMount
 
   componentWillUnmount() {
@@ -162,6 +165,7 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('saveExistingTournament');
     ipc.removeAllListeners('newTournament');
     ipc.removeAllListeners('exportHtmlReport');
+    ipc.removeAllListeners('clearSearch');
   } //componentWillUnmount
 
   componentDidUpdate() {
@@ -259,6 +263,14 @@ class MainInterface extends React.Component{
       tmAddOrEdit: 'add', //either 'add' or 'edit'
       editWhichGame: null,
       gmAddOrEdit: 'add'
+    });
+  }
+
+  //clear text from the search bar in order to show all teams/games
+  clearSearch() {
+    $('#search').val('');
+    this.setState({
+      queryText: ''
     });
   }
 

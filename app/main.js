@@ -160,6 +160,13 @@ app.on('window-all-closed', function() {
   app.quit();
 });
 
+//prevent attackers from opening new windows
+app.on('web-contents-created', (event, contents) => {
+  contents.on('new-window', (event, navigationUrl) => {
+    event.preventDefault();
+  });
+});
+
 //initialize window and menubars and set up ipc listeners
 app.on('ready', function() {
   var appWindow;
@@ -298,6 +305,13 @@ app.on('ready', function() {
     },{
         label: '&View',
         submenu: [
+          {
+            label: 'View All',
+            accelerator: process.platform === 'darwin' ? 'Command+L' : 'Ctrl+L',
+            click (item, focusedWindow) {
+              if(focusedWindow) focusedWindow.webContents.send('clearSearch');
+            }
+          },
           // {
           //   label: 'Reload',
           //   accelerator: 'CmdOrCtrl+R',
