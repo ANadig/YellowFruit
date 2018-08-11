@@ -54,6 +54,7 @@ class AddTeamModal extends React.Component{
   //a new team or modify an existing one as appropriate
   handleAdd(e) {
     e.preventDefault();
+    if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
     //split roster into array, trim each element, then remove blank lines
     var rosterAry = this.state.rosterString.split('\n');
     rosterAry = rosterAry.map(function(s,idx) { return s.trim(); });
@@ -80,8 +81,8 @@ class AddTeamModal extends React.Component{
   }
 
   //for the green button at the bottom
-  getSubmitCaption() {
-    return this.props.addOrEdit == 'add' ? 'Add team' : 'Save team';
+  getSubmitWord() {
+    return this.props.addOrEdit == 'add' ? 'Add ' : 'Save ';
   }
 
   //are there two players with the same name?
@@ -102,7 +103,6 @@ class AddTeamModal extends React.Component{
   //verify that the form data can be submitted
   //returns [boolean, error level, error message]
   validateTeam() {
-    if(!this.props.isOpen) { return [true, '', '']; } //just in case
     if(!this.props.validateTeamName(this.state.teamName.trim(), this.state.originalTeamLoaded)) {
       return [false, 'error', 'There is already a team named ' + this.state.teamName];
     }
@@ -111,7 +111,7 @@ class AddTeamModal extends React.Component{
     if(this.state.rosterString.split('\n').length > 30) {
       return [false, 'error', 'Cannot have more than 30 players on a team'];
     } // fairly aribitrary limit to make sure no one does anything ridiculous
-    if(this.rosterHasDups()) { return [true, 'warning', 'Roster contains two or more players with the same name']; }
+    if(this.rosterHasDups()) { return [true, 'error', 'Roster contains two or more players with the same name']; }
     return [true, '', ''];
   }
 
@@ -147,22 +147,21 @@ class AddTeamModal extends React.Component{
   }
 
   render() {
-
     var [teamIsValid, errorLevel, errorMessage] = this.validateTeam();
 
     var errorIcon = this.getErrorIcon(errorLevel);
 
-    //Don't allow Enter key to submit form unless the form is valid
+    //Don't allow Enter key to submit form
     $(document).on("keypress", "#addTeam :input:not(textarea)", function(event) {
-      return teamIsValid || event.keyCode != 13;
+      // return teamIsValid || event.keyCode != 13;
+      return event.keyCode != 13;
     });
 
     return(
-      <div className="modal" id="addTeam">
-        <div className="modal-content">
-          <h4>{this.getModalHeader()}</h4>
-
-          <form onSubmit={this.handleAdd}>
+      <div className="modal modal-fixed-footer" id="addTeam">
+        <form onSubmit={this.handleAdd}>
+          <div className="modal-content">
+            <h4>{this.getModalHeader()}</h4>
             <div className="row">
               <div className="input-field">
                 <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
@@ -175,19 +174,23 @@ class AddTeamModal extends React.Component{
                 <label htmlFor="rosterString">Roster</label>
               </div>
             </div>
-              <div className="modal-footer">
-                <div className="row">
-                  <div className="col s5 l8 qb-validation-msg">
-                    {errorIcon}&nbsp;{errorMessage}
-                  </div>
-                  <div className="col s7 l4">
-                    <button type="button" className="modal-close btn grey">Cancel</button>&nbsp;
-                    <button type="submit" className={'modal-close btn green ' + this.disabledButton(teamIsValid)}> {this.getSubmitCaption()}</button>
-                  </div>
-                </div>
+          </div> {/* modal content */}
+          <div className="modal-footer">
+            <div className="row">
+              <div className="col s5 l8 qb-validation-msg">
+                {errorIcon}&nbsp;{errorMessage}
               </div>
-          </form>
-        </div>
+              <div className="col s7 l4">
+                <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
+                  <span className="hotkey-underline">C</span>ancel
+                </button>&nbsp;
+                <button type="submit" accessKey={this.props.isOpen ? 'a' : ''} className={'modal-close btn green ' + this.disabledButton(teamIsValid)}>
+                  {this.getSubmitWord()} Te<span className="hotkey-underline">a</span>m
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
     ) //return
   } //render

@@ -165,12 +165,7 @@ class MainInterface extends React.Component{
   } //componentWillUnmount
 
   componentDidUpdate() {
-    // fs.writeFile(teamDataLocation, JSON.stringify(this.state.myTeams), 'utf8', function(err) {
-    //   if (err) { console.log(err); }
-    // });//writeFile - teams
-    // fs.writeFile(gameDataLocation, JSON.stringify(this.state.myGames), 'utf8', function(err) {
-    //   if (err) { console.log(err); }
-    // });//writeFile - games
+
   } //componentDidUpdate
 
   writeJSON(fileName) {
@@ -472,7 +467,6 @@ class MainInterface extends React.Component{
   //verify that the team name you've entered doesn't already belong
   //to another team. newTeamName is the form's value. savedTeam is the
   //existing team that was opened for edit
-  //returns true or false
   validateTeamName(newTeamName, savedTeam) {
     var otherTeams;
     if(savedTeam != null) {

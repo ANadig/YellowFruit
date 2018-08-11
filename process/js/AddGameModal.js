@@ -127,6 +127,7 @@ class AddGameModal extends React.Component{
   //a new game or modify an existing one as appropriate
   handleAdd(e) {
     e.preventDefault();
+    if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
     var f = this.state.forfeit; //clear irrelevant data if it's a forfeit
     var ot = this.state.ottu > 0; //clear OT data if no OT
     var tempItem = {
@@ -220,8 +221,8 @@ class AddGameModal extends React.Component{
   }
 
   //for the green button at the bottom
-  getSubmitCaption() {
-    return this.props.addOrEdit == 'add' ? 'Add game' : 'Save game';
+  getSubmitWord() {
+    return this.props.addOrEdit == 'add' ? 'Add ' : 'Save ';
   }
 
   //returns an array of length 2. 1st element is the correctly ordered list of options for
@@ -282,9 +283,9 @@ class AddGameModal extends React.Component{
     }
   }
 
+  //whether there are any issues with the game, and if so, how severe and
+  //what the error message should be
   validateGame() {
-    if(!this.props.isOpen) { return [true, '', '']; } //just in case
-
     var team1 = this.state.team1, team2 = this.state.team2;
     var round = this.state.round, tuhtot = this.state.tuhtot;
     var score1 = this.state.score1, score2 = this.state.score2;
@@ -313,7 +314,7 @@ class AddGameModal extends React.Component{
     }
 
     if(this.state.forfeit) {
-      return [true, '', ''];
+      return [true, 'info', team1 + ' defeats ' + team2 + ' by forfeit'];
     } //team names and round are the only required info for a forfeit
     if(tuhtot == '' || this.toNum(tuhtot) <= 0 || score1 == '' || score2 == '') {
       return [false, '', ''];
@@ -394,16 +395,18 @@ class AddGameModal extends React.Component{
     if(errorLevel == 'warning') {
       return ( <i className="material-icons yellow-text text-accent-4 qb-modal-error">warning</i> );
     }
+    if(errorLevel == 'info') {
+      return ( <i className="material-icons blue-text text-darken-4 qb-modal-error">info</i> );
+    }
   }
 
   render() {
-
     var [gameIsValid, errorLevel, errorMessage] = this.validateGame();
-
     var errorIcon = this.getErrorIcon(errorLevel);
 
     $(document).on("keypress", "#addGame :input:not(textarea)", function(event) {
-      return gameIsValid || event.keyCode != 13;
+      // return gameIsValid || event.keyCode != 13;
+      return event.keyCode != 13;
     });
 
     var teamData = this.props.teamData
@@ -495,9 +498,10 @@ class AddGameModal extends React.Component{
     } // if overtime
 
     return(
-      <div className="modal" id="addGame">
-        <div className="modal-content">
-          <form onSubmit={this.handleAdd}>
+      <div className="modal modal-fixed-footer" id="addGame">
+        <form onSubmit={this.handleAdd}>
+          <div className="modal-content">
+
             <div className="row game-entry-top-row">
               <div className="col s6">
                 <h4>{this.getModalHeader()}</h4>
@@ -608,21 +612,26 @@ class AddGameModal extends React.Component{
             </div>
 
             {overtimeRow}
+          </div> {/* modal-content*/}
 
-            <div className="modal-footer">
-              <div className="row">
-                <div className="col s5 l8 qb-validation-msg">
-                  {errorIcon}&nbsp;{errorMessage}
-                </div>
-                <div className="col s7 l4">
-                  <button type="button" className="modal-close btn grey">Cancel</button>&nbsp;
-                  <button type="submit" className={'modal-close btn green ' + this.disabledButton(gameIsValid)}> {this.getSubmitCaption()}</button>
-                </div>
+          <div className="modal-footer">
+            <div className="row">
+              <div className="col s5 l8 qb-validation-msg">
+                {errorIcon}&nbsp;{errorMessage}
+              </div>
+              <div className="col s7 l4">
+                <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
+                  <span className="hotkey-underline">C</span>ancel
+                </button>&nbsp;
+                <button type="submit" accessKey={this.props.isOpen ? 'a' : ''}
+                className={'modal-close btn green ' + this.disabledButton(gameIsValid)}>
+                  {this.getSubmitWord()} G<span className="hotkey-underline">a</span>me
+                </button>
               </div>
             </div>
+          </div>
 
-          </form>
-        </div>
+        </form>
       </div>
     ) //return
   } //render

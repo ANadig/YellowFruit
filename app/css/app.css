@@ -9670,11 +9670,13 @@ h6 {
   margin-top: -9vh;
   max-height: 97%;
   min-height: 97%;
+  overflow-y: hidden;
 }
 
 #addTeam {
   width: 80%;
   max-height: 80%;
+  overflow-y: hidden;
 }
 
 .modal h4 {
@@ -9736,28 +9738,6 @@ h6 {
 .qb-modal-buttons {
   display: inline-block;
 }
-
-/**  old stuff from the demo **/
-
-/* .item-list {
-  margin: 0;
-  padding: 0;
-  list-style-type: none;
-  font-size: 1.5rem;
-  line-height: 120%;
-}
-
-.item-list .qb-item:nth-child(even) {
-    background: #ef9a9a;
-}
-
-.item-list .qb-item:nth-child(odd) {
-    background: #ffebee;
-}
-
-.item-list .qb-item:last-child {
-  border-bottom: none;
-} */
 
 .zero-state-container {
   height: 85%;
@@ -9822,6 +9802,10 @@ h6 {
 }
 
 .collection-item .game-name .winner {
+  text-decoration: underline;
+}
+
+.hotkey-underline {
   text-decoration: underline;
 }
 
