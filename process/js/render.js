@@ -159,6 +159,7 @@ class MainInterface extends React.Component{
 
   componentWillUnmount() {
     ipc.removeAllListeners('addTeam');
+    ipc.removeAllListeners('addGame');
     ipc.removeAllListeners('compileStatReport');
     ipc.removeAllListeners('saveTournamentAs');
     ipc.removeAllListeners('openTournament');
