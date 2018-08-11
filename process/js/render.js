@@ -335,18 +335,22 @@ class MainInterface extends React.Component{
     var oldTeamIdx = _.indexOf(tempTeams, oldTeam);
     tempTeams[oldTeamIdx] = newTeam;
     var tempGames = this.state.myGames.slice();
-
     // var playersRemoved = oldTeam.roster.length - newTeam.roster.length;
     // if(playersRemoved > 0) {
     //   this.removePlayers(tempGames, oldTeam.teamName, playersRemoved);
     // }
     for(var i in oldTeam.roster) {
-      // if(i >= newTeam.roster.length) {
-      //   //this.updatePlayerName(tempGames, oldTeam.teamName, i, '[Player deleted]');
-      // }
+      if(i >= newTeam.roster.length) {
+        this.updatePlayerName(tempGames, oldTeam.teamName, oldTeam.roster[i], '[Player ' + i + ' deleted]');
+      }
       if(i < newTeam.roster.length && oldTeam.roster[i] != newTeam.roster[i]) {
         this.updatePlayerName(tempGames, oldTeam.teamName, oldTeam.roster[i], newTeam.roster[i]);
       }
+    }
+    //If I deleted a player, than put the player back,
+    //replace the '[Player deleted]' placeholder
+    for(var i = oldTeam.roster.length; i < newTeam.roster.length; i++) {
+      this.updatePlayerName(tempGames, oldTeam.teamName, '[Player ' + i + ' deleted]', newTeam.roster[i]);
     }
 
     if(oldTeam.teamName != newTeam.teamName) {
