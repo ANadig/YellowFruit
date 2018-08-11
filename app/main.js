@@ -1,3 +1,10 @@
+/**********************************************************************
+  YellowFruit, a quiz bowl statkeeping application
+
+  Andrew Nadig
+  2018
+
+************************************************************************/
 var electron = require('electron');
 var dialog = electron.dialog;
 var BrowserWindow = electron.BrowserWindow;
@@ -149,6 +156,10 @@ function unsavedDataDialog(focusedWindow, caption) {
   return [willContinue, needToSave];
 }
 
+app.on('window-all-closed', function() {
+  app.quit();
+});
+
 //initialize window and menubars and set up ipc listeners
 app.on('ready', function() {
   var appWindow;
@@ -166,6 +177,7 @@ app.on('ready', function() {
     appWindow.show();
   }); //ready-to-show
 
+  //window starts to close
   appWindow.on('close', function(e) {
     var willClose = true;
     if(unsavedData) {
@@ -191,7 +203,6 @@ app.on('ready', function() {
       e.preventDefault();
     }
   });//appwindow.on close
-
 
   ipc.on('setWindowTitle', (event, arg) => {
     event.returnValue = '';
