@@ -5,7 +5,7 @@ class TeamListEntry extends React.Component{
   constructor(props) {
     super(props);
     this.handleDelete = this.handleDelete.bind(this);
-    this.selectTeam = this.selectTeam.bind(this);
+    this.editTeam = this.editTeam.bind(this);
   }
 
   //tell the mainInterface to delete me
@@ -14,7 +14,7 @@ class TeamListEntry extends React.Component{
   }
 
   //tell the mainInterface to open the modal to edit me
-  selectTeam() {
+  editTeam() {
     this.props.onOpenTeam(this.props.whichItem);
   }
 
@@ -41,9 +41,14 @@ class TeamListEntry extends React.Component{
     return(
       <a className="collection-item">
         <div>
+        <span className="btn-flat item-edit team-checkbox" title="Select team to add divisions">
+        <i className="material-icons">check_box_outline_blank</i></span>
           <div className="team-name">
-            {this.props.singleItem.teamName}
-            <button className="btn-flat item-edit" title="Edit this team" onClick={this.selectTeam}>
+            {this.props.singleItem.teamName}&emsp;
+            <div className="chip teal">
+              Division 1<i className="close material-icons">close</i>
+            </div>
+            <button className="btn-flat item-edit" title="Edit this team" onClick={this.editTeam}>
             <i className="material-icons">edit</i></button>
           </div>
           {deleteButton}

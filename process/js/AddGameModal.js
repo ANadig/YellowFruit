@@ -525,7 +525,7 @@ class AddGameModal extends React.Component{
                 </select>
               </div>
               <div className="input-field col s4 m2 l1">
-                <input disabled={this.state.forfeit ? 'disabled' : ''} type="number" id="tm1Score" name="score1"
+                <input disabled={this.state.forfeit ? 'disabled' : ''} type="number" step="5" id="tm1Score" name="score1"
                   value={this.state.forfeit ? '' : this.state.score1} onChange={this.handleChange}/>
                 <label htmlFor="tm1Score">Score</label>
               </div>
@@ -535,7 +535,7 @@ class AddGameModal extends React.Component{
                 </div>
               </div>
               <div className="input-field col s4 m2 l1">
-                <input disabled={this.state.forfeit ? 'disabled' : ''} type="number" id="tm2Score" name="score2"
+                <input disabled={this.state.forfeit ? 'disabled' : ''} type="number" step="5" id="tm2Score" name="score2"
                   value={this.state.forfeit ? '' : this.state.score2} onChange={this.handleChange}/>
                 <label htmlFor="tm2Score">Score</label>
               </div>

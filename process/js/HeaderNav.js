@@ -36,6 +36,7 @@ class HeaderNav extends React.Component{
         <nav className="qb-nav">
           <div className="nav-wrapper">
             <ul id="nav-mobile" className="right">
+              <li className={this.isActive("settingsPane")}><a id="settingsPane" onClick={this.setPane}>Settings</a></li>
               <li className={this.isActive("teamsPane")}><a id="teamsPane" onClick={this.setPane}>Teams</a></li>
               <li className={this.isActive("gamesPane")}><a id="gamesPane" onClick={this.setPane}>Games</a></li>
               <li>

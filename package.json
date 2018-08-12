@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "QB Stats Program",
   "scripts": {
-    "pack": "electron-packager . YellowFruit --out C:/Users/awnad/Desktop --overwrite --icon ./icons/banana"
+    "pack": "electron-packager . YellowFruit --out C:/Users/awnad/Desktop --overwrite --icon ./icons/banana",
+    "pack-win": "electron-packager . YellowFruit --platform=win32 --arch=all --out C:/Users/awnad/Desktop --overwrite --icon ./icons/banana",
+    "pack-osx": "electron-packager . YellowFruit --platform=darwin --arch=all --out C:/Users/awnad/Desktop --overwrite --icon ./icons/banana",
+    "pack-linux": "electron-packager . YellowFruit --platform=linux --arch=all --out C:/Users/awnad/Desktop --overwrite --icon ./icons/banana",
+    "pack-all": "electron-packager . YellowFruit --all --out C:/Users/awnad/Desktop --overwrite --icon ./icons/banana"
   },
   "main": "app/main.js",
   "devDependencies": {

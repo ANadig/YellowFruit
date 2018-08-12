@@ -101,6 +101,37 @@ h1, h2, h3, h4, h5, h6 {
   padding-left: 5px;
 }
 
+.settings-container {
+  width: 85%
+}
+
+.tight-input {
+  margin-top: -0.5rem;
+  margin-bottom: -0.5rem;
+}
+
+.players-per-team {
+  display: inline-block;
+}
+
+#settingsCard h6 {
+  padding-top: 8px;
+  padding-bottom: 4px;
+}
+
+.settings-phases {
+  margin-top: 2rem;
+  padding-left: 2rem;
+}
+
+.settings-divisions {
+  top: 2rem;
+  padding-left: 2rem;
+}
+
+.settings-tournsettings {
+  margin-top: 2rem;
+}
 
 #addGame {
   width: 95%;
@@ -228,6 +259,10 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: bold;
   color: #616161;
   font-size: 1.3em;
+}
+
+.team-checkbox {
+  padding-left: 0;
 }
 
 .collection-item .game-name {

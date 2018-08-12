@@ -14,6 +14,7 @@ var GameListEntry = require('./GameListEntry');
 var HeaderNav = require('./HeaderNav');
 var AddTeamModal = require('./AddTeamModal');
 var AddGameModal = require('./AddGameModal');
+var SettingsForm = require('./SettingsForm');
 var TeamList = require('./TeamList');
 var GameList = require('./GameList');
 var StatSidebar = require('./StatSidebar');
@@ -94,7 +95,7 @@ class MainInterface extends React.Component{
       queryText: '',
       myTeams: [],
       myGames: [],
-      activePane: 'teamsPane',  //either 'teamsPane' or 'gamesPane'
+      activePane: 'settingsPane',  //settings, teawms, or games
       forceResetForms: false,
       editWhichTeam: null,
       tmAddOrEdit: 'add', //either 'add' or 'edit'
@@ -647,6 +648,9 @@ class MainInterface extends React.Component{
                 onReOrder = {this.reOrder}
                 onSearch= {this.searchLists}
                 setPane = {this.setPane}
+                whichPaneActive = {activePane}
+              />
+              <SettingsForm
                 whichPaneActive = {activePane}
               />
               <TeamList
