@@ -100,7 +100,7 @@ class SettingsForm extends React.Component{
         editingSettings: false
       });
     }
-  }
+  } //settingsToggle
 
   //phases card - open for editing or close and save
   phaseToggle() {
@@ -116,11 +116,26 @@ class SettingsForm extends React.Component{
       }
     }
     else {
+      var tempPhases = this.state.phases.map(function(str) { return str.trim(); });
+      tempPhases = _.without(tempPhases, '');
+      var tempPhaseAssns = this.state.phaseAssignments.slice();
+      for(var i in tempPhaseAssns) {
+        var idx = _.findIndex(this.state.phases, function(p) {
+          return p == tempPhaseAssns[i];
+        });
+        if(idx == -1) {
+          tempPhaseAssns[i] = '';
+        }
+      }
       this.setState({
-        editingPhases: false
+        editingPhases: false,
+        phases: tempPhases,
+        phaseAssignments: tempPhaseAssns
       });
+      this.props.savePhases(tempPhases);
+      this.props.saveDivisions(this.state.divisions, tempPhaseAssns);
     }
-  }
+  } //phaseToggle
 
   //divisions card - open for editing or close and save
   divisionToggle() {
@@ -137,11 +152,21 @@ class SettingsForm extends React.Component{
       }
     }
     else {
+      //remove null divisions and their corresponding phase assignments
+      var tempDivs = this.state.divisions.map(function(str) { return str.trim(); });
+      var tempPhaseAssns = this.state.divisions.map(function(div, idx) {
+        return div != '' ? this.state.phaseAssignments[idx] : '';
+      }.bind(this));
+      tempDivs = _.without(tempDivs, '');
+      tempPhaseAssns = _.without(tempPhaseAssns, '');
       this.setState({
+        divisions: tempDivs,
+        phaseAssignments: tempPhaseAssns,
         editingDivisions: false
       });
+      this.props.saveDivisions(tempDivs, tempPhaseAssns);
     }
-  }
+  } //divisionToggle
 
   getSettingsButtonCaption() {
     return this.state.editingSettings ? 'Save' : 'Edit';
@@ -163,9 +188,11 @@ class SettingsForm extends React.Component{
     }
   }
 
-  render(){
-    console.log(this.state);
 
+
+
+
+  render(){
     if (this.props.whichPaneActive != 'settingsPane') {
       return null;
     }
@@ -175,8 +202,8 @@ class SettingsForm extends React.Component{
 
     if(!this.state.editingDivisions) {
       var divList = this.state.divisions.map(function(divName, idx) {
-        var phaseAssn = this.state.phaseAssignments[idx] == undefined ?
-          'No phase' : this.state.phaseAssignments[idx]
+        var pa = this.state.phaseAssignments[idx];
+        var phaseAssn = (pa == undefined || pa == '') ? 'No phase' : pa;
         return (
           <div  key={idx} className="col s12">
             <li>{divName + ' (' + phaseAssn + ')'}</li>
@@ -249,16 +276,6 @@ class SettingsForm extends React.Component{
         );
       }.bind(this));
       phaseCard = ( <ul>{phaseFields}</ul> );
-
-
-
-      // phaseCard = (
-      //   <div className="input-field">
-      //     <textarea className="materialize-textarea" id="phaseString"
-      //     name="phaseString" onChange={this.handleChange}
-      //     value={this.state.phaseString} placeholder="One phase per line" />
-      //   </div>
-      // );
 
     } //else editing phases
 

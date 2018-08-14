@@ -93,9 +93,12 @@ class MainInterface extends React.Component{
       orderBy: 'teamName',
       orderDir: 'asc',
       queryText: '',
+      phases: [],
+      divisions: [],
+      phaseAssignments: [],
       myTeams: [],
       myGames: [],
-      activePane: 'settingsPane',  //settings, teawms, or games
+      activePane: 'settingsPane',  //settings, teams, or games
       forceResetForms: false,
       editWhichTeam: null,
       tmAddOrEdit: 'add', //either 'add' or 'edit'
@@ -122,6 +125,8 @@ class MainInterface extends React.Component{
     this.reOrder = this.reOrder.bind(this);
     this.searchLists = this.searchLists.bind(this);
     this.setPane = this.setPane.bind(this);
+    this.savePhases = this.savePhases.bind(this);
+    this.saveDivisions = this.saveDivisions.bind(this);
   }
 
   componentDidMount() {
@@ -524,13 +529,38 @@ class MainInterface extends React.Component{
     }); //setState
   } //searchLists
 
+  //whether you're viewing Settings, Teams, or Games
   setPane(pane) {
     this.setState({
       activePane: pane
     });
   } //setPane
 
+  savePhases(newPhases) {
+    this.setState({
+      phases: newPhases
+    });
+  } //savePhases
+
+  saveDivisions(newDivisions, newPhaseAssignments) {
+    this.setState({
+      divisions: newDivisions,
+      phaseAssignments: newPhaseAssignments
+    });
+  } //saveDivisions
+
+
+
+
+
+
+
+
   render() {
+    console.log(this.state.phases);
+    console.log(this.state.divisions);
+    console.log(this.state.phaseAssignments);
+
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText;
@@ -652,6 +682,8 @@ class MainInterface extends React.Component{
               />
               <SettingsForm
                 whichPaneActive = {activePane}
+                savePhases = {this.savePhases}
+                saveDivisions = {this.saveDivisions}
               />
               <TeamList
                 whichPaneActive = {activePane}
