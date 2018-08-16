@@ -6,6 +6,10 @@ class TeamListEntry extends React.Component{
     super(props);
     this.handleDelete = this.handleDelete.bind(this);
     this.editTeam = this.editTeam.bind(this);
+    this.handleToggle = this.handleToggle.bind(this);
+    this.state = {
+      selected: props.selected
+    };
   }
 
   //tell the mainInterface to delete me
@@ -16,6 +20,18 @@ class TeamListEntry extends React.Component{
   //tell the mainInterface to open the modal to edit me
   editTeam() {
     this.props.onOpenTeam(this.props.whichItem);
+  }
+
+  handleToggle() {
+    this.props.onSelectTeam(this.props.whichItem);
+    this.setState({
+      selected: !this.state.selected
+    });
+  }
+
+  //don't allow editing a team while it's selected
+  canEdit() {
+    return this.state.selected ? 'disabled' : '';
   }
 
   getDeleteButton() {
@@ -41,16 +57,20 @@ class TeamListEntry extends React.Component{
     return(
       <a className="collection-item">
         <div>
-        <span className="btn-flat item-edit team-checkbox" title="Select team to add divisions">
-        <i className="material-icons">check_box_outline_blank</i></span>
+          <label>
+            <input type="checkbox" className="filled-in team-checkbox" checked={this.state.selected}
+            title="Select to assign divisions" onChange={this.handleToggle}/>
+            <span>&nbsp;</span>
+          </label>
+
           <div className="team-name">
             {this.props.singleItem.teamName}&emsp;
-            <div className="chip teal">
-              Division 1<i className="close material-icons">close</i>
-            </div>
-            <button className="btn-flat item-edit" title="Edit this team" onClick={this.editTeam}>
-            <i className="material-icons">edit</i></button>
           </div>
+          <div className="chip yellow">
+            Division 1<i className="close material-icons">close</i>
+          </div>
+          <button className={'btn-flat item-edit ' + this.canEdit()} title="Edit this team" onClick={this.editTeam}>
+          <i className="material-icons">edit</i></button>
           {deleteButton}
           <br/>{this.props.singleItem.roster.join(', ')}
         </div>

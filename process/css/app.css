@@ -97,6 +97,14 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #f9a825;
 }
 
+.qb-nav .btn-flat {
+  color: white;
+  margin-left: 10px;
+  border: 2px solid #fbc02d;
+  border-radius: 6px;
+  line-height: 0;
+}
+
 .qb-search {
   padding-left: 5px;
 }
@@ -258,11 +266,24 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-block;
   font-weight: bold;
   color: #616161;
-  font-size: 1.3em;
+  font-size: 1.4em;
+  padding-right: 5px;
 }
 
-.team-checkbox {
-  padding-left: 0;
+.collection-item .chip {
+  height: 21px;
+  line-height: 20px;
+  padding: 0 4px 0 7px;
+  margin-bottom: 0;
+}
+
+.collection-item .chip .close {
+  line-height: 22px;
+}
+
+.collection-item [type="checkbox"] {
+  width: 16px;
+  height: 16px;
 }
 
 .collection-item .game-name {

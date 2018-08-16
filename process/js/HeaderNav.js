@@ -8,6 +8,7 @@ class HeaderNav extends React.Component{
     this.handleOrder = this.handleOrder.bind(this);
     this.handleSearch = this.handleSearch.bind(this);
     this.setPane = this.setPane.bind(this);
+    this.openDivModal = this.openDivModal.bind(this);
   }
 
   handleSort(e) {
@@ -16,18 +17,33 @@ class HeaderNav extends React.Component{
 
   handleOrder(e) {
     this.props.onReOrder(this.props.orderBy, e.target.id);
-  } //handleOrder
+  }
 
   handleSearch(e) {
     this.props.onSearch(e.target.value);
-  } //handleSearch
+  }
 
   setPane(e) {
     this.props.setPane(e.target.id);
-  } //setPane
+  }
 
   isActive(pane) {
     return this.props.whichPaneActive == pane ? 'active' : '';
+  }
+
+  openDivModal() {
+    this.props.openDivModal();
+  }
+
+  getAssignmentButton() {
+    if(this.props.whichPaneActive == 'teamsPane' && this.props.anyTeamSelected) {
+      return ( <button className="btn-flat waves-effect yellow-darken-3"
+        onClick={this.openDivModal}>Assign Divisions</button> );
+    }
+    if(this.props.whichPaneActive == 'gamesPane') {
+        return ( <button className="btn-flat waves-effect yellow-darken-3">Assign Phases</button> );
+    }
+    return null;
   }
 
   render() {
@@ -35,6 +51,11 @@ class HeaderNav extends React.Component{
       <div className="navbar-fixed">
         <nav className="qb-nav">
           <div className="nav-wrapper">
+            <ul className="left">
+              <li>
+                {this.getAssignmentButton()}
+              </li>
+            </ul>
             <ul id="nav-mobile" className="right">
               <li className={this.isActive("settingsPane")}><a id="settingsPane" onClick={this.setPane}>Settings</a></li>
               <li className={this.isActive("teamsPane")}><a id="teamsPane" onClick={this.setPane}>Teams</a></li>

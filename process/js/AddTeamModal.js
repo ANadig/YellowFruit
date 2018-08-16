@@ -10,6 +10,7 @@ class AddTeamModal extends React.Component{
     this.state = {
       teamName: '',
       rosterString: '',
+      divisions: {},
       originalTeamLoaded: null
     };
     this.resetState = this.resetState.bind(this);
