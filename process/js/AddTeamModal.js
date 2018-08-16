@@ -94,7 +94,6 @@ class AddTeamModal extends React.Component{
     });
     rosterAry = _.without(rosterAry, '');
     rosterAry = _.orderBy(rosterAry);
-    // console.log(rosterAry.length);
     for(var i=0; i < (rosterAry.length - 1); i++) {
       if (rosterAry[i] == rosterAry[i+1]) { return true; }
     }

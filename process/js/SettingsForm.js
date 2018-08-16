@@ -180,6 +180,36 @@ class SettingsForm extends React.Component{
     return this.state.editingDivisions ? 'Save' : 'Edit';
   }
 
+  //are there two players with the same name?
+  phasesHasDups() {
+    var phases = this.state.phases.map(function(item, idx) {
+      return item.toLowerCase().trim();
+    });
+    phases = _.without(phases, '');
+    phases = _.orderBy(phases);
+    for(var i=0; i < (phases.length - 1); i++) {
+      if (phases[i] == phases[i+1]) { return true; }
+    }
+    return false;
+  }
+
+  //add the disabled class to the save button if necessary
+  phaseSaveDisabled() {
+    return this.state.editingPhases && this.phasesHasDups() ? 'disabled' : '';
+  }
+
+  phaseSaveError() {
+    if(this.state.editingPhases && this.phasesHasDups()) {
+      return (
+        <div>
+          <i className="material-icons red-text text-darken-4 qb-modal-error">error</i>
+          &nbsp;Duplicate phases
+        </div>
+      );
+    }
+    return null;
+  }
+
   componentDidUpdate(prevProps) {
     if(this.state.needToReRender) {
       this.setState({
@@ -199,6 +229,8 @@ class SettingsForm extends React.Component{
 
     var settingsDisabled = this.state.editingSettings ? '' : 'disabled';
     var phaseCard, divisionCard, phasePickers, playersPerTeamDisplay;
+    var phaseError = this.phaseSaveError();
+    var phaseSaveDisabled = this.phaseSaveDisabled();
 
     if(!this.state.editingDivisions) {
       var divList = this.state.divisions.map(function(divName, idx) {
@@ -383,9 +415,10 @@ class SettingsForm extends React.Component{
                 <div className="card-content">
                   <span className="card-title">Phases</span>
                     {phaseCard}
+                    {phaseError}
                 </div>
                 <div className="card-action">
-                  <button className="btn-flat" onClick={this.phaseToggle}>
+                  <button className={'btn-flat ' + phaseSaveDisabled} onClick={this.phaseToggle}>
                   {this.getPhaseButtonCaption()}</button>
                 </div>
               </div>
