@@ -50,8 +50,8 @@ class TeamListEntry extends React.Component{
     );
   }
 
-  render() {
 
+  render() { 
     var deleteButton = this.getDeleteButton();
 
     return(

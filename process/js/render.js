@@ -101,6 +101,7 @@ class MainInterface extends React.Component{
       myTeams: [],
       myGames: [],
       selectedTeams: [],
+      uncheckTeams: false,
       activePane: 'settingsPane',  //settings, teams, or games
       forceResetForms: false,
       editWhichTeam: null,
@@ -112,7 +113,6 @@ class MainInterface extends React.Component{
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
     this.onModalClose = this.onModalClose.bind(this);
     this.onForceReset = this.onForceReset.bind(this);
-    this.showAbout = this.showAbout.bind(this);
     this.addTeam = this.addTeam.bind(this);
     this.addGame = this.addGame.bind(this);
     this.modifyTeam = this.modifyTeam.bind(this);
@@ -132,6 +132,7 @@ class MainInterface extends React.Component{
     this.savePhases = this.savePhases.bind(this);
     this.saveDivisions = this.saveDivisions.bind(this);
     this.openDivModal = this.openDivModal.bind(this);
+    this.submitDivAssignments = this.submitDivAssignments.bind(this);
   }
 
   componentDidMount() {
@@ -181,7 +182,11 @@ class MainInterface extends React.Component{
   } //componentWillUnmount
 
   componentDidUpdate() {
-
+    if(this.state.uncheckTeams) {
+      this.setState({
+        uncheckTeams: false
+      });
+    }
   } //componentDidUpdate
 
   writeJSON(fileName) {
@@ -274,6 +279,7 @@ class MainInterface extends React.Component{
       myTeams: [],
       myGames: [],
       selectedTeams: [],
+      uncheckTeams: false,
       activePane: 'settingsPane',  //settings, teams, or games
       forceResetForms: false,
       editWhichTeam: null,
@@ -324,11 +330,6 @@ class MainInterface extends React.Component{
       gmAddOrEdit: 'add'
     });
   }
-
-  //TODO: delete??
-  showAbout() {
-    ipc.sendSync('openInfoWindow');
-  } //showAbout
 
   //add the new team, then close the form
   addTeam(tempItem) {
@@ -567,6 +568,31 @@ class MainInterface extends React.Component{
     });
   }
 
+  submitDivAssignments(divSelections) {
+    var selTeams = this.state.selectedTeams;
+    var allTeams = this.state.myTeams;
+    var phases = this.state.phases;
+    for(var i in selTeams) {
+      var tmIdx = allTeams.indexOf(selTeams[i]);
+      for(var j in phases) {
+        var div = divSelections[j];
+        if(div == 'remove') {
+          delete allTeams[tmIdx].divisions[phases[j]];
+        }
+        else if(div != 'ignore') {
+          allTeams[tmIdx].divisions[phases[j]] = div;
+        }
+      }
+    }
+    this.setState({
+      divWindowVisible: false,
+      myTeams: allTeams,
+      selectedTeams: [],
+      uncheckTeams: true
+    });
+  }
+
+
 
 
 
@@ -631,8 +657,9 @@ class MainInterface extends React.Component{
 
     //make a react element for each item in the lists
     filteredTeams=filteredTeams.map(function(item, index) {
+      // var checked = this.state.selectedTeams.includes(item);
       return(
-        <TeamListEntry key = {item.teamName}
+        <TeamListEntry key = {item.teamName + (this.state.uncheckTeams ? '*' : '')}
           singleItem = {item}
           whichItem =  {item}
           onDelete = {this.deleteTeam}
@@ -684,12 +711,13 @@ class MainInterface extends React.Component{
             teamData = {myTeams.slice()} //copy array to prevent unwanted state updates
             hasTeamPlayedInRound = {this.hasTeamPlayedInRound}
           />
-          <DivAssignModal
+          <DivAssignModal key={this.state.phases.toString() + this.state.uncheckTeams}
             isOpen = {this.state.divWindowVisible}
             teamsToAssign = {this.state.selectedTeams}
             phases = {this.state.phases}
             divisions = {this.state.divisions}
             phaseAssignments = {this.state.phaseAssignments}
+            handleSubmit = {this.submitDivAssignments}
           />
 
           <div className="row">

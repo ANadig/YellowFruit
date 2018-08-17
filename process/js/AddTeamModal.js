@@ -36,6 +36,7 @@ class AddTeamModal extends React.Component{
     this.setState({
       teamName: '',
       rosterString: '',
+      divisions: {},
       originalTeamLoaded: null
     });
   }
@@ -47,6 +48,7 @@ class AddTeamModal extends React.Component{
     this.setState({
       teamName: this.props.teamToLoad.teamName,
       rosterString: this.props.teamToLoad.roster.join('\n'),
+      divisions: this.props.teamToLoad.divisions,
       originalTeamLoaded: this.props.teamToLoad
     });
   }
@@ -63,7 +65,8 @@ class AddTeamModal extends React.Component{
 
     var tempItem = {
       teamName: this.state.teamName.trim(),
-      roster: rosterAry
+      roster: rosterAry,
+      divisions: this.state.divisions
     } //tempitems
 
     if(this.props.addOrEdit == 'add') {
