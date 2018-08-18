@@ -96,7 +96,7 @@ class MainInterface extends React.Component{
       orderDir: 'asc',
       queryText: '',
       phases: [],
-      divisions: [],
+      divisions: {},
       phaseAssignments: [],
       myTeams: [],
       myGames: [],
@@ -129,10 +129,10 @@ class MainInterface extends React.Component{
     this.reOrder = this.reOrder.bind(this);
     this.searchLists = this.searchLists.bind(this);
     this.setPane = this.setPane.bind(this);
-    this.savePhases = this.savePhases.bind(this);
     this.saveDivisions = this.saveDivisions.bind(this);
     this.openDivModal = this.openDivModal.bind(this);
     this.submitDivAssignments = this.submitDivAssignments.bind(this);
+    this.removeDivisionFromTeam = this.removeDivisionFromTeam.bind(this);
   }
 
   componentDidMount() {
@@ -273,9 +273,7 @@ class MainInterface extends React.Component{
       orderBy: 'teamName',
       orderDir: 'asc',
       queryText: '',
-      phases: [],
-      divisions: [],
-      phaseAssignments: [],
+      divisions: {},
       myTeams: [],
       myGames: [],
       selectedTeams: [],
@@ -361,10 +359,7 @@ class MainInterface extends React.Component{
     var oldTeamIdx = _.indexOf(tempTeams, oldTeam);
     tempTeams[oldTeamIdx] = newTeam;
     var tempGames = this.state.myGames.slice();
-    // var playersRemoved = oldTeam.roster.length - newTeam.roster.length;
-    // if(playersRemoved > 0) {
-    //   this.removePlayers(tempGames, oldTeam.teamName, playersRemoved);
-    // }
+
     for(var i in oldTeam.roster) {
       if(i >= newTeam.roster.length) {
         this.updatePlayerName(tempGames, oldTeam.teamName, oldTeam.roster[i], '[Player ' + i + ' deleted]');
@@ -452,6 +447,15 @@ class MainInterface extends React.Component{
     });
   } //deleteGame
 
+  removeDivisionFromTeam(whichTeam, phase) {
+    var tempTeams = this.state.myTeams;
+    var idx = _.indexOf(tempTeams, whichTeam);
+    delete tempTeams[idx].divisions[phase];
+    this.setState({
+      myTeams: tempTeams
+    });
+  }
+
   //tell the team window to load a team
   openTeamForEdit(item) {
     this.setState({
@@ -537,17 +541,23 @@ class MainInterface extends React.Component{
     });
   } //setPane
 
-  savePhases(newPhases) {
+  saveDivisions(newPhases, newDivAry, newPhaseAssignments) {
+    var tempDivisions = {};
+    if(newPhases.length == 0) {
+      tempDivisions.noPhase = newDivAry;
+    }
+    else {
+      for(var i in newPhases) {
+        tempDivisions[newPhases[i]] = [];
+        for(var j in newDivAry) {
+          if(newPhaseAssignments[j] == newPhases[i]) {
+            tempDivisions[newPhases[i]].push(newDivAry[j]);
+          }
+        }
+      }
+    }
     this.setState({
-      phases: newPhases
-    });
-    ipc.sendSync('unsavedData');
-  } //savePhases
-
-  saveDivisions(newDivisions, newPhaseAssignments) {
-    this.setState({
-      divisions: newDivisions,
-      phaseAssignments: newPhaseAssignments
+      divisions: tempDivisions,
     });
     ipc.sendSync('unsavedData');
   } //saveDivisions
@@ -571,16 +581,15 @@ class MainInterface extends React.Component{
   submitDivAssignments(divSelections) {
     var selTeams = this.state.selectedTeams;
     var allTeams = this.state.myTeams;
-    var phases = this.state.phases;
     for(var i in selTeams) {
       var tmIdx = allTeams.indexOf(selTeams[i]);
-      for(var j in phases) {
-        var div = divSelections[j];
+      for(var phase in divSelections) {
+        var div = divSelections[phase];
         if(div == 'remove') {
-          delete allTeams[tmIdx].divisions[phases[j]];
+          delete allTeams[tmIdx].divisions[phase];
         }
         else if(div != 'ignore') {
-          allTeams[tmIdx].divisions[phases[j]] = div;
+          allTeams[tmIdx].divisions[phase] = div;
         }
       }
     }
@@ -590,13 +599,14 @@ class MainInterface extends React.Component{
       selectedTeams: [],
       uncheckTeams: true
     });
-  }
+  }//submitDivAssignments
 
 
 
 
 
   render() {
+    console.log(this.state.myTeams);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText;
@@ -667,6 +677,7 @@ class MainInterface extends React.Component{
           onSelectTeam = {this.onSelectTeam}
           selected = {this.state.selectedTeams.includes(item)}
           numGamesPlayed = {gamesPlayed(item, myGames)}
+          removeDivision = {this.removeDivisionFromTeam}
         />
       ) // return
     }.bind(this)); //filteredTeams.map
@@ -711,12 +722,10 @@ class MainInterface extends React.Component{
             teamData = {myTeams.slice()} //copy array to prevent unwanted state updates
             hasTeamPlayedInRound = {this.hasTeamPlayedInRound}
           />
-          <DivAssignModal key={this.state.phases.toString() + this.state.uncheckTeams}
+         <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.uncheckTeams}
             isOpen = {this.state.divWindowVisible}
             teamsToAssign = {this.state.selectedTeams}
-            phases = {this.state.phases}
             divisions = {this.state.divisions}
-            phaseAssignments = {this.state.phaseAssignments}
             handleSubmit = {this.submitDivAssignments}
           />
 
@@ -730,11 +739,11 @@ class MainInterface extends React.Component{
                 setPane = {this.setPane}
                 whichPaneActive = {activePane}
                 anyTeamSelected = {this.state.selectedTeams.length > 0}
+                phases = {this.state.phases}
                 openDivModal = {this.openDivModal}
               />
               <SettingsForm
                 whichPaneActive = {activePane}
-                savePhases = {this.savePhases}
                 saveDivisions = {this.saveDivisions}
               />
               <TeamList

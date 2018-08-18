@@ -95,6 +95,23 @@ h1, h2, h3, h4, h5, h6 {
 
 .qb-nav {
   background-color: #f9a825;
+  line-height: 58px;
+}
+
+.qb-nav .nav-wrapper {
+  min-height: 50px !important;
+}
+
+.qb-nav .nav-content .tabs {
+  height: 28px;
+}
+
+.qb-nav .nav-content .tabs .tab{
+  line-height: 28px;
+}
+
+.qb-nav .nav-content .tabs .tab .active{
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .qb-nav .btn-flat {
@@ -268,6 +285,10 @@ h1, h2, h3, h4, h5, h6 {
   color: #616161;
   font-size: 1.4em;
   padding-right: 5px;
+}
+
+.collection-item .chip-wrapper {
+  display: inline-block;
 }
 
 .collection-item .chip {

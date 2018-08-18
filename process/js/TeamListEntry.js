@@ -1,4 +1,5 @@
 var React = require('react');
+var DivisionChip = require('./DivisionChip');
 
 class TeamListEntry extends React.Component{
 
@@ -7,6 +8,7 @@ class TeamListEntry extends React.Component{
     this.handleDelete = this.handleDelete.bind(this);
     this.editTeam = this.editTeam.bind(this);
     this.handleToggle = this.handleToggle.bind(this);
+    this.removeDivision = this.removeDivision.bind(this);
     this.state = {
       selected: props.selected
     };
@@ -29,11 +31,17 @@ class TeamListEntry extends React.Component{
     });
   }
 
+  //called when the X button on a chip is clicked
+  removeDivision(phase) {
+    this.props.removeDivision(this.props.whichItem, phase);
+  }
+
   //don't allow editing a team while it's selected
   canEdit() {
     return this.state.selected ? 'disabled' : '';
   }
 
+  //if a team has played games, disable the delete button with a tooltip explaining why
   getDeleteButton() {
     if(this.props.numGamesPlayed == 0) {
       return (
@@ -48,11 +56,32 @@ class TeamListEntry extends React.Component{
         data-tooltip={tooltip} data-position="left">
       <i className="material-icons">delete</i></span>
     );
-  }
+  }//getDeleteButton
+
+  //a tag that displays which division a team is in
+  getDivisionChip(phase, colorNo) {
+    return (
+      <DivisionChip key={phase}
+        phase = {phase}
+        division = {this.props.singleItem.divisions[phase]}
+        colorNo = {colorNo}
+        removeDivision = {this.removeDivision}
+      />
+    );
+  }//getDivisionChip
 
 
-  render() { 
+
+
+
+  render() {
     var deleteButton = this.getDeleteButton();
+    var divisionChips = [];
+    var colorNo = 0;
+    for (var phase in this.props.singleItem.divisions) {
+      divisionChips.push(this.getDivisionChip(phase, colorNo));
+      colorNo += 1;
+    }
 
     return(
       <a className="collection-item">
@@ -66,9 +95,7 @@ class TeamListEntry extends React.Component{
           <div className="team-name">
             {this.props.singleItem.teamName}&emsp;
           </div>
-          <div className="chip yellow">
-            Division 1<i className="close material-icons">close</i>
-          </div>
+          {divisionChips}
           <button className={'btn-flat item-edit ' + this.canEdit()} title="Edit this team" onClick={this.editTeam}>
           <i className="material-icons">edit</i></button>
           {deleteButton}

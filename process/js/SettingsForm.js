@@ -132,8 +132,7 @@ class SettingsForm extends React.Component{
         phases: tempPhases,
         phaseAssignments: tempPhaseAssns
       });
-      this.props.savePhases(tempPhases);
-      this.props.saveDivisions(this.state.divisions, tempPhaseAssns);
+      this.props.saveDivisions(tempPhases, this.state.divisions, tempPhaseAssns);
     }
   } //phaseToggle
 
@@ -164,7 +163,7 @@ class SettingsForm extends React.Component{
         phaseAssignments: tempPhaseAssns,
         editingDivisions: false
       });
-      this.props.saveDivisions(tempDivs, tempPhaseAssns);
+      this.props.saveDivisions(this.state.phases, tempDivs, tempPhaseAssns);
     }
   } //divisionToggle
 

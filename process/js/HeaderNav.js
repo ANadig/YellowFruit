@@ -49,7 +49,7 @@ class HeaderNav extends React.Component{
   render() {
     return(
       <div className="navbar-fixed">
-        <nav className="qb-nav">
+        <nav className="qb-nav nav-extended">
           <div className="nav-wrapper">
             <ul className="left">
               <li>
@@ -67,6 +67,14 @@ class HeaderNav extends React.Component{
                   </div>
                 </form>
               </li>
+            </ul>
+          </div>
+          <div className="nav-content">
+            <ul className="tabs tabs-transparent">
+              <li className="tab"><a href="#tab1">Tab 1</a></li>
+              <li className="tab"><a className="active" href="#tab2">Tab 2</a></li>
+              <li className="tab disabled"><a href="#tab3">Tab 3</a></li>
+              <li className="tab"><a href="#tab4">Tab 4</a></li>
             </ul>
           </div>
         </nav>

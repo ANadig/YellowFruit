@@ -4,7 +4,10 @@ class DivAssignModal extends React.Component{
 
   constructor(props) {
     super(props);
-    var divs = props.phases.map(function(p, idx) { return 'ignore'; });
+    var divs = {};
+    for(var p in props.divisions) {
+      divs[p] = 'ignore';
+    }
     this.state = {
       divSelections: divs
     };
@@ -16,7 +19,7 @@ class DivAssignModal extends React.Component{
     const target = e.target;
     const value = target.value; //division name
     const name = target.name; //phase number
-    var tempSelections = this.state.divSelections.slice();
+    var tempSelections = this.state.divSelections;
     tempSelections[name] = value;
     this.setState({
       divSelections: tempSelections
@@ -29,19 +32,13 @@ class DivAssignModal extends React.Component{
   }
 
   //a set of radio buttons for selecting the divisions for a given phase
-  getPhaseSection(phaseNo) {
-    var phase = this.props.phases[phaseNo];
-    var divsInPhase = [];
-    for(var i in this.props.phaseAssignments) {
-      if (this.props.phaseAssignments[i] == phase) {
-        divsInPhase.push(this.props.divisions[i]);
-      }
-    }
+  getPhaseSection(phase) {
+    var divsInPhase = this.props.divisions[phase];
     var ignoreOption = (
       <p key={'ignore'}>
         <label>
-          <input name={phaseNo} type="radio" value="ignore"
-          checked={this.state.divSelections[phaseNo] == 'ignore'} onChange={this.handleChange} />
+          <input name={phase} type="radio" value="ignore"
+          checked={this.state.divSelections[phase] == 'ignore'} onChange={this.handleChange} />
           <span>No change</span>
         </label>
       </p>
@@ -49,8 +46,8 @@ class DivAssignModal extends React.Component{
     var removeOption = (
       <p key={'remove'}>
         <label>
-          <input name={phaseNo} type="radio" value="remove"
-          checked={this.state.divSelections[phaseNo] == 'remove'} onChange={this.handleChange} />
+          <input name={phase} type="radio" value="remove"
+          checked={this.state.divSelections[phase] == 'remove'} onChange={this.handleChange} />
           <span>Remove divisions</span>
         </label>
       </p>
@@ -60,8 +57,8 @@ class DivAssignModal extends React.Component{
       return (
         <p key={div}>
           <label>
-            <input name={phaseNo} type="radio" value={div}
-            checked={this.state.divSelections[phaseNo] == div} onChange={this.handleChange} />
+            <input name={phase} type="radio" value={div}
+            checked={this.state.divSelections[phase] == div} onChange={this.handleChange} />
             <span>{div}</span>
           </label>
         </p>
@@ -81,8 +78,8 @@ class DivAssignModal extends React.Component{
 
   render() {
     var phaseSections = [];
-    for(var i in this.props.phases) {
-      phaseSections.push(this.getPhaseSection(i));
+    for(var p in this.props.divisions) {
+      phaseSections.push(this.getPhaseSection(p));
     }
 
     return (
