@@ -103,6 +103,7 @@ class MainInterface extends React.Component{
       selectedTeams: [],
       uncheckTeams: false,
       activePane: 'settingsPane',  //settings, teams, or games
+      viewingPhase: 'all', //'all' or the name of a user-defined phase
       forceResetForms: false,
       editWhichTeam: null,
       tmAddOrEdit: 'add', //either 'add' or 'edit'
@@ -129,6 +130,7 @@ class MainInterface extends React.Component{
     this.reOrder = this.reOrder.bind(this);
     this.searchLists = this.searchLists.bind(this);
     this.setPane = this.setPane.bind(this);
+    this.setPhase = this.setPhase.bind(this);
     this.saveDivisions = this.saveDivisions.bind(this);
     this.openDivModal = this.openDivModal.bind(this);
     this.submitDivAssignments = this.submitDivAssignments.bind(this);
@@ -279,6 +281,7 @@ class MainInterface extends React.Component{
       selectedTeams: [],
       uncheckTeams: false,
       activePane: 'settingsPane',  //settings, teams, or games
+      viewingPhase: 'all',
       forceResetForms: false,
       editWhichTeam: null,
       tmAddOrEdit: 'add', //either 'add' or 'edit'
@@ -541,6 +544,13 @@ class MainInterface extends React.Component{
     });
   } //setPane
 
+  //which phase you're viewing. Will filter games and team chips accordingly
+  setPhase(phase) {
+    this.setState({
+      viewingPhase: phase
+    });
+  }
+
   saveDivisions(newPhases, newDivAry, newPhaseAssignments) {
     var tempDivisions = {};
     if(newPhases.length == 0) {
@@ -606,7 +616,7 @@ class MainInterface extends React.Component{
 
 
   render() {
-    console.log(this.state.myTeams);
+    console.log(this.state.viewingPhase);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText;
@@ -737,9 +747,11 @@ class MainInterface extends React.Component{
                 onReOrder = {this.reOrder}
                 onSearch= {this.searchLists}
                 setPane = {this.setPane}
+                setPhase = {this.setPhase}
                 whichPaneActive = {activePane}
+                viewingPhase = {this.state.viewingPhase}
                 anyTeamSelected = {this.state.selectedTeams.length > 0}
-                phases = {this.state.phases}
+                divisions = {this.state.divisions}
                 openDivModal = {this.openDivModal}
               />
               <SettingsForm

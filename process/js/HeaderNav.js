@@ -8,6 +8,7 @@ class HeaderNav extends React.Component{
     this.handleOrder = this.handleOrder.bind(this);
     this.handleSearch = this.handleSearch.bind(this);
     this.setPane = this.setPane.bind(this);
+    this.setPhase = this.setPhase.bind(this);
     this.openDivModal = this.openDivModal.bind(this);
   }
 
@@ -27,8 +28,16 @@ class HeaderNav extends React.Component{
     this.props.setPane(e.target.id);
   }
 
+  setPhase(e) {
+    this.props.setPhase(e.target.id);
+  }
+
   isActive(pane) {
     return this.props.whichPaneActive == pane ? 'active' : '';
+  }
+
+  isViewingPhase(phase) {
+    return this.props.viewingPhase == phase ? 'active' : '';
   }
 
   openDivModal() {
@@ -46,7 +55,44 @@ class HeaderNav extends React.Component{
     return null;
   }
 
+  //tabs under the navbar for picking which phase you're viewing
+  phaseTabs() {
+    var allPhasesTab = (
+      <li key={'all'} className={'tab ' + this.isViewingPhase('all')}>
+        <a id={'all'} onClick={this.setPhase}>All Phases</a>
+      </li>
+    );
+    var tabList = [allPhasesTab];
+    for(var phase in this.props.divisions) {
+      if(phase != 'noPhase') {
+        var oneTab = (
+          <li key={phase} className={'tab ' + this.isViewingPhase(phase)}>
+            <a id={phase} onClick={this.setPhase}>{phase}</a>
+          </li>
+        );
+        tabList.push(oneTab);
+      }
+    }
+    return (
+      <div className="nav-content">
+        <ul className="tabs tabs-transparent">
+          {tabList}
+        </ul>
+      </div>
+    );
+  }
+
+
+
+
   render() {
+    var phaseTabs = null;
+    var numberOfPhases = Object.keys(this.props.divisions).length;
+    if((numberOfPhases > 1 ||  (numberOfPhases == 1 && this.props.divisions['noPhase'] == undefined)) &&
+      this.props.whichPaneActive != 'settingsPane') {
+      phaseTabs = this.phaseTabs()
+    }
+
     return(
       <div className="navbar-fixed">
         <nav className="qb-nav nav-extended">
@@ -69,14 +115,7 @@ class HeaderNav extends React.Component{
               </li>
             </ul>
           </div>
-          <div className="nav-content">
-            <ul className="tabs tabs-transparent">
-              <li className="tab"><a href="#tab1">Tab 1</a></li>
-              <li className="tab"><a className="active" href="#tab2">Tab 2</a></li>
-              <li className="tab disabled"><a href="#tab3">Tab 3</a></li>
-              <li className="tab"><a href="#tab4">Tab 4</a></li>
-            </ul>
-          </div>
+          {phaseTabs}
         </nav>
       </div>
     ) // return
