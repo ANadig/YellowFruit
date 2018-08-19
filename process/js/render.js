@@ -142,6 +142,7 @@ class MainInterface extends React.Component{
     this.submitDivAssignments = this.submitDivAssignments.bind(this);
     this.submitPhaseAssignments = this.submitPhaseAssignments.bind(this);
     this.removeDivisionFromTeam = this.removeDivisionFromTeam.bind(this);
+    this.removePhaseFromGame = this.removePhaseFromGame.bind(this);
   }
 
   componentDidMount() {
@@ -482,6 +483,15 @@ class MainInterface extends React.Component{
     });
   }
 
+  removePhaseFromGame(whichGame, phase) {
+    var tempGames = this.state.myGames;
+    var idx = _.indexOf(tempGames, whichGame);
+    _.pull(tempGames[idx].phases, phase);
+    this.setState({
+      myGames: tempGames
+    });
+  }
+
   //tell the team window to load a team
   openTeamForEdit(item) {
     this.setState({
@@ -703,7 +713,6 @@ class MainInterface extends React.Component{
 
 
   render() {
-    console.log(this.state.myGames);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText;
@@ -779,6 +788,7 @@ class MainInterface extends React.Component{
           onSelectTeam = {this.onSelectTeam}
           selected = {this.state.selectedTeams.includes(item)}
           numGamesPlayed = {gamesPlayed(item, myGames)}
+          allPhases = {Object.keys(this.state.divisions)}
           removeDivision = {this.removeDivisionFromTeam}
         />
       ) // return
@@ -792,6 +802,8 @@ class MainInterface extends React.Component{
           onOpenGame = {this.openGameForEdit}
           onSelectGame = {this.onSelectGame}
           selected = {this.state.selectedGames.includes(item)}
+          allPhases = {Object.keys(this.state.divisions)}
+          removePhase = {this.removePhaseFromGame}
         />
       ) // return
     }.bind(this)); //filteredGames.map

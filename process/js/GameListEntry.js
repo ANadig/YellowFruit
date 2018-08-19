@@ -1,15 +1,17 @@
 var React = require('react');
+var ColorChip = require('./ColorChip');
 
 class GameListEntry extends React.Component{
 
   constructor(props) {
     super(props);
-    this.handleDelete = this.handleDelete.bind(this);
-    this.handleToggle = this.handleToggle.bind(this);
-    this.selectGame = this.selectGame.bind(this);
     this.state = {
       selected: props.selected
     };
+    this.handleDelete = this.handleDelete.bind(this);
+    this.handleToggle = this.handleToggle.bind(this);
+    this.editGame = this.editGame.bind(this);
+    this.removePhase = this.removePhase.bind(this);
   }
 
   //tell the mainInterface to delete me
@@ -23,6 +25,15 @@ class GameListEntry extends React.Component{
     this.setState({
       selected: !this.state.selected
     });
+  }
+
+  //tell the mainInterface to open my game for editing
+  editGame() {
+    this.props.onOpenGame(this.props.whichItem);
+  }
+
+  removePhase(phase) {
+    this.props.removePhase(this.props.whichItem, phase);
   }
 
   //returns e.g. ['Round 1: ', 'Central A 310', 'Memorial A 250', ' (OT)']
@@ -77,13 +88,31 @@ class GameListEntry extends React.Component{
     return lineScore.substr(0, lineScore.length - 1); //remove the comma at the end
   }
 
-  //tell the mainInterface to open my game for editing
-  selectGame() {
-    this.props.onOpenGame(this.props.whichItem);
+  // a tag that displays what phase a game belongs to
+  getPhaseChip(phase, colorNo) {
+    return (
+      <ColorChip key={phase}
+        phase = {phase}
+        displayTitle = {phase}
+        colorNo = {colorNo}
+        removeMe = {this.removePhase}
+      />
+    );
   }
+
+
 
   render() {
     var scoreStrings = this.getScoreStrings();
+    var phaseChips = [];
+    var colorNo = 0;
+    for (var i in this.props.allPhases) {
+      var phase = this.props.allPhases[i];
+      if(this.props.singleItem.phases.includes(phase)) {
+        phaseChips.push(this.getPhaseChip(phase, colorNo));
+      }
+      colorNo += 1;
+    }
 
     return(
       <a className="collection-item">
@@ -99,9 +128,10 @@ class GameListEntry extends React.Component{
             {scoreStrings[2]}
             <span className={this.team2Format()}>{scoreStrings[3]}</span>
             {scoreStrings[4]}
-            <button className="btn-flat item-edit" title="Edit this game" onClick={this.selectGame}>
-            <i className="material-icons">edit</i></button>
           </div>
+          &emsp;{phaseChips}
+          <button className="btn-flat item-edit" title="Edit this game" onClick={this.editGame}>
+          <i className="material-icons">edit</i></button>
           <button className="secondary-content btn-flat item-delete" title="Remove this game" onClick={this.handleDelete}>
           <i className="material-icons">delete</i></button>
           <br/>{this.props.singleItem.forfeit ? '' : this.getTeamLineScore(1)}

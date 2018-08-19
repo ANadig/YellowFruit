@@ -2,15 +2,15 @@ var React = require('react');
 const chipColors = ['yellow', 'light-green', 'orange', 'light-blue',
   'red', 'purple', 'teal', 'deep-purple'];
 
-class DivisionChip extends React.Component{
+class ColorChip extends React.Component{
 
   constructor(props) {
     super(props);
-    this.removeDivision = this.removeDivision.bind(this);
+    this.removeMe = this.removeMe.bind(this);
   }
 
-  removeDivision() {
-    this.props.removeDivision(this.props.phase);
+  removeMe() {
+    this.props.removeMe(this.props.phase);
   }
 
   render() {
@@ -19,8 +19,8 @@ class DivisionChip extends React.Component{
     return (
       <div className="chip-wrapper">
         <div className={'chip accent-1 ' + chipColors[this.props.colorNo % chipColors.length]}>
-          {this.props.division}
-          <i className="close material-icons" onClick={this.removeDivision}>close</i>
+          {this.props.displayTitle}
+          <i className="close material-icons" onClick={this.removeMe}>close</i>
         </div>
       </div>
     );
@@ -28,4 +28,4 @@ class DivisionChip extends React.Component{
 
 }
 
-module.exports = DivisionChip;
+module.exports = ColorChip;

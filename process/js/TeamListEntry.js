@@ -1,17 +1,17 @@
 var React = require('react');
-var DivisionChip = require('./DivisionChip');
+var ColorChip = require('./ColorChip');
 
 class TeamListEntry extends React.Component{
 
   constructor(props) {
     super(props);
+    this.state = {
+      selected: props.selected
+    };
     this.handleDelete = this.handleDelete.bind(this);
     this.editTeam = this.editTeam.bind(this);
     this.handleToggle = this.handleToggle.bind(this);
     this.removeDivision = this.removeDivision.bind(this);
-    this.state = {
-      selected: props.selected
-    };
   }
 
   //tell the mainInterface to delete me
@@ -61,11 +61,11 @@ class TeamListEntry extends React.Component{
   //a tag that displays which division a team is in
   getDivisionChip(phase, colorNo) {
     return (
-      <DivisionChip key={phase}
+      <ColorChip key={phase}
         phase = {phase}
-        division = {this.props.singleItem.divisions[phase]}
+        displayTitle = {this.props.singleItem.divisions[phase]}
         colorNo = {colorNo}
-        removeDivision = {this.removeDivision}
+        removeMe = {this.removeDivision}
       />
     );
   }//getDivisionChip
@@ -78,8 +78,11 @@ class TeamListEntry extends React.Component{
     var deleteButton = this.getDeleteButton();
     var divisionChips = [];
     var colorNo = 0;
-    for (var phase in this.props.singleItem.divisions) {
-      divisionChips.push(this.getDivisionChip(phase, colorNo));
+    for (var i in this.props.allPhases) {
+      var phase = this.props.allPhases[i];
+      if(this.props.singleItem.divisions[phase] != undefined) {
+        divisionChips.push(this.getDivisionChip(phase, colorNo));
+      }
       colorNo += 1;
     }
 
