@@ -10,6 +10,7 @@ class HeaderNav extends React.Component{
     this.setPane = this.setPane.bind(this);
     this.setPhase = this.setPhase.bind(this);
     this.openDivModal = this.openDivModal.bind(this);
+    this.openPhaseModal = this.openPhaseModal.bind(this);
   }
 
   handleSort(e) {
@@ -44,13 +45,19 @@ class HeaderNav extends React.Component{
     this.props.openDivModal();
   }
 
+  openPhaseModal() {
+    this.props.openPhaseModal();
+  }
+
   getAssignmentButton() {
     if(this.props.whichPaneActive == 'teamsPane' && this.props.anyTeamSelected) {
       return ( <button className="btn-flat waves-effect yellow-darken-3"
         onClick={this.openDivModal}>Assign Divisions</button> );
     }
-    if(this.props.whichPaneActive == 'gamesPane') {
-        return ( <button className="btn-flat waves-effect yellow-darken-3">Assign Phases</button> );
+    if(this.props.whichPaneActive == 'gamesPane' && this.props.usingPhases
+      && this.props.anyGameSelected) {
+        return ( <button className="btn-flat waves-effect yellow-darken-3"
+          onClick={this.openPhaseModal}>Assign Phases</button> );
     }
     return null;
   }
@@ -80,7 +87,7 @@ class HeaderNav extends React.Component{
         </ul>
       </div>
     );
-  }
+  }//phaseTabs
 
 
 
@@ -88,8 +95,7 @@ class HeaderNav extends React.Component{
   render() {
     var phaseTabs = null;
     var numberOfPhases = Object.keys(this.props.divisions).length;
-    if((numberOfPhases > 1 ||  (numberOfPhases == 1 && this.props.divisions['noPhase'] == undefined)) &&
-      this.props.whichPaneActive != 'settingsPane') {
+    if(this.props.usingPhases && this.props.whichPaneActive != 'settingsPane') {
       phaseTabs = this.phaseTabs()
     }
 

@@ -9867,11 +9867,6 @@ h6 {
   line-height: 22px;
 }
 
-.collection-item [type="checkbox"] {
-  width: 16px;
-  height: 16px;
-}
-
 .collection-item .game-name {
   display: inline-block;
   font-weight: bold;

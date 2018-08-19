@@ -12,6 +12,7 @@ class AddGameModal extends React.Component{
     super(props);
     this.state = {
       round: '',
+      phases: [],
       tuhtot: '',
       ottu: '',
       forfeit: false,

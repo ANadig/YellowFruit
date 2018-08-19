@@ -5,12 +5,24 @@ class GameListEntry extends React.Component{
   constructor(props) {
     super(props);
     this.handleDelete = this.handleDelete.bind(this);
+    this.handleToggle = this.handleToggle.bind(this);
     this.selectGame = this.selectGame.bind(this);
+    this.state = {
+      selected: props.selected
+    };
   }
 
   //tell the mainInterface to delete me
   handleDelete() {
     this.props.onDelete(this.props.whichItem);
+  }
+
+  //when the checkbox is checked or unchecked
+  handleToggle() {
+    this.props.onSelectGame(this.props.whichItem);
+    this.setState({
+      selected: !this.state.selected
+    });
   }
 
   //returns e.g. ['Round 1: ', 'Central A 310', 'Memorial A 250', ' (OT)']
@@ -76,6 +88,11 @@ class GameListEntry extends React.Component{
     return(
       <a className="collection-item">
         <div>
+          <label>
+            <input type="checkbox" className="filled-in team-checkbox" checked={this.state.selected}
+            title="Select to assign phases" onChange={this.handleToggle}/>
+            <span>&nbsp;</span>
+          </label>
           <div className="game-name">
             {scoreStrings[0]}
             <span className={this.team1Format()}>{scoreStrings[1]}</span>

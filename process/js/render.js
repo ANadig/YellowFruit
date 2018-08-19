@@ -15,6 +15,7 @@ var HeaderNav = require('./HeaderNav');
 var AddTeamModal = require('./AddTeamModal');
 var AddGameModal = require('./AddGameModal');
 var DivAssignModal = require('./DivAssignModal');
+var PhaseAssignModal = require('./PhaseAssignModal');
 var SettingsForm = require('./SettingsForm');
 var TeamList = require('./TeamList');
 var GameList = require('./GameList');
@@ -92,6 +93,7 @@ class MainInterface extends React.Component{
       tmWindowVisible: false,
       gmWindowVisible: false,
       divWindowVisible: false,
+      phaseWindowVisible: false,
       orderBy: 'teamName',
       orderDir: 'asc',
       queryText: '',
@@ -101,7 +103,9 @@ class MainInterface extends React.Component{
       myTeams: [],
       myGames: [],
       selectedTeams: [],
+      selectedGames: [],
       uncheckTeams: false,
+      uncheckGames: false,
       activePane: 'settingsPane',  //settings, teams, or games
       viewingPhase: 'all', //'all' or the name of a user-defined phase
       forceResetForms: false,
@@ -127,13 +131,16 @@ class MainInterface extends React.Component{
     this.validateTeamName = this.validateTeamName.bind(this);
     this.hasTeamPlayedInRound = this.hasTeamPlayedInRound.bind(this);
     this.onSelectTeam = this.onSelectTeam.bind(this);
+    this.onSelectGame = this.onSelectGame.bind(this);
     this.reOrder = this.reOrder.bind(this);
     this.searchLists = this.searchLists.bind(this);
     this.setPane = this.setPane.bind(this);
     this.setPhase = this.setPhase.bind(this);
     this.saveDivisions = this.saveDivisions.bind(this);
     this.openDivModal = this.openDivModal.bind(this);
+    this.openPhaseModal = this.openPhaseModal.bind(this);
     this.submitDivAssignments = this.submitDivAssignments.bind(this);
+    this.submitPhaseAssignments = this.submitPhaseAssignments.bind(this);
     this.removeDivisionFromTeam = this.removeDivisionFromTeam.bind(this);
   }
 
@@ -184,9 +191,17 @@ class MainInterface extends React.Component{
   } //componentWillUnmount
 
   componentDidUpdate() {
+    //the point of this is to force each TeamListEntry and GameListEntry to
+    //re-render after a modal closes (the boolean forms part of each entry's key);
+    //otherwise their checkboxes won't clear when we need them to
     if(this.state.uncheckTeams) {
       this.setState({
         uncheckTeams: false
+      });
+    }
+    if(this.state.uncheckGames) {
+      this.setState({
+        uncheckGames: false
       });
     }
   } //componentDidUpdate
@@ -272,6 +287,7 @@ class MainInterface extends React.Component{
       tmWindowVisible: false,
       gmWindowVisible: false,
       divWindowVisible: false,
+      phaseWindowVisible: false,
       orderBy: 'teamName',
       orderDir: 'asc',
       queryText: '',
@@ -279,7 +295,9 @@ class MainInterface extends React.Component{
       myTeams: [],
       myGames: [],
       selectedTeams: [],
+      selectedGames: [],
       uncheckTeams: false,
+      uncheckGames: false,
       activePane: 'settingsPane',  //settings, teams, or games
       viewingPhase: 'all',
       forceResetForms: false,
@@ -319,6 +337,11 @@ class MainInterface extends React.Component{
       tmWindowVisible: false,
       gmWindowVisible: false,
       divWindowVisible: false,
+      phaseWindowVisible: false,
+      selectedTeams: [],
+      selectedGames: [],
+      uncheckTeams: true,
+      uncheckGames: true,
       forceResetForms: true
     });
   }
@@ -551,6 +574,7 @@ class MainInterface extends React.Component{
     });
   }
 
+  //called when either phases or divisions are saved on the settings pane
   saveDivisions(newPhases, newDivAry, newPhaseAssignments) {
     var tempDivisions = {};
     if(newPhases.length == 0) {
@@ -566,12 +590,34 @@ class MainInterface extends React.Component{
         }
       }
     }
+    var tempTeams = this.state.myTeams;
+    for(var i in tempTeams) {
+      for(var phase in tempTeams[i].divisions) {
+        if(tempDivisions[phase] == undefined ||
+            !tempDivisions[phase].includes(tempTeams[i].divisions[phase])) {
+          //delete team's division if the phase doesn't exist or doesn't have that division
+          delete tempTeams[i].divisions[phase];
+        }
+      }
+    }
+    var tempGames = this.state.myGames;
+    for(var i in tempGames) {
+      var phases = tempGames[i].phases;
+      for(var j in phases) {
+        if(!Object.keys(tempDivisions).includes(phases[j])) {
+          _.pull(phases, phases[j]); //delete phases that no longer exist
+        }
+      }
+    }
     this.setState({
       divisions: tempDivisions,
+      myTeams: tempTeams,
+      myGames: tempGames
     });
     ipc.sendSync('unsavedData');
   } //saveDivisions
 
+  //when a team is selected/deselected using the checkbox
   onSelectTeam(whichTeam) {
     var tempSelTeams = this.state.selectedTeams.slice();
     var idx = tempSelTeams.indexOf(whichTeam);
@@ -582,12 +628,32 @@ class MainInterface extends React.Component{
     });
   }
 
+  //when a game is selected/deselected using the checkbox
+  onSelectGame(whichGame) {
+    var tempSelGames = this.state.selectedGames.slice();
+    var idx = tempSelGames.indexOf(whichGame);
+    if(idx == -1) { tempSelGames.push(whichGame); }
+    else { _.pull(tempSelGames, whichGame); }
+    this.setState({
+      selectedGames: tempSelGames
+    });
+  }
+
+  //modal for assigning teams to divisions
   openDivModal() {
     this.setState({
       divWindowVisible: true
     });
   }
 
+  //modal for assigning games to phases
+  openPhaseModal() {
+    this.setState({
+      phaseWindowVisible: true
+    });
+  }
+
+  //called when the division modal is submitted
   submitDivAssignments(divSelections) {
     var selTeams = this.state.selectedTeams;
     var allTeams = this.state.myTeams;
@@ -611,12 +677,33 @@ class MainInterface extends React.Component{
     });
   }//submitDivAssignments
 
-
+  //called when the phase modal is submitted
+  submitPhaseAssignments(phaseSelections) {
+    var selGames = this.state.selectedGames;
+    var allGames = this.state.myGames;
+    for(var i in selGames) {
+      var idx = allGames.indexOf(selGames[i]);
+      for(var i in phaseSelections) {
+        if(phaseSelections[i] == 'delete') {
+          allGames[idx].phases = [];
+        }
+        else if (!allGames[idx].phases.includes(phaseSelections[i])) {
+          allGames[idx].phases.push(phaseSelections[i]);
+        }
+      }
+    }
+    this.setState({
+      myGames: allGames,
+      phaseWindowVisible: false,
+      selectedGames: [],
+      uncheckGames: true
+    });
+  }
 
 
 
   render() {
-    console.log(this.state.viewingPhase);
+    console.log(this.state.myGames);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText;
@@ -625,6 +712,8 @@ class MainInterface extends React.Component{
     var myTeams = this.state.myTeams;
     var myGames = this.state.myGames;
     var activePane = this.state.activePane;
+    var numberOfPhases = Object.keys(this.state.divisions).length;
+    var usingPhases = numberOfPhases > 1 ||  (numberOfPhases == 1 && this.state.divisions['noPhase'] == undefined);
 
     $(document).ready(function(){ $('.tooltipped').tooltip(); }); //initialize tooltips
     $('select').formSelect(); //initialize all dropdowns
@@ -640,6 +729,9 @@ class MainInterface extends React.Component{
     }
     if(this.state.divWindowVisible === true) {
       $('#assignDivisions').modal('open');
+    }
+    if(this.state.phaseWindowVisible === true) {
+      $('#assignPhases').modal('open');
     }
 
     if (activePane == 'teamsPane') {
@@ -693,11 +785,13 @@ class MainInterface extends React.Component{
     }.bind(this)); //filteredTeams.map
     filteredGames=filteredGames.map(function(item, index) {
       return(
-        <GameListEntry key = {index}
+        <GameListEntry key = {item.team1 + item.team2 + item.round + (this.state.uncheckGames ? '*' : '')}
           singleItem = {item}
           whichItem =  {item}
           onDelete = {this.deleteGame}
           onOpenGame = {this.openGameForEdit}
+          onSelectGame = {this.onSelectGame}
+          selected = {this.state.selectedGames.includes(item)}
         />
       ) // return
     }.bind(this)); //filteredGames.map
@@ -738,6 +832,12 @@ class MainInterface extends React.Component{
             divisions = {this.state.divisions}
             handleSubmit = {this.submitDivAssignments}
           />
+          <PhaseAssignModal key={JSON.stringify(this.state.divisions) + this.state.uncheckGames + 'games'}
+            isOpen = {this.state.phaseWindowVisible}
+            gamesToAssign = {this.state.selectedGames}
+            divisions = {this.state.divisions}
+            handleSubmit = {this.submitPhaseAssignments}
+          />
 
           <div className="row">
             <div id="main-window" className="col s12 m12 l8">
@@ -751,8 +851,11 @@ class MainInterface extends React.Component{
                 whichPaneActive = {activePane}
                 viewingPhase = {this.state.viewingPhase}
                 anyTeamSelected = {this.state.selectedTeams.length > 0}
+                anyGameSelected = {this.state.selectedGames.length > 0}
                 divisions = {this.state.divisions}
+                usingPhases = {usingPhases}
                 openDivModal = {this.openDivModal}
+                openPhaseModal = {this.openPhaseModal}
               />
               <SettingsForm
                 whichPaneActive = {activePane}

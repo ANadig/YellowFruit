@@ -302,11 +302,6 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 22px;
 }
 
-.collection-item [type="checkbox"] {
-  width: 16px;
-  height: 16px;
-}
-
 .collection-item .game-name {
   display: inline-block;
   font-weight: bold;
