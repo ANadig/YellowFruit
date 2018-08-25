@@ -706,6 +706,16 @@ class MainInterface extends React.Component{
       checkGameToggle: !this.state.checkGameToggle
     });
     ipc.sendSync('unsavedData');
+  }//submitPhaseAssignments
+
+  teamBelongsToCurrentPhase(team) {
+    if(this.state.viewingPhase == 'all') { return true; }
+    return team.divisions[this.state.viewingPhase] != undefined;
+  }
+
+  gameBelongsToCurrentPhase(game) {
+    if(this.state.viewingPhase == 'all') { return true; }
+    return game.phases.includes(this.state.viewingPhase);
   }
 
 
@@ -746,12 +756,13 @@ class MainInterface extends React.Component{
     }
 
     if (activePane == 'teamsPane') {
-      filteredGames = myGames.slice(); // don't filter games
+      filteredGames = myGames; // don't filter games
       //Filter list of teams
       for (var i = 0; i < myTeams.length; i++) {
         if (
-          (myTeams[i].teamName.toLowerCase().indexOf(queryText)!=-1) ||
-          (myTeams[i].roster.join(', ').toLowerCase().indexOf(queryText)!=-1)
+          ((myTeams[i].teamName.toLowerCase().indexOf(queryText)!=-1) ||
+          (myTeams[i].roster.join(', ').toLowerCase().indexOf(queryText)!=-1)) &&
+          this.teamBelongsToCurrentPhase(myTeams[i])
         ) {
           filteredTeams.push(myTeams[i]);
         }
@@ -762,12 +773,13 @@ class MainInterface extends React.Component{
     }
 
     else if (activePane == 'gamesPane') {
-      filteredTeams = myTeams.slice(); // don't filter teams
+      filteredTeams = myTeams; // don't filter teams
       //Filter list of games
       for (var i = 0; i < myGames.length; i++) {
         if (
-          (myGames[i].team1.toLowerCase().indexOf(queryText)!=-1) ||
-          (myGames[i].team2.toLowerCase().indexOf(queryText)!=-1)
+          ((myGames[i].team1.toLowerCase().indexOf(queryText)!=-1) ||
+          (myGames[i].team2.toLowerCase().indexOf(queryText)!=-1)) &&
+          this.gameBelongsToCurrentPhase(myGames[i])
         ) {
           filteredGames.push(myGames[i]);
         }
@@ -837,7 +849,7 @@ class MainInterface extends React.Component{
             forceReset = {this.state.forceResetForms}
             onForceReset = {this.onForceReset}
             isOpen = {this.state.gmWindowVisible}
-            teamData = {myTeams.slice()} 
+            teamData = {myTeams.slice()}
             hasTeamPlayedInRound = {this.hasTeamPlayedInRound}
           />
          <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkTeamToggle}
