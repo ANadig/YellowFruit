@@ -9690,7 +9690,7 @@ h6 {
   padding-left: 5px;
 }
 
-.settings-container {
+.container {
   width: 85%;
 }
 
@@ -9780,7 +9780,7 @@ h6 {
 }
 
 .game-comment {
-  color: #9e9e9e;
+  color: #989898;
 }
 
 .qb-validation-msg {
@@ -9803,6 +9803,10 @@ h6 {
 .qb-zero-state {
   padding-top: 37vh;
   text-align: center;
+}
+
+.collection {
+  margin-top: 40px;
 }
 
 .collection-item .item-delete {
@@ -9850,6 +9854,14 @@ h6 {
   color: #616161;
   font-size: 1.4em;
   padding-right: 5px;
+}
+
+.collection-item .roster-display {
+  color: #989898;
+}
+
+.collection-item .game-line-score {
+  color: #989898;
 }
 
 .collection-item .chip-wrapper {

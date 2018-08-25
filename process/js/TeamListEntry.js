@@ -102,7 +102,7 @@ class TeamListEntry extends React.Component{
           <button className={'btn-flat item-edit ' + this.canEdit()} title="Edit this team" onClick={this.editTeam}>
           <i className="material-icons">edit</i></button>
           {deleteButton}
-          <br/>{this.props.singleItem.roster.join(', ')}
+          <br/><span className="roster-display">{this.props.singleItem.roster.join(', ')}</span>
         </div>
       </a>
     )

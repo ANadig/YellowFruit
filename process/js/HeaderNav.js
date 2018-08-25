@@ -50,7 +50,8 @@ class HeaderNav extends React.Component{
   }
 
   getAssignmentButton() {
-    if(this.props.whichPaneActive == 'teamsPane' && this.props.anyTeamSelected) {
+    if(this.props.whichPaneActive == 'teamsPane' && this.props.usingDivisions
+      && this.props.anyTeamSelected) {
       return ( <button className="btn-flat waves-effect yellow-darken-3"
         onClick={this.openDivModal}>Assign Divisions</button> );
     }

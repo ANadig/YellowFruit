@@ -104,8 +104,9 @@ class MainInterface extends React.Component{
       myGames: [],
       selectedTeams: [],
       selectedGames: [],
-      uncheckTeams: false,
-      uncheckGames: false,
+      checkTeamToggle: false,
+      checkGameToggle: false,
+      settingsLoadToggle: false,
       activePane: 'settingsPane',  //settings, teams, or games
       viewingPhase: 'all', //'all' or the name of a user-defined phase
       forceResetForms: false,
@@ -192,23 +193,12 @@ class MainInterface extends React.Component{
   } //componentWillUnmount
 
   componentDidUpdate() {
-    //the point of this is to force each TeamListEntry and GameListEntry to
-    //re-render after a modal closes (the boolean forms part of each entry's key);
-    //otherwise their checkboxes won't clear when we need them to
-    if(this.state.uncheckTeams) {
-      this.setState({
-        uncheckTeams: false
-      });
-    }
-    if(this.state.uncheckGames) {
-      this.setState({
-        uncheckGames: false
-      });
-    }
+
   } //componentDidUpdate
 
   writeJSON(fileName) {
-    var fileString = JSON.stringify(this.state.myTeams) + '\nDivider_between_teams_and_games\n' +
+    var fileString = JSON.stringify(this.state.divisions) + '\ndivider_between_sections\n' +
+      JSON.stringify(this.state.myTeams) + '\ndivider_between_sections\n' +
       JSON.stringify(this.state.myGames);
     fs.writeFile(fileName, fileString, 'utf8', function(err) {
       if (err) { console.log(err); }
@@ -220,16 +210,21 @@ class MainInterface extends React.Component{
   loadTournament(fileName) {
     var fileString = fs.readFileSync(fileName, 'utf8');
     if(fileString != '') {
-      var [loadTeams, loadGames] = fileString.split('\nDivider_between_teams_and_games\n', 2);
+      var [loadDivisions, loadTeams, loadGames] = fileString.split('\ndivider_between_sections\n', 3);
+      loadDivisions = JSON.parse(loadDivisions);
       loadTeams = JSON.parse(loadTeams);
       loadGames = JSON.parse(loadGames);
     }
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
     this.setState({
+      divisions: loadDivisions,
       myTeams: loadTeams,
       myGames: loadGames,
+      settingsLoadToggle: !this.state.settingsLoadToggle
     });
+    //the value of settingsLoadToggle doesn't matter; it just needs to change
+    //in order to make the settings form load
   }
 
   //compile data for the stat report and write it to each html file
@@ -297,8 +292,9 @@ class MainInterface extends React.Component{
       myGames: [],
       selectedTeams: [],
       selectedGames: [],
-      uncheckTeams: false,
-      uncheckGames: false,
+      checkTeamToggle: false,
+      checkGameToggle: false,
+      settingsLoadToggle: false,
       activePane: 'settingsPane',  //settings, teams, or games
       viewingPhase: 'all',
       forceResetForms: false,
@@ -341,8 +337,8 @@ class MainInterface extends React.Component{
       phaseWindowVisible: false,
       selectedTeams: [],
       selectedGames: [],
-      uncheckTeams: true,
-      uncheckGames: true,
+      checkTeamToggle: !this.state.checkTeamToggle,
+      checkGameToggle: !this.state.checkGameToggle,
       forceResetForms: true
     });
   }
@@ -683,8 +679,9 @@ class MainInterface extends React.Component{
       divWindowVisible: false,
       myTeams: allTeams,
       selectedTeams: [],
-      uncheckTeams: true
+      checkTeamToggle: !this.state.checkTeamToggle
     });
+    ipc.sendSync('unsavedData');
   }//submitDivAssignments
 
   //called when the phase modal is submitted
@@ -706,8 +703,9 @@ class MainInterface extends React.Component{
       myGames: allGames,
       phaseWindowVisible: false,
       selectedGames: [],
-      uncheckGames: true
+      checkGameToggle: !this.state.checkGameToggle
     });
+    ipc.sendSync('unsavedData');
   }
 
 
@@ -723,6 +721,10 @@ class MainInterface extends React.Component{
     var activePane = this.state.activePane;
     var numberOfPhases = Object.keys(this.state.divisions).length;
     var usingPhases = numberOfPhases > 1 ||  (numberOfPhases == 1 && this.state.divisions['noPhase'] == undefined);
+    var usingDivisions = false;
+    for (var phase in this.state.divisions) {
+      if(this.state.divisions[phase].length > 0) { usingDivisions = true; }
+    }
 
     $(document).ready(function(){ $('.tooltipped').tooltip(); }); //initialize tooltips
     $('select').formSelect(); //initialize all dropdowns
@@ -780,7 +782,7 @@ class MainInterface extends React.Component{
     filteredTeams=filteredTeams.map(function(item, index) {
       // var checked = this.state.selectedTeams.includes(item);
       return(
-        <TeamListEntry key = {item.teamName + (this.state.uncheckTeams ? '*' : '')}
+        <TeamListEntry key = {item.teamName + this.state.checkTeamToggle}
           singleItem = {item}
           whichItem =  {item}
           onDelete = {this.deleteTeam}
@@ -795,7 +797,7 @@ class MainInterface extends React.Component{
     }.bind(this)); //filteredTeams.map
     filteredGames=filteredGames.map(function(item, index) {
       return(
-        <GameListEntry key = {item.team1 + item.team2 + item.round + (this.state.uncheckGames ? '*' : '')}
+        <GameListEntry key = {item.team1 + item.team2 + item.round + this.state.checkGameToggle}
           singleItem = {item}
           whichItem =  {item}
           onDelete = {this.deleteGame}
@@ -838,13 +840,13 @@ class MainInterface extends React.Component{
             teamData = {myTeams.slice()} //copy array to prevent unwanted state updates
             hasTeamPlayedInRound = {this.hasTeamPlayedInRound}
           />
-         <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.uncheckTeams}
+         <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkTeamToggle}
             isOpen = {this.state.divWindowVisible}
             teamsToAssign = {this.state.selectedTeams}
             divisions = {this.state.divisions}
             handleSubmit = {this.submitDivAssignments}
           />
-          <PhaseAssignModal key={JSON.stringify(this.state.divisions) + this.state.uncheckGames + 'games'}
+          <PhaseAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkGameToggle + 'games'}
             isOpen = {this.state.phaseWindowVisible}
             gamesToAssign = {this.state.selectedGames}
             divisions = {this.state.divisions}
@@ -866,11 +868,13 @@ class MainInterface extends React.Component{
                 anyGameSelected = {this.state.selectedGames.length > 0}
                 divisions = {this.state.divisions}
                 usingPhases = {usingPhases}
+                usingDivisions = {usingDivisions}
                 openDivModal = {this.openDivModal}
                 openPhaseModal = {this.openPhaseModal}
               />
-              <SettingsForm
+              <SettingsForm key = {this.state.settingsLoadToggle}
                 whichPaneActive = {activePane}
+                divisions = {this.state.divisions}
                 saveDivisions = {this.saveDivisions}
               />
               <TeamList

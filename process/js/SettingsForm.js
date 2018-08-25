@@ -6,14 +6,21 @@ class SettingsForm extends React.Component{
 
   constructor(props) {
     super(props);
+    var divList = [], phaseAssnList = [];
+    for(var phase in props.divisions) {
+      for(var i in props.divisions[phase]) {
+        divList.push(props.divisions[phase][i]);
+        phaseAssnList.push(phase);
+      }
+    }
     this.state = {
       powers: '15pts',
       negs: 'yes',
       bonuses: 'noBb',
       playersPerTeam: '4',
-      phases: [],
-      divisions: [],
-      phaseAssignments: [],
+      phases: Object.keys(props.divisions),
+      divisions: divList,
+      phaseAssignments: phaseAssnList,
       editingSettings: false,
       editingDivisions: false,
       editingPhases: false,

@@ -134,8 +134,8 @@ class GameListEntry extends React.Component{
           <i className="material-icons">edit</i></button>
           <button className="secondary-content btn-flat item-delete" title="Remove this game" onClick={this.handleDelete}>
           <i className="material-icons">delete</i></button>
-          <br/>{this.props.singleItem.forfeit ? '' : this.getTeamLineScore(1)}
-          <br/>{this.props.singleItem.forfeit ? '' : this.getTeamLineScore(2)}
+          <br/><span className="game-line-score">{this.props.singleItem.forfeit ? '' : this.getTeamLineScore(1)}</span>
+          <br/><span className="game-line-score">{this.props.singleItem.forfeit ? '' : this.getTeamLineScore(2)}</span>
           <br/><span className="game-comment"><em>{this.props.singleItem.notes}</em></span>
         </div>
       </a>
