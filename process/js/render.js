@@ -837,7 +837,7 @@ class MainInterface extends React.Component{
             forceReset = {this.state.forceResetForms}
             onForceReset = {this.onForceReset}
             isOpen = {this.state.gmWindowVisible}
-            teamData = {myTeams.slice()} //copy array to prevent unwanted state updates
+            teamData = {myTeams.slice()} 
             hasTeamPlayedInRound = {this.hasTeamPlayedInRound}
           />
          <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkTeamToggle}

@@ -9732,7 +9732,9 @@ h6 {
 
 #addTeam {
   width: 80%;
+  margin-top: -2vh;
   max-height: 80%;
+  min-height: 80%;
   overflow-y: hidden;
 }
 

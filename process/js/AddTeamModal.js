@@ -9,7 +9,7 @@ class AddTeamModal extends React.Component{
     super(props);
     this.state = {
       teamName: '',
-      rosterString: '',
+      roster: [],
       divisions: {},
       originalTeamLoaded: null
     };
@@ -17,7 +17,23 @@ class AddTeamModal extends React.Component{
     this.loadTeam = this.loadTeam.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.handlePlayerChange = this.handlePlayerChange.bind(this);
     this.validateTeam = this.validateTeam.bind(this);
+  }
+
+  componentDidUpdate(prevProps) {
+    //needed so that labels aren't on top of data when the edit form opens
+    M.updateTextFields();
+    if(this.props.forceReset) {
+      this.resetState();
+      //setting mainInterface's forceReset to false will avoid infinite loop
+      this.props.onForceReset();
+    }
+    if(this.props.teamToLoad != null) {
+      this.loadTeam();
+      //setting mainInterface's editWhichTeam to null will avoid infinite loop
+      this.props.onLoadTeamInModal();
+    }
   }
 
   //called any time a value in the form changes
@@ -31,11 +47,23 @@ class AddTeamModal extends React.Component{
     this.setState(partialState);
   } //handleChange
 
+  handlePlayerChange(e) {
+    const target = e.target;
+    const value = target.value;
+    const name = target.name;
+    var whichPlayer = name.replace('player', '');
+    var tempPlayers = this.state.roster.slice();
+    tempPlayers[whichPlayer] = value;
+    this.setState({
+      roster: tempPlayers
+    });
+  }
+
   //once we're done with the form, erase the data from state
   resetState() {
     this.setState({
       teamName: '',
-      rosterString: '',
+      roster: [],
       divisions: {},
       originalTeamLoaded: null
     });
@@ -47,7 +75,7 @@ class AddTeamModal extends React.Component{
   loadTeam() {
     this.setState({
       teamName: this.props.teamToLoad.teamName,
-      rosterString: this.props.teamToLoad.roster.join('\n'),
+      roster: this.props.teamToLoad.roster,
       divisions: this.props.teamToLoad.divisions,
       originalTeamLoaded: this.props.teamToLoad
     });
@@ -58,9 +86,8 @@ class AddTeamModal extends React.Component{
   handleAdd(e) {
     e.preventDefault();
     if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
-    //split roster into array, trim each element, then remove blank lines
-    var rosterAry = this.state.rosterString.split('\n');
-    rosterAry = rosterAry.map(function(s,idx) { return s.trim(); });
+    //trim each player name, then remove blank lines
+    var rosterAry = this.state.roster.map(function(s,idx) { return s.trim(); });
     rosterAry = _.without(rosterAry, '');
 
     var tempItem = {
@@ -79,6 +106,7 @@ class AddTeamModal extends React.Component{
     this.resetState();
   } //handleAdd
 
+
   //title at the top left
   getModalHeader() {
     return this.props.addOrEdit == 'add' ? 'New team' : 'Edit team';
@@ -91,8 +119,7 @@ class AddTeamModal extends React.Component{
 
   //are there two players with the same name?
   rosterHasDups() {
-    var rosterAry = this.state.rosterString.split('\n');
-    rosterAry = rosterAry.map(function(item, idx) {
+    var rosterAry = this.state.roster.map(function(item, idx) {
       return item.toLowerCase().trim();
     });
     rosterAry = _.without(rosterAry, '');
@@ -103,6 +130,15 @@ class AddTeamModal extends React.Component{
     return false;
   }
 
+  //returns true if there's nothing but whitespace in the player fields
+  hasNoPlayers() {
+    var noPlayers = true;
+    for(var i in this.state.roster) {
+      if(this.state.roster[i].trim() != '') { noPlayers = false; }
+    }
+    return noPlayers;
+  }
+
   //verify that the form data can be submitted
   //returns [boolean, error level, error message]
   validateTeam() {
@@ -110,11 +146,11 @@ class AddTeamModal extends React.Component{
       return [false, 'error', 'There is already a team named ' + this.state.teamName];
     }
     if(this.state.teamName.trim() == '') { return [false, 'silent', '']; } //team name can't be just whitespace
-    if(this.state.rosterString.trim() == '') { return [false, 'silent', '']; } //likewise for roster
-    if(this.state.rosterString.split('\n').length > 30) {
+    if(this.hasNoPlayers()) { return [false, 'silent', '']; } //likewise for roster
+    if(this.state.roster.length > 30) {
       return [false, 'error', 'Cannot have more than 30 players on a team'];
     } // fairly aribitrary limit to make sure no one does anything ridiculous
-    if(this.rosterHasDups()) { return [true, 'error', 'Roster contains two or more players with the same name']; }
+    if(this.rosterHasDups()) { return [false, 'error', 'Roster contains two or more players with the same name']; }
     return [true, '', ''];
   }
 
@@ -134,22 +170,28 @@ class AddTeamModal extends React.Component{
     }
   }
 
-  componentDidUpdate(prevProps) {
-    //needed so that labels aren't on top of data when the edit form opens
-    M.updateTextFields();
-    if(this.props.forceReset) {
-      this.resetState();
-      //setting mainInterface's forceReset to false will avoid infinite loop
-      this.props.onForceReset();
-    }
-    if(this.props.teamToLoad != null) {
-      this.loadTeam();
-      //setting mainInterface's editWhichTeam to null will avoid infinite loop
-      this.props.onLoadTeamInModal();
-    }
+  getPlayerFields() {
+    var tempPlayers = this.state.roster.slice();
+    tempPlayers.push('');
+    var playerFields = tempPlayers.map(function(player, idx) {
+      return (
+        <li key={idx}>
+          <div className="input-field tight-input">
+          <input className="player-field" id={'player'+idx}
+            type="text" name={'player'+idx} placeholder="Add a player"
+            value={tempPlayers[idx]} onChange={this.handlePlayerChange}/>
+          </div>
+        </li>
+      );
+    }.bind(this));
+    return ( <ul>{playerFields}</ul> );
   }
 
+
+
+
   render() {
+    var playerFields = this.getPlayerFields();
     var [teamIsValid, errorLevel, errorMessage] = this.validateTeam();
 
     var errorIcon = this.getErrorIcon(errorLevel);
@@ -165,18 +207,12 @@ class AddTeamModal extends React.Component{
         <form onSubmit={this.handleAdd}>
           <div className="modal-content">
             <h4>{this.getModalHeader()}</h4>
-            <div className="row">
               <div className="input-field">
                 <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
                 <label htmlFor="teamName">Team Name</label>
               </div>
-            </div>
-            <div className="row">
-              <div className="input-field">
-                <textarea className="materialize-textarea" id="rosterString" name="rosterString" onChange={this.handleChange} value={this.state.rosterString} placeholder="One player per line" />
-                <label htmlFor="rosterString">Roster</label>
-              </div>
-            </div>
+            <span>Roster</span>
+            {playerFields}
           </div> {/* modal content */}
           <div className="modal-footer">
             <div className="row">
