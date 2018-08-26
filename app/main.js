@@ -318,6 +318,13 @@ app.on('ready', function() {
               if(focusedWindow) focusedWindow.webContents.send('clearSearch');
             }
           },
+          {
+            label: 'Search',
+            accelerator: 'CmdOrCtrl+F',
+            click (item, focusedWindow) {
+              if(focusedWindow) focusedWindow.webContents.send('focusSearch');
+            }
+          },
           {type: 'separator'},
           {
             label: 'Previous Page',

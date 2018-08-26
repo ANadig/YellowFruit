@@ -9747,8 +9747,17 @@ h6 {
   margin-bottom: 1em;
 }
 
+#addGame h4 {
+  padding-right: 10px;
+  display: inline-block;
+}
+
 .modal h6 {
   margin-top: 1.85em;
+}
+
+#addGame .chip {
+  margin-top: 19px;
 }
 
 .ot-stat-label {

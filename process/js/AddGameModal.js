@@ -4,6 +4,8 @@ var _ = require('lodash');
 var M = require('materialize-css');
 var TeamOption = require('./TeamOption');
 var PlayerRow = require('./PlayerRow');
+const chipColors = ['yellow', 'light-green', 'orange', 'light-blue',
+  'red', 'purple', 'teal', 'deep-purple'];
 
 
 class AddGameModal extends React.Component{
@@ -80,6 +82,7 @@ class AddGameModal extends React.Component{
   resetState() {
     this.setState({
       round: '',
+      phases: [],
       tuhtot: '',
       ottu: '',
       forfeit: false,
@@ -104,6 +107,7 @@ class AddGameModal extends React.Component{
     //why does it crash? I have no idea.
     this.setState({
       round: this.props.gameToLoad.round,
+      phases: this.props.gameToLoad.phases,
       tuhtot: this.props.gameToLoad.tuhtot,
       ottu: this.props.gameToLoad.ottu,
       forfeit: this.props.gameToLoad.forfeit,
@@ -133,6 +137,7 @@ class AddGameModal extends React.Component{
     var ot = this.state.ottu > 0; //clear OT data if no OT
     var tempItem = {
       round: this.state.round,
+      phases: this.props.addOrEdit == 'edit' ? this.state.phases : this.props.currentPhase,
       tuhtot: f ? '' : this.state.tuhtot,
       ottu: f ? '' : this.state.ottu,
       forfeit: this.state.forfeit,
@@ -401,9 +406,27 @@ class AddGameModal extends React.Component{
     }
   }
 
+  phaseChip(colorNo, phase) {
+    return (
+      <div key={phase} className={'chip accent-1 ' + chipColors[colorNo % chipColors.length]}>
+        {phase}
+      </div>
+    );
+  }
+
   render() {
     var [gameIsValid, errorLevel, errorMessage] = this.validateGame();
     var errorIcon = this.getErrorIcon(errorLevel);
+    var acceptHotKey = gameIsValid ? 'a' : '';
+
+    var phaseChips = [];
+    for(var i in this.props.allPhases) {
+      if((this.props.addOrEdit == 'add' && this.props.currentPhase == this.props.allPhases[i]) ||
+        (this.props.addOrEdit == 'edit' && this.state.phases.includes(this.props.allPhases[i]))) {
+        phaseChips.push(this.phaseChip(i, this.props.allPhases[i]));
+      }
+    }
+
 
     $(document).on("keypress", "#addGame :input:not(textarea)", function(event) {
       // return gameIsValid || event.keyCode != 13;
@@ -506,7 +529,11 @@ class AddGameModal extends React.Component{
             <div className="row game-entry-top-row">
               <div className="col s6">
                 <h4>{this.getModalHeader()}</h4>
+                {phaseChips}
               </div>
+            {/*  <div className="col s3">
+                {phaseChips}
+              </div> */}
               <div className="input-field col s3">
                 <input id="round" type="number" name="round" value={this.state.round} onChange={this.handleChange}/>
                 <label htmlFor="round">Round No.</label>
@@ -624,7 +651,7 @@ class AddGameModal extends React.Component{
                 <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
                   <span className="hotkey-underline">C</span>ancel
                 </button>&nbsp;
-                <button type="submit" accessKey={this.props.isOpen ? 'a' : ''}
+                <button type="submit" accessKey={acceptHotKey}
                 className={'modal-close btn green ' + this.disabledButton(gameIsValid)}>
                   {this.getSubmitWord()} G<span className="hotkey-underline">a</span>me
                 </button>

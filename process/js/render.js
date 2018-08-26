@@ -190,6 +190,9 @@ class MainInterface extends React.Component{
     ipc.on('nextPhase', function(event) {
       if(!this.anyModalOpen()) { this.nextPhase(); }
     }.bind(this));
+    ipc.on('focusSearch', function(event) {
+      $('#search').focus();
+    });
   } //componentDidMount
 
   componentWillUnmount() {
@@ -202,6 +205,11 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('newTournament');
     ipc.removeAllListeners('exportHtmlReport');
     ipc.removeAllListeners('clearSearch');
+    ipc.removeAllListeners('prevPage');
+    ipc.removeAllListeners('nextPage');
+    ipc.removeAllListeners('prevPhase');
+    ipc.removeAllListeners('nextPhase');
+    ipc.removeAllListeners('focusSearch');
   } //componentWillUnmount
 
   componentDidUpdate() {
@@ -531,21 +539,21 @@ class MainInterface extends React.Component{
   deleteTeam(item) {
     var newTeams = _.without(this.state.myTeams, item);
     var newSelected = _.without(this.state.selectedTeams, item);
-    ipc.sendSync('unsavedData');
     this.setState({
       myTeams: newTeams,
       selectedTeams: newSelected
     });
+    ipc.sendSync('unsavedData');
   } //deleteTeam
 
   //permanently delete a game
   deleteGame(item) {
     var allGames = this.state.myGames;
     var newGames = _.without(allGames, item);
-    ipc.sendSync('unsavedData');
     this.setState({
       myGames: newGames
     });
+    ipc.sendSync('unsavedData');
   } //deleteGame
 
   removeDivisionFromTeam(whichTeam, phase) {
@@ -555,6 +563,7 @@ class MainInterface extends React.Component{
     this.setState({
       myTeams: tempTeams
     });
+    ipc.sendSync('unsavedData');
   }
 
   removePhaseFromGame(whichGame, phase) {
@@ -564,6 +573,7 @@ class MainInterface extends React.Component{
     this.setState({
       myGames: tempGames
     });
+    ipc.sendSync('unsavedData');
   }
 
   //tell the team window to load a team
@@ -933,6 +943,8 @@ class MainInterface extends React.Component{
             isOpen = {this.state.gmWindowVisible}
             teamData = {myTeams.slice()}
             hasTeamPlayedInRound = {this.hasTeamPlayedInRound}
+            allPhases = {Object.keys(this.state.divisions)}
+            currentPhase = {this.state.viewingPhase}
           />
          <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkTeamToggle}
             isOpen = {this.state.divWindowVisible}

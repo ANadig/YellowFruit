@@ -193,8 +193,8 @@ class AddTeamModal extends React.Component{
   render() {
     var playerFields = this.getPlayerFields();
     var [teamIsValid, errorLevel, errorMessage] = this.validateTeam();
-
     var errorIcon = this.getErrorIcon(errorLevel);
+    var acceptHotKey = teamIsValid ? 'a' : '';
 
     //Don't allow Enter key to submit form
     $(document).on("keypress", "#addTeam :input:not(textarea)", function(event) {
@@ -223,7 +223,7 @@ class AddTeamModal extends React.Component{
                 <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
                   <span className="hotkey-underline">C</span>ancel
                 </button>&nbsp;
-                <button type="submit" accessKey={this.props.isOpen ? 'a' : ''} className={'modal-close btn green ' + this.disabledButton(teamIsValid)}>
+                <button type="submit" accessKey={acceptHotKey} className={'modal-close btn green ' + this.disabledButton(teamIsValid)}>
                   {this.getSubmitWord()} Te<span className="hotkey-underline">a</span>m
                 </button>
               </div>
