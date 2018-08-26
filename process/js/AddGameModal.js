@@ -137,7 +137,7 @@ class AddGameModal extends React.Component{
     var ot = this.state.ottu > 0; //clear OT data if no OT
     var tempItem = {
       round: this.state.round,
-      phases: this.props.addOrEdit == 'edit' ? this.state.phases : this.props.currentPhase,
+      phases: this.props.addOrEdit == 'edit' ? this.state.phases : [this.props.currentPhase],
       tuhtot: f ? '' : this.state.tuhtot,
       ottu: f ? '' : this.state.ottu,
       forfeit: this.state.forfeit,

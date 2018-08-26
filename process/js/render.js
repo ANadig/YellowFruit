@@ -812,6 +812,8 @@ class MainInterface extends React.Component{
 
 
 
+
+
   render() {
     var filteredTeams = [];
     var filteredGames = [];
@@ -878,7 +880,7 @@ class MainInterface extends React.Component{
       }
       // don't sort games right now
       filteredGames = _.orderBy(filteredGames, function(item) {
-        return item.round;
+        return +item.round;
       }, 'asc'); // order array
     }
 
