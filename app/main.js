@@ -313,11 +313,42 @@ app.on('ready', function() {
         submenu: [
           {
             label: 'View All',
-            accelerator: process.platform === 'darwin' ? 'Command+L' : 'Ctrl+L',
+            accelerator: 'CmdOrCtrl+L',
             click (item, focusedWindow) {
               if(focusedWindow) focusedWindow.webContents.send('clearSearch');
             }
           },
+          {type: 'separator'},
+          {
+            label: 'Previous Page',
+            accelerator: 'CmdOrCtrl+Left',
+            click (item, focusedWindow) {
+              if(focusedWindow) focusedWindow.webContents.send('prevPage');
+            }
+          },
+          {
+            label: 'Next Page',
+            accelerator: 'CmdOrCtrl+Right',
+            click (item, focusedWindow) {
+              if(focusedWindow) focusedWindow.webContents.send('nextPage');
+            }
+          },
+          {type: 'separator'},
+          {
+            label: 'Previous Phase',
+            accelerator: 'Alt+Left',
+            click (item, focusedWindow) {
+              if(focusedWindow) focusedWindow.webContents.send('prevPhase');
+            }
+          },
+          {
+            label: 'Next Phase',
+            accelerator: 'Alt+Right',
+            click (item, focusedWindow) {
+              if(focusedWindow) focusedWindow.webContents.send('nextPhase');
+            }
+          },
+          {type: 'separator'},
           {
             label: 'Reload',
             accelerator: 'CmdOrCtrl+R',

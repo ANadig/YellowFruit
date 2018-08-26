@@ -175,15 +175,24 @@ class SettingsForm extends React.Component{
   } //divisionToggle
 
   getSettingsButtonCaption() {
-    return this.state.editingSettings ? 'Save' : 'Edit';
+    if(this.state.editingSettings) {
+      return ( <span>S<span className="hotkey-underline">a</span>ve</span> );
+    }
+    return 'Edit';
   }
 
   getPhaseButtonCaption() {
-    return this.state.editingPhases ? 'Save' : 'Edit';
+    if(this.state.editingPhases) {
+      return ( <span>S<span className="hotkey-underline">a</span>ve</span> );
+    }
+    return 'Edit';
   }
 
   getDivisionButtonCaption() {
-    return this.state.editingDivisions ? 'Save' : 'Edit';
+    if(this.state.editingDivisions) {
+      return ( <span>S<span className="hotkey-underline">a</span>ve</span> );
+    }
+    return 'Edit';
   }
 
   //are there two players with the same name?
@@ -216,6 +225,42 @@ class SettingsForm extends React.Component{
     return null;
   }
 
+  //are there two divisions in the same phase with the same name?
+  divsHasDups() {
+    for(var i in this.state.divisions) {
+      for(var j=(+i)+1; j<this.state.divisions.length; j++) {
+        if(this.state.divisions[i].toLowerCase().trim() == this.state.divisions[j].toLowerCase().trim() &&
+          this.state.phaseAssignments[i] == this.state.phaseAssignments[j]) {
+            return true;
+          }
+      }
+    }
+    return false;
+  }
+
+  //add the disabled class to the save button if necessary
+  divisionSaveDisabled() {
+    return this.state.editingDivisions && this.divsHasDups() ? 'disabled' : '';
+  }
+
+  divisionSaveError() {
+    if(this.state.editingDivisions && this.divsHasDups()) {
+      return (
+        <div>
+          <i className="material-icons red-text text-darken-4 qb-modal-error">error</i>
+          &nbsp;Duplicate divisions
+        </div>
+      );
+    }
+    return null;
+  }
+
+  //are there errors anywhere? (If so, you will be forced to fix them)
+  togglesDisabled() {
+    return (this.state.editingPhases && this.phasesHasDups()) ||
+      (this.state.editingDivisions && this.divsHasDups());
+  }
+
   componentDidUpdate(prevProps) {
     if(this.state.needToReRender) {
       this.setState({
@@ -236,15 +281,25 @@ class SettingsForm extends React.Component{
     var settingsDisabled = this.state.editingSettings ? '' : 'disabled';
     var phaseCard, divisionCard, phasePickers, playersPerTeamDisplay;
     var phaseError = this.phaseSaveError();
+    var divisionError = this.divisionSaveError();
     var phaseSaveDisabled = this.phaseSaveDisabled();
+    var divisionSaveDisabled = this.divisionSaveDisabled();
+    var togglesDisabled = this.togglesDisabled() ? 'disabled' : '';
+    var settingsHotKey = this.state.editingSettings ? 'a' : '';
+    var phaseHotKey = phaseError == null && this.state.editingPhases ? 'a' : '';
+    var divHotKey = divisionError == null && this.state.editingDivisions ? 'a' : '';
 
     if(!this.state.editingDivisions) {
       var divList = this.state.divisions.map(function(divName, idx) {
         var pa = this.state.phaseAssignments[idx];
-        var phaseAssn = (pa == undefined || pa == '') ? 'No phase' : pa;
+        var phaseAssn = '';
+        if(this.state.phases.length > 0 && (pa == undefined || pa == '')) {
+          phaseAssn = ( <span className="noPhase">(No phase)</span> );
+        }
+        else if(pa != undefined && pa != '') { phaseAssn = '(' + pa + ')'; }
         return (
           <div  key={idx} className="col s12">
-            <li>{divName + ' (' + phaseAssn + ')'}</li>
+            <li>{divName}&nbsp;{phaseAssn}</li>
           </div>
         );
       }.bind(this));
@@ -264,34 +319,38 @@ class SettingsForm extends React.Component{
           </li>
         );
       }.bind(this));
+      var columnWidth = this.state.phases.length > 0 ? 's6' : 's12';
       divisionCard = (
-        <div className="col s6">
+        <div className={'col ' + columnWidth}>
           <ul>{divFields}</ul>
         </div>
       );
 
-      var phaseOptionList = this.state.phases.map(function(phaseName, idx) {
-        return (<option key={idx} value={phaseName}>{phaseName}</option>);
-      });
-      var nullOption = (<option key={-1} value="nullPhase">Phase...</option>);
-      phaseOptionList = [nullOption].concat(phaseOptionList);
-      var phasePickerElems = divFields.map(function(item, idx) {
-        return (
-          <li key={idx}>
-            <div className="input-field tight-input">
-              <select id={'phaseAssn'+idx} name={'phaseAssn'+idx}
-              value={this.state.phaseAssignments[idx]} onChange={this.handlePhaseAssnChange}>
-                {phaseOptionList}
-              </select>
-            </div>
-          </li>
+      if(this.state.phases.length == 0) { phasePickers = null; }
+      else {
+        var phaseOptionList = this.state.phases.map(function(phaseName, idx) {
+          return (<option key={idx} value={phaseName}>{phaseName}</option>);
+        });
+        var nullOption = (<option key={-1} value="nullPhase">Phase...</option>);
+        phaseOptionList = [nullOption].concat(phaseOptionList);
+        var phasePickerElems = divFields.map(function(item, idx) {
+          return (
+            <li key={idx}>
+              <div className="input-field tight-input">
+                <select id={'phaseAssn'+idx} name={'phaseAssn'+idx}
+                value={this.state.phaseAssignments[idx]} onChange={this.handlePhaseAssnChange}>
+                  {phaseOptionList}
+                </select>
+              </div>
+            </li>
+          );
+        }.bind(this));
+        phasePickers = (
+          <div className="col s6">
+            <ul>{phasePickerElems}</ul>
+          </div>
         );
-      }.bind(this));
-      phasePickers = (
-        <div className="col s6">
-          <ul>{phasePickerElems}</ul>
-        </div>
-      );
+      }//else we need phasePickers
     } //else editing divisions
 
     if(!this.state.editingPhases) {
@@ -409,7 +468,8 @@ class SettingsForm extends React.Component{
 
                 </div>
                 <div className="card-action">
-                  <button className="btn-flat" onClick={this.settingsToggle}>
+                  <button className={"btn-flat " + togglesDisabled}
+                    accessKey={settingsHotKey} onClick={this.settingsToggle}>
                   {this.getSettingsButtonCaption()}</button>
                 </div>
               </div>
@@ -424,7 +484,8 @@ class SettingsForm extends React.Component{
                     {phaseError}
                 </div>
                 <div className="card-action">
-                  <button className={'btn-flat ' + phaseSaveDisabled} onClick={this.phaseToggle}>
+                  <button className={'btn-flat ' + togglesDisabled}
+                    accessKey={phaseHotKey} onClick={this.phaseToggle}>
                   {this.getPhaseButtonCaption()}</button>
                 </div>
               </div>
@@ -439,9 +500,11 @@ class SettingsForm extends React.Component{
                     {divisionCard}
                     {phasePickers}
                   </div>
+                  {divisionError}
                 </div>
                 <div className="card-action">
-                  <button className="btn-flat" onClick={this.divisionToggle}>
+                  <button className={"btn-flat " + togglesDisabled}
+                    accessKey={divHotKey} onClick={this.divisionToggle}>
                   {this.getDivisionButtonCaption()}</button>
                 </div>
               </div>

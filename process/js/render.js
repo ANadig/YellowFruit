@@ -176,7 +176,19 @@ class MainInterface extends React.Component{
       this.writeStatReport(fileStart);
     }.bind(this));
     ipc.on('clearSearch', function(event) {
-      this.clearSearch();
+      if(!this.anyModalOpen()) { this.clearSearch(); }
+    }.bind(this));
+    ipc.on('prevPage', function(event) {
+      if(!this.anyModalOpen()) { this.previousPage(); }
+    }.bind(this));
+    ipc.on('nextPage', function(event) {
+      if(!this.anyModalOpen()) { this.nextPage(); }
+    }.bind(this));
+    ipc.on('prevPhase', function(event) {
+      if(!this.anyModalOpen()) { this.previousPhase(); }
+    }.bind(this));
+    ipc.on('nextPhase', function(event) {
+      if(!this.anyModalOpen()) { this.nextPhase(); }
     }.bind(this));
   } //componentDidMount
 
@@ -306,10 +318,76 @@ class MainInterface extends React.Component{
   }
 
   //clear text from the search bar in order to show all teams/games
+  //and remove any phase filter
   clearSearch() {
+    if(this.state.activePane == 'settingsPane') { return; }
     $('#search').val('');
     this.setState({
-      queryText: ''
+      queryText: '',
+      viewingPhase: 'all'
+    });
+  }
+
+  anyModalOpen() {
+    return this.state.tmWindowVisible || this.state.gmWindowVisible ||
+      this.state.divWindowVisible || this.state.phaseWindowVisible;
+  }
+
+  //navigate between settings/teams/games
+  previousPage() {
+    var newPane = 'settingsPane';
+    if(this.state.activePane == 'settingsPane') { newPane = 'gamesPane'; }
+    else if(this.state.activePane == 'teamsPane') { newPane = 'settingsPane'; }
+    else if(this.state.activePane == 'gamesPane') { newPane = 'teamsPane'; }
+    this.setState({
+      activePane: newPane
+    });
+  }//previousPage
+
+  //navigate between settings/teams/games
+  nextPage() {
+    var newPane = 'settingsPane';
+    if(this.state.activePane == 'settingsPane') { newPane = 'teamsPane'; }
+    else if(this.state.activePane == 'teamsPane') { newPane = 'gamesPane'; }
+    else if(this.state.activePane == 'gamesPane') { newPane = 'settingsPane'; }
+    this.setState({
+      activePane: newPane
+    });
+  }//previousPage
+
+  //navigate through phases
+  previousPhase() {
+    if(this.state.activePane == 'settingsPane') { return; }
+    var newPhase = 'all';
+    var phaseList = Object.keys(this.state.divisions);
+    if(this.state.viewingPhase == 'all') {
+      newPhase = phaseList[phaseList.length-1];
+    }
+    else {
+      var curPhaseNo = phaseList.indexOf(this.state.viewingPhase);
+      if(curPhaseNo <= 0) { newPhase = 'all'; }
+      else { newPhase = phaseList[curPhaseNo-1]; }
+    }
+    this.setState({
+      viewingPhase: newPhase
+    });
+  }
+
+  //navigate through phases
+  nextPhase() {
+    if(this.state.activePane == 'settingsPane') { return; }
+    var newPhase = 'all';
+    var phaseList = Object.keys(this.state.divisions);
+    if(this.state.viewingPhase == 'all') {
+      newPhase = phaseList[0];
+    }
+    else {
+      var curPhaseNo = phaseList.indexOf(this.state.viewingPhase);
+      if(curPhaseNo == phaseList.length-1) { newPhase = 'all'; }
+      else { newPhase = phaseList[curPhaseNo+1]; }
+    }
+    this.setState({
+      viewingPhase: newPhase
     });
   }
 
@@ -586,7 +664,7 @@ class MainInterface extends React.Component{
     if(newPhases.length == 0) {
       tempDivisions.noPhase = newDivAry;
     }
-    else {
+    else { //populate divisions
       for(var i in newPhases) {
         tempDivisions[newPhases[i]] = [];
         for(var j in newDivAry) {
@@ -615,10 +693,14 @@ class MainInterface extends React.Component{
         }
       }
     }
+    var newViewingPhase = this.state.viewingPhase
+    if(!newPhases.includes(newViewingPhase)) { newViewingPhase = 'all'; }
+
     this.setState({
       divisions: tempDivisions,
       myTeams: tempTeams,
-      myGames: tempGames
+      myGames: tempGames,
+      viewingPhase: newViewingPhase
     });
     ipc.sendSync('unsavedData');
   } //saveDivisions
