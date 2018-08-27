@@ -43,10 +43,9 @@ class StatSidebar extends React.Component{
     return t.bHeard == 0 ? 0 : (t.bPts / t.bHeard);
   }
 
-  render(){
-    var sortedSummary = this.standingsSort(this.props.standings.slice());
-
-    var summaryRows = sortedSummary.map(function(item, index) {
+  //standings to the teams in a single division
+  getTable(teams, division) {
+    var rows = teams.map((item, index) => {
       var ppg = this.getPpg(item);
       var ppb = this.getPpb(item);
       return (
@@ -58,10 +57,11 @@ class StatSidebar extends React.Component{
           <td>{ppb.toFixed(2)}</td>
         </tr>
       )
-    }.bind(this));
-
-    return(
-      <div>
+    });
+    var header = division == 'noDiv' ? null : ( <h5>{division}</h5> );
+    return (
+      <div key={division}>
+        {header}
         <table className="striped">
           <thead>
             <tr>
@@ -73,9 +73,30 @@ class StatSidebar extends React.Component{
             </tr>
           </thead>
           <tbody>
-            {summaryRows}
+            {rows}
           </tbody>
         </table>
+      </div>
+    );
+  } //getTable
+
+  render(){
+    var sortedSummary = this.standingsSort(this.props.standings.slice());
+    var tables = [];
+    if(this.props.divisions != undefined && this.props.divisions.length > 0) {
+      for(var i in this.props.divisions) {
+        var teamsInDiv = _.filter(sortedSummary,
+          (t) => {return t.division == this.props.divisions[i]});
+        tables.push(this.getTable(teamsInDiv, this.props.divisions[i]));
+      }
+    }
+    else {
+      tables.push(this.getTable(sortedSummary, 'noDiv'));
+    }
+
+    return(
+      <div>
+        {tables}
       </div>
     )
   }

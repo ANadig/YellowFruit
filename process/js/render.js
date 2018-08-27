@@ -32,10 +32,13 @@ function gameEqual(g1, g2) {
     g1.notes == g2.notes;
 }
 
-function getSmallStandings(myTeams,myGames) {
+//standings for the stat sidebar
+function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase) {
+  console.log('games: ' + gamesPhase + ', grouping: ' + groupingPhase);
   var summary = myTeams.map(function(item, index) {
     var obj =
       { teamName: item.teamName,
+        division: item.divisions[groupingPhase], //could be 'noPhase'
         wins: 0,
         losses: 0,
         ties: 0,
@@ -48,39 +51,41 @@ function getSmallStandings(myTeams,myGames) {
   }); //map
   for(var i in myGames) {
     var g = myGames[i];
-    var idx1 = _.findIndex(summary, function (o) {
-      return o.teamName == g.team1;
-    });
-    var idx2 = _.findIndex(summary, function (o) {
-      return o.teamName == g.team2;
-    });
-    if(g.forfeit) { //team1 is by default the winner of a forfeit
-      summary[idx1].wins += 1;
-      summary[idx2].losses += 1;
-      summary[idx1].forfeits += 1;
-      summary[idx2].forfeits += 1;
-    }
-    else { //not a forfeit
-      if(g.score1 > g.score2) {
+    if(gamesPhase == 'all' || g.phases.includes(gamesPhase)) {
+      var idx1 = _.findIndex(summary, function (o) {
+        return o.teamName == g.team1;
+      });
+      var idx2 = _.findIndex(summary, function (o) {
+        return o.teamName == g.team2;
+      });
+      if(g.forfeit) { //team1 is by default the winner of a forfeit
         summary[idx1].wins += 1;
         summary[idx2].losses += 1;
+        summary[idx1].forfeits += 1;
+        summary[idx2].forfeits += 1;
       }
-      else if(g.score2 > g.score1) {
-        summary[idx1].losses += 1;
-        summary[idx2].wins += 1;
-      }
-      else { //it's a tie
-        summary[idx1].ties += 1;
-        summary[idx2].ties += 1;
-      }
-      summary[idx1].points += parseFloat(g.score1) - otPoints(g, 1);
-      summary[idx2].points += parseFloat(g.score2) - otPoints(g, 2);
-      summary[idx1].bHeard += bonusesHeard(g,1);
-      summary[idx2].bHeard += bonusesHeard(g,2);
-      summary[idx1].bPts += bonusPoints(g,1);
-      summary[idx2].bPts += bonusPoints(g,2);
-    }
-  }
+      else { //not a forfeit
+        if(g.score1 > g.score2) {
+          summary[idx1].wins += 1;
+          summary[idx2].losses += 1;
+        }
+        else if(g.score2 > g.score1) {
+          summary[idx1].losses += 1;
+          summary[idx2].wins += 1;
+        }
+        else { //it's a tie
+          summary[idx1].ties += 1;
+          summary[idx2].ties += 1;
+        }
+        summary[idx1].points += parseFloat(g.score1) - otPoints(g, 1);
+        summary[idx2].points += parseFloat(g.score2) - otPoints(g, 2);
+        summary[idx1].bHeard += bonusesHeard(g,1);
+        summary[idx2].bHeard += bonusesHeard(g,2);
+        summary[idx1].bPts += bonusPoints(g,1);
+        summary[idx2].bPts += bonusPoints(g,2);
+      }//else not a forfeit
+    }//if game is in phase
+  }//loop over games
   return summary;
 }
 
@@ -109,6 +114,7 @@ class MainInterface extends React.Component{
       settingsLoadToggle: false,
       activePane: 'settingsPane',  //settings, teams, or games
       viewingPhase: 'all', //'all' or the name of a user-defined phase
+      defaultPhase: 'noPhase',
       forceResetForms: false,
       editWhichTeam: null,
       tmAddOrEdit: 'add', //either 'add' or 'edit'
@@ -144,6 +150,7 @@ class MainInterface extends React.Component{
     this.submitPhaseAssignments = this.submitPhaseAssignments.bind(this);
     this.removeDivisionFromTeam = this.removeDivisionFromTeam.bind(this);
     this.removePhaseFromGame = this.removePhaseFromGame.bind(this);
+    this.setDefaultGrouping = this.setDefaultGrouping.bind(this);
   }
 
   componentDidMount() {
@@ -234,6 +241,7 @@ class MainInterface extends React.Component{
       loadDivisions = JSON.parse(loadDivisions);
       loadTeams = JSON.parse(loadTeams);
       loadGames = JSON.parse(loadGames);
+      var defPhase = Object.keys(loadDivisions)[0]; //could be 'noPhase'
     }
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
@@ -241,7 +249,8 @@ class MainInterface extends React.Component{
       divisions: loadDivisions,
       myTeams: loadTeams,
       myGames: loadGames,
-      settingsLoadToggle: !this.state.settingsLoadToggle
+      settingsLoadToggle: !this.state.settingsLoadToggle,
+      defaultPhase: defPhase
     });
     //the value of settingsLoadToggle doesn't matter; it just needs to change
     //in order to make the settings form load
@@ -314,8 +323,9 @@ class MainInterface extends React.Component{
       selectedGames: [],
       checkTeamToggle: false,
       checkGameToggle: false,
-      settingsLoadToggle: false,
+      settingsLoadToggle: !this.state.settingsLoadToggle,
       activePane: 'settingsPane',  //settings, teams, or games
+      defaultPhase: 'noPhase',
       viewingPhase: 'all',
       forceResetForms: false,
       editWhichTeam: null,
@@ -684,33 +694,45 @@ class MainInterface extends React.Component{
         }
       }
     }
+    //delete team's division if the phase doesn't exist or doesn't have that division
     var tempTeams = this.state.myTeams;
     for(var i in tempTeams) {
       for(var phase in tempTeams[i].divisions) {
         if(tempDivisions[phase] == undefined ||
             !tempDivisions[phase].includes(tempTeams[i].divisions[phase])) {
-          //delete team's division if the phase doesn't exist or doesn't have that division
           delete tempTeams[i].divisions[phase];
         }
       }
     }
+    //delete phases in the game data that no longer exist
     var tempGames = this.state.myGames;
     for(var i in tempGames) {
       var phases = tempGames[i].phases;
       for(var j in phases) {
         if(!Object.keys(tempDivisions).includes(phases[j])) {
-          _.pull(phases, phases[j]); //delete phases that no longer exist
+          _.pull(phases, phases[j]);
         }
       }
     }
-    var newViewingPhase = this.state.viewingPhase
+    //can't be viewing a phase that doesn't exist
+    var newViewingPhase = this.state.viewingPhase;
     if(!newPhases.includes(newViewingPhase)) { newViewingPhase = 'all'; }
+    //also can't have a default grouping phase that doesn't exist
+    var newDefaultPhase = this.state.defaultPhase;
+    var reloadSettingsPane = this.state.settingsLoadToggle;
+    if(!newPhases.includes(newDefaultPhase)) {
+      reloadSettingsPane = !this.state.settingsLoadToggle; //so UI will update
+      if(newPhases.length > 0) { newDefaultPhase = newPhases[0]; }
+      else { newDefaultPhase = 'noPhase'; }
+    }
 
     this.setState({
       divisions: tempDivisions,
       myTeams: tempTeams,
       myGames: tempGames,
-      viewingPhase: newViewingPhase
+      viewingPhase: newViewingPhase,
+      defaultPhase: newDefaultPhase,
+      settingsLoadToggle: reloadSettingsPane
     });
     ipc.sendSync('unsavedData');
   } //saveDivisions
@@ -810,6 +832,13 @@ class MainInterface extends React.Component{
     return game.phases.includes(this.state.viewingPhase);
   }
 
+  //set which phases's divisions will be used when viewing all games
+  setDefaultGrouping(phase) {
+    this.setState({
+      defaultPhase: phase
+    });
+  }
+
 
 
 
@@ -829,6 +858,8 @@ class MainInterface extends React.Component{
     for (var phase in this.state.divisions) {
       if(this.state.divisions[phase].length > 0) { usingDivisions = true; }
     }
+    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.defaultPhase : this.state.viewingPhase;
+    var divsInPhase = this.state.divisions[phaseToGroupBy];
 
     $(document).ready(function(){ $('.tooltipped').tooltip(); }); //initialize tooltips
     $('select').formSelect(); //initialize all dropdowns
@@ -984,6 +1015,7 @@ class MainInterface extends React.Component{
                 whichPaneActive = {activePane}
                 divisions = {this.state.divisions}
                 saveDivisions = {this.saveDivisions}
+                setDefaultGrouping = {this.setDefaultGrouping}
               />
               <TeamList
                 whichPaneActive = {activePane}
@@ -1001,7 +1033,8 @@ class MainInterface extends React.Component{
             </div>
             <div id="stat-sidebar" className="col l4 hide-on-med-and-down">
               <StatSidebar
-                standings = {getSmallStandings(myTeams, myGames)}
+                standings = {getSmallStandings(myTeams, myGames, this.state.viewingPhase, phaseToGroupBy)}
+                divisions = {divsInPhase}
               />
             </div>
 

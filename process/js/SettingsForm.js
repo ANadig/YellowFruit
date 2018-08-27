@@ -1,6 +1,7 @@
 var React = require('react');
 var _ = require('lodash');
 var $ = require('jquery');
+const defPhaseTooltip = 'Team standings are grouped by this phase\'s divisions when all games are shown';
 
 class SettingsForm extends React.Component{
 
@@ -10,21 +11,24 @@ class SettingsForm extends React.Component{
     for(var phase in props.divisions) {
       for(var i in props.divisions[phase]) {
         divList.push(props.divisions[phase][i]);
-        phaseAssnList.push(phase);
+        if(phase != 'noPhase') { phaseAssnList.push(phase); }
       }
     }
+    var allPhases = Object.keys(props.divisions);
+    var firstPhase = allPhases.length == 0 ? 'noPhase' : allPhases[0];
     this.state = {
       powers: '15pts',
       negs: 'yes',
       bonuses: 'noBb',
       playersPerTeam: '4',
-      phases: Object.keys(props.divisions),
+      phases: _.without(allPhases, 'noPhase'),
       divisions: divList,
       phaseAssignments: phaseAssnList,
+      defaultPhase: firstPhase,
       editingSettings: false,
       editingDivisions: false,
       editingPhases: false,
-      needToReRender: false,
+      needToReRender: false
     }
     this.handleChange = this.handleChange.bind(this);
     this.handlePhaseChange = this.handlePhaseChange.bind(this);
@@ -33,6 +37,7 @@ class SettingsForm extends React.Component{
     this.divisionToggle = this.divisionToggle.bind(this);
     this.phaseToggle = this.phaseToggle.bind(this);
     this.settingsToggle = this.settingsToggle.bind(this);
+    this.setDefaultGrouping = this.setDefaultGrouping.bind(this);
   }
 
   //called any time a value in the form changes
@@ -261,6 +266,19 @@ class SettingsForm extends React.Component{
       (this.state.editingDivisions && this.divsHasDups());
   }
 
+  //set the default phase as the one that was just clicked on, unless, it's
+  //already the default, in which case remove the default
+  setDefaultGrouping(e) {
+    const target = e.target;
+    const name = target.name;
+    var newDefault = name == this.state.defaultPhase ? 'noPhase' : name;
+    this.setState({
+      defaultPhase: newDefault
+    });
+    this.props.setDefaultGrouping(newDefault);
+  }
+
+  //the component needs two renders to get the phase dropdowns to display immediately
   componentDidUpdate(prevProps) {
     if(this.state.needToReRender) {
       this.setState({
@@ -354,8 +372,14 @@ class SettingsForm extends React.Component{
     } //else editing divisions
 
     if(!this.state.editingPhases) {
-      var phaseList = this.state.phases.map(function(phaseName, idx) {
-        return (<li key={idx}>{phaseName}</li>);
+      var phaseList = this.state.phases.map((phaseName, idx) => {
+        var icon = this.state.defaultPhase == phaseName ?
+          ( <i className="material-icons" title={defPhaseTooltip}>playlist_add_check</i> ) : null;
+        return (
+          <li key={idx}>
+            <a onClick={this.setDefaultGrouping} name={phaseName}>{phaseName}</a>&nbsp;{icon}
+          </li>
+        );
       });
       phaseCard = (<ul>{phaseList}</ul>);
     }

@@ -82,6 +82,14 @@ h1, h2, h3, h4, h5, h6 {
   bottom: 0;
 }
 
+#stat-sidebar td, th {
+  padding: 8px 5px;
+}
+
+#stat-sidebar h5 {
+  margin-top: 10px;
+}
+
 
 /* keep things out of the sidebar */
 @media screen and (min-width: 993px) {
@@ -149,6 +157,20 @@ h1, h2, h3, h4, h5, h6 {
   padding-left: 2rem;
 }
 
+.settings-phases i {
+  vertical-align: bottom;
+  font-size: 1.5rem;
+}
+
+.settings-phases a {
+  color: black;
+}
+
+.settings-phases a:hover{
+  color: blue;
+  cursor: pointer;
+}
+
 .settings-divisions {
   top: 2rem;
   padding-left: 2rem;
@@ -176,7 +198,6 @@ h1, h2, h3, h4, h5, h6 {
   max-height: 80%;
   min-height: 80%;
   overflow-y: hidden;
-
 }
 
 .modal h4 {

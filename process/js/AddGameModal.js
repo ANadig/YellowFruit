@@ -333,6 +333,10 @@ class AddGameModal extends React.Component{
       if(players1[p].tuh > tuhtot) {
         return [false, 'error', 'One or more players have heard more than ' + tuhtot + ' tossups'];
       }
+      var tuAnswered = this.toNum(players1[p].powers) + this.toNum(players1[p].tens) + this.toNum(players1[p].negs);
+      if(this.toNum(players1[p].tuh) < tuAnswered) {
+        return [false, 'error', p + ' has more tossups answered than tossups heard']
+      }
       if(players1[p].tuh > 0) { anyPlayerTuHeard = true; }
     }
     if(!anyPlayerTuHeard) {
@@ -343,6 +347,10 @@ class AddGameModal extends React.Component{
     for(var p in players2) {
       if(players2[p].tuh > tuhtot) {
         return [false, 'error', 'One or more players have heard more than ' + tuhtot + ' tossups'];
+      }
+      var tuAnswered = this.toNum(players2[p].powers) + this.toNum(players2[p].tens) + this.toNum(players2[p].negs);
+      if(this.toNum(players2[p].tuh) < tuAnswered) {
+        return [false, 'error', p + ' has more tossups answered than tossups heard']
       }
       if(players2[p].tuh > 0) { anyPlayerTuHeard = true; }
     }
