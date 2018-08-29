@@ -50,18 +50,24 @@ class HeaderNav extends React.Component{
   }
 
   getAssignmentButton() {
-    if(this.props.whichPaneActive == 'teamsPane' && this.props.usingDivisions
-      && this.props.anyTeamSelected) {
-      return ( <button className="btn-flat waves-effect yellow-darken-3"
-        onClick={this.openDivModal}>Assign Divisions</button> );
+    if(this.props.whichPaneActive == 'teamsPane' && this.props.usingDivisions) {
+      var tooltip = 'Assign divisions to selected teams';
+      return (
+        <button className="btn-flat waves-effect yellow-darken-3 tooltipped"
+        data-tooltip={tooltip} accessKey="d" onClick={this.openDivModal}>
+          Assign <span className="hotkey-underline">D</span>ivisions
+        </button> );
     }
-    if(this.props.whichPaneActive == 'gamesPane' && this.props.usingPhases
-      && this.props.anyGameSelected) {
-        return ( <button className="btn-flat waves-effect yellow-darken-3"
-          onClick={this.openPhaseModal}>Assign Phases</button> );
+    if(this.props.whichPaneActive == 'gamesPane' && this.props.usingPhases) {
+      var tooltip = 'Assign phases to selected games';
+      return (
+        <button className="btn-flat waves-effect yellow-darken-3 tooltipped"
+        data-tooltip={tooltip} accessKey="p" onClick={this.openPhaseModal}>
+          Assign <span className="hotkey-underline">P</span>hases
+        </button> );
     }
     return null;
-  }
+  }//getAssignmentButton
 
   //tabs under the navbar for picking which phase you're viewing
   phaseTabs() {

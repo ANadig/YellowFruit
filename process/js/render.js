@@ -377,6 +377,8 @@ class MainInterface extends React.Component{
   previousPhase() {
     var newPhase = 'all';
     var phaseList = Object.keys(this.state.divisions);
+    phaseList = _.without(phaseList, 'noPhase');
+    if(phaseList.length == 0) { return; }
     if(this.state.viewingPhase == 'all') {
       newPhase = phaseList[phaseList.length-1];
     }
@@ -394,6 +396,8 @@ class MainInterface extends React.Component{
   nextPhase() {
     var newPhase = 'all';
     var phaseList = Object.keys(this.state.divisions);
+    phaseList = _.without(phaseList, 'noPhase');
+    if(phaseList.length == 0) { return; }
     if(this.state.viewingPhase == 'all') {
       newPhase = phaseList[0];
     }
@@ -767,6 +771,7 @@ class MainInterface extends React.Component{
 
   //modal for assigning teams to divisions
   openDivModal() {
+    if(this.state.selectedTeams.length == 0) { return; }
     this.setState({
       divWindowVisible: true
     });
@@ -774,6 +779,7 @@ class MainInterface extends React.Component{
 
   //modal for assigning games to phases
   openPhaseModal() {
+    if(this.state.selectedGames.length == 0) { return; }
     this.setState({
       phaseWindowVisible: true
     });
@@ -850,7 +856,6 @@ class MainInterface extends React.Component{
 
 
   render() {
-    console.log(this.state.divisions);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText;
@@ -935,6 +940,7 @@ class MainInterface extends React.Component{
           selected = {this.state.selectedTeams.includes(item)}
           numGamesPlayed = {gamesPlayed(item, myGames)}
           allPhases = {Object.keys(this.state.divisions)}
+          usingDivisions = {usingDivisions}
           removeDivision = {this.removeDivisionFromTeam}
         />
       ) // return
@@ -949,6 +955,7 @@ class MainInterface extends React.Component{
           onSelectGame = {this.onSelectGame}
           selected = {this.state.selectedGames.includes(item)}
           allPhases = {Object.keys(this.state.divisions)}
+          usingPhases = {usingPhases}
           removePhase = {this.removePhaseFromGame}
         />
       ) // return
@@ -1011,8 +1018,6 @@ class MainInterface extends React.Component{
                 setPhase = {this.setPhase}
                 whichPaneActive = {activePane}
                 viewingPhase = {this.state.viewingPhase}
-                anyTeamSelected = {this.state.selectedTeams.length > 0}
-                anyGameSelected = {this.state.selectedGames.length > 0}
                 divisions = {this.state.divisions}
                 usingPhases = {usingPhases}
                 usingDivisions = {usingDivisions}

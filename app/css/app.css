@@ -9857,6 +9857,7 @@ th {
 .collection-item:hover .item-delete {
   display: block;
   opacity: 1;
+  margin-top: -4px;
 }
 
 .collection-item .disabled-item-delete {
@@ -9869,6 +9870,7 @@ th {
 .collection-item:hover .disabled-item-delete {
   display: block;
   opacity: 1;
+  margin-top: -4px;
 }
 
 .disabled-item-delete:hover {
@@ -9884,6 +9886,8 @@ th {
 .collection-item:hover .item-edit {
   display: inline-block;
   opacity: 1;
+  height: 25px;
+  margin-top: -12px;
 }
 
 .collection-item .team-name {

@@ -85,16 +85,21 @@ class TeamListEntry extends React.Component{
       }
       colorNo += 1;
     }
+    var checkbox = null;
+    if(this.props.usingDivisions) {
+      checkbox = (
+        <label>
+          <input type="checkbox" className="filled-in team-checkbox" checked={this.state.selected}
+          title="Select to assign divisions" onChange={this.handleToggle}/>
+          <span>&nbsp;</span>
+        </label>
+      );
+    }
 
     return(
       <a className="collection-item">
         <div>
-          <label>
-            <input type="checkbox" className="filled-in team-checkbox" checked={this.state.selected}
-            title="Select to assign divisions" onChange={this.handleToggle}/>
-            <span>&nbsp;</span>
-          </label>
-
+          {checkbox}
           <div className="team-name">
             {this.props.singleItem.teamName}&emsp;
           </div>

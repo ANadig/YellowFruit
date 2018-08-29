@@ -291,6 +291,7 @@ h1, h2, h3, h4, h5, h6 {
 .collection-item:hover .item-delete {
   display: block;
   opacity: 1;
+  margin-top: -4px;
 }
 
 .collection-item .disabled-item-delete {
@@ -303,6 +304,7 @@ h1, h2, h3, h4, h5, h6 {
 .collection-item:hover .disabled-item-delete {
   display: block;
   opacity: 1;
+  margin-top: -4px;
 }
 
 .disabled-item-delete:hover {
@@ -318,6 +320,8 @@ h1, h2, h3, h4, h5, h6 {
 .collection-item:hover .item-edit {
   display: inline-block;
   opacity: 1;
+  height: 25px;
+  margin-top: -12px;
 }
 
 .collection-item .team-name {

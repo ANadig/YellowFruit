@@ -113,15 +113,21 @@ class GameListEntry extends React.Component{
       }
       colorNo += 1;
     }
+    var checkbox = null;
+    if(this.props.usingPhases) {
+      checkbox = (
+        <label>
+          <input type="checkbox" className="filled-in team-checkbox" checked={this.state.selected}
+          title="Select to assign phases" onChange={this.handleToggle}/>
+          <span>&nbsp;</span>
+        </label>
+      );
+    }
 
     return(
       <a className="collection-item">
         <div>
-          <label>
-            <input type="checkbox" className="filled-in team-checkbox" checked={this.state.selected}
-            title="Select to assign phases" onChange={this.handleToggle}/>
-            <span>&nbsp;</span>
-          </label>
+          {checkbox}
           <div className="game-name">
             {scoreStrings[0]}
             <span className={this.team1Format()}>{scoreStrings[1]}</span>
