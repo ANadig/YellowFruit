@@ -871,5 +871,5 @@ function getStatKeyHtml(fileStart) {
   var html = getStatReportTop('', fileStart);
   var statKeyBodyLocation = Path.resolve(__dirname, 'statKeyBody.html');
   html += fs.readFileSync(statKeyBodyLocation, 'utf8');
-  return html + getStatReportBottom;
+  return html + getStatReportBottom();
 }

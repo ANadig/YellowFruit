@@ -2,6 +2,7 @@ var React = require('react');
 var _ = require('lodash');
 var $ = require('jquery');
 const defPhaseTooltip = 'Team standings are grouped by this phase\'s divisions when all games are shown';
+const defPhaseLinkTooltip = 'Click to change how teams are grouped when viewing all games';
 
 class SettingsForm extends React.Component{
 
@@ -377,7 +378,8 @@ class SettingsForm extends React.Component{
           ( <i className="material-icons" title={defPhaseTooltip}>playlist_add_check</i> ) : null;
         return (
           <li key={idx}>
-            <a onClick={this.setDefaultGrouping} name={phaseName}>{phaseName}</a>&nbsp;{icon}
+            <a onClick={this.setDefaultGrouping} name={phaseName}
+            title={defPhaseLinkTooltip}>{phaseName}</a>&nbsp;{icon}
           </li>
         );
       });

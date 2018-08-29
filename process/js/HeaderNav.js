@@ -96,7 +96,7 @@ class HeaderNav extends React.Component{
   render() {
     var phaseTabs = null;
     var numberOfPhases = Object.keys(this.props.divisions).length;
-    if(this.props.usingPhases && this.props.whichPaneActive != 'settingsPane') {
+    if(this.props.usingPhases) {
       phaseTabs = this.phaseTabs()
     }
 

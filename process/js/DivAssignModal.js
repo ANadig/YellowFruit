@@ -32,17 +32,24 @@ class DivAssignModal extends React.Component{
   }
 
   //a set of radio buttons for selecting the divisions for a given phase
+  //an option for each division, plus an option not to change the division
+  //for that phase, and an option to remove divisions for that phase.
+  //If this function is called with "noPhase", don't provide the ignore option
+  //since there won't be multiple phases
   getPhaseSection(phase) {
     var divsInPhase = this.props.divisions[phase];
-    var ignoreOption = (
-      <p key={'ignore'}>
-        <label>
-          <input name={phase} type="radio" value="ignore"
-          checked={this.state.divSelections[phase] == 'ignore'} onChange={this.handleChange} />
-          <span>No change</span>
-        </label>
-      </p>
-    );
+    var ignoreOption = null;
+    if(phase != 'noPhase') {
+      ignoreOption = (
+        <p key={'ignore'}>
+          <label>
+            <input name={phase} type="radio" value="ignore"
+            checked={this.state.divSelections[phase] == 'ignore'} onChange={this.handleChange} />
+            <span>No change</span>
+          </label>
+        </p>
+      );
+    }
     var removeOption = (
       <p key={'remove'}>
         <label>
@@ -66,9 +73,10 @@ class DivAssignModal extends React.Component{
     }.bind(this));
     divRadios = [ignoreOption, removeOption].concat(divRadios);
 
+    var header = phase == 'noPhase' ? null : ( <h6>{phase}</h6> );
     return (
       <div key={phase} className="row">
-        <h6>{phase}</h6>
+        {header}
         {divRadios}
       </div>
     );
@@ -79,7 +87,10 @@ class DivAssignModal extends React.Component{
   render() {
     var phaseSections = [];
     for(var p in this.props.divisions) {
-      phaseSections.push(this.getPhaseSection(p));
+      //ignore unassigned divisions unless there are no phases at all
+      if(!this.props.usingPhases || p != 'noPhase') {
+        phaseSections.push(this.getPhaseSection(p));
+      }
     }
 
     return (

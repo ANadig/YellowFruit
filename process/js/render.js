@@ -34,7 +34,7 @@ function gameEqual(g1, g2) {
 
 //standings for the stat sidebar
 function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase) {
-  console.log('games: ' + gamesPhase + ', grouping: ' + groupingPhase);
+  // console.log('games: ' + gamesPhase + ', grouping: ' + groupingPhase);
   var summary = myTeams.map(function(item, index) {
     var obj =
       { teamName: item.teamName,
@@ -375,7 +375,6 @@ class MainInterface extends React.Component{
 
   //navigate through phases
   previousPhase() {
-    if(this.state.activePane == 'settingsPane') { return; }
     var newPhase = 'all';
     var phaseList = Object.keys(this.state.divisions);
     if(this.state.viewingPhase == 'all') {
@@ -393,7 +392,6 @@ class MainInterface extends React.Component{
 
   //navigate through phases
   nextPhase() {
-    if(this.state.activePane == 'settingsPane') { return; }
     var newPhase = 'all';
     var phaseList = Object.keys(this.state.divisions);
     if(this.state.viewingPhase == 'all') {
@@ -681,10 +679,10 @@ class MainInterface extends React.Component{
   //called when either phases or divisions are saved on the settings pane
   saveDivisions(newPhases, newDivAry, newPhaseAssignments) {
     var tempDivisions = {};
-    if(newPhases.length == 0) {
+    if(newPhases.length == 0 && newDivAry.length > 0) {
       tempDivisions.noPhase = newDivAry;
     }
-    else { //populate divisions
+    else { //populate divisions per phase
       for(var i in newPhases) {
         tempDivisions[newPhases[i]] = [];
         for(var j in newDivAry) {
@@ -693,6 +691,14 @@ class MainInterface extends React.Component{
           }
         }
       }
+      //divisions not assigned to a phase
+      var noPhase = [];
+      for(var i in newDivAry) {
+        if(newPhaseAssignments[i] == undefined) {
+          noPhase.push(newDivAry[i]);
+        }
+      }
+      if(noPhase.length > 0) { tempDivisions.noPhase = noPhase; }
     }
     //delete team's division if the phase doesn't exist or doesn't have that division
     var tempTeams = this.state.myTeams;
@@ -844,6 +850,7 @@ class MainInterface extends React.Component{
 
 
   render() {
+    console.log(this.state.divisions);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText;
@@ -984,6 +991,7 @@ class MainInterface extends React.Component{
             teamsToAssign = {this.state.selectedTeams}
             divisions = {this.state.divisions}
             handleSubmit = {this.submitDivAssignments}
+            usingPhases = {usingPhases}
           />
           <PhaseAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkGameToggle + 'games'}
             isOpen = {this.state.phaseWindowVisible}
