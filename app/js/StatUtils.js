@@ -148,7 +148,7 @@ function standingsRow(teamEntry, rank, fileStart) {
 }
 
 //gather data for the team standings
-function compileStandings(myTeams, myGames) {
+function compileStandings(myTeams, myGames, phase) {
   var standings = myTeams.map(function(item, index) {
     var obj =
       { teamName: item.teamName,
@@ -181,58 +181,60 @@ function compileStandings(myTeams, myGames) {
 
   for(var i in myGames) {
     var g = myGames[i];
-    var team1Line = _.find(standings, function (o) {
-      return o.teamName == g.team1;
-    });
-    var team2Line = _.find(standings, function (o) {
-      return o.teamName == g.team2;
-    });
-    if(g.forfeit) { //team1 is by default the winner of a forfeit
-      team1Line.wins += 1;
-      team2Line.losses += 1;
-      team1Line.forfeits += 1;
-      team2Line.forfeits += 1;
-    }
-    else { //not a forfeit
-      if(g.score1 > g.score2) {
+    if(phase == 'all' || g.phases.includes(phase)) {
+      var team1Line = _.find(standings, function (o) {
+        return o.teamName == g.team1;
+      });
+      var team2Line = _.find(standings, function (o) {
+        return o.teamName == g.team2;
+      });
+      if(g.forfeit) { //team1 is by default the winner of a forfeit
         team1Line.wins += 1;
         team2Line.losses += 1;
+        team1Line.forfeits += 1;
+        team2Line.forfeits += 1;
       }
-      else if(g.score2 > g.score1) {
-        team1Line.losses += 1;
-        team2Line.wins += 1;
-      }
-      else { //it's a tie
-        team1Line.ties += 1;
-        team2Line.ties += 1;
-      }
-      team1Line.points += +g.score1;
-      team2Line.points += +g.score2;
-      team1Line.ptsAgainst += +g.score2;
-      team2Line.ptsAgainst += +g.score1;
+      else { //not a forfeit
+        if(g.score1 > g.score2) {
+          team1Line.wins += 1;
+          team2Line.losses += 1;
+        }
+        else if(g.score2 > g.score1) {
+          team1Line.losses += 1;
+          team2Line.wins += 1;
+        }
+        else { //it's a tie
+          team1Line.ties += 1;
+          team2Line.ties += 1;
+        }
+        team1Line.points += +g.score1;
+        team2Line.points += +g.score2;
+        team1Line.ptsAgainst += +g.score2;
+        team2Line.ptsAgainst += +g.score1;
 
-      team1Line.tuh += +g.tuhtot;
-      team2Line.tuh += +g.tuhtot;
+        team1Line.tuh += +g.tuhtot;
+        team2Line.tuh += +g.tuhtot;
 
-      team1Line.powers += teamPowers(g, 1);
-      team2Line.powers += teamPowers(g, 2);
-      team1Line.tens += teamTens(g, 1);
-      team2Line.tens += teamTens(g, 2);
-      team1Line.negs += teamNegs(g, 1);
-      team2Line.negs += teamNegs(g, 2);
+        team1Line.powers += teamPowers(g, 1);
+        team2Line.powers += teamPowers(g, 2);
+        team1Line.tens += teamTens(g, 1);
+        team2Line.tens += teamTens(g, 2);
+        team1Line.negs += teamNegs(g, 1);
+        team2Line.negs += teamNegs(g, 2);
 
-      team1Line.bHeard += bonusesHeard(g,1);
-      team2Line.bHeard += bonusesHeard(g,2);
-      team1Line.bPts += bonusPoints(g,1);
-      team2Line.bPts += bonusPoints(g,2);
+        team1Line.bHeard += bonusesHeard(g,1);
+        team2Line.bHeard += bonusesHeard(g,2);
+        team1Line.bPts += bonusPoints(g,1);
+        team2Line.bPts += bonusPoints(g,2);
 
-      team1Line.otPts += otPoints(g, 1);
-      team2Line.otPts += otPoints(g, 2);
-      team1Line.otPtsAgainst += otPoints(g, 2);
-      team2Line.otPtsAgainst += otPoints(g, 1);
-      team1Line.ottuh += +g.ottu;
-      team2Line.ottuh += +g.ottu;
-    }
+        team1Line.otPts += otPoints(g, 1);
+        team2Line.otPts += otPoints(g, 2);
+        team1Line.otPtsAgainst += otPoints(g, 2);
+        team2Line.otPtsAgainst += otPoints(g, 1);
+        team1Line.ottuh += +g.ottu;
+        team2Line.ottuh += +g.ottu;
+      }//else not a forfeit
+    }//if game is in phase
   }//loop over all games
 
   for(var i in standings) {
@@ -304,7 +306,7 @@ function individualsRow(playerEntry, rank, fileStart) {
 }
 
 //calculate each column of data for the individual standings page
-function compileIndividuals(myTeams, myGames) {
+function compileIndividuals(myTeams, myGames, phase) {
   var individuals = [];
   for(var i in myTeams) {
     var t = myTeams[i];
@@ -330,28 +332,30 @@ function compileIndividuals(myTeams, myGames) {
   for(var i in myGames) {
     var pEntry, tuh;
     var g = myGames[i];
-    var players1 = g.players1, players2 = g.players2;
-    for(var p in players1) {
-      pEntry = _.find(individuals, function (o) {
-        return o.teamName == g.team1 && o.playerName == p;
-      });
-      var [tuh, powers, tens, negs] = playerSlashLine(players1[p]);
-      pEntry.gamesPlayed += tuh / (+g.tuhtot);
-      pEntry.powers += powers;
-      pEntry.tens += tens;
-      pEntry.negs += negs;
-      pEntry.tuh += tuh;
-    }
-    for(var p in players2) {
-      pEntry = _.find(individuals, function (o) {
-        return o.teamName == g.team2 && o.playerName == p;
-      });
-      var [tuh, powers, tens, negs] = playerSlashLine(players2[p]);
-      pEntry.gamesPlayed += tuh / (+g.tuhtot);
-      pEntry.powers += powers;
-      pEntry.tens += tens;
-      pEntry.negs += negs;
-      pEntry.tuh += tuh;
+    if(phase == 'all' || g.phases.includes(phase)) {
+      var players1 = g.players1, players2 = g.players2;
+      for(var p in players1) {
+        pEntry = _.find(individuals, function (o) {
+          return o.teamName == g.team1 && o.playerName == p;
+        });
+        var [tuh, powers, tens, negs] = playerSlashLine(players1[p]);
+        pEntry.gamesPlayed += tuh / (+g.tuhtot);
+        pEntry.powers += powers;
+        pEntry.tens += tens;
+        pEntry.negs += negs;
+        pEntry.tuh += tuh;
+      }
+      for(var p in players2) {
+        pEntry = _.find(individuals, function (o) {
+          return o.teamName == g.team2 && o.playerName == p;
+        });
+        var [tuh, powers, tens, negs] = playerSlashLine(players2[p]);
+        pEntry.gamesPlayed += tuh / (+g.tuhtot);
+        pEntry.powers += powers;
+        pEntry.tens += tens;
+        pEntry.negs += negs;
+        pEntry.tuh += tuh;
+      }
     }
   } //for loop for each game
 
@@ -383,11 +387,11 @@ function compileIndividuals(myTeams, myGames) {
 } //compileIndividuals
 
 //a list of the rounds for which there are games
-function getRoundsForScoreboard(myGames) {
+function getRoundsForScoreboard(myGames, phase) {
   var rounds = [];
   for(var i in myGames) {
     var roundNo = toNum(myGames[i].round);
-    if(!rounds.includes(roundNo)) {
+    if((phase == 'all' || myGames[i].phases.includes(phase)) && !rounds.includes(roundNo)) {
       rounds.push(roundNo);
     }
   }
@@ -400,11 +404,11 @@ function scoreboardRoundHeader(roundNo) {
 }
 
 //the html for all the game summaries for a single round
-function scoreboardGameSummaries(myGames, roundNo) {
+function scoreboardGameSummaries(myGames, roundNo, phase) {
   var html = '';
   for(var i in myGames) {
     var g = myGames[i];
-    if(g.round == roundNo) {
+    if((phase == 'all' || g.phases.includes(phase)) && g.round == roundNo) {
       if(g.forfeit) {
         html += '<br><font size=+1>' + g.team1 + ' defeats ' +
           g.team2 + ' by forfeit' + '</font><br>';
@@ -437,9 +441,9 @@ function scoreboardGameSummaries(myGames, roundNo) {
         bHeard = bonusesHeard(g, 2), bPts = bonusPoints(g, 2);
         ppb = bHeard == 0 ? 0 : bPts / bHeard;
         html += g.team2 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + '<br>';
-      }
-    }
-  }
+      }//else not a forfeit
+    }//if we want to show this game
+  }//loop over all games
   return html + '</font>' + '\n' + '</p>' + '\n';
 }
 
@@ -653,25 +657,25 @@ function playerDetailTotalRow(player) {
 }
 
 //aggregate round data for the round report
-function compileRoundSummaries(games) {
+function compileRoundSummaries(games, phase) {
   var summaries = [];
   for(var i in games) {
     var game = games[i];
     var round = game.round;
-    if(summaries[round] == undefined) {
-      summaries[round] = {
-        numberOfGames: 0,
-        totalPoints: 0,
-        tuPts: 0,
-        tuh: 0,
-        bPts: 0,
-        bHeard: 0,
-        ppg: 0,
-        tuPtsPTu: 0,
-        ppb: 0
+    if((phase == 'all' || game.phases.includes(phase)) && !game.forfeit) {
+      if(summaries[round] == undefined) {
+        summaries[round] = {
+          numberOfGames: 0,
+          totalPoints: 0,
+          tuPts: 0,
+          tuh: 0,
+          bPts: 0,
+          bHeard: 0,
+          ppg: 0,
+          tuPtsPTu: 0,
+          ppb: 0
+        }
       }
-    }
-    if(!game.forfeit) {
       var smry = summaries[round];
       smry.numberOfGames += 1;
       smry.totalPoints += (+game.score1) +
@@ -739,8 +743,8 @@ function getStatReportBottom() {
   '</HTML>';
 }
 
-function getStandingsHtml(teams, games, fileStart) {
-  var standings = compileStandings(teams, games);
+function getStandingsHtml(teams, games, fileStart, phase) {
+  var standings = compileStandings(teams, games, phase);
   var html = getStatReportTop('TeamStandings', fileStart) +
     '<h1> Team Standings</h1>' + '\n' +
     '<table border=1 width=100%>' + standingsHeader();
@@ -750,8 +754,8 @@ function getStandingsHtml(teams, games, fileStart) {
   return html + '\n' + '</table>' + '\n' + getStatReportBottom();
 }//getStandingsHtml
 
-function getIndividualsHtml(teams, games, fileStart) {
-  var individuals = compileIndividuals(teams, games);
+function getIndividualsHtml(teams, games, fileStart, phase) {
+  var individuals = compileIndividuals(teams, games, phase);
   var html = getStatReportTop('IndividualStandings', fileStart) +
     '<h1> Individual Statistics</h1>' + '\n' +
     '<table border=1 width=100%>' + individualsHeader();
@@ -761,22 +765,22 @@ function getIndividualsHtml(teams, games, fileStart) {
   return html + '\n' + '</table>' + '\n' +  getStatReportBottom();
 }
 
-function getScoreboardHtml(teams, games, fileStart) {
+function getScoreboardHtml(teams, games, fileStart, phase) {
   var html = getStatReportTop('Scoreboard', fileStart) +
     '<h1> Scoreboard</h1>' + '\n';
-  var roundList = getRoundsForScoreboard(games);
+  var roundList = getRoundsForScoreboard(games, phase);
   for(var r in roundList) {
     html += scoreboardRoundHeader(roundList[r]);
-    html += scoreboardGameSummaries(games, roundList[r]);
+    html += scoreboardGameSummaries(games, roundList[r], phase);
   }
   return html + '\n' + getStatReportBottom();
 }
 
-function getTeamDetailHtml(teams, games, fileStart) {
+function getTeamDetailHtml(teams, games, fileStart, phase) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return toNum(item.round); }, 'asc');
-  var standings = compileStandings(teams, games);
-  var individuals = compileIndividuals(teams, games);
+  var standings = compileStandings(teams, games, phase);
+  var individuals = compileIndividuals(teams, games, phase);
 
   var html = getStatReportTop('TeamDetail', fileStart) + '\n' +
     '<h1> Team Detail</h1>' + '\n';
@@ -787,10 +791,11 @@ function getTeamDetailHtml(teams, games, fileStart) {
     html += '<table border=1 width=100%>' + '\n';
     html += teamDetailGameTableHeader() + '\n';
     for(var j in games) {
-      if(games[j].team1 == teamName) {
+      let gameInPhase = phase == 'all' || games[j].phases.includes(phase);
+      if(gameInPhase && games[j].team1 == teamName) {
         html += teamDetailGameRow(games[j], 1);
       }
-      else if(games[j].team2 == teamName) {
+      else if(gameInPhase && games[j].team2 == teamName) {
         html += teamDetailGameRow(games[j], 2);
       }
     }
@@ -807,12 +812,12 @@ function getTeamDetailHtml(teams, games, fileStart) {
     html += '</table>' + '<br>' + '\n';
   }
   return html + getStatReportBottom();
-}
+}//getTeamDetailHtml
 
-function getPlayerDetailHtml(teams, games, fileStart) {
+function getPlayerDetailHtml(teams, games, fileStart, phase) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
-  var playerTotals = compileIndividuals(teams, games);
+  var playerTotals = compileIndividuals(teams, games, phase);
   playerTotals = _.orderBy(playerTotals,
     [function(item) { return item.teamName.toLowerCase(); },
     function(item) { return item.playerName.toLowerCase(); }],
@@ -831,14 +836,15 @@ function getPlayerDetailHtml(teams, games, fileStart) {
     html += playerDetailTableHeader();
     for(var j in games) {
       var game = games[j];
-      if (game.team1 == indvTot.teamName) {
+      let gameInPhase = phase == 'all' || game.phases.includes(phase);
+      if (gameInPhase && game.team1 == indvTot.teamName) {
         for(var p in game.players1) {
           if(p == indvTot.playerName) {
             html += playerDetailGameRow(game.players1[p], game.tuhtot, game.team2);
           }
         }
       }
-      else if (game.team2 == indvTot.teamName) {
+      else if (gameInPhase && game.team2 == indvTot.teamName) {
         for(var p in game.players2) {
           if(p == indvTot.playerName) {
             html += playerDetailGameRow(game.players2[p], game.tuhtot, game.team1);
@@ -851,11 +857,11 @@ function getPlayerDetailHtml(teams, games, fileStart) {
   }//loop over all players in the tournament
 
   return html + getStatReportBottom();
-}
+}//getPlayerDetailHtml
 
-function getRoundReportHtml(teams, games, fileStart) {
+function getRoundReportHtml(teams, games, fileStart, phase) {
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
-  var roundSummaries = compileRoundSummaries(games);
+  var roundSummaries = compileRoundSummaries(games, phase);
   var html = getStatReportTop('RoundReport', fileStart) +
     '<h1> Round Report</h1>' + '\n';
   html += '<table border=1 width=100%>' + '\n';

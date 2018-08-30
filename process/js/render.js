@@ -34,7 +34,6 @@ function gameEqual(g1, g2) {
 
 //standings for the stat sidebar
 function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase) {
-  // console.log('games: ' + gamesPhase + ', grouping: ' + groupingPhase);
   var summary = myTeams.map(function(item, index) {
     var obj =
       { teamName: item.teamName,
@@ -277,27 +276,29 @@ class MainInterface extends React.Component{
       var roundReportLocation = fileStart + 'rounds.html';
       var statKeyLocation = fileStart + 'statKey.html';
     }
-    var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames, fileStart);
+    var phase = this.state.viewingPhase;
+    var usingDivisions = this.usingDivisions();
+    var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames, fileStart, phase);
     fs.writeFile(standingsLocation, standingsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - standings
-    var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames, fileStart);
+    var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames, fileStart, phase);
     fs.writeFile(individualsLocation, individualsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individuals
-    var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames, fileStart);
+    var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames, fileStart, phase);
     fs.writeFile(scoreboardLocation, scoreboardHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - scoreboard
-    var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames, fileStart);
+    var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames, fileStart, phase);
     fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - team detail
-    var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames, fileStart);
+    var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames, fileStart, phase);
     fs.writeFile(playerDetailLocation, playerDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individual Detail
-    var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames, fileStart);
+    var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames, fileStart, phase);
     fs.writeFile(roundReportLocation, roundReportHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - round report
@@ -851,7 +852,17 @@ class MainInterface extends React.Component{
     });
   }
 
+  usingPhases() {
+    var numberOfPhases = Object.keys(this.state.divisions).length;
+    return numberOfPhases > 1 ||  (numberOfPhases == 1 && this.state.divisions['noPhase'] == undefined);
+  }
 
+  usingDivisions() {
+    for (var phase in this.state.divisions) {
+      if(this.state.divisions[phase].length > 0) { return true; }
+    }
+    return false;
+  }
 
 
 
@@ -865,11 +876,8 @@ class MainInterface extends React.Component{
     var myGames = this.state.myGames;
     var activePane = this.state.activePane;
     var numberOfPhases = Object.keys(this.state.divisions).length;
-    var usingPhases = numberOfPhases > 1 ||  (numberOfPhases == 1 && this.state.divisions['noPhase'] == undefined);
-    var usingDivisions = false;
-    for (var phase in this.state.divisions) {
-      if(this.state.divisions[phase].length > 0) { usingDivisions = true; }
-    }
+    var usingPhases = this.usingPhases();
+    var usingDivisions = this.usingDivisions();
     var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.defaultPhase : this.state.viewingPhase;
     var divsInPhase = this.state.divisions[phaseToGroupBy];
 
