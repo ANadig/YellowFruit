@@ -148,10 +148,11 @@ function standingsRow(teamEntry, rank, fileStart) {
 }
 
 //gather data for the team standings
-function compileStandings(myTeams, myGames, phase) {
+function compileStandings(myTeams, myGames, phase, groupingPhase) {
   var standings = myTeams.map(function(item, index) {
     var obj =
       { teamName: item.teamName,
+        division: groupingPhase != undefined ? item.divisions[groupingPhase] : null,
         wins: 0,
         losses: 0,
         ties: 0,
@@ -265,12 +266,15 @@ function compileStandings(myTeams, myGames, phase) {
 } //compileStandings
 
 //the header for the table in the individual standings
-function individualsHeader() {
-  return '<tr>' + '\n' +
+function individualsHeader(usingDivisions) {
+  var html = '<tr>' + '\n' +
     '<td align=left><b>Rank</b></td>' + '\n' +
     '<td align=left><b>Player</b></td>' + '\n' +
-    '<td align=left><b>Team</b></td>' + '\n' +
-    '<td align=right><b>GP</b></td>' + '\n' +
+    '<td align=left><b>Team</b></td>' + '\n';
+  if(usingDivisions) {
+    html += '<td align=left><b>Division</b></td>' + '\n';
+  }
+  return html + '<td align=right><b>GP</b></td>' + '\n' +
     '<td align=right><b>15</b></td>' + '\n' +
     '<td align=right><b>10</b></td>' + '\n' +
     '<td align=right><b>-5</b></td>' + '\n' +
@@ -284,7 +288,7 @@ function individualsHeader() {
 }
 
 //a single row in the individual standings
-function individualsRow(playerEntry, rank, fileStart) {
+function individualsRow(playerEntry, rank, fileStart, usingDivisions) {
   var linkId = playerEntry.teamName.replace(/\W/g, '') + '-' +
     playerEntry.playerName.replace(/\W/g, '');
   var rowHtml = '<tr>' + '\n';
@@ -292,6 +296,9 @@ function individualsRow(playerEntry, rank, fileStart) {
   rowHtml += '<td align=left><a href=\"' + fileStart + 'playerdetail.html#' + linkId + '\">' +
     playerEntry.playerName + '</a></td>' + '\n';
   rowHtml += '<td align=left>' + playerEntry.teamName + '</td>' + '\n';
+  if(usingDivisions) {
+    rowHtml += '<td align=left>' + playerEntry.division + '</td>' + '\n';
+  }
   rowHtml += '<td align=right>' + playerEntry.gamesPlayed + '</td>' + '\n';
   rowHtml += '<td align=right>' + playerEntry.powers + '</td>' + '\n';
   rowHtml += '<td align=right>' + playerEntry.tens + '</td>' + '\n';
@@ -306,7 +313,7 @@ function individualsRow(playerEntry, rank, fileStart) {
 }
 
 //calculate each column of data for the individual standings page
-function compileIndividuals(myTeams, myGames, phase) {
+function compileIndividuals(myTeams, myGames, phase, groupingPhase) {
   var individuals = [];
   for(var i in myTeams) {
     var t = myTeams[i];
@@ -314,7 +321,7 @@ function compileIndividuals(myTeams, myGames, phase) {
       var obj = {
         playerName: t.roster[j],
         teamName: t.teamName,
-        division: '', //not implemented yet
+        division: groupingPhase != undefined ? t.divisions[groupingPhase] : null,
         gamesPlayed: 0,
         powers: 0,
         tens: 0,
@@ -743,24 +750,38 @@ function getStatReportBottom() {
   '</HTML>';
 }
 
-function getStandingsHtml(teams, games, fileStart, phase) {
-  var standings = compileStandings(teams, games, phase);
+function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInPhase) {
+  var standings = compileStandings(teams, games, phase, groupingPhase);
   var html = getStatReportTop('TeamStandings', fileStart) +
-    '<h1> Team Standings</h1>' + '\n' +
-    '<table border=1 width=100%>' + standingsHeader();
-  for(var i in standings) {
-    html += standingsRow(standings[i], parseFloat(i)+1, fileStart);
+    '<h1> Team Standings</h1>' + '\n';
+  if(divsInPhase != undefined && divsInPhase.length > 0) {
+    for(var i in divsInPhase) {
+      html += '<h2>' + divsInPhase[i] + '</h2>' + '\n';
+      html += '<table border=1 width=100%>' + '\n' + standingsHeader();
+      var teamsInDiv = _.filter(standings, (t) => { return t.division == divsInPhase[i] });
+      for(var j in teamsInDiv) {
+        html += standingsRow(teamsInDiv[j], parseFloat(j)+1, fileStart);
+      }
+      html += '\n' + '</table>' + '\n';
+    }
   }
-  return html + '\n' + '</table>' + '\n' + getStatReportBottom();
+  else { //not using divisions
+    html += '<table border=1 width=100%>' + '\n' + standingsHeader();
+    for(var i in standings) {
+      html += standingsRow(standings[i], parseFloat(i)+1, fileStart);
+    }
+    html += '\n' + '</table>' + '\n';
+  }
+  return html + getStatReportBottom();
 }//getStandingsHtml
 
-function getIndividualsHtml(teams, games, fileStart, phase) {
-  var individuals = compileIndividuals(teams, games, phase);
+function getIndividualsHtml(teams, games, fileStart, phase, groupingPhase, usingDivisions) {
+  var individuals = compileIndividuals(teams, games, phase, groupingPhase);
   var html = getStatReportTop('IndividualStandings', fileStart) +
     '<h1> Individual Statistics</h1>' + '\n' +
-    '<table border=1 width=100%>' + individualsHeader();
+    '<table border=1 width=100%>' + individualsHeader(usingDivisions);
   for(var i in individuals) {
-    html += individualsRow(individuals[i], parseFloat(i)+1, fileStart);
+    html += individualsRow(individuals[i], parseFloat(i)+1, fileStart, usingDivisions);
   }
   return html + '\n' + '</table>' + '\n' +  getStatReportBottom();
 }

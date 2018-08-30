@@ -277,12 +277,17 @@ class MainInterface extends React.Component{
       var statKeyLocation = fileStart + 'statKey.html';
     }
     var phase = this.state.viewingPhase;
-    var usingDivisions = this.usingDivisions();
-    var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames, fileStart, phase);
+    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.defaultPhase : this.state.viewingPhase;
+    var divsInPhase = this.state.divisions[phaseToGroupBy];
+    var usingDivisions = divsInPhase != undefined && divsInPhase.length > 0;
+
+    var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames,
+      fileStart, phase, phaseToGroupBy, divsInPhase);
     fs.writeFile(standingsLocation, standingsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - standings
-    var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames, fileStart, phase);
+    var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames,
+      fileStart, phase, phaseToGroupBy, usingDivisions);
     fs.writeFile(individualsLocation, individualsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individuals

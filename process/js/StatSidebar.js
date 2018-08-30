@@ -86,7 +86,7 @@ class StatSidebar extends React.Component{
     if(this.props.divisions != undefined && this.props.divisions.length > 0) {
       for(var i in this.props.divisions) {
         var teamsInDiv = _.filter(sortedSummary,
-          (t) => {return t.division == this.props.divisions[i]});
+          (t) => { return t.division == this.props.divisions[i] });
         tables.push(this.getTable(teamsInDiv, this.props.divisions[i]));
       }
     }
