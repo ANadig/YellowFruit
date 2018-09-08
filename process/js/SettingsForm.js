@@ -26,6 +26,7 @@ class SettingsForm extends React.Component{
       divisions: divList,
       phaseAssignments: phaseAssnList,
       defaultPhase: firstPhase,
+      numberOfSavedPhases: _.without(allPhases, 'noPhase').length,
       editingSettings: false,
       editingDivisions: false,
       editingPhases: false,
@@ -143,7 +144,8 @@ class SettingsForm extends React.Component{
       this.setState({
         editingPhases: false,
         phases: tempPhases,
-        phaseAssignments: tempPhaseAssns
+        phaseAssignments: tempPhaseAssns,
+        numberOfSavedPhases: tempPhases.length
       });
       this.props.saveDivisions(tempPhases, this.state.divisions, tempPhaseAssns);
     }
@@ -312,7 +314,7 @@ class SettingsForm extends React.Component{
       var divList = this.state.divisions.map(function(divName, idx) {
         var pa = this.state.phaseAssignments[idx];
         var phaseAssn = '';
-        if(this.state.phases.length > 0 && (pa == undefined || pa == '')) {
+        if(this.state.numberOfSavedPhases > 0 && (pa == undefined || pa == '')) {
           phaseAssn = ( <span className="noPhase">(No phase)</span> );
         }
         else if(pa != undefined && pa != '') { phaseAssn = '(' + pa + ')'; }

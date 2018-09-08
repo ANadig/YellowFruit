@@ -704,7 +704,7 @@ class MainInterface extends React.Component{
       //divisions not assigned to a phase
       var noPhase = [];
       for(var i in newDivAry) {
-        if(newPhaseAssignments[i] == undefined) {
+        if(newPhaseAssignments[i] == undefined || newPhaseAssignments[i] == '') {
           noPhase.push(newDivAry[i]);
         }
       }

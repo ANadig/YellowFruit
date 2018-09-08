@@ -88,9 +88,12 @@ class DivAssignModal extends React.Component{
     var phaseSections = [];
     for(var p in this.props.divisions) {
       //ignore unassigned divisions unless there are no phases at all
-      if(!this.props.usingPhases || p != 'noPhase') {
+      if((!this.props.usingPhases || p != 'noPhase') && this.props.divisions[p].length > 0) {
         phaseSections.push(this.getPhaseSection(p));
       }
+    }
+    if(phaseSections.length == 0) {
+      phaseSections = ( <span>No available divisions to assign</span> );
     }
 
     return (
