@@ -204,11 +204,14 @@ class AddGameModal extends React.Component{
 
   //calculate total bonus points. returns a number
   bPts(whichTeam) {
-    var tuPts=0, pwr, gt, ng;
+    var tuPts=0;
     var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
     var totScore = whichTeam == 1 ? this.state.score1 : this.state.score2;
+    var powerValue = 0;
+    if(this.props.settings.powers == '15pts') { powerValue = 15; }
+    if(this.props.settings.powers == '20pts') { powerValue = 20; }
     for(var p in players) {
-      tuPts += 15*this.toNum(players[p].powers) +
+      tuPts += powerValue*this.toNum(players[p].powers) +
         10*this.toNum(players[p].tens) - 5*this.toNum(players[p].negs);
     }
     return totScore - tuPts;
@@ -435,7 +438,7 @@ class AddGameModal extends React.Component{
       }
     }
 
-
+    //don't let the Enter key submit the form
     $(document).on("keypress", "#addGame :input:not(textarea)", function(event) {
       // return gameIsValid || event.keyCode != 13;
       return event.keyCode != 13;
@@ -458,6 +461,7 @@ class AddGameModal extends React.Component{
             whichTeam={1}
             initialData={init}
             updatePlayer={this.updatePlayer}
+            settings={this.props.settings}
           />
         )
       }.bind(this));
@@ -475,14 +479,62 @@ class AddGameModal extends React.Component{
             whichTeam={2}
             initialData={init}
             updatePlayer={this.updatePlayer}
+            settings={this.props.settings}
           />
         )
       }.bind(this));
     }
 
+    var tableHeader, powerValue;
+    if(this.props.settings.powers != 'none') {
+      powerValue = this.props.settings.powers == '20pts' ? '20' : '15';
+      tableHeader = (
+        <thead>
+          <tr>
+            <th/>
+            <th>TUH</th>
+            <th>{powerValue}</th>
+            <th>10</th>
+            <th>-5</th>
+            <th>Tot.</th>
+          </tr>
+        </thead>
+      );
+    }
+    else {
+      tableHeader = (
+        <thead>
+          <tr>
+            <th/>
+            <th>TUH</th>
+            <th>10</th>
+            <th>-5</th>
+            <th>Tot.</th>
+          </tr>
+        </thead>
+      );
+    }
+
     var overtimeRow = null;
     if(this.state.ottu > 0 && !this.state.forfeit &&
       this.state.team1 != 'nullTeam' && this.state.team2 != 'nullTeam') {
+      var powerField1 = null, powerField2 = null;
+      if(this.props.settings.powers != 'none') {
+        powerField1 = (
+          <div className="input-field col s2 m1">
+            <input id="otPwr1" type="number" name="otPwr1"
+              value={this.state.otPwr1} onChange={this.handleChange}/>
+            <label htmlFor="otPwr1">{powerValue}</label>
+          </div>
+        );
+        powerField2 = (
+          <div className="input-field col s2 m1">
+            <input id="otPwr2" type="number" name="otPwr2"
+              value={this.state.otPwr2} onChange={this.handleChange}/>
+            <label htmlFor="otPwr2">{powerValue}</label>
+          </div>
+        );
+      }
       overtimeRow = (
         <div className="row game-entry-bottom-row">
           <div className="col s3 m2">
@@ -491,11 +543,7 @@ class AddGameModal extends React.Component{
           <div className="col s3 m2 ot-stat-label">
             <span className="">{this.state.team1 + ':'}</span>
           </div>
-          <div className="input-field col s2 m1">
-            <input id="otPwr1" type="number" name="otPwr1"
-              value={this.state.otPwr1} onChange={this.handleChange}/>
-            <label htmlFor="otPwr1">{'15'}</label>
-          </div>
+          {powerField1}
           <div className="input-field col s2 m1">
             <input id="otTen1" type="number" name="otTen1"
               value={this.state.otTen1} onChange={this.handleChange}/>
@@ -510,11 +558,7 @@ class AddGameModal extends React.Component{
           <div className="col s6 m2 ot-stat-label">
             <span className="">{this.state.team2 + ':'}</span>
           </div>
-          <div className="input-field col s2 m1">
-            <input id="otPwr2" type="number" name="otPwr2"
-              value={this.state.otPwr2} onChange={this.handleChange}/>
-            <label htmlFor="otPwr2">{'15'}</label>
-          </div>
+          {powerField2}
           <div className="input-field col s2 m1">
             <input id="otTen2" type="number" name="otTen2"
               value={this.state.otTen2} onChange={this.handleChange}/>
@@ -539,9 +583,7 @@ class AddGameModal extends React.Component{
                 <h4>{this.getModalHeader()}</h4>
                 {phaseChips}
               </div>
-            {/*  <div className="col s3">
-                {phaseChips}
-              </div> */}
+
               <div className="input-field col s3">
                 <input id="round" type="number" name="round" value={this.state.round} onChange={this.handleChange}/>
                 <label htmlFor="round">Round No.</label>
@@ -585,16 +627,7 @@ class AddGameModal extends React.Component{
             <div className="row">
               <div className="col s12 m6">
                 <table className="striped player-table">
-                  <thead>
-                    <tr>
-                      <th/>
-                      <th>TUH</th>
-                      <th>15</th>
-                      <th>10</th>
-                      <th>-5</th>
-                      <th>Tot.</th>
-                    </tr>
-                  </thead>
+                  {tableHeader}
                   <tbody>
                     {team1PlayerRows}
                   </tbody>
@@ -602,16 +635,7 @@ class AddGameModal extends React.Component{
               </div>
               <div className="col s12 m6">
                 <table className="striped player-table">
-                  <thead>
-                    <tr>
-                      <th/>
-                      <th>TUH</th>
-                      <th>15</th>
-                      <th>10</th>
-                      <th>-5</th>
-                      <th>Tot.</th>
-                    </tr>
-                  </thead>
+                  {tableHeader}
                   <tbody>
                     {team2PlayerRows}
                   </tbody>

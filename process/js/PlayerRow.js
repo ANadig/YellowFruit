@@ -45,10 +45,22 @@ class PlayerRow extends React.Component{
 
   //the total number of points score by the player in this game
   getTotalPts(){
-    return 15*this.state.powers + 10*this.state.tens - 5*this.state.negs;
+    var powersTot = 0;
+    if(this.props.settings.powers == '15pts') { powersTot = 15*this.state.powers; }
+    else if(this.props.settings.powers == '20pts') { powersTot = 20*this.state.powers; }
+    return powersTot + 10*this.state.tens - 5*this.state.negs;
   }
 
   render(){
+    var powersCell = null;
+    if(this.props.settings.powers != 'none') {
+      powersCell = (
+        <td>
+          <input type="number" id={'powers'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="powers" value={this.state.powers} onChange={this.handleChange}/>
+        </td>
+      );
+    }
+
     return(
       <tr>
         <td>{this.props.playerName}</td>
@@ -57,9 +69,7 @@ class PlayerRow extends React.Component{
             id={'tuh'+this.props.playerName+'-'+this.props.whichTeam} size="3"
             name="tuh" value={this.state.tuh} onChange={this.handleChange}/>
         </td>
-        <td>
-          <input type="number" id={'powers'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="powers" value={this.state.powers} onChange={this.handleChange}/>
-        </td>
+        {powersCell}
         <td>
           <input type="number" id={'tens'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="tens" value={this.state.tens} onChange={this.handleChange}/>
         </td>

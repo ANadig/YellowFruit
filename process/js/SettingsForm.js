@@ -18,10 +18,10 @@ class SettingsForm extends React.Component{
     var allPhases = Object.keys(props.divisions);
     var firstPhase = allPhases.length == 0 ? 'noPhase' : allPhases[0];
     this.state = {
-      powers: '15pts',
-      negs: 'yes',
-      bonuses: 'noBb',
-      playersPerTeam: '4',
+      powers: props.settings.powers,
+      negs: props.settings.negs,
+      bonuses: props.settings.bonuses,
+      playersPerTeam: props.settings.playersPerTeam,
       phases: _.without(allPhases, 'noPhase'),
       divisions: divList,
       phaseAssignments: phaseAssnList,
@@ -110,6 +110,13 @@ class SettingsForm extends React.Component{
       }
     }
     else {
+      var settingsObj = {
+        powers: this.state.powers,
+        negs: this.state.negs,
+        bonuses: this.state.bonuses,
+        playersPerTeam: this.state.playersPerTeam
+      };
+      this.props.saveSettings(settingsObj);
       this.setState({
         editingSettings: false
       });
@@ -447,8 +454,8 @@ class SettingsForm extends React.Component{
                   </p>
                   <p>
                     <label>
-                      <input name="powers" type="radio" value="noPowers" disabled={settingsDisabled}
-                      checked={this.state.powers=='noPowers'} onChange={this.handleChange} />
+                      <input name="powers" type="radio" value="none" disabled={settingsDisabled}
+                      checked={this.state.powers=='none'} onChange={this.handleChange} />
                       <span>No powers</span>
                     </label>
                   </p>

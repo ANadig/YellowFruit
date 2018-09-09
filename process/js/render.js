@@ -33,7 +33,7 @@ function gameEqual(g1, g2) {
 }
 
 //standings for the stat sidebar
-function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase) {
+function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase, settings) {
   var summary = myTeams.map(function(item, index) {
     var obj =
       { teamName: item.teamName,
@@ -76,12 +76,12 @@ function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase) {
           summary[idx1].ties += 1;
           summary[idx2].ties += 1;
         }
-        summary[idx1].points += parseFloat(g.score1) - otPoints(g, 1);
-        summary[idx2].points += parseFloat(g.score2) - otPoints(g, 2);
+        summary[idx1].points += parseFloat(g.score1) - otPoints(g, 1, settings);
+        summary[idx2].points += parseFloat(g.score2) - otPoints(g, 2, settings);
         summary[idx1].bHeard += bonusesHeard(g,1);
         summary[idx2].bHeard += bonusesHeard(g,2);
-        summary[idx1].bPts += bonusPoints(g,1);
-        summary[idx2].bPts += bonusPoints(g,2);
+        summary[idx1].bPts += bonusPoints(g,1,settings);
+        summary[idx2].bPts += bonusPoints(g,2,settings);
       }//else not a forfeit
     }//if game is in phase
   }//loop over games
@@ -93,6 +93,12 @@ class MainInterface extends React.Component{
 
   constructor(props) {
     super(props);
+    var defaultSettings = {
+      powers: '15pts',
+      negs: 'yes',
+      bonuses: 'noBb',
+      playersPerTeam: '4'
+    };
     this.state = {
       tmWindowVisible: false,
       gmWindowVisible: false,
@@ -101,7 +107,7 @@ class MainInterface extends React.Component{
       orderBy: 'teamName',
       orderDir: 'asc',
       queryText: '',
-      phases: [],
+      settings: defaultSettings,
       divisions: {},
       phaseAssignments: [],
       myTeams: [],
@@ -150,6 +156,7 @@ class MainInterface extends React.Component{
     this.removeDivisionFromTeam = this.removeDivisionFromTeam.bind(this);
     this.removePhaseFromGame = this.removePhaseFromGame.bind(this);
     this.setDefaultGrouping = this.setDefaultGrouping.bind(this);
+    this.saveSettings = this.saveSettings.bind(this);
   }
 
   componentDidMount() {
@@ -223,7 +230,8 @@ class MainInterface extends React.Component{
   } //componentDidUpdate
 
   writeJSON(fileName) {
-    var fileString = JSON.stringify(this.state.divisions) + '\ndivider_between_sections\n' +
+    var fileString = JSON.stringify(this.state.settings) + '\ndivider_between_sections\n' +
+      JSON.stringify(this.state.divisions) + '\ndivider_between_sections\n' +
       JSON.stringify(this.state.myTeams) + '\ndivider_between_sections\n' +
       JSON.stringify(this.state.myGames);
     fs.writeFile(fileName, fileString, 'utf8', function(err) {
@@ -236,7 +244,8 @@ class MainInterface extends React.Component{
   loadTournament(fileName) {
     var fileString = fs.readFileSync(fileName, 'utf8');
     if(fileString != '') {
-      var [loadDivisions, loadTeams, loadGames] = fileString.split('\ndivider_between_sections\n', 3);
+      var [loadSettings, loadDivisions, loadTeams, loadGames] = fileString.split('\ndivider_between_sections\n', 4);
+      loadSettings = JSON.parse(loadSettings);
       loadDivisions = JSON.parse(loadDivisions);
       loadTeams = JSON.parse(loadTeams);
       loadGames = JSON.parse(loadGames);
@@ -245,6 +254,7 @@ class MainInterface extends React.Component{
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
     this.setState({
+      settings: loadSettings,
       divisions: loadDivisions,
       myTeams: loadTeams,
       myGames: loadGames,
@@ -282,28 +292,32 @@ class MainInterface extends React.Component{
     var usingDivisions = divsInPhase != undefined && divsInPhase.length > 0;
 
     var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames,
-      fileStart, phase, phaseToGroupBy, divsInPhase);
+      fileStart, phase, phaseToGroupBy, divsInPhase, this.state.settings);
     fs.writeFile(standingsLocation, standingsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - standings
     var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames,
-      fileStart, phase, phaseToGroupBy, usingDivisions);
+      fileStart, phase, phaseToGroupBy, usingDivisions, this.state.settings);
     fs.writeFile(individualsLocation, individualsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individuals
-    var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames, fileStart, phase);
+    var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames,
+      fileStart, phase, this.state.settings);
     fs.writeFile(scoreboardLocation, scoreboardHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - scoreboard
-    var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames, fileStart, phase);
+    var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames,
+      fileStart, phase, this.state.settings);
     fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - team detail
-    var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames, fileStart, phase);
+    var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames,
+      fileStart, phase, this.state.settings);
     fs.writeFile(playerDetailLocation, playerDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individual Detail
-    var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames, fileStart, phase);
+    var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames,
+      fileStart, phase, this.state.settings);
     fs.writeFile(roundReportLocation, roundReportHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - round report
@@ -314,6 +328,12 @@ class MainInterface extends React.Component{
   } //writeStatReport
 
   resetState() {
+    var defaultSettings = {
+      powers: '15pts',
+      negs: 'yes',
+      bonuses: 'noBb',
+      playersPerTeam: '4'
+    };
     this.setState({
       tmWindowVisible: false,
       gmWindowVisible: false,
@@ -322,6 +342,7 @@ class MainInterface extends React.Component{
       orderBy: 'teamName',
       orderDir: 'asc',
       queryText: '',
+      settings: defaultSettings,
       divisions: {},
       myTeams: [],
       myGames: [],
@@ -869,9 +890,17 @@ class MainInterface extends React.Component{
     return false;
   }
 
+  saveSettings(newSettings) {
+    this.setState ({
+      settings: newSettings
+    });
+    ipc.sendSync('unsavedData');
+  }
+
 
 
   render() {
+    console.log(this.state.settings);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText;
@@ -956,7 +985,7 @@ class MainInterface extends React.Component{
           usingDivisions = {usingDivisions}
           removeDivision = {this.removeDivisionFromTeam}
         />
-      ) // return
+      )
     }.bind(this)); //filteredTeams.map
     filteredGames=filteredGames.map(function(item, index) {
       return(
@@ -970,8 +999,9 @@ class MainInterface extends React.Component{
           allPhases = {Object.keys(this.state.divisions)}
           usingPhases = {usingPhases}
           removePhase = {this.removePhaseFromGame}
+          settings = {this.state.settings}
         />
-      ) // return
+      )
     }.bind(this)); //filteredGames.map
 
     //need to make a deep copy of this object
@@ -1005,6 +1035,7 @@ class MainInterface extends React.Component{
             hasTeamPlayedInRound = {this.hasTeamPlayedInRound}
             allPhases = {Object.keys(this.state.divisions)}
             currentPhase = {this.state.viewingPhase}
+            settings = {this.state.settings}
           />
          <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkTeamToggle}
             isOpen = {this.state.divWindowVisible}
@@ -1039,9 +1070,11 @@ class MainInterface extends React.Component{
               />
               <SettingsForm key = {this.state.settingsLoadToggle}
                 whichPaneActive = {activePane}
+                settings = {this.state.settings}
                 divisions = {this.state.divisions}
                 saveDivisions = {this.saveDivisions}
                 setDefaultGrouping = {this.setDefaultGrouping}
+                saveSettings = {this.saveSettings}
               />
               <TeamList
                 whichPaneActive = {activePane}
@@ -1059,7 +1092,7 @@ class MainInterface extends React.Component{
             </div>
             <div id="stat-sidebar" className="col l4 hide-on-med-and-down">
               <StatSidebar
-                standings = {getSmallStandings(myTeams, myGames, this.state.viewingPhase, phaseToGroupBy)}
+                standings = {getSmallStandings(myTeams, myGames, this.state.viewingPhase, phaseToGroupBy, this.state.settings)}
                 divisions = {divsInPhase}
               />
             </div>

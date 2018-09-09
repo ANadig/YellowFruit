@@ -82,7 +82,8 @@ class GameListEntry extends React.Component{
       var negs = players[p].negs == '' ? 0 : players[p].negs;
       if(players[p].tuh > 0) {
         lineScore += ' ' + p + ' ';
-        lineScore += powers + '/' + tens + '/' + negs + ',';
+        if(this.props.settings.powers != 'none') { lineScore += powers + '/'; }
+        lineScore += tens + '/' + negs + ',';
       }
     }
     return lineScore.substr(0, lineScore.length - 1); //remove the comma at the end
