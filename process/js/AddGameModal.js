@@ -485,40 +485,32 @@ class AddGameModal extends React.Component{
       }.bind(this));
     }
 
-    var tableHeader, powerValue;
+    var tableHeader, powerCell, negCell;
     if(this.props.settings.powers != 'none') {
-      powerValue = this.props.settings.powers == '20pts' ? '20' : '15';
-      tableHeader = (
-        <thead>
-          <tr>
-            <th/>
-            <th>TUH</th>
-            <th>{powerValue}</th>
-            <th>10</th>
-            <th>-5</th>
-            <th>Tot.</th>
-          </tr>
-        </thead>
-      );
+      var powerValue = this.props.settings.powers == '20pts' ? '20' : '15';
+      powerCell = ( <th>{powerValue}</th> );
     }
-    else {
-      tableHeader = (
-        <thead>
-          <tr>
-            <th/>
-            <th>TUH</th>
-            <th>10</th>
-            <th>-5</th>
-            <th>Tot.</th>
-          </tr>
-        </thead>
-      );
-    }
+    else { powerCell = null; }
+    if(this.props.settings.negs == 'yes') { negCell = ( <th>-5</th> ); }
+    else { negCell = null; }
+    tableHeader = (
+      <thead>
+        <tr>
+          <th/>
+          <th>TUH</th>
+          {powerCell}
+          <th>10</th>
+          {negCell}
+          <th>Tot.</th>
+        </tr>
+      </thead>
+    );
 
     var overtimeRow = null;
     if(this.state.ottu > 0 && !this.state.forfeit &&
       this.state.team1 != 'nullTeam' && this.state.team2 != 'nullTeam') {
       var powerField1 = null, powerField2 = null;
+      var negField1 = null, negField2 = null;
       if(this.props.settings.powers != 'none') {
         powerField1 = (
           <div className="input-field col s2 m1">
@@ -532,6 +524,22 @@ class AddGameModal extends React.Component{
             <input id="otPwr2" type="number" name="otPwr2"
               value={this.state.otPwr2} onChange={this.handleChange}/>
             <label htmlFor="otPwr2">{powerValue}</label>
+          </div>
+        );
+      }
+      if(this.props.settings.negs == 'yes') {
+        negField1 = (
+          <div className="input-field col s2 m1">
+            <input id="otNeg1" type="number" name="otNeg1"
+              value={this.state.otNeg1} onChange={this.handleChange}/>
+            <label htmlFor="otNeg1">{'-5'}</label>
+          </div>
+        );
+        negField2 = (
+          <div className="input-field col s2 m1">
+            <input id="otNeg2" type="number" name="otNeg2"
+              value={this.state.otNeg2} onChange={this.handleChange}/>
+            <label htmlFor="otNeg2">{'-5'}</label>
           </div>
         );
       }
@@ -549,11 +557,7 @@ class AddGameModal extends React.Component{
               value={this.state.otTen1} onChange={this.handleChange}/>
             <label htmlFor="otTen1">{'10'}</label>
           </div>
-          <div className="input-field col s2 m1">
-            <input id="otNeg1" type="number" name="otNeg1"
-              value={this.state.otNeg1} onChange={this.handleChange}/>
-            <label htmlFor="otNeg1">{'-5'}</label>
-          </div>
+          {negField1}
 
           <div className="col s6 m2 ot-stat-label">
             <span className="">{this.state.team2 + ':'}</span>
@@ -564,11 +568,7 @@ class AddGameModal extends React.Component{
               value={this.state.otTen2} onChange={this.handleChange}/>
             <label htmlFor="otTen2">{'10'}</label>
           </div>
-          <div className="input-field col s2 m1">
-            <input id="otNeg2" type="number" name="otNeg2"
-              value={this.state.otNeg2} onChange={this.handleChange}/>
-            <label htmlFor="otNeg2">{'-5'}</label>
-          </div>
+          {negField2}
         </div>
       ); //overtimeRow
     } // if overtime

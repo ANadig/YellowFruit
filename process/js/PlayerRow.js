@@ -52,11 +52,18 @@ class PlayerRow extends React.Component{
   }
 
   render(){
-    var powersCell = null;
+    var powerCell = null, negCell = null;
     if(this.props.settings.powers != 'none') {
-      powersCell = (
+      powerCell = (
         <td>
           <input type="number" id={'powers'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="powers" value={this.state.powers} onChange={this.handleChange}/>
+        </td>
+      );
+    }
+    if(this.props.settings.negs == 'yes') {
+      negCell = (
+        <td>
+          <input type="number" id={'negs'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="negs" value={this.state.negs} onChange={this.handleChange}/>
         </td>
       );
     }
@@ -69,13 +76,11 @@ class PlayerRow extends React.Component{
             id={'tuh'+this.props.playerName+'-'+this.props.whichTeam} size="3"
             name="tuh" value={this.state.tuh} onChange={this.handleChange}/>
         </td>
-        {powersCell}
+        {powerCell}
         <td>
           <input type="number" id={'tens'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="tens" value={this.state.tens} onChange={this.handleChange}/>
         </td>
-        <td>
-          <input type="number" id={'negs'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="negs" value={this.state.negs} onChange={this.handleChange}/>
-        </td>
+        {negCell}
         <td>
           <input disabled id={'tot'+this.props.playerName+this.props.whichTeam} size="3" value={this.getTotalPts()}/>
         </td>
