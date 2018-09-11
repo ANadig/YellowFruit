@@ -132,10 +132,12 @@ function standingsHeader(settings) {
   if(settings.negs == 'yes') {
     html += '<td align=right><b>G/N</b></td>' + '\n';
   }
-  html += '<td align=right><b>BHrd</b></td>' + '\n' +
-  '<td align=right><b>BPts</b></td>' + '\n' +
-  '<td align=right><b>PPB</b></td>' + '\n' +
-  '</tr>';
+  if(settings.bonuses != 'none') {
+    html += '<td align=right><b>BHrd</b></td>' + '\n' +
+    '<td align=right><b>BPts</b></td>' + '\n' +
+    '<td align=right><b>PPB</b></td>' + '\n';
+  }
+  html += '</tr>';
   return html;
 }
 
@@ -168,9 +170,11 @@ function standingsRow(teamEntry, rank, fileStart, settings) {
   if(settings.negs == 'yes') {
     rowHtml += '<td align=right>' + teamEntry.gPerN + '</td>' + '\n';
   }
-  rowHtml += '<td align=right>' + teamEntry.bHeard + '</td>' + '\n';
-  rowHtml += '<td align=right>' + teamEntry.bPts + '</td>' + '\n';
-  rowHtml += '<td align=right>' + teamEntry.ppb + '</td>' + '\n';
+  if(settings.bonuses != 'none') {
+    rowHtml += '<td align=right>' + teamEntry.bHeard + '</td>' + '\n';
+    rowHtml += '<td align=right>' + teamEntry.bPts + '</td>' + '\n';
+    rowHtml += '<td align=right>' + teamEntry.ppb + '</td>' + '\n';
+  }
   return rowHtml + '</tr>';
 }
 
@@ -502,12 +506,14 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
         }
         html = html.substr(0, html.length - 2); //remove the last comma+space
         html += '<br>' + '\n';
-        var bHeard = bonusesHeard(g, 1), bPts = bonusPoints(g, 1, settings);
-        var ppb = bHeard == 0 ? 0 : bPts / bHeard;
-        html += 'Bonuses: ' + g.team1 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + ', ';
-        bHeard = bonusesHeard(g, 2), bPts = bonusPoints(g, 2, settings);
-        ppb = bHeard == 0 ? 0 : bPts / bHeard;
-        html += g.team2 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + '<br>';
+        if(settings.bonuses != 'none') {
+          var bHeard = bonusesHeard(g, 1), bPts = bonusPoints(g, 1, settings);
+          var ppb = bHeard == 0 ? 0 : bPts / bHeard;
+          html += 'Bonuses: ' + g.team1 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + ', ';
+          bHeard = bonusesHeard(g, 2), bPts = bonusPoints(g, 2, settings);
+          ppb = bHeard == 0 ? 0 : bPts / bHeard;
+          html += g.team2 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + '<br>';
+        }
       }//else not a forfeit
     }//if we want to show this game
   }//loop over all games
@@ -536,10 +542,12 @@ function teamDetailGameTableHeader(settings) {
   if(settings.negs == 'yes') {
     html += '<td align=right><b>G/N</b></td>' + '\n';
   }
-  html += '<td align=right><b>BHrd</b></td>' + '\n' +
-    '<td align=right><b>BPts</b></td>' + '\n' +
-    '<td align=right><b>PPB</b></td>' + '\n' +
-    '</tr>'  + '\n';
+  if(settings.bonuses != 'none') {
+    html += '<td align=right><b>BHrd</b></td>' + '\n' +
+      '<td align=right><b>BPts</b></td>' + '\n' +
+      '<td align=right><b>PPB</b></td>' + '\n';
+  }
+  html += '</tr>'  + '\n';
   return html;
 }
 
@@ -610,9 +618,11 @@ function teamDetailGameRow(game, whichTeam, settings) {
   if(settings.negs == 'yes') {
     html += '<td align=right>' + formatRate(gPerN, 2) + '</td>' + '\n';
   }
-  html += '<td align=right>' + bHeard + '</td>' + '\n';
-  html += '<td align=right>' + bPts + '</td>' + '\n';
-  html += '<td align=right>' + formatRate(ppb, 2) + '</td>' + '\n';
+  if(settings.bonuses != 'none') {
+    html += '<td align=right>' + bHeard + '</td>' + '\n';
+    html += '<td align=right>' + bPts + '</td>' + '\n';
+    html += '<td align=right>' + formatRate(ppb, 2) + '</td>' + '\n';
+  }
   html += '</tr>' + '\n';
   return html;
 }
@@ -639,9 +649,11 @@ function teamDetailTeamSummaryRow(teamSummary, settings) {
   if(settings.negs == 'yes') {
     html += '<td align=right><b>' + teamSummary.gPerN + '</b></td>' + '\n';
   }
-  html += '<td align=right><b>' + teamSummary.bHeard + '</b></td>' + '\n';
-  html += '<td align=right><b>' + teamSummary.bPts + '</b></td>' + '\n';
-  html += '<td align=right><b>' + teamSummary.ppb + '</b></td>' + '\n';
+  if(settings.bonuses != 'none') {
+    html += '<td align=right><b>' + teamSummary.bHeard + '</b></td>' + '\n';
+    html += '<td align=right><b>' + teamSummary.bPts + '</b></td>' + '\n';
+    html += '<td align=right><b>' + teamSummary.ppb + '</b></td>' + '\n';
+  }
   html += '</tr>' + '\n';
 
   return html;
@@ -833,23 +845,30 @@ function compileRoundSummaries(games, phase, settings) {
 }
 
 //the header row for the round report
-function roundReportTableHeader() {
-  return '<tr>' + '\n' +
+function roundReportTableHeader(settings) {
+  var html = '<tr>' + '\n' +
     '<td><b>Round</b></td>' + '\n' +
-    '<td><b>PPG/Team</b></td>' + '\n' +
-    '<td><b>TUPts/TUH</b></td>' + '\n' +
-    '<td><b>PPB</b></td>' + '\n' +
-    '</tr>' + '\n';
+    '<td><b>PPG/Team</b></td>' + '\n';
+  if(settings.bonuses != 'none') {
+    html += '<td><b>TUPts/TUH</b></td>' + '\n' +
+      '<td><b>PPB</b></td>' + '\n';
+  }
+  else { html += '<td><b>Pts/TUH</b></td>' + '\n'; }
+  html += '</tr>' + '\n';
+  return html;
 }
 
 //a row of data in the round report
-function roundReportRow(smry, roundNo) {
-  return '<tr>' + '\n' +
+function roundReportRow(smry, roundNo, settings) {
+  var html = '<tr>' + '\n' +
     '<td>' + roundNo + '</td>' + '\n' +
     '<td>' + smry.ppg.toFixed(1) + '</td>' + '\n' +
-    '<td>' + smry.tuPtsPTu.toFixed(2) + '</td>' + '\n' +
-    '<td>' + smry.ppb.toFixed(2) + '</td>' + '\n' +
-    '</tr>' + '\n';
+    '<td>' + smry.tuPtsPTu.toFixed(2) + '</td>' + '\n';
+  if(settings.bonuses != 'none') {
+    html += '<td>' + smry.ppb.toFixed(2) + '</td>' + '\n';
+  }
+  html += '</tr>' + '\n';
+  return html;
 }
 
 //the links that appear at the top of every page in the report
@@ -1014,9 +1033,9 @@ function getRoundReportHtml(teams, games, fileStart, phase, settings) {
   var html = getStatReportTop('RoundReport', fileStart) +
     '<h1> Round Report</h1>' + '\n';
   html += '<table border=1 width=100%>' + '\n';
-  html += roundReportTableHeader();
+  html += roundReportTableHeader(settings);
   for(var i in roundSummaries) {
-    html += roundReportRow(roundSummaries[i], i);
+    html += roundReportRow(roundSummaries[i], i, settings);
   }
   html += '</table>' + '\n';
   return html + getStatReportBottom();

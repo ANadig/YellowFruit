@@ -48,17 +48,19 @@ class StatSidebar extends React.Component{
     var rows = teams.map((item, index) => {
       var ppg = this.getPpg(item);
       var ppb = this.getPpb(item);
+      var ppbCell = this.props.settings.bonuses == 'none' ? null : ( <td>{ppb.toFixed(2)}</td> );
       return (
         <tr key={item.teamName}>
           <td>{item.teamName}</td>
           <td>{item.wins}</td>
           <td>{item.losses}</td>
           <td>{ppg.toFixed(1)}</td>
-          <td>{ppb.toFixed(2)}</td>
+          {ppbCell}
         </tr>
       )
     });
     var header = division == 'noDiv' ? null : ( <h5>{division}</h5> );
+    var ppbThCell = this.props.settings.bonuses == 'none' ? null : ( <th>PPB</th> );
     return (
       <div key={division}>
         {header}
@@ -69,7 +71,7 @@ class StatSidebar extends React.Component{
               <th>W</th>
               <th>L</th>
               <th>PPG</th>
-              <th>PPB</th>
+              {ppbThCell}
             </tr>
           </thead>
           <tbody>

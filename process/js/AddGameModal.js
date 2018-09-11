@@ -573,6 +573,20 @@ class AddGameModal extends React.Component{
       ); //overtimeRow
     } // if overtime
 
+    var bonusCalcRow = null;
+    if(this.props.settings.bonuses != 'none') {
+      bonusCalcRow = (
+        <div className="row">
+          <div className="col s6">
+            Bonuses:&emsp;{this.bHeard(1)} heard&emsp;|&emsp;{this.bPts(1)} pts&emsp;|&emsp;{this.ppb(1)} ppb
+          </div>
+          <div className="col s6">
+            Bonuses:&emsp;{this.bHeard(2)} heard&emsp;|&emsp;{this.bPts(2)} pts&emsp;|&emsp;{this.ppb(2)} ppb
+          </div>
+        </div>
+      );
+    }
+
     return(
       <div className="modal modal-fixed-footer" id="addGame">
         <form onSubmit={this.handleAdd}>
@@ -644,14 +658,7 @@ class AddGameModal extends React.Component{
 
             </div>
 
-            <div className="row">
-              <div className="col s6">
-                Bonuses:&emsp;{this.bHeard(1)} heard&emsp;|&emsp;{this.bPts(1)} pts&emsp;|&emsp;{this.ppb(1)} ppb
-              </div>
-              <div className="col s6">
-                Bonuses:&emsp;{this.bHeard(2)} heard&emsp;|&emsp;{this.bPts(2)} pts&emsp;|&emsp;{this.ppb(2)} ppb
-              </div>
-            </div>
+            {bonusCalcRow}
 
             <div className="row game-entry-bottom-row">
               <div className="input-field col s6 m8">
