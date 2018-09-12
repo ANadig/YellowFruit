@@ -54,11 +54,41 @@ function bonusPoints(game, whichTeam, settings) {
   var tuPts = 0;
   var players = whichTeam == 1 ? game.players1 : game.players2;
   var totalPoints = whichTeam == 1 ? game.score1 : game.score2;
+  var bbPts = whichTeam == 1 ? game.bbPts1 : game.bbPts2;
   for(var p in players) {
     tuPts += powerValue(settings)*toNum(players[p].powers) +
       10*toNum(players[p].tens) + negValue(settings)*toNum(players[p].negs);
   }
-  return toNum(totalPoints) - tuPts;
+  return toNum(totalPoints) - tuPts - bbPts;
+}
+
+//how many (30-point bonuses' worth of) bouncebacks a team heard
+//returns [integer part, number of additional thirds]
+//e.g. 3 and 2/3 bonuses represented as [3,2]
+function bbHeard(game, whichTeam, settings) {
+  var otherTeam = whichTeam == 1 ? 2 : 1;
+  var raw = (bonusesHeard(game, otherTeam)*30 - bonusPoints(game, otherTeam, settings)) / 30;
+  var integer = Math.trunc(raw);
+  var remainder = (raw*3) % 3;
+  return [integer, remainder];
+}
+
+//adds two bounceback heard amounts together
+function bbHrdAdd(x, y) {
+  return [x[0]+y[0], x[1]+y[1]];
+}
+
+//convert our internal representation of bouncebacks heard to a true decimal
+function bbHrdToFloat(x) {
+  return x[0] + x[1]/3;
+}
+
+//html code for printing bouncebacks heard
+function bbHrdDisplay(x) {
+  var fraction = '';
+  if(x[1] == 1) { fraction = '&#8531;' }
+  if(x[1] == 2) { fraction = '&#8532;' }
+  return x[0] + fraction;
 }
 
 //total points from overtime tossups
@@ -137,6 +167,11 @@ function standingsHeader(settings) {
     '<td align=right><b>BPts</b></td>' + '\n' +
     '<td align=right><b>PPB</b></td>' + '\n';
   }
+  if(settings.bonuses == 'yesBb') {
+    html += '<td align=right><b>BBHrd</b></td>' + '\n' +
+    '<td align=right><b>BBPts</b></td>' + '\n' +
+    '<td align=right><b>PPBB</b></td>' + '\n';
+  }
   html += '</tr>';
   return html;
 }
@@ -175,6 +210,11 @@ function standingsRow(teamEntry, rank, fileStart, settings) {
     rowHtml += '<td align=right>' + teamEntry.bPts + '</td>' + '\n';
     rowHtml += '<td align=right>' + teamEntry.ppb + '</td>' + '\n';
   }
+  if(settings.bonuses == 'yesBb') {
+    rowHtml += '<td align=right>' + bbHrdDisplay(teamEntry.bbHeard) + '</td>' + '\n';
+    rowHtml += '<td align=right>' + teamEntry.bbPts + '</td>' + '\n';
+    rowHtml += '<td align=right>' + teamEntry.ppbb + '</td>' + '\n';
+  }
   return rowHtml + '</tr>';
 }
 
@@ -184,23 +224,15 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
     var obj =
       { teamName: item.teamName,
         division: groupingPhase != null ? item.divisions[groupingPhase] : null,
-        wins: 0,
-        losses: 0,
-        ties: 0,
+        wins: 0, losses: 0, ties: 0,
         winPct: 0,
-        ppg: 0,
-        papg: 0,
-        margin: 0,
-        powers: 0,
-        tens: 0,
-        negs: 0,
+        ppg: 0, papg: 0, margin: 0,
+        powers: 0, tens: 0, negs: 0,
         tuh: 0,
         ppth: 0,
-        pPerN: 0,
-        gPerN: 0,
-        bHeard: 0,
-        bPts: 0,
-        ppb: 0,
+        pPerN: 0, gPerN: 0,
+        bHeard: 0, bPts: 0, ppb: 0,
+        bbHeard: [0,0], bbPts: 0, ppbb: 0,
         points: 0,
         ptsAgainst: 0,
         forfeits: 0,
@@ -259,6 +291,11 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
         team1Line.bPts += bonusPoints(g,1,settings);
         team2Line.bPts += bonusPoints(g,2,settings);
 
+        team1Line.bbHeard = bbHrdAdd(team1Line.bbHeard, bbHeard(g,1,settings));
+        team2Line.bbHeard = bbHrdAdd(team2Line.bbHeard, bbHeard(g,2,settings));
+        team1Line.bbPts += +g.bbPts1;
+        team2Line.bbPts += +g.bbPts2;
+
         team1Line.otPts += otPoints(g, 1, settings);
         team2Line.otPts += otPoints(g, 2, settings);
         team1Line.otPtsAgainst += otPoints(g, 2, settings);
@@ -282,6 +319,7 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
     var pPerN = t.negs == 0 ? 'inf' : t.powers / t.negs;
     var gPerN = t.negs == 0 ? 'inf' : (t.powers + t.tens) / t.negs;
     var ppb = t.bHeard == 0 ? 'inf' : t.bPts / t.bHeard;
+    var ppbb = t.bbHeard == 0 ? 'inf' : t.bbPts / bbHrdToFloat(t.bbHeard);
 
     t.winPct = winPct.toFixed(3);
     t.ppg = formatRate(ppg, 1);
@@ -291,6 +329,7 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
     t.pPerN = formatRate(pPerN, 2);
     t.gPerN = formatRate(gPerN, 2);
     t.ppb = formatRate(ppb, 2);
+    t.ppbb = formatRate(ppbb, 2);
   }
 
   return _.orderBy(standings, ['winPct', 'ppg'], ['desc', 'desc']);
@@ -512,7 +551,17 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
           html += 'Bonuses: ' + g.team1 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + ', ';
           bHeard = bonusesHeard(g, 2), bPts = bonusPoints(g, 2, settings);
           ppb = bHeard == 0 ? 0 : bPts / bHeard;
-          html += g.team2 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + '<br>';
+          html += g.team2 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + '<br>' + '\n';
+        }
+        if(settings.bonuses == 'yesBb') {
+          var bbHrd = bbHeard(g, 1, settings);
+          var ppbb = g.bbPts1 / bbHrdToFloat(bbHrd);
+          html += 'Bonus Bouncebacks: ' + g.team1 + ' ' +
+            bbHrdDisplay(bbHrd) + ' ' + toNum(g.bbPts1) + ' ' + ppbb.toFixed(2) + ', ';
+          bbHrd = bbHeard(g, 2, settings);
+          ppbb = g.bbPts2 / bbHrdToFloat(bbHrd);
+          html += g.team2 + ' ' + bbHrdDisplay(bbHrd) + ' ' + toNum(g.bbPts2) + ' ' +
+            ppbb.toFixed(2)  + '<br>' + '\n';
         }
       }//else not a forfeit
     }//if we want to show this game
@@ -546,6 +595,11 @@ function teamDetailGameTableHeader(settings) {
     html += '<td align=right><b>BHrd</b></td>' + '\n' +
       '<td align=right><b>BPts</b></td>' + '\n' +
       '<td align=right><b>PPB</b></td>' + '\n';
+  }
+  if(settings.bonuses == 'yesBb') {
+    html += '<td align=right><b>BBHrd</b></td>' + '\n' +
+    '<td align=right><b>BBPts</b></td>' + '\n' +
+    '<td align=right><b>PPBB</b></td>' + '\n';
   }
   html += '</tr>'  + '\n';
   return html;
@@ -597,6 +651,9 @@ function teamDetailGameRow(game, whichTeam, settings) {
   var bHeard = bonusesHeard(game, whichTeam);
   var bPts = bonusPoints(game, whichTeam, settings);
   var ppb = bHeard == 0 ? 'inf' : bPts / bHeard;
+  var bbHrd = bbHeard(game, whichTeam, settings);
+  var bbPts = whichTeam == 1 ? +game.bbPts1 : +game.bbPts2;
+  var ppbb = bbPts / bbHrdToFloat(bbHrd);
 
   var html = '<tr>' + '\n';
   html += '<td align=left>' + opponent + '</td>' + '\n';
@@ -622,6 +679,11 @@ function teamDetailGameRow(game, whichTeam, settings) {
     html += '<td align=right>' + bHeard + '</td>' + '\n';
     html += '<td align=right>' + bPts + '</td>' + '\n';
     html += '<td align=right>' + formatRate(ppb, 2) + '</td>' + '\n';
+  }
+  if(settings.bonuses == 'yesBb') {
+    html += '<td align=right>' + bbHrdDisplay(bbHrd) + '</td>' + '\n';
+    html += '<td align=right>' + bbPts + '</td>' + '\n';
+    html += '<td align=right>' + formatRate(ppbb, 2) + '</td>' + '\n';
   }
   html += '</tr>' + '\n';
   return html;
@@ -653,6 +715,11 @@ function teamDetailTeamSummaryRow(teamSummary, settings) {
     html += '<td align=right><b>' + teamSummary.bHeard + '</b></td>' + '\n';
     html += '<td align=right><b>' + teamSummary.bPts + '</b></td>' + '\n';
     html += '<td align=right><b>' + teamSummary.ppb + '</b></td>' + '\n';
+  }
+  if(settings.bonuses == 'yesBb') {
+    html += '<td align=right><b>' + bbHrdDisplay(teamSummary.bbHeard) + '</b></td>' + '\n';
+    html += '<td align=right><b>' + teamSummary.bbPts + '</b></td>' + '\n';
+    html += '<td align=right><b>' + teamSummary.ppbb + '</b></td>' + '\n';
   }
   html += '</tr>' + '\n';
 
@@ -817,9 +884,12 @@ function compileRoundSummaries(games, phase, settings) {
           tuh: 0,
           bPts: 0,
           bHeard: 0,
+          bbPts: 0,
+          bbHeard: [0,0],
           ppg: 0,
           tuPtsPTu: 0,
-          ppb: 0
+          ppb: 0,
+          ppbb: 0,
         }
       }
       var smry = summaries[round];
@@ -833,6 +903,8 @@ function compileRoundSummaries(games, phase, settings) {
       smry.tuh += +game.tuhtot;
       smry.bPts += bonusPoints(game, 1, settings) + bonusPoints(game, 2, settings);
       smry.bHeard += bonusesHeard(game, 1) + bonusesHeard(game, 2);
+      smry.bbPts += game.bbPts1 + game.bbPts2;
+      smry.bbHeard = bbHrdAdd(smry.bbHeard, bbHrdAdd(bbHeard(game, 1 ,settings), bbHeard(game, 2, settings)));
     }
   }
   for(var i in summaries) {
@@ -840,6 +912,7 @@ function compileRoundSummaries(games, phase, settings) {
     smry.ppg = smry.totalPoints / (2 * smry.numberOfGames);
     smry.tuPtsPTu = smry.tuPts / smry.tuh;
     smry.ppb = smry.bHeard == 0 ? 0 : smry.bPts / smry.bHeard;
+    smry.ppbb = smry.bbPts / bbHrdToFloat(smry.bbHeard);
   }
   return summaries;
 }
@@ -854,6 +927,9 @@ function roundReportTableHeader(settings) {
       '<td><b>PPB</b></td>' + '\n';
   }
   else { html += '<td><b>Pts/TUH</b></td>' + '\n'; }
+  if(settings.bonuses == 'yesBb') {
+    html += '<td><b>PPBB</b></td>' + '\n';
+  }
   html += '</tr>' + '\n';
   return html;
 }
@@ -866,6 +942,9 @@ function roundReportRow(smry, roundNo, settings) {
     '<td>' + smry.tuPtsPTu.toFixed(2) + '</td>' + '\n';
   if(settings.bonuses != 'none') {
     html += '<td>' + smry.ppb.toFixed(2) + '</td>' + '\n';
+  }
+  if(settings.bonuses == 'yesBb') {
+    html += '<td>' + smry.ppbb.toFixed(2) + '</td>' + '\n';
   }
   html += '</tr>' + '\n';
   return html;

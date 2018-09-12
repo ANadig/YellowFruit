@@ -900,7 +900,6 @@ class MainInterface extends React.Component{
 
 
   render() {
-    console.log(this.state.settings);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText;
@@ -1091,7 +1090,7 @@ class MainInterface extends React.Component{
               />
             </div>
             <div id="stat-sidebar" className="col l4 hide-on-med-and-down">
-              <StatSidebar 
+              <StatSidebar
                 standings = {getSmallStandings(myTeams, myGames, this.state.viewingPhase, phaseToGroupBy, this.state.settings)}
                 divisions = {divsInPhase}
                 settings = {this.state.settings}

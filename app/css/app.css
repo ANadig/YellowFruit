@@ -9817,6 +9817,12 @@ th {
   margin: 0;
 }
 
+.bounceback-entry {
+  display: inline-block;
+  width: 45px;
+  margin: 0;
+}
+
 .game-comment {
   color: #989898;
 }

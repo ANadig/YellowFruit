@@ -251,6 +251,12 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
 
+.bounceback-entry {
+  display: inline-block;
+  width: 45px;
+  margin: 0;
+}
+
 .game-comment {
   color: #989898;
 }

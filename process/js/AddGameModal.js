@@ -27,6 +27,8 @@ class AddGameModal extends React.Component{
       notes: '',
       otPwr1: '', otTen1: '', otNeg1: '',
       otPwr2: '', otTen2: '', otNeg2: '',
+      bbPts1: '',
+      bbPts2: '',
       originalGameLoaded: null
     };
     this.resetState = this.resetState.bind(this);
@@ -95,6 +97,8 @@ class AddGameModal extends React.Component{
       notes: '',
       otPwr1: '', otTen1: '', otNeg1: '',
       otPwr2: '', otTen2: '', otNeg2: '',
+      bbPts1: '',
+      bbPts2: '',
       originalGameLoaded: null
     });
   }
@@ -124,6 +128,8 @@ class AddGameModal extends React.Component{
       otPwr2: this.props.gameToLoad.otPwr2,
       otTen2: this.props.gameToLoad.otTen2,
       otNeg2: this.props.gameToLoad.otNeg2,
+      bbPts1: this.props.gameToLoad.bbPts1,
+      bbPts2: this.props.gameToLoad.bbPts2,
       originalGameLoaded: this.props.gameToLoad
     });
   }
@@ -153,6 +159,8 @@ class AddGameModal extends React.Component{
       otPwr2: f || !ot ? '' : this.state.otPwr2,
       otTen2: f || !ot ? '' : this.state.otTen2,
       otNeg2: f || !ot ? '' : this.state.otNeg2,
+      bbPts1: f ? '' : this.state.bbPts1,
+      bbPts2: f ? '' : this.state.bbPts2,
       notes: this.state.notes
     } //tempitems
 
@@ -186,14 +194,22 @@ class AddGameModal extends React.Component{
     return isNaN(+str) ? 0 : +str;
   }
 
+  //the greatest integer guaranteed to divide a game score evenly
+  scoreDivisor() {
+    if(this.props.settings.powers == '15pts' || this.props.settings.negs == 'yes') {
+      return 5;
+    }
+    return 10;
+  }
+
   //calculate bonuses heard. returns a number
   bHeard(whichTeam) {
     var tot=0;
     var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
     for(var p in players) {
-      tot += toNum(players[p].powers) + toNum(players[p].tens);
+      tot += this.toNum(players[p].powers) + this.toNum(players[p].tens);
     }
-    if(toNum(this.state.ottu) > 0) {
+    if(this.toNum(this.state.ottu) > 0) {
       var otPwr = whichTeam == 1 ? this.state.otPwr1 : this.state.otPwr2;
       var otTen = whichTeam == 1 ? this.state.otTen1 : this.state.otTen2;
       tot -= this.toNum(otPwr); //subtract TUs converted in overtime
@@ -207,6 +223,7 @@ class AddGameModal extends React.Component{
     var tuPts=0;
     var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
     var totScore = whichTeam == 1 ? this.state.score1 : this.state.score2;
+    var bbPts = whichTeam == 1 ? this.state.bbPts1 : this.state.bbPts2;
     var powerValue = 0;
     if(this.props.settings.powers == '15pts') { powerValue = 15; }
     if(this.props.settings.powers == '20pts') { powerValue = 20; }
@@ -214,7 +231,7 @@ class AddGameModal extends React.Component{
       tuPts += powerValue*this.toNum(players[p].powers) +
         10*this.toNum(players[p].tens) - 5*this.toNum(players[p].negs);
     }
-    return totScore - tuPts;
+    return totScore - tuPts - bbPts;
   }
 
   // returns ppb rounded to two decimal places,
@@ -222,6 +239,40 @@ class AddGameModal extends React.Component{
   ppb(whichTeam) {
     var bHeard = this.bHeard(whichTeam);
     return bHeard == 0 ? (<span>&mdash;</span>) : (this.bPts(whichTeam)/bHeard).toFixed(2);
+  }
+
+  //how many (30-point bonuses' worth of) bouncebacks a team heard
+  bbHeard(whichTeam) {
+    var otherTeam = whichTeam == 1 ? 2 : 1;
+    return (this.bHeard(otherTeam)*30 - this.bPts(otherTeam)) / 30;
+  }
+
+  //points per every three bounceback questions heard
+  ppBb(whichTeam) {
+    var bbPts = whichTeam == 1 ? this.state.bbPts1 : this.state.bbPts2;
+    var bbHeard = this.bbHeard(whichTeam);
+    return bbHeard <= 0 ? (<span>&mdash;</span>) : (bbPts / bbHeard).toFixed(2);
+  }
+
+  //rounds down to the nearest integer, or returns 0 if negative
+  bbHeardInteger(whichTeam) {
+    var raw = this.bbHeard(whichTeam);
+    return raw <= 0 ? 0 : Math.trunc(raw);
+  }
+
+  //returns a JSX element representing the fraction 1/3 or 2/3, or null.
+  //bouncebacks heard come in thirds-of-a-bonus;
+  //this is more elegant than displaying .33 and .67 is
+  bbHeardFraction(whichTeam) {
+    var otherTeam = whichTeam == 1 ? 2 : 1;
+    var remainder = ((this.bHeard(otherTeam)*30 - this.bPts(otherTeam))/10) % 3;
+    if(remainder == 1) {
+      return ( <span>&#8531;</span> );
+    }
+    if(remainder == 2) {
+      return ( <span>&#8532;</span> );
+    }
+    return null;
   }
 
   //title at the top left
@@ -296,7 +347,7 @@ class AddGameModal extends React.Component{
   //what the error message should be
   validateGame() {
     var team1 = this.state.team1, team2 = this.state.team2;
-    var round = this.state.round, tuhtot = this.state.tuhtot;
+    var round = this.state.round, tuhtot = this.toNum(this.state.tuhtot);
     var score1 = this.state.score1, score2 = this.state.score2;
     var players1 = this.state.players1, players2 = this.state.players2;
 
@@ -325,7 +376,7 @@ class AddGameModal extends React.Component{
     if(this.state.forfeit) {
       return [true, 'info', team1 + ' defeats ' + team2 + ' by forfeit'];
     } //team names and round are the only required info for a forfeit
-    if(tuhtot == '' || this.toNum(tuhtot) <= 0 || score1 == '' || score2 == '') {
+    if(tuhtot <= 0 || score1 == '' || score2 == '') {
       return [false, '', ''];
     } //total tuh and total scores are required.
 
@@ -333,7 +384,7 @@ class AddGameModal extends React.Component{
     //and neither team can have no players who have heard tossups
     var anyPlayerTuHeard = false;
     for(var p in players1) {
-      if(players1[p].tuh > tuhtot) {
+      if(this.toNum(players1[p].tuh) > tuhtot) {
         return [false, 'error', 'One or more players have heard more than ' + tuhtot + ' tossups'];
       }
       var tuAnswered = this.toNum(players1[p].powers) + this.toNum(players1[p].tens) + this.toNum(players1[p].negs);
@@ -348,7 +399,7 @@ class AddGameModal extends React.Component{
     //likewise for team 2
     anyPlayerTuHeard = false;
     for(var p in players2) {
-      if(players2[p].tuh > tuhtot) {
+      if(this.toNum(players2[p].tuh) > tuhtot) {
         return [false, 'error', 'One or more players have heard more than ' + tuhtot + ' tossups'];
       }
       var tuAnswered = this.toNum(players2[p].powers) + this.toNum(players2[p].tens) + this.toNum(players2[p].negs);
@@ -362,10 +413,10 @@ class AddGameModal extends React.Component{
     }
 
     //PPB can't be over 30 (includes having bonus points but no bonuses heawrd)
-    if(this.ppb(1) > 30 || (this.bPts(1) > 0 && this.bHeard(1) == 0)) {
+    if(this.bHeard(1) > 0 && (isNaN(this.ppb(1)) || this.ppb(1) > 30)) {
       return [false, 'error', team1 + ' has over 30 ppb'];
     }
-    if(this.ppb(2) > 30 || (this.bPts(2) > 0 && this.bHeard(2) == 0)) {
+    if(this.bHeard(2) > 0 && (isNaN(this.ppb(2)) || this.ppb(2) > 30)) {
       return [false, 'error', team2 + ' has over 30 ppb'];
     }
 
@@ -424,6 +475,9 @@ class AddGameModal extends React.Component{
       </div>
     );
   }
+
+
+
 
   render() {
     var [gameIsValid, errorLevel, errorMessage] = this.validateGame();
@@ -514,14 +568,14 @@ class AddGameModal extends React.Component{
       if(this.props.settings.powers != 'none') {
         powerField1 = (
           <div className="input-field col s2 m1">
-            <input id="otPwr1" type="number" name="otPwr1"
+            <input id="otPwr1" type="number" name="otPwr1" min="0"
               value={this.state.otPwr1} onChange={this.handleChange}/>
             <label htmlFor="otPwr1">{powerValue}</label>
           </div>
         );
         powerField2 = (
           <div className="input-field col s2 m1">
-            <input id="otPwr2" type="number" name="otPwr2"
+            <input id="otPwr2" type="number" name="otPwr2" min="0"
               value={this.state.otPwr2} onChange={this.handleChange}/>
             <label htmlFor="otPwr2">{powerValue}</label>
           </div>
@@ -530,14 +584,14 @@ class AddGameModal extends React.Component{
       if(this.props.settings.negs == 'yes') {
         negField1 = (
           <div className="input-field col s2 m1">
-            <input id="otNeg1" type="number" name="otNeg1"
+            <input id="otNeg1" type="number" name="otNeg1" min="0"
               value={this.state.otNeg1} onChange={this.handleChange}/>
             <label htmlFor="otNeg1">{'-5'}</label>
           </div>
         );
         negField2 = (
           <div className="input-field col s2 m1">
-            <input id="otNeg2" type="number" name="otNeg2"
+            <input id="otNeg2" type="number" name="otNeg2" min="0"
               value={this.state.otNeg2} onChange={this.handleChange}/>
             <label htmlFor="otNeg2">{'-5'}</label>
           </div>
@@ -553,7 +607,7 @@ class AddGameModal extends React.Component{
           </div>
           {powerField1}
           <div className="input-field col s2 m1">
-            <input id="otTen1" type="number" name="otTen1"
+            <input id="otTen1" type="number" name="otTen1" min="0"
               value={this.state.otTen1} onChange={this.handleChange}/>
             <label htmlFor="otTen1">{'10'}</label>
           </div>
@@ -564,7 +618,7 @@ class AddGameModal extends React.Component{
           </div>
           {powerField2}
           <div className="input-field col s2 m1">
-            <input id="otTen2" type="number" name="otTen2"
+            <input id="otTen2" type="number" name="otTen2" min="0"
               value={this.state.otTen2} onChange={this.handleChange}/>
             <label htmlFor="otTen2">{'10'}</label>
           </div>
@@ -587,6 +641,34 @@ class AddGameModal extends React.Component{
       );
     }
 
+    var bouncebackRow = null;
+    if(this.props.settings.bonuses == 'yesBb') {
+      bouncebackRow = (
+        <div className="row">
+          <div className="col s6">
+            Bouncebacks:&emsp;{this.bbHeardInteger(1)}{this.bbHeardFraction(1)} heard&emsp;|
+            &emsp;
+            <div className="input-field bounceback-entry">
+              <input id="bbPts1" type="number" name="bbPts1" step="10" min="0"
+              value={this.state.bbPts1} onChange={this.handleChange}/>
+            </div>
+            pts&emsp;|
+            &emsp;{this.ppBb(1)} ppbb
+          </div>
+          <div className="col s6">
+            Bouncebacks:&emsp;{this.bbHeardInteger(2)}{this.bbHeardFraction(2)} heard&emsp;|
+            &emsp;
+            <div className="input-field bounceback-entry">
+              <input id="bbPts2" type="number" name="bbPts2" step="10" min="0"
+              value={this.state.bbPts2} onChange={this.handleChange}/>
+            </div>
+            pts&emsp;|
+            &emsp;{this.ppBb(2)} ppbb
+          </div>
+        </div>
+      );
+    }
+
     return(
       <div className="modal modal-fixed-footer" id="addGame">
         <form onSubmit={this.handleAdd}>
@@ -604,7 +686,7 @@ class AddGameModal extends React.Component{
               </div>
               <div className="input-field col s3">
                 <input id="tuhtot" disabled={this.state.forfeit ? 'disabled' : ''}
-                  type="number" name="tuhtot"
+                  type="number" name="tuhtot" min="0"
                   value={this.state.forfeit ? '' : this.state.tuhtot} onChange={this.handleChange}/>
                 <label htmlFor="tuhtot">Toss-ups</label>
               </div>
@@ -617,8 +699,9 @@ class AddGameModal extends React.Component{
                 </select>
               </div>
               <div className="input-field col s4 m2 l1">
-                <input disabled={this.state.forfeit ? 'disabled' : ''} type="number" step="5" id="tm1Score" name="score1"
-                  value={this.state.forfeit ? '' : this.state.score1} onChange={this.handleChange}/>
+                <input disabled={this.state.forfeit ? 'disabled' : ''} type="number"
+                step={this.scoreDivisor()} id="tm1Score" name="score1"
+                value={this.state.forfeit ? '' : this.state.score1} onChange={this.handleChange}/>
                 <label htmlFor="tm1Score">Score</label>
               </div>
               <div className="col m2 hide-on-small-only">
@@ -627,8 +710,9 @@ class AddGameModal extends React.Component{
                 </div>
               </div>
               <div className="input-field col s4 m2 l1">
-                <input disabled={this.state.forfeit ? 'disabled' : ''} type="number" step="5" id="tm2Score" name="score2"
-                  value={this.state.forfeit ? '' : this.state.score2} onChange={this.handleChange}/>
+                <input disabled={this.state.forfeit ? 'disabled' : ''} type="number"
+                step={this.scoreDivisor()} id="tm2Score" name="score2"
+                value={this.state.forfeit ? '' : this.state.score2} onChange={this.handleChange}/>
                 <label htmlFor="tm2Score">Score</label>
               </div>
               <div className="input-field col s8 m3 l4">
@@ -660,13 +744,15 @@ class AddGameModal extends React.Component{
 
             {bonusCalcRow}
 
+            {bouncebackRow}
+
             <div className="row game-entry-bottom-row">
               <div className="input-field col s6 m8">
                 <textarea className="materialize-textarea" id="gameNotes" name="notes" onChange={this.handleChange} value={this.state.notes} />
                 <label htmlFor="gameNotes">Notes about this game</label>
               </div>
               <div className="input-field col s3 m2">
-                <input id="ottu" disabled={this.state.forfeit ? 'disabled' : ''} type="number" name="ottu"
+                <input id="ottu" disabled={this.state.forfeit ? 'disabled' : ''} type="number" name="ottu" min="0"
                 value={this.state.forfeit ? '' : this.state.ottu} onChange={this.handleChange}/>
                 <label htmlFor="ottu">Overtime TU</label>
               </div>
