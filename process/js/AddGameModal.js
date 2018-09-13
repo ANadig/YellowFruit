@@ -202,6 +202,12 @@ class AddGameModal extends React.Component{
     return 10;
   }
 
+  powerValue() {
+    if(this.props.settings.powers == '15pts') { return 15; }
+    if(this.props.settings.powers == '20pts') { return 20; }
+    return 0;
+  }
+
   //calculate bonuses heard. returns a number
   bHeard(whichTeam) {
     var tot=0;
@@ -224,11 +230,8 @@ class AddGameModal extends React.Component{
     var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
     var totScore = whichTeam == 1 ? this.state.score1 : this.state.score2;
     var bbPts = whichTeam == 1 ? this.state.bbPts1 : this.state.bbPts2;
-    var powerValue = 0;
-    if(this.props.settings.powers == '15pts') { powerValue = 15; }
-    if(this.props.settings.powers == '20pts') { powerValue = 20; }
     for(var p in players) {
-      tuPts += powerValue*this.toNum(players[p].powers) +
+      tuPts += this.powerValue()*this.toNum(players[p].powers) +
         10*this.toNum(players[p].tens) - 5*this.toNum(players[p].negs);
     }
     return totScore - tuPts - bbPts;
@@ -266,13 +269,19 @@ class AddGameModal extends React.Component{
   bbHeardFraction(whichTeam) {
     var otherTeam = whichTeam == 1 ? 2 : 1;
     var remainder = ((this.bHeard(otherTeam)*30 - this.bPts(otherTeam))/10) % 3;
-    if(remainder == 1) {
-      return ( <span>&#8531;</span> );
-    }
-    if(remainder == 2) {
-      return ( <span>&#8532;</span> );
-    }
+    if(remainder == 1) { return ( <span>&#8531;</span> ); }
+    if(remainder == 2) { return ( <span>&#8532;</span> ); }
     return null;
+  }
+
+  //how many points the team scored on overtime tossups
+  otPoints(whichTeam) {
+    if(toNum(this.state.ottu) <= 0) { return 0; }
+    var otPwr = whichTeam == 1 ? this.state.otPwr1 : this.state.otPwr2;
+    var otTen = whichTeam == 1 ? this.state.otTen1 : this.state.otTen2;
+    var otNeg = whichTeam == 1 ? this.state.otNeg1 : this.state.otNeg2;
+    var totScore = whichTeam == 1 ? this.state.score1 : this.state.score2;
+    return this.powerValue()*otPwr + 10*otTen - 5*otNeg;
   }
 
   //title at the top left
@@ -380,9 +389,11 @@ class AddGameModal extends React.Component{
       return [false, '', ''];
     } //total tuh and total scores are required.
 
-    //no players can have more tossups heard than were read in the match,
-    //and neither team can have no players who have heard tossups
-    var anyPlayerTuHeard = false;
+    //no player can have more tossups heard than were read in the match,
+    //and no player can answer more tossups than he's heard
+    //A team's players cannot have heard more tossups collectively than the
+    //total tossups for the game, times the number of players per team
+    var playerTuhSums = [0,0];
     for(var p in players1) {
       if(this.toNum(players1[p].tuh) > tuhtot) {
         return [false, 'error', 'One or more players have heard more than ' + tuhtot + ' tossups'];
@@ -391,13 +402,10 @@ class AddGameModal extends React.Component{
       if(this.toNum(players1[p].tuh) < tuAnswered) {
         return [false, 'error', p + ' has more tossups answered than tossups heard']
       }
-      if(players1[p].tuh > 0) { anyPlayerTuHeard = true; }
+      playerTuhSums[0] += this.toNum(players1[p].tuh);
     }
-    if(!anyPlayerTuHeard) {
-      return [false, 'error', 'No players for ' + team1 + ' have heard any tossups'];
-    }
+
     //likewise for team 2
-    anyPlayerTuHeard = false;
     for(var p in players2) {
       if(this.toNum(players2[p].tuh) > tuhtot) {
         return [false, 'error', 'One or more players have heard more than ' + tuhtot + ' tossups'];
@@ -406,17 +414,33 @@ class AddGameModal extends React.Component{
       if(this.toNum(players2[p].tuh) < tuAnswered) {
         return [false, 'error', p + ' has more tossups answered than tossups heard']
       }
-      if(players2[p].tuh > 0) { anyPlayerTuHeard = true; }
+      playerTuhSums[1] += this.toNum(players2[p].tuh);
     }
-    if(!anyPlayerTuHeard) {
-      return [false, 'error', 'No players for ' + team2 + ' have heard any tossups'];
+
+    var idealCollectiveTuh = tuhtot * this.props.settings.playersPerTeam;
+    if(playerTuhSums[0] > idealCollectiveTuh) {
+      return [false, 'error', team1 + '\'s players have heard more than ' + idealCollectiveTuh + ' tossups'];
+    }
+    if(playerTuhSums[1] > idealCollectiveTuh) {
+      return [false, 'error', team2 + '\'s players have heard more than ' + idealCollectiveTuh + ' tossups'];
+    }
+
+    //if it's a tossup only format, sum of tossup points must equal total score
+    if(this.props.settings.bonuses == 'none') {
+      if(this.bPts(1) != 0) {
+        return [false, 'error', team1 + '\'s tossup points and total score do not match'];
+      }
+      if(this.bPts(2) != 0) {
+        return [false, 'error', team2 + '\'s tossup points and total score do not match'];
+      }
     }
 
     //PPB can't be over 30 (includes having bonus points but no bonuses heawrd)
-    if(this.bHeard(1) > 0 && (isNaN(this.ppb(1)) || this.ppb(1) > 30)) {
+    //exception is if there are no bonus points to account for
+    if((isNaN(this.ppb(1)) && this.bPts(1) > 0) || this.ppb(1) > 30) {
       return [false, 'error', team1 + ' has over 30 ppb'];
     }
-    if(this.bHeard(2) > 0 && (isNaN(this.ppb(2)) || this.ppb(2) > 30)) {
+    if((isNaN(this.ppb(2)) && this.bPts(2) > 0) || this.ppb(2) > 30) {
       return [false, 'error', team2 + ' has over 30 ppb'];
     }
 
@@ -425,9 +449,23 @@ class AddGameModal extends React.Component{
       return [false, 'error', 'Total tossups converted exceeds tossups heard'];
     }
 
+    if(this.bPts(1) < 0 || this.bPts(2) < 0) {
+      return [false, 'error', 'Bonus points cannot be negative'];
+    }
+
+    //can't have over 30 ppbb
+    var ppbb1 = this.ppBb(1), ppbb2 = this.ppBb(2);
+    if(this.props.settings.bonuses == 'yesBb' && (isNaN(ppbb1) || ppbb1 > 30)) {
+      return [false, 'error', team1 + ' has over 30 ppbb'];
+    }
+    if(this.props.settings.bonuses == 'yesBb' && (isNaN(ppbb2) || ppbb2 > 30)) {
+      return [false, 'error', team2 + ' has over 30 ppbb'];
+    }
+
     //warn if score isn't divisible by 5
-    if(score1 % 5 != 0 || score2 % 5 != 0) {
-      return [true, 'warning', 'Score is not divisible by 5'];
+    var divisor = this.scoreDivisor();
+    if(score1 % divisor != 0 || score2 % divisor != 0) {
+      return [true, 'warning', 'Score is not divisible by ' + divisor];
     }
 
     //bonus points shouldn't end in 5
@@ -435,10 +473,19 @@ class AddGameModal extends React.Component{
       return [true, 'warning', 'Bonus points are not divisible by 10'];
     }
 
-    //if the game has from [1,9] total tossups, that's probably wrong
-    //(this warning is very unlikely to actually be seen)
-    if(tuhtot > 0 && tuhtot < 10) {
-      return [true, 'warning', 'Total tossups of ' + tuhtot + ' may be incorrect'];
+    //there shouldn't be empty chairs if your team had enough players to fill them
+    if(playerTuhSums[0] < idealCollectiveTuh &&
+      Object.keys(players1).length >= this.props.settings.playersPerTeam) {
+      return [true, 'warning', team1 + '\'s players have heard fewer than ' + idealCollectiveTuh + ' tossups'];
+    }
+    if(playerTuhSums[1] < idealCollectiveTuh &&
+      Object.keys(players2).length >= this.props.settings.playersPerTeam) {
+      return [true, 'warning', team2 + '\'s players have heard fewer than ' + idealCollectiveTuh + ' tossups'];
+    }
+
+    if(this.toNum(this.state.ottu) > 0 && score1 - this.otPoints(1) != score2 - this.otPoints(2)) {
+      return [true, 'warning', 'Game went to overtime but score was not tied at the ' +
+        'end of regulation based on each team\'s points scored in overtime'];
     }
 
     //warn if the score is a tie
@@ -541,8 +588,7 @@ class AddGameModal extends React.Component{
 
     var tableHeader, powerCell, negCell;
     if(this.props.settings.powers != 'none') {
-      var powerValue = this.props.settings.powers == '20pts' ? '20' : '15';
-      powerCell = ( <th>{powerValue}</th> );
+      powerCell = ( <th>{this.powerValue()}</th> );
     }
     else { powerCell = null; }
     if(this.props.settings.negs == 'yes') { negCell = ( <th>-5</th> ); }
@@ -570,14 +616,14 @@ class AddGameModal extends React.Component{
           <div className="input-field col s2 m1">
             <input id="otPwr1" type="number" name="otPwr1" min="0"
               value={this.state.otPwr1} onChange={this.handleChange}/>
-            <label htmlFor="otPwr1">{powerValue}</label>
+            <label htmlFor="otPwr1">{this.powerValue()}</label>
           </div>
         );
         powerField2 = (
           <div className="input-field col s2 m1">
             <input id="otPwr2" type="number" name="otPwr2" min="0"
               value={this.state.otPwr2} onChange={this.handleChange}/>
-            <label htmlFor="otPwr2">{powerValue}</label>
+            <label htmlFor="otPwr2">{this.powerValue()}</label>
           </div>
         );
       }
@@ -769,10 +815,10 @@ class AddGameModal extends React.Component{
 
           <div className="modal-footer">
             <div className="row">
-              <div className="col s5 l8 qb-validation-msg">
+              <div className="col s7 l8 qb-validation-msg">
                 {errorIcon}&nbsp;{errorMessage}
               </div>
-              <div className="col s7 l4">
+              <div className="col s5 l4">
                 <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
                   <span className="hotkey-underline">C</span>ancel
                 </button>&nbsp;
