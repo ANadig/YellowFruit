@@ -99,6 +99,8 @@ class SettingsForm extends React.Component{
   //settings card - open for editing or close and save
   settingsToggle() {
     if(!this.state.editingSettings) {
+      if(this.props.haveGamesBeenEntered) { return; }
+      this.props.editingSettings(true);
       this.setState({
         editingSettings: true
       });
@@ -110,6 +112,7 @@ class SettingsForm extends React.Component{
       }
     }
     else {
+      this.props.editingSettings(false);
       var settingsObj = {
         powers: this.state.powers,
         negs: this.state.negs,
@@ -276,6 +279,20 @@ class SettingsForm extends React.Component{
       (this.state.editingDivisions && this.divsHasDups());
   }
 
+  settingsBtnAddlClasses() {
+    if(this.props.haveGamesBeenEntered) {
+      return ' tooltipped settings-edit-disabled';
+    }
+    return '';
+  }
+
+  settingsBtnTooltip() {
+    if(this.props.haveGamesBeenEntered) {
+      return 'Settings cannot be modified once games have been entered';
+    }
+    return '';
+  }
+
   //set the default phase as the one that was just clicked on, unless, it's
   //already the default, in which case remove the default
   setDefaultGrouping(e) {
@@ -286,6 +303,26 @@ class SettingsForm extends React.Component{
       defaultPhase: newDefault
     });
     this.props.setDefaultGrouping(newDefault);
+  }
+
+  //For display when the settings section is read-only
+  powerString() {
+    if(this.props.settings.powers == 'none') { return 'No powers'; }
+    var powerValue = this.props.settings.powers == '15pts' ? 15 : 20;
+    return powerValue + ' point powers';
+  }
+
+  //for display when the settings section is read-only
+  negString() {
+    if(this.props.settings.negs == 'yes') { return '-5 point interrupt penalties'; }
+    return 'No interrupt penalties';
+  }
+
+  //for display when the settings section is read-only
+  bonusString() {
+    if(this.props.settings.bonuses == 'none') { return 'No bonuses'; }
+    if(this.props.settings.bonuses == 'yesBb') { return 'Bonuses with bouncebacks'; }
+    return 'Bonuses without bouncebacks';
   }
 
   //the component needs two renders to get the phase dropdowns to display immediately
@@ -312,7 +349,7 @@ class SettingsForm extends React.Component{
     var divisionError = this.divisionSaveError();
     var phaseSaveDisabled = this.phaseSaveDisabled();
     var divisionSaveDisabled = this.divisionSaveDisabled();
-    var togglesDisabled = this.togglesDisabled() ? 'disabled' : '';
+    var togglesDisabled = this.togglesDisabled() ? ' disabled' : '';
     var settingsHotKey = this.state.editingSettings ? 'a' : '';
     var phaseHotKey = phaseError == null && this.state.editingPhases ? 'a' : '';
     var divHotKey = divisionError == null && this.state.editingDivisions ? 'a' : '';
@@ -411,11 +448,86 @@ class SettingsForm extends React.Component{
 
     } //else editing phases
 
+    var powersDisplay, negsDisplay, bonusDisplay, playersPerTeamDisplay, settingsList;
     if(!this.state.editingSettings) {
-      var playersPerTeamDisplay =
-        (<h6>Players per team: {this.state.playersPerTeam}</h6>);
+      powersDisplay = ( <li>{this.powerString()}</li> );
+      negsDisplay = ( <li>{this.negString()}</li> );
+      bonusDisplay = ( <li>{this.bonusString()}</li> );
+      playersPerTeamDisplay = (<li>{this.state.playersPerTeam} players per team</li>);
+      settingsList = ( <ul>{powersDisplay}{negsDisplay}{bonusDisplay}{playersPerTeamDisplay}</ul> );
     }
     else {
+      powersDisplay = (
+        <div>
+          <h6>Powers</h6>
+          <p>
+            <label>
+              <input name="powers" type="radio" value="20pts" disabled={settingsDisabled}
+              checked={this.state.powers=='20pts'} onChange={this.handleChange} />
+              <span>20 points</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input name="powers" type="radio" value="15pts" disabled={settingsDisabled}
+              checked={this.state.powers=='15pts'} onChange={this.handleChange} />
+              <span>15 points</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input name="powers" type="radio" value="none" disabled={settingsDisabled}
+              checked={this.state.powers=='none'} onChange={this.handleChange} />
+              <span>No powers</span>
+            </label>
+          </p>
+        </div>
+      );//powersDisplay
+      negsDisplay = (
+        <div>
+          <h6>Interrupt Penalties</h6>
+          <p>
+            <label>
+              <input name="negs" type="radio" value="yes" disabled={settingsDisabled}
+              checked={this.state.negs=='yes'} onChange={this.handleChange} />
+              <span>-5 points</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input name="negs" type="radio" value="no" disabled={settingsDisabled}
+              checked={this.state.negs=='no'} onChange={this.handleChange} />
+              <span>No penalties</span>
+            </label>
+          </p>
+        </div>
+      );//negsDisplay
+      bonusDisplay = (
+        <div>
+          <h6>Bonuses</h6>
+          <p>
+            <label>
+              <input name="bonuses" type="radio" value="noBb" disabled={settingsDisabled}
+              checked={this.state.bonuses=='noBb'} onChange={this.handleChange} />
+              <span>Without bouncebacks</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input name="bonuses" type="radio" value="yesBb" disabled={settingsDisabled}
+              checked={this.state.bonuses=='yesBb'} onChange={this.handleChange} />
+              <span>With bouncebacks</span>
+            </label>
+          </p>
+          <p>
+            <label>
+              <input name="bonuses" type="radio" value="none" disabled={settingsDisabled}
+              checked={this.state.bonuses=='none'} onChange={this.handleChange} />
+              <span>No bonuses</span>
+            </label>
+          </p>
+        </div>
+      );//bonusDisplay
       playersPerTeamDisplay = (
         <span className="players-per-team">
           <h6>Players per team:</h6>
@@ -425,7 +537,9 @@ class SettingsForm extends React.Component{
           </div>
         </span>
       );
-    }
+      settingsList = ( <div>{powersDisplay}{negsDisplay}{bonusDisplay}{playersPerTeamDisplay}</div> );
+    }//else editing powers
+
 
     $('select').formSelect(); //initialize all dropdowns
 
@@ -437,74 +551,12 @@ class SettingsForm extends React.Component{
               <div id="settingsCard" className="card">
                 <div className="card-content">
                   <span className="card-title">Settings</span>
-                  <h6>Powers</h6>
-                  <p>
-                    <label>
-                      <input name="powers" type="radio" value="20pts" disabled={settingsDisabled}
-                      checked={this.state.powers=='20pts'} onChange={this.handleChange} />
-                      <span>20 points</span>
-                    </label>
-                  </p>
-                  <p>
-                    <label>
-                      <input name="powers" type="radio" value="15pts" disabled={settingsDisabled}
-                      checked={this.state.powers=='15pts'} onChange={this.handleChange} />
-                      <span>15 points</span>
-                    </label>
-                  </p>
-                  <p>
-                    <label>
-                      <input name="powers" type="radio" value="none" disabled={settingsDisabled}
-                      checked={this.state.powers=='none'} onChange={this.handleChange} />
-                      <span>No powers</span>
-                    </label>
-                  </p>
-
-                  <h6>Interrupt Penalties</h6>
-                  <p>
-                    <label>
-                      <input name="negs" type="radio" value="yes" disabled={settingsDisabled}
-                      checked={this.state.negs=='yes'} onChange={this.handleChange} />
-                      <span>-5 points</span>
-                    </label>
-                  </p>
-                  <p>
-                    <label>
-                      <input name="negs" type="radio" value="no" disabled={settingsDisabled}
-                      checked={this.state.negs=='no'} onChange={this.handleChange} />
-                      <span>No penalties</span>
-                    </label>
-                  </p>
-
-                  <h6>Bonuses</h6>
-                  <p>
-                    <label>
-                      <input name="bonuses" type="radio" value="noBb" disabled={settingsDisabled}
-                      checked={this.state.bonuses=='noBb'} onChange={this.handleChange} />
-                      <span>Without bouncebacks</span>
-                    </label>
-                  </p>
-                  <p>
-                    <label>
-                      <input name="bonuses" type="radio" value="yesBb" disabled={settingsDisabled}
-                      checked={this.state.bonuses=='yesBb'} onChange={this.handleChange} />
-                      <span>With bouncebacks</span>
-                    </label>
-                  </p>
-                  <p>
-                    <label>
-                      <input name="bonuses" type="radio" value="none" disabled={settingsDisabled}
-                      checked={this.state.bonuses=='none'} onChange={this.handleChange} />
-                      <span>No bonuses</span>
-                    </label>
-                  </p>
-
-                  {playersPerTeamDisplay}
-
+                  {settingsList}
                 </div>
                 <div className="card-action">
-                  <button className={"btn-flat " + togglesDisabled}
-                    accessKey={settingsHotKey} onClick={this.settingsToggle}>
+                  <button className={"btn-flat" + this.settingsBtnAddlClasses() + togglesDisabled}
+                    accessKey={settingsHotKey} data-tooltip={this.settingsBtnTooltip()}
+                    onClick={this.settingsToggle}>
                   {this.getSettingsButtonCaption()}</button>
                 </div>
               </div>

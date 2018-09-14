@@ -148,7 +148,7 @@ class GameListEntry extends React.Component{
           <br/><span className="game-comment"><em>{this.props.singleItem.notes}</em></span>
         </div>
       </a>
-    )
+    );
   }
 };
 

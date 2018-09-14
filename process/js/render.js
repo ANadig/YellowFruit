@@ -124,7 +124,8 @@ class MainInterface extends React.Component{
       editWhichTeam: null,
       tmAddOrEdit: 'add', //either 'add' or 'edit'
       editWhichGame: null,
-      gmAddOrEdit: 'add'
+      gmAddOrEdit: 'add',
+      editingSettings: false
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -157,6 +158,7 @@ class MainInterface extends React.Component{
     this.removePhaseFromGame = this.removePhaseFromGame.bind(this);
     this.setDefaultGrouping = this.setDefaultGrouping.bind(this);
     this.saveSettings = this.saveSettings.bind(this);
+    this.editingSettings = this.editingSettings.bind(this);
   }
 
   componentDidMount() {
@@ -358,7 +360,8 @@ class MainInterface extends React.Component{
       editWhichTeam: null,
       tmAddOrEdit: 'add', //either 'add' or 'edit'
       editWhichGame: null,
-      gmAddOrEdit: 'add'
+      gmAddOrEdit: 'add',
+      editingSettings: false
     });
   }
 
@@ -447,6 +450,7 @@ class MainInterface extends React.Component{
 
   //called by buttons that open the game form
   openGameAddWindow() {
+    if(this.state.myTeams.length < 2 || this.state.editingSettings) { return; }
     this.setState({
       gmWindowVisible: true
     });
@@ -696,7 +700,7 @@ class MainInterface extends React.Component{
   //whether you're viewing Settings, Teams, or Games
   setPane(pane) {
     this.setState({
-      activePane: pane
+      activePane: pane,
     });
   } //setPane
 
@@ -897,12 +901,42 @@ class MainInterface extends React.Component{
     ipc.sendSync('unsavedData');
   }
 
+  //Whether the "settings" section of the settings pane is open for editing
+  editingSettings(bool) {
+    this.setState({
+      editingSettings: bool
+    });
+  }
+
+  //returns true of the query text start with "Round###" or "R###" and if the game's
+  //round machest that number
+  matchRoundSearch(queryText, game) {
+    if(queryText.search(/^(r(ound)?\s*\d+)/i) != 0) { return false; }
+    var queryRound = queryText.replace(/\D/g, '');
+    return game.round == queryRound;
+  }
+
+  //returns true if parts of the query text match both teams
+  matchBothTeams(queryText, game) {
+    var matchFirst = false, matchSecond = false;
+    var words = queryText.split(' ');
+    words = words.map(function(str,idx) { return str.trim(); });
+    words = _.without(words, '');
+    if(words.length < 2) { return false; }
+    for(var i in words) {
+      if(game.team1.toLowerCase().indexOf(words[i])!=-1) { matchFirst = true; }
+      else if(game.team2.toLowerCase().indexOf(words[i])!=-1) { matchSecond = true; }
+    }
+    console.log(matchFirst + ' ' + matchSecond);
+    return matchFirst && matchSecond;
+  }
+
 
 
   render() {
     var filteredTeams = [];
     var filteredGames = [];
-    var queryText = this.state.queryText;
+    var queryText = this.state.queryText.trim();
     var orderBy = this.state.orderBy;
     var orderDir = this.state.orderDir;
     var myTeams = this.state.myTeams;
@@ -914,24 +948,16 @@ class MainInterface extends React.Component{
     var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.defaultPhase : this.state.viewingPhase;
     var divsInPhase = this.state.divisions[phaseToGroupBy];
 
-    $(document).ready(function(){ $('.tooltipped').tooltip(); }); //initialize tooltips
+    $(document).ready(function() { $('.tooltipped').tooltip(); });//initialize tooltips
     $('select').formSelect(); //initialize all dropdowns
     $('.fixed-action-btn').floatingActionButton(); //initialize floating buttons
     $('.modal').modal({
       onCloseEnd: this.onModalClose
     }); //initialize all modals
-    if(this.state.tmWindowVisible === true) {
-      $('#addTeam').modal('open');
-    }
-    if(this.state.gmWindowVisible === true) {
-      $('#addGame').modal('open');
-    }
-    if(this.state.divWindowVisible === true) {
-      $('#assignDivisions').modal('open');
-    }
-    if(this.state.phaseWindowVisible === true) {
-      $('#assignPhases').modal('open');
-    }
+    if(this.state.tmWindowVisible === true) { $('#addTeam').modal('open'); }
+    if(this.state.gmWindowVisible === true) { $('#addGame').modal('open'); }
+    if(this.state.divWindowVisible === true) { $('#assignDivisions').modal('open'); }
+    if(this.state.phaseWindowVisible === true) { $('#assignPhases').modal('open'); }
 
     if (activePane == 'teamsPane') {
       filteredGames = myGames; // don't filter games
@@ -955,8 +981,10 @@ class MainInterface extends React.Component{
       //Filter list of games
       for (var i = 0; i < myGames.length; i++) {
         if (
-          ((myGames[i].team1.toLowerCase().indexOf(queryText)!=-1) ||
-          (myGames[i].team2.toLowerCase().indexOf(queryText)!=-1)) &&
+          (myGames[i].team1.toLowerCase().indexOf(queryText)!=-1 ||
+          myGames[i].team2.toLowerCase().indexOf(queryText)!=-1 ||
+          this.matchRoundSearch(queryText, myGames[i]) ||
+          this.matchBothTeams(queryText, myGames[i])) &&
           this.gameBelongsToCurrentPhase(myGames[i])
         ) {
           filteredGames.push(myGames[i]);
@@ -970,7 +998,6 @@ class MainInterface extends React.Component{
 
     //make a react element for each item in the lists
     filteredTeams=filteredTeams.map(function(item, index) {
-      // var checked = this.state.selectedTeams.includes(item);
       return(
         <TeamListEntry key = {item.teamName + this.state.checkTeamToggle}
           singleItem = {item}
@@ -1074,6 +1101,8 @@ class MainInterface extends React.Component{
                 saveDivisions = {this.saveDivisions}
                 setDefaultGrouping = {this.setDefaultGrouping}
                 saveSettings = {this.saveSettings}
+                editingSettings = {this.editingSettings}
+                haveGamesBeenEntered = {this.state.myGames.length > 0}
               />
               <TeamList
                 whichPaneActive = {activePane}

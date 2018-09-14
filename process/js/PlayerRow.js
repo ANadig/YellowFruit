@@ -78,7 +78,8 @@ class PlayerRow extends React.Component{
         </td>
         {powerCell}
         <td>
-          <input type="number" id={'tens'+this.props.playerName+'-'+this.props.whichTeam} size="3" name="tens" min="0" value={this.state.tens} onChange={this.handleChange}/>
+          <input type="number" id={'tens'+this.props.playerName+'-'+this.props.whichTeam}
+          size="3" name="tens" min="0" value={this.state.tens} onChange={this.handleChange}/>
         </td>
         {negCell}
         <td>
