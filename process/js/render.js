@@ -104,8 +104,7 @@ class MainInterface extends React.Component{
       gmWindowVisible: false,
       divWindowVisible: false,
       phaseWindowVisible: false,
-      orderBy: 'teamName',
-      orderDir: 'asc',
+      teamOrder: 'alpha',
       queryText: '',
       settings: defaultSettings,
       divisions: {},
@@ -160,6 +159,7 @@ class MainInterface extends React.Component{
     this.saveSettings = this.saveSettings.bind(this);
     this.editingSettings = this.editingSettings.bind(this);
     this.teamHasPlayedGames = this.teamHasPlayedGames.bind(this);
+    this.sortTeamsBy = this.sortTeamsBy.bind(this);
   }
 
   componentDidMount() {
@@ -342,8 +342,7 @@ class MainInterface extends React.Component{
       gmWindowVisible: false,
       divWindowVisible: false,
       phaseWindowVisible: false,
-      orderBy: 'teamName',
-      orderDir: 'asc',
+      teamOrder: 'alpha',
       queryText: '',
       settings: defaultSettings,
       divisions: {},
@@ -373,7 +372,6 @@ class MainInterface extends React.Component{
     $('#search').val('');
     this.setState({
       queryText: '',
-      viewingPhase: 'all'
     });
   }
 
@@ -914,6 +912,7 @@ class MainInterface extends React.Component{
   //returns true of the query text start with "Round###" or "R###" and if the game's
   //round machest that number
   matchRoundSearch(queryText, game) {
+    queryText = queryText.trim();
     if(queryText.search(/^(r(ound)?\s*\d+)/i) != 0) { return false; }
     var queryRound = queryText.replace(/\D/g, '');
     return game.round == queryRound;
@@ -922,7 +921,7 @@ class MainInterface extends React.Component{
   //returns true if parts of the query text match both teams
   matchBothTeams(queryText, game) {
     var matchFirst = false, matchSecond = false;
-    var words = queryText.split(' ');
+    var words = queryText.split('/');
     words = words.map(function(str,idx) { return str.trim(); });
     words = _.without(words, '');
     if(words.length < 2) { return false; }
@@ -933,14 +932,25 @@ class MainInterface extends React.Component{
     return matchFirst && matchSecond;
   }
 
+  //type "no phase" in the search bar to find games with no assigned phase
+  noPhaseQuery(queryText, game) {
+    queryText = queryText.trim();
+    return queryText.search(/^(no\W*phase)/i) == 0 && game.phases.length == 0;
+  }
+
+  sortTeamsBy(orderBy) {
+    this.setState({
+      teamOrder: orderBy
+    });
+  }
+
 
 
   render() {
+    console.log(this.state.myTeams);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim();
-    var orderBy = this.state.orderBy;
-    var orderDir = this.state.orderDir;
     var myTeams = this.state.myTeams;
     var myGames = this.state.myGames;
     var activePane = this.state.activePane;
@@ -973,21 +983,31 @@ class MainInterface extends React.Component{
           filteredTeams.push(myTeams[i]);
         }
       }
+      //always sort alphabetically. Then sort by division if appropriate
       filteredTeams = _.orderBy(filteredTeams, function(item) {
-        return item[orderBy].toLowerCase();
-      }, orderDir); // order array
+        return item.teamName.toLowerCase();
+      }, 'asc');
+      if(this.state.teamOrder == 'division') {
+        filteredTeams = _.orderBy(filteredTeams, function(item) {
+          var div;
+          if(usingPhases) { div = item.divisions[phaseToGroupBy]; }
+          else { div = item.divisions.noPhase; }
+          if(div == undefined) { div = 'zzzzzzzzzzzzzzz'; }
+          return div.toLowerCase();
+        }, 'asc'); // order array
+      }
     }
 
     else if (activePane == 'gamesPane') {
       filteredTeams = myTeams; // don't filter teams
       //Filter list of games
       for (var i = 0; i < myGames.length; i++) {
-        if (
-          (myGames[i].team1.toLowerCase().indexOf(queryText)!=-1 ||
+        if (this.noPhaseQuery(queryText, myGames[i]) ||
+          ((myGames[i].team1.toLowerCase().indexOf(queryText)!=-1 ||
           myGames[i].team2.toLowerCase().indexOf(queryText)!=-1 ||
           this.matchRoundSearch(queryText, myGames[i]) ||
           this.matchBothTeams(queryText, myGames[i])) &&
-          this.gameBelongsToCurrentPhase(myGames[i])
+          this.gameBelongsToCurrentPhase(myGames[i]))
         ) {
           filteredGames.push(myGames[i]);
         }
@@ -1083,9 +1103,6 @@ class MainInterface extends React.Component{
           <div className="row">
             <div id="main-window" className="col s12 m12 l8">
               <HeaderNav
-                orderBy = {this.state.orderBy}
-                orderDir =  {this.state.orderDir}
-                onReOrder = {this.reOrder}
                 onSearch= {this.searchLists}
                 setPane = {this.setPane}
                 setPhase = {this.setPhase}
@@ -1112,6 +1129,8 @@ class MainInterface extends React.Component{
                 teamList = {filteredTeams}
                 openModal = {this.openTeamAddWindow}
                 totalTeams = {myTeams.length}
+                sortTeamsBy = {this.sortTeamsBy}
+                usingDivisions = {usingDivisions}
               />
               <GameList
                 whichPaneActive = {activePane}

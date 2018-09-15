@@ -52,6 +52,8 @@ class GameList extends React.Component{
     }
     return(
       <div className="container">
+        <div className="sort-buttons">
+        </div>
         <ul className="collection">{this.props.gameList}</ul>
         <div className="fixed-action-btn btn-floating-div">
           <button className="btn-floating btn-large green tooltipped" data-position="left" data-tooltip="Add a game" onClick={this.addGame}>

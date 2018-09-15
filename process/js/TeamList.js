@@ -6,12 +6,38 @@ class TeamList extends React.Component{
 
   constructor(props) {
     super(props);
+    this.state = {
+      orderBy: 'alpha'
+    };
     this.addTeam = this.addTeam.bind(this);
+    this.groupByDivision = this.groupByDivision.bind(this);
+    this.alphaSort = this.alphaSort.bind(this);
   }
 
   //tell the mainInterface to open a new team form
   addTeam () {
     this.props.openModal();
+  }
+
+  groupByDivision() {
+    this.props.sortTeamsBy('division');
+    this.setState({
+      orderBy: 'division'
+    });
+  }
+
+  alphaSort() {
+    this.props.sortTeamsBy('alpha');
+    this.setState({
+      orderBy: 'alpha'
+    });
+  }
+
+  btnToggled(orderBy) {
+    if(this.state.orderBy == orderBy) {
+      return 'blue accent-1';
+    }
+    return 'grey lighten-4';
   }
 
   //add the disabled class if the limit on the number of teams has been reached
@@ -48,8 +74,27 @@ class TeamList extends React.Component{
         </div>
       );
     }
+    var sortButtons;
+    if(this.props.usingDivisions) {
+      sortButtons = (
+        <div className="sort-buttons">
+          <a className={'waves-effect waves-light btn-flat toggle-left ' + this.btnToggled('division')}
+          title="Group teams by this phase's division" onClick={this.groupByDivision}>
+            <i className="material-icons left">view_day</i>Group
+          </a>
+          <a className={'waves-effect waves-light btn-flat toggle-right ' + this.btnToggled('alpha')}
+          onClick={this.alphaSort}>
+            <i className="material-icons left">sort_by_alpha</i>Sort
+          </a>
+        </div>
+      );
+    }
+    else {
+      sortButtons = ( <div className="sort-buttons"></div> );
+    }
     return(
       <div className="container">
+        {sortButtons}
         <ul className="collection">{this.props.teamList}</ul>
         <div className="fixed-action-btn btn-floating-div">
           <button className={'btn-floating btn-large green tooltipped ' + this.addBtnDisabled()} data-position="left" data-tooltip="Add a team" onClick={this.addTeam}>
@@ -63,3 +108,9 @@ class TeamList extends React.Component{
 }
 
 module.exports=TeamList;
+
+
+// <a className="waves-effect waves-light btn-small blue accent-1"
+// title="Find teams that don't have a division for this phase">
+//   <i className="material-icons left">search</i>No division
+// </a>

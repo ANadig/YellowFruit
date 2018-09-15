@@ -274,6 +274,16 @@ class AddGameModal extends React.Component{
     return null;
   }
 
+  //points per bounceback is invalid if
+  //-- it's a number greater than 30
+  //-- there are bounceback points scored but 0 bouncebacks heard
+  invalidPpbb(whichTeam) {
+    var ppbb = whichTeam == 1 ? this.ppBb(1) : this.ppBb(2);
+    if(ppbb > 30) { return true; }
+    var bbPts = whichTeam == 1 ? +this.state.bbPts1 : +this.state.bbPts2;
+    return isNaN(ppbb) && bbPts > 0;
+  }
+
   //how many points the team scored on overtime tossups
   otPoints(whichTeam) {
     if(toNum(this.state.ottu) <= 0) { return 0; }
@@ -454,11 +464,10 @@ class AddGameModal extends React.Component{
     }
 
     //can't have over 30 ppbb
-    var ppbb1 = this.ppBb(1), ppbb2 = this.ppBb(2);
-    if(this.props.settings.bonuses == 'yesBb' && (isNaN(ppbb1) || ppbb1 > 30)) {
+    if(this.props.settings.bonuses == 'yesBb' && this.invalidPpbb(1)) {
       return [false, 'error', team1 + ' has over 30 ppbb'];
     }
-    if(this.props.settings.bonuses == 'yesBb' && (isNaN(ppbb2) || ppbb2 > 30)) {
+    if(this.props.settings.bonuses == 'yesBb' && this.invalidPpbb(2)) {
       return [false, 'error', team2 + ' has over 30 ppbb'];
     }
 
