@@ -309,12 +309,12 @@ class SettingsForm extends React.Component{
   powerString() {
     if(this.props.settings.powers == 'none') { return 'No powers'; }
     var powerValue = this.props.settings.powers == '15pts' ? 15 : 20;
-    return powerValue + ' point powers';
+    return 'Powers: ' + powerValue + ' points';
   }
 
   //for display when the settings section is read-only
   negString() {
-    if(this.props.settings.negs == 'yes') { return '-5 point interrupt penalties'; }
+    if(this.props.settings.negs == 'yes') { return 'Interrupt penalties: -5 points'; }
     return 'No interrupt penalties';
   }
 
@@ -453,7 +453,7 @@ class SettingsForm extends React.Component{
       powersDisplay = ( <li>{this.powerString()}</li> );
       negsDisplay = ( <li>{this.negString()}</li> );
       bonusDisplay = ( <li>{this.bonusString()}</li> );
-      playersPerTeamDisplay = (<li>{this.state.playersPerTeam} players per team</li>);
+      playersPerTeamDisplay = (<li>Players per team: {this.state.playersPerTeam}</li>);
       settingsList = ( <ul>{powersDisplay}{negsDisplay}{bonusDisplay}{playersPerTeamDisplay}</ul> );
     }
     else {

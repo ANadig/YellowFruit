@@ -159,6 +159,7 @@ class MainInterface extends React.Component{
     this.setDefaultGrouping = this.setDefaultGrouping.bind(this);
     this.saveSettings = this.saveSettings.bind(this);
     this.editingSettings = this.editingSettings.bind(this);
+    this.teamHasPlayedGames = this.teamHasPlayedGames.bind(this);
   }
 
   componentDidMount() {
@@ -513,17 +514,9 @@ class MainInterface extends React.Component{
     var tempGames = this.state.myGames.slice();
 
     for(var i in oldTeam.roster) {
-      if(i >= newTeam.roster.length) {
-        this.updatePlayerName(tempGames, oldTeam.teamName, oldTeam.roster[i], '[Player ' + i + ' deleted]');
-      }
-      if(i < newTeam.roster.length && oldTeam.roster[i] != newTeam.roster[i]) {
+      if(!newTeam.roster.includes(oldTeam.roster[i])) {
         this.updatePlayerName(tempGames, oldTeam.teamName, oldTeam.roster[i], newTeam.roster[i]);
       }
-    }
-    //If I deleted a player, than put the player back,
-    //replace the '[Player deleted]' placeholder
-    for(var i = oldTeam.roster.length; i < newTeam.roster.length; i++) {
-      this.updatePlayerName(tempGames, oldTeam.teamName, '[Player ' + i + ' deleted]', newTeam.roster[i]);
     }
 
     if(oldTeam.teamName != newTeam.teamName) {
@@ -553,6 +546,7 @@ class MainInterface extends React.Component{
   //change the name of a given player on a given team for all games
   updatePlayerName(gameAry, teamName, oldPlayerName, newPlayerName) {
     for(var i in gameAry) {
+      if(gameAry[i].forfeit) { continue; }
       if(teamName == gameAry[i].team1) {
         gameAry[i].players1[newPlayerName] = gameAry[i].players1[oldPlayerName];
         delete gameAry[i].players1[oldPlayerName];
@@ -680,6 +674,15 @@ class MainInterface extends React.Component{
         (g.team1 == teamName || g.team2 == teamName)) {
         return true;
       }
+    }
+    return false;
+  }
+
+  //has at least one game been entered that involves this team?
+  teamHasPlayedGames(team) {
+    for(var i in this.state.myGames) {
+      var g = this.state.myGames[i];
+      if(g.team1 == team.teamName || g.team2 == team.teamName) { return true; }
     }
     return false;
   }
@@ -927,7 +930,6 @@ class MainInterface extends React.Component{
       if(game.team1.toLowerCase().indexOf(words[i])!=-1) { matchFirst = true; }
       else if(game.team2.toLowerCase().indexOf(words[i])!=-1) { matchSecond = true; }
     }
-    console.log(matchFirst + ' ' + matchSecond);
     return matchFirst && matchSecond;
   }
 
@@ -1047,6 +1049,7 @@ class MainInterface extends React.Component{
             onForceReset = {this.onForceReset}
             isOpen = {this.state.tmWindowVisible}
             validateTeamName = {this.validateTeamName}
+            teamHasGames = {this.teamHasPlayedGames}
           />
           <AddGameModal
             gameToLoad = {gameToLoadCopy}

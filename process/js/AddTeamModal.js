@@ -139,14 +139,27 @@ class AddTeamModal extends React.Component{
     return noPlayers;
   }
 
+  //whether or not you're trying to delete a player on a team that has games entered
+  illegalEdit() {
+    if(this.props.teamToLoad != null || this.props.addOrEdit == 'add') { return false; }
+    var playerDeleted = false;
+    for(var i in this.state.originalTeamLoaded.roster) {
+      if(this.state.roster[i].trim() == '') { playerDeleted = true; }
+    }
+    return this.props.teamHasGames(this.state.originalTeamLoaded) && playerDeleted;
+  }
+
   //verify that the form data can be submitted
   //returns [boolean, error level, error message]
   validateTeam() {
     if(!this.props.validateTeamName(this.state.teamName.trim(), this.state.originalTeamLoaded)) {
       return [false, 'error', 'There is already a team named ' + this.state.teamName];
     }
-    if(this.state.teamName.trim() == '') { return [false, 'silent', '']; } //team name can't be just whitespace
-    if(this.hasNoPlayers()) { return [false, 'silent', '']; } //likewise for roster
+    if(this.state.teamName.trim() == '') { return [false, '', '']; } //team name can't be just whitespace
+    if(this.hasNoPlayers()) { return [false, '', '']; } //likewise for roster
+    if(this.illegalEdit()) {
+      return [false, 'error', 'You may not remove players from a team that has played games'];
+    }
     if(this.state.roster.length > 30) {
       return [false, 'error', 'Cannot have more than 30 players on a team'];
     } // fairly aribitrary limit to make sure no one does anything ridiculous
@@ -161,13 +174,13 @@ class AddTeamModal extends React.Component{
 
   //returns a jsx element containing the appropriate icon (or null if no error)
   getErrorIcon(errorLevel) {
-    if(errorLevel == '') { return null; }
     if(errorLevel == 'error') {
       return ( <i className="material-icons red-text text-darken-4 qb-modal-error">error</i> );
     }
     if(errorLevel == 'warning') {
       return ( <i className="material-icons yellow-text text-accent-4 qb-modal-error">warning</i> );
     }
+    return null;
   }
 
   getPlayerFields() {

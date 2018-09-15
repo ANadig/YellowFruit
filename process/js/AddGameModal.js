@@ -418,10 +418,10 @@ class AddGameModal extends React.Component{
     }
 
     var idealCollectiveTuh = tuhtot * this.props.settings.playersPerTeam;
-    if(playerTuhSums[0] > idealCollectiveTuh) {
+    if(idealCollectiveTuh > 0 && playerTuhSums[0] > idealCollectiveTuh) {
       return [false, 'error', team1 + '\'s players have heard more than ' + idealCollectiveTuh + ' tossups'];
     }
-    if(playerTuhSums[1] > idealCollectiveTuh) {
+    if(idealCollectiveTuh > 0 && playerTuhSums[1] > idealCollectiveTuh) {
       return [false, 'error', team2 + '\'s players have heard more than ' + idealCollectiveTuh + ' tossups'];
     }
 
