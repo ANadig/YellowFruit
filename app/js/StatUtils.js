@@ -75,7 +75,7 @@ function bbHeard(game, whichTeam, settings) {
 
 //adds two bounceback heard amounts together
 function bbHrdAdd(x, y) {
-  return [x[0]+y[0], x[1]+y[1]];
+  return [x[0]+y[0] + (x[1]+y[1]>=3), (x[1]+y[1]) % 3];
 }
 
 //convert our internal representation of bouncebacks heard to a true decimal
@@ -259,11 +259,11 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
         team2Line.forfeits += 1;
       }
       else { //not a forfeit
-        if(g.score1 > g.score2) {
+        if(+g.score1 > +g.score2) {
           team1Line.wins += 1;
           team2Line.losses += 1;
         }
-        else if(g.score2 > g.score1) {
+        else if(+g.score2 > +g.score1) {
           team1Line.losses += 1;
           team2Line.wins += 1;
         }
@@ -332,7 +332,7 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
     t.ppbb = formatRate(ppbb, 2);
   }
 
-  return _.orderBy(standings, ['winPct', 'ppg'], ['desc', 'desc']);
+  return _.orderBy(standings, ['winPct', (t)=>{return +t.ppg}], ['desc', 'desc']);
 } //compileStandings
 
 //the header for the table in the individual standings
@@ -622,8 +622,8 @@ function teamDetailGameRow(game, whichTeam, settings) {
     if(game.forfeit) { //team1 is arbitrarily the winner of a forfeit
       return forfeitRow(opponent, 'W');
     }
-    if(game.score1 > game.score2) { result = 'W'; }
-    else if(game.score1 < game.score2) { result = 'L'; }
+    if(+game.score1 > +game.score2) { result = 'W'; }
+    else if(+game.score1 < +game.score2) { result = 'L'; }
     else { result = 'T'; }
     score = game.score1;
     opponentScore = game.score2;
@@ -634,8 +634,8 @@ function teamDetailGameRow(game, whichTeam, settings) {
     if(game.forfeit) { //team2 is arbitrarily the loser of a forfeit
       return forfeitRow(opponent, 'L');
     }
-    if(game.score2 > game.score1) { result = 'W'; }
-    else if(game.score2 < game.score1) { result = 'L'; }
+    if(+game.score2 > +game.score1) { result = 'W'; }
+    else if(+game.score2 < +game.score1) { result = 'L'; }
     else { result = 'T'; }
     score = game.score2;
     opponentScore = game.score1;
@@ -903,7 +903,7 @@ function compileRoundSummaries(games, phase, settings) {
       smry.tuh += +game.tuhtot;
       smry.bPts += bonusPoints(game, 1, settings) + bonusPoints(game, 2, settings);
       smry.bHeard += bonusesHeard(game, 1) + bonusesHeard(game, 2);
-      smry.bbPts += game.bbPts1 + game.bbPts2;
+      smry.bbPts += (+game.bbPts1) + (+game.bbPts2);
       smry.bbHeard = bbHrdAdd(smry.bbHeard, bbHrdAdd(bbHeard(game, 1 ,settings), bbHeard(game, 2, settings)));
     }
   }

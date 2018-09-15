@@ -62,13 +62,13 @@ class GameListEntry extends React.Component{
   //add formatting to team1 if they won
   team1Format() {
     if(this.props.singleItem.forfeit) return 'winner';
-    return this.props.singleItem.score1 > this.props.singleItem.score2 ? 'winner' : '';
+    return +this.props.singleItem.score1 > +this.props.singleItem.score2 ? 'winner' : '';
   }
 
   //add formatting to team2 if they won
   team2Format() {
     if(this.props.singleItem.forfeit) return '';
-    return this.props.singleItem.score2 > this.props.singleItem.score1 ? 'winner' : '';
+    return +this.props.singleItem.score2 > +this.props.singleItem.score1 ? 'winner' : '';
   }
 
   //returns e.g. "Central A: Alice 2/4/1, Bob 0/1/0, Carol 1/0/2"

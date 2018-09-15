@@ -64,11 +64,11 @@ function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase, settings
         summary[idx2].forfeits += 1;
       }
       else { //not a forfeit
-        if(g.score1 > g.score2) {
+        if(+g.score1 > +g.score2) {
           summary[idx1].wins += 1;
           summary[idx2].losses += 1;
         }
-        else if(g.score2 > g.score1) {
+        else if(+g.score2 > +g.score1) {
           summary[idx1].losses += 1;
           summary[idx2].wins += 1;
         }

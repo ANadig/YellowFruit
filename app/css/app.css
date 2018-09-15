@@ -9656,7 +9656,7 @@ th {
 
 /* keep things out of the sidebar */
 
-@media screen and (min-width: 993px) {
+@media screen and (min-width: 992px) {
   .btn-floating-div {
     right: 37%;
   }
@@ -9815,6 +9815,24 @@ th {
 .player-table td {
   padding: 0px 5px;
   /* overrides 15px 5px */
+}
+
+@media screen and (min-width: 992px) {
+  .player-table .player-name {
+    min-width: 130px;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .player-table .player-name {
+    min-width: 160px;
+  }
+}
+
+@media screen and (max-width: 991px) {
+  .player-table .player-name {
+    min-width: 100px;
+  }
 }
 
 .forfeit-ctrl {

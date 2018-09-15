@@ -43,17 +43,27 @@ class StatSidebar extends React.Component{
     return t.bHeard == 0 ? 0 : (t.bPts / t.bHeard);
   }
 
+  //is there at least one tie game?
+  tiesExist() {
+    for(var i in this.props.standings) {
+      if(this.props.standings[i].ties > 0) { return true; }
+    }
+    return false;
+  }
+
   //standings to the teams in a single division
   getTable(teams, division) {
     var rows = teams.map((item, index) => {
       var ppg = this.getPpg(item);
       var ppb = this.getPpb(item);
       var ppbCell = this.props.settings.bonuses == 'none' ? null : ( <td>{ppb.toFixed(2)}</td> );
+      var tiesCell = this.tiesExist() ? ( <td>{item.ties}</td> ) : null;
       return (
         <tr key={item.teamName}>
           <td>{item.teamName}</td>
           <td>{item.wins}</td>
           <td>{item.losses}</td>
+          {tiesCell}
           <td>{ppg.toFixed(1)}</td>
           {ppbCell}
         </tr>
@@ -61,6 +71,7 @@ class StatSidebar extends React.Component{
     });
     var header = division == 'noDiv' ? null : ( <h5>{division}</h5> );
     var ppbThCell = this.props.settings.bonuses == 'none' ? null : ( <th>PPB</th> );
+    var tiesThCell = this.tiesExist() ? ( <th>T</th> ) : null;
     return (
       <div key={division}>
         {header}
@@ -70,6 +81,7 @@ class StatSidebar extends React.Component{
               <th>Team</th>
               <th>W</th>
               <th>L</th>
+              {tiesThCell}
               <th>PPG</th>
               {ppbThCell}
             </tr>
