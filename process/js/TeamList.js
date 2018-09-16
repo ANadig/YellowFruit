@@ -33,9 +33,14 @@ class TeamList extends React.Component{
     });
   }
 
-  selectedString() {
-    if(this.props.numberSelected == 0) { return ''; }
-    return this.props.numberSelected + ' selected';
+  selectedCounter() {
+    var sel = this.props.numberSelected;
+    if(sel == 0) { return null; }
+    return (
+      <div className="chip selected-counter">
+        {sel + ' team' + (sel>1 ? 's' : '') + ' selected'}
+      </div>
+    );
   }
 
   btnToggled(orderBy) {
@@ -57,29 +62,9 @@ class TeamList extends React.Component{
     if (this.props.whichPaneActive != 'teamsPane') {
       return null;
     }
-    if(this.props.teamList.length == 0) {
-      var message;
-      if(this.props.totalTeams == 0) {
-        message = 'Add a team to get started';
-      }
-      else { //there are teams, but they've all been excluded based on the search
-        message = 'Your search did not match any teams';
-      }
-      return (
-        <div className="zero-state-container">
-          <div className="qb-zero-state">
-            <img src="banana-bunch.png" width="80" height="55"/><br/><br/>
-            <h6>{message}</h6>
-          </div>
-          <div className="fixed-action-btn btn-floating-div">
-            <button className={'btn-floating btn-large green tooltipped ' + this.addBtnDisabled()} data-position="left" data-tooltip="Add a team" onClick={this.addTeam}>
-              <i className="large material-icons">add</i>
-            </button>
-          </div>
-        </div>
-      );
-    }
+
     var sortButtons;
+    var selectedCounter = null;
     if(this.props.usingDivisions) {
       sortButtons = (
         <div className="sort-buttons">
@@ -91,15 +76,42 @@ class TeamList extends React.Component{
           onClick={this.alphaSort}>
             <i className="material-icons left">sort_by_alpha</i>Sort
           </a>&emsp;
-          {this.selectedString()}
         </div>
       );
+      selectedCounter = this.selectedCounter();
     }
+
     else {
       sortButtons = ( <div className="sort-buttons"></div> );
     }
+
+    if(this.props.teamList.length == 0) {
+      var message;
+      if(this.props.totalTeams == 0) {
+        message = 'Add a team to get started';
+      }
+      else { //there are teams, but they've all been excluded based on the search
+        message = 'Your search did not match any teams';
+      }
+      return (
+        <div className="zero-state-container">
+          {selectedCounter}
+          <div className="qb-zero-state">
+            <img src="banana-bunch.png" width="80" height="55"/><br/><br/>
+            <h6>{message}</h6>
+          </div>
+          <div className="fixed-action-btn btn-floating-div">
+            <button className={'btn-floating btn-large green tooltipped ' + this.addBtnDisabled()} data-position="left" data-tooltip="Add a team" onClick={this.addTeam}>
+              <i className="large material-icons">add</i>
+            </button>
+          </div>
+        </div>
+      );
+    }//if there are no teams to display
+
     return(
       <div className="container">
+        {selectedCounter}
         {sortButtons}
         <ul className="collection">{this.props.teamList}</ul>
         <div className="fixed-action-btn btn-floating-div">

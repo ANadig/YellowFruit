@@ -9894,9 +9894,18 @@ th {
   border-bottom-right-radius: 10px;
 }
 
-/* .collection {
-  margin-top: 40px;
-} */
+.selected-counter {
+  position: fixed;
+  top: 110px;
+  right: 20px;
+  z-index: 990;
+}
+
+@media screen and (min-width: 992px) {
+  .selected-counter {
+    right: 35%;
+  }
+}
 
 .collection-item .item-delete {
   right: 0px;

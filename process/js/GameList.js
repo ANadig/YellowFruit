@@ -12,9 +12,14 @@ class GameList extends React.Component{
     this.props.openModal();
   }
 
-  selectedString() {
-    if(this.props.numberSelected == 0) { return ''; }
-    return this.props.numberSelected + ' selected';
+  selectedCounter() {
+    var sel = this.props.numberSelected;
+    if(sel == 0) { return null; }
+    return (
+      <div className="chip selected-counter">
+        {sel + ' game' + (sel>1 ? 's' : '') + ' selected'}
+      </div>
+    );
   }
 
   //add the disabled class if the limit on the number of games has been reached
@@ -43,6 +48,7 @@ class GameList extends React.Component{
       }
       return (
         <div className="zero-state-container">
+          {this.selectedCounter()}
           <div className="qb-zero-state">
             <img src="banana-bunch.png" width="80" height="55"/><br/><br/>
             <h6>{message}</h6>
@@ -57,8 +63,8 @@ class GameList extends React.Component{
     }
     return(
       <div className="container">
+        {this.selectedCounter()}
         <div className="sort-buttons">
-          {this.selectedString()}
         </div>
         <ul className="collection">{this.props.gameList}</ul>
         <div className="fixed-action-btn btn-floating-div">

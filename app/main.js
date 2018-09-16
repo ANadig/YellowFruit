@@ -307,13 +307,13 @@ app.on('ready', function() {
     },{
         label: '&View',
         submenu: [
-          {
-            label: 'View All',
-            accelerator: 'CmdOrCtrl+L',
-            click (item, focusedWindow) {
-              if(focusedWindow) focusedWindow.webContents.send('clearSearch');
-            }
-          },
+          // {
+          //   label: 'View All',
+          //   accelerator: 'CmdOrCtrl+L',
+          //   click (item, focusedWindow) {
+          //     if(focusedWindow) focusedWindow.webContents.send('clearSearch');
+          //   }
+          // },
           {
             label: 'Search',
             accelerator: 'CmdOrCtrl+F',

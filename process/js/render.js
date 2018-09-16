@@ -191,9 +191,9 @@ class MainInterface extends React.Component{
     ipc.on('exportHtmlReport', function(event, fileStart) {
       this.writeStatReport(fileStart);
     }.bind(this));
-    ipc.on('clearSearch', function(event) {
-      if(!this.anyModalOpen()) { this.clearSearch(); }
-    }.bind(this));
+    // ipc.on('clearSearch', function(event) {
+    //   if(!this.anyModalOpen()) { this.clearSearch(); }
+    // }.bind(this));
     ipc.on('prevPage', function(event) {
       if(!this.anyModalOpen()) { this.previousPage(); }
     }.bind(this));
@@ -221,7 +221,7 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('saveExistingTournament');
     ipc.removeAllListeners('newTournament');
     ipc.removeAllListeners('exportHtmlReport');
-    ipc.removeAllListeners('clearSearch');
+    // ipc.removeAllListeners('clearSearch');
     ipc.removeAllListeners('prevPage');
     ipc.removeAllListeners('nextPage');
     ipc.removeAllListeners('prevPhase');
@@ -367,14 +367,13 @@ class MainInterface extends React.Component{
   }
 
   //clear text from the search bar in order to show all teams/games
-  //and remove any phase filter
-  clearSearch() {
-    if(this.state.activePane == 'settingsPane') { return; }
-    $('#search').val('');
-    this.setState({
-      queryText: '',
-    });
-  }
+  // clearSearch() {
+  //   if(this.state.activePane == 'settingsPane') { return; }
+  //   $('#search').val('');
+  //   this.setState({
+  //     queryText: '',
+  //   });
+  // }
 
   anyModalOpen() {
     return this.state.tmWindowVisible || this.state.gmWindowVisible ||
