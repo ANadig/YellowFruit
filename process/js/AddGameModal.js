@@ -34,6 +34,7 @@ class AddGameModal extends React.Component{
     this.resetState = this.resetState.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.handlePhaseChange = this.handlePhaseChange.bind(this);
     this.updatePlayer = this.updatePlayer.bind(this);
     this.getTeamOptions = this.getTeamOptions.bind(this);
   } //constructor
@@ -47,9 +48,21 @@ class AddGameModal extends React.Component{
     var partialState = {};
     partialState[name] = value;
     if(name == 'team1') { partialState.players1 = null; } //clear player stats if changing team
-    if(name == 'team2') { partialState.players2 = null; } 
+    if(name == 'team2') { partialState.players2 = null; }
     this.setState(partialState);
   } //handleChange
+
+  //when phases are selected or deselected in the dropdown
+  handlePhaseChange(e) {
+    var options = e.target.options;
+    var newPhases = [];
+    for(var i=0; i<options.length; i++) {
+      if(options[i].selected) { newPhases.push(options[i].value); }
+    }
+    this.setState({
+      phases: newPhases
+    });
+  }
 
   //called when a playerRow updates its state, so that this component
   //updates its state at the same time.
@@ -143,10 +156,10 @@ class AddGameModal extends React.Component{
     if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
     var forf = this.state.forfeit; //clear irrelevant data if it's a forfeit
     var ot = this.state.ottu > 0; //clear OT data if no OT
-    var phasesForNewGame = this.props.currentPhase == 'all' ? [] : [this.props.currentPhase];
+    var autoAssignPhase = this.props.addOrEdit == 'add' && this.props.currentPhase != 'all';
     var tempItem = {
       round: this.state.round,
-      phases: this.props.addOrEdit == 'edit' ? this.state.phases : phasesForNewGame,
+      phases: autoAssignPhase ? this.props.currentPhase : this.state.phases,
       tuhtot: forf ? '' : this.state.tuhtot,
       ottu: forf ? '' : this.state.ottu,
       forfeit: this.state.forfeit,
@@ -542,7 +555,6 @@ class AddGameModal extends React.Component{
 
 
   render() {
-    console.log(this.state.players1);
     var [gameIsValid, errorLevel, errorMessage] = this.validateGame();
     var errorIcon = this.getErrorIcon(errorLevel);
     var acceptHotKey = gameIsValid ? 'a' : '';
@@ -553,6 +565,21 @@ class AddGameModal extends React.Component{
         (this.props.addOrEdit == 'edit' && this.state.phases.includes(this.props.allPhases[i]))) {
         phaseChips.push(this.phaseChip(i, this.props.allPhases[i]));
       }
+    }
+    var phaseSelect = null;
+    var canEditPhase = this.props.addOrEdit == 'add' && this.props.currentPhase == 'all';
+    if(canEditPhase) {
+      var phaseOptions = this.props.allPhases.map((phase)=>{
+        return ( <option key={phase} value={phase}>{phase}</option> );
+      });
+      phaseSelect = (
+        <div className="input-field col s3">
+          <select multiple id="phases" name="phases" value={this.state.phases} onChange={this.handlePhaseChange}>
+            <option value="" disabled>Phase...</option>
+            {phaseOptions}
+          </select>
+        </div>
+      );
     }
 
     //don't let the Enter key submit the form
@@ -737,10 +764,12 @@ class AddGameModal extends React.Component{
           <div className="modal-content">
 
             <div className="row game-entry-top-row">
-              <div className="col s6">
+              <div className={'col ' + (canEditPhase ? 's3' : 's6')}>
                 <h4>{this.getModalHeader()}</h4>
                 {phaseChips}
               </div>
+
+              {phaseSelect}
 
               <div className="input-field col s3">
                 <input id="round" type="number" name="round" value={this.state.round} onChange={this.handleChange}/>
