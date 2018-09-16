@@ -208,6 +208,7 @@ class MainInterface extends React.Component{
     }.bind(this));
     ipc.on('focusSearch', function(event) {
       $('#search').focus();
+      $('#search').select();
     });
   } //componentDidMount
 
@@ -947,7 +948,6 @@ class MainInterface extends React.Component{
 
 
   render() {
-    console.log(this.state.myTeams);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim();
@@ -977,8 +977,7 @@ class MainInterface extends React.Component{
       for (var i = 0; i < myTeams.length; i++) {
         if (
           ((myTeams[i].teamName.toLowerCase().indexOf(queryText)!=-1) ||
-          (myTeams[i].roster.join(', ').toLowerCase().indexOf(queryText)!=-1)) &&
-          this.teamBelongsToCurrentPhase(myTeams[i])
+          (myTeams[i].roster.join(', ').toLowerCase().indexOf(queryText)!=-1))
         ) {
           filteredTeams.push(myTeams[i]);
         }
@@ -1032,6 +1031,7 @@ class MainInterface extends React.Component{
           allPhases = {Object.keys(this.state.divisions)}
           usingDivisions = {usingDivisions}
           removeDivision = {this.removeDivisionFromTeam}
+          activeInPhase = {this.teamBelongsToCurrentPhase(item)}
         />
       )
     }.bind(this)); //filteredTeams.map
@@ -1131,6 +1131,7 @@ class MainInterface extends React.Component{
                 totalTeams = {myTeams.length}
                 sortTeamsBy = {this.sortTeamsBy}
                 usingDivisions = {usingDivisions}
+                numberSelected = {this.state.selectedTeams.length}
               />
               <GameList
                 whichPaneActive = {activePane}
@@ -1138,6 +1139,7 @@ class MainInterface extends React.Component{
                 openModal = {this.openGameAddWindow}
                 numberOfTeams = {myTeams.length}
                 totalGames = {myGames.length}
+                numberSelected = {this.state.selectedGames.length}
               />
             </div>
             <div id="stat-sidebar" className="col l4 hide-on-med-and-down">

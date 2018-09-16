@@ -100,7 +100,7 @@ class TeamListEntry extends React.Component{
       <a className="collection-item">
         <div>
           {checkbox}
-          <div className="team-name">
+          <div className={this.props.activeInPhase ? 'team-name' : 'team-name-inactive'}>
             {this.props.singleItem.teamName}&emsp;
           </div>
           {divisionChips}

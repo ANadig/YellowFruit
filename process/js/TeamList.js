@@ -33,6 +33,11 @@ class TeamList extends React.Component{
     });
   }
 
+  selectedString() {
+    if(this.props.numberSelected == 0) { return ''; }
+    return this.props.numberSelected + ' selected';
+  }
+
   btnToggled(orderBy) {
     if(this.state.orderBy == orderBy) {
       return 'blue accent-1';
@@ -85,7 +90,8 @@ class TeamList extends React.Component{
           <a className={'waves-effect waves-light btn-flat toggle-right ' + this.btnToggled('alpha')}
           onClick={this.alphaSort}>
             <i className="material-icons left">sort_by_alpha</i>Sort
-          </a>
+          </a>&emsp;
+          {this.selectedString()}
         </div>
       );
     }

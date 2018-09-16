@@ -110,13 +110,11 @@ class HeaderNav extends React.Component{
               <li className={this.isActive("teamsPane")}><a id="teamsPane" onClick={this.setPane}>Teams</a></li>
               <li className={this.isActive("gamesPane")}><a id="gamesPane" onClick={this.setPane}>Games</a></li>
               <li>
-                <form>
-                  <div className="input-field qb-search">
-                    <input id="search" className="qb-search-input" type="search"
-                    onChange={this.handleSearch} placeholder="Search" autoFocus type="text"
-                    className="form-control" aria-label="Search Appointments" />
-                  </div>
-                </form>
+                <div className="input-field qb-search">
+                  <input id="search" className="qb-search-input" type="search"
+                  onChange={this.handleSearch} placeholder="Search" autoFocus type="text"
+                  className="form-control" aria-label="Search Appointments" />
+                </div>
               </li>
             </ul>
           </div>

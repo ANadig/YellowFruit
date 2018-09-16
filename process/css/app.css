@@ -384,6 +384,14 @@ h1, h2, h3, h4, h5, h6 {
   padding-right: 5px;
 }
 
+.collection-item .team-name-inactive {
+  display: inline-block;
+  font-weight: bold;
+  color: #bdbdbd;
+  font-size: 1.4em;
+  padding-right: 5px;
+}
+
 .collection-item .roster-display {
   color: #989898;
 }

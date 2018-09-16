@@ -12,6 +12,11 @@ class GameList extends React.Component{
     this.props.openModal();
   }
 
+  selectedString() {
+    if(this.props.numberSelected == 0) { return ''; }
+    return this.props.numberSelected + ' selected';
+  }
+
   //add the disabled class if the limit on the number of games has been reached
   //or if you don't yet have two teams to make a game with
   addBtnDisabled() {
@@ -53,6 +58,7 @@ class GameList extends React.Component{
     return(
       <div className="container">
         <div className="sort-buttons">
+          {this.selectedString()}
         </div>
         <ul className="collection">{this.props.gameList}</ul>
         <div className="fixed-action-btn btn-floating-div">

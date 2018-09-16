@@ -46,6 +46,8 @@ class AddGameModal extends React.Component{
     const name = target.name;
     var partialState = {};
     partialState[name] = value;
+    if(name == 'team1') { partialState.players1 = null; } //clear player stats if changing team
+    if(name == 'team2') { partialState.players2 = null; } 
     this.setState(partialState);
   } //handleChange
 
@@ -139,28 +141,29 @@ class AddGameModal extends React.Component{
   handleAdd(e) {
     e.preventDefault();
     if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
-    var f = this.state.forfeit; //clear irrelevant data if it's a forfeit
+    var forf = this.state.forfeit; //clear irrelevant data if it's a forfeit
     var ot = this.state.ottu > 0; //clear OT data if no OT
+    var phasesForNewGame = this.props.currentPhase == 'all' ? [] : [this.props.currentPhase];
     var tempItem = {
       round: this.state.round,
-      phases: this.props.addOrEdit == 'edit' ? this.state.phases : [this.props.currentPhase],
-      tuhtot: f ? '' : this.state.tuhtot,
-      ottu: f ? '' : this.state.ottu,
+      phases: this.props.addOrEdit == 'edit' ? this.state.phases : phasesForNewGame,
+      tuhtot: forf ? '' : this.state.tuhtot,
+      ottu: forf ? '' : this.state.ottu,
       forfeit: this.state.forfeit,
       team1: this.state.team1,
       team2: this.state.team2,
-      score1: f ? '' : this.state.score1,
-      score2: f ? '' : this.state.score2,
-      players1: f ? null : this.state.players1,
-      players2: f ? null : this.state.players2,
-      otPwr1: f || !ot ? '' : this.state.otPwr1,
-      otTen1: f || !ot ? '' : this.state.otTen1,
-      otNeg1: f || !ot ? '' : this.state.otNeg1,
-      otPwr2: f || !ot ? '' : this.state.otPwr2,
-      otTen2: f || !ot ? '' : this.state.otTen2,
-      otNeg2: f || !ot ? '' : this.state.otNeg2,
-      bbPts1: f ? '' : this.state.bbPts1,
-      bbPts2: f ? '' : this.state.bbPts2,
+      score1: forf ? '' : this.state.score1,
+      score2: forf ? '' : this.state.score2,
+      players1: forf ? null : this.state.players1,
+      players2: forf ? null : this.state.players2,
+      otPwr1: forf || !ot ? '' : this.state.otPwr1,
+      otTen1: forf || !ot ? '' : this.state.otTen1,
+      otNeg1: forf || !ot ? '' : this.state.otNeg1,
+      otPwr2: forf || !ot ? '' : this.state.otPwr2,
+      otTen2: forf || !ot ? '' : this.state.otTen2,
+      otNeg2: forf || !ot ? '' : this.state.otNeg2,
+      bbPts1: forf ? '' : this.state.bbPts1,
+      bbPts2: forf ? '' : this.state.bbPts2,
       notes: this.state.notes
     } //tempitems
 
@@ -315,7 +318,7 @@ class AddGameModal extends React.Component{
       var teamOptions = teamData.map(function(item, index) {
         return(<TeamOption key={index} teamName={teamData[index].teamName}/>);
       });
-      var nullOption = (<option key={-1} value="nullTeam" disabled>Select a team...</option>);
+      var nullOption = (<option key={-1} value="nullTeam" disabled>&nbsp;Select a team...</option>);
       teamOptions = [nullOption].concat(teamOptions);
       return [teamOptions, teamOptions];
     }
@@ -399,6 +402,9 @@ class AddGameModal extends React.Component{
       return [false, '', ''];
     } //total tuh and total scores are required.
 
+    //no error message yet if you haven't started entering data for both teams
+    if(players1 == null || players2 == null) { return [false, '', '']; }
+
     //no player can have more tossups heard than were read in the match,
     //and no player can answer more tossups than he's heard
     //A team's players cannot have heard more tossups collectively than the
@@ -406,7 +412,7 @@ class AddGameModal extends React.Component{
     var playerTuhSums = [0,0];
     for(var p in players1) {
       if(this.toNum(players1[p].tuh) > tuhtot) {
-        return [false, 'error', 'One or more players have heard more than ' + tuhtot + ' tossups'];
+        return [false, 'error', p + ' has heard more than ' + tuhtot + ' tossups'];
       }
       var tuAnswered = this.toNum(players1[p].powers) + this.toNum(players1[p].tens) + this.toNum(players1[p].negs);
       if(this.toNum(players1[p].tuh) < tuAnswered) {
@@ -418,7 +424,7 @@ class AddGameModal extends React.Component{
     //likewise for team 2
     for(var p in players2) {
       if(this.toNum(players2[p].tuh) > tuhtot) {
-        return [false, 'error', 'One or more players have heard more than ' + tuhtot + ' tossups'];
+        return [false, 'error', p + ' has heard more than ' + tuhtot + ' tossups'];
       }
       var tuAnswered = this.toNum(players2[p].powers) + this.toNum(players2[p].tens) + this.toNum(players2[p].negs);
       if(this.toNum(players2[p].tuh) < tuAnswered) {
@@ -456,7 +462,7 @@ class AddGameModal extends React.Component{
 
     //both teams combined can't convert more tossups than have been read
     if(this.bHeard(1) + this.bHeard(2) >  tuhtot) {
-      return [false, 'error', 'Total tossups converted exceeds tossups heard'];
+      return [false, 'error', 'Total tossups converted by both teams exceeds total tossups heard for the game'];
     }
 
     if(this.bPts(1) < 0 || this.bPts(2) < 0) {
@@ -536,6 +542,7 @@ class AddGameModal extends React.Component{
 
 
   render() {
+    console.log(this.state.players1);
     var [gameIsValid, errorLevel, errorMessage] = this.validateGame();
     var errorIcon = this.getErrorIcon(errorLevel);
     var acceptHotKey = gameIsValid ? 'a' : '';
