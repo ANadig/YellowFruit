@@ -9656,7 +9656,7 @@ th {
 
 /* keep things out of the sidebar */
 
-@media screen and (min-width: 992px) {
+@media screen and (min-width: 993px) {
   .btn-floating-div {
     right: 37%;
   }
@@ -9817,7 +9817,7 @@ th {
   /* overrides 15px 5px */
 }
 
-@media screen and (min-width: 992px) {
+@media screen and (min-width: 993px) {
   .player-table .player-name {
     min-width: 130px;
   }
@@ -9829,7 +9829,7 @@ th {
   }
 }
 
-@media screen and (max-width: 991px) {
+@media screen and (max-width: 992px) {
   .player-table .player-name {
     min-width: 100px;
   }
@@ -9901,7 +9901,7 @@ th {
   z-index: 990;
 }
 
-@media screen and (min-width: 992px) {
+@media screen and (min-width: 993px) {
   .selected-counter {
     right: 35%;
   }

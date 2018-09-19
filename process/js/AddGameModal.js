@@ -34,6 +34,7 @@ class AddGameModal extends React.Component{
     this.resetState = this.resetState.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.handleTeamChange = this.handleTeamChange.bind(this);
     this.handlePhaseChange = this.handlePhaseChange.bind(this);
     this.updatePlayer = this.updatePlayer.bind(this);
     this.getTeamOptions = this.getTeamOptions.bind(this);
@@ -47,10 +48,29 @@ class AddGameModal extends React.Component{
     const name = target.name;
     var partialState = {};
     partialState[name] = value;
-    if(name == 'team1') { partialState.players1 = null; } //clear player stats if changing team
-    if(name == 'team2') { partialState.players2 = null; }
     this.setState(partialState);
   } //handleChange
+
+  //when a team is selected in one of the dropdowns
+  //need to reset player stats
+  handleTeamChange(e) {
+    const target = e.target;
+    const value = target.value;
+    const name = target.name;
+    var partialState = {};
+    var newTeamObj = this.props.teamData.find((item)=>{ return item.teamName == value; });
+    var roster = newTeamObj.roster;
+    //if there can't be any substitutions, autopopulate the total tossups for the round
+    var defaultTuh = roster.length <= this.props.settings.playersPerTeam ? this.state.tuhtot : '';
+    var newPlayers = {};
+    for(var i in roster) {
+      newPlayers[roster[i]] = {tuh: defaultTuh, powers: '', tens: '', negs: ''};
+    }
+    if(name == 'team1') { partialState.players1 = newPlayers; }
+    else if(name == 'team2') { partialState.players2 = newPlayers; }
+    partialState[name] = value;
+    this.setState(partialState);
+  }
 
   //when phases are selected or deselected in the dropdown
   handlePhaseChange(e) {
@@ -70,11 +90,6 @@ class AddGameModal extends React.Component{
     if(whichTeam == 1) {
       //deep copy of team data to avoid spurious state updates
       var tempTeam1 = $.extend(true, {}, this.state.players1);
-      if (tempTeam1[playerName] == undefined) {
-        //need to initialize each attribute so we don't set
-        //null values in a controlled component
-        tempTeam1[playerName] = {'tuh': '', 'powers': '', 'tens': '', 'negs': ''};
-      }
       tempTeam1[playerName][whichStat] = value;
       this.setState({
         players1: tempTeam1
@@ -83,11 +98,6 @@ class AddGameModal extends React.Component{
     else if(whichTeam == 2) {
       //deep copy of team data to avoid spurious state updates
       var tempTeam2 = $.extend(true, {}, this.state.players2);
-      if (tempTeam2[playerName] == undefined) {
-        //need to initialize each attribute so we don't set
-        //null values in a controlled component
-        tempTeam2[playerName] = {'tuh': '', 'powers': '', 'tens': '', 'negs': ''};
-      }
       tempTeam2[playerName][whichStat] = value;
       this.setState({
         players2: tempTeam2
@@ -501,6 +511,12 @@ class AddGameModal extends React.Component{
       return [true, 'warning', 'Bonus points are not divisible by 10'];
     }
 
+
+    if(this.toNum(this.state.ottu) > 0 && score1 - this.otPoints(1) != score2 - this.otPoints(2)) {
+      return [true, 'warning', 'Game went to overtime but score was not tied at the ' +
+        'end of regulation based on each team\'s points scored in overtime'];
+    }
+
     //there shouldn't be empty chairs if your team had enough players to fill them
     if(playerTuhSums[0] < idealCollectiveTuh &&
       Object.keys(players1).length >= this.props.settings.playersPerTeam) {
@@ -509,11 +525,6 @@ class AddGameModal extends React.Component{
     if(playerTuhSums[1] < idealCollectiveTuh &&
       Object.keys(players2).length >= this.props.settings.playersPerTeam) {
       return [true, 'warning', team2 + '\'s players have heard fewer than ' + idealCollectiveTuh + ' tossups'];
-    }
-
-    if(this.toNum(this.state.ottu) > 0 && score1 - this.otPoints(1) != score2 - this.otPoints(2)) {
-      return [true, 'warning', 'Game went to overtime but score was not tied at the ' +
-        'end of regulation based on each team\'s points scored in overtime'];
     }
 
     //warn if the score is a tie
@@ -598,7 +609,12 @@ class AddGameModal extends React.Component{
         return item.teamName == this.state.team1
       }.bind(this));
       team1PlayerRows = team1Obj.roster.map(function(item, index){
-        var init = this.state.players1 != null ? this.state.players1[item] : null;
+        var init = null;
+        if(this.state.players1 != null) { init = this.state.players1[item]; }
+        else if(team1Obj.roster.length <= this.props.settings.playersPerTeam) {
+          init = {tuh: this.state.tuhtot, powers: '', tens: '', negs: ''};
+        }
+        else { init = null; }
         return(
           <PlayerRow key={team1Obj.teamName + item}
             playerName={item}
@@ -608,7 +624,7 @@ class AddGameModal extends React.Component{
             settings={this.props.settings}
           />
         )
-      }.bind(this));
+      }.bind(this)); //team1 roster.map
     }
 
     if(!this.state.forfeit && this.state.team2 != 'nullTeam' && this.state.team2 != '') {
@@ -616,7 +632,12 @@ class AddGameModal extends React.Component{
         return item.teamName == this.state.team2
       }.bind(this));
       team2PlayerRows = team2Obj.roster.map(function(item, index){
-        var init = this.state.players2 != null ? this.state.players2[item] : null;
+        var init = null;
+        if(this.state.players2 != null) { init = this.state.players2[item]; }
+        else if(team2Obj.roster.length <= this.props.settings.playersPerTeam) {
+          init = {tuh: this.state.tuhtot, powers: '', tens: '', negs: ''};
+        }
+        else { init = null; }
         return(
           <PlayerRow key={team2Obj.teamName + item}
             playerName={item}
@@ -626,7 +647,7 @@ class AddGameModal extends React.Component{
             settings={this.props.settings}
           />
         )
-      }.bind(this));
+      }.bind(this)); //team2 roster.map
     }
 
     var tableHeader, powerCell, negCell;
@@ -739,7 +760,8 @@ class AddGameModal extends React.Component{
             &emsp;
             <div className="input-field bounceback-entry">
               <input id="bbPts1" type="number" name="bbPts1" step="10" min="0"
-              value={this.state.bbPts1} onChange={this.handleChange}/>
+              disabled={this.state.forfeit ? 'disabled' : ''}
+              value={this.state.forfeit ? '' : this.state.bbPts1} onChange={this.handleChange}/>
             </div>
             pts&emsp;|
             &emsp;{this.ppBb(1)} ppbb
@@ -749,7 +771,8 @@ class AddGameModal extends React.Component{
             &emsp;
             <div className="input-field bounceback-entry">
               <input id="bbPts2" type="number" name="bbPts2" step="10" min="0"
-              value={this.state.bbPts2} onChange={this.handleChange}/>
+              disabled={this.state.forfeit ? 'disabled' : ''}
+              value={this.state.forfeit ? '' : this.state.bbPts2} onChange={this.handleChange}/>
             </div>
             pts&emsp;|
             &emsp;{this.ppBb(2)} ppbb
@@ -785,7 +808,7 @@ class AddGameModal extends React.Component{
 
             <div className="row game-entry-2nd-row">
               <div className="input-field col s8 m3 l4">
-                <select id="tm1Name" name="team1" value={this.state.team1} onChange={this.handleChange}>
+                <select id="tm1Name" name="team1" value={this.state.team1} onChange={this.handleTeamChange}>
                   {team1Options}
                 </select>
               </div>
@@ -807,7 +830,7 @@ class AddGameModal extends React.Component{
                 <label htmlFor="tm2Score">Score</label>
               </div>
               <div className="input-field col s8 m3 l4">
-                <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleChange}>
+                <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleTeamChange}>
                   {team2Options}
                 </select>
               </div>

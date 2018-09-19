@@ -60,6 +60,8 @@ class SettingsForm extends React.Component{
     var whichPhase = name.replace('phase', '');
     var tempPhases = this.state.phases.slice();
     tempPhases[whichPhase] = value;
+    for(var last=tempPhases.pop(); last==''; last=tempPhases.pop()) { } // remove blank lines
+    if(last != undefined) { tempPhases.push(last); }
     this.setState({
       phases: tempPhases
     });
@@ -78,6 +80,9 @@ class SettingsForm extends React.Component{
     if(tempPA[whichDiv] == undefined) {
       tempPA[whichDiv] == 'nullPhase';
     }
+    //remove blank lines
+    for(var lastDiv=tempDivs.pop(), lastPA=tempPA.pop(); lastDiv==''; lastDiv=tempDivs.pop()) { }
+    if(lastDiv != undefined) { tempDivs.push(lastDiv); tempPA.push(lastPA); }
     this.setState({
       divisions: tempDivs
     });

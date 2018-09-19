@@ -16,7 +16,7 @@ class GameList extends React.Component{
     var sel = this.props.numberSelected;
     if(sel == 0) { return null; }
     return (
-      <div className="chip selected-counter">
+      <div className="chip z-depth-2 selected-counter">
         {sel + ' game' + (sel>1 ? 's' : '') + ' selected'}
       </div>
     );
@@ -25,7 +25,7 @@ class GameList extends React.Component{
   //add the disabled class if the limit on the number of games has been reached
   //or if you don't yet have two teams to make a game with
   addBtnDisabled() {
-    if(this.props.gameList.length > 2000 || this.props.numberOfTeams < 2) {
+    if(this.props.gameList.length > 900 || this.props.numberOfTeams < 2) {
       return 'disabled';
     }
     return '';

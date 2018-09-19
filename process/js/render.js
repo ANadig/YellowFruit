@@ -124,7 +124,8 @@ class MainInterface extends React.Component{
       tmAddOrEdit: 'add', //either 'add' or 'edit'
       editWhichGame: null,
       gmAddOrEdit: 'add',
-      editingSettings: false
+      editingSettings: false,
+      gameToBeDeleted: null
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -163,52 +164,59 @@ class MainInterface extends React.Component{
   }
 
   componentDidMount() {
-    ipc.on('addTeam', function(event, message) {
-      this.openTeamAddWindow();
-    }.bind(this));
-    ipc.on('addGame', function(event, message) {
-      this.openGameAddWindow();
-    }.bind(this));
-    ipc.on('compileStatReport', function(event, message) {
+    ipc.on('addTeam', (event, message) => {
+      if(!this.anyModalOpen()) { this.openTeamAddWindow(); }
+    });
+    ipc.on('addGame', (event, message) => {
+      if(!this.anyModalOpen()) { this.openGameAddWindow(); }
+    });
+    ipc.on('compileStatReport', (event, message) => {
       this.writeStatReport('');
-    }.bind(this));
-    ipc.on('saveTournamentAs', function(event, fileName) {
+    });
+    ipc.on('saveTournamentAs', (event, fileName) => {
       this.writeJSON(fileName);
       ipc.sendSync('setWindowTitle',
         fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
       ipc.sendSync('successfulSave');
-    }.bind(this));
-    ipc.on('openTournament', function(event, fileName) {
+    });
+    ipc.on('openTournament', (event, fileName) => {
       this.loadTournament(fileName);
-    }.bind(this));
-    ipc.on('saveExistingTournament', function(event, fileName) {
+    });
+    ipc.on('saveExistingTournament', (event, fileName) => {
       this.writeJSON(fileName);
       ipc.sendSync('successfulSave');
-    }.bind(this));
-    ipc.on('newTournament', function(event) {
-      this.resetState();
-    }.bind(this));
-    ipc.on('exportHtmlReport', function(event, fileStart) {
-      this.writeStatReport(fileStart);
-    }.bind(this));
-    // ipc.on('clearSearch', function(event) {
-    //   if(!this.anyModalOpen()) { this.clearSearch(); }
-    // }.bind(this));
-    ipc.on('prevPage', function(event) {
+    });
+    ipc.on('newTournament', (event) => {
+      if(!this.anyModalOpen()) { this.resetState(); }
+    });
+    ipc.on('exportHtmlReport', (event, fileStart) => {
+      if(!this.anyModalOpen()) { this.writeStatReport(fileStart); }
+    });
+    ipc.on('prevPage', (event) => {
       if(!this.anyModalOpen()) { this.previousPage(); }
-    }.bind(this));
-    ipc.on('nextPage', function(event) {
+    });
+    ipc.on('nextPage', (event) => {
       if(!this.anyModalOpen()) { this.nextPage(); }
-    }.bind(this));
-    ipc.on('prevPhase', function(event) {
+    });
+    ipc.on('prevPhase', (event) => {
       if(!this.anyModalOpen()) { this.previousPhase(); }
-    }.bind(this));
-    ipc.on('nextPhase', function(event) {
+    });
+    ipc.on('nextPhase', (event) => {
       if(!this.anyModalOpen()) { this.nextPhase(); }
-    }.bind(this));
-    ipc.on('focusSearch', function(event) {
-      $('#search').focus();
-      $('#search').select();
+    });
+    ipc.on('focusSearch', (event) => {
+      if(!this.anyModalOpen()) {
+        $('#search').focus();
+        $('#search').select();
+      }
+    });
+    ipc.on('confirmDelete', (event) => {
+      this.deleteGame();
+    });
+    ipc.on('cancelDelete', (event) => {
+      this.setState({
+        gameToBeDeleted: null
+      });
     });
   } //componentDidMount
 
@@ -221,12 +229,13 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('saveExistingTournament');
     ipc.removeAllListeners('newTournament');
     ipc.removeAllListeners('exportHtmlReport');
-    // ipc.removeAllListeners('clearSearch');
     ipc.removeAllListeners('prevPage');
     ipc.removeAllListeners('nextPage');
     ipc.removeAllListeners('prevPhase');
     ipc.removeAllListeners('nextPhase');
     ipc.removeAllListeners('focusSearch');
+    ipc.removeAllListeners('confirmDelete');
+    ipc.removeAllListeners('cancelDelete');
   } //componentWillUnmount
 
   componentDidUpdate() {
@@ -362,7 +371,8 @@ class MainInterface extends React.Component{
       tmAddOrEdit: 'add', //either 'add' or 'edit'
       editWhichGame: null,
       gmAddOrEdit: 'add',
-      editingSettings: false
+      editingSettings: false,
+      gameToBeDeleted: null
     });
   }
 
@@ -445,6 +455,7 @@ class MainInterface extends React.Component{
     this.setState({
       tmWindowVisible: true
     });
+    $('#teamName').focus();
   }
 
   //called by buttons that open the game form
@@ -581,12 +592,21 @@ class MainInterface extends React.Component{
     ipc.sendSync('unsavedData');
   } //deleteTeam
 
-  //permanently delete a game
+  //delete a game. First call triggers a confirmation dialog, second call
+  //upon confirmation actually deletes it
   deleteGame(item) {
+    if(this.state.gameToBeDeleted == null) {
+      this.setState({
+        gameToBeDeleted: item
+      });
+      ipc.send('tryDelete', 'Round ' + item.round + ': ' + item.team1 + ' vs. ' + item.team2);
+      return;
+    }
     var allGames = this.state.myGames;
-    var newGames = _.without(allGames, item);
+    var newGames = _.without(allGames, this.state.gameToBeDeleted);
     this.setState({
-      myGames: newGames
+      myGames: newGames,
+      gameToBeDeleted: null
     });
     ipc.sendSync('unsavedData');
   } //deleteGame

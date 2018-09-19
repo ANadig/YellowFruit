@@ -55,7 +55,6 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
 
-
 .main {
   background: white;
 }
@@ -92,7 +91,7 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* keep things out of the sidebar */
-@media screen and (min-width: 992px) {
+@media screen and (min-width: 993px) {
   .btn-floating-div {
       right: 37%;
   }
@@ -252,7 +251,7 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0px 5px; /* overrides 15px 5px */
 }
 
-@media screen and (min-width: 992px) {
+@media screen and (min-width: 993px) {
   .player-table .player-name {
     min-width: 130px;
   }
@@ -264,7 +263,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-@media screen and (max-width: 991px) {
+@media screen and (max-width: 992px) {
   .player-table .player-name {
     min-width: 100px;
   }
@@ -336,7 +335,7 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 990;
 }
 
-@media screen and (min-width: 992px) {
+@media screen and (min-width: 993px) {
   .selected-counter {
     right: 35%;
   }

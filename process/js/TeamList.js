@@ -37,7 +37,7 @@ class TeamList extends React.Component{
     var sel = this.props.numberSelected;
     if(sel == 0) { return null; }
     return (
-      <div className="chip selected-counter">
+      <div className="chip z-depth-2 selected-counter">
         {sel + ' team' + (sel>1 ? 's' : '') + ' selected'}
       </div>
     );

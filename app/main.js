@@ -236,6 +236,23 @@ app.on('ready', function() {
     unsavedData = false;
   });
 
+  ipc.on('tryDelete', (event, message) => {
+    event.returnValue = '';
+    var choice = dialog.showMessageBox(
+      appWindow,
+      {
+        type: 'warning',
+        buttons: ['&Delete', 'Go Ba&ck'],
+        defaultId: 1,
+        cancelId: 1,
+        title: 'YellowFruit',
+        message: 'Are you sure you want to delete this game?\n\n' + message
+      }
+    );
+    if(choice == 0) { event.sender.send('confirmDelete'); }
+    else if(choice == 1) { event.sender.send('cancelDelete'); }
+  });//on tryDelete
+
   mainMenuTemplate = [
     {
       label: '&YellowFruit',

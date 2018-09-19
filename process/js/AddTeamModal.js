@@ -54,6 +54,8 @@ class AddTeamModal extends React.Component{
     var whichPlayer = name.replace('player', '');
     var tempPlayers = this.state.roster.slice();
     tempPlayers[whichPlayer] = value;
+    for(var last=tempPlayers.pop(); last==''; last=tempPlayers.pop()) { } // remove blank lines
+    if(last != undefined) { tempPlayers.push(last); }
     this.setState({
       roster: tempPlayers
     });
