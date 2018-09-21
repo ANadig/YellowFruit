@@ -16,7 +16,7 @@ class SettingsForm extends React.Component{
       }
     }
     var allPhases = Object.keys(props.divisions);
-    var firstPhase = allPhases.length == 0 ? 'noPhase' : allPhases[0];
+    var firstPhase = allPhases.length == 0 || divList.length == 0 ? 'noPhase' : allPhases[0];
     this.state = {
       powers: props.settings.powers,
       negs: props.settings.negs,
@@ -188,10 +188,15 @@ class SettingsForm extends React.Component{
       }.bind(this));
       tempDivs = _.without(tempDivs, '');
       tempPhaseAssns = _.without(tempPhaseAssns, '');
+      var newDefaultPhase = this.state.defaultPhase;
+      if(this.state.phases.length > 0 && this.state.defaultPhase == 'noPhase') {
+        newDefaultPhase = this.state.phases[0];
+      }
       this.setState({
         divisions: tempDivs,
         phaseAssignments: tempPhaseAssns,
-        editingDivisions: false
+        editingDivisions: false,
+        defaultPhase: newDefaultPhase
       });
       this.props.saveDivisions(this.state.phases, tempDivs, tempPhaseAssns);
     }
@@ -425,15 +430,18 @@ class SettingsForm extends React.Component{
 
     if(!this.state.editingPhases) {
       var phaseList = this.state.phases.map((phaseName, idx) => {
-        var icon = this.state.defaultPhase == phaseName ?
-          ( <i className="material-icons" title={defPhaseTooltip}>playlist_add_check</i> ) : null;
-        return (
-          <li key={idx}>
-            <a onClick={this.setDefaultGrouping} name={phaseName}
-            title={defPhaseLinkTooltip}>{phaseName}</a>&nbsp;{icon}
-          </li>
-        );
-      });
+        if(this.state.divisions.length > 0) {
+          var icon = this.state.defaultPhase == phaseName ?
+            ( <i className="material-icons" title={defPhaseTooltip}>playlist_add_check</i> ) : null;
+          return (
+            <li key={idx}>
+              <a onClick={this.setDefaultGrouping} name={phaseName}
+              title={defPhaseLinkTooltip}>{phaseName}</a>&nbsp;{icon}
+            </li>
+          );
+        }
+        return ( <li key={idx}>{phaseName} </li> );
+      });//phases.map
       phaseCard = (<ul>{phaseList}</ul>);
     }
     else {

@@ -500,37 +500,49 @@ class AddGameModal extends React.Component{
       return [false, 'error', team2 + ' has over 30 ppbb'];
     }
 
+    var warningsExist = false, warningList = '';
+
     //warn if score isn't divisible by 5
     var divisor = this.scoreDivisor();
     if(score1 % divisor != 0 || score2 % divisor != 0) {
-      return [true, 'warning', 'Score is not divisible by ' + divisor];
+      warningsExist = true;
+      warningList += 'Score is not divisible by ' + divisor + '. ';
     }
 
     //bonus points shouldn't end in 5
     if(this.bPts(1) % 10 != 0 || this.bPts(2) % 10 != 0) {
-      return [true, 'warning', 'Bonus points are not divisible by 10'];
+      warningsExist = true;
+      warningList += 'Bonus points are not divisible by 10. ';
     }
 
 
     if(this.toNum(this.state.ottu) > 0 && score1 - this.otPoints(1) != score2 - this.otPoints(2)) {
-      return [true, 'warning', 'Game went to overtime but score was not tied at the ' +
-        'end of regulation based on each team\'s points scored in overtime'];
+      warningsExist = true;
+      warningList += 'Game went to overtime but score was not tied at the ' +
+        'end of regulation based on each team\'s points scored in overtime. ';
     }
 
     //there shouldn't be empty chairs if your team had enough players to fill them
     if(playerTuhSums[0] < idealCollectiveTuh &&
       Object.keys(players1).length >= this.props.settings.playersPerTeam) {
-      return [true, 'warning', team1 + '\'s players have heard fewer than ' + idealCollectiveTuh + ' tossups'];
+      warningsExist = true;
+      warningList += team1 + '\'s players have heard fewer than ' +
+        idealCollectiveTuh + ' tossups. ';
     }
     if(playerTuhSums[1] < idealCollectiveTuh &&
       Object.keys(players2).length >= this.props.settings.playersPerTeam) {
-      return [true, 'warning', team2 + '\'s players have heard fewer than ' + idealCollectiveTuh + ' tossups'];
+      warningsExist = true;
+      warningList += team2 + '\'s players have heard fewer than ' +
+        idealCollectiveTuh + ' tossups. ';
     }
 
     //warn if the score is a tie
     if(score1 == score2) {
-      return [true, 'warning', 'This game is a tie'];
+      warningsExist = true;
+      warningList += 'This game is a tie.'
     }
+
+    if(warningsExist) { return [true, 'warning', warningList]; }
 
     return [true, '', ''];
   }//validateGame
@@ -578,7 +590,8 @@ class AddGameModal extends React.Component{
       }
     }
     var phaseSelect = null;
-    var canEditPhase = this.props.addOrEdit == 'add' && this.props.currentPhase == 'all';
+    var canEditPhase = this.props.addOrEdit == 'add' && this.props.currentPhase == 'all' &&
+      this.props.allPhases.length > 0;
     if(canEditPhase) {
       var phaseOptions = this.props.allPhases.map((phase)=>{
         return ( <option key={phase} value={phase}>{phase}</option> );
@@ -881,7 +894,7 @@ class AddGameModal extends React.Component{
             {overtimeRow}
           </div> {/* modal-content*/}
 
-          <div className="modal-footer">
+          <div className={'modal-footer ' + (errorMessage.length > 150 ? 'scroll-footer' : '')}>
             <div className="row">
               <div className="col s7 l8 qb-validation-msg">
                 {errorIcon}&nbsp;{errorMessage}

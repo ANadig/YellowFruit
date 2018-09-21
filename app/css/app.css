@@ -9791,6 +9791,14 @@ th {
   margin-top: 19px;
 }
 
+#addGame .scroll-footer {
+  overflow-y: scroll;
+}
+
+#addGame .modal-footer .row {
+  margin-bottom: -1px;
+}
+
 .ot-stat-label {
   margin-top: 2em;
   text-align: right;
