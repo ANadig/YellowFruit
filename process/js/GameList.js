@@ -22,6 +22,15 @@ class GameList extends React.Component{
     );
   }
 
+  gameCountDisplay() {
+    var total = this.props.totalGames;
+    var showing = this.props.gameList.length;
+    if(showing == total) {
+      return ( <span>Showing all {total} games</span> );
+    }
+    return ( <span>Showing {showing} of {total} games</span> );
+  }
+
   //add the disabled class if the limit on the number of games has been reached
   //or if you don't yet have two teams to make a game with
   addBtnDisabled() {
@@ -64,8 +73,9 @@ class GameList extends React.Component{
     return(
       <div className="container">
         {this.selectedCounter()}
-        <div className="sort-buttons">
+        <div className="list-header">
         </div>
+        {this.gameCountDisplay()}
         <ul className="collection">{this.props.gameList}</ul>
         <div className="fixed-action-btn btn-floating-div">
           <button className="btn-floating btn-large green tooltipped" data-position="left" data-tooltip="Add a game" onClick={this.addGame}>

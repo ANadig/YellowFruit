@@ -45,7 +45,7 @@ class TeamListEntry extends React.Component{
   getDeleteButton() {
     if(this.props.numGamesPlayed == 0) {
       return (
-        <button className="secondary-content btn-flat item-delete" title="Remove this team" onClick={this.handleDelete}>
+        <button className="secondary-content btn-flat item-delete" title="Delete this team" onClick={this.handleDelete}>
         <i className="material-icons">delete</i></button>
       );
     }

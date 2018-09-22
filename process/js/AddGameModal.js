@@ -90,6 +90,10 @@ class AddGameModal extends React.Component{
     if(whichTeam == 1) {
       //deep copy of team data to avoid spurious state updates
       var tempTeam1 = $.extend(true, {}, this.state.players1);
+      if(tempTeam1[playerName] == undefined) {
+        //for if a player is added to a team and then that team's game is edited
+        tempTeam1[playerName] = {tuh: '', powers: '', tens: '', negs: ''};
+      }
       tempTeam1[playerName][whichStat] = value;
       this.setState({
         players1: tempTeam1
@@ -98,6 +102,9 @@ class AddGameModal extends React.Component{
     else if(whichTeam == 2) {
       //deep copy of team data to avoid spurious state updates
       var tempTeam2 = $.extend(true, {}, this.state.players2);
+      if(tempTeam2[playerName] == undefined) {
+        tempTeam2[playerName] = {tuh: '', powers: '', tens: '', negs: ''};
+      }
       tempTeam2[playerName][whichStat] = value;
       this.setState({
         players2: tempTeam2

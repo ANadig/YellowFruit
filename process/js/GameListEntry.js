@@ -141,7 +141,7 @@ class GameListEntry extends React.Component{
           &emsp;{phaseChips}
           <button className="btn-flat item-edit" title="Edit this game" onClick={this.editGame}>
           <i className="material-icons">edit</i></button>
-          <button className="secondary-content btn-flat item-delete" title="Remove this game" onClick={this.handleDelete}>
+          <button className="secondary-content btn-flat item-delete" title="Delete this game" onClick={this.handleDelete}>
           <i className="material-icons">delete</i></button>
           <br/><span className="game-line-score">{this.props.singleItem.forfeit ? '' : this.getTeamLineScore(1)}</span>
           <br/><span className="game-line-score">{this.props.singleItem.forfeit ? '' : this.getTeamLineScore(2)}</span>

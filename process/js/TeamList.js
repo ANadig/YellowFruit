@@ -58,16 +58,28 @@ class TeamList extends React.Component{
     return '';
   }
 
+  teamCountDisplay() {
+    var total = this.props.totalTeams;
+    var showing = this.props.teamList.length;
+    if(showing == total) {
+      return ( <span>Showing all {total} teams</span> );
+    }
+    return ( <span>Showing {showing} of {total} teams</span> );
+  }
+
+
+
+
   render () {
     if (this.props.whichPaneActive != 'teamsPane') {
       return null;
     }
 
-    var sortButtons;
+    var listHeader;
     var selectedCounter = null;
     if(this.props.usingDivisions) {
-      sortButtons = (
-        <div className="sort-buttons">
+      listHeader = (
+        <div className="list-header">
           <a className={'waves-effect waves-light btn-flat toggle-left ' + this.btnToggled('division')}
           title="Group teams by this phase's division" onClick={this.groupByDivision}>
             <i className="material-icons left">view_day</i>Group
@@ -76,13 +88,14 @@ class TeamList extends React.Component{
           onClick={this.alphaSort}>
             <i className="material-icons left">sort_by_alpha</i>Sort
           </a>&emsp;
+          {this.teamCountDisplay()}
         </div>
       );
       selectedCounter = this.selectedCounter();
     }
 
     else {
-      sortButtons = ( <div className="sort-buttons"></div> );
+      listHeader = ( <div className="list-header">{this.teamCountDisplay()}</div> );
     }
 
     if(this.props.teamList.length == 0) {
@@ -112,7 +125,7 @@ class TeamList extends React.Component{
     return(
       <div className="container">
         {selectedCounter}
-        {sortButtons}
+        {listHeader}
         <ul className="collection">{this.props.teamList}</ul>
         <div className="fixed-action-btn btn-floating-div">
           <button className={'btn-floating btn-large green tooltipped ' + this.addBtnDisabled()} data-position="left" data-tooltip="Add a team" onClick={this.addTeam}>

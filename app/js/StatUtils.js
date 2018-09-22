@@ -509,7 +509,13 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
       }
       else {
         html += '<p>' + '\n';
-        html += '<font size=+1>' + g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
+        html += '<font size=+1>';
+        if(toNum(g.score1) >= toNum(g.score2)) {
+          html += g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
+        }
+        else {
+          html += g.team2 + ' ' + g.score2 + ', ' + g.team1 + ' ' + g.score1;
+        }
         if(g.ottu > 0) {
           html += ' (OT)';
         }
@@ -555,11 +561,11 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
         }
         if(settings.bonuses == 'yesBb') {
           var bbHrd = bbHeard(g, 1, settings);
-          var ppbb = g.bbPts1 / bbHrdToFloat(bbHrd);
+          var ppbb = bbHrd.toString()=='0,0' ? 0 : g.bbPts1 / bbHrdToFloat(bbHrd);
           html += 'Bonus Bouncebacks: ' + g.team1 + ' ' +
             bbHrdDisplay(bbHrd) + ' ' + toNum(g.bbPts1) + ' ' + ppbb.toFixed(2) + ', ';
           bbHrd = bbHeard(g, 2, settings);
-          ppbb = g.bbPts2 / bbHrdToFloat(bbHrd);
+          ppbb = bbHrd.toString()=='0,0' ? 0 : g.bbPts2 / bbHrdToFloat(bbHrd);
           html += g.team2 + ' ' + bbHrdDisplay(bbHrd) + ' ' + toNum(g.bbPts2) + ' ' +
             ppbb.toFixed(2)  + '<br>' + '\n';
         }
@@ -567,7 +573,7 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
     }//if we want to show this game
   }//loop over all games
   return html + '</font>' + '\n' + '</p>' + '\n';
-}
+}//scoreboardGameSummaries
 
 //header row for the list of a team's games on the team detail page
 function teamDetailGameTableHeader(settings) {

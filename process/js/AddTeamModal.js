@@ -201,8 +201,7 @@ class AddTeamModal extends React.Component{
     }.bind(this));
     return ( <ul>{playerFields}</ul> );
   }
-
-
+  
 
 
   render() {

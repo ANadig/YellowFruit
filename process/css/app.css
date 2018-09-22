@@ -317,19 +317,19 @@ h1, h2, h3, h4, h5, h6 {
   text-align: center;
 }
 
-.sort-buttons {
+.list-header {
   margin-top: 40px;
   margin-bottom: 20px;
 }
 
-.sort-buttons .toggle-left {
+.list-header .toggle-left {
   border-top-left-radius: 10px;
   border-bottom-left-radius: 10px;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
 
-.sort-buttons .toggle-right {
+.list-header .toggle-right {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   border-top-right-radius: 10px;
