@@ -41,11 +41,24 @@ function showReportWindow() {
     reportWindow.loadURL('file://' + __dirname + '/standings.html');
     reportWindow.setMenu(reportMenu);
 
-    reportWindow.once('ready-to-show', function () {
-      reportWindow.show();
-    });
+    reportWindow.once('ready-to-show', function () { reportWindow.show(); });
   }
 } //showReportWindow
+
+function showSearchTips(focusedWindow) {
+  var searchWindow = new BrowserWindow({
+    width: 550,
+    height: 300,
+    show: false,
+    parent: focusedWindow,
+    modal: true,
+    autoHideMenuBar: true,
+    icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
+  });
+  searchWindow.loadURL('file://' + __dirname + '/searchtips.html');
+  searchWindow.setMenu(reportMenu);
+  searchWindow.once('ready-to-show', ()=>{ searchWindow.show(); });
+}
 
 function exportHtmlReport(focusedWindow) {
   dialog.showSaveDialog(focusedWindow,
@@ -384,7 +397,17 @@ app.on('ready', function() {
             }
           }
         ]
-      },
+      },{
+        label: '&Help',
+        submenu: [
+          {
+            label: 'Search Tips',
+            click (item, focusedWindow) {
+              showSearchTips(focusedWindow);
+            }
+          }
+        ]
+      }
   ]; // mainMenuTemplate
 
   reportMenuTemplate = [

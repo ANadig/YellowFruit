@@ -10075,3 +10075,7 @@ th {
   width: 100px;
   opacity: .8;
 }
+
+.search-tips {
+  list-style-type: disc;
+}

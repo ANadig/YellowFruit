@@ -40,6 +40,9 @@ class SettingsForm extends React.Component{
     this.phaseToggle = this.phaseToggle.bind(this);
     this.settingsToggle = this.settingsToggle.bind(this);
     this.setDefaultGrouping = this.setDefaultGrouping.bind(this);
+    this.cancelSettings = this.cancelSettings.bind(this);
+    this.cancelPhases = this.cancelPhases.bind(this);
+    this.cancelDivisions = this.cancelDivisions.bind(this);
   }
 
   //called any time a value in the form changes
@@ -184,10 +187,11 @@ class SettingsForm extends React.Component{
       //remove null divisions and their corresponding phase assignments
       var tempDivs = this.state.divisions.map(function(str) { return str.trim(); });
       var tempPhaseAssns = this.state.divisions.map(function(div, idx) {
-        return div != '' ? this.state.phaseAssignments[idx] : '';
+        return div != '' ? this.state.phaseAssignments[idx] : 'zzzToDelete';
       }.bind(this));
       tempDivs = _.without(tempDivs, '');
-      tempPhaseAssns = _.without(tempPhaseAssns, '');
+      tempPhaseAssns = _.without(tempPhaseAssns, 'zzzToDelete');
+      tempPhaseAssns = tempPhaseAssns.map((x)=>{ return x=='nullPhase' ? '' : x; });
       var newDefaultPhase = this.state.defaultPhase;
       if(this.state.phases.length > 0 && this.state.defaultPhase == 'noPhase') {
         newDefaultPhase = this.state.phases[0];
@@ -198,9 +202,55 @@ class SettingsForm extends React.Component{
         editingDivisions: false,
         defaultPhase: newDefaultPhase
       });
+      // console.log(tempDivs);
+      // console.log(tempPhaseAssns);
       this.props.saveDivisions(this.state.phases, tempDivs, tempPhaseAssns);
     }
   } //divisionToggle
+
+  //discard changes made to settings
+  cancelSettings() {
+    if(this.state.editingSettings) {
+      this.setState({
+        powers: this.props.settings.powers,
+        negs: this.props.settings.negs,
+        bonuses: this.props.settings.bonuses,
+        playersPerTeam: this.props.settings.playersPerTeam,
+        editingSettings: false
+      });
+    }
+  }
+
+  //discard changes made to phases
+  cancelPhases() {
+    if(this.state.editingPhases) {
+      var allPhases = Object.keys(this.props.divisions);
+      this.setState({
+        phases: _.without(allPhases, 'noPhase'),
+        editingPhases: false
+      });
+    }
+  }
+
+  //discard changes made to divisions
+  cancelDivisions() {
+    if(this.state.editingDivisions) {
+      //copied from constructor
+      var divList = [], phaseAssnList = [];
+      for(var phase in this.props.divisions) {
+        for(var i in this.props.divisions[phase]) {
+          divList.push(this.props.divisions[phase][i]);
+          if(phase != 'noPhase') { phaseAssnList.push(phase); }
+          else { phaseAssnList.push(''); }
+        }
+      }
+      this.setState({
+        divisions: divList,
+        phaseAssignments: phaseAssnList,
+        editingDivisions: false
+      });
+    }
+  }
 
   getSettingsButtonCaption() {
     if(this.state.editingSettings) {
@@ -301,6 +351,37 @@ class SettingsForm extends React.Component{
       return 'Settings cannot be modified once games have been entered';
     }
     return '';
+  }
+
+
+  settingsCancelButton() {
+    if(this.state.editingSettings) {
+      return (
+        <button className="btn-flat" accessKey="C" onClick={this.cancelSettings}>
+          <span className="hotkey-underline">C</span>ancel</button>
+      );
+    }
+    return null;
+  }
+
+  phasesCancelButton() {
+    if(this.state.editingPhases) {
+      return (
+        <button className="btn-flat" accessKey="C" onClick={this.cancelPhases}>
+          <span className="hotkey-underline">C</span>ancel</button>
+      );
+    }
+    return null;
+  }
+
+  divisionsCancelButton() {
+    if(this.state.editingDivisions) {
+      return (
+        <button className="btn-flat" accessKey="C" onClick={this.cancelDivisions}>
+          <span className="hotkey-underline">C</span>ancel</button>
+      );
+    }
+    return null;
   }
 
   //set the default phase as the one that was just clicked on, unless, it's
@@ -571,6 +652,7 @@ class SettingsForm extends React.Component{
                     accessKey={settingsHotKey} data-tooltip={this.settingsBtnTooltip()}
                     onClick={this.settingsToggle}>
                   {this.getSettingsButtonCaption()}</button>
+                  {this.settingsCancelButton()}
                 </div>
               </div>
             </div>
@@ -587,6 +669,7 @@ class SettingsForm extends React.Component{
                   <button className={'btn-flat ' + togglesDisabled}
                     accessKey={phaseHotKey} onClick={this.phaseToggle}>
                   {this.getPhaseButtonCaption()}</button>
+                  {this.phasesCancelButton()}
                 </div>
               </div>
             </div>
@@ -606,6 +689,7 @@ class SettingsForm extends React.Component{
                   <button className={"btn-flat " + togglesDisabled}
                     accessKey={divHotKey} onClick={this.divisionToggle}>
                   {this.getDivisionButtonCaption()}</button>
+                  {this.divisionsCancelButton()}
                 </div>
               </div>
             </div>
