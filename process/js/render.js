@@ -1010,7 +1010,7 @@ class MainInterface extends React.Component{
           var div;
           if(usingPhases) { div = item.divisions[phaseToGroupBy]; }
           else { div = item.divisions.noPhase; }
-          if(div == undefined) { div = 'zzzzzzzzzzzzzzz'; }
+          if(div == undefined) { div = 'zzzzzzzzzzzzzzzzzzz'; }
           return div.toLowerCase();
         }, 'asc'); // order array
       }

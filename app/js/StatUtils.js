@@ -957,12 +957,12 @@ function roundReportRow(smry, roundNo, settings) {
 }
 
 //the links that appear at the top of every page in the report
-function getStatReportTop(statKeySection, fileStart) {
-  return '<HTML>' + '\n' +
-    '<HEAD>' + '\n' +
-    '<TITLE>  Team Standings </TITLE>' + '\n' +
-    '</HEAD>' + '\n' +
-    '<BODY>' + '\n' +
+function getStatReportTop(statKeySection, fileStart, pageTitle) {
+  return '<html>' + '\n' +
+    '<head>' + '\n' +
+    '<title>' + pageTitle + '</title>' + '\n' +
+    '</head>' + '\n' +
+    '<body>' + '\n' +
     '<table border=0 width=100%>' + '\n' +
     '<tr>' + '\n' +
       '<td><a href=' + fileStart + 'standings.html>Standings</a></td>' + '\n' +
@@ -978,13 +978,13 @@ function getStatReportTop(statKeySection, fileStart) {
 
 //closing tags at the end of the page
 function getStatReportBottom() {
-  return '</BODY>' + '\n' +
-  '</HTML>';
+  return '</body>' + '\n' +
+  '</html>';
 }
 
 function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInPhase, settings) {
   var standings = compileStandings(teams, games, phase, groupingPhase, settings);
-  var html = getStatReportTop('TeamStandings', fileStart) +
+  var html = getStatReportTop('TeamStandings', fileStart, 'Team Standings') +
     '<h1> Team Standings</h1>' + '\n';
   if(divsInPhase != undefined && divsInPhase.length > 0) {
     for(var i in divsInPhase) {
@@ -1009,7 +1009,7 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInP
 
 function getIndividualsHtml(teams, games, fileStart, phase, groupingPhase, usingDivisions, settings) {
   var individuals = compileIndividuals(teams, games, phase, groupingPhase, settings);
-  var html = getStatReportTop('IndividualStandings', fileStart) +
+  var html = getStatReportTop('IndividualStandings', fileStart, 'Individual Standings') +
     '<h1> Individual Statistics</h1>' + '\n' +
     '<table border=1 width=100%>' + individualsHeader(usingDivisions, settings);
   for(var i in individuals) {
@@ -1019,7 +1019,7 @@ function getIndividualsHtml(teams, games, fileStart, phase, groupingPhase, using
 }
 
 function getScoreboardHtml(teams, games, fileStart, phase, settings) {
-  var html = getStatReportTop('Scoreboard', fileStart) +
+  var html = getStatReportTop('Scoreboard', fileStart, 'Scoreboard') +
     '<h1> Scoreboard</h1>' + '\n';
   var roundList = getRoundsForScoreboard(games, phase);
   for(var r in roundList) {
@@ -1035,7 +1035,7 @@ function getTeamDetailHtml(teams, games, fileStart, phase, settings) {
   var standings = compileStandings(teams, games, phase, null, settings);
   var individuals = compileIndividuals(teams, games, phase, null, settings);
 
-  var html = getStatReportTop('TeamDetail', fileStart) + '\n' +
+  var html = getStatReportTop('TeamDetail', fileStart, 'Team Detail') + '\n' +
     '<h1> Team Detail</h1>' + '\n';
   for(var i in teams) {
     var teamName = teams[i].teamName;
@@ -1076,7 +1076,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
     function(item) { return item.playerName.toLowerCase(); }],
     ['asc', 'asc']);
 
-  var html = getStatReportTop('IndividualDetail', fileStart) +
+  var html = getStatReportTop('IndividualDetail', fileStart, 'Individual Detail') +
     '<h1> Individual Detail</h1>' + '\n';
 
   for(var i in playerTotals) {
@@ -1115,7 +1115,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
 function getRoundReportHtml(teams, games, fileStart, phase, settings) {
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
   var roundSummaries = compileRoundSummaries(games, phase, settings);
-  var html = getStatReportTop('RoundReport', fileStart) +
+  var html = getStatReportTop('RoundReport', fileStart, 'Round Report') +
     '<h1> Round Report</h1>' + '\n';
   html += '<table border=1 width=100%>' + '\n';
   html += roundReportTableHeader(settings);
@@ -1127,7 +1127,7 @@ function getRoundReportHtml(teams, games, fileStart, phase, settings) {
 }
 
 function getStatKeyHtml(fileStart) {
-  var html = getStatReportTop('', fileStart);
+  var html = getStatReportTop('', fileStart, 'Stat Key');
   var statKeyBodyLocation = Path.resolve(__dirname, 'statKeyBody.html');
   html += fs.readFileSync(statKeyBodyLocation, 'utf8');
   return html + getStatReportBottom();

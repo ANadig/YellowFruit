@@ -139,9 +139,3 @@ class TeamList extends React.Component{
 }
 
 module.exports=TeamList;
-
-
-// <a className="waves-effect waves-light btn-small blue accent-1"
-// title="Find teams that don't have a division for this phase">
-//   <i className="material-icons left">search</i>No division
-// </a>

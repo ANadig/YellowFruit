@@ -176,7 +176,7 @@ class AddGameModal extends React.Component{
     var autoAssignPhase = this.props.addOrEdit == 'add' && this.props.currentPhase != 'all';
     var tempItem = {
       round: this.state.round,
-      phases: autoAssignPhase ? this.props.currentPhase : this.state.phases,
+      phases: autoAssignPhase ? [this.props.currentPhase] : this.state.phases,
       tuhtot: forf ? '' : this.state.tuhtot,
       ottu: forf ? '' : this.state.ottu,
       forfeit: this.state.forfeit,
