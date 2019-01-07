@@ -72,6 +72,16 @@ function exportHtmlReport(focusedWindow) {
   );
 }
 
+function exportSqbsFile(focusedWindow) {
+  dialog.showSaveDialog(focusedWindow,
+    {filters: [{name: 'SQBS tournament', extensions: ['sqbs']}]},
+    (fileName) => {
+      if(fileName == undefined) { return; }
+      focusedWindow.webContents.send('exportSqbsFile', fileName);
+    }
+  );
+}
+
 //open file dialog to save as a new file
 function saveTournamentAs(focusedWindow) {
   dialog.showSaveDialog(focusedWindow,
@@ -283,6 +293,13 @@ app.on('ready', function() {
           accelerator: process.platform === 'darwin' ? 'Command+U': 'Ctrl+U',
           click(item, focusedWindow) {
             exportHtmlReport(focusedWindow);
+          }
+        },
+        {
+          label: 'Export as SQBS',
+          accelerator: process.platform === 'darwin' ? 'Command+Y': 'Ctrl+Y',
+          click(item, focusedWindow) {
+            exportSqbsFile(focusedWindow);
           }
         },
         {type: 'separator'},

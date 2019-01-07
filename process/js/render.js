@@ -192,6 +192,9 @@ class MainInterface extends React.Component{
     ipc.on('exportHtmlReport', (event, fileStart) => {
       if(!this.anyModalOpen()) { this.writeStatReport(fileStart); }
     });
+    ipc.on('exportSqbsFile', (event, fileName) => {
+      if(!this.anyModalOpen()) { this.writeSqbsFile(fileName); }
+    });
     ipc.on('prevPage', (event) => {
       if(!this.anyModalOpen()) { this.previousPage(); }
     });
@@ -229,6 +232,7 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('saveExistingTournament');
     ipc.removeAllListeners('newTournament');
     ipc.removeAllListeners('exportHtmlReport');
+    ipc.removeAllListeners('exportSqbsFile');
     ipc.removeAllListeners('prevPage');
     ipc.removeAllListeners('nextPage');
     ipc.removeAllListeners('prevPhase');
@@ -339,6 +343,15 @@ class MainInterface extends React.Component{
       if (err) { console.log(err); }
     });//writeFile - stat key
   } //writeStatReport
+
+  //export the data in SQBS format
+  writeSqbsFile(fileName) {
+    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.defaultPhase : this.state.viewingPhase;
+    var sqbsData = getSqbsFile(this.state.settings, phaseToGroupBy, this.state.divisions[phaseToGroupBy], this.state.myTeams, this.state.myGames);
+    fs.writeFile(fileName, sqbsData, 'utf8', function(err) {
+      if (err) { console.log(err); }
+    });
+  } //writeSqbsFile
 
   resetState() {
     var defaultSettings = {
