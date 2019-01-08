@@ -192,6 +192,12 @@ class MainInterface extends React.Component{
     ipc.on('exportHtmlReport', (event, fileStart) => {
       if(!this.anyModalOpen()) { this.writeStatReport(fileStart); }
     });
+    ipc.on('trySqbsExport', (event) => {
+      if(this.anyModalOpen()) { return; }
+      var badGameAry = this.sqbsCompatErrors();
+      if(badGameAry.length == 0) { ipc.sendSync('exportSqbsFile'); }
+      else { ipc.sendSync('confirmLossySQBS', badGameAry); }
+    })
     ipc.on('exportSqbsFile', (event, fileName) => {
       if(!this.anyModalOpen()) { this.writeSqbsFile(fileName); }
     });
@@ -352,6 +358,30 @@ class MainInterface extends React.Component{
       if (err) { console.log(err); }
     });
   } //writeSqbsFile
+
+  //returns a list of games where there will be data lost when exporting as SQBS format
+  sqbsCompatErrors() {
+    var badGameAry = [];
+    for(var i in this.state.myGames) {
+      var g = this.state.myGames[i];
+      var playerCount = 0;
+      for(var p in g.players1) {
+        if(toNum(g.players1[p].tuh) > 0) { playerCount++; }
+      }
+      if(playerCount > 8) {
+        badGameAry.push('Round ' + g.round + ': ' + g.team1 + " vs " + g.team2);
+        continue;
+      }
+      playerCount = 0;
+      for(var p in g.players2) {
+        if(toNum(g.players2[p].tuh) > 0) { playerCount++; }
+      }
+      if(playerCount > 8) {
+        badGameAry.push('Round ' + g.round + ': ' + g.team1 + " vs " + g.team2);
+      }
+    }
+    return badGameAry;
+  }
 
   resetState() {
     var defaultSettings = {

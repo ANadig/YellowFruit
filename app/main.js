@@ -72,7 +72,11 @@ function exportHtmlReport(focusedWindow) {
   );
 }
 
-function exportSqbsFile(focusedWindow) {
+function trySqbsExport(focusedWindow) {
+  focusedWindow.webContents.send('trySqbsExport');
+}
+
+function sqbsSaveDialog(focusedWindow) {
   dialog.showSaveDialog(focusedWindow,
     {filters: [{name: 'SQBS tournament', extensions: ['sqbs']}]},
     (fileName) => {
@@ -276,6 +280,26 @@ app.on('ready', function() {
     else if(choice == 1) { event.sender.send('cancelDelete'); }
   });//on tryDelete
 
+  ipc.on('exportSqbsFile', (event) => { sqbsSaveDialog(appWindow); });
+
+  ipc.on('confirmLossySQBS', (event, badGameAry) => {
+    event.returnValue = '';
+    var choice = dialog.showMessageBox(
+      appWindow,
+      {
+        type: 'warning',
+        buttons: ['Export &Anyway', '&Cancel'],
+        defaultId: 1,
+        cancelId: 1,
+        title: 'YellowFruit',
+        message: 'The following games exceed SQBS\'s limit of eight players per team:\n\n' +
+          badGameAry.join('\n') +
+          '\n\nOnly the first eight players in these games will be used.'
+      }
+    );
+    if(choice == 0) { sqbsSaveDialog(appWindow); }
+  });//on confirmLossySQBS
+
   mainMenuTemplate = [
     {
       label: '&YellowFruit',
@@ -299,7 +323,7 @@ app.on('ready', function() {
           label: 'Export as SQBS',
           accelerator: process.platform === 'darwin' ? 'Command+Y': 'Ctrl+Y',
           click(item, focusedWindow) {
-            exportSqbsFile(focusedWindow);
+            trySqbsExport(focusedWindow);
           }
         },
         {type: 'separator'},

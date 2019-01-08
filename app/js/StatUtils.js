@@ -471,8 +471,8 @@ function compileIndividuals(myTeams, myGames, phase, groupingPhase, settings) {
 
   return _.orderBy(individuals,
     [function(item) {
-      if(isNaN(item.ppg)) return -999;
-      return toNum(item.ppg);
+      if(isNaN(item.pptu)) return -999;
+      return toNum(item.pptu);
     },
     function(item) {
       return toNum(item.gamesPlayed);

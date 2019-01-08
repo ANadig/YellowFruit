@@ -131,15 +131,26 @@ function gameList(settings, teams, games) {
     //eight lines of player stats; further lines will be ignored
     var gamePlayers1 = Object.keys(g.players1);
     var gamePlayers2 = Object.keys(g.players2);
+    var playerIdx1 = 0;
+    var playerIdx2 = 0;
     for(i=0; i<8; i++) {
-      if(i < gamePlayers1.length) {
-        output += addOnePlayer(settings, teams, g, 1, gamePlayers1[i]);
+      while(playerIdx1 < gamePlayers1.length && toNum(g.players1[gamePlayers1[playerIdx1]].tuh) <= 0) {
+        playerIdx1++;
+      }
+      console.log(playerIdx1);
+      if(playerIdx1 < gamePlayers1.length) {
+        output += addOnePlayer(settings, teams, g, 1, gamePlayers1[playerIdx1]);
+        playerIdx1++;
       }
       else {
         output += dummyPlayer();
       }
+      while(playerIdx2 < gamePlayers2.length && toNum(g.players2[gamePlayers2[playerIdx2]].tuh) <= 0) {
+        playerIdx2++;
+      }
       if(i < gamePlayers2.length) {
-        output += addOnePlayer(settings, teams, g, 2, gamePlayers2[i]);
+        output += addOnePlayer(settings, teams, g, 2, gamePlayers2[playerIdx2]);
+        playerIdx2++;
       }
       else {
         output += dummyPlayer();
