@@ -197,7 +197,7 @@ class MainInterface extends React.Component{
       var badGameAry = this.sqbsCompatErrors();
       if(badGameAry.length == 0) { ipc.sendSync('exportSqbsFile'); }
       else { ipc.sendSync('confirmLossySQBS', badGameAry); }
-    })
+    });
     ipc.on('exportSqbsFile', (event, fileName) => {
       if(!this.anyModalOpen()) { this.writeSqbsFile(fileName); }
     });
@@ -282,7 +282,9 @@ class MainInterface extends React.Component{
       myTeams: loadTeams,
       myGames: loadGames,
       settingsLoadToggle: !this.state.settingsLoadToggle,
-      defaultPhase: defPhase
+      viewingPhase: 'all',
+      defaultPhase: defPhase,
+      activePane: 'settingsPane'
     });
     //the value of settingsLoadToggle doesn't matter; it just needs to change
     //in order to make the settings form load

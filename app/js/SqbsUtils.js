@@ -137,7 +137,6 @@ function gameList(settings, teams, games) {
       while(playerIdx1 < gamePlayers1.length && toNum(g.players1[gamePlayers1[playerIdx1]].tuh) <= 0) {
         playerIdx1++;
       }
-      console.log(playerIdx1);
       if(playerIdx1 < gamePlayers1.length) {
         output += addOnePlayer(settings, teams, g, 1, gamePlayers1[playerIdx1]);
         playerIdx1++;
@@ -148,7 +147,7 @@ function gameList(settings, teams, games) {
       while(playerIdx2 < gamePlayers2.length && toNum(g.players2[gamePlayers2[playerIdx2]].tuh) <= 0) {
         playerIdx2++;
       }
-      if(i < gamePlayers2.length) {
+      if(playerIdx2 < gamePlayers2.length) {
         output += addOnePlayer(settings, teams, g, 2, gamePlayers2[playerIdx2]);
         playerIdx2++;
       }

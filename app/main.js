@@ -280,7 +280,10 @@ app.on('ready', function() {
     else if(choice == 1) { event.sender.send('cancelDelete'); }
   });//on tryDelete
 
-  ipc.on('exportSqbsFile', (event) => { sqbsSaveDialog(appWindow); });
+  ipc.on('exportSqbsFile', (event) => {
+    event.returnValue = '';
+    sqbsSaveDialog(appWindow);
+  });
 
   ipc.on('confirmLossySQBS', (event, badGameAry) => {
     event.returnValue = '';
@@ -421,22 +424,22 @@ app.on('ready', function() {
             click (item, focusedWindow) {
               if(focusedWindow) focusedWindow.webContents.send('nextPhase');
             }
-          },
-          {type: 'separator'},
-          {
-            label: 'Reload',
-            accelerator: 'CmdOrCtrl+R',
-            click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.reload()
-            }
-          },
-          {
-            label: 'Toggle Developer Tools',
-            accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
-            click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.webContents.toggleDevTools()
-            }
-          }
+          }//,
+          // {type: 'separator'},
+          // {
+          //   label: 'Reload',
+          //   accelerator: 'CmdOrCtrl+R',
+          //   click (item, focusedWindow) {
+          //     if (focusedWindow) focusedWindow.reload()
+          //   }
+          // },
+          // {
+          //   label: 'Toggle Developer Tools',
+          //   accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+          //   click (item, focusedWindow) {
+          //     if (focusedWindow) focusedWindow.webContents.toggleDevTools()
+          //   }
+          // }
         ]
       },{
         label: '&Help',
