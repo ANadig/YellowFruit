@@ -146,7 +146,8 @@ class AddTeamModal extends React.Component{
     if(this.props.teamToLoad != null || this.props.addOrEdit == 'add') { return false; }
     var playerDeleted = false;
     for(var i in this.state.originalTeamLoaded.roster) {
-      if(this.state.roster[i].trim() == '') { playerDeleted = true; }
+      var p = this.state.roster[i];
+      if(p == undefined || p.trim() == '') { playerDeleted = true; }
     }
     return this.props.teamHasGames(this.state.originalTeamLoaded) && playerDeleted;
   }
@@ -201,7 +202,7 @@ class AddTeamModal extends React.Component{
     }.bind(this));
     return ( <ul>{playerFields}</ul> );
   }
-  
+
 
 
   render() {
