@@ -960,6 +960,7 @@ function roundReportRow(smry, roundNo, settings) {
 function getStatReportTop(statKeySection, fileStart, pageTitle) {
   return '<html>' + '\n' +
     '<head>' + '\n' +
+    '<link rel="stylesheet" href="hsqb-style.css">' + '\n' +
     '<title>' + pageTitle + '</title>' + '\n' +
     '</head>' + '\n' +
     '<body>' + '\n' +
@@ -978,7 +979,8 @@ function getStatReportTop(statKeySection, fileStart, pageTitle) {
 
 //closing tags at the end of the page
 function getStatReportBottom() {
-  return '</body>' + '\n' +
+  return '<h5>Made with YellowFruit &#x1F34C;</h5>' +
+  '</body>' + '\n' +
   '</html>';
 }
 

@@ -9,9 +9,9 @@ main window
 var $ = jQuery = require('jquery');
 var _ = require('lodash');
 var M = require('materialize-css');
-var fs = eRequire('fs');
 // eRequire is defined in index.html
-// I took this from a tutorial and don't remember why it's necessary
+// I took these two lines from a tutorial and don't remember why it's necessary
+var fs = eRequire('fs');
 var electron = eRequire('electron');
 var ipc = electron.ipcRenderer;
 

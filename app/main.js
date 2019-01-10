@@ -72,6 +72,26 @@ function showSearchTips(focusedWindow) {
   searchWindow.loadURL('file://' + __dirname + '/searchtips.html');
   searchWindow.setMenu(reportMenu);
   searchWindow.once('ready-to-show', ()=>{ searchWindow.show(); });
+  searchWindow.once('close', () => { focusedWindow.focus(); }); //prevent flickering
+}
+
+/*---------------------------------------------------------
+A small window with info about the application.
+---------------------------------------------------------*/
+function showAboutYF(focusedWindow) {
+  var aboutWindow = new BrowserWindow({
+    width: 550,
+    height: 300,
+    show: false,
+    parent: focusedWindow,
+    modal: true,
+    autoHideMenuBar: true,
+    icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
+  });
+  aboutWindow.loadURL('file://' + __dirname + '/AboutYF.html');
+  aboutWindow.setMenu(reportMenu);
+  aboutWindow.once('ready-to-show', ()=>{ aboutWindow.show(); });
+  aboutWindow.once('close', () => { focusedWindow.focus(); }); //prevent flickering
 }
 
 /*---------------------------------------------------------
@@ -489,22 +509,22 @@ app.on('ready', function() {
             click (item, focusedWindow) {
               if(focusedWindow) focusedWindow.webContents.send('nextPhase');
             }
-          }//,
-          // {type: 'separator'},
-          // {
-          //   label: 'Reload',
-          //   accelerator: 'CmdOrCtrl+R',
-          //   click (item, focusedWindow) {
-          //     if (focusedWindow) focusedWindow.reload()
-          //   }
-          // },
-          // {
-          //   label: 'Toggle Developer Tools',
-          //   accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
-          //   click (item, focusedWindow) {
-          //     if (focusedWindow) focusedWindow.webContents.toggleDevTools()
-          //   }
-          // }
+          },
+          {type: 'separator'},
+          {
+            label: 'Reload',
+            accelerator: 'CmdOrCtrl+R',
+            click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.reload()
+            }
+          },
+          {
+            label: 'Toggle Developer Tools',
+            accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+            click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.webContents.toggleDevTools()
+            }
+          }
         ]
       },{
         label: '&Help',
@@ -513,6 +533,12 @@ app.on('ready', function() {
             label: 'Search Tips',
             click (item, focusedWindow) {
               showSearchTips(focusedWindow);
+            }
+          },
+          {
+            label: 'About YellowFruit',
+            click (item, focusedWindow) {
+              showAboutYF(focusedWindow);
             }
           }
         ]
