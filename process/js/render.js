@@ -1,16 +1,25 @@
+/***********************************************************
+render.js
+Andrew Nadig
+
+Entry point for the Electron renderer process. Defines the
+MainInterface compenent that contains the entire UI of the
+main window
+***********************************************************/
 var $ = jQuery = require('jquery');
 var _ = require('lodash');
 var M = require('materialize-css');
 var fs = eRequire('fs');
-
+// eRequire is defined in index.html
+// I took this from a tutorial and don't remember why it's necessary
 var electron = eRequire('electron');
 var ipc = electron.ipcRenderer;
 
 var React = require('react');
 var ReactDOM = require('react-dom');
+// Bring in all the other React components
 var TeamListEntry = require('./TeamListEntry');
 var GameListEntry = require('./GameListEntry');
-//var Toolbar = require('./Toolbar');
 var HeaderNav = require('./HeaderNav');
 var AddTeamModal = require('./AddTeamModal');
 var AddGameModal = require('./AddGameModal');
@@ -21,7 +30,10 @@ var TeamList = require('./TeamList');
 var GameList = require('./GameList');
 var StatSidebar = require('./StatSidebar');
 
-//skip players1, players2 because comparing objects is more complicated and I'm lazy
+/*---------------------------------------------------------
+Equality test for two games. Probably does more work than
+necessary because round/team1/team2 should be unique
+---------------------------------------------------------*/
 function gameEqual(g1, g2) {
   if((g1 == undefined && g2 != undefined) || (g1 != undefined && g2 == undefined)) {
     return false;
@@ -32,7 +44,10 @@ function gameEqual(g1, g2) {
     g1.notes == g2.notes;
 }
 
-//standings for the stat sidebar
+/*---------------------------------------------------------
+Generate the data necessary for showing the abbreviated
+standings table in the sidebar
+---------------------------------------------------------*/
 function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase, settings) {
   var summary = myTeams.map(function(item, index) {
     var obj =
@@ -100,32 +115,35 @@ class MainInterface extends React.Component{
       playersPerTeam: '4'
     };
     this.state = {
-      tmWindowVisible: false,
-      gmWindowVisible: false,
-      divWindowVisible: false,
-      phaseWindowVisible: false,
-      teamOrder: 'alpha',
-      queryText: '',
-      settings: defaultSettings,
-      divisions: {},
-      phaseAssignments: [],
-      myTeams: [],
-      myGames: [],
-      selectedTeams: [],
-      selectedGames: [],
-      checkTeamToggle: false,
-      checkGameToggle: false,
-      settingsLoadToggle: false,
-      activePane: 'settingsPane',  //settings, teams, or games
-      viewingPhase: 'all', //'all' or the name of a user-defined phase
-      defaultPhase: 'noPhase',
-      forceResetForms: false,
-      editWhichTeam: null,
+      tmWindowVisible: false, // whether the team entry modal is open
+      gmWindowVisible: false, // whether the game entry modal is open
+      divWindowVisible: false, // whether the team division assignment modal is open
+      phaseWindowVisible: false, // whether the game phase assignment modal is open
+      teamOrder: 'alpha', // sort order. Either 'alpha' or 'division'
+      queryText: '', // what's in the search bar
+      settings: defaultSettings, // object to define the tournament rules
+      divisions: {}, // object where the keys are phases, and their values are the list
+                     // of divisions in that phase
+      myTeams: [], // the list of teams
+      myGames: [], // the list of games
+      selectedTeams: [], // teams with checkbox checked on the teams pane
+      selectedGames: [], // games with checkbox checked on the games pane
+      checkTeamToggle: false, // used in the key of TeamListEntry components in order to
+                              // force their constructor to be called when necessary
+      checkGameToggle: false, // see checkTeamToggle
+      settingsLoadToggle: false, // used to force the whole settings pane to redraw when
+                                 // when divisions or phases are changed
+      activePane: 'settingsPane',  // settings, teams, or games
+      viewingPhase: 'all', // 'all' or the name of a user-defined phase
+      defaultPhase: 'noPhase', // 'noPhase' of the name of a user-defined phase
+      forceResetForms: false, // used to force an additional render in the team and game
+                              // modals in order to clear form data
+      editWhichTeam: null,    // which team to load in the team modal
       tmAddOrEdit: 'add', //either 'add' or 'edit'
-      editWhichGame: null,
-      gmAddOrEdit: 'add',
-      editingSettings: false,
-      gameToBeDeleted: null
+      editWhichGame: null, // which game to load in the game modal
+      gmAddOrEdit: 'add', // either 'add' or 'edit'
+      editingSettings: false, // Whether the "settings" section of the settings pane is open for editing
+      gameToBeDeleted: null // which game the user is attempting to delete
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -163,6 +181,10 @@ class MainInterface extends React.Component{
     this.sortTeamsBy = this.sortTeamsBy.bind(this);
   }
 
+  /*---------------------------------------------------------
+  Lifecyle method. Initialize listeners to ipcs from main
+  process.
+  ---------------------------------------------------------*/
   componentDidMount() {
     ipc.on('addTeam', (event, message) => {
       if(!this.anyModalOpen()) { this.openTeamAddWindow(); }
@@ -229,6 +251,9 @@ class MainInterface extends React.Component{
     });
   } //componentDidMount
 
+  /*---------------------------------------------------------
+  I'm not certain this is necessary, but just to be safe....
+  ---------------------------------------------------------*/
   componentWillUnmount() {
     ipc.removeAllListeners('addTeam');
     ipc.removeAllListeners('addGame');
@@ -248,10 +273,16 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('cancelDelete');
   } //componentWillUnmount
 
+  /*---------------------------------------------------------
+  Unused at the moment
+  ---------------------------------------------------------*/
   componentDidUpdate() {
+  }
 
-  } //componentDidUpdate
-
+  /*---------------------------------------------------------
+  Called when the user saves the file.
+  Filename: the file to write to
+  ---------------------------------------------------------*/
   writeJSON(fileName) {
     var fileString = JSON.stringify(this.state.settings) + '\ndivider_between_sections\n' +
       JSON.stringify(this.state.divisions) + '\ndivider_between_sections\n' +
@@ -264,6 +295,11 @@ class MainInterface extends React.Component{
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
   }
 
+  /*---------------------------------------------------------
+  Load the tournament data from fileName into the appropriate
+  state variables. The user may now begin editing this
+  tournament.
+  ---------------------------------------------------------*/
   loadTournament(fileName) {
     var fileString = fs.readFileSync(fileName, 'utf8');
     if(fileString != '') {
@@ -290,7 +326,13 @@ class MainInterface extends React.Component{
     //in order to make the settings form load
   }
 
-  //compile data for the stat report and write it to each html file
+  /*---------------------------------------------------------
+  Complie data for the data report and write it to each html
+  file.
+  fileStart is null when generating the files for the report
+  window. Otherwise it's the user-specified file to export
+  to, to which we append the name of the page
+  ---------------------------------------------------------*/
   writeStatReport(fileStart) {
     if(fileStart == '') {
       var standingsLocation = defaultStandingsLocation;
@@ -352,7 +394,9 @@ class MainInterface extends React.Component{
     });//writeFile - stat key
   } //writeStatReport
 
-  //export the data in SQBS format
+  /*---------------------------------------------------------
+  Export the data in SQBS format
+  ---------------------------------------------------------*/
   writeSqbsFile(fileName) {
     var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.defaultPhase : this.state.viewingPhase;
     var sqbsData = getSqbsFile(this.state.settings, phaseToGroupBy, this.state.divisions[phaseToGroupBy], this.state.myTeams, this.state.myGames);
@@ -361,7 +405,12 @@ class MainInterface extends React.Component{
     });
   } //writeSqbsFile
 
-  //returns a list of games where there will be data lost when exporting as SQBS format
+  /*---------------------------------------------------------
+  Returns a list of games in which at least one team had
+  more than eight players that heard at least one tossup.
+  SQBS only supports eight players per team per game, so
+  we need to warn the user before exporting the SQBS file.
+  ---------------------------------------------------------*/
   sqbsCompatErrors() {
     var badGameAry = [];
     for(var i in this.state.myGames) {
@@ -385,6 +434,10 @@ class MainInterface extends React.Component{
     return badGameAry;
   }
 
+  /*---------------------------------------------------------
+  Clear data and go back to defaults. Called when the user
+  selects "new tournament".
+  ---------------------------------------------------------*/
   resetState() {
     var defaultSettings = {
       powers: '15pts',
@@ -430,12 +483,17 @@ class MainInterface extends React.Component{
   //   });
   // }
 
+  /*---------------------------------------------------------
+  Whether any of the modal windows are open
+  ---------------------------------------------------------*/
   anyModalOpen() {
     return this.state.tmWindowVisible || this.state.gmWindowVisible ||
       this.state.divWindowVisible || this.state.phaseWindowVisible;
   }
 
-  //navigate between settings/teams/games
+  /*---------------------------------------------------------
+  Move to the previous page (settings/teams/games)
+  ---------------------------------------------------------*/
   previousPage() {
     var newPane = 'settingsPane';
     if(this.state.activePane == 'settingsPane') { newPane = 'gamesPane'; }
@@ -446,7 +504,9 @@ class MainInterface extends React.Component{
     });
   }//previousPage
 
-  //navigate between settings/teams/games
+  /*---------------------------------------------------------
+  Move to the next page (settings/teams/games)
+  ---------------------------------------------------------*/
   nextPage() {
     var newPane = 'settingsPane';
     if(this.state.activePane == 'settingsPane') { newPane = 'teamsPane'; }
@@ -457,7 +517,10 @@ class MainInterface extends React.Component{
     });
   }//previousPage
 
-  //navigate through phases
+  /*---------------------------------------------------------
+  cycle backwards through phases (user defined phases plus
+  "all games")
+  ---------------------------------------------------------*/
   previousPhase() {
     var newPhase = 'all';
     var phaseList = Object.keys(this.state.divisions);
@@ -476,7 +539,10 @@ class MainInterface extends React.Component{
     });
   }
 
-  //navigate through phases
+  /*---------------------------------------------------------
+  Cycle forward through phases (user defined phases plus
+  "all games")
+  ---------------------------------------------------------*/
   nextPhase() {
     var newPhase = 'all';
     var phaseList = Object.keys(this.state.divisions);
@@ -495,7 +561,9 @@ class MainInterface extends React.Component{
     });
   }
 
-  //called by buttons that open the team form
+  /*---------------------------------------------------------
+  Kick off opening the team modal
+  ---------------------------------------------------------*/
   openTeamAddWindow() {
     this.setState({
       tmWindowVisible: true
@@ -503,7 +571,9 @@ class MainInterface extends React.Component{
     $('#teamName').focus();
   }
 
-  //called by buttons that open the game form
+  /*---------------------------------------------------------
+  Kick off opening the game modal
+  ---------------------------------------------------------*/
   openGameAddWindow() {
     if(this.state.myTeams.length < 2 || this.state.editingSettings) { return; }
     this.setState({
@@ -511,8 +581,10 @@ class MainInterface extends React.Component{
     });
   }
 
-  //needed so the modals don't stay open on next render.
-  //Also directs the modals to clear their data
+  /*---------------------------------------------------------
+  Prevents modals from staying open on the next render. Also
+  directs modals to clear their data.
+  ---------------------------------------------------------*/
   onModalClose() {
     this.setState({
       tmWindowVisible: false,
@@ -527,7 +599,11 @@ class MainInterface extends React.Component{
     });
   }
 
-  //make sure forms only reset data one time aftr they close
+  /*---------------------------------------------------------
+  Called after modals have cleared their data so that they
+  don't enter in infinite render loop due to their
+  componentDidUpdate methods
+  ---------------------------------------------------------*/
   onForceReset() {
     this.setState({
       forceResetForms: false,
@@ -536,7 +612,9 @@ class MainInterface extends React.Component{
     });
   }
 
-  //add the new team, then close the form
+  /*---------------------------------------------------------
+  Add the new team, then close the form
+  ---------------------------------------------------------*/
   addTeam(tempItem) {
     var tempTms = this.state.myTeams.slice();
     tempTms.push(tempItem);
@@ -547,7 +625,9 @@ class MainInterface extends React.Component{
     }) //setState
   } //addTeam
 
-  //add the new game, then close the form
+  /*---------------------------------------------------------
+  Add the new game, then close the form
+  ---------------------------------------------------------*/
   addGame(tempItem) {
     var tempGms = this.state.myGames.slice();
     tempGms.push(tempItem);
@@ -558,9 +638,12 @@ class MainInterface extends React.Component{
     }) //setState
   } //addTeam
 
-  //update the appropriate team, close the form, and
-  //update player names in game data if necessary
-  //assumes whitespace has already been removed by TeamModal
+  /*---------------------------------------------------------
+  Update the appropriate team, close the form, and update
+  team and player names in that team's games if necessary.
+  Assumes whitespace has alredy been removed from the form
+  data
+  ---------------------------------------------------------*/
   modifyTeam(oldTeam, newTeam) {
     var tempTeams = this.state.myTeams.slice();
     var oldTeamIdx = _.indexOf(tempTeams, oldTeam);
@@ -585,7 +668,10 @@ class MainInterface extends React.Component{
     });
   }//modifyTeam
 
-  //change the name of a given team for all games
+  /*---------------------------------------------------------
+  Change the name of team oldName to newName for all
+  applicable games in gameAry
+  ---------------------------------------------------------*/
   updateTeamName(gameAry, oldName, newName) {
     for(var i in gameAry){
       if(gameAry[i].team1 == oldName) {
@@ -597,7 +683,10 @@ class MainInterface extends React.Component{
     }
   }
 
-  //change the name of a given player on a given team for all games
+  /*---------------------------------------------------------
+  Change the name of team teamName's player oldPlayerName to
+  newPlayerName for all applicable games in gameAry
+  ---------------------------------------------------------*/
   updatePlayerName(gameAry, teamName, oldPlayerName, newPlayerName) {
     for(var i in gameAry) {
       if(gameAry[i].forfeit) { continue; }
@@ -612,7 +701,9 @@ class MainInterface extends React.Component{
     }
   }
 
-  //update the appropriate game, then close the form
+  /*---------------------------------------------------------
+  Updat the appropriate game and close the form
+  ---------------------------------------------------------*/
   modifyGame(oldGame, newGame) {
     var tempGameAry = this.state.myGames.slice();
     var oldGameIdx = _.findIndex(tempGameAry, function (o) {
@@ -626,7 +717,12 @@ class MainInterface extends React.Component{
     });
   }
 
-  //permanently delete a team
+  /*---------------------------------------------------------
+  Permanently delete a team. Does not check whether that team
+  has any game data; rather, it assumes the UI has been
+  constucted so as to prevent the user from deleting a team
+  that has played games.
+  ---------------------------------------------------------*/
   deleteTeam(item) {
     var newTeams = _.without(this.state.myTeams, item);
     var newSelected = _.without(this.state.selectedTeams, item);
@@ -637,8 +733,12 @@ class MainInterface extends React.Component{
     ipc.sendSync('unsavedData');
   } //deleteTeam
 
-  //delete a game. First call triggers a confirmation dialog, second call
-  //upon confirmation actually deletes it
+  /*---------------------------------------------------------
+  Called twice during the game deletion workflow. The first
+  time it triggers a confirmation message. The sencond time,
+  once the user has confirmed, it permanently deletes the
+  game
+  ---------------------------------------------------------*/
   deleteGame(item) {
     if(this.state.gameToBeDeleted == null) {
       this.setState({
@@ -656,6 +756,10 @@ class MainInterface extends React.Component{
     ipc.sendSync('unsavedData');
   } //deleteGame
 
+  /*---------------------------------------------------------
+  Remove the given team's division assignment for the given
+  phase.
+  ---------------------------------------------------------*/
   removeDivisionFromTeam(whichTeam, phase) {
     var tempTeams = this.state.myTeams;
     var idx = _.indexOf(tempTeams, whichTeam);
@@ -666,6 +770,9 @@ class MainInterface extends React.Component{
     ipc.sendSync('unsavedData');
   }
 
+  /*---------------------------------------------------------
+  Dissociate the specified game from the specified phase
+  ---------------------------------------------------------*/
   removePhaseFromGame(whichGame, phase) {
     var tempGames = this.state.myGames;
     var idx = _.indexOf(tempGames, whichGame);
@@ -676,7 +783,9 @@ class MainInterface extends React.Component{
     ipc.sendSync('unsavedData');
   }
 
-  //tell the team window to load a team
+  /*---------------------------------------------------------
+  Tell the team modal to load the given team
+  ---------------------------------------------------------*/
   openTeamForEdit(item) {
     this.setState({
       editWhichTeam: item,
@@ -685,7 +794,9 @@ class MainInterface extends React.Component{
     this.openTeamAddWindow();
   }
 
-  //tell the game window to load a game
+  /*---------------------------------------------------------
+  Tell the game modal to load the given game
+  ---------------------------------------------------------*/
   openGameForEdit(item) {
     this.setState({
       editWhichGame: item,
@@ -694,23 +805,33 @@ class MainInterface extends React.Component{
     this.openGameAddWindow();
   }
 
-  //make sure the team form only loads the data once
+  /*---------------------------------------------------------
+  Called by team modal once it's finished loading data.
+  Prevents an infinite render loop from the team modal's
+  componentDidUpdate method.
+  ---------------------------------------------------------*/
   onLoadTeamInModal() {
     this.setState({
       editWhichTeam: null
     });
   }
 
-  //make sure the game form only loads the data once
+  /*---------------------------------------------------------
+  Called by game modal once it's finished loading data.
+  Prevents an infinite render loop from the game modal's
+  componentDidUpdate method.
+  ---------------------------------------------------------*/
   onLoadGameInModal() {
     this.setState({
       editWhichGame: null
     });
   }
 
-  //verify that the team name you've entered doesn't already belong
-  //to another team. newTeamName is the form's value. savedTeam is the
-  //existing team that was opened for edit
+  /*---------------------------------------------------------
+  Determine whether newTeamName is a legal team name.
+  Can't already be the name of an existing team other
+  than savedTeam, the one that's currently being edited.
+  ---------------------------------------------------------*/
   validateTeamName(newTeamName, savedTeam) {
     var otherTeams;
     if(savedTeam != null) {
@@ -728,8 +849,11 @@ class MainInterface extends React.Component{
      }
   }
 
-  //has this team already played in this round? originalGameLoaded makes
-  //sure that a game isn't counting itself as a repeat.
+  /*---------------------------------------------------------
+  Whether the given team has already played a game in the
+  given round.
+  originalGameLoaded: the game currently open for editing
+  ---------------------------------------------------------*/
   hasTeamPlayedInRound(teamName, roundNo, originalGameLoaded) {
     for(var i in this.state.myGames) {
       var g = this.state.myGames[i];
@@ -741,7 +865,9 @@ class MainInterface extends React.Component{
     return false;
   }
 
-  //has at least one game been entered that involves this team?
+  /*---------------------------------------------------------
+  Whether this team has played at least one game.
+  ---------------------------------------------------------*/
   teamHasPlayedGames(team) {
     for(var i in this.state.myGames) {
       var g = this.state.myGames[i];
@@ -750,6 +876,9 @@ class MainInterface extends React.Component{
     return false;
   }
 
+  /*---------------------------------------------------------
+  Sort teams
+  ---------------------------------------------------------*/
   reOrder(orderBy, orderDir) {
     this.setState({
       orderBy: orderBy,
@@ -757,27 +886,38 @@ class MainInterface extends React.Component{
     }) //setState
   } //reOrder
 
+  /*---------------------------------------------------------
+  Fiter teams or games
+  ---------------------------------------------------------*/
   searchLists(query) {
     this.setState({
       queryText: query
     }); //setState
   } //searchLists
 
-  //whether you're viewing Settings, Teams, or Games
+  /*---------------------------------------------------------
+  Whether the user is viewing settings, teams, or games`
+  ---------------------------------------------------------*/
   setPane(pane) {
     this.setState({
       activePane: pane,
     });
   } //setPane
 
-  //which phase you're viewing. Will filter games and team chips accordingly
+  /*---------------------------------------------------------
+  Which phase the user is viewing
+  ---------------------------------------------------------*/
   setPhase(phase) {
     this.setState({
       viewingPhase: phase
     });
   }
 
-  //called when either phases or divisions are saved on the settings pane
+  /*---------------------------------------------------------
+  Modify phases and divisions, as well as the assignments
+  of teams to divisions and games to phases if necessary.
+  Called from the settings form.
+  ---------------------------------------------------------*/
   saveDivisions(newPhases, newDivAry, newPhaseAssignments) {
     var tempDivisions = {};
     if(newPhases.length == 0 && newDivAry.length > 0) {
@@ -844,7 +984,9 @@ class MainInterface extends React.Component{
     ipc.sendSync('unsavedData');
   } //saveDivisions
 
-  //when a team is selected/deselected using the checkbox
+  /*---------------------------------------------------------
+  When a team is selected or deselected using the checkbox
+  ---------------------------------------------------------*/
   onSelectTeam(whichTeam) {
     var tempSelTeams = this.state.selectedTeams.slice();
     var idx = tempSelTeams.indexOf(whichTeam);
@@ -855,7 +997,9 @@ class MainInterface extends React.Component{
     });
   }
 
-  //when a game is selected/deselected using the checkbox
+  /*---------------------------------------------------------
+  When a game is selected/deselected using the checkbox
+  ---------------------------------------------------------*/
   onSelectGame(whichGame) {
     var tempSelGames = this.state.selectedGames.slice();
     var idx = tempSelGames.indexOf(whichGame);
@@ -866,7 +1010,9 @@ class MainInterface extends React.Component{
     });
   }
 
-  //modal for assigning teams to divisions
+  /*---------------------------------------------------------
+  Open the modal for assigning teams to divisions
+  ---------------------------------------------------------*/
   openDivModal() {
     if(this.state.selectedTeams.length == 0) { return; }
     this.setState({
@@ -874,7 +1020,9 @@ class MainInterface extends React.Component{
     });
   }
 
-  //modal for assigning games to phases
+  /*---------------------------------------------------------
+  Open the modal for assigning games to phases
+  ---------------------------------------------------------*/
   openPhaseModal() {
     if(this.state.selectedGames.length == 0) { return; }
     this.setState({
@@ -882,7 +1030,9 @@ class MainInterface extends React.Component{
     });
   }
 
-  //called when the division modal is submitted
+  /*---------------------------------------------------------
+  Assign divisions to the selected games.
+  ---------------------------------------------------------*/
   submitDivAssignments(divSelections) {
     var selTeams = this.state.selectedTeams;
     var allTeams = this.state.myTeams;
@@ -907,7 +1057,9 @@ class MainInterface extends React.Component{
     ipc.sendSync('unsavedData');
   }//submitDivAssignments
 
-  //called when the phase modal is submitted
+  /*---------------------------------------------------------
+  Assign phases to the selected games.
+  ---------------------------------------------------------*/
   submitPhaseAssignments(phaseSelections) {
     var selGames = this.state.selectedGames;
     var allGames = this.state.myGames;
@@ -931,28 +1083,45 @@ class MainInterface extends React.Component{
     ipc.sendSync('unsavedData');
   }//submitPhaseAssignments
 
+  /*---------------------------------------------------------
+  Does the team belong to the phase the user is currently
+  viewing?
+  ---------------------------------------------------------*/
   teamBelongsToCurrentPhase(team) {
     if(this.state.viewingPhase == 'all') { return true; }
     return team.divisions[this.state.viewingPhase] != undefined;
   }
 
+  /*---------------------------------------------------------
+  Does the game belong to the phase the user is currently
+  viewing?
+  ---------------------------------------------------------*/
   gameBelongsToCurrentPhase(game) {
     if(this.state.viewingPhase == 'all') { return true; }
     return game.phases.includes(this.state.viewingPhase);
   }
 
-  //set which phases's divisions will be used when viewing all games
+  /*---------------------------------------------------------
+  Set which phase's divisions will be used when viewing all
+  games
+  ---------------------------------------------------------*/
   setDefaultGrouping(phase) {
     this.setState({
       defaultPhase: phase
     });
   }
 
+  /*---------------------------------------------------------
+  Does this tournament have at least one user-defined phase?
+  ---------------------------------------------------------*/
   usingPhases() {
     var numberOfPhases = Object.keys(this.state.divisions).length;
     return numberOfPhases > 1 ||  (numberOfPhases == 1 && this.state.divisions['noPhase'] == undefined);
   }
 
+  /*---------------------------------------------------------
+  Does this tournament have one or more divisions?
+  ---------------------------------------------------------*/
   usingDivisions() {
     for (var phase in this.state.divisions) {
       if(this.state.divisions[phase].length > 0) { return true; }
@@ -960,6 +1129,9 @@ class MainInterface extends React.Component{
     return false;
   }
 
+  /*---------------------------------------------------------
+  Save the tournament format settings (powers, negs, etc.)
+  ---------------------------------------------------------*/
   saveSettings(newSettings) {
     this.setState ({
       settings: newSettings
@@ -967,15 +1139,20 @@ class MainInterface extends React.Component{
     ipc.sendSync('unsavedData');
   }
 
-  //Whether the "settings" section of the settings pane is open for editing
+  /*---------------------------------------------------------
+  Whether the "settings" section of the settings pane is
+  open for editing.
+  ---------------------------------------------------------*/
   editingSettings(bool) {
     this.setState({
       editingSettings: bool
     });
   }
 
-  //returns true of the query text start with "Round###" or "R###" and if the game's
-  //round machest that number
+  /*---------------------------------------------------------
+  Returns true if the query text starts with "Round###" or
+  "R###" and if the game's round matches ###
+  ---------------------------------------------------------*/
   matchRoundSearch(queryText, game) {
     queryText = queryText.trim();
     if(queryText.search(/^(r(ound)?\s*\d+)/i) != 0) { return false; }
@@ -983,7 +1160,10 @@ class MainInterface extends React.Component{
     return game.round == queryRound;
   }
 
-  //returns true if parts of the query text match both teams
+  /*---------------------------------------------------------
+  Returns true if parts of the query text (separate by a '/')
+  match both teams
+  ---------------------------------------------------------*/
   matchBothTeams(queryText, game) {
     var matchFirst = false, matchSecond = false;
     var words = queryText.split('/');
@@ -997,12 +1177,18 @@ class MainInterface extends React.Component{
     return matchFirst && matchSecond;
   }
 
-  //type "no phase" in the search bar to find games with no assigned phase
+  /*---------------------------------------------------------
+  Typing "no phase", "nophase", etc. in the search bar will
+  find games with no assigned phase.
+  ---------------------------------------------------------*/
   noPhaseQuery(queryText, game) {
     queryText = queryText.trim();
     return queryText.search(/^(no\W*phase)/i) == 0 && game.phases.length == 0;
   }
 
+  /*---------------------------------------------------------
+  Change how the list of teams is sorted.
+  ---------------------------------------------------------*/
   sortTeamsBy(orderBy) {
     this.setState({
       teamOrder: orderBy
@@ -1024,6 +1210,7 @@ class MainInterface extends React.Component{
     var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.defaultPhase : this.state.viewingPhase;
     var divsInPhase = this.state.divisions[phaseToGroupBy];
 
+    // Get Materialize features to show up correctly
     $(document).ready(function() { $('.tooltipped').tooltip(); });//initialize tooltips
     $('select').formSelect(); //initialize all dropdowns
     $('.fixed-action-btn').floatingActionButton(); //initialize floating buttons
@@ -1035,6 +1222,7 @@ class MainInterface extends React.Component{
     if(this.state.divWindowVisible === true) { $('#assignDivisions').modal('open'); }
     if(this.state.phaseWindowVisible === true) { $('#assignPhases').modal('open'); }
 
+    //sort and filter teams
     if (activePane == 'teamsPane') {
       filteredGames = myGames; // don't filter games
       //Filter list of teams
@@ -1055,12 +1243,13 @@ class MainInterface extends React.Component{
           var div;
           if(usingPhases) { div = item.divisions[phaseToGroupBy]; }
           else { div = item.divisions.noPhase; }
-          if(div == undefined) { div = 'zzzzzzzzzzzzzzzzzzz'; }
+          if(div == undefined) { div = 'zzzzzzzzzzzzzzzzzzz'; } //teams with no division go (hopefully) at the end
           return div.toLowerCase();
-        }, 'asc'); // order array
+        }, 'asc'); // array orderby
       }
     }
 
+    //sort and filter games
     else if (activePane == 'gamesPane') {
       filteredTeams = myTeams; // don't filter teams
       //Filter list of games
@@ -1116,8 +1305,8 @@ class MainInterface extends React.Component{
       )
     }.bind(this)); //filteredGames.map
 
-    //need to make a deep copy of this object
-    //to prevent player stats from updating before I tell them to
+    // need to make a deep copy of this object
+    // to prevent player stats from updating before I tell them to
     var gameToLoadCopy = this.state.editWhichGame == null ? null : $.extend(true, {}, this.state.editWhichGame);
 
     return(
@@ -1221,6 +1410,8 @@ class MainInterface extends React.Component{
   } //render
 };//MainInterface
 
+// Since all the UI is child components of MainInterface, this takes care of everything
+// at once.
 ReactDOM.render(
   <MainInterface />,
   document.getElementById('statsInterface')

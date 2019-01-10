@@ -18,9 +18,6 @@ function teamList(teams) {
     output += (t.roster.length + 1) + '\n';
     output += t.teamName + '\n';
     output += t.roster.join('\n') + '\n';
-    // for(var j in t.roster) {
-    //   output += t.roster[j] + '\n';
-    // }
   }
   return output;
 }

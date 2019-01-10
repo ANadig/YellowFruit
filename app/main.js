@@ -2,7 +2,10 @@
   YellowFruit, a quiz bowl statkeeping application
 
   Andrew Nadig
-  2018
+  2019
+
+  Main.js
+  The Electron main process.
 
 ************************************************************************/
 var electron = require('electron');
@@ -13,17 +16,24 @@ var app = electron.app;
 var ipc = electron.ipcMain;
 var Path = require('path');
 var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate;
-var reportWindow;
+var reportWindow; //to show the html report
 var currentFile = '';
 var unsavedData = false;
 
+/*---------------------------------------------------------
+This if statement is part of the app packaging code. I
+didn't write it.
+---------------------------------------------------------*/
 // this should be placed at top of main.js to handle setup events quickly
 if (handleSquirrelEvent(app)) {
     // squirrel event handled and app will exit in 1000ms, so don't do anything else
     return;
 }
 
-// load a new report window, or, if one is already open, reload and focus it
+/*---------------------------------------------------------
+Load a new report window, or, if one is already open,
+reload and focus it.
+---------------------------------------------------------*/
 function showReportWindow() {
   if(reportWindow != undefined && !reportWindow.isDestroyed()) {
     reportWindow.focus();
@@ -45,6 +55,10 @@ function showReportWindow() {
   }
 } //showReportWindow
 
+/*---------------------------------------------------------
+A small modal that loads a page about how to use the
+search bar.
+---------------------------------------------------------*/
 function showSearchTips(focusedWindow) {
   var searchWindow = new BrowserWindow({
     width: 550,
@@ -60,6 +74,11 @@ function showSearchTips(focusedWindow) {
   searchWindow.once('ready-to-show', ()=>{ searchWindow.show(); });
 }
 
+/*---------------------------------------------------------
+Save the html stat reports to their respective files. The
+user can select any page of the existing report in order
+to replace all seven pages with new versions.
+---------------------------------------------------------*/
 function exportHtmlReport(focusedWindow) {
   dialog.showSaveDialog(focusedWindow,
     {filters: [{name: 'HTML Webpages', extensions: ['html']}]},
@@ -72,10 +91,18 @@ function exportHtmlReport(focusedWindow) {
   );
 }
 
+/*---------------------------------------------------------
+Attempt to export the data in SQBS format. The user may
+then get a warning about losing some of their data.
+---------------------------------------------------------*/
 function trySqbsExport(focusedWindow) {
   focusedWindow.webContents.send('trySqbsExport');
 }
 
+/*---------------------------------------------------------
+Prompt the user to select a file name for the SQBS file
+export.
+---------------------------------------------------------*/
 function sqbsSaveDialog(focusedWindow) {
   dialog.showSaveDialog(focusedWindow,
     {filters: [{name: 'SQBS tournament', extensions: ['sqbs']}]},
@@ -86,7 +113,10 @@ function sqbsSaveDialog(focusedWindow) {
   );
 }
 
-//open file dialog to save as a new file
+/*---------------------------------------------------------
+Prompt the user to select a filename for the data
+(YellowFruit, not SQBS format)
+---------------------------------------------------------*/
 function saveTournamentAs(focusedWindow) {
   dialog.showSaveDialog(focusedWindow,
     {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
@@ -99,7 +129,10 @@ function saveTournamentAs(focusedWindow) {
   );
 }
 
-//called from the Save option. If it's a new tournament, redirect to Save As
+/*---------------------------------------------------------
+Save the tournament. If we don't have a file to save to,
+redirect to Save As.
+---------------------------------------------------------*/
 function saveExistingTournament(focusedWindow) {
   if(currentFile != '') {
     focusedWindow.webContents.send('saveExistingTournament', currentFile);
@@ -109,7 +142,9 @@ function saveExistingTournament(focusedWindow) {
   }
 }
 
-//load a tournament from file
+/*---------------------------------------------------------
+Load a tournament from a file.
+---------------------------------------------------------*/
 function openTournament(focusedWindow) {
   var willContinue = true, needToSave = false;
   if(unsavedData) {
@@ -132,11 +167,11 @@ function openTournament(focusedWindow) {
   }
 }
 
-//close the current tournament and start a new one.
-//prompt to save if there's unsaved data for a previously saved Tournament
-//if there's data for a tournament that has never been saved, there's no option
-//to save (because I can't figure out how to wait to clear out the data until
-//after the user has finished Save As)
+/*---------------------------------------------------------
+Close the current tournament and start a new one. Prompt to
+save the tournament if there's unsaved data. If it would be
+a Save As situation, force to user to go back.
+---------------------------------------------------------*/
 function newTournament(focusedWindow) {
   var willContinue = true, needToSave = false;
   if(unsavedData) {
@@ -153,7 +188,10 @@ function newTournament(focusedWindow) {
   }
 }
 
-//generic dialog modal for unsaved data
+/*---------------------------------------------------------
+Generic dialog modal for warning the user there is
+unsaved data.
+---------------------------------------------------------*/
 function unsavedDataDialog(focusedWindow, caption) {
   var choice, willContinue, needToSave;
   if(currentFile != '') {
@@ -189,18 +227,27 @@ function unsavedDataDialog(focusedWindow, caption) {
   return [willContinue, needToSave];
 }
 
+/*---------------------------------------------------------
+Once there are no windows open, close the app entirely.
+---------------------------------------------------------*/
 app.on('window-all-closed', function() {
   app.quit();
 });
 
-//prevent attackers from opening new windows
+/*---------------------------------------------------------
+Prevent malicious actors from opening aribitrary web pages
+from within the app, although that shouldn't be possible
+in the first place.
+---------------------------------------------------------*/
 app.on('web-contents-created', (event, contents) => {
   contents.on('new-window', (event, navigationUrl) => {
     event.preventDefault();
   });
 });
 
-//initialize window and menubars and set up ipc listeners
+/*---------------------------------------------------------
+Initialize window and menubars, and set up ipc listeners
+---------------------------------------------------------*/
 app.on('ready', function() {
   var appWindow;
   appWindow = new BrowserWindow({
@@ -217,7 +264,9 @@ app.on('ready', function() {
     appWindow.show();
   }); //ready-to-show
 
-  //window starts to close
+  /*---------------------------------------------------------
+  Warn user if exiting with unsaved data.
+  ---------------------------------------------------------*/
   appWindow.on('close', function(e) {
     var willClose = true;
     if(unsavedData) {
@@ -244,11 +293,18 @@ app.on('ready', function() {
     }
   });//appwindow.on close
 
+  /*---------------------------------------------------------
+  Set the window title to the name of the file.
+  ---------------------------------------------------------*/
   ipc.on('setWindowTitle', (event, arg) => {
     event.returnValue = '';
     appWindow.setTitle('YellowFruit - ' + arg);
   });
 
+  /*---------------------------------------------------------
+  Add an asterisk to the window title when there's unsaved
+  data.
+  ---------------------------------------------------------*/
   ipc.on('unsavedData', (event, arg) => {
     event.returnValue = '';
     if(!appWindow.getTitle().endsWith('*')) {
@@ -257,12 +313,18 @@ app.on('ready', function() {
     unsavedData = true;
   });
 
-  //if render process doesn't have a file to save to, redirect to save-as
+  /*---------------------------------------------------------
+  Called after data is saved to a file.
+  ---------------------------------------------------------*/
   ipc.on('successfulSave', (event, arg) => {
     event.returnValue = '';
     unsavedData = false;
   });
 
+  /*---------------------------------------------------------
+  When the user tries to delete a game, prompt them to
+  confirm that they want to do this.
+  ---------------------------------------------------------*/
   ipc.on('tryDelete', (event, message) => {
     event.returnValue = '';
     var choice = dialog.showMessageBox(
@@ -280,11 +342,18 @@ app.on('ready', function() {
     else if(choice == 1) { event.sender.send('cancelDelete'); }
   });//on tryDelete
 
+  /*---------------------------------------------------------
+  Export data in SQBS format
+  ---------------------------------------------------------*/
   ipc.on('exportSqbsFile', (event) => {
     event.returnValue = '';
     sqbsSaveDialog(appWindow);
   });
 
+  /*---------------------------------------------------------
+  If the user has games that can't be converted correctly
+  to SQBS format, alert them to that fact.
+  ---------------------------------------------------------*/
   ipc.on('confirmLossySQBS', (event, badGameAry) => {
     event.returnValue = '';
     var choice = dialog.showMessageBox(
@@ -303,6 +372,9 @@ app.on('ready', function() {
     if(choice == 0) { sqbsSaveDialog(appWindow); }
   });//on confirmLossySQBS
 
+  /*---------------------------------------------------------
+  Set up the menu bar.
+  ---------------------------------------------------------*/
   mainMenuTemplate = [
     {
       label: '&YellowFruit',
@@ -381,13 +453,6 @@ app.on('ready', function() {
     },{
         label: '&View',
         submenu: [
-          // {
-          //   label: 'View All',
-          //   accelerator: 'CmdOrCtrl+L',
-          //   click (item, focusedWindow) {
-          //     if(focusedWindow) focusedWindow.webContents.send('clearSearch');
-          //   }
-          // },
           {
             label: 'Search',
             accelerator: 'CmdOrCtrl+F',
@@ -467,6 +532,11 @@ app.on('ready', function() {
   appWindow.setMenu(mainMenu);
 
 }); //app is ready
+
+
+///////////////////////////////////////////////////////////////////////////
+// All code below this point was not written by me
+///////////////////////////////////////////////////////////////////////////
 
 
 //things that happen during (windows) install
