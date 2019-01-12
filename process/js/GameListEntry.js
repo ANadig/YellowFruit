@@ -1,3 +1,9 @@
+/***********************************************************
+GameListEntry.js
+Andrew Nadig
+
+React component representing one game on the games pane.
+***********************************************************/
 var React = require('react');
 var ColorChip = require('./ColorChip');
 
@@ -14,12 +20,16 @@ class GameListEntry extends React.Component{
     this.removePhase = this.removePhase.bind(this);
   }
 
-  //tell the mainInterface to delete me
+  /*---------------------------------------------------------
+  Tell the MainInterface to delete this game
+  ---------------------------------------------------------*/
   handleDelete() {
     this.props.onDelete(this.props.whichItem);
   }
 
-  //when the checkbox is checked or unchecked
+  /*---------------------------------------------------------
+  If the checkbox is checked, uncheck it, and vice versa
+  ---------------------------------------------------------*/
   handleToggle() {
     this.props.onSelectGame(this.props.whichItem);
     this.setState({
@@ -27,16 +37,25 @@ class GameListEntry extends React.Component{
     });
   }
 
-  //tell the mainInterface to open my game for editing
+  /*---------------------------------------------------------
+  Tell the MainInterface to open this game for editing.
+  ---------------------------------------------------------*/
   editGame() {
     this.props.onOpenGame(this.props.whichItem);
   }
 
+  /*---------------------------------------------------------
+  Remove the specified phase from this game.
+  ---------------------------------------------------------*/
   removePhase(phase) {
     this.props.removePhase(this.props.whichItem, phase);
   }
 
-  //returns e.g. ['Round 1: ', 'Central A 310', 'Memorial A 250', ' (OT)']
+  /*---------------------------------------------------------
+  Return an array containing round, teams, scores, and
+  overtime status, e.g.
+  ['Central A 310', ', ', 'Memorial A 250', ' (OT)']
+  ---------------------------------------------------------*/
   getScoreStrings(){
     var strAry = ['Round ' + this.props.singleItem.round + ': '];
     if(this.props.singleItem.forfeit) {
@@ -59,19 +78,26 @@ class GameListEntry extends React.Component{
     return strAry;
   }
 
-  //add formatting to team1 if they won
+  /*---------------------------------------------------------
+  Add formatting to team1 if they won.
+  ---------------------------------------------------------*/
   team1Format() {
     if(this.props.singleItem.forfeit) return 'winner';
     return +this.props.singleItem.score1 > +this.props.singleItem.score2 ? 'winner' : '';
   }
 
-  //add formatting to team2 if they won
+  /*---------------------------------------------------------
+  Add formatting to team2 if they won.
+  ---------------------------------------------------------*/
   team2Format() {
     if(this.props.singleItem.forfeit) return '';
     return +this.props.singleItem.score2 > +this.props.singleItem.score1 ? 'winner' : '';
   }
 
-  //returns e.g. "Central A: Alice 2/4/1, Bob 0/1/0, Carol 1/0/2"
+  /*---------------------------------------------------------
+  Return statlines for the players who played in this game.
+  e.g. "Central A: Alice 2/4/1, Bob 0/1/0, Carol 1/0/2"
+  ---------------------------------------------------------*/
   getTeamLineScore(whichTeam) {
     var teamName = whichTeam == 1 ? this.props.singleItem.team1 : this.props.singleItem.team2;
     var players = whichTeam == 1 ? this.props.singleItem.players1 : this.props.singleItem.players2;
@@ -91,7 +117,9 @@ class GameListEntry extends React.Component{
     return lineScore.substr(0, lineScore.length - 1); //remove the comma at the end
   }
 
-  // a tag that displays what phase a game belongs to
+  /*---------------------------------------------------------
+  A tag that displays what phase a game belongs to.
+  ---------------------------------------------------------*/
   getPhaseChip(phase, colorNo) {
     return (
       <ColorChip key={phase}
@@ -109,6 +137,7 @@ class GameListEntry extends React.Component{
     var scoreStrings = this.getScoreStrings();
     var phaseChips = [];
     var colorNo = 0;
+    // phase chips
     for (var i in this.props.allPhases) {
       var phase = this.props.allPhases[i];
       if(this.props.singleItem.phases.includes(phase)) {
@@ -116,6 +145,7 @@ class GameListEntry extends React.Component{
       }
       colorNo += 1;
     }
+    //checkbox to select this game
     var checkbox = null;
     if(this.props.usingPhases) {
       checkbox = (

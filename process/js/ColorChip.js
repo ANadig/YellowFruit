@@ -1,3 +1,11 @@
+/***********************************************************
+ColorChip.js
+Andrew Nadig
+
+React component representing a chip color-coded to a
+particular phase. Used for both phases (games) and
+divisions (teams).
+***********************************************************/
 var React = require('react');
 const chipColors = ['yellow', 'light-green', 'orange', 'light-blue',
   'red', 'purple', 'teal', 'deep-purple'];
@@ -9,13 +17,18 @@ class ColorChip extends React.Component{
     this.removeMe = this.removeMe.bind(this);
   }
 
+  /*---------------------------------------------------------
+  Tell the MainInterface (via the GameListEntry or
+  TeamListEntry) to delete the phase or division from the
+  game or team.
+  ---------------------------------------------------------*/
   removeMe() {
     this.props.removeMe(this.props.phase);
   }
 
   render() {
-    //need to wrap it in another div so that materialize's code deleting the chip
-    //doesn't delete the entire React element; app will crash otherwise
+    // Need to wrap it in another div so that Materialize's code deleting the chip
+    // doesn't delete the entire React element; app will crash otherwise
     return (
       <div className="chip-wrapper">
         <div className={'chip accent-1 ' + chipColors[this.props.colorNo % chipColors.length]}>

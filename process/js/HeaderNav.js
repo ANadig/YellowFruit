@@ -1,3 +1,9 @@
+/***********************************************************
+HeaderNav.js
+Andrew Nadig
+
+React component representing the navigation bar at the top.
+***********************************************************/
 var React = require('react');
 
 class HeaderNav extends React.Component{
@@ -11,34 +17,63 @@ class HeaderNav extends React.Component{
     this.openPhaseModal = this.openPhaseModal.bind(this);
   }
 
+  /*---------------------------------------------------------
+  Tell the MainInterface to filter teams or games by what's
+  in the search bar.
+  ---------------------------------------------------------*/
   handleSearch(e) {
     this.props.onSearch(e.target.value);
   }
 
+  /*---------------------------------------------------------
+  Set pane (settings/teams/games) to what the user has
+  clicked on.
+  ---------------------------------------------------------*/
   setPane(e) {
     this.props.setPane(e.target.id);
   }
 
+  /*---------------------------------------------------------
+  Tell the MainInterface to set the active phase. (Affects
+  what divisions are visible)
+  ---------------------------------------------------------*/
   setPhase(e) {
     this.props.setPhase(e.target.id);
   }
 
+  /*---------------------------------------------------------
+  Whether the specified pane is currently visible.
+  ---------------------------------------------------------*/
   isActive(pane) {
     return this.props.whichPaneActive == pane ? 'active' : '';
   }
 
+  /*---------------------------------------------------------
+  Whether the specified phase is currently active.
+  ---------------------------------------------------------*/
   isViewingPhase(phase) {
     return this.props.viewingPhase == phase ? 'active' : '';
   }
 
+  /*---------------------------------------------------------
+  Tell the MainInterface to open the division assignment
+  modal.
+  ---------------------------------------------------------*/
   openDivModal() {
     this.props.openDivModal();
   }
 
+  /*---------------------------------------------------------
+  Tell the MainInterface to open the phase assignment modal.
+  ---------------------------------------------------------*/
   openPhaseModal() {
     this.props.openPhaseModal();
   }
 
+  /*---------------------------------------------------------
+  A button to open the division or phase assignment modal,
+  or no button, depending on which pane is visible.
+  ---------------------------------------------------------*/
   getAssignmentButton() {
     if(this.props.whichPaneActive == 'teamsPane' && this.props.usingDivisions) {
       var tooltip = 'Assign divisions to selected teams';
@@ -59,7 +94,10 @@ class HeaderNav extends React.Component{
     return null;
   }//getAssignmentButton
 
-  //tabs under the navbar for picking which phase you're viewing
+  /*---------------------------------------------------------
+  Tabs on the bottom of the navbar for pickig which phase
+  is active.
+  ---------------------------------------------------------*/
   phaseTabs() {
     var allPhasesTab = (
       <li key={'all'} className={'tab ' + this.isViewingPhase('all')}>

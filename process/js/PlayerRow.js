@@ -1,12 +1,20 @@
+/***********************************************************
+PlayerRow.js
+Andrew Nadig
+
+React component representing the fields for entering a
+single player's stats in the game entry form.
+***********************************************************/
 var React = require('react');
-
-
 
 class PlayerRow extends React.Component{
 
-  //copying props into state on initialize so that fields can populate upon
-  //opening a game for editing. PlayersRows are created with a key that's unique
-  //to the team, so new rows are created anytime the team changes.
+  /*---------------------------------------------------------
+  Copy props into state on initialize so that the fields can
+  populate upon opening a game for editing. PlayerRows are
+  created with a key that's unique to the team, so new rows
+  are created anytime the team changes.
+  ---------------------------------------------------------*/
   constructor(props) {
     super(props);
     var init = props.initialData;
@@ -31,8 +39,13 @@ class PlayerRow extends React.Component{
     this.getTotalPts = this.getTotalPts.bind(this);
   }
 
-  //update state, with changes to the form, then tell the AddGameModal to do
-  //likewise
+  /*---------------------------------------------------------
+  Called when the value in the form changes.
+  This is a controlled component, so the state is the
+  single source of truth.
+  Also tell AddGameModal to update its state, since it must
+  keep track of stats for the whole game.
+  ---------------------------------------------------------*/
   handleChange(e){
     const target = e.target;
     const value = target.value;
@@ -43,7 +56,10 @@ class PlayerRow extends React.Component{
     this.props.updatePlayer(this.props.whichTeam, name, value, this.props.playerName);
   }
 
-  //the total number of points score by the player in this game
+  /*---------------------------------------------------------
+  The total number of points scored by this player in this
+  game.
+  ---------------------------------------------------------*/
   getTotalPts(){
     var powersTot = 0;
     if(this.props.settings.powers == '15pts') { powersTot = 15*this.state.powers; }
@@ -53,6 +69,7 @@ class PlayerRow extends React.Component{
 
   render(){
     var powerCell = null, negCell = null;
+    //powers
     if(this.props.settings.powers != 'none') {
       powerCell = (
         <td>
@@ -61,6 +78,7 @@ class PlayerRow extends React.Component{
         </td>
       );
     }
+    //negs
     if(this.props.settings.negs == 'yes') {
       negCell = (
         <td>
@@ -70,6 +88,7 @@ class PlayerRow extends React.Component{
       );
     }
 
+    // tossups heard and 10s always exist
     return(
       <tr>
         <td className="player-name">{this.props.playerName}</td>

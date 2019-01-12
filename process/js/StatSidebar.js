@@ -1,49 +1,73 @@
+/***********************************************************
+StatSidebar.js
+Andrew Nadig
+
+React component representing the abbreviated version of the
+stats report that appears on the side.
+***********************************************************/
 var React = require('react');
 var _ = require('lodash');
 
-// summary data structure:
-// { teamName: item.teamName,
-//   wins: 0,
-//   losses: 0,
-//   ties: 0,
-//   points: 0,
-//   bHeard: 0,
-//   bPts: 0,
-//   forfeits: 0
-// }
+/* summary data structure:
+ { teamName: item.teamName,
+   wins: 0,
+   losses: 0,
+   ties: 0,
+   points: 0,
+   bHeard: 0,
+   bPts: 0,
+   forfeits: 0
+ } */
 
 class StatSidebar extends React.Component{
 
-  //sort by winning percentage, then by ppg
+  /*---------------------------------------------------------
+  Sort by winning percentage, then by ppg
+  ---------------------------------------------------------*/
   standingsSort(summary) {
     return _.orderBy(summary,
       [this.getWinPct.bind(this), this.getPpg.bind(this)], ['desc', 'desc']);
   }
 
+  /*---------------------------------------------------------
+  Games played, not counting forfeits.
+  ---------------------------------------------------------*/
   getGamesPlayed(t) {
     return t.wins + t.losses + t.ties - t.forfeits;
   }
 
+  /*---------------------------------------------------------
+  Games, played, including forfeits.
+  ---------------------------------------------------------*/
   getGamesPlayedWithForfeits(t) {
     return t.wins + t.losses + t.ties;
   }
 
+  /*---------------------------------------------------------
+  Win percentage, including forfeits.
+  ---------------------------------------------------------*/
   getWinPct(t) {
     if(this.getGamesPlayedWithForfeits(t) == 0) return 0;
     return (t.wins + t.ties/2) / this.getGamesPlayedWithForfeits(t);
   }
 
-  //points per game. 0 if no games played
+  /*---------------------------------------------------------
+  Points, per game. Zero if no games played.
+  ---------------------------------------------------------*/
   getPpg(t) {
     return this.getGamesPlayed(t) == 0 ? 0 : (t.points / this.getGamesPlayed(t));
   }
 
-  //points per bonus. 0 if no bonuses heard
+  /*---------------------------------------------------------
+  Points per bonus. Zero if no bonuses heard.
+  ---------------------------------------------------------*/
   getPpb(t) {
     return t.bHeard == 0 ? 0 : (t.bPts / t.bHeard);
   }
 
-  //is there at least one tie game?
+  /*---------------------------------------------------------
+  Does this tournament have at least one tie?
+  ---------------------------------------------------------*/
   tiesExist() {
     for(var i in this.props.standings) {
       if(this.props.standings[i].ties > 0) { return true; }
@@ -51,7 +75,12 @@ class StatSidebar extends React.Component{
     return false;
   }
 
-  //standings to the teams in a single division
+  /*---------------------------------------------------------
+  Standings table (JSX) for the teams in a single division.
+  teams: the sorted summarized stats object.
+  division: can be 'noDiv' if this tournament does not have
+    divisions
+  ---------------------------------------------------------*/
   getTable(teams, division) {
     var rows = teams.map((item, index) => {
       var ppg = this.getPpg(item);
@@ -93,6 +122,7 @@ class StatSidebar extends React.Component{
       </div>
     );
   } //getTable
+
 
   render(){
     var sortedSummary = this.standingsSort(this.props.standings.slice());

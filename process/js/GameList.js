@@ -1,4 +1,12 @@
+/***********************************************************
+GameList.js
+Andrew Nadig
+
+React component representing the list of games on the games
+pane.
+***********************************************************/
 var React = require('react');
+const maxAllowedGames = 900; // PACE NSC is something like 770-780 games.
 
 class GameList extends React.Component{
 
@@ -7,11 +15,17 @@ class GameList extends React.Component{
     this.addGame = this.addGame.bind(this);
   }
 
-  //tell the mainInterface to open a New Game form
+  /*---------------------------------------------------------
+  Tell the MainInterface to open the game entry modal.
+  ---------------------------------------------------------*/
   addGame () {
     this.props.openModal();
   }
 
+  /*---------------------------------------------------------
+  A chip that displays the count of how many games are
+  selected (with checkboxes)
+  ---------------------------------------------------------*/
   selectedCounter() {
     var sel = this.props.numberSelected;
     if(sel == 0) { return null; }
@@ -22,6 +36,9 @@ class GameList extends React.Component{
     );
   }
 
+  /*---------------------------------------------------------
+  Display how many games are being shown to the user.
+  ---------------------------------------------------------*/
   gameCountDisplay() {
     var total = this.props.totalGames;
     var showing = this.props.gameList.length;
@@ -31,10 +48,13 @@ class GameList extends React.Component{
     return ( <span>Showing {showing} of {total} games</span> );
   }
 
-  //add the disabled class if the limit on the number of games has been reached
-  //or if you don't yet have two teams to make a game with
+  /*---------------------------------------------------------
+  Disable the add game button if the limit on the number of
+  games has been reached, or if there aren't yet two teams
+  to make a game with
+  ---------------------------------------------------------*/
   addBtnDisabled() {
-    if(this.props.gameList.length > 900 || this.props.numberOfTeams < 2) {
+    if(this.props.gameList.length > maxAllowedGames || this.props.numberOfTeams < 2) {
       return 'disabled';
     }
     return '';
@@ -44,6 +64,7 @@ class GameList extends React.Component{
     if (this.props.whichPaneActive != 'gamesPane') {
       return null;
     }
+    // zero-state display for when there are no games.
     if(this.props.gameList.length == 0) {
       var message;
       if(this.props.numberOfTeams < 2) {

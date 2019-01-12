@@ -1,6 +1,14 @@
+/***********************************************************
+TeamList.js
+Andrew Nadig
+
+React component representing the list of teams on the teams
+pane.
+***********************************************************/
 var React = require('react');
 var $ = jQuery = require('jquery');
 var Path = require('path');
+const maxAllowedTeams = 200;
 
 class TeamList extends React.Component{
 
@@ -14,11 +22,17 @@ class TeamList extends React.Component{
     this.alphaSort = this.alphaSort.bind(this);
   }
 
-  //tell the mainInterface to open a new team form
+  /*---------------------------------------------------------
+  Tell the MainInterface to open the team modal to add a
+  new team.
+  ---------------------------------------------------------*/
   addTeam () {
     this.props.openModal();
   }
 
+  /*---------------------------------------------------------
+  Tell the MainInterface to group teams by division.
+  ---------------------------------------------------------*/
   groupByDivision() {
     this.props.sortTeamsBy('division');
     this.setState({
@@ -26,6 +40,9 @@ class TeamList extends React.Component{
     });
   }
 
+  /*---------------------------------------------------------
+  Tell the MainInterface to sort teams alphabetically
+  ---------------------------------------------------------*/
   alphaSort() {
     this.props.sortTeamsBy('alpha');
     this.setState({
@@ -33,6 +50,10 @@ class TeamList extends React.Component{
     });
   }
 
+  /*---------------------------------------------------------
+  A chip that displays the count of how many teams are
+  selected (with checkboxes)
+  ---------------------------------------------------------*/
   selectedCounter() {
     var sel = this.props.numberSelected;
     if(sel == 0) { return null; }
@@ -43,6 +64,10 @@ class TeamList extends React.Component{
     );
   }
 
+  /*---------------------------------------------------------
+  Which color to use for a sort button, based on whether
+  it's toggled on or off.
+  ---------------------------------------------------------*/
   btnToggled(orderBy) {
     if(this.state.orderBy == orderBy) {
       return 'blue accent-1';
@@ -50,14 +75,20 @@ class TeamList extends React.Component{
     return 'grey lighten-4';
   }
 
-  //add the disabled class if the limit on the number of teams has been reached
+  /*---------------------------------------------------------
+  Add the disabled attribute to the Add Team button if the
+  limit on the number of teams has been reached.
+  ---------------------------------------------------------*/
   addBtnDisabled() {
-    if(this.props.teamList.length > 200) {
+    if(this.props.teamList.length > maxAllowedTeams) {
       return 'disabled';
     }
     return '';
   }
 
+  /*---------------------------------------------------------
+  Display how many teams are being shown to the user.
+  ---------------------------------------------------------*/
   teamCountDisplay() {
     var total = this.props.totalTeams;
     var showing = this.props.teamList.length;
@@ -69,7 +100,6 @@ class TeamList extends React.Component{
 
 
 
-
   render () {
     if (this.props.whichPaneActive != 'teamsPane') {
       return null;
@@ -77,6 +107,8 @@ class TeamList extends React.Component{
 
     var listHeader;
     var selectedCounter = null;
+    // Show sort buttons if there are divisions (if no divisions, sorting is
+    // always alphabetical)
     if(this.props.usingDivisions) {
       listHeader = (
         <div className="list-header">
@@ -93,11 +125,11 @@ class TeamList extends React.Component{
       );
       selectedCounter = this.selectedCounter();
     }
-
     else {
       listHeader = ( <div className="list-header">{this.teamCountDisplay()}</div> );
     }
 
+    // Zero-state display for when there are no teams
     if(this.props.teamList.length == 0) {
       var message;
       if(this.props.totalTeams == 0) {

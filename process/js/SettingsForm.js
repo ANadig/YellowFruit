@@ -1,3 +1,11 @@
+/***********************************************************
+SettingsForm.js
+Andrew Nadig
+
+React component comprising the Settings pane of the UI,
+including the tournament settings, phases, and divisions
+cards.
+***********************************************************/
 var React = require('react');
 var _ = require('lodash');
 var $ = require('jquery');
@@ -18,9 +26,9 @@ class SettingsForm extends React.Component{
     var allPhases = Object.keys(props.divisions);
     var firstPhase = allPhases.length == 0 || divList.length == 0 ? 'noPhase' : allPhases[0];
     this.state = {
-      powers: props.settings.powers,
-      negs: props.settings.negs,
-      bonuses: props.settings.bonuses,
+      powers: props.settings.powers, // '20pts', '15pts', or 'none'
+      negs: props.settings.negs, // whether there are negs
+      bonuses: props.settings.bonuses, // 'yesBb', 'noBb', or 'none'
       playersPerTeam: props.settings.playersPerTeam,
       phases: _.without(allPhases, 'noPhase'),
       divisions: divList,
@@ -45,8 +53,11 @@ class SettingsForm extends React.Component{
     this.cancelDivisions = this.cancelDivisions.bind(this);
   }
 
-  //called any time a value in the form changes
-  //this is a controlled component, so the state is the single source of truth
+  /*---------------------------------------------------------
+  Called any time a value in the settings section changes.
+  This is a controlled component, so the state is the single
+  source of truth.
+  ---------------------------------------------------------*/
   handleChange(e) {
     const target = e.target;
     const value = target.value;
@@ -56,6 +67,12 @@ class SettingsForm extends React.Component{
     this.setState(partialState);
   } //handleChange
 
+  /*---------------------------------------------------------
+  Called when the list of phases is changed. Immediately
+  updates the list of phases; conflicts with division, team,
+  and game data are not handled until the phase card is
+  saved (via phaseToggle)
+  ---------------------------------------------------------*/
   handlePhaseChange(e) {
     const target = e.target;
     const value = target.value;
@@ -70,7 +87,12 @@ class SettingsForm extends React.Component{
     });
   }
 
-  //special handling for the division fields
+  /*---------------------------------------------------------
+  Called when the list of divisions is changed. Immediately
+  updates the list of divisions and phase assignments;
+  conflicts with team and game data are not handled until
+  the division card is saved (via divisionToggle)
+  ---------------------------------------------------------*/
   handleDivisionChange(e) {
     const target = e.target;
     const value = target.value;
@@ -91,7 +113,12 @@ class SettingsForm extends React.Component{
     });
   }
 
-  //special handling for the phase-division mapping fields
+  /*---------------------------------------------------------
+  Called when the list of phase assignments is changed.
+  Immediately updates the list of phases assignments;
+  conflicts with team and game data are not handled until
+  the division card is saved (via divisionToggle)
+  ---------------------------------------------------------*/
   handlePhaseAssnChange(e) {
     const target = e.target;
     const value = target.value;
@@ -104,7 +131,9 @@ class SettingsForm extends React.Component{
     });
   }
 
-  //settings card - open for editing or close and save
+  /*---------------------------------------------------------
+  Settings card - open for editing or close and save.
+  ---------------------------------------------------------*/
   settingsToggle() {
     if(!this.state.editingSettings) {
       if(this.props.haveGamesBeenEntered) { return; }
@@ -134,7 +163,9 @@ class SettingsForm extends React.Component{
     }
   } //settingsToggle
 
-  //phases card - open for editing or close and save
+  /*---------------------------------------------------------
+  Phases card - open for editing or close and save.
+  ---------------------------------------------------------*/
   phaseToggle() {
     if(!this.state.editingPhases) {
       this.setState({
@@ -169,7 +200,9 @@ class SettingsForm extends React.Component{
     }
   } //phaseToggle
 
-  //divisions card - open for editing or close and save
+  /*---------------------------------------------------------
+  Divisions card - open for editing or close and save.
+  ---------------------------------------------------------*/
   divisionToggle() {
     if(!this.state.editingDivisions) {
       this.setState({
@@ -208,7 +241,9 @@ class SettingsForm extends React.Component{
     }
   } //divisionToggle
 
-  //discard changes made to settings
+  /*---------------------------------------------------------
+  Discard changes made to settings card.
+  ---------------------------------------------------------*/
   cancelSettings() {
     if(this.state.editingSettings) {
       this.setState({
@@ -221,7 +256,9 @@ class SettingsForm extends React.Component{
     }
   }
 
-  //discard changes made to phases
+  /*---------------------------------------------------------
+  Discard changes made to phases card.
+  ---------------------------------------------------------*/
   cancelPhases() {
     if(this.state.editingPhases) {
       var allPhases = Object.keys(this.props.divisions);
@@ -232,7 +269,9 @@ class SettingsForm extends React.Component{
     }
   }
 
-  //discard changes made to divisions
+  /*---------------------------------------------------------
+  Discard changes made to divisions card.
+  ---------------------------------------------------------*/
   cancelDivisions() {
     if(this.state.editingDivisions) {
       //copied from constructor
@@ -252,6 +291,9 @@ class SettingsForm extends React.Component{
     }
   }
 
+  /*---------------------------------------------------------
+  Settings card edit/save button
+  ---------------------------------------------------------*/
   getSettingsButtonCaption() {
     if(this.state.editingSettings) {
       return ( <span>S<span className="hotkey-underline">a</span>ve</span> );
@@ -259,6 +301,9 @@ class SettingsForm extends React.Component{
     return 'Edit';
   }
 
+  /*---------------------------------------------------------
+  Phase card edit/save button
+  ---------------------------------------------------------*/
   getPhaseButtonCaption() {
     if(this.state.editingPhases) {
       return ( <span>S<span className="hotkey-underline">a</span>ve</span> );
@@ -266,6 +311,9 @@ class SettingsForm extends React.Component{
     return 'Edit';
   }
 
+  /*---------------------------------------------------------
+  Division card edit/save button
+  ---------------------------------------------------------*/
   getDivisionButtonCaption() {
     if(this.state.editingDivisions) {
       return ( <span>S<span className="hotkey-underline">a</span>ve</span> );
@@ -273,7 +321,9 @@ class SettingsForm extends React.Component{
     return 'Edit';
   }
 
-  //are there two players with the same name?
+  /*---------------------------------------------------------
+  Are there two phases with the same name?
+  ---------------------------------------------------------*/
   phasesHasDups() {
     var phases = this.state.phases.map(function(item, idx) {
       return item.toLowerCase().trim();
@@ -286,11 +336,16 @@ class SettingsForm extends React.Component{
     return false;
   }
 
-  //add the disabled class to the save button if necessary
+  /*---------------------------------------------------------
+  Add the disabed class the save button
+  ---------------------------------------------------------*/
   phaseSaveDisabled() {
     return this.state.editingPhases && this.phasesHasDups() ? 'disabled' : '';
   }
 
+  /*---------------------------------------------------------
+  JSX element to display duplicate phase error.
+  ---------------------------------------------------------*/
   phaseSaveError() {
     if(this.state.editingPhases && this.phasesHasDups()) {
       return (
@@ -303,7 +358,10 @@ class SettingsForm extends React.Component{
     return null;
   }
 
-  //are there two divisions in the same phase with the same name?
+  /*---------------------------------------------------------
+  Are there two divisions in the same phase with the same
+  name?
+  ---------------------------------------------------------*/
   divsHasDups() {
     for(var i in this.state.divisions) {
       for(var j=(+i)+1; j<this.state.divisions.length; j++) {
@@ -316,11 +374,16 @@ class SettingsForm extends React.Component{
     return false;
   }
 
-  //add the disabled class to the save button if necessary
+  /*---------------------------------------------------------
+  Add the disabled class to the division save button.
+  ---------------------------------------------------------*/
   divisionSaveDisabled() {
     return this.state.editingDivisions && this.divsHasDups() ? 'disabled' : '';
   }
 
+  /*---------------------------------------------------------
+  JSX element to display duplicate divisions error
+  ---------------------------------------------------------*/
   divisionSaveError() {
     if(this.state.editingDivisions && this.divsHasDups()) {
       return (
@@ -333,12 +396,18 @@ class SettingsForm extends React.Component{
     return null;
   }
 
-  //are there errors anywhere? (If so, you will be forced to fix them)
+  /*---------------------------------------------------------
+  Are there errors anywhere in the settings pane?
+  ---------------------------------------------------------*/
   togglesDisabled() {
     return (this.state.editingPhases && this.phasesHasDups()) ||
       (this.state.editingDivisions && this.divsHasDups());
   }
 
+  /*---------------------------------------------------------
+  Disable settings card edit button, because you can't
+  change the tournament format after you've entered games.
+  ---------------------------------------------------------*/
   settingsBtnAddlClasses() {
     if(this.props.haveGamesBeenEntered) {
       return ' tooltipped settings-edit-disabled';
@@ -346,6 +415,9 @@ class SettingsForm extends React.Component{
     return '';
   }
 
+  /*---------------------------------------------------------
+  Tooltip for when settings editing is disabled.
+  ---------------------------------------------------------*/
   settingsBtnTooltip() {
     if(this.props.haveGamesBeenEntered) {
       return 'Settings cannot be modified once games have been entered';
@@ -353,7 +425,9 @@ class SettingsForm extends React.Component{
     return '';
   }
 
-
+  /*---------------------------------------------------------
+  JSX element for settings card cancel button
+  ---------------------------------------------------------*/
   settingsCancelButton() {
     if(this.state.editingSettings) {
       return (
@@ -364,6 +438,9 @@ class SettingsForm extends React.Component{
     return null;
   }
 
+  /*---------------------------------------------------------
+  JSX element for phase card cancel button
+  ---------------------------------------------------------*/
   phasesCancelButton() {
     if(this.state.editingPhases) {
       return (
@@ -374,6 +451,9 @@ class SettingsForm extends React.Component{
     return null;
   }
 
+  /*---------------------------------------------------------
+  JSX element for divisions card cancel button
+  ---------------------------------------------------------*/
   divisionsCancelButton() {
     if(this.state.editingDivisions) {
       return (
@@ -384,8 +464,11 @@ class SettingsForm extends React.Component{
     return null;
   }
 
-  //set the default phase as the one that was just clicked on, unless, it's
-  //already the default, in which case remove the default
+  /*---------------------------------------------------------
+  Set the default phase for grouping teams to the one that
+  was just clicked on, unless it's already the default, in
+  which case remove the default.
+  ---------------------------------------------------------*/
   setDefaultGrouping(e) {
     const target = e.target;
     const name = target.name;
@@ -396,27 +479,36 @@ class SettingsForm extends React.Component{
     this.props.setDefaultGrouping(newDefault);
   }
 
-  //For display when the settings section is read-only
+  /*---------------------------------------------------------
+  For display when the settings card is read-only.
+  ---------------------------------------------------------*/
   powerString() {
     if(this.props.settings.powers == 'none') { return 'No powers'; }
     var powerValue = this.props.settings.powers == '15pts' ? 15 : 20;
     return 'Powers: ' + powerValue + ' points';
   }
 
-  //for display when the settings section is read-only
+  /*---------------------------------------------------------
+  For display when the settings card is read-only.
+  ---------------------------------------------------------*/
   negString() {
     if(this.props.settings.negs == 'yes') { return 'Interrupt penalties: -5 points'; }
     return 'No interrupt penalties';
   }
 
-  //for display when the settings section is read-only
+  /*---------------------------------------------------------
+  For display when the settings card is read-only.
+  ---------------------------------------------------------*/
   bonusString() {
     if(this.props.settings.bonuses == 'none') { return 'No bonuses'; }
     if(this.props.settings.bonuses == 'yesBb') { return 'Bonuses with bouncebacks'; }
     return 'Bonuses without bouncebacks';
   }
 
-  //the component needs two renders to get the phase dropdowns to display immediately
+  /*---------------------------------------------------------
+  The component needs two renders to get the phase dropdowns
+  to display immmediately.
+  ---------------------------------------------------------*/
   componentDidUpdate(prevProps) {
     if(this.state.needToReRender) {
       this.setState({
@@ -445,6 +537,7 @@ class SettingsForm extends React.Component{
     var phaseHotKey = phaseError == null && this.state.editingPhases ? 'a' : '';
     var divHotKey = divisionError == null && this.state.editingDivisions ? 'a' : '';
 
+    // generate read-only division list
     if(!this.state.editingDivisions) {
       var divList = this.state.divisions.map(function(divName, idx) {
         var pa = this.state.phaseAssignments[idx];
@@ -462,6 +555,7 @@ class SettingsForm extends React.Component{
       divisionCard = (<ul>{divList}</ul>);
       phasePickers = null;
     }
+    //generate editable list of divisions and phase select dropdowns
     else {
       var tempDivs = this.state.divisions.slice();
       tempDivs.push('');
@@ -506,9 +600,10 @@ class SettingsForm extends React.Component{
             <ul>{phasePickerElems}</ul>
           </div>
         );
-      }//else we need phasePickers
+      }//else we need phase pickers
     } //else editing divisions
 
+    // read-only list of phases
     if(!this.state.editingPhases) {
       var phaseList = this.state.phases.map((phaseName, idx) => {
         if(this.state.divisions.length > 0) {
@@ -525,6 +620,7 @@ class SettingsForm extends React.Component{
       });//phases.map
       phaseCard = (<ul>{phaseList}</ul>);
     }
+    // editable list of phases
     else {
       var tempPhases = this.state.phases.slice();
       tempPhases.push('');
@@ -539,10 +635,10 @@ class SettingsForm extends React.Component{
         );
       }.bind(this));
       phaseCard = ( <ul>{phaseFields}</ul> );
-
     } //else editing phases
 
     var powersDisplay, negsDisplay, bonusDisplay, playersPerTeamDisplay, settingsList;
+    // read-only list of settings
     if(!this.state.editingSettings) {
       powersDisplay = ( <li>{this.powerString()}</li> );
       negsDisplay = ( <li>{this.negString()}</li> );
@@ -550,6 +646,7 @@ class SettingsForm extends React.Component{
       playersPerTeamDisplay = (<li>Players per team: {this.state.playersPerTeam}</li>);
       settingsList = ( <ul>{powersDisplay}{negsDisplay}{bonusDisplay}{playersPerTeamDisplay}</ul> );
     }
+    // editable settings controls
     else {
       powersDisplay = (
         <div>
@@ -632,8 +729,7 @@ class SettingsForm extends React.Component{
         </span>
       );
       settingsList = ( <div>{powersDisplay}{negsDisplay}{bonusDisplay}{playersPerTeamDisplay}</div> );
-    }//else editing powers
-
+    }//else editing settings
 
     $('select').formSelect(); //initialize all dropdowns
 

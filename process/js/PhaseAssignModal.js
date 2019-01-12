@@ -1,3 +1,10 @@
+/***********************************************************
+PhaseAssignModal.js
+Andrew Nadig
+
+React component representing modal window for assigning
+phases to games.
+***********************************************************/
 var React = require('react');
 var _ = require('lodash');
 
@@ -12,11 +19,11 @@ class PhaseAssignModal extends React.Component {
     this.handleChange = this.handleChange.bind(this);
   }
 
-  handleSubmit(e) {
-    e.preventDefault();
-    this.props.handleSubmit(this.state.phaseSelections);
-  }
-
+  /*---------------------------------------------------------
+  Called any time a value in the form changes.
+  This is a controlled component, so the state is the single
+  source of truth.
+  ---------------------------------------------------------*/
   handleChange(e) {
     const target = e.target;
     const checked = target.checked;
@@ -40,7 +47,19 @@ class PhaseAssignModal extends React.Component {
     });
   } //handleChange
 
-  //a list of checkboxes, one for each phase
+  /*---------------------------------------------------------
+  Tell the MainInterface to update data when the form is
+  submitted.
+  ---------------------------------------------------------*/
+  handleSubmit(e) {
+    e.preventDefault();
+    this.props.handleSubmit(this.state.phaseSelections);
+  }
+
+  /*---------------------------------------------------------
+  A list of checkboxes, one for each phase, plus one to
+  delete phases.
+  ---------------------------------------------------------*/
   getPhaseOptions() {
     var deleteBox = (
       <p key={'delete'}>

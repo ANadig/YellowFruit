@@ -1,3 +1,10 @@
+/***********************************************************
+AddTeamModal.js
+Andrew Nadig
+
+React component comprising the Modal window containing the
+form for entering and editing teams.
+***********************************************************/
 var React = require('react');
 var $ = require('jquery');
 var _ = require('lodash');
@@ -21,6 +28,10 @@ class AddTeamModal extends React.Component{
     this.validateTeam = this.validateTeam.bind(this);
   }
 
+  /*---------------------------------------------------------
+  Lifecyle method. Need an extra render when opening or
+  closing in order for fields to populate and clear properly.
+  ---------------------------------------------------------*/
   componentDidUpdate(prevProps) {
     //needed so that labels aren't on top of data when the edit form opens
     M.updateTextFields();
@@ -36,8 +47,11 @@ class AddTeamModal extends React.Component{
     }
   }
 
-  //called any time a value in the form changes
-  //this is a controlled component, so the state is the single source of truth
+  /*---------------------------------------------------------
+  Called when the value in the team name field changes.
+  This is a controlled component, so the state is the
+  single source of truth.
+  ---------------------------------------------------------*/
   handleChange(e) {
     const target = e.target;
     const value = target.value;
@@ -47,6 +61,9 @@ class AddTeamModal extends React.Component{
     this.setState(partialState);
   } //handleChange
 
+  /*---------------------------------------------------------
+  Called when a value in the list of players changes.
+  ---------------------------------------------------------*/
   handlePlayerChange(e) {
     const target = e.target;
     const value = target.value;
@@ -61,7 +78,9 @@ class AddTeamModal extends React.Component{
     });
   }
 
-  //once we're done with the form, erase the data from state
+  /*---------------------------------------------------------
+  Once we're done with the form, clear the data.
+  ---------------------------------------------------------*/
   resetState() {
     this.setState({
       teamName: '',
@@ -71,9 +90,11 @@ class AddTeamModal extends React.Component{
     });
   }
 
-  //populate form with the existing team's data
-  //Also, keep a pointer to this team so the mainInterface can remember
-  //which team to modify
+  /*---------------------------------------------------------
+  Populate form with the existing team's data. Also keep a
+  pointer to this team so the MainInterface can remember
+  which team to modify.
+  ---------------------------------------------------------*/
   loadTeam() {
     this.setState({
       teamName: this.props.teamToLoad.teamName,
@@ -83,8 +104,11 @@ class AddTeamModal extends React.Component{
     });
   }
 
-  //called when the form is submitted. Tell the mainInterface to create
-  //a new team or modify an existing one as appropriate
+  /*---------------------------------------------------------
+  Called when the form is submitted. Tell the MainInterface
+  to create a new team or modify an existing one as
+  appropriate.
+  ---------------------------------------------------------*/
   handleAdd(e) {
     e.preventDefault();
     if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
@@ -108,18 +132,23 @@ class AddTeamModal extends React.Component{
     this.resetState();
   } //handleAdd
 
-
-  //title at the top left
+  /*---------------------------------------------------------
+  Title at the top of the window
+  ---------------------------------------------------------*/
   getModalHeader() {
     return this.props.addOrEdit == 'add' ? 'New team' : 'Edit team';
   }
 
-  //for the green button at the bottom
+  /*---------------------------------------------------------
+  For the Accept button at the bottom.
+  ---------------------------------------------------------*/
   getSubmitWord() {
     return this.props.addOrEdit == 'add' ? 'Add ' : 'Save ';
   }
 
-  //are there two players with the same name?
+  /*---------------------------------------------------------
+  Are there two players with the same name?
+  ---------------------------------------------------------*/
   rosterHasDups() {
     var rosterAry = this.state.roster.map(function(item, idx) {
       return item.toLowerCase().trim();
@@ -132,7 +161,10 @@ class AddTeamModal extends React.Component{
     return false;
   }
 
-  //returns true if there's nothing but whitespace in the player fields
+  /*---------------------------------------------------------
+  Returns true if there's nothing but whitespace in the
+  player fields.
+  ---------------------------------------------------------*/
   hasNoPlayers() {
     var noPlayers = true;
     for(var i in this.state.roster) {
@@ -141,7 +173,10 @@ class AddTeamModal extends React.Component{
     return noPlayers;
   }
 
-  //whether or not you're trying to delete a player on a team that has games entered
+  /*---------------------------------------------------------
+  Returns true if user has tried to delete a player from a
+  team that already has games entered.
+  ---------------------------------------------------------*/
   illegalEdit() {
     if(this.props.teamToLoad != null || this.props.addOrEdit == 'add') { return false; }
     var playerDeleted = false;
@@ -152,8 +187,13 @@ class AddTeamModal extends React.Component{
     return this.props.teamHasGames(this.state.originalTeamLoaded) && playerDeleted;
   }
 
-  //verify that the form data can be submitted
-  //returns [boolean, error level, error message]
+  /*---------------------------------------------------------
+  Whether there are any issues with the team. 3-element array:
+  - Are there errors, true/false
+  - Severity level (error: can't save team; warning: can
+    override)
+  - Error message
+  ---------------------------------------------------------*/
   validateTeam() {
     if(!this.props.validateTeamName(this.state.teamName.trim(), this.state.originalTeamLoaded)) {
       return [false, 'error', 'There is already a team named ' + this.state.teamName];
@@ -163,19 +203,25 @@ class AddTeamModal extends React.Component{
     if(this.illegalEdit()) {
       return [false, 'error', 'You may not remove players from a team that has played games'];
     }
+    // fairly aribitrary limit to make sure no one does anything ridiculous
     if(this.state.roster.length > 30) {
       return [false, 'error', 'Cannot have more than 30 players on a team'];
-    } // fairly aribitrary limit to make sure no one does anything ridiculous
+    }
     if(this.rosterHasDups()) { return [false, 'error', 'Roster contains two or more players with the same name']; }
     return [true, '', ''];
   }
 
-  //add the disabled attribute to the submit button
+  /*---------------------------------------------------------
+  Add the disabled attribute to the submit button.
+  ---------------------------------------------------------*/
   disabledButton(isTeamValid) {
     return isTeamValid ? '' : 'disabled';
   }
 
-  //returns a jsx element containing the appropriate icon (or null if no error)
+  /*---------------------------------------------------------
+  Returns a JSX element containing the appropriate icon
+  (or null if no error)
+  ---------------------------------------------------------*/
   getErrorIcon(errorLevel) {
     if(errorLevel == 'error') {
       return ( <i className="material-icons red-text text-darken-4 qb-modal-error">error</i> );
@@ -186,6 +232,9 @@ class AddTeamModal extends React.Component{
     return null;
   }
 
+  /*---------------------------------------------------------
+  The list of text fields conaining the roster.
+  ---------------------------------------------------------*/
   getPlayerFields() {
     var tempPlayers = this.state.roster.slice();
     tempPlayers.push('');

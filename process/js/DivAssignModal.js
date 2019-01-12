@@ -1,3 +1,10 @@
+/***********************************************************
+DivAssignModal.js
+Andrew Nadig
+
+React component representing modal window for assigning
+divisions to teams.
+***********************************************************/
 var React = require('react');
 
 class DivAssignModal extends React.Component{
@@ -15,6 +22,11 @@ class DivAssignModal extends React.Component{
     this.handleChange = this.handleChange.bind(this);
   }
 
+  /*---------------------------------------------------------
+  Called any time a value in the form changes.
+  This is a controlled component, so the state is the single
+  source of truth.
+  ---------------------------------------------------------*/
   handleChange(e) {
     const target = e.target;
     const value = target.value; //division name
@@ -26,16 +38,24 @@ class DivAssignModal extends React.Component{
     });
   }
 
+  /*---------------------------------------------------------
+  Tell the MainInterface to update data when the form is
+  submitted.
+  ---------------------------------------------------------*/
   handleSubmit(e) {
     e.preventDefault();
     this.props.handleSubmit(this.state.divSelections);
   }
 
-  //a set of radio buttons for selecting the divisions for a given phase
-  //an option for each division, plus an option not to change the division
-  //for that phase, and an option to remove divisions for that phase.
-  //If this function is called with "noPhase", don't provide the ignore option
-  //since there won't be multiple phases
+  /*---------------------------------------------------------
+  A set of radio buttons for selecting the divisions for a
+  given phase. An option for each division, plus an option
+  not to change the division for that phase, and an option
+  to remove divisions for that phase.
+  If there are divisions but no phases, call this with
+  'noPhase' in order to get all divisions with no "ignore"
+  option.
+  ---------------------------------------------------------*/
   getPhaseSection(phase) {
     var divsInPhase = this.props.divisions[phase];
     var ignoreOption = null;
@@ -87,7 +107,7 @@ class DivAssignModal extends React.Component{
   render() {
     var phaseSections = [];
     for(var p in this.props.divisions) {
-      //ignore unassigned divisions unless there are no phases at all
+      //ignore divisions with no phase, unless the tournament has no phases at all
       if((!this.props.usingPhases || p != 'noPhase') && this.props.divisions[p].length > 0) {
         phaseSections.push(this.getPhaseSection(p));
       }

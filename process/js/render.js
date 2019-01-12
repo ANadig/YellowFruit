@@ -252,6 +252,7 @@ class MainInterface extends React.Component{
   } //componentDidMount
 
   /*---------------------------------------------------------
+  Lifecyle method.
   I'm not certain this is necessary, but just to be safe....
   ---------------------------------------------------------*/
   componentWillUnmount() {
