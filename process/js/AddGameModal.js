@@ -581,6 +581,26 @@ class AddGameModal extends React.Component{
       return [false, 'error', team2 + ' has over 30 ppbb'];
     }
 
+    // can't have more buzzes in overtime than tossups you actually heard
+    var otPwr1 = toNum(this.state.otPwr1);
+    var otPwr2 = toNum(this.state.otPwr2);
+    var otTen1 = toNum(this.state.otTen1);
+    var otTen2 = toNum(this.state.otTen2);
+    var otNeg1 = toNum(this.state.otNeg1);
+    var otNeg2 = toNum(this.state.otNeg2);
+    var ottu = toNum(this.state.ottu);
+    if(otPwr1 + otTen1 + otNeg1 > ottu) {
+      return [false, 'error', team1 + ' has more overtime buzzes than tossups heard'];
+    }
+    if(otPwr2 + otTen2 + otNeg2 > ottu) {
+      return [false, 'error', team2 + ' has more overtime buzzes than tossups heard'];
+    }
+
+    //both teams can't have converted more overtime tossups than were read
+    if(otPwr1 + otTen1 + otPwr2 + otTen2 > ottu) {
+        return [false, 'error', 'More overtime tossups were converted than the total number of overtime tossups heard']
+    }
+
     //If there are no errors, compile all overrideable warnings, and display them all
     var warningsExist = false, warningList = '';
 
@@ -598,7 +618,7 @@ class AddGameModal extends React.Component{
     }
 
     //Subtract overtime points from each team. You should get a tie game.
-    if(this.toNum(this.state.ottu) > 0 && score1 - this.otPoints(1) != score2 - this.otPoints(2)) {
+    if(ottu > 0 && score1 - this.otPoints(1) != score2 - this.otPoints(2)) {
       warningsExist = true;
       warningList += 'Game went to overtime but score was not tied at the ' +
         'end of regulation based on each team\'s points scored in overtime. ';
