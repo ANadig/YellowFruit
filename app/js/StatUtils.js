@@ -1,20 +1,31 @@
-//Statutils.js - contains the code for generating the html report
+/***********************************************************
+StatUtils.js
+Andrew Nadig
 
+code for generating the HTML stats report.
+***********************************************************/
 var _ = require('lodash');
 var fs = require('fs');
 var Path = require('path');
 
-//convert string to number but without NaN
+/*---------------------------------------------------------
+Convert string to number, where '' is zero.
+---------------------------------------------------------*/
 function toNum(str) {
   return isNaN(+str) ? 0 : +str;
 }
 
-//wrapper around toFixed that handles divide-by-zero
-//anything not a number is a dummy value indicating a zero denominator
+/*---------------------------------------------------------
+Format numbers to the specified precision, and
+divide-by-zero calculations to an em-dash.
+---------------------------------------------------------*/
 function formatRate(r, precision) {
   return isNaN(r) ? '&mdash;&ensp;' : r.toFixed(precision);
 }
 
+/*---------------------------------------------------------
+Number of games played, including forfeits.
+---------------------------------------------------------*/
 function gamesPlayed(team, games) {
   var count = 0;
   for(var i in games) {
@@ -25,17 +36,25 @@ function gamesPlayed(team, games) {
   return count;
 }
 
+/*---------------------------------------------------------
+Point value of a power
+---------------------------------------------------------*/
 function powerValue(settings) {
   if(settings.powers == '15pts') { return 15; }
   if(settings.powers == '20pts') { return 20; }
   return 0;
 }
 
+/*---------------------------------------------------------
+Point value of a neg
+---------------------------------------------------------*/
 function negValue(settings) {
   return settings.negs == 'yes' ? -5 : 0;
 }
 
-//bonusesHeard for a single game
+/*---------------------------------------------------------
+Bonuses heard for a single game.
+---------------------------------------------------------*/
 function bonusesHeard (game, whichTeam) {
   var tot = 0;
   var players = whichTeam == 1 ? game.players1 : game.players2;
@@ -49,7 +68,9 @@ function bonusesHeard (game, whichTeam) {
   return tot;
 }
 
-//bonus points for a single game
+/*---------------------------------------------------------
+Bonus points for a single game.
+---------------------------------------------------------*/
 function bonusPoints(game, whichTeam, settings) {
   var tuPts = 0;
   var players = whichTeam == 1 ? game.players1 : game.players2;
@@ -62,9 +83,11 @@ function bonusPoints(game, whichTeam, settings) {
   return toNum(totalPoints) - tuPts - bbPts;
 }
 
-//how many (30-point bonuses' worth of) bouncebacks a team heard
-//returns [integer part, number of additional thirds]
-//e.g. 3 and 2/3 bonuses represented as [3,2]
+/*---------------------------------------------------------
+How many (30-point bonuses' worth of) bouncebacks a team
+heard. Returns [integer part, number of additional thirds]
+e.g. 3 and 2/3 is [3,2]
+---------------------------------------------------------*/
 function bbHeard(game, whichTeam, settings) {
   var otherTeam = whichTeam == 1 ? 2 : 1;
   var raw = (bonusesHeard(game, otherTeam)*30 - bonusPoints(game, otherTeam, settings)) / 30;
@@ -73,25 +96,35 @@ function bbHeard(game, whichTeam, settings) {
   return [integer, remainder];
 }
 
-//adds two bounceback heard amounts together
+/*---------------------------------------------------------
+Add two bounceback heard amounts together in the
+[integer part, fractional part] format.
+---------------------------------------------------------*/
 function bbHrdAdd(x, y) {
   return [x[0]+y[0] + (x[1]+y[1]>=3), (x[1]+y[1]) % 3];
 }
 
-//convert our internal representation of bouncebacks heard to a true decimal
+/*---------------------------------------------------------
+Convert the internal representation of bouncebacks heard
+to a decimal.
+---------------------------------------------------------*/
 function bbHrdToFloat(x) {
   return x[0] + x[1]/3;
 }
 
-//html code for printing bouncebacks heard
+/*---------------------------------------------------------
+HTML code for printing bouncebacks heard.
+---------------------------------------------------------*/
 function bbHrdDisplay(x) {
   var fraction = '';
-  if(x[1] == 1) { fraction = '&#8531;' }
-  if(x[1] == 2) { fraction = '&#8532;' }
+  if(x[1] == 1) { fraction = '&#8531;' } // '1/3'
+  if(x[1] == 2) { fraction = '&#8532;' } // '2/3'
   return x[0] + fraction;
 }
 
-//total points from overtime tossups
+/*---------------------------------------------------------
+Total points from overtime tossups for a game.
+---------------------------------------------------------*/
 function otPoints(game, whichTeam, settings) {
   var otPwr = whichTeam == 1 ? game.otPwr1 : game.otPwr2;
   var otTen = whichTeam == 1 ? game.otTen1 : game.otTen2;
@@ -99,7 +132,9 @@ function otPoints(game, whichTeam, settings) {
   return powerValue(settings)*toNum(otPwr) + 10*toNum(otTen) + negValue(settings)*toNum(otNeg);
 }
 
-//number of powers for a single team in a single game
+/*---------------------------------------------------------
+Number of powers for a single team in a single game
+---------------------------------------------------------*/
 function teamPowers(game, whichTeam) {
   var totPowers = 0, pwr;
   var players = whichTeam == 1 ? game.players1 : game.players2;
@@ -109,7 +144,9 @@ function teamPowers(game, whichTeam) {
   return totPowers;
 }
 
-//number of 10s for a single team in a single game
+/*---------------------------------------------------------
+Number of tens for a single team in a single game
+---------------------------------------------------------*/
 function teamTens(game, whichTeam) {
   var totTens = 0, tn;
   var players = whichTeam == 1 ? game.players1 : game.players2;
@@ -119,7 +156,9 @@ function teamTens(game, whichTeam) {
   return totTens;
 }
 
-//number of negs for a single team in a single game
+/*---------------------------------------------------------
+Number of negs for a single team in a single game
+---------------------------------------------------------*/
 function teamNegs(game, whichTeam) {
   var totNegs = 0, ng;
   var players = whichTeam == 1 ? game.players1 : game.players2;
@@ -129,13 +168,17 @@ function teamNegs(game, whichTeam) {
   return totNegs;
 }
 
-//tuh-powers-tens-negs for a player, as an int
+/*---------------------------------------------------------
+[TUH, powers, tens, negs] for a player, as numbers.
+---------------------------------------------------------*/
 function playerSlashLine(player) {
   return [toNum(player.tuh), toNum(player.powers),
     toNum(player.tens), toNum(player.negs)];
 }
 
-//header row of the team standings
+/*---------------------------------------------------------
+Header row for the team standings.
+---------------------------------------------------------*/
 function standingsHeader(settings) {
   var html = '<tr>' + '\n' +
   '<td align=left><b>Rank</b></td>' + '\n' +
@@ -176,7 +219,9 @@ function standingsHeader(settings) {
   return html;
 }
 
-//one row in the team standings
+/*---------------------------------------------------------
+One row in the team standings
+---------------------------------------------------------*/
 function standingsRow(teamEntry, rank, fileStart, settings) {
   var linkId = teamEntry.teamName.replace(/\W/g, '');
   var rowHtml = '<tr>';
@@ -218,7 +263,9 @@ function standingsRow(teamEntry, rank, fileStart, settings) {
   return rowHtml + '</tr>';
 }
 
-//gather data for the team standings
+/*---------------------------------------------------------
+Gather data for the team standings
+---------------------------------------------------------*/
 function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
   var standings = myTeams.map(function(item, index) {
     var obj =
@@ -335,7 +382,9 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
   return _.orderBy(standings, ['winPct', (t)=>{return +t.ppg}], ['desc', 'desc']);
 } //compileStandings
 
-//the header for the table in the individual standings
+/*---------------------------------------------------------
+The header for the table in the individual standings.
+---------------------------------------------------------*/
 function individualsHeader(usingDivisions, settings) {
   var html = '<tr>' + '\n' +
     '<td align=left><b>Rank</b></td>' + '\n' +
@@ -366,7 +415,9 @@ function individualsHeader(usingDivisions, settings) {
   return html;
 }
 
-//a single row in the individual standings
+/*---------------------------------------------------------
+A single row in the individual standings.
+---------------------------------------------------------*/
 function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings) {
   var linkId = playerEntry.teamName.replace(/\W/g, '') + '-' +
     playerEntry.playerName.replace(/\W/g, '');
@@ -399,7 +450,9 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings) 
   return rowHtml + '</tr>';
 }
 
-//calculate each column of data for the individual standings page
+/*---------------------------------------------------------
+Tabulate data for the individual standings page.
+---------------------------------------------------------*/
 function compileIndividuals(myTeams, myGames, phase, groupingPhase, settings) {
   var individuals = [];
   for(var i in myTeams) {
@@ -480,7 +533,10 @@ function compileIndividuals(myTeams, myGames, phase, groupingPhase, settings) {
     ['desc', 'desc']);//orderBy
 } //compileIndividuals
 
-//a list of the rounds for which there are games
+/*---------------------------------------------------------
+A list of the rounds for which there are games, so as to
+know how to organize the scorboard page.
+---------------------------------------------------------*/
 function getRoundsForScoreboard(myGames, phase) {
   var rounds = [];
   for(var i in myGames) {
@@ -492,12 +548,17 @@ function getRoundsForScoreboard(myGames, phase) {
   return rounds.sort(function(a,b){ return a-b });
 }
 
-//the header for each section of the scoreboard
+/*---------------------------------------------------------
+The title for each section of the scoreboard.
+---------------------------------------------------------*/
 function scoreboardRoundHeader(roundNo) {
   return '<font size=+1 color=red>Round ' + roundNo + '</font>';
 }
 
-//the html for all the game summaries for a single round
+/*---------------------------------------------------------
+HTML for all the game summaries for a single round on the
+scoreboard page.
+---------------------------------------------------------*/
 function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
   var html = '';
   for(var i in myGames) {
@@ -575,7 +636,10 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
   return html + '</font>' + '\n' + '</p>' + '\n';
 }//scoreboardGameSummaries
 
-//header row for the list of a team's games on the team detail page
+/*---------------------------------------------------------
+Header row for the table containing a team's games on the
+team detail page.
+---------------------------------------------------------*/
 function teamDetailGameTableHeader(settings) {
   var html = '<tr>' + '\n' +
     '<td align=left><b>Opponent</b></td>' + '\n' +
@@ -611,7 +675,9 @@ function teamDetailGameTableHeader(settings) {
   return html;
 }
 
-//a mostly-blank row in a team detail table for a forfeit
+/*---------------------------------------------------------
+A mostly-blank row in a team detail table for a forfeit.
+---------------------------------------------------------*/
 function forfeitRow(opponent, result) {
   return '<tr>' + '\n' +
     '<td align=left>' + opponent + '</td>' + '\n' +
@@ -620,7 +686,10 @@ function forfeitRow(opponent, result) {
     '</tr>' + '\n';
 }
 
-//team detail row for a single game for a single team
+/*---------------------------------------------------------
+Row for a single game for a single team on the team detail
+page.
+---------------------------------------------------------*/
 function teamDetailGameRow(game, whichTeam, settings) {
   var opponent, opponentScore, result, score, players;
   if(whichTeam == 1) {
@@ -695,7 +764,9 @@ function teamDetailGameRow(game, whichTeam, settings) {
   return html;
 }
 
-//the totals row of a games table in the team detail page
+/*---------------------------------------------------------
+The totals row of a games table on the team detail page.
+---------------------------------------------------------*/
 function teamDetailTeamSummaryRow(teamSummary, settings) {
   var html = '<tr>' + '\n';
   html += '<td align=left><b>Total</b></td>' + '\n';
@@ -732,7 +803,10 @@ function teamDetailTeamSummaryRow(teamSummary, settings) {
   return html;
 }
 
-//header row for the list of a team's players on the team detail page
+/*---------------------------------------------------------
+Header row for the table of a teams's players on the team
+detail page.
+---------------------------------------------------------*/
 function teamDetailPlayerTableHeader(settings) {
   var html = '<tr>' + '\n' +
     '<td align=left><b>Player</b></td>' + '\n' +
@@ -759,7 +833,9 @@ function teamDetailPlayerTableHeader(settings) {
   return html;
 }
 
-//team detail row for a single player
+/*---------------------------------------------------------
+Row for a single player on the team detail page.
+---------------------------------------------------------*/
 function teamDetailPlayerRow(player, fileStart, settings) {
   var linkId = player.teamName.replace(/\W/g, '') + '-' +
     player.playerName.replace(/\W/g, '');
@@ -790,7 +866,9 @@ function teamDetailPlayerRow(player, fileStart, settings) {
   return html;
 }
 
-//header row for a table on the player detail page
+/*---------------------------------------------------------
+Header row for a table on the player detail page.
+---------------------------------------------------------*/
 function playerDetailTableHeader(settings) {
   var html = '<tr>' + '\n' +
     '<td align=left><b>Opponent</b></td>' + '\n' +
@@ -815,7 +893,9 @@ function playerDetailTableHeader(settings) {
   return html;
 }
 
-//row for one player's game on the player detail page
+/*---------------------------------------------------------
+Row for one game for one player on the player detail page.
+---------------------------------------------------------*/
 function playerDetailGameRow(player, tuhtot, opponent, settings) {
   var [tuh, powers, tens, negs] = playerSlashLine(player);
   if(tuh <= 0) {
@@ -850,7 +930,10 @@ function playerDetailGameRow(player, tuhtot, opponent, settings) {
   return html;
 }
 
-//total row on the player detail page, using totals from compileIndividuals
+/*---------------------------------------------------------
+Total row for a table on the player detail page. Reuse
+results of compileIndividuals
+---------------------------------------------------------*/
 function playerDetailTotalRow(player, settings) {
   var html = '<tr>' + '\n';
   html += '<td align=left><b>Total</b></td>' + '\n';
@@ -875,7 +958,9 @@ function playerDetailTotalRow(player, settings) {
   return html;
 }
 
-//aggregate round data for the round report
+/*---------------------------------------------------------
+Aggregae round data for the round report.
+---------------------------------------------------------*/
 function compileRoundSummaries(games, phase, settings) {
   var summaries = [];
   for(var i in games) {
@@ -923,7 +1008,9 @@ function compileRoundSummaries(games, phase, settings) {
   return summaries;
 }
 
-//the header row for the round report
+/*---------------------------------------------------------
+Header row for the table in the round report.
+---------------------------------------------------------*/
 function roundReportTableHeader(settings) {
   var html = '<tr>' + '\n' +
     '<td><b>Round</b></td>' + '\n' +
@@ -940,7 +1027,9 @@ function roundReportTableHeader(settings) {
   return html;
 }
 
-//a row of data in the round report
+/*---------------------------------------------------------
+A row of data in the round report.
+---------------------------------------------------------*/
 function roundReportRow(smry, roundNo, settings) {
   var html = '<tr>' + '\n' +
     '<td>' + roundNo + '</td>' + '\n' +
@@ -956,7 +1045,9 @@ function roundReportRow(smry, roundNo, settings) {
   return html;
 }
 
-//the links that appear at the top of every page in the report
+/*---------------------------------------------------------
+The links at the top of every page of the report.
+---------------------------------------------------------*/
 function getStatReportTop(statKeySection, fileStart, pageTitle) {
   return '<html>' + '\n' +
     '<head>' + '\n' +
@@ -977,13 +1068,18 @@ function getStatReportTop(statKeySection, fileStart, pageTitle) {
     '</table>' + '\n';
 }
 
-//closing tags at the end of the page
+/*---------------------------------------------------------
+Closing tags at the end of the page.
+---------------------------------------------------------*/
 function getStatReportBottom() {
-  return '<h5>Made with YellowFruit &#x1F34C;</h5>' +
+  return '<h5>Made with YellowFruit &#x1F34C;</h5>' + // banana emoji
   '</body>' + '\n' +
   '</html>';
 }
 
+/*---------------------------------------------------------
+Generate the team standings page.
+---------------------------------------------------------*/
 function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInPhase, settings) {
   var standings = compileStandings(teams, games, phase, groupingPhase, settings);
   var html = getStatReportTop('TeamStandings', fileStart, 'Team Standings') +
@@ -1009,6 +1105,9 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInP
   return html + getStatReportBottom();
 }//getStandingsHtml
 
+/*---------------------------------------------------------
+Generate the individual standings page.
+---------------------------------------------------------*/
 function getIndividualsHtml(teams, games, fileStart, phase, groupingPhase, usingDivisions, settings) {
   var individuals = compileIndividuals(teams, games, phase, groupingPhase, settings);
   var html = getStatReportTop('IndividualStandings', fileStart, 'Individual Standings') +
@@ -1020,6 +1119,9 @@ function getIndividualsHtml(teams, games, fileStart, phase, groupingPhase, using
   return html + '\n' + '</table>' + '\n' +  getStatReportBottom();
 }
 
+/*---------------------------------------------------------
+Generate the scoreboard page.
+---------------------------------------------------------*/
 function getScoreboardHtml(teams, games, fileStart, phase, settings) {
   var html = getStatReportTop('Scoreboard', fileStart, 'Scoreboard') +
     '<h1> Scoreboard</h1>' + '\n';
@@ -1031,6 +1133,9 @@ function getScoreboardHtml(teams, games, fileStart, phase, settings) {
   return html + '\n' + getStatReportBottom();
 }
 
+/*---------------------------------------------------------
+Generate the team detail page.
+---------------------------------------------------------*/
 function getTeamDetailHtml(teams, games, fileStart, phase, settings) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return toNum(item.round); }, 'asc');
@@ -1069,6 +1174,9 @@ function getTeamDetailHtml(teams, games, fileStart, phase, settings) {
   return html + getStatReportBottom();
 }//getTeamDetailHtml
 
+/*---------------------------------------------------------
+Generate the player detail page.
+---------------------------------------------------------*/
 function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
@@ -1114,6 +1222,9 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
   return html + getStatReportBottom();
 }//getPlayerDetailHtml
 
+/*---------------------------------------------------------
+Generate the team round report page.
+---------------------------------------------------------*/
 function getRoundReportHtml(teams, games, fileStart, phase, settings) {
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
   var roundSummaries = compileRoundSummaries(games, phase, settings);
@@ -1128,6 +1239,9 @@ function getRoundReportHtml(teams, games, fileStart, phase, settings) {
   return html + getStatReportBottom();
 }
 
+/*---------------------------------------------------------
+Generate the stat key page.
+---------------------------------------------------------*/
 function getStatKeyHtml(fileStart) {
   var html = getStatReportTop('', fileStart, 'Stat Key');
   var statKeyBodyLocation = Path.resolve(__dirname, 'statKeyBody.html');

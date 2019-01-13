@@ -9,24 +9,9 @@ BODY {
     font-size: 10pt;
 }
 
+/* Added the td here */
 td {
   font-size: 10pt;
-}
-
-DIV.FloatDivider {
-    clear: both;
-}
-
-DIV.Container {
-    margin: 10px;
-}
-
-DIV.OverallBody {
-    background-color: #ffffff;
-    border-width: 1px;
-    border-style: solid;
-    border-color: #888888;
-    padding: 3px;
 }
 
 A:link {
@@ -77,88 +62,10 @@ UL.FormCheckboxList {
     vertical-align: top;
 }
 
-FORM.EntryForm UL.FormCheckboxList {
-    margin-top: 0px;
-}
-
-SPAN.Supplemental {
-    display: block;
-    margin-left: 6px;
-}
-
-DIV.TextAreaField DIV.FieldValue SPAN.Supplemental {
-    margin-left: 0px;
-}
-
-SPAN.NewLine {
-    display: block;
-}
-
-
 LI.NoBlock INPUT, LI.NoBlock SELECT {
     display: inline;
 }
 
 .Centered {
     text-align: center;
-}
-
-.Divider {
-    padding-top: 3px;
-    padding-bottom: 3px;
-}
-
-DIV.FormBox {
-    margin-top: 6px;
-    margin-bottom: 6px;
-    border-color: #000000;
-    border-width: 1px;
-    border-style: solid;
-    background-color: #ffffcc;
-    text-align: center;
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 3px;
-}
-
-DIV.FormBox H1, DIV.First DIV.FormBox H1 {
-    margin-top: 0px;
-    font-size: 12pt;
-}
-
-DIV.FormBox P {
-	margin-top: 0px;
-	margin-bottom: 0px;
-}
-
-DIV.FormBox P.Followup {
-    color: #000000;
-    font-size: 8pt;
-}
-
-
-DIV.FormBox UL LI {
-	text-align: left;
-	margin-top: 6px;
-	margin-left: 25px;
-}
-
-DIV.FBSuccess {
-    color: #000000;
-}
-
-DIV.FBAdvisory, DIV.PopupMessageBodyWarning {
-    color: #440000;
-}
-
-DIV.FBError {
-    border-color: #880000;
-    color: #880000;
-}
-
-.Tip {
-    font-weight: normal;
-    font-size: 8pt;
-    font-style: italic;
 }

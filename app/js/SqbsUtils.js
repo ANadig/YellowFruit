@@ -1,15 +1,19 @@
-//SqbsUtils.js - contains the code for generating the SQBS-format files
+/***********************************************************
+SqbsUtils.js
+Andrew Nadig
 
+code for generating an SQBS-format file.
+***********************************************************/
 
-//the first part of the file
-/*
-number of teams
-for each team:
-  number of players + 1
-  team name
-  for each player:
-    player name
-*/
+/*---------------------------------------------------------
+The first part of the file:
+- number of teams
+- for each team:
+    number of players + 1
+    team name
+    for each player:
+      player name
+---------------------------------------------------------*/
 function teamList(teams) {
   var output = '';
   output += teams.length + '\n';
@@ -22,24 +26,19 @@ function teamList(teams) {
   return output;
 }
 
-//the Game ID in SQBS. User doesn't enter this in YellowFruit, so
-//we generate one, e.g. "R1-Central A-West B"
+/*---------------------------------------------------------
+The SQBS game ID. This isn't a concept in YellowFruit, so
+generate one here using the round number and the names
+of the two teams. Validation in the AddGameModal ensures
+that this will be unique.
+---------------------------------------------------------*/
 function gameID(g) {
   return 'R' + g.round + '-' + g.team1 + '-' + g.team2;
 }
 
-//pads a number to four digits with leading zeros
-//returns a string
-function padFour(x) {
-  var s = x.toString();
-  if(s.length >= 4) { return s; }
-  for(var i=s.length; i<4; i++) {
-    s = '0' + s;
-  }
-  return s;
-}
-
-//one player's stat line for a game
+/*---------------------------------------------------------
+One player's stat line for a game.
+---------------------------------------------------------*/
 function addOnePlayer(settings, teams, game, whichTeam, playerName) {
   var output = '';
   var teamName = whichTeam == 1 ? game.team1 : game.team2;
@@ -60,7 +59,7 @@ function addOnePlayer(settings, teams, game, whichTeam, playerName) {
     output += negs + '\n';
     pointCatCounter++;
   }
-  while(pointCatCounter < 4) { //there must be exactly four lines
+  while(pointCatCounter < 4) { //there must be exactly four point-category lines
     output += '0\n';
     pointCatCounter++;
   }
@@ -70,12 +69,18 @@ function addOnePlayer(settings, teams, game, whichTeam, playerName) {
   return output;
 }
 
-//add a placeholder player to pad games to eight player stat lines per team
+/*---------------------------------------------------------
+A placeholder player stat line, because each game must
+have eight player stat lines per team.
+---------------------------------------------------------*/
 function dummyPlayer() {
   return '-1\n0\n0\n0\n0\n0\n0\n';
 }
 
-//the list of games
+/*---------------------------------------------------------
+The list of games, includintg totals and individual stat
+lines.
+---------------------------------------------------------*/
 function gameList(settings, teams, games) {
   var output = '';
   output += games.length + '\n';
@@ -104,30 +109,30 @@ function gameList(settings, teams, games) {
       output += bonusPoints(g, 2, settings) + '\n';
     }
     else if(settings.bonuses == 'yesBb') {
-      output += bbHrdToFloat(bbHeard(g, 1, settings)).toFixed(0);
-      output += padFour(bonusesHeard(g, 1)) + '\n';
-      output += g.bbPts1;
-      output += padFour(bonusPoints(g, 1, settings)) + '\n';
-      output += bbHrdToFloat(bbHeard(g, 2, settings)).toFixed(0);
-      output += padFour(bonusesHeard(g, 2)) + '\n';
-      output += g.bbPts2;
-      output += padFour(bonusPoints(g, 2, settings)) + '\n';
+      // track bouncebacks heard in units of bonus parts, not bonuses
+      var bbHrd1 = (3*bbHrdToFloat(bbHeard(g, 1, settings))).toFixed(0);
+      output += 10000*bbHrd1 + bonusesHeard(g, 1) + '\n';
+      output += 10000*g.bbPts1 + bonusPoints(g, 1, settings) + '\n';
+      var bbHrd2 = (3*bbHrdToFloat(bbHeard(g, 2, settings))).toFixed(0);
+      output += 10000*bbHrd2 + bonusesHeard(g, 2) + '\n';
+      output += 10000*g.bbPts2 + bonusPoints(g, 2, settings) + '\n';
     }
     else { // no bonuses, so just fill with zeros
       output += '0\n0\n0\n0\n';
     }
-    //overtime
+    // overtime
     output += g.ottu>0 ? '1\n' : '0\n';
     output += (toNum(g.otPwr1) + toNum(g.otTen1)) + '\n';
     output += (toNum(g.otPwr2) + toNum(g.otTen2)) + '\n';
-    //forfeit?
+    // forfeit?
     output += g.forfeit ? '1\n' : '0\n';
-    //lightning rounds. Don't exist here, so just add zeroes
+    // lightning rounds. Don't exist here, so just add zeroes
     output += '0\n';
     output += '0\n';
-    //eight lines of player stats; further lines will be ignored
-    var gamePlayers1 = Object.keys(g.players1);
-    var gamePlayers2 = Object.keys(g.players2);
+    // eight lines of player stats; further lines will be ignored
+    // but skip players with 0 TUH
+    var gamePlayers1 = g.forfeit ? [] : Object.keys(g.players1);
+    var gamePlayers2 = g.forfeit ? [] : Object.keys(g.players2);
     var playerIdx1 = 0;
     var playerIdx2 = 0;
     for(i=0; i<8; i++) {
@@ -157,11 +162,23 @@ function gameList(settings, teams, games) {
   return output;
 }
 
-//other SQBS settings. Many of these don't matter much
+/*---------------------------------------------------------
+Other SQBS settings.
+---------------------------------------------------------*/
 function miscSettings(settings, divisions) {
   var output = '';
-  output += '1\n'; //turn on bonus conversion tracking
-  output += '1\n'; //turn on automatic bonus calculation
+  if(settings.bonuses == 'none') {
+    output += '0\n'; // turn off bonus conversion tracking
+  }
+  else {
+    output += '1\n'; //turn on bonus conversion tracking
+  }
+  if(settings.bonuses == 'yesBb') {
+    output += '3\n'; // Bonus conversion tracking: "manual with bouncebacks"
+  }
+  else {
+    output += '3\n'; // Bonus conversion tracking: "automatic"
+  }
   if(settings.powers == 'none' && settings.negs == 'no') {
     output += '2\n'; //don't track power and neg stats if there are neither powers nor negs
   }
@@ -190,7 +207,9 @@ function miscSettings(settings, divisions) {
   return output;
 }
 
-//the specified number of newline characters
+/*---------------------------------------------------------
+Returns the specified number of newline characters
+---------------------------------------------------------*/
 function blankLines(n) {
   var output = '';
   for(var i=1; i<=n; i++) {
@@ -199,6 +218,9 @@ function blankLines(n) {
   return output;
 }
 
+/*---------------------------------------------------------
+The suffixes for the html files.
+---------------------------------------------------------*/
 function fileSuffixes() {
   var output = '';
   output += '_rounds.html\n';
@@ -211,7 +233,9 @@ function fileSuffixes() {
   return output;
 }
 
-//the number of divisions, then the list of divisions
+/*---------------------------------------------------------
+The number of divisions, then the list of division names.
+---------------------------------------------------------*/
 function divisionList(divisions) {
   if(divisions == undefined || divisions.length == 0) { return '0\n'; }
   var output = '';
@@ -220,7 +244,10 @@ function divisionList(divisions) {
   return output;
 }
 
-//the number of teams, then the division each team is assigned to
+/*---------------------------------------------------------
+The number of teams, then the 0-indexed number of the
+division each team is assigned to.
+---------------------------------------------------------*/
 function divisionAssignments(phase, divisions, teams) {
   var output = '';
   output += teams.length + '\n';
@@ -239,7 +266,10 @@ function divisionAssignments(phase, divisions, teams) {
   return output;
 }
 
-//the list of possible tossup point values (padded with zeroes to four lines)
+/*---------------------------------------------------------
+The list of possible tossup point values, padded with
+zeroes to four lines.
+---------------------------------------------------------*/
 function pointValueList(settings) {
   var output = '';
   var pointCatCounter = 0;
@@ -264,7 +294,11 @@ function pointValueList(settings) {
   return output;
 }
 
-//YellowFruit doesn't support exhibition teams, so it's all zeroes
+/*---------------------------------------------------------
+The number of teams, then whether each team is an
+exhibition team. YellowFruit doesn't support this so it's
+all zeroes.
+---------------------------------------------------------*/
 function exhibitionStatuses(teams) {
   var output = '';
   output += teams.length + '\n';
@@ -274,7 +308,9 @@ function exhibitionStatuses(teams) {
   return output;
 }
 
-//returns the entire SQBS file contents
+/*---------------------------------------------------------
+Generate the SQBS file contents.
+---------------------------------------------------------*/
 function getSqbsFile(settings, phase, divisions, teams, games) {
   var output = teamList(teams);
   output += gameList(settings, teams, games);
