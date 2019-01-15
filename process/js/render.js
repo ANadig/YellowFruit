@@ -328,7 +328,7 @@ class MainInterface extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Complie data for the data report and write it to each html
+  Compile data for the data report and write it to each html
   file.
   fileStart is null when generating the files for the report
   window. Otherwise it's the user-specified file to export
@@ -358,38 +358,41 @@ class MainInterface extends React.Component{
     var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.defaultPhase : this.state.viewingPhase;
     var divsInPhase = this.state.divisions[phaseToGroupBy];
     var usingDivisions = divsInPhase != undefined && divsInPhase.length > 0;
+    //we only want the last segment of the file path to use for links
+    var filePathSegments = fileStart.split(/[\\\/]/);
+    var endFileStart = filePathSegments.pop();
 
     var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames,
-      fileStart, phase, phaseToGroupBy, divsInPhase, this.state.settings);
+      endFileStart, phase, phaseToGroupBy, divsInPhase, this.state.settings);
     fs.writeFile(standingsLocation, standingsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - standings
     var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames,
-      fileStart, phase, phaseToGroupBy, usingDivisions, this.state.settings);
+      endFileStart, phase, phaseToGroupBy, usingDivisions, this.state.settings);
     fs.writeFile(individualsLocation, individualsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individuals
     var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames,
-      fileStart, phase, this.state.settings);
+      endFileStart, phase, this.state.settings);
     fs.writeFile(scoreboardLocation, scoreboardHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - scoreboard
     var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames,
-      fileStart, phase, this.state.settings);
+      endFileStart, phase, this.state.settings);
     fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - team detail
     var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames,
-      fileStart, phase, this.state.settings);
+      endFileStart, phase, this.state.settings);
     fs.writeFile(playerDetailLocation, playerDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individual Detail
     var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames,
-      fileStart, phase, this.state.settings);
+      endFileStart, phase, this.state.settings);
     fs.writeFile(roundReportLocation, roundReportHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - round report
-    var statKeyHtml = getStatKeyHtml(fileStart);
+    var statKeyHtml = getStatKeyHtml(endFileStart);
     fs.writeFile(statKeyLocation, statKeyHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - stat key
@@ -1215,9 +1218,10 @@ class MainInterface extends React.Component{
     $(document).ready(function() { $('.tooltipped').tooltip(); });//initialize tooltips
     $('select').formSelect(); //initialize all dropdowns
     $('.fixed-action-btn').floatingActionButton(); //initialize floating buttons
+    //initialize all modals
     $('.modal').modal({
       onCloseEnd: this.onModalClose
-    }); //initialize all modals
+    });
     if(this.state.tmWindowVisible === true) { $('#addTeam').modal('open'); }
     if(this.state.gmWindowVisible === true) { $('#addGame').modal('open'); }
     if(this.state.divWindowVisible === true) { $('#assignDivisions').modal('open'); }

@@ -549,10 +549,38 @@ function getRoundsForScoreboard(myGames, phase) {
 }
 
 /*---------------------------------------------------------
+A "table of contents" for the scoreboard page with links
+to each round.
+---------------------------------------------------------*/
+function scoreboardRoundLinks(roundList, fileStart) {
+  var html = '<table border=0 width=70%>' + '\n' +
+    '<tr>' + '\n';
+  for(var i in roundList) {
+    html += '<td><a href=\"' + fileStart + 'games.html#round-' + roundList[i] +
+      '\">' + roundList[i] + '</a></td>' + '\n';
+  }
+  html += '</tr>' + '\n' + '</table>' + '\n';
+  return html;
+}
+
+/*---------------------------------------------------------
 The title for each section of the scoreboard.
 ---------------------------------------------------------*/
 function scoreboardRoundHeader(roundNo) {
-  return '<font size=+1 color=red>Round ' + roundNo + '</font>';
+  return '<h2 id=\"' + 'round-' + roundNo + '\"><font color=red>Round ' +
+    roundNo + '</font></h2>' + '\n';
+}
+
+/*---------------------------------------------------------
+The specified number of empty table cells, used for
+padding box scores.
+---------------------------------------------------------*/
+function blankPlayerLineScore(size) {
+  var output = [];
+  while(output.length < size) {
+    output.push('<td></td>');
+  }
+  return output.join('\n');
 }
 
 /*---------------------------------------------------------
@@ -564,13 +592,15 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
   for(var i in myGames) {
     var g = myGames[i];
     if((phase == 'all' || g.phases.includes(phase)) && g.round == roundNo) {
+      var linkId = 'R' + roundNo + '-' + g.team1.replace(/\W/g, '') + '-' +
+        g.team2.replace(/\W/g, '');
       if(g.forfeit) {
-        html += '<br><font size=+1>' + g.team1 + ' defeats ' +
-          g.team2 + ' by forfeit' + '</font><br>';
+        html += '<br><span id=\"' + linkId + '\"><h3>' + g.team1 +
+        ' defeats ' + g.team2 + ' by forfeit' + '</h3></span><br>';
       }
       else {
-        html += '<p>' + '\n';
-        html += '<font size=+1>';
+        // game title
+        html += '<span id=\"' + linkId + '\"><h3>';
         if(toNum(g.score1) >= toNum(g.score2)) {
           html += g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
         }
@@ -580,38 +610,83 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
         if(g.ottu > 0) {
           html += ' (OT)';
         }
-        html += '</font><br>' + '\n' +
-          '<font size=-1>' + '\n';
-        html += g.team1 + ': ';
+        html += '</h3></span>' + '\n';
+
+        // make a table for the player linescores
+        html += '<table border=0 width=70%>' + '\n';
+        html += '<tr>' + '\n';
+        var team1Header = '<td align=left><b>' + g.team1 + '</b></td>' + '\n' +
+          '<td><b>TUH</b></td>' + '\n';
+        var team2Header = '<td align=left><b>' + g.team2 + '</b></td>' + '\n' +
+          '<td><b>TUH</b></td>' + '\n';
+        if(settings.powers != 'none') {
+          team1Header += '<td><b>' + powerValue(settings) + '</b></td>' + '\n';
+          team2Header += '<td><b>' + powerValue(settings) + '</b></td>' + '\n';
+        }
+        team1Header += '<td><b>10</b></td>' + '\n';
+        team2Header += '<td><b>10</b></td>' + '\n';
+        if(settings.negs == 'yes') {
+          team1Header += '<td><b>-5</b></td>' + '\n';
+          team2Header += '<td><b>-5</b></td>' + '\n';
+        }
+        team1Header += '<td><b>Tot</b></td>' + '\n';
+        team2Header += '<td><b>Tot</b></td>' + '\n';
+        html += team1Header + team2Header;
+        html += '</tr>' + '\n';
+
+        var playersLeft = [];
+        var playersRight = [];
+        //the left side of the table
         for(var p in g.players1) {
+          var playerLine = '<tr>' + '\n' +
+            '<td>' + p + '</td>' + '\n';
           var [tuh, pwr, tn, ng] = playerSlashLine(g.players1[p]);
-          html += p + ' ';
+          playerLine += '<td>' + tuh + '</td>' + '\n';
           if(settings.powers != 'none') {
-            html += pwr + ' ';
+            playerLine += '<td>' + pwr + '</td>' + '\n';
           }
-          html += tn + ' ';
+          playerLine += '<td>' + tn + '</td>' + '\n';
           if(settings.negs == 'yes') {
-            html += ng + ' ';
+            playerLine += '<td>' + ng + '</td>' + '\n';
           }
-          html += (powerValue(settings)*pwr + 10*tn + negValue(settings)*ng) + ', ';
+          playerLine += '<td>' +
+            ((powerValue(settings)*pwr + 10*tn + negValue(settings)*ng)) + '</td>' + '\n';
+          playersLeft.push(playerLine);
         }
-        html = html.substr(0, html.length - 2); //remove the last comma+space
-        html += '<br>' + '\n';
-        html += g.team2 + ': ';
+        // the right side of the table
         for(var p in g.players2) {
+          var playerLine = '<td>' + p + '</td>' + '\n';
           var [tuh, pwr, tn, ng] = playerSlashLine(g.players2[p]);
-          html += p + ' ';
+          playerLine += '<td>' + tuh + '</td>' + '\n';
           if(settings.powers != 'none') {
-            html += pwr + ' ';
+            playerLine += '<td>' + pwr + '</td>' + '\n';
           }
-          html += tn + ' ';
+          playerLine += '<td>' + tn + '</td>' + '\n';
           if(settings.negs == 'yes') {
-            html += ng + ' ';
+            playerLine += '<td>' + ng + '</td>' + '\n';
           }
-          html += (powerValue(settings)*pwr + 10*tn + negValue(settings)*ng) + ', ';
+          playerLine += '<td>' +
+            ((powerValue(settings)*pwr + 10*tn + negValue(settings)*ng)) + '</td>' + '\n';
+          playerLine += '</tr>' + '\n';
+          playersRight.push(playerLine);
         }
-        html = html.substr(0, html.length - 2); //remove the last comma+space
+
+        //pad the short side of the table with blank lines
+        var columnsPerTeam = 4 + (settings.powers != 'none') + (settings.negs == 'yes');
+        while (playersLeft.length > playersRight.length) {
+          playersRight.push(blankPlayerLineScore(columnsPerTeam) + '\n' + '</tr>' + '\n');
+        }
+        while (playersLeft.length < playersRight.length) {
+          playersLeft.push('<tr>' + blankPlayerLineScore(columnsPerTeam) + '\n');
+        }
+
+        for(var i in playersLeft) {
+          html += playersLeft[i] + playersRight[i];
+        }
+        html += '</table>' + '\n';
         html += '<br>' + '\n';
+
+        // bonus conversion
         if(settings.bonuses != 'none') {
           var bHeard = bonusesHeard(g, 1), bPts = bonusPoints(g, 1, settings);
           var ppb = bHeard == 0 ? 0 : bPts / bHeard;
@@ -620,6 +695,7 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
           ppb = bHeard == 0 ? 0 : bPts / bHeard;
           html += g.team2 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + '<br>' + '\n';
         }
+        // bounceback conversion
         if(settings.bonuses == 'yesBb') {
           var bbHrd = bbHeard(g, 1, settings);
           var ppbb = bbHrd.toString()=='0,0' ? 0 : g.bbPts1 / bbHrdToFloat(bbHrd);
@@ -630,10 +706,11 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
           html += g.team2 + ' ' + bbHrdDisplay(bbHrd) + ' ' + toNum(g.bbPts2) + ' ' +
             ppbb.toFixed(2)  + '<br>' + '\n';
         }
+        html += '<br><br>' + '\n'; // + '</p>' + '\n';
       }//else not a forfeit
     }//if we want to show this game
   }//loop over all games
-  return html + '</font>' + '\n' + '</p>' + '\n';
+  return html + '<hr>' + '\n';
 }//scoreboardGameSummaries
 
 /*---------------------------------------------------------
@@ -642,6 +719,7 @@ team detail page.
 ---------------------------------------------------------*/
 function teamDetailGameTableHeader(settings) {
   var html = '<tr>' + '\n' +
+    '<td align=left><b>Rd.</b></td>' + '\n' +
     '<td align=left><b>Opponent</b></td>' + '\n' +
     '<td align=right><b>Result</b></td>' + '\n' +
     '<td align=right><b>PF</b></td>' + '\n' +
@@ -690,7 +768,7 @@ function forfeitRow(opponent, result) {
 Row for a single game for a single team on the team detail
 page.
 ---------------------------------------------------------*/
-function teamDetailGameRow(game, whichTeam, settings) {
+function teamDetailGameRow(game, whichTeam, settings, fileStart) {
   var opponent, opponentScore, result, score, players;
   if(whichTeam == 1) {
     opponent = game.team2;
@@ -730,9 +808,13 @@ function teamDetailGameRow(game, whichTeam, settings) {
   var bbPts = whichTeam == 1 ? +game.bbPts1 : +game.bbPts2;
   var ppbb = bbPts / bbHrdToFloat(bbHrd);
 
+  var linkId = 'R' + game.round + '-' + game.team1.replace(/\W/g, '') + '-' +
+    game.team2.replace(/\W/g, '');
   var html = '<tr>' + '\n';
+  html += '<td align=left>' + game.round + '</td>' + '\n';
   html += '<td align=left>' + opponent + '</td>' + '\n';
-  html += '<td align=right>' + result + '</td>' + '\n';
+  html += '<td align=right><a href=\"' + fileStart + 'games.html#' + linkId + '\">' +
+    result + '</a></td>' + '\n';
   html += '<td align=right>' + score + '</td>' + '\n';
   html += '<td align=right>' + opponentScore + '</td>' + '\n';
   if(settings.powers != 'none') {
@@ -769,6 +851,7 @@ The totals row of a games table on the team detail page.
 ---------------------------------------------------------*/
 function teamDetailTeamSummaryRow(teamSummary, settings) {
   var html = '<tr>' + '\n';
+  html += '<td></td>' + '\n';
   html += '<td align=left><b>Total</b></td>' + '\n';
   html += '<td></td>' + '\n';
   html += '<td align=right><b>' + teamSummary.points + '</b></td>' + '\n';
@@ -871,6 +954,7 @@ Header row for a table on the player detail page.
 ---------------------------------------------------------*/
 function playerDetailTableHeader(settings) {
   var html = '<tr>' + '\n' +
+    '<td align=left><b>Rd.</b></td>' + '\n' +
     '<td align=left><b>Opponent</b></td>' + '\n' +
     '<td align=right><b>GP</b></td>' + '\n';
   if(settings.powers != 'none') {
@@ -896,7 +980,7 @@ function playerDetailTableHeader(settings) {
 /*---------------------------------------------------------
 Row for one game for one player on the player detail page.
 ---------------------------------------------------------*/
-function playerDetailGameRow(player, tuhtot, opponent, settings) {
+function playerDetailGameRow(player, tuhtot, opponent, round, settings) {
   var [tuh, powers, tens, negs] = playerSlashLine(player);
   if(tuh <= 0) {
     return '';
@@ -908,6 +992,7 @@ function playerDetailGameRow(player, tuhtot, opponent, settings) {
   var gPerN = negs == 0 ? 'inf' : (powers + tens) / negs;
 
   var html = '<tr>' + '\n';
+  html += '<td align=left>' + round + '</td>' + '\n';
   html += '<td align=left>' + opponent + '</td>' + '\n';
   html += '<td align=right>' + formatRate(gp, 1) + '</td>' + '\n';
   if(settings.powers != 'none') {
@@ -936,6 +1021,7 @@ results of compileIndividuals
 ---------------------------------------------------------*/
 function playerDetailTotalRow(player, settings) {
   var html = '<tr>' + '\n';
+  html += '<td align=left></td>' + '\n';
   html += '<td align=left><b>Total</b></td>' + '\n';
   html += '<td align=right><b>' + player.gamesPlayed + '</b></td>' + '\n';
   if(settings.powers != 'none') {
@@ -959,7 +1045,7 @@ function playerDetailTotalRow(player, settings) {
 }
 
 /*---------------------------------------------------------
-Aggregae round data for the round report.
+Aggregate round data for the round report.
 ---------------------------------------------------------*/
 function compileRoundSummaries(games, phase, settings) {
   var summaries = [];
@@ -1126,6 +1212,7 @@ function getScoreboardHtml(teams, games, fileStart, phase, settings) {
   var html = getStatReportTop('Scoreboard', fileStart, 'Scoreboard') +
     '<h1> Scoreboard</h1>' + '\n';
   var roundList = getRoundsForScoreboard(games, phase);
+  html += scoreboardRoundLinks(roundList, fileStart);
   for(var r in roundList) {
     html += scoreboardRoundHeader(roundList[r]);
     html += scoreboardGameSummaries(games, roundList[r], phase, settings);
@@ -1153,10 +1240,10 @@ function getTeamDetailHtml(teams, games, fileStart, phase, settings) {
     for(var j in games) {
       let gameInPhase = phase == 'all' || games[j].phases.includes(phase);
       if(gameInPhase && games[j].team1 == teamName) {
-        html += teamDetailGameRow(games[j], 1, settings);
+        html += teamDetailGameRow(games[j], 1, settings, fileStart);
       }
       else if(gameInPhase && games[j].team2 == teamName) {
-        html += teamDetailGameRow(games[j], 2, settings);
+        html += teamDetailGameRow(games[j], 2, settings, fileStart);
       }
     }
     var teamSummary = _.find(standings, function(o) { return o.teamName == teamName; });
@@ -1203,14 +1290,14 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
       if (gameInPhase && game.team1 == indvTot.teamName) {
         for(var p in game.players1) {
           if(p == indvTot.playerName) {
-            html += playerDetailGameRow(game.players1[p], game.tuhtot, game.team2, settings);
+            html += playerDetailGameRow(game.players1[p], game.tuhtot, game.team2, game.round, settings);
           }
         }
       }
       else if (gameInPhase && game.team2 == indvTot.teamName) {
         for(var p in game.players2) {
           if(p == indvTot.playerName) {
-            html += playerDetailGameRow(game.players2[p], game.tuhtot, game.team1, settings);
+            html += playerDetailGameRow(game.players2[p], game.tuhtot, game.team1, game.round, settings);
           }
         }
       }
