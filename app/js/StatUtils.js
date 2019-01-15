@@ -559,7 +559,9 @@ function scoreboardRoundLinks(roundList, fileStart) {
     html += '<td><a href=\"' + fileStart + 'games.html#round-' + roundList[i] +
       '\">' + roundList[i] + '</a></td>' + '\n';
   }
-  html += '</tr>' + '\n' + '</table>' + '\n';
+  html += '</tr>' + '\n' +
+    '</table>' + '\n' +
+    '<hr>' + '\n';
   return html;
 }
 
@@ -616,22 +618,22 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
         html += '<table border=0 width=70%>' + '\n';
         html += '<tr>' + '\n';
         var team1Header = '<td align=left><b>' + g.team1 + '</b></td>' + '\n' +
-          '<td><b>TUH</b></td>' + '\n';
+          '<td align=right><b>TUH</b></td>' + '\n';
         var team2Header = '<td align=left><b>' + g.team2 + '</b></td>' + '\n' +
-          '<td><b>TUH</b></td>' + '\n';
+          '<td align=right><b>TUH</b></td>' + '\n';
         if(settings.powers != 'none') {
-          team1Header += '<td><b>' + powerValue(settings) + '</b></td>' + '\n';
-          team2Header += '<td><b>' + powerValue(settings) + '</b></td>' + '\n';
+          team1Header += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
+          team2Header += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
         }
-        team1Header += '<td><b>10</b></td>' + '\n';
+        team1Header += '<td align=right><b>10</b></td>' + '\n';
         team2Header += '<td><b>10</b></td>' + '\n';
         if(settings.negs == 'yes') {
-          team1Header += '<td><b>-5</b></td>' + '\n';
+          team1Header += '<td align=right><b>-5</b></td>' + '\n';
           team2Header += '<td><b>-5</b></td>' + '\n';
         }
-        team1Header += '<td><b>Tot</b></td>' + '\n';
-        team2Header += '<td><b>Tot</b></td>' + '\n';
-        html += team1Header + team2Header;
+        team1Header += '<td align=right><b>Tot</b></td>' + '\n';
+        team2Header += '<td align=right><b>Tot</b></td>' + '\n';
+        html += team1Header + '<td></td>' + team2Header; // add an empty column as a buffer between the two teams
         html += '</tr>' + '\n';
 
         var playersLeft = [];
@@ -641,15 +643,16 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
           var playerLine = '<tr>' + '\n' +
             '<td>' + p + '</td>' + '\n';
           var [tuh, pwr, tn, ng] = playerSlashLine(g.players1[p]);
-          playerLine += '<td>' + tuh + '</td>' + '\n';
+          if(tuh <= 0) { continue; }
+          playerLine += '<td align=right>' + tuh + '</td>' + '\n';
           if(settings.powers != 'none') {
-            playerLine += '<td>' + pwr + '</td>' + '\n';
+            playerLine += '<td align=right>' + pwr + '</td>' + '\n';
           }
-          playerLine += '<td>' + tn + '</td>' + '\n';
+          playerLine += '<td align=right>' + tn + '</td>' + '\n';
           if(settings.negs == 'yes') {
-            playerLine += '<td>' + ng + '</td>' + '\n';
+            playerLine += '<td align=right>' + ng + '</td>' + '\n';
           }
-          playerLine += '<td>' +
+          playerLine += '<td align=right>' +
             ((powerValue(settings)*pwr + 10*tn + negValue(settings)*ng)) + '</td>' + '\n';
           playersLeft.push(playerLine);
         }
@@ -657,15 +660,16 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
         for(var p in g.players2) {
           var playerLine = '<td>' + p + '</td>' + '\n';
           var [tuh, pwr, tn, ng] = playerSlashLine(g.players2[p]);
-          playerLine += '<td>' + tuh + '</td>' + '\n';
+          if(tuh <= 0) { continue; }
+          playerLine += '<td align=right>' + tuh + '</td>' + '\n';
           if(settings.powers != 'none') {
-            playerLine += '<td>' + pwr + '</td>' + '\n';
+            playerLine += '<td align=right>' + pwr + '</td>' + '\n';
           }
-          playerLine += '<td>' + tn + '</td>' + '\n';
+          playerLine += '<td align=right>' + tn + '</td>' + '\n';
           if(settings.negs == 'yes') {
-            playerLine += '<td>' + ng + '</td>' + '\n';
+            playerLine += '<td align=right>' + ng + '</td>' + '\n';
           }
-          playerLine += '<td>' +
+          playerLine += '<td align=right>' +
             ((powerValue(settings)*pwr + 10*tn + negValue(settings)*ng)) + '</td>' + '\n';
           playerLine += '</tr>' + '\n';
           playersRight.push(playerLine);
@@ -681,7 +685,7 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
         }
 
         for(var i in playersLeft) {
-          html += playersLeft[i] + playersRight[i];
+          html += playersLeft[i] + '<td>&nbsp;</td>' + playersRight[i]; // add an empty column as a buffer between the two teams
         }
         html += '</table>' + '\n';
         html += '<br>' + '\n';
