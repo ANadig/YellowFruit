@@ -1262,6 +1262,7 @@ class MainInterface extends React.Component{
         if (this.noPhaseQuery(queryText, myGames[i]) ||
           ((myGames[i].team1.toLowerCase().indexOf(queryText)!=-1 ||
           myGames[i].team2.toLowerCase().indexOf(queryText)!=-1 ||
+          myGames[i].notes.toLowerCase().indexOf(queryText)!=-1 ||
           this.matchRoundSearch(queryText, myGames[i]) ||
           this.matchBothTeams(queryText, myGames[i])) &&
           this.gameBelongsToCurrentPhase(myGames[i]))
