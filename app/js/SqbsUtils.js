@@ -78,7 +78,7 @@ function dummyPlayer() {
 }
 
 /*---------------------------------------------------------
-The list of games, includintg totals and individual stat
+The list of games, including totals and individual stat
 lines.
 ---------------------------------------------------------*/
 function gameList(settings, teams, games) {

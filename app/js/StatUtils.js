@@ -427,7 +427,9 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings) 
     playerEntry.playerName + '</a></td>' + '\n';
   rowHtml += '<td align=left>' + playerEntry.teamName + '</td>' + '\n';
   if(usingDivisions) {
-    rowHtml += '<td align=left>' + playerEntry.division + '</td>' + '\n';
+    var divDisplay = playerEntry.division;
+    if(divDisplay == undefined) { divDisplay = '&mdash;&ensp;'; }
+    rowHtml += '<td align=left>' + divDisplay + '</td>' + '\n';
   }
   rowHtml += '<td align=right>' + playerEntry.gamesPlayed + '</td>' + '\n';
   if(settings.powers != 'none') {
@@ -626,10 +628,10 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
           team2Header += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
         }
         team1Header += '<td align=right><b>10</b></td>' + '\n';
-        team2Header += '<td><b>10</b></td>' + '\n';
+        team2Header += '<td align=right><b>10</b></td>' + '\n';
         if(settings.negs == 'yes') {
           team1Header += '<td align=right><b>-5</b></td>' + '\n';
-          team2Header += '<td><b>-5</b></td>' + '\n';
+          team2Header += '<td align=right><b>-5</b></td>' + '\n';
         }
         team1Header += '<td align=right><b>Tot</b></td>' + '\n';
         team2Header += '<td align=right><b>Tot</b></td>' + '\n';
