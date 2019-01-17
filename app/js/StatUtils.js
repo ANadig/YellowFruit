@@ -696,21 +696,21 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
         if(settings.bonuses != 'none') {
           var bHeard = bonusesHeard(g, 1), bPts = bonusPoints(g, 1, settings);
           var ppb = bHeard == 0 ? 0 : bPts / bHeard;
-          html += 'Bonuses: ' + g.team1 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + ', ';
+          html += 'Bonuses: ' + g.team1 + ' ' + bHeard + ' heard, ' + bPts + ' pts, ' + ppb.toFixed(2) + ' PPB; ';
           bHeard = bonusesHeard(g, 2), bPts = bonusPoints(g, 2, settings);
           ppb = bHeard == 0 ? 0 : bPts / bHeard;
-          html += g.team2 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + '<br>' + '\n';
+          html += g.team2 + ' ' + bHeard + ' heard, ' + bPts + ' pts, ' + ppb.toFixed(2) + ' PPB <br>' + '\n';
         }
         // bounceback conversion
         if(settings.bonuses == 'yesBb') {
           var bbHrd = bbHeard(g, 1, settings);
           var ppbb = bbHrd.toString()=='0,0' ? 0 : g.bbPts1 / bbHrdToFloat(bbHrd);
-          html += 'Bonus Bouncebacks: ' + g.team1 + ' ' +
-            bbHrdDisplay(bbHrd) + ' ' + toNum(g.bbPts1) + ' ' + ppbb.toFixed(2) + ', ';
+          html += 'Bouncebacks: ' + g.team1 + ' ' +
+            bbHrdDisplay(bbHrd) + ' heard, ' + toNum(g.bbPts1) + ' pts, ' + ppbb.toFixed(2) + ' PPBB; ';
           bbHrd = bbHeard(g, 2, settings);
           ppbb = bbHrd.toString()=='0,0' ? 0 : g.bbPts2 / bbHrdToFloat(bbHrd);
-          html += g.team2 + ' ' + bbHrdDisplay(bbHrd) + ' ' + toNum(g.bbPts2) + ' ' +
-            ppbb.toFixed(2)  + '<br>' + '\n';
+          html += g.team2 + ' ' + bbHrdDisplay(bbHrd) + ' heard, ' + toNum(g.bbPts2) + ' pts, ' +
+            ppbb.toFixed(2)  + ' PPBB<br>' + '\n';
         }
         html += '<br><br>' + '\n'; // + '</p>' + '\n';
       }//else not a forfeit
@@ -762,8 +762,9 @@ function teamDetailGameTableHeader(settings) {
 /*---------------------------------------------------------
 A mostly-blank row in a team detail table for a forfeit.
 ---------------------------------------------------------*/
-function forfeitRow(opponent, result) {
+function forfeitRow(opponent, round, result) {
   return '<tr>' + '\n' +
+    '<td align=left>' + round + '</td>' + '\n' +
     '<td align=left>' + opponent + '</td>' + '\n' +
     '<td align=right>' + result + '</td>' + '\n' +
     '<td align=right>Forfeit</td>' + '\n' +
@@ -779,7 +780,7 @@ function teamDetailGameRow(game, whichTeam, settings, fileStart) {
   if(whichTeam == 1) {
     opponent = game.team2;
     if(game.forfeit) { //team1 is arbitrarily the winner of a forfeit
-      return forfeitRow(opponent, 'W');
+      return forfeitRow(opponent, game.round, 'W');
     }
     if(+game.score1 > +game.score2) { result = 'W'; }
     else if(+game.score1 < +game.score2) { result = 'L'; }
@@ -791,7 +792,7 @@ function teamDetailGameRow(game, whichTeam, settings, fileStart) {
   else {
     opponent = game.team1;
     if(game.forfeit) { //team2 is arbitrarily the loser of a forfeit
-      return forfeitRow(opponent, 'L');
+      return forfeitRow(opponent, game.round, 'L');
     }
     if(+game.score2 > +game.score1) { result = 'W'; }
     else if(+game.score2 < +game.score1) { result = 'L'; }
