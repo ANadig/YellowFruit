@@ -364,9 +364,13 @@ class MainInterface extends React.Component{
         continue;
       }
       var rosterAry = [];
+      var lowercaseRoster = [];
       for(var j=0; j<rosterSize && j<maxPlayersPerTeam; j++) {
         var nextPlayer = sqbsAry[curLine++].trim();
-        if(!rosterAry.includes(nextPlayer)) { rosterAry.push(nextPlayer); }
+        if(!lowercaseRoster.includes(nextPlayer.toLowerCase())) {
+          rosterAry.push(nextPlayer);
+          lowercaseRoster.push(nextPlayer.toLowerCase());
+        }
       }
       myTeams.push({
         teamName: teamName,

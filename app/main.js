@@ -217,8 +217,7 @@ function importRosters(focusedWindow) {
     {filters: [{name: 'SQBS Tournament', extensions: ['sqbs']}]},
     (fileNameAry) => {
       if(fileNameAry != undefined) {
-        currentFile = fileNameAry[0]; //open dialog doesn't allow selecting multiple files
-        focusedWindow.webContents.send('importRosters', currentFile);
+        focusedWindow.webContents.send('importRosters', fileNameAry[0]);
         unsavedData = false;
       }
     }
@@ -593,22 +592,22 @@ app.on('ready', function() {
             click (item, focusedWindow) {
               if(focusedWindow) focusedWindow.webContents.send('nextPhase');
             }
-          },
-          {type: 'separator'},
-          {
-            label: 'Reload',
-            accelerator: 'CmdOrCtrl+R',
-            click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.reload()
-            }
-          },
-          {
-            label: 'Toggle Developer Tools',
-            accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
-            click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.webContents.toggleDevTools()
-            }
-          }
+          }//,
+          // {type: 'separator'},
+          // {
+          //   label: 'Reload',
+          //   accelerator: 'CmdOrCtrl+R',
+          //   click (item, focusedWindow) {
+          //     if (focusedWindow) focusedWindow.reload()
+          //   }
+          // },
+          // {
+          //   label: 'Toggle Developer Tools',
+          //   accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+          //   click (item, focusedWindow) {
+          //     if (focusedWindow) focusedWindow.webContents.toggleDevTools()
+          //   }
+          // }
         ]
       },{
         label: '&Help',
