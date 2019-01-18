@@ -10,6 +10,8 @@ var $ = require('jquery');
 var _ = require('lodash');
 var M = require('materialize-css');
 
+const maxPlayersPerTeam = 30;
+
 class AddTeamModal extends React.Component{
 
   constructor(props) {
@@ -204,7 +206,7 @@ class AddTeamModal extends React.Component{
       return [false, 'error', 'You may not remove players from a team that has played games'];
     }
     // fairly aribitrary limit to make sure no one does anything ridiculous
-    if(this.state.roster.length > 30) {
+    if(this.state.roster.length > maxPlayersPerTeam) {
       return [false, 'error', 'Cannot have more than 30 players on a team'];
     }
     if(this.rosterHasDups()) { return [false, 'error', 'Roster contains two or more players with the same name']; }

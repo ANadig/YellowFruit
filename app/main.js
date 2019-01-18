@@ -209,6 +209,23 @@ function newTournament(focusedWindow) {
 }
 
 /*---------------------------------------------------------
+Prompt the user to select an SQBS file from which to
+import rosters.
+---------------------------------------------------------*/
+function importRosters(focusedWindow) {
+  dialog.showOpenDialog(focusedWindow,
+    {filters: [{name: 'SQBS Tournament', extensions: ['sqbs']}]},
+    (fileNameAry) => {
+      if(fileNameAry != undefined) {
+        currentFile = fileNameAry[0]; //open dialog doesn't allow selecting multiple files
+        focusedWindow.webContents.send('importRosters', currentFile);
+        unsavedData = false;
+      }
+    }
+  );
+}
+
+/*---------------------------------------------------------
 Generic dialog modal for warning the user there is
 unsaved data.
 ---------------------------------------------------------*/
@@ -393,6 +410,67 @@ app.on('ready', function() {
   });//on confirmLossySQBS
 
   /*---------------------------------------------------------
+  If the import failed, help the user troubleshoot.
+  ---------------------------------------------------------*/
+  ipc.on('sqbsImportError', (event, lineNo) => {
+    event.returnValue = '';
+    dialog.showMessageBox(
+      appWindow,
+      {
+        type: 'error',
+        buttons: ['OK'],
+        defaultId: 0,
+        cancelId: 0,
+        title: 'YellowFruit',
+        message: 'Import failed. Encountered an error on line ' + lineNo +
+          ' of the SQBS file.'
+      }
+    );
+  });
+
+  /*---------------------------------------------------------
+  Conform that rosters were imported successfully.
+  ---------------------------------------------------------*/
+  ipc.on('rosterImportSuccess', (event, numImported, dupTeams) => {
+    event.returnValue = '';
+    var message = 'Imported ' + numImported + ' teams.\n\n';
+    if(dupTeams.length > 0) {
+      message += 'The following teams already exist and were not imported:\n\n' +
+        dupTeams.join('\n');
+    }
+    dialog.showMessageBox(
+      appWindow,
+      {
+        type: 'info',
+        buttons: ['OK'],
+        defaultId: 0,
+        cancelId: 0,
+        title: 'YellowFruit',
+        message: message
+      }
+    );
+  });
+
+  /*---------------------------------------------------------
+  Tell the user that there's nothing to import because all
+  of the teams in the sqbs file are already here.
+  ---------------------------------------------------------*/
+  ipc.on('allDupsFromSQBS', (event) => {
+    event.returnValue = '';
+    dialog.showMessageBox(
+      appWindow,
+      {
+        type: 'warning',
+        buttons: ['OK'],
+        defaultId: 0,
+        cancelId: 0,
+        title: 'YellowFruit',
+        message: 'No teams were imported because all teams in the file already exist.'
+      }
+    );
+  });
+
+  /*---------------------------------------------------------
   Set up the menu bar.
   ---------------------------------------------------------*/
   mainMenuTemplate = [
@@ -427,6 +505,12 @@ app.on('ready', function() {
           accelerator: process.platform === 'darwin' ? 'Command+N': 'Ctrl+N',
           click(item, focusedWindow) {
             newTournament(focusedWindow);
+          }
+        },
+        {
+          label: 'Import Rosters from SQBS',
+          click(item, focusedWindow) {
+            importRosters(focusedWindow);
           }
         },
         {
@@ -509,22 +593,22 @@ app.on('ready', function() {
             click (item, focusedWindow) {
               if(focusedWindow) focusedWindow.webContents.send('nextPhase');
             }
-          }//,
-          // {type: 'separator'},
-          // {
-          //   label: 'Reload',
-          //   accelerator: 'CmdOrCtrl+R',
-          //   click (item, focusedWindow) {
-          //     if (focusedWindow) focusedWindow.reload()
-          //   }
-          // },
-          // {
-          //   label: 'Toggle Developer Tools',
-          //   accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
-          //   click (item, focusedWindow) {
-          //     if (focusedWindow) focusedWindow.webContents.toggleDevTools()
-          //   }
-          // }
+          },
+          {type: 'separator'},
+          {
+            label: 'Reload',
+            accelerator: 'CmdOrCtrl+R',
+            click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.reload()
+            }
+          },
+          {
+            label: 'Toggle Developer Tools',
+            accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+            click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.webContents.toggleDevTools()
+            }
+          }
         ]
       },{
         label: '&Help',

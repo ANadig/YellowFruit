@@ -30,6 +30,8 @@ var TeamList = require('./TeamList');
 var GameList = require('./GameList');
 var StatSidebar = require('./StatSidebar');
 
+const maxPlayersPerTeam = 30;
+
 /*---------------------------------------------------------
 Equality test for two games. Probably does more work than
 necessary because round/team1/team2 should be unique
@@ -204,6 +206,9 @@ class MainInterface extends React.Component{
     ipc.on('openTournament', (event, fileName) => {
       this.loadTournament(fileName);
     });
+    ipc.on('importRosters', (event, fileName) =>  {
+      this.importRosters(fileName);
+    });
     ipc.on('saveExistingTournament', (event, fileName) => {
       this.writeJSON(fileName);
       ipc.sendSync('successfulSave');
@@ -261,6 +266,7 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('compileStatReport');
     ipc.removeAllListeners('saveTournamentAs');
     ipc.removeAllListeners('openTournament');
+    ipc.removeAllListeners('importRosters');
     ipc.removeAllListeners('saveExistingTournament');
     ipc.removeAllListeners('newTournament');
     ipc.removeAllListeners('exportHtmlReport');
@@ -326,6 +332,60 @@ class MainInterface extends React.Component{
     //the value of settingsLoadToggle doesn't matter; it just needs to change
     //in order to make the settings form load
   }
+
+  /*---------------------------------------------------------
+  Load rosters from an SQBS file. Other data is ignored.
+  ---------------------------------------------------------*/
+  importRosters(fileName) {
+    var fileString = fs.readFileSync(fileName, 'utf8');
+    if(fileString != '') {
+      var sqbsAry = fileString.split('\n');
+    }
+    var myTeams = this.state.myTeams.slice();
+    var existingTeams = myTeams.map((o) => { return o.teamName; });
+    var dupTeams = [];
+    var curLine = 0;
+    var numTeams = sqbsAry[curLine++]; // first line is number of teams
+    if(isNaN(numTeams)) {
+      ipc.sendSync('sqbsImportError', curLine);
+      return;
+    }
+    for(var i=0; i<numTeams; i++) {
+      var rosterSize = sqbsAry[curLine++] - 1; // first line of team is number of players + 1
+      if(isNaN(rosterSize)) {
+        ipc.sendSync('sqbsImportError', curLine);
+        return;
+      }
+      var teamName = sqbsAry[curLine++].trim(); // second line of team is team name
+      if(teamName == '') { continue; }
+      if(!this.validateTeamName(teamName, null)) {
+        curLine += rosterSize;
+        dupTeams.push(teamName);
+        continue;
+      }
+      var rosterAry = [];
+      for(var j=0; j<rosterSize && j<maxPlayersPerTeam; j++) {
+        var nextPlayer = sqbsAry[curLine++].trim();
+        if(!rosterAry.includes(nextPlayer)) { rosterAry.push(nextPlayer); }
+      }
+      myTeams.push({
+        teamName: teamName,
+        roster: rosterAry,
+        divisions: {}
+      });
+    }
+    var numImported = myTeams.length - this.state.myTeams.length;
+    if(numImported > 0) {
+      this.setState({
+        myTeams: myTeams
+      });
+      ipc.sendSync('rosterImportSuccess', numImported, dupTeams);
+      ipc.sendSync('unsavedData');
+    }
+    else if(dupTeams.length > 0) {
+      ipc.sendSync('allDupsFromSQBS');
+    }
+  } // importRosters
 
   /*---------------------------------------------------------
   Compile data for the data report and write it to each html
@@ -847,10 +907,7 @@ class MainInterface extends React.Component{
     var idx = _.findIndex(otherTeams, function(t) {
       return t.teamName.toLowerCase() == newTeamName.toLowerCase();
     });
-    if(idx == -1) { return [true, '', '']; }
-    else {
-      return false;
-     }
+    return idx==-1;
   }
 
   /*---------------------------------------------------------
