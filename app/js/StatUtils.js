@@ -215,7 +215,7 @@ function standingsHeader(settings) {
     '<td align=right><b>BBPts</b></td>' + '\n' +
     '<td align=right><b>PPBB</b></td>' + '\n';
   }
-  html += '</tr>';
+  html += '</tr>' + '\n';
   return html;
 }
 
@@ -226,7 +226,7 @@ function standingsRow(teamEntry, rank, fileStart, settings) {
   var linkId = teamEntry.teamName.replace(/\W/g, '');
   var rowHtml = '<tr>';
   rowHtml += '<td align=left>' + rank + '</td>' + '\n';
-  rowHtml += '<td align=left>' + '<a href=\"' + fileStart + 'teamdetail.html#' + linkId + '\">' +
+  rowHtml += '<td align=left>' + '<a HREF=' + fileStart + 'teamdetail.html#' + linkId + '>' +
     teamEntry.teamName + '</a>' + '</td>' + '\n';
   rowHtml += '<td align=right>' + teamEntry.wins + '</td>' + '\n';
   rowHtml += '<td align=right>' + teamEntry.losses + '</td>' + '\n';
@@ -260,7 +260,7 @@ function standingsRow(teamEntry, rank, fileStart, settings) {
     rowHtml += '<td align=right>' + teamEntry.bbPts + '</td>' + '\n';
     rowHtml += '<td align=right>' + teamEntry.ppbb + '</td>' + '\n';
   }
-  return rowHtml + '</tr>';
+  return rowHtml + '</tr>' + '\n';
 }
 
 /*---------------------------------------------------------
@@ -411,7 +411,7 @@ function individualsHeader(usingDivisions, settings) {
   }
   html += '<td align=right><b>Pts</b></td>' + '\n' +
     '<td align=right><b>PPG</b></td>' + '\n' +
-    '</tr>';
+    '</tr>' + '\n';
   return html;
 }
 
@@ -423,7 +423,7 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings) 
     playerEntry.playerName.replace(/\W/g, '');
   var rowHtml = '<tr>' + '\n';
   rowHtml += '<td align=left>' + rank + '</td>' + '\n';
-  rowHtml += '<td align=left><a href=\"' + fileStart + 'playerdetail.html#' + linkId + '\">' +
+  rowHtml += '<td align=left><a HREF=' + fileStart + 'playerdetail.html#' + linkId + '>' +
     playerEntry.playerName + '</a></td>' + '\n';
   rowHtml += '<td align=left>' + playerEntry.teamName + '</td>' + '\n';
   if(usingDivisions) {
@@ -449,7 +449,7 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings) 
   }
   rowHtml += '<td align=right>' + playerEntry.points + '</td>' + '\n';
   rowHtml += '<td align=right>' + playerEntry.ppg + '</td>' + '\n';
-  return rowHtml + '</tr>';
+  return rowHtml + '</tr>' + '\n';
 }
 
 /*---------------------------------------------------------
@@ -558,8 +558,8 @@ function scoreboardRoundLinks(roundList, fileStart) {
   var html = '<table border=0 width=70%>' + '\n' +
     '<tr>' + '\n';
   for(var i in roundList) {
-    html += '<td><a href=\"' + fileStart + 'games.html#round-' + roundList[i] +
-      '\">' + roundList[i] + '</a></td>' + '\n';
+    html += '<td><a HREF=' + fileStart + 'games.html#round-' + roundList[i] +
+      '>' + roundList[i] + '</a></td>' + '\n';
   }
   html += '</tr>' + '\n' +
     '</table>' + '\n' +
@@ -571,7 +571,7 @@ function scoreboardRoundLinks(roundList, fileStart) {
 The title for each section of the scoreboard.
 ---------------------------------------------------------*/
 function scoreboardRoundHeader(roundNo) {
-  return '<h2 id=\"' + 'round-' + roundNo + '\"><font color=red>Round ' +
+  return '<h2 id=' + 'round-' + roundNo + '><font color=red>Round ' +
     roundNo + '</font></h2>' + '\n';
 }
 
@@ -599,12 +599,12 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
       var linkId = 'R' + roundNo + '-' + g.team1.replace(/\W/g, '') + '-' +
         g.team2.replace(/\W/g, '');
       if(g.forfeit) {
-        html += '<br><span id=\"' + linkId + '\"><h3>' + g.team1 +
+        html += '<br><span id=' + linkId + '><h3>' + g.team1 +
         ' defeats ' + g.team2 + ' by forfeit' + '</h3></span><br>';
       }
       else {
         // game title
-        html += '<span id=\"' + linkId + '\"><h3>';
+        html += '<span id=' + linkId + '><h3>';
         if(toNum(g.score1) >= toNum(g.score2)) {
           html += g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
         }
@@ -820,7 +820,7 @@ function teamDetailGameRow(game, whichTeam, settings, fileStart) {
   var html = '<tr>' + '\n';
   html += '<td align=left>' + game.round + '</td>' + '\n';
   html += '<td align=left>' + opponent + '</td>' + '\n';
-  html += '<td align=right><a href=\"' + fileStart + 'games.html#' + linkId + '\">' +
+  html += '<td align=right><a HREF=' + fileStart + 'games.html#' + linkId + '>' +
     result + '</a></td>' + '\n';
   html += '<td align=right>' + score + '</td>' + '\n';
   html += '<td align=right>' + opponentScore + '</td>' + '\n';
@@ -930,7 +930,7 @@ function teamDetailPlayerRow(player, fileStart, settings) {
   var linkId = player.teamName.replace(/\W/g, '') + '-' +
     player.playerName.replace(/\W/g, '');
   var html = '<tr>' + '\n';
-  html += '<td align=left><a href=\"' + fileStart + 'playerdetail.html#' + linkId + '\">' +
+  html += '<td align=left><a HREF=' + fileStart + 'playerdetail.html#' + linkId + '>' +
     player.playerName + '</a></td>' + '\n';
   html += '<td align=left>' + player.teamName + '</td>' + '\n';
   html += '<td align=right>' + player.gamesPlayed + '</td>' + '\n';
@@ -1142,21 +1142,23 @@ function roundReportRow(smry, roundNo, settings) {
 The links at the top of every page of the report.
 ---------------------------------------------------------*/
 function getStatReportTop(statKeySection, fileStart, pageTitle) {
-  return '<html>' + '\n' +
-    '<head>' + '\n' +
-    '<link rel="stylesheet" href="hsqb-style.css">' + '\n' +
+  // some tags need to be in all caps in order for HSQuizbowl to recognize the
+  // file as a valid stat report.
+  return '<HTML>' + '\n' +
+    '<HEAD>' + '\n' +
+    '<link rel="stylesheet" HREF="hsqb-style.css">' + '\n' +
     '<title>' + pageTitle + '</title>' + '\n' +
-    '</head>' + '\n' +
-    '<body>' + '\n' +
+    '</HEAD>' + '\n' +
+    '<BODY>' + '\n' +
     '<table border=0 width=100%>' + '\n' +
     '<tr>' + '\n' +
-      '<td><a href=' + fileStart + 'standings.html>Standings</a></td>' + '\n' +
-      '<td><a href=' + fileStart + 'individuals.html>Individuals</a></td>' + '\n' +
-      '<td><a href=' + fileStart + 'games.html>Scoreboard</a></td>' + '\n' +
-      '<td><a href=' + fileStart + 'teamdetail.html>Team Detail</a></td>' + '\n' +
-      '<td><a href=' + fileStart + 'playerdetail.html>Individual Detail</a></td>' + '\n' +
-      '<td><a href=' + fileStart + 'rounds.html>Round Report</a></td>' + '\n' +
-      '<td><a href=' + fileStart + 'statkey.html#' + statKeySection + '>Stat Key</a></td>' + '\n' +
+      '<td><a HREF=' + fileStart + 'standings.html>Standings</a></td>' + '\n' +
+      '<td><a HREF=' + fileStart + 'individuals.html>Individuals</a></td>' + '\n' +
+      '<td><a HREF=' + fileStart + 'games.html>Scoreboard</a></td>' + '\n' +
+      '<td><a HREF=' + fileStart + 'teamdetail.html>Team Detail</a></td>' + '\n' +
+      '<td><a HREF=' + fileStart + 'playerdetail.html>Individual Detail</a></td>' + '\n' +
+      '<td><a HREF=' + fileStart + 'rounds.html>Round Report</a></td>' + '\n' +
+      '<td><a HREF=' + fileStart + 'statkey.html#' + statKeySection + '>Stat Key</a></td>' + '\n' +
     '</tr>' + '\n' +
     '</table>' + '\n';
 }
@@ -1165,9 +1167,9 @@ function getStatReportTop(statKeySection, fileStart, pageTitle) {
 Closing tags at the end of the page.
 ---------------------------------------------------------*/
 function getStatReportBottom() {
-  return '<h5>Made with YellowFruit &#x1F34C;</h5>' + // banana emoji
-  '</body>' + '\n' +
-  '</html>';
+  return '<h5>Made with YellowFruit &#x1F34C;</h5>' + '\n' + // banana emoji
+    '</BODY>' + '\n' +
+    '</HTML>';
 }
 
 /*---------------------------------------------------------
@@ -1185,7 +1187,7 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInP
       for(var j in teamsInDiv) {
         html += standingsRow(teamsInDiv[j], parseFloat(j)+1, fileStart, settings);
       }
-      html += '\n' + '</table>' + '\n';
+      html += '</table>' + '\n';
     }
   }
   else { //not using divisions
@@ -1241,7 +1243,7 @@ function getTeamDetailHtml(teams, games, fileStart, phase, settings) {
   for(var i in teams) {
     var teamName = teams[i].teamName;
     var linkId = teamName.replace(/\W/g, '');
-    html += '<h2 id=\"' + linkId + '\">' + teams[i].teamName + '</h2>' + '\n';
+    html += '<h2 id=' + linkId + '>' + teams[i].teamName + '</h2>' + '\n';
     html += '<table border=1 width=100%>' + '\n';
     html += teamDetailGameTableHeader(settings) + '\n';
     for(var j in games) {
@@ -1287,7 +1289,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
     var indvTot = playerTotals[i];
     var linkId = indvTot.teamName.replace(/\W/g, '') + '-' +
       indvTot.playerName.replace(/\W/g, '');
-    html += '<h2 id=\"' + linkId + '\">' +
+    html += '<h2 id=' + linkId + '>' +
       indvTot.playerName + ', ' + indvTot.teamName + '</h2>' + '\n';
     html += '<table border=1 width=100%>' + '\n';
     html += playerDetailTableHeader(settings);
