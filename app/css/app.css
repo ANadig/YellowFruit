@@ -9648,6 +9648,11 @@ h6 {
 #stat-sidebar td,
 th {
   padding: 8px 5px;
+  text-align: right;
+}
+
+#stat-sidebar .text-cell {
+  text-align: left;
 }
 
 #stat-sidebar h5 {

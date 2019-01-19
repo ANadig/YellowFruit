@@ -89,7 +89,7 @@ class StatSidebar extends React.Component{
       var tiesCell = this.tiesExist() ? ( <td>{item.ties}</td> ) : null;
       return (
         <tr key={item.teamName}>
-          <td>{item.teamName}</td>
+          <td className="text-cell">{item.teamName}</td>
           <td>{item.wins}</td>
           <td>{item.losses}</td>
           {tiesCell}
@@ -107,7 +107,7 @@ class StatSidebar extends React.Component{
         <table className="striped">
           <thead>
             <tr>
-              <th>Team</th>
+              <th className="text-cell">Team</th>
               <th>W</th>
               <th>L</th>
               {tiesThCell}

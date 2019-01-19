@@ -83,6 +83,11 @@ h1, h2, h3, h4, h5, h6 {
 
 #stat-sidebar td, th {
   padding: 8px 5px;
+  text-align: right;
+}
+
+#stat-sidebar .text-cell {
+  text-align: left;
 }
 
 #stat-sidebar h5 {
