@@ -426,40 +426,56 @@ class MainInterface extends React.Component{
     var filePathSegments = fileStart.split(/[\\\/]/);
     var endFileStart = filePathSegments.pop();
 
+    var t0 = new Date();
     var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, phaseToGroupBy, divsInPhase, this.state.settings);
     fs.writeFile(standingsLocation, standingsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - standings
+    var t1 = new Date();
     var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, phaseToGroupBy, usingDivisions, this.state.settings);
     fs.writeFile(individualsLocation, individualsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individuals
+    var t2 = new Date();
     var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, this.state.settings);
     fs.writeFile(scoreboardLocation, scoreboardHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - scoreboard
+    var t3 = new Date();
     var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, this.state.settings);
     fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - team detail
+    var t4 = new Date();
     var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, this.state.settings);
     fs.writeFile(playerDetailLocation, playerDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individual Detail
+    var t5 = new Date();
     var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, this.state.settings);
     fs.writeFile(roundReportLocation, roundReportHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - round report
+    var t6 = new Date();
     var statKeyHtml = getStatKeyHtml(endFileStart);
     fs.writeFile(statKeyLocation, statKeyHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - stat key
+    var t7 = new Date();
+    // console.log(t1-t0);
+    // console.log(t2-t1);
+    // console.log(t3-t2);
+    // console.log(t4-t3);
+    // console.log(t5-t4);
+    // console.log(t6-t5);
+    // console.log(t7-t6);
+    ipc.sendSync('statReportReady');
   } //writeStatReport
 
   /*---------------------------------------------------------

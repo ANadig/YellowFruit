@@ -190,13 +190,13 @@ class SettingsForm extends React.Component{
           tempPhaseAssns[i] = '';
         }
       }
+      this.props.saveDivisions(tempPhases, this.state.divisions, tempPhaseAssns);
       this.setState({
         editingPhases: false,
         phases: tempPhases,
         phaseAssignments: tempPhaseAssns,
-        numberOfSavedPhases: tempPhases.length
+        numberOfSavedPhases: tempPhases.length,
       });
-      this.props.saveDivisions(tempPhases, this.state.divisions, tempPhaseAssns);
     }
   } //phaseToggle
 
@@ -225,6 +225,7 @@ class SettingsForm extends React.Component{
       tempDivs = _.without(tempDivs, '');
       tempPhaseAssns = _.without(tempPhaseAssns, 'zzzToDelete');
       tempPhaseAssns = tempPhaseAssns.map((x)=>{ return x=='nullPhase' ? '' : x; });
+      this.props.saveDivisions(this.state.phases, tempDivs, tempPhaseAssns);
       var newDefaultPhase = this.state.defaultPhase;
       if(this.state.phases.length > 0 && this.state.defaultPhase == 'noPhase') {
         newDefaultPhase = this.state.phases[0];
@@ -235,9 +236,6 @@ class SettingsForm extends React.Component{
         editingDivisions: false,
         defaultPhase: newDefaultPhase
       });
-      // console.log(tempDivs);
-      // console.log(tempPhaseAssns);
-      this.props.saveDivisions(this.state.phases, tempDivs, tempPhaseAssns);
     }
   } //divisionToggle
 

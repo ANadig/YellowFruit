@@ -36,8 +36,10 @@ reload and focus it.
 ---------------------------------------------------------*/
 function showReportWindow() {
   if(reportWindow != undefined && !reportWindow.isDestroyed()) {
+
+    // reportWindow.reload();
+    reportWindow.loadURL('file://' + __dirname + '/report_load_spinner.html');
     reportWindow.focus();
-    reportWindow.reload();
   }
   else {
     reportWindow = new BrowserWindow({
@@ -48,7 +50,8 @@ function showReportWindow() {
       icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
     }); //reportWindow
 
-    reportWindow.loadURL('file://' + __dirname + '/standings.html');
+    // reportWindow.loadURL('file://' + __dirname + '/standings.html');
+    reportWindow.loadURL('file://' + __dirname + '/report_load_spinner.html');
     reportWindow.setMenu(reportMenu);
 
     reportWindow.once('ready-to-show', function () { reportWindow.show(); });
@@ -358,6 +361,18 @@ app.on('ready', function() {
   });
 
   /*---------------------------------------------------------
+  Load the html report once the renderer process has finished
+  writing the files
+  ---------------------------------------------------------*/
+  ipc.on('statReportReady', (event) => {
+    event.returnValue = '';
+    if(reportWindow != undefined) {
+      reportWindow.focus();
+      reportWindow.loadURL('file://' + __dirname + '/standings.html');
+    }
+  });
+
+  /*---------------------------------------------------------
   When the user tries to delete a game, prompt them to
   confirm that they want to do this.
   ---------------------------------------------------------*/
@@ -592,22 +607,22 @@ app.on('ready', function() {
             click (item, focusedWindow) {
               if(focusedWindow) focusedWindow.webContents.send('nextPhase');
             }
-          }//,
+          },
           {type: 'separator'},
-          // {
-          //   label: 'Reload',
-          //   accelerator: 'CmdOrCtrl+R',
-          //   click (item, focusedWindow) {
-          //     if (focusedWindow) focusedWindow.reload()
-          //   }
-          // },
-          // {
-          //   label: 'Toggle Developer Tools',
-          //   accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
-          //   click (item, focusedWindow) {
-          //     if (focusedWindow) focusedWindow.webContents.toggleDevTools()
-          //   }
-          // }
+          {
+            label: 'Reload',
+            accelerator: 'CmdOrCtrl+R',
+            click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.reload()
+            }
+          },
+          {
+            label: 'Toggle Developer Tools',
+            accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+            click (item, focusedWindow) {
+              if (focusedWindow) focusedWindow.webContents.toggleDevTools()
+            }
+          }
         ]
       },{
         label: '&Help',
