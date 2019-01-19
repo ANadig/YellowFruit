@@ -221,7 +221,21 @@ function importRosters(focusedWindow) {
     (fileNameAry) => {
       if(fileNameAry != undefined) {
         focusedWindow.webContents.send('importRosters', fileNameAry[0]);
-        unsavedData = false;
+      }
+    }
+  );
+}
+
+/*---------------------------------------------------------
+Prompt the user to select a YellowFruit tournament to
+merge into the current file.
+---------------------------------------------------------*/
+function mergeTournament(focusedWindow) {
+  dialog.showOpenDialog(focusedWindow,
+    {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
+    (fileNameAry) => {
+      if(fileNameAry != undefined) {
+        focusedWindow.webContents.send('mergeTournament', fileNameAry[0]);
       }
     }
   );
@@ -435,7 +449,7 @@ app.on('ready', function() {
         buttons: ['OK'],
         defaultId: 0,
         cancelId: 0,
-        title: 'YellowFruit',
+        title: 'Import error',
         message: 'Import failed. Encountered an error on line ' + lineNo +
           ' of the SQBS file.'
       }
@@ -459,7 +473,7 @@ app.on('ready', function() {
         buttons: ['OK'],
         defaultId: 0,
         cancelId: 0,
-        title: 'YellowFruit',
+        title: 'Successful import',
         message: message
       }
     );
@@ -485,6 +499,51 @@ app.on('ready', function() {
   });
 
   /*---------------------------------------------------------
+  Show a message explaining why the merge failed.
+  ---------------------------------------------------------*/
+  ipc.on('mergeError', (event, errorString) => {
+    event.returnValue = '';
+    dialog.showMessageBox(
+      appWindow,
+      {
+        type: 'error',
+        buttons: ['OK'],
+        defaultId: 0,
+        cancelId: 0,
+        title: 'Merge error',
+        message: 'Tournaments were not merged:\n\n' + errorString
+      }
+    );
+  });
+
+  /*---------------------------------------------------------
+  Show a summary of the merge.
+  ---------------------------------------------------------*/
+  ipc.on('successfulMerge', (event, newTeamCount, newGameCount, conflictGames) => {
+    event.returnValue = '';
+    var mergeSummary = 'Added ' + newTeamCount + ' new teams and ' + newGameCount +
+      ' new games.';
+    if(conflictGames.length > 0) {
+      mergeSummary += '\n\nThe following games already exist and were not added:\n\n';
+      for(var i in conflictGames) {
+        var g = conflictGames[i];
+        mergeSummary += 'Round ' + g.round + ': ' + g.team1 + ' vs. ' + g.team2 + '\n';
+      }
+    }
+    dialog.showMessageBox(
+      appWindow,
+      {
+        type: 'info',
+        buttons: ['OK'],
+        defaultId: 0,
+        cancelId: 0,
+        title: 'Successful merge',
+        message: mergeSummary
+      }
+    );
+  });
+
+  /*---------------------------------------------------------
   Set up the menu bar.
   ---------------------------------------------------------*/
   mainMenuTemplate = [
@@ -493,7 +552,7 @@ app.on('ready', function() {
       submenu: [
         {
           label: 'View Full Report',
-          accelerator: process.platform === 'darwin' ? 'Command+I': 'Ctrl+I',
+          accelerator: 'CmdOrCtrl+I',
           click(item, focusedWindow) {
             focusedWindow.webContents.send('compileStatReport');
             showReportWindow();
@@ -501,14 +560,14 @@ app.on('ready', function() {
         },
         {
           label: 'Export Full Report',
-          accelerator: process.platform === 'darwin' ? 'Command+U': 'Ctrl+U',
+          accelerator: 'CmdOrCtrl+U',
           click(item, focusedWindow) {
             exportHtmlReport(focusedWindow);
           }
         },
         {
           label: 'Export as SQBS',
-          accelerator: process.platform === 'darwin' ? 'Command+Y': 'Ctrl+Y',
+          accelerator: 'CmdOrCtrl+Y',
           click(item, focusedWindow) {
             trySqbsExport(focusedWindow);
           }
@@ -516,7 +575,7 @@ app.on('ready', function() {
         {type: 'separator'},
         {
           label: 'New Tournament',
-          accelerator: process.platform === 'darwin' ? 'Command+N': 'Ctrl+N',
+          accelerator: 'CmdOrCtrl+N',
           click(item, focusedWindow) {
             newTournament(focusedWindow);
           }
@@ -528,8 +587,14 @@ app.on('ready', function() {
           }
         },
         {
+          label: 'Merge Tournament',
+          click(item, focusedWindow) {
+            mergeTournament(focusedWindow);
+          }
+        },
+        {
           label: 'Open',
-          accelerator: process.platform === 'darwin' ? 'Command+O': 'Ctrl+O',
+          accelerator: 'CmdOrCtrl+O',
           click(item, focusedWindow) {
             openTournament(focusedWindow);
           }
@@ -542,7 +607,7 @@ app.on('ready', function() {
         },
         {
           label: 'Save',
-          accelerator: process.platform === 'darwin' ? 'Command+S':'Ctrl+S',
+          accelerator: 'CmdOrCtrl+S',
           click(item, focusedWindow) {
             saveExistingTournament(focusedWindow);
           }
@@ -555,14 +620,14 @@ app.on('ready', function() {
       submenu: [
         {
           label: 'Add Team',
-          accelerator: process.platform === 'darwin' ? 'Command+T':'Ctrl+T',
+          accelerator: 'CmdOrCtrl+T',
           click(item,focusedWindow) {
             if (focusedWindow == appWindow) focusedWindow.webContents.send('addTeam');
           }
         },
         {
           label: 'Add Game',
-          accelerator: process.platform === 'darwin' ? 'Command+G':'Ctrl+G',
+          accelerator: 'CmdOrCtrl+G',
           click(item,focusedWindow) {
             if (focusedWindow == appWindow) focusedWindow.webContents.send('addGame');
           }

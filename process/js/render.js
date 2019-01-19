@@ -32,79 +32,6 @@ var StatSidebar = require('./StatSidebar');
 
 const maxPlayersPerTeam = 30;
 
-/*---------------------------------------------------------
-Equality test for two games. Probably does more work than
-necessary because round/team1/team2 should be unique
----------------------------------------------------------*/
-function gameEqual(g1, g2) {
-  if((g1 == undefined && g2 != undefined) || (g1 != undefined && g2 == undefined)) {
-    return false;
-  }
-  return g1.round == g2.round && g1.tuhtot == g2.tuhtot &&
-    g1.ottu == g2.ottu && g1.forfeit == g2.forfeit && g1.team1 == g2.team1 &&
-    g1.team2 == g2.team2 && g1.score1 == g2.score1 && g1.score2 == g2.score2 &&
-    g1.notes == g2.notes;
-}
-
-/*---------------------------------------------------------
-Generate the data necessary for showing the abbreviated
-standings table in the sidebar
----------------------------------------------------------*/
-function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase, settings) {
-  var summary = myTeams.map(function(item, index) {
-    var obj =
-      { teamName: item.teamName,
-        division: item.divisions[groupingPhase], //could be 'noPhase'
-        wins: 0,
-        losses: 0,
-        ties: 0,
-        points: 0,
-        bHeard: 0,
-        bPts: 0,
-        forfeits: 0,
-      };
-    return obj;
-  }); //map
-  for(var i in myGames) {
-    var g = myGames[i];
-    if(gamesPhase == 'all' || g.phases.includes(gamesPhase)) {
-      var idx1 = _.findIndex(summary, function (o) {
-        return o.teamName == g.team1;
-      });
-      var idx2 = _.findIndex(summary, function (o) {
-        return o.teamName == g.team2;
-      });
-      if(g.forfeit) { //team1 is by default the winner of a forfeit
-        summary[idx1].wins += 1;
-        summary[idx2].losses += 1;
-        summary[idx1].forfeits += 1;
-        summary[idx2].forfeits += 1;
-      }
-      else { //not a forfeit
-        if(+g.score1 > +g.score2) {
-          summary[idx1].wins += 1;
-          summary[idx2].losses += 1;
-        }
-        else if(+g.score2 > +g.score1) {
-          summary[idx1].losses += 1;
-          summary[idx2].wins += 1;
-        }
-        else { //it's a tie
-          summary[idx1].ties += 1;
-          summary[idx2].ties += 1;
-        }
-        summary[idx1].points += parseFloat(g.score1) - otPoints(g, 1, settings);
-        summary[idx2].points += parseFloat(g.score2) - otPoints(g, 2, settings);
-        summary[idx1].bHeard += bonusesHeard(g,1);
-        summary[idx2].bHeard += bonusesHeard(g,2);
-        summary[idx1].bPts += bonusPoints(g,1,settings);
-        summary[idx2].bPts += bonusPoints(g,2,settings);
-      }//else not a forfeit
-    }//if game is in phase
-  }//loop over games
-  return summary;
-}
-
 
 class MainInterface extends React.Component{
 
@@ -209,6 +136,9 @@ class MainInterface extends React.Component{
     ipc.on('importRosters', (event, fileName) =>  {
       this.importRosters(fileName);
     });
+    ipc.on('mergeTournament', (event, fileName) => {
+      this.mergeTournament(fileName);
+    });
     ipc.on('saveExistingTournament', (event, fileName) => {
       this.writeJSON(fileName);
       ipc.sendSync('successfulSave');
@@ -267,6 +197,7 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('saveTournamentAs');
     ipc.removeAllListeners('openTournament');
     ipc.removeAllListeners('importRosters');
+    ipc.removeAllListeners('mergeTournament');
     ipc.removeAllListeners('saveExistingTournament');
     ipc.removeAllListeners('newTournament');
     ipc.removeAllListeners('exportHtmlReport');
@@ -392,6 +323,85 @@ class MainInterface extends React.Component{
   } // importRosters
 
   /*---------------------------------------------------------
+  Merge the tournament in fileName into this one.
+  ---------------------------------------------------------*/
+  mergeTournament(fileName) {
+    var fileString = fs.readFileSync(fileName, 'utf8');
+    if(fileString != '') {
+      var [loadSettings, loadDivisions, loadTeams, loadGames] = fileString.split('\ndivider_between_sections\n', 4);
+      loadSettings = JSON.parse(loadSettings);
+      loadDivisions = JSON.parse(loadDivisions);
+      loadTeams = JSON.parse(loadTeams);
+      loadGames = JSON.parse(loadGames);
+    }
+    // check settings
+    if(!settingsEqual(loadSettings, this.state.settings)) {
+      ipc.sendSync('mergeError', 'Tournaments with different settings cannot be merged');
+      return;
+    }
+    // merge divisions
+    var divisionsCopy = $.extend(true, {}, this.state.divisions);
+    for(var p in loadDivisions) {
+      if(divisionsCopy[p] == undefined) {
+        divisionsCopy[p] = loadDivisions[p];
+      }
+      else {
+        for(var i in loadDivisions[p]) {
+          if(!divisionsCopy[p].includes(loadDivisions[p][i])) {
+            divisionsCopy[p].push(loadDivisions[p][i]);
+          }
+        }
+      }
+    }
+    // merge teams
+    var teamsCopy = this.state.myTeams.slice();
+    var newTeamCount = 0;
+    for(var i in loadTeams) {
+      var newTeam = loadTeams[i];
+      var oldTeam = teamsCopy.find((t) => { return t.teamName == newTeam.teamName; });
+      if(oldTeam == undefined) {
+        teamsCopy.push(newTeam);
+        newTeamCount++;
+      }
+      else {
+        // merge rosters
+        for(var j in newTeam.roster) {
+          if(!oldTeam.roster.includes(newTeam.roster[j])) {
+            oldTeam.roster.push(newTeam.roster[j]);
+          }
+        }
+        // merge division assignments
+        for(var p in newTeam.divisions) {
+          if(oldTeam.divisions[p] == undefined) {
+            oldTeam.divisions[p] = newTeam.divisions[p];
+          }
+        }
+      }
+    }
+    // merge games
+    var gamesCopy = this.state.myGames.slice();
+    var newGameCount = 0;
+    var conflictGames = [];
+    for(var i in loadGames) {
+      var newGame = loadGames[i];
+      var oldGame = gamesCopy.find((g) => { return g.team1==newGame.team1 && g.team2==newGame.team2 && g.round==newGame.round; });
+      if(oldGame == undefined) {
+        gamesCopy.push(newGame);
+        newGameCount++;
+      }
+      else { conflictGames.push(newGame); }
+    }
+    this.setState({
+      divisions: divisionsCopy,
+      myTeams: teamsCopy,
+      myGames: gamesCopy,
+      settingsLoadToggle: !this.state.settingsLoadToggle
+    });
+    ipc.sendSync('unsavedData');
+    ipc.sendSync('successfulMerge', newTeamCount, newGameCount, conflictGames);
+  } // mergeTournament
+
+  /*---------------------------------------------------------
   Compile data for the data report and write it to each html
   file.
   fileStart is null when generating the files for the report
@@ -426,55 +436,40 @@ class MainInterface extends React.Component{
     var filePathSegments = fileStart.split(/[\\\/]/);
     var endFileStart = filePathSegments.pop();
 
-    var t0 = new Date();
     var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, phaseToGroupBy, divsInPhase, this.state.settings);
     fs.writeFile(standingsLocation, standingsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - standings
-    var t1 = new Date();
     var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, phaseToGroupBy, usingDivisions, this.state.settings);
     fs.writeFile(individualsLocation, individualsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individuals
-    var t2 = new Date();
     var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, this.state.settings);
     fs.writeFile(scoreboardLocation, scoreboardHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - scoreboard
-    var t3 = new Date();
     var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, this.state.settings);
     fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - team detail
-    var t4 = new Date();
     var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, this.state.settings);
     fs.writeFile(playerDetailLocation, playerDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individual Detail
-    var t5 = new Date();
     var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, this.state.settings);
     fs.writeFile(roundReportLocation, roundReportHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - round report
-    var t6 = new Date();
     var statKeyHtml = getStatKeyHtml(endFileStart);
     fs.writeFile(statKeyLocation, statKeyHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - stat key
-    var t7 = new Date();
-    // console.log(t1-t0);
-    // console.log(t2-t1);
-    // console.log(t3-t2);
-    // console.log(t4-t3);
-    // console.log(t5-t4);
-    // console.log(t6-t5);
-    // console.log(t7-t6);
     ipc.sendSync('statReportReady');
   } //writeStatReport
 

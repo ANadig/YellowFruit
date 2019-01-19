@@ -1,5 +1,96 @@
 
+/*---------------------------------------------------------
+Merge two arrays of strings, ignoring case and whitespace
+---------------------------------------------------------*/
+function mergeArrays(a,b) {
+  aLower = a.map((x) => { return x.trim().toLowerCase(); });
+  bLower = b.map((x) => { return x.trim().toLowerCase(); });
+  for(var i in b) {
+    if(aLower.includes(bLower[i])) { a.push(b[i]); }
+  }
+  return a;
+}
 
+/*---------------------------------------------------------
+Equality test for settings objects
+---------------------------------------------------------*/
+function settingsEqual(s1, s2) {
+  return s1.powers == s2.powers && s1.negs == s2.negs &&
+    s1.bonuses == s2.bonuses && s1.playersPerTeam == s2.playersPerTeam;
+}
+
+/*---------------------------------------------------------
+Equality test for two games. Probably does more work than
+necessary because round/team1/team2 should be unique
+---------------------------------------------------------*/
+function gameEqual(g1, g2) {
+  if((g1 == undefined && g2 != undefined) || (g1 != undefined && g2 == undefined)) {
+    return false;
+  }
+  return g1.round == g2.round && g1.tuhtot == g2.tuhtot &&
+    g1.ottu == g2.ottu && g1.forfeit == g2.forfeit && g1.team1 == g2.team1 &&
+    g1.team2 == g2.team2 && g1.score1 == g2.score1 && g1.score2 == g2.score2 &&
+    g1.notes == g2.notes;
+}
+
+/*---------------------------------------------------------
+Generate the data necessary for showing the abbreviated
+standings table in the sidebar
+---------------------------------------------------------*/
+function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase, settings) {
+  var summary = myTeams.map(function(item, index) {
+    var obj =
+      { teamName: item.teamName,
+        division: item.divisions[groupingPhase], //could be 'noPhase'
+        wins: 0,
+        losses: 0,
+        ties: 0,
+        points: 0,
+        bHeard: 0,
+        bPts: 0,
+        forfeits: 0,
+      };
+    return obj;
+  }); //map
+  for(var i in myGames) {
+    var g = myGames[i];
+    if(gamesPhase == 'all' || g.phases.includes(gamesPhase)) {
+      var idx1 = _.findIndex(summary, function (o) {
+        return o.teamName == g.team1;
+      });
+      var idx2 = _.findIndex(summary, function (o) {
+        return o.teamName == g.team2;
+      });
+      if(g.forfeit) { //team1 is by default the winner of a forfeit
+        summary[idx1].wins += 1;
+        summary[idx2].losses += 1;
+        summary[idx1].forfeits += 1;
+        summary[idx2].forfeits += 1;
+      }
+      else { //not a forfeit
+        if(+g.score1 > +g.score2) {
+          summary[idx1].wins += 1;
+          summary[idx2].losses += 1;
+        }
+        else if(+g.score2 > +g.score1) {
+          summary[idx1].losses += 1;
+          summary[idx2].wins += 1;
+        }
+        else { //it's a tie
+          summary[idx1].ties += 1;
+          summary[idx2].ties += 1;
+        }
+        summary[idx1].points += parseFloat(g.score1) - otPoints(g, 1, settings);
+        summary[idx2].points += parseFloat(g.score2) - otPoints(g, 2, settings);
+        summary[idx1].bHeard += bonusesHeard(g,1);
+        summary[idx2].bHeard += bonusesHeard(g,2);
+        summary[idx1].bPts += bonusPoints(g,1,settings);
+        summary[idx2].bPts += bonusPoints(g,2,settings);
+      }//else not a forfeit
+    }//if game is in phase
+  }//loop over games
+  return summary;
+}
 
 
 // generate the old SQBS-style game summaries. Not currently used.
