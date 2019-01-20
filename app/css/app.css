@@ -9646,7 +9646,7 @@ h6 {
 }
 
 #stat-sidebar td,
-th {
+#stat-sidebar th {
   padding: 8px 5px;
   text-align: right;
 }
@@ -10007,10 +10007,6 @@ th {
   font-weight: bold;
   color: #616161;
   font-size: 1.3em;
-}
-
-.collection-item .game-name .winner {
-  text-decoration: underline;
 }
 
 .hotkey-underline {

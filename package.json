@@ -1,6 +1,6 @@
 {
   "name": "YellowFruit",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "QB Stats Program",
   "scripts": {
     "pack": "electron-packager . YellowFruit --out C:/Users/awnad/Desktop --overwrite --icon ./icons/banana",

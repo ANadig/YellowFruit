@@ -81,7 +81,7 @@ h1, h2, h3, h4, h5, h6 {
   bottom: 0;
 }
 
-#stat-sidebar td, th {
+#stat-sidebar td, #stat-sidebar th {
   padding: 8px 5px;
   text-align: right;
 }
@@ -441,10 +441,6 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: bold;
   color: #616161;
   font-size: 1.3em;
-}
-
-.collection-item .game-name .winner {
-  text-decoration: underline;
 }
 
 .hotkey-underline {

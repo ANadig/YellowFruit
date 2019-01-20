@@ -499,7 +499,7 @@ class MainInterface extends React.Component{
         if(toNum(g.players1[p].tuh) > 0) { playerCount++; }
       }
       if(playerCount > 8) {
-        badGameAry.push('Round ' + g.round + ': ' + g.team1 + " vs " + g.team2);
+        badGameAry.push('Round ' + g.round + ': ' + g.team1 + " vs. " + g.team2);
         continue;
       }
       playerCount = 0;
@@ -507,7 +507,7 @@ class MainInterface extends React.Component{
         if(toNum(g.players2[p].tuh) > 0) { playerCount++; }
       }
       if(playerCount > 8) {
-        badGameAry.push('Round ' + g.round + ': ' + g.team1 + " vs " + g.team2);
+        badGameAry.push('Round ' + g.round + ': ' + g.team1 + " vs. " + g.team2);
       }
     }
     return badGameAry;
@@ -1301,7 +1301,6 @@ class MainInterface extends React.Component{
 
     //sort and filter teams
     if (activePane == 'teamsPane') {
-      filteredGames = myGames; // don't filter games
       //Filter list of teams
       for (var i = 0; i < myTeams.length; i++) {
         if (
@@ -1328,7 +1327,6 @@ class MainInterface extends React.Component{
 
     //sort and filter games
     else if (activePane == 'gamesPane') {
-      filteredTeams = myTeams; // don't filter teams
       //Filter list of games
       for (var i = 0; i < myGames.length; i++) {
         if (this.noPhaseQuery(queryText, myGames[i]) ||

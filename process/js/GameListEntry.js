@@ -52,46 +52,28 @@ class GameListEntry extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Return an array containing round, teams, scores, and
-  overtime status, e.g.
-  ['Central A 310', ', ', 'Memorial A 250', ' (OT)']
+  Return a string containing the game score
   ---------------------------------------------------------*/
-  getScoreStrings(){
-    var strAry = ['Round ' + this.props.singleItem.round + ': '];
+  getScoreString(){
+    var output = 'Round ' + this.props.singleItem.round + ': ';
     if(this.props.singleItem.forfeit) {
-      strAry[1] = this.props.singleItem.team1;
-      strAry[2] = ' defeats '
-      strAry[3] = this.props.singleItem.team2;
-      strAry[4] = ' by forfeit';
-      return strAry;
+      return output + this.props.singleItem.team1 + ' defeats ' + this.props.singleItem.team2 + ' by forfeit';
     }
     //else not a forfeit
-    strAry[1] = this.props.singleItem.team1 + " " + this.props.singleItem.score1;
-    strAry[2] = ', ';
-    strAry[3] = this.props.singleItem.team2 + " " + this.props.singleItem.score2;
-    if(this.props.singleItem.ottu > 0) {
-      strAry[4] = ' (OT)';
+    var winner, loser;
+    if(+this.props.singleItem.score1 >= +this.props.singleItem.score2) {
+      winner = this.props.singleItem.team1 + " " + this.props.singleItem.score1
+      loser = this.props.singleItem.team2 + " " + this.props.singleItem.score2
     }
     else {
-      strAry[4] = '';
+      winner = this.props.singleItem.team2 + " " + this.props.singleItem.score2
+      loser = this.props.singleItem.team1 + " " + this.props.singleItem.score1
     }
-    return strAry;
-  }
-
-  /*---------------------------------------------------------
-  Add formatting to team1 if they won.
-  ---------------------------------------------------------*/
-  team1Format() {
-    if(this.props.singleItem.forfeit) return 'winner';
-    return +this.props.singleItem.score1 > +this.props.singleItem.score2 ? 'winner' : '';
-  }
-
-  /*---------------------------------------------------------
-  Add formatting to team2 if they won.
-  ---------------------------------------------------------*/
-  team2Format() {
-    if(this.props.singleItem.forfeit) return '';
-    return +this.props.singleItem.score2 > +this.props.singleItem.score1 ? 'winner' : '';
+    output += winner + ', ' + loser;
+    if(this.props.singleItem.ottu > 0) {
+      output += ' (OT)';
+    }
+    return output;
   }
 
   /*---------------------------------------------------------
@@ -134,7 +116,7 @@ class GameListEntry extends React.Component{
 
 
   render() {
-    var scoreStrings = this.getScoreStrings();
+    var scoreString = this.getScoreString();
     var phaseChips = [];
     var colorNo = 0;
     // phase chips
@@ -162,11 +144,7 @@ class GameListEntry extends React.Component{
         <div>
           {checkbox}
           <div className="game-name">
-            {scoreStrings[0]}
-            <span className={this.team1Format()}>{scoreStrings[1]}</span>
-            {scoreStrings[2]}
-            <span className={this.team2Format()}>{scoreStrings[3]}</span>
-            {scoreStrings[4]}
+            {scoreString}
           </div>
           &emsp;{phaseChips}
           <button className="btn-flat item-edit" title="Edit this game" onClick={this.editGame}>
