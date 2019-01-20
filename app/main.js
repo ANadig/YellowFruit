@@ -36,8 +36,6 @@ reload and focus it.
 ---------------------------------------------------------*/
 function showReportWindow() {
   if(reportWindow != undefined && !reportWindow.isDestroyed()) {
-
-    // reportWindow.reload();
     reportWindow.loadURL('file://' + __dirname + '/report_load_spinner.html');
     reportWindow.focus();
   }
@@ -672,22 +670,22 @@ app.on('ready', function() {
             click (item, focusedWindow) {
               if(focusedWindow) focusedWindow.webContents.send('nextPhase');
             }
-          },
-          {type: 'separator'},
-          {
-            label: 'Reload',
-            accelerator: 'CmdOrCtrl+R',
-            click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.reload()
-            }
-          },
-          {
-            label: 'Toggle Developer Tools',
-            accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
-            click (item, focusedWindow) {
-              if (focusedWindow) focusedWindow.webContents.toggleDevTools()
-            }
-          }
+          }//,
+          // {type: 'separator'},
+          // {
+          //   label: 'Reload',
+          //   accelerator: 'CmdOrCtrl+R',
+          //   click (item, focusedWindow) {
+          //     if (focusedWindow) focusedWindow.reload()
+          //   }
+          // },
+          // {
+          //   label: 'Toggle Developer Tools',
+          //   accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+          //   click (item, focusedWindow) {
+          //     if (focusedWindow) focusedWindow.webContents.toggleDevTools()
+          //   }
+          // }
         ]
       },{
         label: '&Help',

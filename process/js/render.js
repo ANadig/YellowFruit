@@ -222,9 +222,9 @@ class MainInterface extends React.Component{
   Filename: the file to write to
   ---------------------------------------------------------*/
   writeJSON(fileName) {
-    var fileString = JSON.stringify(this.state.settings) + '\ndivider_between_sections\n' +
-      JSON.stringify(this.state.divisions) + '\ndivider_between_sections\n' +
-      JSON.stringify(this.state.myTeams) + '\ndivider_between_sections\n' +
+    var fileString = JSON.stringify(this.state.settings) + '\n' +
+      JSON.stringify(this.state.divisions) + '\n' +
+      JSON.stringify(this.state.myTeams) + '\n' +
       JSON.stringify(this.state.myGames);
     fs.writeFile(fileName, fileString, 'utf8', function(err) {
       if (err) { console.log(err); }
@@ -240,8 +240,10 @@ class MainInterface extends React.Component{
   ---------------------------------------------------------*/
   loadTournament(fileName) {
     var fileString = fs.readFileSync(fileName, 'utf8');
+    // compatibility with previous file format. Who knows why I thought this was necessary
+    for(var i=1; i<=3; i++) { fileString = fileString.replace('divider_between_sections\n',''); }
     if(fileString != '') {
-      var [loadSettings, loadDivisions, loadTeams, loadGames] = fileString.split('\ndivider_between_sections\n', 4);
+      var [loadSettings, loadDivisions, loadTeams, loadGames] = fileString.split('\n', 4);
       loadSettings = JSON.parse(loadSettings);
       loadDivisions = JSON.parse(loadDivisions);
       loadTeams = JSON.parse(loadTeams);
