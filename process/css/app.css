@@ -170,7 +170,7 @@ h1, h2, h3, h4, h5, h6 {
   padding-left: 2rem;
 }
 
-.settings-phases i {
+.default-phase {
   vertical-align: bottom;
   font-size: 1.5rem;
 }

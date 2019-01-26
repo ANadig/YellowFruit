@@ -606,7 +606,7 @@ class SettingsForm extends React.Component{
       var phaseList = this.state.phases.map((phaseName, idx) => {
         if(this.state.divisions.length > 0) {
           var icon = this.state.defaultPhase == phaseName ?
-            ( <i className="material-icons" title={defPhaseTooltip}>playlist_add_check</i> ) : null;
+            ( <i className="material-icons default-phase" title={defPhaseTooltip}>playlist_add_check</i> ) : null;
           return (
             <li key={idx}>
               <a onClick={this.setDefaultGrouping} name={phaseName}

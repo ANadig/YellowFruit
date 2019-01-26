@@ -402,7 +402,7 @@ function individualsHeader(usingDivisions, settings) {
     html += '<td align=right><b>-5</b></td>' + '\n';
   }
   html += '<td align=right><b>TUH</b></td>' + '\n' +
-    '<td align=right><b>P/TU</b></td>' + '\n';
+    '<td align=right><b>PPTUH</b></td>' + '\n';
   if(settings.powers != 'none' && settings.negs == 'yes') {
     html += '<td align=right><b>Pwr/N</b></td>' + '\n';
   }
@@ -910,7 +910,7 @@ function teamDetailPlayerTableHeader(settings) {
     html += '<td align=right><b>-5</b></td>' + '\n';
   }
   html += '<td align=right><b>TUH</b></td>' + '\n' +
-    '<td align=right><b>P/TU</b></td>' + '\n';
+    '<td align=right><b>PPTUH</b></td>' + '\n';
   if(settings.powers != 'none' && settings.negs == 'yes') {
     html += '<td align=right><b>Pwr/N</b></td>' + '\n';
   }
@@ -972,7 +972,7 @@ function playerDetailTableHeader(settings) {
     html += '<td align=right><b>-5</b></td>' + '\n';
   }
   html += '<td align=right><b>TUH</b></td>' + '\n' +
-    '<td align=right><b>P/TU</b></td>' + '\n';
+    '<td align=right><b>PPTUH</b></td>' + '\n';
   if(settings.powers != 'none' && settings.negs == 'yes') {
     html += '<td align=right><b>Pwr/N</b></td>' + '\n';
   }
