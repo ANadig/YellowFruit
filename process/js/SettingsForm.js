@@ -9,8 +9,8 @@ cards.
 var React = require('react');
 var _ = require('lodash');
 var $ = require('jquery');
-const defPhaseTooltip = 'Team standings are grouped by this phase\'s divisions when all games are shown';
-const defPhaseLinkTooltip = 'Click to change how teams are grouped when viewing all games';
+const DEF_PHASE_TOOLTIP = 'Team standings are grouped by this phase\'s divisions when all games are shown';
+const DEF_PHASE_LINK_TOOLTIP = 'Click to change how teams are grouped when viewing all games';
 
 class SettingsForm extends React.Component{
 
@@ -30,25 +30,30 @@ class SettingsForm extends React.Component{
       negs: props.settings.negs, // whether there are negs
       bonuses: props.settings.bonuses, // 'yesBb', 'noBb', or 'none'
       playersPerTeam: props.settings.playersPerTeam,
+      packets: props.packets,
       phases: _.without(allPhases, 'noPhase'),
       divisions: divList,
       phaseAssignments: phaseAssnList,
       defaultPhase: firstPhase,
       numberOfSavedPhases: _.without(allPhases, 'noPhase').length,
       editingSettings: false,
+      editingPackets: false,
       editingDivisions: false,
       editingPhases: false,
       needToReRender: false
     }
     this.handleChange = this.handleChange.bind(this);
+    this.handlePacketChange = this.handlePacketChange.bind(this);
     this.handlePhaseChange = this.handlePhaseChange.bind(this);
     this.handleDivisionChange = this.handleDivisionChange.bind(this);
     this.handlePhaseAssnChange = this.handlePhaseAssnChange.bind(this);
     this.divisionToggle = this.divisionToggle.bind(this);
     this.phaseToggle = this.phaseToggle.bind(this);
     this.settingsToggle = this.settingsToggle.bind(this);
+    this.packetsToggle = this.packetsToggle.bind(this);
     this.setDefaultGrouping = this.setDefaultGrouping.bind(this);
     this.cancelSettings = this.cancelSettings.bind(this);
+    this.cancelPackets = this.cancelPackets.bind(this);
     this.cancelPhases = this.cancelPhases.bind(this);
     this.cancelDivisions = this.cancelDivisions.bind(this);
   }
@@ -66,6 +71,22 @@ class SettingsForm extends React.Component{
     partialState[name] = value;
     this.setState(partialState);
   } //handleChange
+
+  /*---------------------------------------------------------
+  Called when the list of packet names is changed.
+  ---------------------------------------------------------*/
+  handlePacketChange(e) {
+    const target = e.target;
+    const value = target.value;
+    const name = target.name;
+    var whichPacket = name.replace('packet', '');
+    var tempPackets = $.extend(true, {}, this.state.packets);
+    tempPackets[whichPacket] = value;
+    for(var i=this.getPacketRounds().length; tempPackets[i]==''; i++) { delete tempPackets[i]; }
+    this.setState({
+      packets: tempPackets
+    });
+  }
 
   /*---------------------------------------------------------
   Called when the list of phases is changed. Immediately
@@ -141,12 +162,9 @@ class SettingsForm extends React.Component{
       this.setState({
         editingSettings: true
       });
-      if(this.state.editingPhases) {
-        this.phaseToggle();
-      }
-      if(this.state.editingDivisions) {
-        this.divisionToggle();
-      }
+      if(this.state.editingPhases) { this.phaseToggle(); }
+      if(this.state.editingDivisions) { this.divisionToggle(); }
+      if(this.state.editingPackets) { this.packetsToggle(); }
     }
     else {
       this.props.editingSettings(false);
@@ -164,6 +182,31 @@ class SettingsForm extends React.Component{
   } //settingsToggle
 
   /*---------------------------------------------------------
+  Packets card - open for editing or close and save.
+  ---------------------------------------------------------*/
+  packetsToggle() {
+    if(!this.state.editingPackets) {
+      this.setState({
+        editingPackets: true
+      });
+      if(this.state.editingSettings) { this.settingsToggle(); }
+      if(this.state.editingPhases) { this.phaseToggle(); }
+      if(this.state.editingDivisions) { this.divisionToggle(); }
+    }
+    else {
+      var tempPackets = this.state.packets;
+      for(var r in tempPackets) {
+        if(tempPackets[r] == '') { delete tempPackets[r]; }
+      }
+      this.props.savePackets(tempPackets);
+      this.setState({
+        packets: tempPackets,
+        editingPackets: false
+      });
+    }
+  } // packetsToggle
+
+  /*---------------------------------------------------------
   Phases card - open for editing or close and save.
   ---------------------------------------------------------*/
   phaseToggle() {
@@ -171,12 +214,9 @@ class SettingsForm extends React.Component{
       this.setState({
         editingPhases: true,
       });
-      if(this.state.editingDivisions) {
-        this.divisionToggle();
-      }
-      if(this.state.editingSettings) {
-        this.settingsToggle();
-      }
+      if(this.state.editingDivisions) { this.divisionToggle(); }
+      if(this.state.editingSettings) { this.settingsToggle(); }
+      if(this.state.editingPackets) { this.packetsToggle(); }
     }
     else {
       var tempPhases = this.state.phases.map(function(str) { return str.trim(); });
@@ -209,12 +249,9 @@ class SettingsForm extends React.Component{
         editingDivisions: true,
         needToReRender: true
       });
-      if(this.state.editingPhases) {
-        this.phaseToggle();
-      }
-      if(this.state.editingSettings) {
-        this.settingsToggle();
-      }
+      if(this.state.editingPhases) { this.phaseToggle(); }
+      if(this.state.editingSettings) { this.settingsToggle(); }
+      if(this.state.editingPackets) { this.packetsToggle(); }
     }
     else {
       //remove null divisions and their corresponding phase assignments
@@ -250,6 +287,18 @@ class SettingsForm extends React.Component{
         bonuses: this.props.settings.bonuses,
         playersPerTeam: this.props.settings.playersPerTeam,
         editingSettings: false
+      });
+    }
+  }
+
+  /*---------------------------------------------------------
+  Discard changes made to packet names card.
+  ---------------------------------------------------------*/
+  cancelPackets() {
+    if(this.state.editingPackets) {
+      this.setState({
+        packets: this.props.packets,
+        editingPackets: false
       });
     }
   }
@@ -294,6 +343,16 @@ class SettingsForm extends React.Component{
   ---------------------------------------------------------*/
   getSettingsButtonCaption() {
     if(this.state.editingSettings) {
+      return ( <span>S<span className="hotkey-underline">a</span>ve</span> );
+    }
+    return 'Edit';
+  }
+
+  /*---------------------------------------------------------
+  Packet card edit/save button
+  ---------------------------------------------------------*/
+  getPacketsButtonCaption() {
+    if(this.state.editingPackets) {
       return ( <span>S<span className="hotkey-underline">a</span>ve</span> );
     }
     return 'Edit';
@@ -437,6 +496,19 @@ class SettingsForm extends React.Component{
   }
 
   /*---------------------------------------------------------
+  JSX element for packets card cancel button
+  ---------------------------------------------------------*/
+  packetsCancelButton() {
+    if(this.state.editingPackets) {
+      return (
+        <button className="btn-flat" accessKey="C" onClick={this.cancelPackets}>
+          <span className="hotkey-underline">C</span>ancel</button>
+      );
+    }
+    return null;
+  }
+
+  /*---------------------------------------------------------
   JSX element for phase card cancel button
   ---------------------------------------------------------*/
   phasesCancelButton() {
@@ -504,6 +576,25 @@ class SettingsForm extends React.Component{
   }
 
   /*---------------------------------------------------------
+  Return the list of rounds that should appear in the
+  packet name card. This is all rounds from 1 to the last
+  round for which there is a game, or a named packet,
+  including any intervening rounds with no games or packets
+  ---------------------------------------------------------*/
+  getPacketRounds() {
+    var maxGameRound = Object.keys(this.props.gameIndex).sort((a,b) => { return a-b; }).pop();
+    var maxPacketRound = Object.keys(this.state.packets).sort((a,b) => { return a-b; }).pop();
+    if(maxGameRound == undefined) { maxGameRound = 0; }
+    if(maxPacketRound == undefined) { maxPacketRound = 0; }
+    var maxRound;
+    if(!packetNamesExist(this.state.packets)) { maxRound = maxGameRound; }
+    else { maxRound = maxGameRound >= maxPacketRound ? maxGameRound : maxPacketRound; }
+    var rounds = [];
+    for(var i=1; i<=maxRound; i++) { rounds.push(i); }
+    return rounds;
+  }
+
+  /*---------------------------------------------------------
   The component needs two renders to get the phase dropdowns
   to display immmediately.
   ---------------------------------------------------------*/
@@ -520,18 +611,20 @@ class SettingsForm extends React.Component{
 
 
   render(){
+    // console.log(this.state.packets);
     if (this.props.whichPaneActive != 'settingsPane') {
       return null;
     }
 
     var settingsDisabled = this.state.editingSettings ? '' : 'disabled';
-    var phaseCard, divisionCard, phasePickers, playersPerTeamDisplay;
+    var packetCard, phaseCard, divisionCard, phasePickers, playersPerTeamDisplay;
     var phaseError = this.phaseSaveError();
     var divisionError = this.divisionSaveError();
     var phaseSaveDisabled = this.phaseSaveDisabled();
     var divisionSaveDisabled = this.divisionSaveDisabled();
     var togglesDisabled = this.togglesDisabled() ? ' disabled' : '';
     var settingsHotKey = this.state.editingSettings ? 'a' : '';
+    var packetsHotkey = this.state.editingPackets ? 'a' : '';
     var phaseHotKey = phaseError == null && this.state.editingPhases ? 'a' : '';
     var divHotKey = divisionError == null && this.state.editingDivisions ? 'a' : '';
 
@@ -606,11 +699,11 @@ class SettingsForm extends React.Component{
       var phaseList = this.state.phases.map((phaseName, idx) => {
         if(this.state.divisions.length > 0) {
           var icon = this.state.defaultPhase == phaseName ?
-            ( <i className="material-icons default-phase" title={defPhaseTooltip}>playlist_add_check</i> ) : null;
+            ( <i className="material-icons default-phase" title={DEF_PHASE_TOOLTIP}>playlist_add_check</i> ) : null;
           return (
             <li key={idx}>
               <a onClick={this.setDefaultGrouping} name={phaseName}
-              title={defPhaseLinkTooltip}>{phaseName}</a>&nbsp;{icon}
+              title={DEF_PHASE_LINK_TOOLTIP}>{phaseName}</a>&nbsp;{icon}
             </li>
           );
         }
@@ -729,6 +822,43 @@ class SettingsForm extends React.Component{
       settingsList = ( <div>{powersDisplay}{negsDisplay}{bonusDisplay}{playersPerTeamDisplay}</div> );
     }//else editing settings
 
+
+    var packetRounds = this.getPacketRounds();
+    // read-only list of packets
+    if(!this.state.editingPackets) {
+      if(!packetNamesExist(this.state.packets)) { packetCard = null; }
+      else {
+        var packetList = packetRounds.map((round, idx) => {
+          var roundDisplay = this.state.packets[round] == undefined ? '' : this.state.packets[round];
+          return ( <li key={idx}>{round + ': ' + roundDisplay} </li> );
+        });//phases.map
+        packetCard = (<ul>{packetList}</ul>);
+      }
+    }
+    // editable list of packets
+    else {
+      var tempPackets = $.extend(true, {}, this.state.packets);
+      var lastRound = +(packetRounds[packetRounds.length-1]);
+      if(isNaN(lastRound)) { lastRound = 0; }
+      packetRounds.push(lastRound+1);
+      for(var i in packetRounds) {
+        var r = packetRounds[i];
+        if(tempPackets[r] == undefined) { tempPackets[r] = ''; }
+      }
+      var packetFields = packetRounds.map((roundNo, idx) => {
+        return (
+          <li key={roundNo}>
+            {roundNo + ': '}
+            <div className="input-field tight-input">
+              <input id={'packet'+roundNo} type="text" name={'packet'+roundNo} placeholder="Packet name"
+                value={tempPackets[roundNo]} onChange={this.handlePacketChange}/>
+            </div>
+          </li>
+        );
+      });
+      packetCard = ( <ul>{packetFields}</ul> );
+    } //else editing phases
+
     $('select').formSelect(); //initialize all dropdowns
 
     return(
@@ -747,6 +877,20 @@ class SettingsForm extends React.Component{
                     onClick={this.settingsToggle}>
                   {this.getSettingsButtonCaption()}</button>
                   {this.settingsCancelButton()}
+                </div>
+              </div>
+            </div>
+            <div className="row settings-packets">
+              <div id="packetsCard" className="card">
+                <div className="card-content">
+                  <span className="card-title">Packet Names</span>
+                  {packetCard}
+                </div>
+                <div className="card-action">
+                  <button className={"btn-flat" + togglesDisabled}
+                    accessKey={packetsHotkey} onClick={this.packetsToggle}>
+                  {this.getPacketsButtonCaption()}</button>
+                  {this.packetsCancelButton()}
                 </div>
               </div>
             </div>

@@ -8,7 +8,7 @@ pane.
 var React = require('react');
 var $ = jQuery = require('jquery');
 var Path = require('path');
-const maxAllowedTeams = 200;
+const MAX_ALLOWED_TEAMS = 200;
 
 class TeamList extends React.Component{
 
@@ -80,7 +80,7 @@ class TeamList extends React.Component{
   limit on the number of teams has been reached.
   ---------------------------------------------------------*/
   addBtnDisabled() {
-    if(this.props.teamList.length > maxAllowedTeams) {
+    if(this.props.teamList.length > MAX_ALLOWED_TEAMS) {
       return 'disabled';
     }
     return '';

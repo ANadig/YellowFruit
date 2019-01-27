@@ -30,19 +30,20 @@ var TeamList = require('./TeamList');
 var GameList = require('./GameList');
 var StatSidebar = require('./StatSidebar');
 
-const maxPlayersPerTeam = 30;
+const MAX_PLAYERS_PER_TEAM = 30;
+const METADATA = {version:'2.0.0'};
+const DEFAULT_SETTINGS = {
+  powers: '15pts',
+  negs: 'yes',
+  bonuses: 'noBb',
+  playersPerTeam: '4'
+};
 
 
 class MainInterface extends React.Component{
 
   constructor(props) {
     super(props);
-    var defaultSettings = {
-      powers: '15pts',
-      negs: 'yes',
-      bonuses: 'noBb',
-      playersPerTeam: '4'
-    };
     this.state = {
       tmWindowVisible: false, // whether the team entry modal is open
       gmWindowVisible: false, // whether the game entry modal is open
@@ -50,11 +51,13 @@ class MainInterface extends React.Component{
       phaseWindowVisible: false, // whether the game phase assignment modal is open
       teamOrder: 'alpha', // sort order. Either 'alpha' or 'division'
       queryText: '', // what's in the search bar
-      settings: defaultSettings, // object to define the tournament rules
+      settings: DEFAULT_SETTINGS, // object to define the tournament rules
+      packets: {}, // packet names
       divisions: {}, // object where the keys are phases, and their values are the list
                      // of divisions in that phase
       myTeams: [], // the list of teams
       myGames: [], // the list of games
+      gameIndex: {}, // the list of rounds, and how many games exist for that round
       selectedTeams: [], // teams with checkbox checked on the teams pane
       selectedGames: [], // games with checkbox checked on the games pane
       checkTeamToggle: false, // used in the key of TeamListEntry components in order to
@@ -107,6 +110,7 @@ class MainInterface extends React.Component{
     this.saveSettings = this.saveSettings.bind(this);
     this.editingSettings = this.editingSettings.bind(this);
     this.teamHasPlayedGames = this.teamHasPlayedGames.bind(this);
+    this.savePackets = this.savePackets.bind(this);
     this.sortTeamsBy = this.sortTeamsBy.bind(this);
   }
 
@@ -222,7 +226,9 @@ class MainInterface extends React.Component{
   Filename: the file to write to
   ---------------------------------------------------------*/
   writeJSON(fileName) {
-    var fileString = JSON.stringify(this.state.settings) + '\n' +
+    var fileString = JSON.stringify(METADATA) + '\n' +
+      JSON.stringify(this.state.packets) + '\n' +
+      JSON.stringify(this.state.settings) + '\n' +
       JSON.stringify(this.state.divisions) + '\n' +
       JSON.stringify(this.state.myTeams) + '\n' +
       JSON.stringify(this.state.myGames);
@@ -234,26 +240,62 @@ class MainInterface extends React.Component{
   }
 
   /*---------------------------------------------------------
+  Parse the file and return an array containing each section
+  ---------------------------------------------------------*/
+  parseFile(fileName) {
+    var fileString = fs.readFileSync(fileName, 'utf8');
+    // compatibility with previous file format. Who knows why I thought this was necessary
+    for(var i=1; i<=3; i++) { fileString = fileString.replace('divider_between_sections\n',''); }
+    var jsonAry = fileString.split('\n', 6);
+    if(jsonAry.length < 5) {
+      //versions prior to 2.0.0 don't have metadata or packet names
+      return [JSON.stringify(METADATA),'{}'].concat(jsonAry);
+    }
+    return jsonAry;
+  }
+
+  /*---------------------------------------------------------
+  Update the game index with the games being loaded from a
+  file. set startOver to true to wipe out the current index,
+  false to add to it.
+  ---------------------------------------------------------*/
+  loadGameIndex(loadGames, startOver) {
+    var round, tempIndex;
+    if(startOver) { tempIndex = {}; }
+    else { tempIndex = this.state.gameIndex; }
+    for(var i in loadGames) {
+      round = loadGames[i].round;
+      if(tempIndex[round] == undefined) {
+        tempIndex[round] = 1;
+      }
+      else { tempIndex[round] = tempIndex[round]+1; }
+    }
+    this.setState({
+      gameIndex: tempIndex
+    });
+  }
+
+  /*---------------------------------------------------------
   Load the tournament data from fileName into the appropriate
   state variables. The user may now begin editing this
   tournament.
   ---------------------------------------------------------*/
   loadTournament(fileName) {
-    var fileString = fs.readFileSync(fileName, 'utf8');
-    // compatibility with previous file format. Who knows why I thought this was necessary
-    for(var i=1; i<=3; i++) { fileString = fileString.replace('divider_between_sections\n',''); }
-    if(fileString != '') {
-      var [loadSettings, loadDivisions, loadTeams, loadGames] = fileString.split('\n', 4);
-      loadSettings = JSON.parse(loadSettings);
-      loadDivisions = JSON.parse(loadDivisions);
-      loadTeams = JSON.parse(loadTeams);
-      loadGames = JSON.parse(loadGames);
-      var defPhase = Object.keys(loadDivisions)[0]; //could be 'noPhase'
-    }
+    if(fileName == '') { return; }
+    var [loadMetadata, loadPackets, loadSettings, loadDivisions, loadTeams, loadGames] = this.parseFile(fileName);
+    //loadMetadata = JSON.parse(loadMetadata);  // not used currently
+    loadPackets = JSON.parse(loadPackets);
+    loadSettings = JSON.parse(loadSettings);
+    loadDivisions = JSON.parse(loadDivisions);
+    loadTeams = JSON.parse(loadTeams);
+    loadGames = JSON.parse(loadGames);
+    var defPhase = Object.keys(loadDivisions)[0]; //could be 'noPhase'
+
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
     this.setState({
       settings: loadSettings,
+      packets: loadPackets,
       divisions: loadDivisions,
       myTeams: loadTeams,
       myGames: loadGames,
@@ -264,6 +306,7 @@ class MainInterface extends React.Component{
     });
     //the value of settingsLoadToggle doesn't matter; it just needs to change
     //in order to make the settings form load
+    this.loadGameIndex(loadGames, true);
   }
 
   /*---------------------------------------------------------
@@ -298,7 +341,7 @@ class MainInterface extends React.Component{
       }
       var rosterAry = [];
       var lowercaseRoster = [];
-      for(var j=0; j<rosterSize && j<maxPlayersPerTeam; j++) {
+      for(var j=0; j<rosterSize && j<MAX_PLAYERS_PER_TEAM; j++) {
         var nextPlayer = sqbsAry[curLine++].trim();
         if(!lowercaseRoster.includes(nextPlayer.toLowerCase())) {
           rosterAry.push(nextPlayer);
@@ -328,14 +371,12 @@ class MainInterface extends React.Component{
   Merge the tournament in fileName into this one.
   ---------------------------------------------------------*/
   mergeTournament(fileName) {
-    var fileString = fs.readFileSync(fileName, 'utf8');
-    if(fileString != '') {
-      var [loadSettings, loadDivisions, loadTeams, loadGames] = fileString.split('\ndivider_between_sections\n', 4);
-      loadSettings = JSON.parse(loadSettings);
-      loadDivisions = JSON.parse(loadDivisions);
-      loadTeams = JSON.parse(loadTeams);
-      loadGames = JSON.parse(loadGames);
-    }
+    if(fileName == '') { return; }
+    var [loadMetadata, loadPackets, loadSettings, loadDivisions, loadTeams, loadGames] = this.parseFile(fileName);
+    loadSettings = JSON.parse(loadSettings);
+    loadDivisions = JSON.parse(loadDivisions);
+    loadTeams = JSON.parse(loadTeams);
+    loadGames = JSON.parse(loadGames);
     // check settings
     if(!settingsEqual(loadSettings, this.state.settings)) {
       ipc.sendSync('mergeError', 'Tournaments with different settings cannot be merged');
@@ -399,6 +440,7 @@ class MainInterface extends React.Component{
       myGames: gamesCopy,
       settingsLoadToggle: !this.state.settingsLoadToggle
     });
+    this.loadGameIndex(gamesCopy, false);
     ipc.sendSync('unsavedData');
     ipc.sendSync('successfulMerge', newTeamCount, newGameCount, conflictGames);
   } // mergeTournament
@@ -449,12 +491,12 @@ class MainInterface extends React.Component{
       if (err) { console.log(err); }
     });//writeFile - individuals
     var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.settings);
+      endFileStart, phase, this.state.settings, this.state.packets);
     fs.writeFile(scoreboardLocation, scoreboardHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - scoreboard
     var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.settings);
+      endFileStart, phase, this.state.packets, this.state.settings);
     fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - team detail
@@ -464,7 +506,7 @@ class MainInterface extends React.Component{
       if (err) { console.log(err); }
     });//writeFile - individual Detail
     var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.settings);
+      endFileStart, phase, this.state.packets, this.state.settings);
     fs.writeFile(roundReportLocation, roundReportHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - round report
@@ -472,7 +514,8 @@ class MainInterface extends React.Component{
     fs.writeFile(statKeyLocation, statKeyHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - stat key
-    ipc.sendSync('statReportReady');
+    // don't tell stat window to reload if we're exporting the html report
+    if(fileStart == '') { ipc.sendSync('statReportReady'); }
   } //writeStatReport
 
   /*---------------------------------------------------------
@@ -520,12 +563,6 @@ class MainInterface extends React.Component{
   selects "new tournament".
   ---------------------------------------------------------*/
   resetState() {
-    var defaultSettings = {
-      powers: '15pts',
-      negs: 'yes',
-      bonuses: 'noBb',
-      playersPerTeam: '4'
-    };
     this.setState({
       tmWindowVisible: false,
       gmWindowVisible: false,
@@ -533,10 +570,12 @@ class MainInterface extends React.Component{
       phaseWindowVisible: false,
       teamOrder: 'alpha',
       queryText: '',
-      settings: defaultSettings,
+      settings: DEFAULT_SETTINGS,
+      packets: {},
       divisions: {},
       myTeams: [],
       myGames: [],
+      gameIndex: {},
       selectedTeams: [],
       selectedGames: [],
       checkTeamToggle: false,
@@ -712,9 +751,14 @@ class MainInterface extends React.Component{
   addGame(tempItem) {
     var tempGms = this.state.myGames.slice();
     tempGms.push(tempItem);
+    var tempIndex = this.state.gameIndex;
+    var round = tempItem.round;
+    if(tempIndex[round] == undefined) { tempIndex[round] = 1; }
+    else { tempIndex[round]++; }
     ipc.sendSync('unsavedData');
     this.setState({
       myGames: tempGms,
+      gameIndex: tempIndex,
       gmWindowVisible: false
     }) //setState
   } //addTeam
@@ -791,9 +835,18 @@ class MainInterface extends React.Component{
        return gameEqual(o, oldGame)
      });
     tempGameAry[oldGameIdx] = newGame;
+    // update game index
+    var tempIndex = this.state.gameIndex;
+    var oldRound = oldGame.round, newRound = newGame.round;
+    if(oldRound != newRound) {
+      if(tempIndex[newRound] == undefined) { tempIndex[newRound] = 1; }
+      else { tempIndex[newRound]++; }
+      if(--tempIndex[oldRound] == 0) { delete tempIndex[oldRound]; }
+    }
     ipc.sendSync('unsavedData');
     this.setState({
       myGames: tempGameAry,
+      gameIndex: tempIndex,
       gmWindowVisible: false
     });
   }
@@ -830,8 +883,12 @@ class MainInterface extends React.Component{
     }
     var allGames = this.state.myGames;
     var newGames = _.without(allGames, this.state.gameToBeDeleted);
+    // update index
+    var tempIndex = this.state.gameIndex, round = this.state.gameToBeDeleted.round;
+    if(--tempIndex[round] == 0) { delete tempIndex[round]; }
     this.setState({
       myGames: newGames,
+      gameIndex: tempIndex,
       gameToBeDeleted: null
     });
     ipc.sendSync('unsavedData');
@@ -952,6 +1009,16 @@ class MainInterface extends React.Component{
       if(g.team1 == team.teamName || g.team2 == team.teamName) { return true; }
     }
     return false;
+  }
+
+  /*---------------------------------------------------------
+  Save the packet names
+  ---------------------------------------------------------*/
+  savePackets(packets) {
+    this.setState({
+      packets: packets
+    });
+    ipc.sendSync('unsavedData');
   }
 
   /*---------------------------------------------------------
@@ -1448,10 +1515,13 @@ class MainInterface extends React.Component{
               <SettingsForm key = {this.state.settingsLoadToggle}
                 whichPaneActive = {activePane}
                 settings = {this.state.settings}
+                packets = {this.state.packets}
                 divisions = {this.state.divisions}
                 saveDivisions = {this.saveDivisions}
                 setDefaultGrouping = {this.setDefaultGrouping}
                 saveSettings = {this.saveSettings}
+                savePackets = {this.savePackets}
+                gameIndex = {this.state.gameIndex}
                 editingSettings = {this.editingSettings}
                 haveGamesBeenEntered = {this.state.myGames.length > 0}
               />

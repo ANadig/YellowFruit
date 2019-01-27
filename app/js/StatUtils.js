@@ -177,6 +177,16 @@ function playerSlashLine(player) {
 }
 
 /*---------------------------------------------------------
+Does at least one round have a packet name?
+---------------------------------------------------------*/
+function packetNamesExist(packets) {
+  for(var r in packets) {
+    if(packets[r] != '') { return true; }
+  }
+  return false;
+}
+
+/*---------------------------------------------------------
 Header row for the team standings.
 ---------------------------------------------------------*/
 function standingsHeader(settings) {
@@ -419,13 +429,16 @@ function individualsHeader(usingDivisions, settings) {
 A single row in the individual standings.
 ---------------------------------------------------------*/
 function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings) {
-  var linkId = playerEntry.teamName.replace(/\W/g, '') + '-' +
+  var playerLinkId = playerEntry.teamName.replace(/\W/g, '') + '-' +
     playerEntry.playerName.replace(/\W/g, '');
+  var teamLinkId = playerEntry.teamName.replace(/\W/g, '');
+
   var rowHtml = '<tr>' + '\n';
   rowHtml += '<td align=left>' + rank + '</td>' + '\n';
-  rowHtml += '<td align=left><a HREF=' + fileStart + 'playerdetail.html#' + linkId + '>' +
+  rowHtml += '<td align=left><a HREF=' + fileStart + 'playerdetail.html#' + playerLinkId + '>' +
     playerEntry.playerName + '</a></td>' + '\n';
-  rowHtml += '<td align=left>' + playerEntry.teamName + '</td>' + '\n';
+  rowHtml += '<td align=left>' + '<a HREF=' + fileStart + 'teamdetail.html#' + teamLinkId + '>' +
+      playerEntry.teamName + '</a>' + '</td>' + '\n';
   if(usingDivisions) {
     var divDisplay = playerEntry.division;
     if(divDisplay == undefined) { divDisplay = '&mdash;&ensp;'; }
@@ -555,24 +568,28 @@ A "table of contents" for the scoreboard page with links
 to each round.
 ---------------------------------------------------------*/
 function scoreboardRoundLinks(roundList, fileStart) {
-  var html = '<table border=0 width=70%>' + '\n' +
+  var html = '<table border=0 width=70% ' +
+    'style="top:4px;position:sticky;background-color:#cccccc;margin-top:5px;box-shadow: 4px 4px 7px #999999">' + '\n' +
     '<tr>' + '\n';
   for(var i in roundList) {
     html += '<td><a HREF=' + fileStart + 'games.html#round-' + roundList[i] +
       '>' + roundList[i] + '</a></td>' + '\n';
   }
   html += '</tr>' + '\n' +
-    '</table>' + '\n' +
-    '<hr>' + '\n';
+    '</table>' + '\n';
   return html;
 }
 
 /*---------------------------------------------------------
 The title for each section of the scoreboard.
 ---------------------------------------------------------*/
-function scoreboardRoundHeader(roundNo) {
-  return '<h2 id=' + 'round-' + roundNo + '><font color=red>Round ' +
-    roundNo + '</font></h2>' + '\n';
+function scoreboardRoundHeader(roundNo,packetName) {
+  var title = 'Round ' + roundNo;
+  if(packetName != undefined && packetName != '') {
+    title += ' (Packet: ' + packetName + ')';
+  }
+  var html = '<div id=round-' + roundNo + ' style="margin:-3em;position:absolute"></div>' + '\n';
+  return html + '<h2><font color=red>' + title + '</font></h2>' + '\n';
 }
 
 /*---------------------------------------------------------
@@ -585,6 +602,11 @@ function blankPlayerLineScore(size) {
     output.push('<td></td>');
   }
   return output.join('\n');
+}
+
+function scoreboardLinkID(game) {
+  return 'R' + game.round + '-' + game.team1.replace(/\W/g, '') + '-' +
+    game.team2.replace(/\W/g, '');
 }
 
 /*---------------------------------------------------------
@@ -604,7 +626,8 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
       }
       else {
         // game title
-        html += '<span id=' + linkId + '><h3>';
+        html += '<div id=' + linkId + ' style="margin:-1.5em;position:absolute"></div>'
+        html += '<h3>';
         if(toNum(g.score1) >= toNum(g.score2)) {
           html += g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
         }
@@ -614,7 +637,7 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
         if(g.ottu > 0) {
           html += ' (OT)';
         }
-        html += '</h3></span>' + '\n';
+        html += '</h3>' + '\n';
 
         // make a table for the player linescores
         html += '<table border=0 width=70%>' + '\n';
@@ -723,7 +746,7 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
 Header row for the table containing a team's games on the
 team detail page.
 ---------------------------------------------------------*/
-function teamDetailGameTableHeader(settings) {
+function teamDetailGameTableHeader(packetsExist,settings) {
   var html = '<tr>' + '\n' +
     '<td align=left><b>Rd.</b></td>' + '\n' +
     '<td align=left><b>Opponent</b></td>' + '\n' +
@@ -755,6 +778,9 @@ function teamDetailGameTableHeader(settings) {
     '<td align=right><b>BBPts</b></td>' + '\n' +
     '<td align=right><b>PPBB</b></td>' + '\n';
   }
+  if(packetsExist) {
+    html += '<td align=left><b>Packet</b></td>' + '\n';
+  }
   html += '</tr>'  + '\n';
   return html;
 }
@@ -775,7 +801,7 @@ function forfeitRow(opponent, round, result) {
 Row for a single game for a single team on the team detail
 page.
 ---------------------------------------------------------*/
-function teamDetailGameRow(game, whichTeam, settings, fileStart) {
+function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, fileStart) {
   var opponent, opponentScore, result, score, players;
   if(whichTeam == 1) {
     opponent = game.team2;
@@ -815,8 +841,7 @@ function teamDetailGameRow(game, whichTeam, settings, fileStart) {
   var bbPts = whichTeam == 1 ? +game.bbPts1 : +game.bbPts2;
   var ppbb = bbPts / bbHrdToFloat(bbHrd);
 
-  var linkId = 'R' + game.round + '-' + game.team1.replace(/\W/g, '') + '-' +
-    game.team2.replace(/\W/g, '');
+  var linkId = scoreboardLinkID(game);
   var html = '<tr>' + '\n';
   html += '<td align=left>' + game.round + '</td>' + '\n';
   html += '<td align=left>' + opponent + '</td>' + '\n';
@@ -849,6 +874,10 @@ function teamDetailGameRow(game, whichTeam, settings, fileStart) {
     html += '<td align=right>' + bbPts + '</td>' + '\n';
     html += '<td align=right>' + formatRate(ppbb, 2) + '</td>' + '\n';
   }
+  if(packetsExist) {
+    var packetName = packets[game.round] == undefined ? '' : packets[game.round];
+    html += '<td align=left>' + packetName + '</td>' + '\n';
+  }
   html += '</tr>' + '\n';
   return html;
 }
@@ -856,7 +885,7 @@ function teamDetailGameRow(game, whichTeam, settings, fileStart) {
 /*---------------------------------------------------------
 The totals row of a games table on the team detail page.
 ---------------------------------------------------------*/
-function teamDetailTeamSummaryRow(teamSummary, settings) {
+function teamDetailTeamSummaryRow(teamSummary, packetsExist, settings) {
   var html = '<tr>' + '\n';
   html += '<td></td>' + '\n';
   html += '<td align=left><b>Total</b></td>' + '\n';
@@ -887,6 +916,9 @@ function teamDetailTeamSummaryRow(teamSummary, settings) {
     html += '<td align=right><b>' + bbHrdDisplay(teamSummary.bbHeard) + '</b></td>' + '\n';
     html += '<td align=right><b>' + teamSummary.bbPts + '</b></td>' + '\n';
     html += '<td align=right><b>' + teamSummary.ppbb + '</b></td>' + '\n';
+  }
+  if(packetsExist) {
+    html += '<td></td>' + '\n';
   }
   html += '</tr>' + '\n';
 
@@ -963,6 +995,7 @@ function playerDetailTableHeader(settings) {
   var html = '<tr>' + '\n' +
     '<td align=left><b>Rd.</b></td>' + '\n' +
     '<td align=left><b>Opponent</b></td>' + '\n' +
+    '<td align=left><b>Result</b></td>' + '\n' +
     '<td align=right><b>GP</b></td>' + '\n';
   if(settings.powers != 'none') {
     html += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
@@ -985,9 +1018,33 @@ function playerDetailTableHeader(settings) {
 }
 
 /*---------------------------------------------------------
+Generate a link, showing the outcome of the game, to the
+specified game on the scoreboard page
+---------------------------------------------------------*/
+function playerDetailGameLink(game, whichTeam, fileStart) {
+  var result;
+  if(whichTeam == 1) {
+    if(+game.score1 > +game.score2) { result = 'W'; }
+    else if(+game.score1 < +game.score2) { result = 'L'; }
+    else { result = 'T'; }
+    result += ' ' + game.score1 + '-' + game.score2;
+  }
+  else {
+    if(+game.score2 > +game.score1) { result = 'W'; }
+    else if(+game.score2 < +game.score1) { result = 'L'; }
+    else { result = 'T'; }
+    result += ' ' + game.score2 + '-' + game.score1;
+  }
+  if(game.ottu > 0) { result += ' (OT)'; }
+  var linkId = scoreboardLinkID(game);
+  return '<a HREF=' + fileStart + 'games.html#' + linkId + '>' +
+    result + '</a>';
+}
+
+/*---------------------------------------------------------
 Row for one game for one player on the player detail page.
 ---------------------------------------------------------*/
-function playerDetailGameRow(player, tuhtot, opponent, round, settings) {
+function playerDetailGameRow(player, tuhtot, opponent, round, link, settings) {
   var [tuh, powers, tens, negs] = playerSlashLine(player);
   if(tuh <= 0) {
     return '';
@@ -1001,6 +1058,7 @@ function playerDetailGameRow(player, tuhtot, opponent, round, settings) {
   var html = '<tr>' + '\n';
   html += '<td align=left>' + round + '</td>' + '\n';
   html += '<td align=left>' + opponent + '</td>' + '\n';
+  html += '<td align=left>' + link + '</td>' + '\n';
   html += '<td align=right>' + formatRate(gp, 1) + '</td>' + '\n';
   if(settings.powers != 'none') {
     html += '<td align=right>' + powers + '</td>' + '\n';
@@ -1030,6 +1088,7 @@ function playerDetailTotalRow(player, settings) {
   var html = '<tr>' + '\n';
   html += '<td align=left></td>' + '\n';
   html += '<td align=left><b>Total</b></td>' + '\n';
+  html += '<td></td>' + '\n';
   html += '<td align=right><b>' + player.gamesPlayed + '</b></td>' + '\n';
   if(settings.powers != 'none') {
     html += '<td align=right><b>' + player.powers + '</b></td>' + '\n';
@@ -1104,9 +1163,13 @@ function compileRoundSummaries(games, phase, settings) {
 /*---------------------------------------------------------
 Header row for the table in the round report.
 ---------------------------------------------------------*/
-function roundReportTableHeader(settings) {
+function roundReportTableHeader(packetsExist, settings) {
   var html = '<tr>' + '\n' +
-    '<td><b>Round</b></td>' + '\n' +
+    '<td><b>Round</b></td>' + '\n';
+  if(packetsExist) {
+    html += '<td><b>Packet</b></td>' + '\n';
+  }
+  html += '<td><b>Number of Games</b></td>' + '\n' +
     '<td><b>PPG/Team</b></td>' + '\n';
   if(settings.bonuses != 'none') {
     html += '<td><b>TUPts/TUH</b></td>' + '\n' +
@@ -1123,9 +1186,14 @@ function roundReportTableHeader(settings) {
 /*---------------------------------------------------------
 A row of data in the round report.
 ---------------------------------------------------------*/
-function roundReportRow(smry, roundNo, settings) {
+function roundReportRow(smry, roundNo, packetsExist, packets, settings) {
   var html = '<tr>' + '\n' +
-    '<td>' + roundNo + '</td>' + '\n' +
+    '<td>' + roundNo + '</td>' + '\n';
+  if(packetsExist) {
+    var packetName = packets[roundNo] == undefined ? '' : packets[roundNo];
+    html += '<td>' + packetName + '</td>' + '\n';
+  }
+  html += '<td>' + smry.numberOfGames + '</td>' + '\n' +
     '<td>' + smry.ppg.toFixed(1) + '</td>' + '\n' +
     '<td>' + smry.tuPtsPTu.toFixed(2) + '</td>' + '\n';
   if(settings.bonuses != 'none') {
@@ -1217,14 +1285,16 @@ function getIndividualsHtml(teams, games, fileStart, phase, groupingPhase, using
 /*---------------------------------------------------------
 Generate the scoreboard page.
 ---------------------------------------------------------*/
-function getScoreboardHtml(teams, games, fileStart, phase, settings) {
-  var html = getStatReportTop('Scoreboard', fileStart, 'Scoreboard') +
-    '<h1> Scoreboard</h1>' + '\n';
+function getScoreboardHtml(teams, games, fileStart, phase, settings, packets) {
   var roundList = getRoundsForScoreboard(games, phase);
-  html += scoreboardRoundLinks(roundList, fileStart);
+  var html = getStatReportTop('Scoreboard', fileStart, 'Scoreboard') + '\n';
+  html += scoreboardRoundLinks(roundList, fileStart) + '<br>' + '\n';
+  html += '<h1> Scoreboard</h1>' + '\n';
+  var roundNo;
   for(var r in roundList) {
-    html += scoreboardRoundHeader(roundList[r]);
-    html += scoreboardGameSummaries(games, roundList[r], phase, settings);
+    roundNo = roundList[r];
+    html += scoreboardRoundHeader(roundNo, packets[roundNo]);
+    html += scoreboardGameSummaries(games, roundNo, phase, settings);
   }
   return html + '\n' + getStatReportBottom();
 }
@@ -1232,31 +1302,32 @@ function getScoreboardHtml(teams, games, fileStart, phase, settings) {
 /*---------------------------------------------------------
 Generate the team detail page.
 ---------------------------------------------------------*/
-function getTeamDetailHtml(teams, games, fileStart, phase, settings) {
+function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return toNum(item.round); }, 'asc');
   var standings = compileStandings(teams, games, phase, null, settings);
   var individuals = compileIndividuals(teams, games, phase, null, settings);
+  var packetsExist = packetNamesExist(packets);
 
   var html = getStatReportTop('TeamDetail', fileStart, 'Team Detail') + '\n' +
     '<h1> Team Detail</h1>' + '\n';
   for(var i in teams) {
     var teamName = teams[i].teamName;
     var linkId = teamName.replace(/\W/g, '');
-    html += '<h2 id=' + linkId + '>' + teams[i].teamName + '</h2>' + '\n';
+    html += '<h2 id=' + linkId + '>' + teamName + '</h2>' + '\n';
     html += '<table border=1 width=100%>' + '\n';
-    html += teamDetailGameTableHeader(settings) + '\n';
+    html += teamDetailGameTableHeader(packetsExist, settings) + '\n';
     for(var j in games) {
       let gameInPhase = phase == 'all' || games[j].phases.includes(phase);
       if(gameInPhase && games[j].team1 == teamName) {
-        html += teamDetailGameRow(games[j], 1, settings, fileStart);
+        html += teamDetailGameRow(games[j], 1, packetsExist, packets, settings, fileStart);
       }
       else if(gameInPhase && games[j].team2 == teamName) {
-        html += teamDetailGameRow(games[j], 2, settings, fileStart);
+        html += teamDetailGameRow(games[j], 2, packetsExist, packets, settings, fileStart);
       }
     }
-    var teamSummary = _.find(standings, function(o) { return o.teamName == teamName; });
-    html += teamDetailTeamSummaryRow(teamSummary, settings);
+    var teamSummary = _.find(standings, (o) => { return o.teamName == teamName; });
+    html += teamDetailTeamSummaryRow(teamSummary, packetsExist, settings);
     html += '</table>' + '<br>' + '\n';
     html += '<table border=1 width=100%>' + '\n';
     html += teamDetailPlayerTableHeader(settings) + '\n';
@@ -1299,14 +1370,16 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
       if (gameInPhase && game.team1 == indvTot.teamName) {
         for(var p in game.players1) {
           if(p == indvTot.playerName) {
-            html += playerDetailGameRow(game.players1[p], game.tuhtot, game.team2, game.round, settings);
+            var link = playerDetailGameLink(game, 1, fileStart);
+            html += playerDetailGameRow(game.players1[p], game.tuhtot, game.team2, game.round, link, settings);
           }
         }
       }
       else if (gameInPhase && game.team2 == indvTot.teamName) {
+        var link = playerDetailGameLink(game, 2, fileStart);
         for(var p in game.players2) {
           if(p == indvTot.playerName) {
-            html += playerDetailGameRow(game.players2[p], game.tuhtot, game.team1, game.round, settings);
+            html += playerDetailGameRow(game.players2[p], game.tuhtot, game.team1, game.round, link, settings);
           }
         }
       }
@@ -1321,15 +1394,16 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
 /*---------------------------------------------------------
 Generate the team round report page.
 ---------------------------------------------------------*/
-function getRoundReportHtml(teams, games, fileStart, phase, settings) {
+function getRoundReportHtml(teams, games, fileStart, phase, packets, settings) {
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
   var roundSummaries = compileRoundSummaries(games, phase, settings);
+  var packetsExist = packetNamesExist(packets);
   var html = getStatReportTop('RoundReport', fileStart, 'Round Report') +
     '<h1> Round Report</h1>' + '\n';
   html += '<table border=1 width=100%>' + '\n';
-  html += roundReportTableHeader(settings);
+  html += roundReportTableHeader(packetsExist, settings);
   for(var i in roundSummaries) {
-    html += roundReportRow(roundSummaries[i], i, settings);
+    html += roundReportRow(roundSummaries[i], i, packetsExist, packets, settings);
   }
   html += '</table>' + '\n';
   return html + getStatReportBottom();

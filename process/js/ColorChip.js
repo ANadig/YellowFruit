@@ -7,7 +7,7 @@ particular phase. Used for both phases (games) and
 divisions (teams).
 ***********************************************************/
 var React = require('react');
-const chipColors = ['yellow', 'light-green', 'orange', 'light-blue',
+const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
   'red', 'purple', 'teal', 'deep-purple'];
 
 class ColorChip extends React.Component{
@@ -31,7 +31,7 @@ class ColorChip extends React.Component{
     // doesn't delete the entire React element; app will crash otherwise
     return (
       <div className="chip-wrapper">
-        <div className={'chip accent-1 ' + chipColors[this.props.colorNo % chipColors.length]}>
+        <div className={'chip accent-1 ' + CHIP_COLORS[this.props.colorNo % CHIP_COLORS.length]}>
           {this.props.displayTitle}
           <i className="close material-icons" onClick={this.removeMe}>close</i>
         </div>

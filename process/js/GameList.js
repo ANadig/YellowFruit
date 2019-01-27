@@ -6,7 +6,7 @@ React component representing the list of games on the games
 pane.
 ***********************************************************/
 var React = require('react');
-const maxAllowedGames = 900; // PACE NSC is something like 770-780 games.
+const MAX_ALLOWED_GAMES = 900; // PACE NSC is something like 770-780 games.
 
 class GameList extends React.Component{
 
@@ -54,7 +54,7 @@ class GameList extends React.Component{
   to make a game with
   ---------------------------------------------------------*/
   addBtnDisabled() {
-    if(this.props.gameList.length > maxAllowedGames || this.props.numberOfTeams < 2) {
+    if(this.props.gameList.length > MAX_ALLOWED_GAMES || this.props.numberOfTeams < 2) {
       return 'disabled';
     }
     return '';

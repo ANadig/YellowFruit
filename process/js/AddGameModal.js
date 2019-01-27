@@ -12,7 +12,7 @@ var M = require('materialize-css');
 var TeamOption = require('./TeamOption');
 var PlayerRow = require('./PlayerRow');
 
-const chipColors = ['yellow', 'light-green', 'orange', 'light-blue',
+const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
   'red', 'purple', 'teal', 'deep-purple'];
 
 class AddGameModal extends React.Component{
@@ -678,7 +678,7 @@ class AddGameModal extends React.Component{
   ---------------------------------------------------------*/
   phaseChip(colorNo, phase) {
     return (
-      <div key={phase} className={'chip accent-1 ' + chipColors[colorNo % chipColors.length]}>
+      <div key={phase} className={'chip accent-1 ' + CHIP_COLORS[colorNo % CHIP_COLORS.length]}>
         {phase}
       </div>
     );

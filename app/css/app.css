@@ -9758,6 +9758,10 @@ h6 {
   margin-top: 3rem;
 }
 
+.settings-packets {
+  margin-top: 0;
+}
+
 .noPhase {
   color: red;
 }
