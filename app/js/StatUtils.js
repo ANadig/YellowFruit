@@ -208,7 +208,7 @@ function standingsHeader(settings) {
     html += '<td align=right><b>-5</b></td>' + '\n';
   }
   html += '<td align=right><b>TUH</b></td>' + '\n' +
-  '<td align=right><b>PPTH</b></td>' + '\n';
+  '<td align=right><b>PPTUH</b></td>' + '\n';
   if(settings.powers != 'none' && settings.negs == 'yes') {
     html += '<td align=right><b>Pwr/N</b></td>' + '\n';
   }
@@ -761,7 +761,7 @@ function teamDetailGameTableHeader(packetsExist,settings) {
     html += '<td align=right><b>-5</b></td>' + '\n';
   }
   html += '<td align=right><b>TUH</b></td>' + '\n' +
-    '<td align=right><b>PPTH</b></td>' + '\n';
+    '<td align=right><b>PPTUH</b></td>' + '\n';
   if(settings.powers != 'none' && settings.negs == 'yes') {
     html += '<td align=right><b>Pwr/N</b></td>' + '\n';
   }

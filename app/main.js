@@ -685,7 +685,7 @@ app.on('ready', function() {
           //   click (item, focusedWindow) {
           //     if (focusedWindow) focusedWindow.webContents.toggleDevTools()
           //   }
-          // }
+          }
         ]
       },{
         label: '&Help',

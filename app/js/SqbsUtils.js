@@ -5,6 +5,26 @@ Andrew Nadig
 code for generating an SQBS-format file.
 ***********************************************************/
 
+
+/*---------------------------------------------------------
+Return the list of rounds for which we care about packet
+names. This is all rounds from 1 to the last
+round for which there is a game, or a named packet,
+including any intervening rounds with no games or packets
+---------------------------------------------------------*/
+function getPacketRounds(packets, gameIndex) {
+  var maxGameRound = Object.keys(gameIndex).sort((a,b) => { return a-b; }).pop();
+  var maxPacketRound = Object.keys(packets).sort((a,b) => { return a-b; }).pop();
+  if(maxGameRound == undefined) { maxGameRound = 0; }
+  if(maxPacketRound == undefined) { maxPacketRound = 0; }
+  var maxRound;
+  if(!packetNamesExist(packets)) { maxRound = maxGameRound; }
+  else { maxRound = maxGameRound >= maxPacketRound ? maxGameRound : maxPacketRound; }
+  var rounds = [];
+  for(var i=1; i<=maxRound; i++) { rounds.push(i); }
+  return rounds;
+}
+
 /*---------------------------------------------------------
 The first part of the file:
 - number of teams
@@ -177,7 +197,7 @@ function miscSettings(settings, divisions) {
     output += '3\n'; // Bonus conversion tracking: "manual with bouncebacks"
   }
   else {
-    output += '3\n'; // Bonus conversion tracking: "automatic"
+    output += '1\n'; // Bonus conversion tracking: "automatic"
   }
   if(settings.powers == 'none' && settings.negs == 'no') {
     output += '2\n'; //don't track power and neg stats if there are neither powers nor negs
@@ -187,7 +207,7 @@ function miscSettings(settings, divisions) {
   }
   output += '0\n'; // no lightning rounds
   output += '1\n'; //track tossups heard
-  output += '1\n'; //sort players by Pts/TUH
+  output += '3\n'; //needs to be 3 to allow packet names, apparently? This differs from QBWiki
   output += '254\n'; //turn on all validation warnings
   output += '1\n'; //enable round report
   output += '1\n'; //enable team standings report
@@ -295,6 +315,28 @@ function pointValueList(settings) {
 }
 
 /*---------------------------------------------------------
+The number of named packets (including blanks), follwed by
+the list of packet names
+---------------------------------------------------------*/
+function packetNamesSqbs(packets, gameIndex) {
+  if(!packetNamesExist(packets)) {
+    return '0\n';
+  }
+  var output = '';
+  var packetRounds = getPacketRounds(packets, gameIndex);
+  output += packetRounds.length + '\n';
+  var packetName;
+  for(var i in packetRounds) {
+    packetName = packets[packetRounds[i]];
+    if(packetName != undefined) {
+      output += packetName + '\n';
+    }
+    else {output += '\n'}
+  }
+  return output;
+}
+
+/*---------------------------------------------------------
 The number of teams, then whether each team is an
 exhibition team. YellowFruit doesn't support this so it's
 all zeroes.
@@ -311,7 +353,7 @@ function exhibitionStatuses(teams) {
 /*---------------------------------------------------------
 Generate the SQBS file contents.
 ---------------------------------------------------------*/
-function getSqbsFile(settings, phase, divisions, teams, games) {
+function getSqbsFile(settings, phase, divisions, teams, games, packets, gameIndex) {
   var output = teamList(teams);
   output += gameList(settings, teams, games);
   output += miscSettings(settings, divisions);
@@ -322,7 +364,7 @@ function getSqbsFile(settings, phase, divisions, teams, games) {
   output += divisionList(divisions);
   output += divisionAssignments(phase, divisions, teams);
   output += pointValueList(settings);
-  output += '0\n'; // not using packet names
+  output += packetNamesSqbs(packets, gameIndex);
   output += exhibitionStatuses(teams);
   return output;
 }

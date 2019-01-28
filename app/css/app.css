@@ -9713,8 +9713,13 @@ h6 {
 }
 
 .tight-input {
+  height: 51px;
   margin-top: -0.5rem;
   margin-bottom: -0.5rem;
+}
+
+#packetsCard {
+  font-size: 14px;
 }
 
 .players-per-team .input-field {
@@ -9760,6 +9765,11 @@ h6 {
 
 .settings-packets {
   margin-top: 0;
+}
+
+.packet-num {
+  padding-top: 5pt;
+  padding-bottom: 12pt;
 }
 
 .noPhase {

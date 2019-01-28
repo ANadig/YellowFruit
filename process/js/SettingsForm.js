@@ -82,7 +82,9 @@ class SettingsForm extends React.Component{
     var whichPacket = name.replace('packet', '');
     var tempPackets = $.extend(true, {}, this.state.packets);
     tempPackets[whichPacket] = value;
-    for(var i=this.getPacketRounds().length; tempPackets[i]==''; i++) { delete tempPackets[i]; }
+    for(var i=getPacketRounds(this.state.packets, this.props.gameIndex).length; tempPackets[i]==''; i++) {
+      delete tempPackets[i];
+    }
     this.setState({
       packets: tempPackets
     });
@@ -581,18 +583,18 @@ class SettingsForm extends React.Component{
   round for which there is a game, or a named packet,
   including any intervening rounds with no games or packets
   ---------------------------------------------------------*/
-  getPacketRounds() {
-    var maxGameRound = Object.keys(this.props.gameIndex).sort((a,b) => { return a-b; }).pop();
-    var maxPacketRound = Object.keys(this.state.packets).sort((a,b) => { return a-b; }).pop();
-    if(maxGameRound == undefined) { maxGameRound = 0; }
-    if(maxPacketRound == undefined) { maxPacketRound = 0; }
-    var maxRound;
-    if(!packetNamesExist(this.state.packets)) { maxRound = maxGameRound; }
-    else { maxRound = maxGameRound >= maxPacketRound ? maxGameRound : maxPacketRound; }
-    var rounds = [];
-    for(var i=1; i<=maxRound; i++) { rounds.push(i); }
-    return rounds;
-  }
+  // getPacketRounds() {
+  //   var maxGameRound = Object.keys(this.props.gameIndex).sort((a,b) => { return a-b; }).pop();
+  //   var maxPacketRound = Object.keys(this.state.packets).sort((a,b) => { return a-b; }).pop();
+  //   if(maxGameRound == undefined) { maxGameRound = 0; }
+  //   if(maxPacketRound == undefined) { maxPacketRound = 0; }
+  //   var maxRound;
+  //   if(!packetNamesExist(this.state.packets)) { maxRound = maxGameRound; }
+  //   else { maxRound = maxGameRound >= maxPacketRound ? maxGameRound : maxPacketRound; }
+  //   var rounds = [];
+  //   for(var i=1; i<=maxRound; i++) { rounds.push(i); }
+  //   return rounds;
+  // }
 
   /*---------------------------------------------------------
   The component needs two renders to get the phase dropdowns
@@ -823,7 +825,8 @@ class SettingsForm extends React.Component{
     }//else editing settings
 
 
-    var packetRounds = this.getPacketRounds();
+    var packetRounds = getPacketRounds(this.state.packets, this.props.gameIndex);
+    var packetFieldCol = null, packetNumCol = null;
     // read-only list of packets
     if(!this.state.editingPackets) {
       if(!packetNamesExist(this.state.packets)) { packetCard = null; }
@@ -832,7 +835,7 @@ class SettingsForm extends React.Component{
           var roundDisplay = this.state.packets[round] == undefined ? '' : this.state.packets[round];
           return ( <li key={idx}>{round + ': ' + roundDisplay} </li> );
         });//phases.map
-        packetCard = (<ul>{packetList}</ul>);
+        packetNumCol = (<ul>{packetList}</ul>);
       }
     }
     // editable list of packets
@@ -845,10 +848,16 @@ class SettingsForm extends React.Component{
         var r = packetRounds[i];
         if(tempPackets[r] == undefined) { tempPackets[r] = ''; }
       }
+      var packetNums = packetRounds.map((roundNo, idx) => {
+        return (
+          <div key={roundNo} className="packet-num">
+            {roundNo + ':'}
+          </div>
+        );
+      });
       var packetFields = packetRounds.map((roundNo, idx) => {
         return (
           <li key={roundNo}>
-            {roundNo + ': '}
             <div className="input-field tight-input">
               <input id={'packet'+roundNo} type="text" name={'packet'+roundNo} placeholder="Packet name"
                 value={tempPackets[roundNo]} onChange={this.handlePacketChange}/>
@@ -856,7 +865,17 @@ class SettingsForm extends React.Component{
           </li>
         );
       });
-      packetCard = ( <ul>{packetFields}</ul> );
+      packetNumCol = (
+        <div className="col s1">
+          <ul>{packetNums}</ul>
+        </div>
+      );
+      packetFieldCol = (
+        <div className="col s11">
+          <ul>{packetFields}</ul>
+        </div>
+      );
+      // packetCard = ( <ul>{packetFields}</ul> );
     } //else editing phases
 
     $('select').formSelect(); //initialize all dropdowns
@@ -884,7 +903,10 @@ class SettingsForm extends React.Component{
               <div id="packetsCard" className="card">
                 <div className="card-content">
                   <span className="card-title">Packet Names</span>
-                  {packetCard}
+                  <div className="row">
+                    {packetNumCol}
+                    {packetFieldCol}
+                  </div>
                 </div>
                 <div className="card-action">
                   <button className={"btn-flat" + togglesDisabled}
