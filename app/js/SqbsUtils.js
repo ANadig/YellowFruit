@@ -19,7 +19,7 @@ function getPacketRounds(packets, gameIndex) {
   if(maxPacketRound == undefined) { maxPacketRound = 0; }
   var maxRound;
   if(!packetNamesExist(packets)) { maxRound = maxGameRound; }
-  else { maxRound = maxGameRound >= maxPacketRound ? maxGameRound : maxPacketRound; }
+  else { maxRound = +maxGameRound >= +maxPacketRound ? +maxGameRound : +maxPacketRound; }
   var rounds = [];
   for(var i=1; i<=maxRound; i++) { rounds.push(i); }
   return rounds;

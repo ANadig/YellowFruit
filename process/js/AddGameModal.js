@@ -283,13 +283,13 @@ class AddGameModal extends React.Component{
   ---------------------------------------------------------*/
   bHeard(whichTeam) {
     var tot=0;
-    var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
+    var players = this.state['players'+whichTeam]
     for(var p in players) {
       tot += this.toNum(players[p].powers) + this.toNum(players[p].tens);
     }
     if(this.toNum(this.state.ottu) > 0) {
-      var otPwr = whichTeam == 1 ? this.state.otPwr1 : this.state.otPwr2;
-      var otTen = whichTeam == 1 ? this.state.otTen1 : this.state.otTen2;
+      var otPwr = this.state['otPwr'+whichTeam];
+      var otTen = this.state['otTen'+whichTeam];
       tot -= this.toNum(otPwr); //subtract TUs converted in overtime
       tot -= this.toNum(otTen);
     }
@@ -657,6 +657,27 @@ class AddGameModal extends React.Component{
   }
 
   /*---------------------------------------------------------
+  Add the "invalid" class to a required field if it's empty.
+    item: state property corresponding to the field
+    includeForfeit: field is required even for forfeits?
+  ---------------------------------------------------------*/
+  validateField(item, includeForfeit) {
+    if(this.state[item] == '' && (!this.state.forfeit || includeForfeit)) {
+      return 'invalid';
+    }
+    return '';
+  }
+
+  /*---------------------------------------------------------
+  Mark the team select drop down as invalid if user hasn't
+  selected a team
+  ---------------------------------------------------------*/
+  validateTeamSelect(whichTeam) {
+    var tm = this.state['team'+whichTeam]
+    return tm == '' || tm == 'nullTeam' ? 'invalid-select-wrapper' : '';
+  }
+
+  /*---------------------------------------------------------
   Returns a JSX element containing the appropriate icon,
   or null if not needed.
   ---------------------------------------------------------*/
@@ -926,11 +947,11 @@ class AddGameModal extends React.Component{
               {phaseSelect}
 
               <div className="input-field col s3">
-                <input id="round" type="number" name="round" value={this.state.round} onChange={this.handleChange}/>
+                <input id="round" className={this.validateField("round",true)} type="number" name="round" min="0" value={this.state.round} onChange={this.handleChange}/>
                 <label htmlFor="round">Round No.</label>
               </div>
               <div className="input-field col s3">
-                <input id="tuhtot" disabled={this.state.forfeit ? 'disabled' : ''}
+                <input id="tuhtot" className={this.validateField("tuhtot",false)} disabled={this.state.forfeit ? 'disabled' : ''}
                   type="number" name="tuhtot" min="0"
                   value={this.state.forfeit ? '' : this.state.tuhtot} onChange={this.handleChange}/>
                 <label htmlFor="tuhtot">Toss-ups</label>
@@ -938,13 +959,13 @@ class AddGameModal extends React.Component{
             </div>
 
             <div className="row game-entry-2nd-row">
-              <div className="input-field col s8 m3 l4">
-                <select id="tm1Name" name="team1" value={this.state.team1} onChange={this.handleTeamChange}>
+              <div className={"input-field col s8 m3 l4 "+this.validateTeamSelect(1)}>
+                <select id="tm1Name"  name="team1" value={this.state.team1} onChange={this.handleTeamChange}>
                   {team1Options}
                 </select>
               </div>
               <div className="input-field col s4 m2 l1">
-                <input disabled={this.state.forfeit ? 'disabled' : ''} type="number"
+                <input className={this.validateField("score1",false)} disabled={this.state.forfeit ? 'disabled' : ''} type="number"
                 step={this.scoreDivisor()} id="tm1Score" name="score1"
                 value={this.state.forfeit ? '' : this.state.score1} onChange={this.handleChange}/>
                 <label htmlFor="tm1Score">Score</label>
@@ -955,12 +976,12 @@ class AddGameModal extends React.Component{
                 </div>
               </div>
               <div className="input-field col s4 m2 l1">
-                <input disabled={this.state.forfeit ? 'disabled' : ''} type="number"
+                <input className={this.validateField("score2",false)} disabled={this.state.forfeit ? 'disabled' : ''} type="number"
                 step={this.scoreDivisor()} id="tm2Score" name="score2"
                 value={this.state.forfeit ? '' : this.state.score2} onChange={this.handleChange}/>
                 <label htmlFor="tm2Score">Score</label>
               </div>
-              <div className="input-field col s8 m3 l4">
+              <div className={"input-field col s8 m3 l4 "+this.validateTeamSelect(2)}>
                 <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleTeamChange}>
                   {team2Options}
                 </select>
