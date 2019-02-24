@@ -578,25 +578,6 @@ class SettingsForm extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Return the list of rounds that should appear in the
-  packet name card. This is all rounds from 1 to the last
-  round for which there is a game, or a named packet,
-  including any intervening rounds with no games or packets
-  ---------------------------------------------------------*/
-  // getPacketRounds() {
-  //   var maxGameRound = Object.keys(this.props.gameIndex).sort((a,b) => { return a-b; }).pop();
-  //   var maxPacketRound = Object.keys(this.state.packets).sort((a,b) => { return a-b; }).pop();
-  //   if(maxGameRound == undefined) { maxGameRound = 0; }
-  //   if(maxPacketRound == undefined) { maxPacketRound = 0; }
-  //   var maxRound;
-  //   if(!packetNamesExist(this.state.packets)) { maxRound = maxGameRound; }
-  //   else { maxRound = maxGameRound >= maxPacketRound ? maxGameRound : maxPacketRound; }
-  //   var rounds = [];
-  //   for(var i=1; i<=maxRound; i++) { rounds.push(i); }
-  //   return rounds;
-  // }
-
-  /*---------------------------------------------------------
   The component needs two renders to get the phase dropdowns
   to display immmediately.
   ---------------------------------------------------------*/
@@ -607,9 +588,6 @@ class SettingsForm extends React.Component{
       });
     }
   }
-
-
-
 
 
   render(){
@@ -816,7 +794,8 @@ class SettingsForm extends React.Component{
         <span className="players-per-team">
           <h6>Players per team:</h6>
           <div className="input-field">
-            <input id="playersPerTeam" type="number" name="playersPerTeam" disabled={settingsDisabled}
+            <input id="playersPerTeam" type="number" name="playersPerTeam"
+              min="0" max="30" step="1" disabled={settingsDisabled}
               value={this.state.playersPerTeam} onChange={this.handleChange}/>
           </div>
         </span>
@@ -875,7 +854,6 @@ class SettingsForm extends React.Component{
           <ul>{packetFields}</ul>
         </div>
       );
-      // packetCard = ( <ul>{packetFields}</ul> );
     } //else editing phases
 
     $('select').formSelect(); //initialize all dropdowns
