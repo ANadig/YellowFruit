@@ -1,0 +1,9 @@
+/node_modules
+/app/js/render.js
+/app/css/app.css
+/app/games.html
+/app/individuals.html
+/app/playerdetail.html
+/app/rounds.html
+/app/standings.html
+/app/teamdetail.html
