@@ -30,7 +30,7 @@ gulp.task('css', function() {
 });
 
 gulp.task('fonts', function() {
-    gulp.src('node_modules/bootstrap/dist/fonts/**/*')
+    gulp.src('node_modules/materialize-css/dist/fonts/**/*')
     .pipe(gulp.dest(app + '/fonts'));
 });
 
@@ -45,3 +45,4 @@ gulp.task('serve', ['html', 'js', 'css'], function() {
 });
 
 gulp.task('default', ['watch', 'fonts', 'serve']);
+//gulp.task('default', ['watch', 'serve']);

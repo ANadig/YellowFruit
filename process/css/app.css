@@ -1,4 +1,41 @@
-@import url('../../node_modules/bootstrap/dist/css/bootstrap.css');
+@import url('../../node_modules/materialize-css/dist/css/materialize.css');
+
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../node_modules/materialize-css/dist/fonts/MaterialIcons-Regular.eot'); /* For IE6-8 */
+  src: local('Material Icons'),
+    local('MaterialIcons-Regular'),
+    url('../../node_modules/materialize-css/dist/fonts/MaterialIcons-Regular.woff2') format('woff2'),
+    url('../../node_modules/materialize-css/dist/fonts/MaterialIcons-Regular.woff') format('woff'),
+    url('../../node_modules/materialize-css/dist/fonts/MaterialIcons-Regular.ttf') format('truetype');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
 
 *, *:before, *:after {
   box-sizing: inherit;
@@ -7,192 +44,432 @@ html {
   box-sizing: border-box;
 }
 
+body,html {
+  margin: 0;
+  padding:0;
+  height: 100%;
+  overflow: hidden
+}
+
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
-}
-
-.navbar {
-  margin-bottom: 0;
-  border-radius: 0;
-  background-image: url("../images/wisdompetlogo.svg");
-  background-repeat: no-repeat;
-  background-size: 40px;
-  background-position: 10px;
-}
-
-@media only screen
-  and (max-width: 768px) {
-  .navbar-header {
-    display: none;
-  }
-  .navbar {
-    background-image: none;
-  }
-}
-
-.navbar-default .navbar-brand {
-  color: white;
-  padding-left: 60px;
-}
-
-.navbar-default {
-  background-color: #194759;
-  border: none;
-}
-
-.navbar-brand {
-  font-weight: bold;
-}
-
-.navbar-form {
-  border: none;
-  box-shadow: none;
-}
-
-.navbar-form .form-control {
-    border: none;
-    border-radius: 4px;
-    box-shadow: none;
-}
-
-.navbar-form .btn-info {
-  background-color: #3E8C84;
-  border-color: #2B746B;
-}
-
-.navbar-form .btn-info:focus,
-.navbar-form .btn-info.focus {
-  background-color: #2B746B;
-  border-color: #286D64;
 }
 
 .main {
   background: white;
 }
 
-/** Toolbar **/
-
-.interface {
-  display: flex;
-  background: #D8F2F0;
+.load-graphic {
+  margin:auto;
+  text-align: center;
+  padding-top: 35vh;
 }
 
-.toolbar {
-  background-color: #296B73;
-  min-width: 200px;
-  color: white;
-  font-size: 1.1em;
-  height: 100vh;
-  padding-top: 10px;
-}
-
-@media only screen
-  and (max-width: 768px) {
-  .toolbar {
-    min-width: 55px;
-  }
-
-}
-
-.toolbar-item {
-  cursor: pointer;
-  padding: 10px 20px;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.toolbar-item:hover {
-  background-color: #133748;
-}
-
-.toolbar-item-button {
-  margin-right:10px;
-}
-
-@media only screen and (max-width: 768px) {
-  .toolbar-item-text {
-    display: none;
-  }
-
-  .toolbar-item-button {
-    font-size: 20px;
-  }
-}
-
-/**  Interface Styles **/
-
-.toolbar-addheading {
-  cursor: pointer;
-  -webkit-user-select: none;
-  user-select: none;          /* Likely future */
-}
-
-.appointments {
-  margin-top: 15px;
-}
-
-.appointments .appointments-headline {
-  margin-bottom: 10px;
-  color: #174152;
-}
-
-.item-list {
-  margin: 0;
+#main-window {
+  position: absolute;
+  overflow-y: scroll;
+  top: 0;
+  bottom: 0;
   padding: 0;
-  list-style-type: none;
-  font-size: 1.5rem;
-  line-height: 120%;
 }
 
-.item-list .media {
+#stat-sidebar {
+  position: fixed;
+  right: 0;
+  overflow-y: scroll;
+  top: 0;
+  bottom: 0;
+}
+
+#stat-sidebar td, #stat-sidebar th {
+  padding: 8px 5px;
+  text-align: right;
+}
+
+#stat-sidebar .text-cell {
+  text-align: left;
+}
+
+#stat-sidebar h5 {
+  margin-top: 10px;
+}
+
+
+/* keep things out of the sidebar */
+@media screen and (min-width: 993px) {
+  .btn-floating-div {
+      right: 37%;
+  }
+  .qb-nav {
+    width: 65.3%;
+  }
+}
+
+
+.qb-nav {
+  background-color: #f9a825;
+  line-height: 58px;
+}
+
+.qb-nav .nav-wrapper {
+  min-height: 50px !important;
+}
+
+.qb-nav .nav-content .tabs {
+  height: 28px;
+}
+
+.qb-nav .nav-content .tabs .tab{
+  line-height: 28px;
+}
+
+.qb-nav .nav-content .tabs .tab .active{
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.qb-nav .btn-flat {
+  color: white;
+  margin-left: 10px;
+  border: 2px solid #fbc02d;
+  border-radius: 6px;
+  line-height: 0;
+}
+
+.qb-search {
+  padding-left: 5px;
+}
+
+.container {
+  width: 85%
+}
+
+.game-container {
+  margin-left: 3%
+}
+
+.tight-input {
+  height: 51px;
+  margin-top: -0.5rem;
+  margin-bottom: -0.5rem;
+}
+
+#packetsCard {
+    font-size: 14px;
+  }
+
+.players-per-team .input-field {
+  width: 60px;
+}
+
+.settings-edit-disabled {
+  cursor: not-allowed;
+}
+
+#settingsCard h6 {
+  padding-top: 8px;
+  padding-bottom: 4px;
+}
+
+.settings-phases {
+  margin-top: 3rem;
+  padding-left: 2rem;
+}
+
+.default-phase {
+  vertical-align: bottom;
+  font-size: 1.5rem;
+}
+
+.settings-phases a {
+  color: black;
+}
+
+.settings-phases a:hover{
+  color: blue;
+  cursor: pointer;
+}
+
+.settings-divisions {
+  top: 2rem;
+  padding-left: 2rem;
+}
+
+.settings-tournsettings {
+  margin-top: 3rem;
+}
+
+.settings-packets {
   margin-top: 0;
 }
 
-.item-list .pet-item {
-  padding: 10px;
+.packet-num {
+  padding-top: 5pt;
+  padding-bottom: 12pt;
 }
 
-.item-list .pet-item:nth-child(2n) {
-    background: rgba(255,255,255,.5);
-    border-radius: 5px;
+.noPhase {
+  color: red;
 }
 
-.item-list .pet-item:last-child {
-  border-bottom: none;
+#addGame {
+  width: 95%;
+  margin-top: -9vh;
+  max-height: 97%;
+  min-height: 97%;
+  overflow-y: hidden;
 }
 
-.item-list .pet-item .pet-delete {
+#addTeam {
+  width: 80%;
+  margin-top: -2vh;
+  max-height: 80%;
+  min-height: 80%;
+  overflow-y: hidden;
+}
+
+.modal h4 {
+  margin-top: 0.35em;
+  margin-bottom: 1em;
+}
+
+#addGame h4 {
+  padding-right: 10px;
+  display: inline-block;
+}
+
+.modal h6 {
+  margin-top: 1.85em;
+}
+
+#addGame .chip {
+  margin-top: 19px;
+}
+
+#addGame .scroll-footer {
+  overflow-y: scroll;
+}
+
+#addGame .modal-footer .row {
+  margin-bottom: -1px;
+}
+
+.ot-stat-label {
+  margin-top: 2em;
+  text-align: right;
+}
+
+.game-entry-top-row {
+  margin-bottom: 0px;
+}
+
+.game-entry-2nd-row {
+  margin-bottom: 0px;
+}
+
+.invalid-select-wrapper input {
+  border-bottom: 2px solid #F44336 !important;
+}
+
+.game-entry-bottom-row {
+  margin-bottom: 0px;
+}
+
+.match-divider {
+  padding: 2em 0 0 42%;
+}
+
+.player-table td {
+  padding: 0px 5px; /* overrides 15px 5px */
+}
+
+@media screen and (min-width: 993px) {
+  .player-table .player-name {
+    min-width: 130px;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .player-table .player-name {
+    min-width: 160px;
+  }
+}
+
+@media screen and (max-width: 992px) {
+  .player-table .player-name {
+    min-width: 100px;
+  }
+}
+
+.forfeit-ctrl {
+  margin-top: 1.7em
+}
+
+.team-listing {
+  margin: 0;
+}
+
+.bounceback-entry {
+  display: inline-block;
+  width: 45px;
+  margin: 0;
+}
+
+.game-comment {
+  color: #989898;
+}
+
+.qb-validation-msg {
+  text-align: left;
+}
+
+.qb-modal-error {
+  vertical-align: bottom;
+  font-size: 1.6rem;
+}
+
+.qb-modal-buttons {
+  display: inline-block;
+}
+
+.zero-state-container {
+  height: 85%;
+}
+
+.qb-zero-state {
+  padding-top: 37vh;
+  text-align: center;
+}
+
+.list-header {
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+.list-header .toggle-left {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.list-header .toggle-right {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.selected-counter {
+  position: fixed;
+  top: 110px;
+  right: 20px;
+  z-index: 990;
+}
+
+@media screen and (min-width: 993px) {
+  .selected-counter {
+    right: 35%;
+  }
+}
+
+.collection-item .item-delete {
+  right: 0px;
   display: none;
   opacity: 0;
   transition: all 1s;
 }
 
-
-.item-list  .pet-item:hover .pet-delete {
+.collection-item:hover .item-delete {
   display: block;
   opacity: 1;
+  margin-top: -4px;
 }
 
+.collection-item .disabled-item-delete {
+  right: 0px;
+  display: none;
+  opacity: 0;
+  transition: all 1s;
+}
 
-.item-list .pet-name {
+.collection-item:hover .disabled-item-delete {
+  display: block;
+  opacity: 1;
+  margin-top: -4px;
+}
+
+.disabled-item-delete:hover {
+  cursor: not-allowed;
+}
+
+.collection-item .item-edit {
+  display: none;
+  opacity: 0;
+  transition: all 1s;
+}
+
+.collection-item:hover .item-edit {
+  display: inline-block;
+  opacity: 1;
+  height: 25px;
+  margin-top: -12px;
+}
+
+.collection-item .team-name {
+  display: inline-block;
   font-weight: bold;
-  color: #296B73;
+  color: #616161;
+  font-size: 1.4em;
+  padding-right: 5px;
+}
+
+.collection-item .team-name-inactive {
+  display: inline-block;
+  font-weight: bold;
+  color: #bdbdbd;
+  font-size: 1.4em;
+  padding-right: 5px;
+}
+
+.collection-item .roster-display {
+  color: #989898;
+}
+
+.collection-item .game-line-score {
+  color: #989898;
+}
+
+.collection-item .chip-wrapper {
+  display: inline-block;
+}
+
+.collection-item .chip {
+  height: 21px;
+  line-height: 20px;
+  padding: 0 4px 0 7px;
+  margin-bottom: 0;
+}
+
+.collection-item .chip .close {
+  line-height: 22px;
+}
+
+.collection-item .game-name {
+  display: inline-block;
+  font-weight: bold;
+  color: #616161;
   font-size: 1.3em;
 }
-.item-list .apt-notes {
-  font-style: italic;
+
+.hotkey-underline {
+  text-decoration: underline;
 }
 
-.item-list .label-item {
-  font-weight: bold;
-  color: #D03B3B;
-  padding-right: 10px;
-}
+/*
 
-.item-list .apt-date {
+.item-list .item-notes {
   font-style: italic;
-}
+} */
 
 #page-info {
   background: transparent;
@@ -250,4 +527,8 @@ h1, h2, h3, h4, h5, h6 {
 #page-info img {
   width: 100px;
   opacity: .8;
+}
+
+.search-tips {
+  list-style-type: disc;
 }

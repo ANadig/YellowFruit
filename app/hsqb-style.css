@@ -1,0 +1,71 @@
+/* Copied from hsquizbowl.org to give a consistent feel to
+  the in-app report window */
+
+/* General Page */
+
+BODY {
+    background-color: #ffffff;
+    font-family: Verdana, sans-serif;
+    font-size: 10pt;
+}
+
+/* Added the td here */
+td {
+  font-size: 10pt;
+}
+
+A:link {
+    color: #000080;
+    text-decoration: underline;
+}
+
+A:active {
+    color: #000080;
+    text-decoration: none;
+}
+
+A:visited {
+    color: #000080;
+    text-decoration: underline;
+}
+
+A:hover {
+    color: #000080;
+    text-decoration: none;
+}
+
+A IMG {
+    border: 0;
+}
+
+/* Global formatting classes */
+
+UL.NoBullets {
+    list-style: none;
+    padding-left: 0px;
+}
+
+UL.Form {
+    list-style: none;
+    padding-left: 0px;
+}
+
+UL.Form LI {
+    margin-bottom: 3px;
+}
+
+UL.FormCheckboxList {
+    margin-left: 0px;
+    padding-left: 0em;
+    list-style-type: none;
+    display: inline-block;
+    vertical-align: top;
+}
+
+LI.NoBlock INPUT, LI.NoBlock SELECT {
+    display: inline;
+}
+
+.Centered {
+    text-align: center;
+}

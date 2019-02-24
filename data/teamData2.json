@@ -1,18 +1,18 @@
 [
   {
     "teamName": "Stoughton A",
-    "roster": "Alan, Ben, Carly, Derek"
+    "roster": ["Alan", "Ben", "Carly", "Derek"]
   },
   {
     "teamName": "Stoughton B",
-    "roster": "Erin, Francis, Gaspar, Homer"
+    "roster": ["Erin", "Francis", "Gaspar", "Homer"]
   },
   {
     "teamName": "Onalaska",
-    "roster": "Isaac, Jamie, Kirk, Leander"
+    "roster": ["Isaac", "Jamie", "Kirk", "Leander"]
   },
   {
     "teamName": "Hudson",
-    "roster": "Michael, Nathaniel, Omar, Penny"
+    "roster": ["Michael", "Nathaniel", "Omar", "Penny"]
   }
 ]

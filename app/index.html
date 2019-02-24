@@ -4,23 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>YellowFruit 1.0</title>
+  <!-- <title>YellowFruit 1.0</title> -->
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
   <div class="main">
-    <div class="page" id="petratings">
-      <div id="petAppointments">
-        <h2>YellowFruit...loading</h2>
+    <div class="page">
+      <div id="statsInterface">
+        <div class="load-graphic">
+          <div class="preloader-wrapper big active">
+            <div class="spinner-layer spinner-blue-only">
+              <div class="circle-clipper left">
+                <div class="circle"></div>
+              </div>
+              <div class="gap-patch">
+                <div class="circle"></div>
+              </div>
+              <div class="circle-clipper right">
+                <div class="circle"></div>
+              </div>
+            </div>
+          </div>
+          <h4>Loading...</h4>
+        </div>
       </div>
-    </div><!-- Pet Ratings -->
+    </div>
   </div><!-- Main -->
   <script type="text/javascript">
     var eRequire = require;
     var dirName = __dirname;
-    var teamDataLocation = require('path').resolve(__dirname, '..', 'data', 'teamData.json');
-    var gameDataLocation = require('path').resolve(__dirname, '..', 'data', 'gameData.json');
+    var Path = require('path');
+    // var teamDataLocation = Path.resolve(__dirname, '..', 'data', 'teamData.json');
+    var defaultGameDataLocation = Path.resolve(__dirname, '..', 'data', 'gameData.json');
+    var defaultStandingsLocation = Path.resolve(__dirname, 'standings.html');
+    var defaultIndividualsLocation = Path.resolve(__dirname, 'individuals.html');
+    var defaultScoreboardLocation = Path.resolve(__dirname, 'games.html');
+    var defaultTeamDetailLocation = Path.resolve(__dirname, 'teamdetail.html');
+    var defaultPlayerDetailLocation = Path.resolve(__dirname, 'playerdetail.html');
+    var defaultRoundReportLocation = Path.resolve(__dirname, 'rounds.html');
+    var defaultStatKeyLocation = Path.resolve(__dirname, 'statKey.html');
   </script>
+  <script src="js/StatUtils.js"></script>
+  <script src="js/StatUtils2.js"></script>
+  <script src="js/SqbsUtils.js"></script>
   <script src="js/render.js"></script>
 </body>
 </html>
