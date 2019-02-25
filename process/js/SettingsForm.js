@@ -596,7 +596,6 @@ class SettingsForm extends React.Component{
       return null;
     }
 
-    var settingsDisabled = this.state.editingSettings ? '' : 'disabled';
     var packetCard, phaseCard, divisionCard, phasePickers, playersPerTeamDisplay;
     var phaseError = this.phaseSaveError();
     var divisionError = this.divisionSaveError();
@@ -724,21 +723,21 @@ class SettingsForm extends React.Component{
           <h6>Powers</h6>
           <p>
             <label>
-              <input name="powers" type="radio" value="20pts" disabled={settingsDisabled}
+              <input name="powers" type="radio" value="20pts"
               checked={this.state.powers=='20pts'} onChange={this.handleChange} />
               <span>20 points</span>
             </label>
           </p>
           <p>
             <label>
-              <input name="powers" type="radio" value="15pts" disabled={settingsDisabled}
+              <input name="powers" type="radio" value="15pts"
               checked={this.state.powers=='15pts'} onChange={this.handleChange} />
               <span>15 points</span>
             </label>
           </p>
           <p>
             <label>
-              <input name="powers" type="radio" value="none" disabled={settingsDisabled}
+              <input name="powers" type="radio" value="none"
               checked={this.state.powers=='none'} onChange={this.handleChange} />
               <span>No powers</span>
             </label>
@@ -750,14 +749,14 @@ class SettingsForm extends React.Component{
           <h6>Interrupt Penalties</h6>
           <p>
             <label>
-              <input name="negs" type="radio" value="yes" disabled={settingsDisabled}
+              <input name="negs" type="radio" value="yes"
               checked={this.state.negs=='yes'} onChange={this.handleChange} />
               <span>-5 points</span>
             </label>
           </p>
           <p>
             <label>
-              <input name="negs" type="radio" value="no" disabled={settingsDisabled}
+              <input name="negs" type="radio" value="no"
               checked={this.state.negs=='no'} onChange={this.handleChange} />
               <span>No penalties</span>
             </label>
@@ -769,21 +768,21 @@ class SettingsForm extends React.Component{
           <h6>Bonuses</h6>
           <p>
             <label>
-              <input name="bonuses" type="radio" value="noBb" disabled={settingsDisabled}
+              <input name="bonuses" type="radio" value="noBb"
               checked={this.state.bonuses=='noBb'} onChange={this.handleChange} />
               <span>Without bouncebacks</span>
             </label>
           </p>
           <p>
             <label>
-              <input name="bonuses" type="radio" value="yesBb" disabled={settingsDisabled}
+              <input name="bonuses" type="radio" value="yesBb"
               checked={this.state.bonuses=='yesBb'} onChange={this.handleChange} />
               <span>With bouncebacks</span>
             </label>
           </p>
           <p>
             <label>
-              <input name="bonuses" type="radio" value="none" disabled={settingsDisabled}
+              <input name="bonuses" type="radio" value="none"
               checked={this.state.bonuses=='none'} onChange={this.handleChange} />
               <span>No bonuses</span>
             </label>
@@ -795,7 +794,7 @@ class SettingsForm extends React.Component{
           <h6>Players per team:</h6>
           <div className="input-field">
             <input id="playersPerTeam" type="number" name="playersPerTeam"
-              min="0" max="30" step="1" disabled={settingsDisabled}
+              min="0" max="30" step="1"
               value={this.state.playersPerTeam} onChange={this.handleChange}/>
           </div>
         </span>
