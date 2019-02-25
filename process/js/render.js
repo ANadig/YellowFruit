@@ -31,7 +31,7 @@ var GameList = require('./GameList');
 var StatSidebar = require('./StatSidebar');
 
 const MAX_PLAYERS_PER_TEAM = 30;
-const METADATA = {version:'2.0.0'};
+const METADATA = {version:'2.0.2'};
 const DEFAULT_SETTINGS = {
   powers: '15pts',
   negs: 'yes',
