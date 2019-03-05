@@ -662,6 +662,7 @@ class AddGameModal extends React.Component{
     includeForfeit: field is required even for forfeits?
   ---------------------------------------------------------*/
   validateField(item, includeForfeit) {
+    if(!this.props.isOpen || this.props.gameToLoad != null) { return ''; }
     if(this.state[item] == '' && (!this.state.forfeit || includeForfeit)) {
       return 'invalid';
     }
@@ -673,8 +674,9 @@ class AddGameModal extends React.Component{
   selected a team
   ---------------------------------------------------------*/
   validateTeamSelect(whichTeam) {
+    if(!this.props.isOpen || this.props.gameToLoad != null) { return ''; }
     var tm = this.state['team'+whichTeam]
-    return tm == '' || tm == 'nullTeam' ? 'invalid-select-wrapper' : '';
+    return (tm == '' || tm == 'nullTeam') ? 'invalid-select-wrapper' : '';
   }
 
   /*---------------------------------------------------------
