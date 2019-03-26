@@ -794,7 +794,7 @@ class SettingsForm extends React.Component{
           <h6>Players per team:</h6>
           <div className="input-field">
             <input id="playersPerTeam" type="number" name="playersPerTeam"
-              min="0" max="30" step="1"
+              min="1" max="30" step="1"
               value={this.state.playersPerTeam} onChange={this.handleChange}/>
           </div>
         </span>
