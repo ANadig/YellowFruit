@@ -30,6 +30,9 @@ if (handleSquirrelEvent(app)) {
     return;
 }
 
+//Set to 'production' to hide developer tools; otherwise set to anything else
+process.env.NODE_ENV = 'dev';
+
 /*---------------------------------------------------------
 Load a new report window, or, if one is already open,
 reload and focus it.
@@ -705,6 +708,29 @@ app.on('ready', function() {
         ]
       }
   ]; // mainMenuTemplate
+
+  // Add dev tools if not in production
+  if(process.env.NODE_ENV !== 'production') {
+    mainMenuTemplate.push({
+      label: 'Dev Tools',
+      submenu:[
+        {
+          label: 'Reload',
+          accelerator: 'CmdOrCtrl+R',
+          click (item, focusedWindow) {
+            if (focusedWindow) focusedWindow.reload()
+          }
+        },
+        {
+          label: 'Toggle Developer Tools',
+          accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+          click (item, focusedWindow) {
+            if (focusedWindow) focusedWindow.webContents.toggleDevTools()
+          }
+        }
+      ]
+    });
+  }
 
   reportMenuTemplate = [
     {
