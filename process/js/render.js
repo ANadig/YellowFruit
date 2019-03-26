@@ -67,7 +67,7 @@ class MainInterface extends React.Component{
                                  // when divisions or phases are changed
       activePane: 'settingsPane',  // settings, teams, or games
       viewingPhase: 'all', // 'all' or the name of a user-defined phase
-      defaultPhase: 'noPhase', // 'noPhase' of the name of a user-defined phase
+      defaultPhase: 'noPhase', // 'noPhase' or the name of a user-defined phase
       forceResetForms: false, // used to force an additional render in the team and game
                               // modals in order to clear form data
       editWhichTeam: null,    // which team to load in the team modal
@@ -289,8 +289,12 @@ class MainInterface extends React.Component{
     loadDivisions = JSON.parse(loadDivisions);
     loadTeams = JSON.parse(loadTeams);
     loadGames = JSON.parse(loadGames);
-    var defPhase = Object.keys(loadDivisions)[0]; //could be 'noPhase'
-
+    // set the default phase to the last phase in the list of phases. If the user entered
+    // them in the logical order (e.g. prelims, then playoffs), then the last phase will
+    // be the one they will usually want to group by when viewing all games
+    var phaseList = _.without(Object.keys(loadDivisions),'noPhase');
+    var defPhase = phaseList.length == 0 ? 'noPhase' : phaseList.pop();
+    
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
     this.setState({
@@ -1519,6 +1523,7 @@ class MainInterface extends React.Component{
                 packets = {this.state.packets}
                 divisions = {this.state.divisions}
                 saveDivisions = {this.saveDivisions}
+                defaultPhase = {this.state.defaultPhase}
                 setDefaultGrouping = {this.setDefaultGrouping}
                 saveSettings = {this.saveSettings}
                 savePackets = {this.savePackets}
