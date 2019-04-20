@@ -38,6 +38,9 @@ const DEFAULT_SETTINGS = {
   bonuses: 'noBb',
   playersPerTeam: '4'
 };
+//Materialize accent-1 colors: yellow, light-green, orange, light-blue, red, purple, teal, deep-purple
+const PHASE_COLORS = ['#ffeb3b', '#ccff90', '#ffd180', '#80d8ff',
+  '#ff8a80', '#ea80fc', '#a7ffeb', '#b388ff'];
 
 
 class MainInterface extends React.Component{
@@ -294,7 +297,7 @@ class MainInterface extends React.Component{
     // be the one they will usually want to group by when viewing all games
     var phaseList = _.without(Object.keys(loadDivisions),'noPhase');
     var defPhase = phaseList.length == 0 ? 'noPhase' : phaseList.pop();
-    
+
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
     this.setState({
@@ -483,6 +486,10 @@ class MainInterface extends React.Component{
     //we only want the last segment of the file path to use for links
     var filePathSegments = fileStart.split(/[\\\/]/);
     var endFileStart = filePathSegments.pop();
+    var phaseColors = {}, phaseCnt = 0;
+    for(var p in this.state.divisions) {
+      phaseColors[p] = PHASE_COLORS[phaseCnt++];
+    }
 
     var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, phaseToGroupBy, divsInPhase, this.state.settings);
@@ -500,12 +507,12 @@ class MainInterface extends React.Component{
       if (err) { console.log(err); }
     });//writeFile - scoreboard
     var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.packets, this.state.settings);
+      endFileStart, phase, this.state.packets, this.state.settings, phaseColors);
     fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - team detail
     var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.settings);
+      endFileStart, phase, this.state.settings, phaseColors);
     fs.writeFile(playerDetailLocation, playerDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individual Detail

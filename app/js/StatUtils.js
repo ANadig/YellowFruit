@@ -748,7 +748,7 @@ team detail page.
 ---------------------------------------------------------*/
 function teamDetailGameTableHeader(packetsExist,settings) {
   var html = '<tr>' + '\n' +
-    '<td align=left><b>Rd.</b></td>' + '\n' +
+    '<td align=center><b>Rd.</b></td>' + '\n' +
     '<td align=left><b>Opponent</b></td>' + '\n' +
     '<td align=right><b>Result</b></td>' + '\n' +
     '<td align=right><b>PF</b></td>' + '\n' +
@@ -788,9 +788,9 @@ function teamDetailGameTableHeader(packetsExist,settings) {
 /*---------------------------------------------------------
 A mostly-blank row in a team detail table for a forfeit.
 ---------------------------------------------------------*/
-function forfeitRow(opponent, round, result) {
+function forfeitRow(opponent, round, result, roundStyle) {
   return '<tr>' + '\n' +
-    '<td align=left>' + round + '</td>' + '\n' +
+    '<td align=center' + roundStyle + '>' + round + '</td>' + '\n' +
     '<td align=left>' + opponent + '</td>' + '\n' +
     '<td align=right>' + result + '</td>' + '\n' +
     '<td align=right>Forfeit</td>' + '\n' +
@@ -798,15 +798,49 @@ function forfeitRow(opponent, round, result) {
 }
 
 /*---------------------------------------------------------
+Get the background inline CSS for the round column.
+Color-coded to match phase colors in the application
+---------------------------------------------------------*/
+function getRoundStyle(gamePhases, phaseColors) {
+  if(gamePhases.length == 1) {
+    return ' style="background-color: ' + phaseColors[gamePhases[0]] + '"';
+  }
+  else if(gamePhases.length > 1) {
+    return ' style="background-image: linear-gradient(to bottom right, ' +
+      phaseColors[gamePhases[0]] + ' 50%, ' + phaseColors[gamePhases[1]] + ' 51%)"';
+  }
+  return '';
+}
+
+/*---------------------------------------------------------
+Floating table to explain what the colors mean
+---------------------------------------------------------*/
+function phaseLegend(phaseColors) {
+  var phaseCnt = 0;
+  var html = '<table border=0' +
+    ' style="bottom:20px;right:20px;position:fixed;box-shadow: 4px 4px 7px #999999">' + '\n';
+  for(var p in phaseColors) {
+    html += '<tr>' + '\n';
+    html += '<td style="background-color: ' + phaseColors[p] + '">&nbsp;&nbsp;&nbsp;&nbsp;</td>' + '\n';
+    html += '<td style="background-color: white">' + p + '</td>' + '\n';
+    html += '</tr>' + '\n';
+  }
+  html += '</table>' + '\n';
+  return html;
+}
+
+/*---------------------------------------------------------
 Row for a single game for a single team on the team detail
 page.
 ---------------------------------------------------------*/
-function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, fileStart) {
+function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, phaseColors, formatRdCol, fileStart) {
   var opponent, opponentScore, result, score, players;
+  var roundStyle = formatRdCol ? getRoundStyle(game.phases, phaseColors) : '';
+
   if(whichTeam == 1) {
     opponent = game.team2;
     if(game.forfeit) { //team1 is arbitrarily the winner of a forfeit
-      return forfeitRow(opponent, game.round, 'W');
+      return forfeitRow(opponent, game.round, 'W', roundStyle);
     }
     if(+game.score1 > +game.score2) { result = 'W'; }
     else if(+game.score1 < +game.score2) { result = 'L'; }
@@ -818,7 +852,7 @@ function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, fil
   else {
     opponent = game.team1;
     if(game.forfeit) { //team2 is arbitrarily the loser of a forfeit
-      return forfeitRow(opponent, game.round, 'L');
+      return forfeitRow(opponent, game.round, 'L', roundStyle);
     }
     if(+game.score2 > +game.score1) { result = 'W'; }
     else if(+game.score2 < +game.score1) { result = 'L'; }
@@ -843,7 +877,7 @@ function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, fil
 
   var linkId = scoreboardLinkID(game);
   var html = '<tr>' + '\n';
-  html += '<td align=left>' + game.round + '</td>' + '\n';
+  html += '<td align=center' + roundStyle + '>' + game.round + '</td>' + '\n';
   html += '<td align=left>' + opponent + '</td>' + '\n';
   html += '<td align=right><a HREF=' + fileStart + 'games.html#' + linkId + '>' +
     result + '</a></td>' + '\n';
@@ -993,7 +1027,7 @@ Header row for a table on the player detail page.
 ---------------------------------------------------------*/
 function playerDetailTableHeader(settings) {
   var html = '<tr>' + '\n' +
-    '<td align=left><b>Rd.</b></td>' + '\n' +
+    '<td align=center><b>Rd.</b></td>' + '\n' +
     '<td align=left><b>Opponent</b></td>' + '\n' +
     '<td align=left><b>Result</b></td>' + '\n' +
     '<td align=right><b>GP</b></td>' + '\n';
@@ -1044,7 +1078,7 @@ function playerDetailGameLink(game, whichTeam, fileStart) {
 /*---------------------------------------------------------
 Row for one game for one player on the player detail page.
 ---------------------------------------------------------*/
-function playerDetailGameRow(player, tuhtot, opponent, round, link, settings) {
+function playerDetailGameRow(player, tuhtot, opponent, round, link, settings, gamePhases, phaseColors, formatRdCol) {
   var [tuh, powers, tens, negs] = playerSlashLine(player);
   if(tuh <= 0) {
     return '';
@@ -1055,8 +1089,10 @@ function playerDetailGameRow(player, tuhtot, opponent, round, link, settings) {
   var pPerN = negs == 0 ? 'inf' : powers / negs;
   var gPerN = negs == 0 ? 'inf' : (powers + tens) / negs;
 
+  var roundStyle = formatRdCol ? getRoundStyle(gamePhases, phaseColors) : '';
+
   var html = '<tr>' + '\n';
-  html += '<td align=left>' + round + '</td>' + '\n';
+  html += '<td align=center' + roundStyle + '>' + round + '</td>' + '\n';
   html += '<td align=left>' + opponent + '</td>' + '\n';
   html += '<td align=left>' + link + '</td>' + '\n';
   html += '<td align=right>' + formatRate(gp, 1) + '</td>' + '\n';
@@ -1241,7 +1277,7 @@ function getStatReportBottom() {
 }
 
 /*---------------------------------------------------------
-Stylesheet for table formatting. HTML supports putting
+Stylesheet for table formatting. HTML5 supports putting
 this in the body.
 ---------------------------------------------------------*/
 function tableStyle() {
@@ -1316,7 +1352,7 @@ function getScoreboardHtml(teams, games, fileStart, phase, settings, packets) {
 /*---------------------------------------------------------
 Generate the team detail page.
 ---------------------------------------------------------*/
-function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings) {
+function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, phaseColors) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return toNum(item.round); }, 'asc');
   var standings = compileStandings(teams, games, phase, null, settings);
@@ -1325,7 +1361,9 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings) {
 
   var html = getStatReportTop('TeamDetail', fileStart, 'Team Detail') + '\n' +
     '<h1> Team Detail</h1>' + '\n';
+  if(phase == 'all') { html += phaseLegend(phaseColors); }
   html += tableStyle();
+
   for(var i in teams) {
     var teamName = teams[i].teamName;
     var linkId = teamName.replace(/\W/g, '');
@@ -1335,10 +1373,10 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings) {
     for(var j in games) {
       let gameInPhase = phase == 'all' || games[j].phases.includes(phase);
       if(gameInPhase && games[j].team1 == teamName) {
-        html += teamDetailGameRow(games[j], 1, packetsExist, packets, settings, fileStart);
+        html += teamDetailGameRow(games[j], 1, packetsExist, packets, settings, phaseColors, phase=='all', fileStart);
       }
       else if(gameInPhase && games[j].team2 == teamName) {
-        html += teamDetailGameRow(games[j], 2, packetsExist, packets, settings, fileStart);
+        html += teamDetailGameRow(games[j], 2, packetsExist, packets, settings, phaseColors, phase=='all', fileStart);
       }
     }
     var teamSummary = _.find(standings, (o) => { return o.teamName == teamName; });
@@ -1359,7 +1397,7 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings) {
 /*---------------------------------------------------------
 Generate the player detail page.
 ---------------------------------------------------------*/
-function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
+function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColors) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
   var playerTotals = compileIndividuals(teams, games, phase, null, settings);
@@ -1370,6 +1408,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
 
   var html = getStatReportTop('IndividualDetail', fileStart, 'Individual Detail') +
     '<h1> Individual Detail</h1>' + '\n';
+  if(phase == 'all') { html += phaseLegend(phaseColors); }
   html += tableStyle();
 
   for(var i in playerTotals) {
@@ -1387,7 +1426,8 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
         for(var p in game.players1) {
           if(p == indvTot.playerName) {
             var link = playerDetailGameLink(game, 1, fileStart);
-            html += playerDetailGameRow(game.players1[p], game.tuhtot, game.team2, game.round, link, settings);
+            html += playerDetailGameRow(game.players1[p], game.tuhtot, game.team2,
+              game.round, link, settings, game.phases, phaseColors, phase == 'all');
           }
         }
       }
@@ -1395,7 +1435,8 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
         var link = playerDetailGameLink(game, 2, fileStart);
         for(var p in game.players2) {
           if(p == indvTot.playerName) {
-            html += playerDetailGameRow(game.players2[p], game.tuhtot, game.team1, game.round, link, settings);
+            html += playerDetailGameRow(game.players2[p], game.tuhtot, game.team1,
+              game.round, link, settings, game.phases, phaseColors, phase == 'all');
           }
         }
       }
