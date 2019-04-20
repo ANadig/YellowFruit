@@ -613,7 +613,7 @@ function scoreboardLinkID(game) {
 HTML for all the game summaries for a single round on the
 scoreboard page.
 ---------------------------------------------------------*/
-function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
+function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors) {
   var html = '';
   for(var i in myGames) {
     var g = myGames[i];
@@ -627,7 +627,11 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings) {
       else {
         // game title
         html += '<div id=' + linkId + ' style="margin:-1.5em;position:absolute"></div>'
-        html += '<h3>';
+        html += '<h3>' + '\n';
+        if(phase == 'all') {
+          html += '<span' + getRoundStyle(g.phases, phaseColors) + '>' +
+            '&nbsp;&nbsp;&nbsp;&nbsp;</span>' + '\n';
+        }
         if(toNum(g.score1) >= toNum(g.score2)) {
           html += g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
         }
@@ -1335,16 +1339,17 @@ function getIndividualsHtml(teams, games, fileStart, phase, groupingPhase, using
 /*---------------------------------------------------------
 Generate the scoreboard page.
 ---------------------------------------------------------*/
-function getScoreboardHtml(teams, games, fileStart, phase, settings, packets) {
+function getScoreboardHtml(teams, games, fileStart, phase, settings, packets, phaseColors) {
   var roundList = getRoundsForScoreboard(games, phase);
   var html = getStatReportTop('Scoreboard', fileStart, 'Scoreboard') + '\n';
   html += scoreboardRoundLinks(roundList, fileStart) + '<br>' + '\n';
   html += '<h1> Scoreboard</h1>' + '\n';
+  if(phase == 'all') { html += phaseLegend(phaseColors) + '\n'; }
   var roundNo;
   for(var r in roundList) {
     roundNo = roundList[r];
     html += scoreboardRoundHeader(roundNo, packets[roundNo]);
-    html += scoreboardGameSummaries(games, roundNo, phase, settings);
+    html += scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors);
   }
   return html + '\n' + getStatReportBottom();
 }
@@ -1361,7 +1366,7 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, ph
 
   var html = getStatReportTop('TeamDetail', fileStart, 'Team Detail') + '\n' +
     '<h1> Team Detail</h1>' + '\n';
-  if(phase == 'all') { html += phaseLegend(phaseColors); }
+  if(phase == 'all') { html += phaseLegend(phaseColors) + '\n'; }
   html += tableStyle();
 
   for(var i in teams) {
@@ -1408,7 +1413,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
 
   var html = getStatReportTop('IndividualDetail', fileStart, 'Individual Detail') +
     '<h1> Individual Detail</h1>' + '\n';
-  if(phase == 'all') { html += phaseLegend(phaseColors); }
+  if(phase == 'all') { html += phaseLegend(phaseColors) + '\n'; }
   html += tableStyle();
 
   for(var i in playerTotals) {

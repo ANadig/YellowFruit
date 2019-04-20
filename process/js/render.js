@@ -502,7 +502,7 @@ class MainInterface extends React.Component{
       if (err) { console.log(err); }
     });//writeFile - individuals
     var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.settings, this.state.packets);
+      endFileStart, phase, this.state.settings, this.state.packets, phaseColors);
     fs.writeFile(scoreboardLocation, scoreboardHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - scoreboard
