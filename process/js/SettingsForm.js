@@ -24,7 +24,7 @@ class SettingsForm extends React.Component{
       }
     }
     var allPhases = Object.keys(props.divisions);
-    // var firstPhase = allPhases.length == 0 || divList.length == 0 ? 'noPhase' : allPhases[0]; 
+
     this.state = {
       powers: props.settings.powers, // '20pts', '15pts', or 'none'
       negs: props.settings.negs, // whether there are negs
@@ -34,7 +34,7 @@ class SettingsForm extends React.Component{
       phases: _.without(allPhases, 'noPhase'),
       divisions: divList,
       phaseAssignments: phaseAssnList,
-      defaultPhase: props.defaultPhase,
+      defaultPhase: props.settings.defaultPhase,
       numberOfSavedPhases: _.without(allPhases, 'noPhase').length,
       editingSettings: false,
       editingPackets: false,
@@ -174,7 +174,8 @@ class SettingsForm extends React.Component{
         powers: this.state.powers,
         negs: this.state.negs,
         bonuses: this.state.bonuses,
-        playersPerTeam: this.state.playersPerTeam
+        playersPerTeam: this.state.playersPerTeam,
+        defaultPhase: this.state.defaultPhase
       };
       this.props.saveSettings(settingsObj);
       this.setState({

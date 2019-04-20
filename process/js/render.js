@@ -36,7 +36,8 @@ const DEFAULT_SETTINGS = {
   powers: '15pts',
   negs: 'yes',
   bonuses: 'noBb',
-  playersPerTeam: '4'
+  playersPerTeam: '4',
+  defaultPhase: 'noPhase' // Used to group teams when viewing all games
 };
 //Materialize accent-1 colors: yellow, light-green, orange, light-blue, red, purple, teal, deep-purple
 const PHASE_COLORS = ['#ffeb3b', '#ccff90', '#ffd180', '#80d8ff',
@@ -70,7 +71,6 @@ class MainInterface extends React.Component{
                                  // when divisions or phases are changed
       activePane: 'settingsPane',  // settings, teams, or games
       viewingPhase: 'all', // 'all' or the name of a user-defined phase
-      defaultPhase: 'noPhase', // 'noPhase' or the name of a user-defined phase
       forceResetForms: false, // used to force an additional render in the team and game
                               // modals in order to clear form data
       editWhichTeam: null,    // which team to load in the team modal
@@ -292,11 +292,14 @@ class MainInterface extends React.Component{
     loadDivisions = JSON.parse(loadDivisions);
     loadTeams = JSON.parse(loadTeams);
     loadGames = JSON.parse(loadGames);
-    // set the default phase to the last phase in the list of phases. If the user entered
-    // them in the logical order (e.g. prelims, then playoffs), then the last phase will
-    // be the one they will usually want to group by when viewing all games
-    var phaseList = _.without(Object.keys(loadDivisions),'noPhase');
-    var defPhase = phaseList.length == 0 ? 'noPhase' : phaseList.pop();
+
+    //if coming from 2.0.4 or earlier, arbitrarily pick the first phase as default
+    if(loadSettings.defaultPhase == undefined) {
+      var numberOfPhases = Object.keys(loadDivisions).length;
+      if (numberOfPhases > 1 ||  (numberOfPhases == 1 && loadDivisions['noPhase'] == undefined)) {
+        loadSettings.defaultPhase = Object.keys(loadDivisions)[0];
+      }
+    }
 
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
@@ -308,7 +311,6 @@ class MainInterface extends React.Component{
       myGames: loadGames,
       settingsLoadToggle: !this.state.settingsLoadToggle,
       viewingPhase: 'all',
-      defaultPhase: defPhase,
       activePane: 'settingsPane'
     });
     //the value of settingsLoadToggle doesn't matter; it just needs to change
@@ -480,7 +482,7 @@ class MainInterface extends React.Component{
       var statKeyLocation = fileStart + 'statKey.html';
     }
     var phase = this.state.viewingPhase;
-    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.defaultPhase : this.state.viewingPhase;
+    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhase : this.state.viewingPhase;
     var divsInPhase = this.state.divisions[phaseToGroupBy];
     var usingDivisions = divsInPhase != undefined && divsInPhase.length > 0;
     //we only want the last segment of the file path to use for links
@@ -533,7 +535,7 @@ class MainInterface extends React.Component{
   Export the data in SQBS format
   ---------------------------------------------------------*/
   writeSqbsFile(fileName) {
-    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.defaultPhase : this.state.viewingPhase;
+    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhase : this.state.viewingPhase;
     var sqbsData = getSqbsFile(this.state.settings, phaseToGroupBy, this.state.divisions[phaseToGroupBy],
       this.state.myTeams, this.state.myGames, this.state.packets, this.state.gameIndex);
     fs.writeFile(fileName, sqbsData, 'utf8', function(err) {
@@ -594,7 +596,6 @@ class MainInterface extends React.Component{
       checkGameToggle: false,
       settingsLoadToggle: !this.state.settingsLoadToggle,
       activePane: 'settingsPane',  //settings, teams, or games
-      defaultPhase: 'noPhase',
       viewingPhase: 'all',
       forceResetForms: false,
       editWhichTeam: null,
@@ -1122,7 +1123,7 @@ class MainInterface extends React.Component{
     var newViewingPhase = this.state.viewingPhase;
     if(!newPhases.includes(newViewingPhase)) { newViewingPhase = 'all'; }
     //also can't have a default grouping phase that doesn't exist
-    var newDefaultPhase = this.state.defaultPhase;
+    var newDefaultPhase = this.state.settings.defaultPhase;
     var reloadSettingsPane = this.state.settingsLoadToggle;
     if(!newPhases.includes(newDefaultPhase)) {
       reloadSettingsPane = !this.state.settingsLoadToggle; //so UI will update
@@ -1130,12 +1131,15 @@ class MainInterface extends React.Component{
       else { newDefaultPhase = 'noPhase'; }
     }
 
+    var newSettings = this.state.settings;
+    newSettings.defaultPhase = newDefaultPhase;
+
     this.setState({
       divisions: tempDivisions,
       myTeams: tempTeams,
       myGames: tempGames,
       viewingPhase: newViewingPhase,
-      defaultPhase: newDefaultPhase,
+      settings: newSettings,
       settingsLoadToggle: reloadSettingsPane
     });
     ipc.sendSync('unsavedData');
@@ -1263,9 +1267,12 @@ class MainInterface extends React.Component{
   games
   ---------------------------------------------------------*/
   setDefaultGrouping(phase) {
+    var newSettings = this.state.settings;
+    newSettings.defaultPhase = phase;
     this.setState({
-      defaultPhase: phase
+      settings: newSettings
     });
+    ipc.sendSync('unsavedData');
   }
 
   /*---------------------------------------------------------
@@ -1364,7 +1371,7 @@ class MainInterface extends React.Component{
     var numberOfPhases = Object.keys(this.state.divisions).length;
     var usingPhases = this.usingPhases();
     var usingDivisions = this.usingDivisions();
-    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.defaultPhase : this.state.viewingPhase;
+    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhase : this.state.viewingPhase;
     var divsInPhase = this.state.divisions[phaseToGroupBy];
 
     // Get Materialize features to show up correctly
@@ -1530,7 +1537,7 @@ class MainInterface extends React.Component{
                 packets = {this.state.packets}
                 divisions = {this.state.divisions}
                 saveDivisions = {this.saveDivisions}
-                defaultPhase = {this.state.defaultPhase}
+                defaultPhase = {this.state.settings.defaultPhase}
                 setDefaultGrouping = {this.setDefaultGrouping}
                 saveSettings = {this.saveSettings}
                 savePackets = {this.savePackets}
