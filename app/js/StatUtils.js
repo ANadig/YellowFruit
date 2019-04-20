@@ -818,15 +818,19 @@ function getRoundStyle(gamePhases, phaseColors) {
 
 /*---------------------------------------------------------
 Floating table to explain what the colors mean
+Some of the style here will be redundant on the team and
+player detail pages, but it's needed for the scoreboard
+page since it doesn't use tableStyle()
 ---------------------------------------------------------*/
 function phaseLegend(phaseColors) {
   var phaseCnt = 0;
   var html = '<table border=0' +
-    ' style="bottom:20px;right:20px;position:fixed;box-shadow: 4px 4px 7px #999999">' + '\n';
+    ' style="bottom:20px;right:35px;position:fixed;box-shadow: 4px 4px 7px #999999;border-spacing:0">' + '\n';
   for(var p in phaseColors) {
     html += '<tr>' + '\n';
-    html += '<td style="background-color: ' + phaseColors[p] + '">&nbsp;&nbsp;&nbsp;&nbsp;</td>' + '\n';
-    html += '<td style="background-color: white">' + p + '</td>' + '\n';
+    html += '<td style="background-color:' + phaseColors[p] + ';padding:5px';
+    html += '">&nbsp;&nbsp;&nbsp;&nbsp;</td>' + '\n';
+    html += '<td style="background-color:white;padding:5px">' + p + '</td>' + '\n';
     html += '</tr>' + '\n';
   }
   html += '</table>' + '\n';
@@ -1344,7 +1348,9 @@ function getScoreboardHtml(teams, games, fileStart, phase, settings, packets, ph
   var html = getStatReportTop('Scoreboard', fileStart, 'Scoreboard') + '\n';
   html += scoreboardRoundLinks(roundList, fileStart) + '<br>' + '\n';
   html += '<h1> Scoreboard</h1>' + '\n';
-  if(phase == 'all') { html += phaseLegend(phaseColors) + '\n'; }
+  if(phase == 'all') {
+    html += phaseLegend(phaseColors, true) + '\n';
+  }
   var roundNo;
   for(var r in roundList) {
     roundNo = roundList[r];
