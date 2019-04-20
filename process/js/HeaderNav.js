@@ -101,7 +101,7 @@ class HeaderNav extends React.Component{
   phaseTabs() {
     var allPhasesTab = (
       <li key={'all'} className={'tab ' + this.isViewingPhase('all')}>
-        <a id={'all'} onClick={this.setPhase}>All Phases</a>
+        <a id={'all'} onClick={this.setPhase}>All Games</a>
       </li>
     );
     var tabList = [allPhasesTab];
