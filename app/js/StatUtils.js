@@ -23,6 +23,24 @@ function formatRate(r, precision) {
   return isNaN(r) ? '&mdash;&ensp;' : r.toFixed(precision);
 }
 
+// include column for powers?
+function usePowers(settings) { return settings.powers != 'none'; }
+
+// include column for negs?
+function useNegs(settings) { return settings.negs == 'yes'; }
+
+// include column for powers per neg?
+function usePPerN(settings) { return usePowers(settings) && useNegs(settings); }
+
+// include column for gets per neg?
+function useGPerN(settings) { return useNegs(settings); }
+
+// include columns for bonus points and PPB?
+function useBonus(settings) { return settings.bonuses != 'none'; }
+
+// include columns for bounceback points and PPBB?
+function useBb(settings) { return settings.bonuses == 'yesBb'; }
+
 /*---------------------------------------------------------
 Number of games played, including forfeits.
 ---------------------------------------------------------*/
@@ -200,27 +218,27 @@ function standingsHeader(settings) {
   '<td align=right><b>PPG</b></td>' + '\n' +
   '<td align=right><b>PAPG</b></td>' + '\n' +
   '<td align=right><b>Mrg</b></td>' + '\n';
-  if(settings.powers != 'none') {
+  if(usePowers(settings)) {
     html += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
   }
   html += '<td align=right><b>10</b></td>' + '\n';
-  if(settings.negs == 'yes') {
+  if(useNegs(settings)) {
     html += '<td align=right><b>-5</b></td>' + '\n';
   }
   html += '<td align=right><b>TUH</b></td>' + '\n' +
   '<td align=right><b>PPTUH</b></td>' + '\n';
-  if(settings.powers != 'none' && settings.negs == 'yes') {
+  if(usePPerN(settings)) {
     html += '<td align=right><b>Pwr/N</b></td>' + '\n';
   }
-  if(settings.negs == 'yes') {
+  if(useGPerN(settings)) {
     html += '<td align=right><b>G/N</b></td>' + '\n';
   }
-  if(settings.bonuses != 'none') {
+  if(useBonus(settings)) {
     html += '<td align=right><b>BHrd</b></td>' + '\n' +
     '<td align=right><b>BPts</b></td>' + '\n' +
     '<td align=right><b>PPB</b></td>' + '\n';
   }
-  if(settings.bonuses == 'yesBb') {
+  if(useBb(settings)) {
     html += '<td align=right><b>BBHrd</b></td>' + '\n' +
     '<td align=right><b>BBPts</b></td>' + '\n' +
     '<td align=right><b>PPBB</b></td>' + '\n';
@@ -245,27 +263,27 @@ function standingsRow(teamEntry, rank, fileStart, settings) {
   rowHtml += '<td align=right>' + teamEntry.ppg + '</td>' + '\n';
   rowHtml += '<td align=right>' + teamEntry.papg + '</td>' + '\n';
   rowHtml += '<td align=right>' + teamEntry.margin + '</td>' + '\n';
-  if(settings.powers != 'none') {
+  if(usePowers(settings)) {
     rowHtml += '<td align=right>' + teamEntry.powers + '</td>' + '\n';
   }
   rowHtml += '<td align=right>' + teamEntry.tens + '</td>' + '\n';
-  if(settings.negs == 'yes') {
+  if(useNegs(settings)) {
     rowHtml += '<td align=right>' + teamEntry.negs + '</td>' + '\n';
   }
   rowHtml += '<td align=right>' + teamEntry.tuh + '</td>' + '\n';
   rowHtml += '<td align=right>' + teamEntry.ppth + '</td>' + '\n';
-  if(settings.powers != 'none' && settings.negs == 'yes') {
+  if(usePPerN(settings)) {
     rowHtml += '<td align=right>' + teamEntry.pPerN + '</td>' + '\n';
   }
-  if(settings.negs == 'yes') {
+  if(useGPerN(settings)) {
     rowHtml += '<td align=right>' + teamEntry.gPerN + '</td>' + '\n';
   }
-  if(settings.bonuses != 'none') {
+  if(useBonus(settings)) {
     rowHtml += '<td align=right>' + teamEntry.bHeard + '</td>' + '\n';
     rowHtml += '<td align=right>' + teamEntry.bPts + '</td>' + '\n';
     rowHtml += '<td align=right>' + teamEntry.ppb + '</td>' + '\n';
   }
-  if(settings.bonuses == 'yesBb') {
+  if(useBb(settings)) {
     rowHtml += '<td align=right>' + bbHrdDisplay(teamEntry.bbHeard) + '</td>' + '\n';
     rowHtml += '<td align=right>' + teamEntry.bbPts + '</td>' + '\n';
     rowHtml += '<td align=right>' + teamEntry.ppbb + '</td>' + '\n';
@@ -404,19 +422,19 @@ function individualsHeader(usingDivisions, settings) {
     html += '<td align=left><b>Division</b></td>' + '\n';
   }
   html += '<td align=right><b>GP</b></td>' + '\n';
-  if(settings.powers != 'none') {
+  if(usePowers(settings)) {
     html += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
   }
   html += '<td align=right><b>10</b></td>' + '\n';
-  if(settings.negs == 'yes') {
+  if(useNegs(settings)) {
     html += '<td align=right><b>-5</b></td>' + '\n';
   }
   html += '<td align=right><b>TUH</b></td>' + '\n' +
     '<td align=right><b>PPTUH</b></td>' + '\n';
-  if(settings.powers != 'none' && settings.negs == 'yes') {
+  if(usePPerN(settings)) {
     html += '<td align=right><b>Pwr/N</b></td>' + '\n';
   }
-  if(settings.negs == 'yes') {
+  if(useGPerN(settings)) {
     html += '<td align=right><b>G/N</b></td>' + '\n';
   }
   html += '<td align=right><b>Pts</b></td>' + '\n' +
@@ -445,19 +463,19 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings) 
     rowHtml += '<td align=left>' + divDisplay + '</td>' + '\n';
   }
   rowHtml += '<td align=right>' + playerEntry.gamesPlayed + '</td>' + '\n';
-  if(settings.powers != 'none') {
+  if(usePowers(settings)) {
     rowHtml += '<td align=right>' + playerEntry.powers + '</td>' + '\n';
   }
   rowHtml += '<td align=right>' + playerEntry.tens + '</td>' + '\n';
-  if(settings.negs == 'yes') {
+  if(useNegs(settings)) {
     rowHtml += '<td align=right>' + playerEntry.negs + '</td>' + '\n';
   }
   rowHtml += '<td align=right>' + playerEntry.tuh + '</td>' + '\n';
   rowHtml += '<td align=right>' + playerEntry.pptu + '</td>' + '\n';
-  if(settings.powers != 'none' && settings.negs == 'yes') {
+  if(usePPerN(settings)) {
     rowHtml += '<td align=right>' + playerEntry.pPerN + '</td>' + '\n';
   }
-  if(settings.negs == 'yes') {
+  if(useGPerN(settings)) {
     rowHtml += '<td align=right>' + playerEntry.gPerN + '</td>' + '\n';
   }
   rowHtml += '<td align=right>' + playerEntry.points + '</td>' + '\n';
@@ -604,6 +622,10 @@ function blankPlayerLineScore(size) {
   return output.join('\n');
 }
 
+/*---------------------------------------------------------
+Identifier for a specific game on the scorboard, so other
+pages can link to it.
+---------------------------------------------------------*/
 function scoreboardLinkID(game) {
   return 'R' + game.round + '-' + game.team1.replace(/\W/g, '') + '-' +
     game.team2.replace(/\W/g, '');
@@ -650,13 +672,13 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors)
           '<td align=right><b>TUH</b></td>' + '\n';
         var team2Header = '<td align=left><b>' + g.team2 + '</b></td>' + '\n' +
           '<td align=right><b>TUH</b></td>' + '\n';
-        if(settings.powers != 'none') {
+        if(usePowers(settings)) {
           team1Header += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
           team2Header += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
         }
         team1Header += '<td align=right><b>10</b></td>' + '\n';
         team2Header += '<td align=right><b>10</b></td>' + '\n';
-        if(settings.negs == 'yes') {
+        if(useNegs(settings)) {
           team1Header += '<td align=right><b>-5</b></td>' + '\n';
           team2Header += '<td align=right><b>-5</b></td>' + '\n';
         }
@@ -674,11 +696,11 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors)
           var [tuh, pwr, tn, ng] = playerSlashLine(g.players1[p]);
           if(tuh <= 0) { continue; }
           playerLine += '<td align=right>' + tuh + '</td>' + '\n';
-          if(settings.powers != 'none') {
+          if(usePowers(settings)) {
             playerLine += '<td align=right>' + pwr + '</td>' + '\n';
           }
           playerLine += '<td align=right>' + tn + '</td>' + '\n';
-          if(settings.negs == 'yes') {
+          if(useNegs(settings)) {
             playerLine += '<td align=right>' + ng + '</td>' + '\n';
           }
           playerLine += '<td align=right>' +
@@ -691,11 +713,11 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors)
           var [tuh, pwr, tn, ng] = playerSlashLine(g.players2[p]);
           if(tuh <= 0) { continue; }
           playerLine += '<td align=right>' + tuh + '</td>' + '\n';
-          if(settings.powers != 'none') {
+          if(usePowers(settings)) {
             playerLine += '<td align=right>' + pwr + '</td>' + '\n';
           }
           playerLine += '<td align=right>' + tn + '</td>' + '\n';
-          if(settings.negs == 'yes') {
+          if(useNegs(settings)) {
             playerLine += '<td align=right>' + ng + '</td>' + '\n';
           }
           playerLine += '<td align=right>' +
@@ -720,7 +742,7 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors)
         html += '<br>' + '\n';
 
         // bonus conversion
-        if(settings.bonuses != 'none') {
+        if(useBonus(settings)) {
           var bHeard = bonusesHeard(g, 1), bPts = bonusPoints(g, 1, settings);
           var ppb = bHeard == 0 ? 0 : bPts / bHeard;
           html += 'Bonuses: ' + g.team1 + ' ' + bHeard + ' heard, ' + bPts + ' pts, ' + ppb.toFixed(2) + ' PPB; ';
@@ -729,7 +751,7 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors)
           html += g.team2 + ' ' + bHeard + ' heard, ' + bPts + ' pts, ' + ppb.toFixed(2) + ' PPB <br>' + '\n';
         }
         // bounceback conversion
-        if(settings.bonuses == 'yesBb') {
+        if(useBb(settings)) {
           var bbHrd = bbHeard(g, 1, settings);
           var ppbb = bbHrd.toString()=='0,0' ? 0 : g.bbPts1 / bbHrdToFloat(bbHrd);
           html += 'Bouncebacks: ' + g.team1 + ' ' +
@@ -757,27 +779,27 @@ function teamDetailGameTableHeader(packetsExist,settings) {
     '<td align=right><b>Result</b></td>' + '\n' +
     '<td align=right><b>PF</b></td>' + '\n' +
     '<td align=right><b>PA</b></td>' + '\n';
-  if(settings.powers != 'none') {
+  if(usePowers(settings)) {
     html += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
   }
   html += '<td align=right><b>10</b></td>' + '\n';
-  if(settings.negs == 'yes') {
+  if(useNegs(settings)) {
     html += '<td align=right><b>-5</b></td>' + '\n';
   }
   html += '<td align=right><b>TUH</b></td>' + '\n' +
     '<td align=right><b>PPTUH</b></td>' + '\n';
-  if(settings.powers != 'none' && settings.negs == 'yes') {
+  if(usePPerN(settings)) {
     html += '<td align=right><b>Pwr/N</b></td>' + '\n';
   }
-  if(settings.negs == 'yes') {
+  if(useGPerN(settings)) {
     html += '<td align=right><b>G/N</b></td>' + '\n';
   }
-  if(settings.bonuses != 'none') {
+  if(useBonus(settings)) {
     html += '<td align=right><b>BHrd</b></td>' + '\n' +
       '<td align=right><b>BPts</b></td>' + '\n' +
       '<td align=right><b>PPB</b></td>' + '\n';
   }
-  if(settings.bonuses == 'yesBb') {
+  if(useBb(settings)) {
     html += '<td align=right><b>BBHrd</b></td>' + '\n' +
     '<td align=right><b>BBPts</b></td>' + '\n' +
     '<td align=right><b>PPBB</b></td>' + '\n';
@@ -891,27 +913,27 @@ function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, pha
     result + '</a></td>' + '\n';
   html += '<td align=right>' + score + '</td>' + '\n';
   html += '<td align=right>' + opponentScore + '</td>' + '\n';
-  if(settings.powers != 'none') {
+  if(usePowers(settings)) {
     html += '<td align=right>' + powers + '</td>' + '\n';
   }
   html += '<td align=right>' + tens + '</td>' + '\n';
-  if(settings.negs == 'yes') {
+  if(useNegs(settings)) {
     html += '<td align=right>' + negs + '</td>' + '\n';
   }
   html += '<td align=right>' + game.tuhtot + '</td>' + '\n';
   html += '<td align=right>' + formatRate(ppth, 2) + '</td>' + '\n';
-  if(settings.powers != 'none' && settings.negs == 'yes') {
+  if(usePPerN(settings)) {
     html += '<td align=right>' + formatRate(pPerN, 2) + '</td>' + '\n';
   }
-  if(settings.negs == 'yes') {
+  if(useGPerN(settings)) {
     html += '<td align=right>' + formatRate(gPerN, 2) + '</td>' + '\n';
   }
-  if(settings.bonuses != 'none') {
+  if(useBonus(settings)) {
     html += '<td align=right>' + bHeard + '</td>' + '\n';
     html += '<td align=right>' + bPts + '</td>' + '\n';
     html += '<td align=right>' + formatRate(ppb, 2) + '</td>' + '\n';
   }
-  if(settings.bonuses == 'yesBb') {
+  if(useBb(settings)) {
     html += '<td align=right>' + bbHrdDisplay(bbHrd) + '</td>' + '\n';
     html += '<td align=right>' + bbPts + '</td>' + '\n';
     html += '<td align=right>' + formatRate(ppbb, 2) + '</td>' + '\n';
@@ -928,33 +950,33 @@ function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, pha
 The totals row of a games table on the team detail page.
 ---------------------------------------------------------*/
 function teamDetailTeamSummaryRow(teamSummary, packetsExist, settings) {
-  var html = '<tr>' + '\n';
-  html += '<td></td>' + '\n';
+  var html = '<tfoot>' + '\n' + '<tr>' + '\n';
+  html += '<td style="border-top:1px solid white"></td>' + '\n';
   html += '<td align=left><b>Total</b></td>' + '\n';
   html += '<td></td>' + '\n';
   html += '<td align=right><b>' + teamSummary.points + '</b></td>' + '\n';
   html += '<td align=right><b>' + teamSummary.ptsAgainst + '</b></td>' + '\n';
-  if(settings.powers != 'none') {
+  if(usePowers(settings)) {
     html += '<td align=right><b>' + teamSummary.powers + '</b></td>' + '\n';
   }
   html += '<td align=right><b>' + teamSummary.tens + '</b></td>' + '\n';
-  if(settings.negs == 'yes') {
+  if(useNegs(settings)) {
     html += '<td align=right><b>' + teamSummary.negs + '</b></td>' + '\n';
   }
   html += '<td align=right><b>' + teamSummary.tuh + '</b></td>' + '\n';
   html += '<td align=right><b>' + teamSummary.ppth + '</b></td>' + '\n';
-  if(settings.powers != 'none' && settings.negs == 'yes') {
+  if(usePPerN(settings)) {
     html += '<td align=right><b>' + teamSummary.pPerN + '</b></td>' + '\n';
   }
-  if(settings.negs == 'yes') {
+  if(useGPerN(settings)) {
     html += '<td align=right><b>' + teamSummary.gPerN + '</b></td>' + '\n';
   }
-  if(settings.bonuses != 'none') {
+  if(useBonus(settings)) {
     html += '<td align=right><b>' + teamSummary.bHeard + '</b></td>' + '\n';
     html += '<td align=right><b>' + teamSummary.bPts + '</b></td>' + '\n';
     html += '<td align=right><b>' + teamSummary.ppb + '</b></td>' + '\n';
   }
-  if(settings.bonuses == 'yesBb') {
+  if(useBb(settings)) {
     html += '<td align=right><b>' + bbHrdDisplay(teamSummary.bbHeard) + '</b></td>' + '\n';
     html += '<td align=right><b>' + teamSummary.bbPts + '</b></td>' + '\n';
     html += '<td align=right><b>' + teamSummary.ppbb + '</b></td>' + '\n';
@@ -962,7 +984,7 @@ function teamDetailTeamSummaryRow(teamSummary, packetsExist, settings) {
   if(packetsExist) {
     html += '<td></td>' + '\n';
   }
-  html += '</tr>' + '\n';
+  html += '</tr>' + '\n' + '</tfoot>' + '\n';
 
   return html;
 }
@@ -976,19 +998,19 @@ function teamDetailPlayerTableHeader(settings) {
     '<td align=left><b>Player</b></td>' + '\n' +
     '<td align=left><b>Team</b></td>' + '\n' +
     '<td align=right><b>GP</b></td>' + '\n';
-  if(settings.powers != 'none') {
+  if(usePowers(settings)) {
     html += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
   }
   html += '<td align=right><b>10</b></td>' + '\n';
-  if(settings.negs == 'yes') {
+  if(useNegs(settings)) {
     html += '<td align=right><b>-5</b></td>' + '\n';
   }
   html += '<td align=right><b>TUH</b></td>' + '\n' +
     '<td align=right><b>PPTUH</b></td>' + '\n';
-  if(settings.powers != 'none' && settings.negs == 'yes') {
+  if(usePPerN(settings)) {
     html += '<td align=right><b>Pwr/N</b></td>' + '\n';
   }
-  if(settings.negs == 'yes') {
+  if(useGPerN(settings)) {
     html += '<td align=right><b>G/N</b></td>' + '\n';
   }
   html += '<td align=right><b>Pts</b></td>' + '\n' +
@@ -1008,19 +1030,19 @@ function teamDetailPlayerRow(player, fileStart, settings) {
     player.playerName + '</a></td>' + '\n';
   html += '<td align=left>' + player.teamName + '</td>' + '\n';
   html += '<td align=right>' + player.gamesPlayed + '</td>' + '\n';
-  if(settings.powers != 'none') {
+  if(usePowers(settings)) {
     html += '<td align=right>' + player.powers + '</td>' + '\n';
   }
   html += '<td align=right>' + player.tens + '</td>' + '\n';
-  if(settings.negs == 'yes') {
+  if(useNegs(settings)) {
     html += '<td align=right>' + player.negs + '</td>' + '\n';
   }
   html += '<td align=right>' + player.tuh + '</td>' + '\n';
   html += '<td align=right>' + player.pptu + '</td>' + '\n';
-  if(settings.powers != 'none' && settings.negs == 'yes') {
+  if(usePPerN(settings)) {
     html += '<td align=right>' + player.pPerN + '</td>' + '\n';
   }
-  if(settings.negs == 'yes') {
+  if(useGPerN(settings)) {
     html += '<td align=right>' + player.gPerN + '</td>' + '\n';
   }
   html += '<td align=right>' + player.points + '</td>' + '\n';
@@ -1039,19 +1061,19 @@ function playerDetailTableHeader(settings) {
     '<td align=left><b>Opponent</b></td>' + '\n' +
     '<td align=left><b>Result</b></td>' + '\n' +
     '<td align=right><b>GP</b></td>' + '\n';
-  if(settings.powers != 'none') {
+  if(usePowers(settings)) {
     html += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
   }
   html += '<td align=right><b>10</b></td>' + '\n';
-  if(settings.negs == 'yes') {
+  if(useNegs(settings)) {
     html += '<td align=right><b>-5</b></td>' + '\n';
   }
   html += '<td align=right><b>TUH</b></td>' + '\n' +
     '<td align=right><b>PPTUH</b></td>' + '\n';
-  if(settings.powers != 'none' && settings.negs == 'yes') {
+  if(usePPerN(settings)) {
     html += '<td align=right><b>Pwr/N</b></td>' + '\n';
   }
-  if(settings.negs == 'yes') {
+  if(useGPerN(settings)) {
     html += '<td align=right><b>G/N</b></td>' + '\n';
   }
   html += '<td align=right><b>Pts</b></td>' + '\n' +
@@ -1104,19 +1126,19 @@ function playerDetailGameRow(player, tuhtot, opponent, round, link, settings, ga
   html += '<td align=left>' + opponent + '</td>' + '\n';
   html += '<td align=left>' + link + '</td>' + '\n';
   html += '<td align=right>' + formatRate(gp, 1) + '</td>' + '\n';
-  if(settings.powers != 'none') {
+  if(usePowers(settings)) {
     html += '<td align=right>' + powers + '</td>' + '\n';
   }
   html += '<td align=right>' + tens + '</td>' + '\n';
-  if(settings.negs == 'yes') {
+  if(useNegs(settings)) {
     html += '<td align=right>' + negs + '</td>' + '\n';
   }
   html += '<td align=right>' + tuh + '</td>' + '\n';
   html += '<td align=right>' + formatRate(pptu, 2) + '</td>' + '\n';
-  if(settings.powers != 'none' && settings.negs == 'yes') {
+  if(usePPerN(settings)) {
     html += '<td align=right>' + formatRate(pPerN, 2) + '</td>' + '\n';
   }
-  if(settings.negs == 'yes') {
+  if(useGPerN(settings)) {
     html += '<td align=right>' + formatRate(gPerN, 2) + '</td>' + '\n';
   }
   html += '<td align=right>' + points + '</td>' + '\n';
@@ -1129,28 +1151,28 @@ Total row for a table on the player detail page. Reuse
 results of compileIndividuals
 ---------------------------------------------------------*/
 function playerDetailTotalRow(player, settings) {
-  var html = '<tr>' + '\n';
-  html += '<td align=left></td>' + '\n';
+  var html = '<tfoot>' + '\n' + '<tr>' + '\n';
+  html += '<td style="border-top:1px solid white"></td>' + '\n';
   html += '<td align=left><b>Total</b></td>' + '\n';
   html += '<td></td>' + '\n';
   html += '<td align=right><b>' + player.gamesPlayed + '</b></td>' + '\n';
-  if(settings.powers != 'none') {
+  if(usePowers(settings)) {
     html += '<td align=right><b>' + player.powers + '</b></td>' + '\n';
   }
   html += '<td align=right><b>' + player.tens + '</b></td>' + '\n';
-  if(settings.negs == 'yes') {
+  if(useNegs(settings)) {
     html += '<td align=right><b>' + player.negs + '</b></td>' + '\n';
   }
   html += '<td align=right><b>' + player.tuh + '</b></td>' + '\n';
   html += '<td align=right><b>' + player.pptu + '</b></td>' + '\n';
-  if(settings.powers != 'none' && settings.negs == 'yes') {
+  if(usePPerN(settings)) {
     html += '<td align=right><b>' + player.pPerN + '</b></td>' + '\n';
   }
-  if(settings.negs == 'yes') {
+  if(useGPerN(settings)) {
     html += '<td align=right><b>' + player.gPerN + '</b></td>' + '\n';
   }
   html += '<td align=right><b>' + player.points + '</b></td>' + '\n';
-  html += '</tr>' + '\n';
+  html += '</tr>' + '\n' + '</tfoot>' + '\n';
   return html;
 }
 
@@ -1215,12 +1237,12 @@ function roundReportTableHeader(packetsExist, settings) {
   }
   html += '<td><b>Number of Games</b></td>' + '\n' +
     '<td><b>PPG/Team</b></td>' + '\n';
-  if(settings.bonuses != 'none') {
+  if(useBonus(settings)) {
     html += '<td><b>TUPts/TUH</b></td>' + '\n' +
       '<td><b>PPB</b></td>' + '\n';
   }
   else { html += '<td><b>Pts/TUH</b></td>' + '\n'; }
-  if(settings.bonuses == 'yesBb') {
+  if(useBb(settings)) {
     html += '<td><b>PPBB</b></td>' + '\n';
   }
   html += '</tr>' + '\n';
@@ -1240,10 +1262,10 @@ function roundReportRow(smry, roundNo, packetsExist, packets, settings) {
   html += '<td>' + smry.numberOfGames + '</td>' + '\n' +
     '<td>' + smry.ppg.toFixed(1) + '</td>' + '\n' +
     '<td>' + smry.tuPtsPTu.toFixed(2) + '</td>' + '\n';
-  if(settings.bonuses != 'none') {
+  if(useBonus(settings)) {
     html += '<td>' + smry.ppb.toFixed(2) + '</td>' + '\n';
   }
-  if(settings.bonuses == 'yesBb') {
+  if(useBb(settings)) {
     html += '<td>' + smry.ppbb.toFixed(2) + '</td>' + '\n';
   }
   html += '</tr>' + '\n';
@@ -1291,8 +1313,9 @@ this in the body.
 function tableStyle() {
   return '<style>\n' +
     'td {\n  padding: 5px;\n}\n' +
+    'tfoot {\n  border-top: 1px solid #909090;\n}\n' +
     'tr:nth-child(even) {\n  background-color: #f2f2f2;\n}\n' +
-    'table {\n  border-spacing: 0;\n}\n' +
+    'table {\n  border-spacing: 0;\n  border-collapse: collapse;\n}\n' +
     '</style>'
 }
 
