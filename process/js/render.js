@@ -40,7 +40,7 @@ const DEFAULT_SETTINGS = {
   defaultPhase: 'noPhase' // Used to group teams when viewing all games
 };
 //Materialize accent-1 colors: yellow, light-green, orange, light-blue, red, purple, teal, deep-purple
-const PHASE_COLORS = ['#ffeb3b', '#ccff90', '#ffd180', '#80d8ff',
+const PHASE_COLORS = ['#ffff8d', '#ccff90', '#ffd180', '#80d8ff',
   '#ff8a80', '#ea80fc', '#a7ffeb', '#b388ff'];
 
 
