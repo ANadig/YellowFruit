@@ -389,7 +389,7 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
     t.ppbb = formatRate(ppbb, 2);
   }
 
-  return _.orderBy(standings, ['winPct', (t)=>{return +t.ppg}], ['desc', 'desc']);
+  return _.orderBy(standings, ['winPct', (t)=>{return toNum(t.ppg)}], ['desc', 'desc']);
 } //compileStandings
 
 /*---------------------------------------------------------
