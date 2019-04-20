@@ -115,6 +115,12 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 50px !important;
 }
 
+@media screen and (min-width: 993px) {
+  .qb-nav .nav-content .tabs {
+    top: -1px;
+  }
+}
+
 .qb-nav .nav-content .tabs {
   height: 28px;
 }
