@@ -1241,16 +1241,29 @@ function getStatReportBottom() {
 }
 
 /*---------------------------------------------------------
+Stylesheet for table formatting. HTML supports putting
+this in the body.
+---------------------------------------------------------*/
+function tableStyle() {
+  return '<style>\n' +
+    'td {\n  padding: 5px;\n}\n' +
+    'tr:nth-child(even) {\n  background-color: #f2f2f2;\n}\n' +
+    'table {\n  border-spacing: 0;\n}\n' +
+    '</style>'
+}
+
+/*---------------------------------------------------------
 Generate the team standings page.
 ---------------------------------------------------------*/
 function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInPhase, settings) {
   var standings = compileStandings(teams, games, phase, groupingPhase, settings);
   var html = getStatReportTop('TeamStandings', fileStart, 'Team Standings') +
     '<h1> Team Standings</h1>' + '\n';
+  html += tableStyle();
   if(divsInPhase != undefined && divsInPhase.length > 0) {
     for(var i in divsInPhase) {
       html += '<h2>' + divsInPhase[i] + '</h2>' + '\n';
-      html += '<table border=1 width=100%>' + '\n' + standingsHeader(settings);
+      html += '<table width=100%>' + '\n' + standingsHeader(settings);
       var teamsInDiv = _.filter(standings, (t) => { return t.division == divsInPhase[i] });
       for(var j in teamsInDiv) {
         html += standingsRow(teamsInDiv[j], parseFloat(j)+1, fileStart, settings);
@@ -1259,7 +1272,7 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInP
     }
   }
   else { //not using divisions
-    html += '<table border=1 width=100%>' + '\n' + standingsHeader(settings);
+    html += '<table width=100%>' + '\n' + standingsHeader(settings);
     for(var i in standings) {
       html += standingsRow(standings[i], parseFloat(i)+1, fileStart, settings);
     }
@@ -1274,8 +1287,9 @@ Generate the individual standings page.
 function getIndividualsHtml(teams, games, fileStart, phase, groupingPhase, usingDivisions, settings) {
   var individuals = compileIndividuals(teams, games, phase, groupingPhase, settings);
   var html = getStatReportTop('IndividualStandings', fileStart, 'Individual Standings') +
-    '<h1> Individual Statistics</h1>' + '\n' +
-    '<table border=1 width=100%>' + individualsHeader(usingDivisions, settings);
+    '<h1> Individual Statistics</h1>' + '\n';
+  html += tableStyle();
+  html += '<table width=100%>' + individualsHeader(usingDivisions, settings);
   for(var i in individuals) {
     html += individualsRow(individuals[i], parseFloat(i)+1, fileStart, usingDivisions, settings);
   }
@@ -1311,11 +1325,12 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings) {
 
   var html = getStatReportTop('TeamDetail', fileStart, 'Team Detail') + '\n' +
     '<h1> Team Detail</h1>' + '\n';
+  html += tableStyle();
   for(var i in teams) {
     var teamName = teams[i].teamName;
     var linkId = teamName.replace(/\W/g, '');
     html += '<h2 id=' + linkId + '>' + teamName + '</h2>' + '\n';
-    html += '<table border=1 width=100%>' + '\n';
+    html += '<table width=100%>' + '\n';
     html += teamDetailGameTableHeader(packetsExist, settings) + '\n';
     for(var j in games) {
       let gameInPhase = phase == 'all' || games[j].phases.includes(phase);
@@ -1329,7 +1344,7 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings) {
     var teamSummary = _.find(standings, (o) => { return o.teamName == teamName; });
     html += teamDetailTeamSummaryRow(teamSummary, packetsExist, settings);
     html += '</table>' + '<br>' + '\n';
-    html += '<table border=1 width=100%>' + '\n';
+    html += '<table width=100%>' + '\n';
     html += teamDetailPlayerTableHeader(settings) + '\n';
     for(var i in individuals) {
       if(individuals[i].teamName == teamName) {
@@ -1355,6 +1370,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
 
   var html = getStatReportTop('IndividualDetail', fileStart, 'Individual Detail') +
     '<h1> Individual Detail</h1>' + '\n';
+  html += tableStyle();
 
   for(var i in playerTotals) {
     var indvTot = playerTotals[i];
@@ -1362,7 +1378,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings) {
       indvTot.playerName.replace(/\W/g, '');
     html += '<h2 id=' + linkId + '>' +
       indvTot.playerName + ', ' + indvTot.teamName + '</h2>' + '\n';
-    html += '<table border=1 width=100%>' + '\n';
+    html += '<table width=100%>' + '\n';
     html += playerDetailTableHeader(settings);
     for(var j in games) {
       var game = games[j];
@@ -1400,7 +1416,8 @@ function getRoundReportHtml(teams, games, fileStart, phase, packets, settings) {
   var packetsExist = packetNamesExist(packets);
   var html = getStatReportTop('RoundReport', fileStart, 'Round Report') +
     '<h1> Round Report</h1>' + '\n';
-  html += '<table border=1 width=100%>' + '\n';
+  html += tableStyle();
+  html += '<table width=100%>' + '\n';
   html += roundReportTableHeader(packetsExist, settings);
   for(var i in roundSummaries) {
     html += roundReportRow(roundSummaries[i], i, packetsExist, packets, settings);

@@ -44,8 +44,8 @@ function showReportWindow() {
   }
   else {
     reportWindow = new BrowserWindow({
-      width: 900,
-      height: 500,
+      width: 1050,
+      height: 550,
       show: false,
       autoHideMenuBar: true,
       icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
