@@ -847,11 +847,10 @@ page since it doesn't use tableStyle()
 function phaseLegend(phaseColors) {
   var phaseCnt = 0;
   var html = '<table border=0' +
-    ' style="bottom:20px;right:35px;position:fixed;box-shadow: 4px 4px 7px #999999;border-spacing:0">' + '\n';
+    ' style="bottom:20px;right:35px;position:fixed;box-shadow: 4px 4px 7px #999999;border-spacing:0;">' + '\n';
   for(var p in phaseColors) {
     html += '<tr>' + '\n';
-    html += '<td style="background-color:' + phaseColors[p] + ';padding:5px';
-    html += '">&nbsp;&nbsp;&nbsp;&nbsp;</td>' + '\n';
+    html += '<td style="background-color:' + phaseColors[p] + ';padding:5px">&nbsp;&nbsp;&nbsp;&nbsp;</td>' + '\n';
     html += '<td style="background-color:white;padding:5px">' + p + '</td>' + '\n';
     html += '</tr>' + '\n';
   }
