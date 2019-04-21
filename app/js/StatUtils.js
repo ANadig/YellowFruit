@@ -432,30 +432,30 @@ The header for the table in the individual standings.
 ---------------------------------------------------------*/
 function individualsHeader(usingDivisions, settings) {
   var html = '<tr>' + '\n' +
-    '<td align=left><b>Rank</b></td>' + '\n' +
-    '<td align=left><b>Player</b></td>' + '\n' +
-    '<td align=left><b>Team</b></td>' + '\n';
+    tdTag('Rank','left',true) +
+    tdTag('Player','left',true) +
+    tdTag('Team','left',true);
   if(usingDivisions) {
-    html += '<td align=left><b>Division</b></td>' + '\n';
+    html += tdTag('Division','left',true);
   }
-  html += '<td align=right><b>GP</b></td>' + '\n';
+  html += tdTag('GP','left',true);
   if(usePowers(settings)) {
-    html += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
+    html += tdTag(powerValue(settings),'right',true);
   }
-  html += '<td align=right><b>10</b></td>' + '\n';
+  html += tdTag('10','right',true);
   if(useNegs(settings)) {
-    html += '<td align=right><b>-5</b></td>' + '\n';
+    html += tdTag('-5','right',true);
   }
-  html += '<td align=right><b>TUH</b></td>' + '\n' +
-    '<td align=right><b>PPTUH</b></td>' + '\n';
+  html += tdTag('TUH','right',true) +
+    tdTag('PPTUH','right',true);
   if(usePPerN(settings)) {
-    html += '<td align=right><b>Pwr/N</b></td>' + '\n';
+    html += tdTag('Pwr/N','right',true);
   }
   if(useGPerN(settings)) {
-    html += '<td align=right><b>G/N</b></td>' + '\n';
+    html += tdTag('G/N','right',true);
   }
-  html += '<td align=right><b>Pts</b></td>' + '\n' +
-    '<td align=right><b>PPG</b></td>' + '\n' +
+  html += tdTag('Pts','right',true) +
+    tdTag('PPG','right',true) +
     '</tr>' + '\n';
   return html;
 }
@@ -469,34 +469,33 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings) 
   var teamLinkId = playerEntry.teamName.replace(/\W/g, '');
 
   var rowHtml = '<tr>' + '\n';
-  rowHtml += '<td align=left>' + rank + '</td>' + '\n';
-  rowHtml += '<td align=left><a HREF=' + fileStart + 'playerdetail.html#' + playerLinkId + '>' +
-    playerEntry.playerName + '</a></td>' + '\n';
-  rowHtml += '<td align=left>' + '<a HREF=' + fileStart + 'teamdetail.html#' + teamLinkId + '>' +
-      playerEntry.teamName + '</a>' + '</td>' + '\n';
+  rowHtml += tdTag(rank,'left');
+  rowHtml += tdTag('<a HREF=' + fileStart + 'playerdetail.html#' + playerLinkId + '>' + playerEntry.playerName + '</a>','left');
+  rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + teamLinkId + '>' + playerEntry.teamName + '</a>','left');
+
   if(usingDivisions) {
     var divDisplay = playerEntry.division;
     if(divDisplay == undefined) { divDisplay = '&mdash;&ensp;'; }
-    rowHtml += '<td align=left>' + divDisplay + '</td>' + '\n';
+    rowHtml += tdTag(divDisplay,'left');
   }
-  rowHtml += '<td align=right>' + playerEntry.gamesPlayed + '</td>' + '\n';
+  rowHtml += tdTag(playerEntry.gamesPlayed,'right');
   if(usePowers(settings)) {
-    rowHtml += '<td align=right>' + playerEntry.powers + '</td>' + '\n';
+    rowHtml += tdTag(playerEntry.powers,'right');
   }
-  rowHtml += '<td align=right>' + playerEntry.tens + '</td>' + '\n';
+  rowHtml += tdTag(playerEntry.tens,'right');
   if(useNegs(settings)) {
-    rowHtml += '<td align=right>' + playerEntry.negs + '</td>' + '\n';
+    rowHtml += tdTag(playerEntry.negs,'right');
   }
-  rowHtml += '<td align=right>' + playerEntry.tuh + '</td>' + '\n';
-  rowHtml += '<td align=right>' + playerEntry.pptu + '</td>' + '\n';
+  rowHtml += tdTag(playerEntry.tuh,'right');
+  rowHtml += tdTag(playerEntry.pptu,'right');
   if(usePPerN(settings)) {
-    rowHtml += '<td align=right>' + playerEntry.pPerN + '</td>' + '\n';
+    rowHtml += tdTag(playerEntry.pPerN,'right');
   }
   if(useGPerN(settings)) {
-    rowHtml += '<td align=right>' + playerEntry.gPerN + '</td>' + '\n';
+    rowHtml += tdTag(playerEntry.gPerN,'right');
   }
-  rowHtml += '<td align=right>' + playerEntry.points + '</td>' + '\n';
-  rowHtml += '<td align=right>' + playerEntry.ppg + '</td>' + '\n';
+  rowHtml += tdTag(playerEntry.points,'right');
+  rowHtml += tdTag(playerEntry.ppg,'right');
   return rowHtml + '</tr>' + '\n';
 }
 
