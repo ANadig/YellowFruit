@@ -205,43 +205,61 @@ function packetNamesExist(packets) {
 }
 
 /*---------------------------------------------------------
+API to generate table cell <td> tags (with newline at the end)
+  text: inner text
+  align: 'left', etc.
+  bold: boolean
+  style: inline CSS. Don't include quotes around it
+---------------------------------------------------------*/
+function tdTag(text, align, bold, style) {
+  var html = '<td';
+  if(align != null) { html += ' align=' + align; }
+  if(style != null) { html += ' style="' + style + '"'; }
+  html += '>';
+  if(bold) { html += '<b>'; }
+  html += text;
+  if(bold) { html += '</b>'; }
+  return html + '</td>\n';
+}
+
+/*---------------------------------------------------------
 Header row for the team standings.
 ---------------------------------------------------------*/
 function standingsHeader(settings) {
   var html = '<tr>' + '\n' +
-  '<td align=left><b>Rank</b></td>' + '\n' +
-  '<td align=left><b>Team</b></td>' + '\n' +
-  '<td align=right><b>W</b></td>' + '\n' +
-  '<td align=right><b>L</b></td>' + '\n' +
-  '<td align=right><b>T</b></td>' + '\n' +
-  '<td align=right><b>Pct</b></td>' + '\n' +
-  '<td align=right><b>PPG</b></td>' + '\n' +
-  '<td align=right><b>PAPG</b></td>' + '\n' +
-  '<td align=right><b>Mrg</b></td>' + '\n';
+    tdTag('Rank','left',true) +
+    tdTag('Team','left',true) +
+    tdTag('W','right',true) +
+    tdTag('L','right',true) +
+    tdTag('T','right',true) +
+    tdTag('Pct','right',true) +
+    tdTag('PPG','right',true) +
+    tdTag('PAPG','right',true) +
+    tdTag('Mrg','right',true);
   if(usePowers(settings)) {
-    html += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
+    html += tdTag(powerValue(settings),'right',true);
   }
-  html += '<td align=right><b>10</b></td>' + '\n';
+  html += tdTag('10','right',true);
   if(useNegs(settings)) {
-    html += '<td align=right><b>-5</b></td>' + '\n';
+    html += tdTag('-5','right',true);
   }
-  html += '<td align=right><b>TUH</b></td>' + '\n' +
-  '<td align=right><b>PPTUH</b></td>' + '\n';
+  html += tdTag('TUH','right',true) +
+    tdTag('PPTUH','right',true);
   if(usePPerN(settings)) {
-    html += '<td align=right><b>Pwr/N</b></td>' + '\n';
+    html += tdTag('Pwr/N','right',true);
   }
   if(useGPerN(settings)) {
-    html += '<td align=right><b>G/N</b></td>' + '\n';
+    html += tdTag('G/N','right',true);
   }
   if(useBonus(settings)) {
-    html += '<td align=right><b>BHrd</b></td>' + '\n' +
-    '<td align=right><b>BPts</b></td>' + '\n' +
-    '<td align=right><b>PPB</b></td>' + '\n';
+    html += tdTag('BHrd','right',true) +
+      tdTag('BPts','right',true) +
+      tdTag('PPB','right',true);
   }
   if(useBb(settings)) {
-    html += '<td align=right><b>BBHrd</b></td>' + '\n' +
-    '<td align=right><b>BBPts</b></td>' + '\n' +
-    '<td align=right><b>PPBB</b></td>' + '\n';
+    html += tdTag('BBHrd','right',true) +
+      tdTag('BBPts','right',true) +
+      tdTag('PPBB','right',true);
   }
   html += '</tr>' + '\n';
   return html;
@@ -253,40 +271,39 @@ One row in the team standings
 function standingsRow(teamEntry, rank, fileStart, settings) {
   var linkId = teamEntry.teamName.replace(/\W/g, '');
   var rowHtml = '<tr>';
-  rowHtml += '<td align=left>' + rank + '</td>' + '\n';
-  rowHtml += '<td align=left>' + '<a HREF=' + fileStart + 'teamdetail.html#' + linkId + '>' +
-    teamEntry.teamName + '</a>' + '</td>' + '\n';
-  rowHtml += '<td align=right>' + teamEntry.wins + '</td>' + '\n';
-  rowHtml += '<td align=right>' + teamEntry.losses + '</td>' + '\n';
-  rowHtml += '<td align=right>' + teamEntry.ties + '</td>' + '\n';
-  rowHtml += '<td align=right>' + teamEntry.winPct + '</td>' + '\n';
-  rowHtml += '<td align=right>' + teamEntry.ppg + '</td>' + '\n';
-  rowHtml += '<td align=right>' + teamEntry.papg + '</td>' + '\n';
-  rowHtml += '<td align=right>' + teamEntry.margin + '</td>' + '\n';
+  rowHtml += tdTag(rank,'left');
+  rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + linkId + '>' + teamEntry.teamName + '</a>','left');
+  rowHtml += tdTag(teamEntry.wins,'right');
+  rowHtml += tdTag(teamEntry.losses,'right');
+  rowHtml += tdTag(teamEntry.ties,'right');
+  rowHtml += tdTag(teamEntry.winPct,'right');
+  rowHtml += tdTag(teamEntry.ppg,'right');
+  rowHtml += tdTag(teamEntry.papg,'right');
+  rowHtml += tdTag(teamEntry.margin,'right');
   if(usePowers(settings)) {
-    rowHtml += '<td align=right>' + teamEntry.powers + '</td>' + '\n';
+    rowHtml += tdTag(teamEntry.powers,'right');
   }
-  rowHtml += '<td align=right>' + teamEntry.tens + '</td>' + '\n';
+  rowHtml += tdTag(teamEntry.tens,'right');
   if(useNegs(settings)) {
-    rowHtml += '<td align=right>' + teamEntry.negs + '</td>' + '\n';
+    rowHtml += tdTag(teamEntry.negs,'right');
   }
-  rowHtml += '<td align=right>' + teamEntry.tuh + '</td>' + '\n';
-  rowHtml += '<td align=right>' + teamEntry.ppth + '</td>' + '\n';
+  rowHtml += tdTag(teamEntry.tuh,'right');
+  rowHtml += tdTag(teamEntry.ppth,'right');
   if(usePPerN(settings)) {
-    rowHtml += '<td align=right>' + teamEntry.pPerN + '</td>' + '\n';
+    rowHtml += tdTag(teamEntry.pPerN,'right');
   }
   if(useGPerN(settings)) {
-    rowHtml += '<td align=right>' + teamEntry.gPerN + '</td>' + '\n';
+    rowHtml += tdTag(teamEntry.gPerN,'right');
   }
   if(useBonus(settings)) {
-    rowHtml += '<td align=right>' + teamEntry.bHeard + '</td>' + '\n';
-    rowHtml += '<td align=right>' + teamEntry.bPts + '</td>' + '\n';
-    rowHtml += '<td align=right>' + teamEntry.ppb + '</td>' + '\n';
+    rowHtml += tdTag(teamEntry.bHeard,'right');
+    rowHtml += tdTag(teamEntry.bPts,'right');
+    rowHtml += tdTag(teamEntry.ppb,'right');
   }
   if(useBb(settings)) {
-    rowHtml += '<td align=right>' + bbHrdDisplay(teamEntry.bbHeard) + '</td>' + '\n';
-    rowHtml += '<td align=right>' + teamEntry.bbPts + '</td>' + '\n';
-    rowHtml += '<td align=right>' + teamEntry.ppbb + '</td>' + '\n';
+    rowHtml += tdTag(bbHrdDisplay(teamEntry.bbHeard),'right');
+    rowHtml += tdTag(teamEntry.bbPts,'right');
+    rowHtml += tdTag(teamEntry.ppbb,'right');
   }
   return rowHtml + '</tr>' + '\n';
 }
