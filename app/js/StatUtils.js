@@ -776,7 +776,7 @@ function teamDetailGameTableHeader(packetsExist,settings) {
   var html = '<tr>' + '\n' +
     '<td align=center><b>Rd.</b></td>' + '\n' +
     '<td align=left><b>Opponent</b></td>' + '\n' +
-    '<td align=right><b>Result</b></td>' + '\n' +
+    '<td align=left><b>Result</b></td>' + '\n' +
     '<td align=right><b>PF</b></td>' + '\n' +
     '<td align=right><b>PA</b></td>' + '\n';
   if(usePowers(settings)) {
@@ -908,7 +908,7 @@ function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, pha
   var html = '<tr>' + '\n';
   html += '<td align=center' + roundStyle + '>' + game.round + '</td>' + '\n';
   html += '<td align=left>' + opponent + '</td>' + '\n';
-  html += '<td align=right><a HREF=' + fileStart + 'games.html#' + linkId + '>' +
+  html += '<td align=left><a HREF=' + fileStart + 'games.html#' + linkId + '>' +
     result + '</a></td>' + '\n';
   html += '<td align=right>' + score + '</td>' + '\n';
   html += '<td align=right>' + opponentScore + '</td>' + '\n';
