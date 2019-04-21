@@ -684,60 +684,57 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors)
         // make a table for the player linescores
         html += '<table border=0 width=70%>' + '\n';
         html += '<tr>' + '\n';
-        var team1Header = '<td align=left><b>' + g.team1 + '</b></td>' + '\n' +
-          '<td align=right><b>TUH</b></td>' + '\n';
-        var team2Header = '<td align=left><b>' + g.team2 + '</b></td>' + '\n' +
-          '<td align=right><b>TUH</b></td>' + '\n';
+        var team1Header = tdTag(g.team1,'left',true) +
+          tdTag('TUH','right',true);
+        var team2Header = tdTag(g.team2,'left',true) +
+          tdTag('TUH','right',true);
         if(usePowers(settings)) {
-          team1Header += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
-          team2Header += '<td align=right><b>' + powerValue(settings) + '</b></td>' + '\n';
+          team1Header += tdTag(powerValue(settings),'right',true);
+          team2Header += tdTag(powerValue(settings),'right',true);
         }
-        team1Header += '<td align=right><b>10</b></td>' + '\n';
-        team2Header += '<td align=right><b>10</b></td>' + '\n';
+        team1Header += tdTag('10','right',true);
+        team2Header += tdTag('10','right',true);
         if(useNegs(settings)) {
-          team1Header += '<td align=right><b>-5</b></td>' + '\n';
-          team2Header += '<td align=right><b>-5</b></td>' + '\n';
+          team1Header += tdTag('-5','right',true);
+          team2Header += tdTag('-5','right',true);
         }
-        team1Header += '<td align=right><b>Tot</b></td>' + '\n';
-        team2Header += '<td align=right><b>Tot</b></td>' + '\n';
-        html += team1Header + '<td></td>' + team2Header; // add an empty column as a buffer between the two teams
+        team1Header += tdTag('Tot','right',true);
+        team2Header += tdTag('Tot','right',true);
+        html += team1Header + tdTag('') + team2Header; // add an empty column as a buffer between the two teams
         html += '</tr>' + '\n';
 
         var playersLeft = [];
         var playersRight = [];
         //the left side of the table
         for(var p in g.players1) {
-          var playerLine = '<tr>' + '\n' +
-            '<td>' + p + '</td>' + '\n';
+          var playerLine = '<tr>' + '\n' + tdTag(p);
           var [tuh, pwr, tn, ng] = playerSlashLine(g.players1[p]);
           if(tuh <= 0) { continue; }
-          playerLine += '<td align=right>' + tuh + '</td>' + '\n';
+          playerLine += tdTag(tuh,'right');
           if(usePowers(settings)) {
-            playerLine += '<td align=right>' + pwr + '</td>' + '\n';
+            playerLine += tdTag(pwr,'right');
           }
-          playerLine += '<td align=right>' + tn + '</td>' + '\n';
+          playerLine += tdTag(tn,'right');
           if(useNegs(settings)) {
-            playerLine += '<td align=right>' + ng + '</td>' + '\n';
+            playerLine += tdTag(ng,'right');
           }
-          playerLine += '<td align=right>' +
-            ((powerValue(settings)*pwr + 10*tn + negValue(settings)*ng)) + '</td>' + '\n';
+          playerLine += tdTag(powerValue(settings)*pwr + 10*tn + negValue(settings)*ng,'right');
           playersLeft.push(playerLine);
         }
         // the right side of the table
         for(var p in g.players2) {
-          var playerLine = '<td>' + p + '</td>' + '\n';
+          var playerLine = tdTag(p);
           var [tuh, pwr, tn, ng] = playerSlashLine(g.players2[p]);
           if(tuh <= 0) { continue; }
-          playerLine += '<td align=right>' + tuh + '</td>' + '\n';
+          playerLine += tdTag(tuh,'right');
           if(usePowers(settings)) {
-            playerLine += '<td align=right>' + pwr + '</td>' + '\n';
+            playerLine += tdTag(pwr,'right');
           }
-          playerLine += '<td align=right>' + tn + '</td>' + '\n';
+          playerLine += tdTag(tn,'right');
           if(useNegs(settings)) {
-            playerLine += '<td align=right>' + ng + '</td>' + '\n';
+            playerLine += tdTag(ng,'right');
           }
-          playerLine += '<td align=right>' +
-            ((powerValue(settings)*pwr + 10*tn + negValue(settings)*ng)) + '</td>' + '\n';
+          playerLine += tdTag(powerValue(settings)*pwr + 10*tn + negValue(settings)*ng,'right');
           playerLine += '</tr>' + '\n';
           playersRight.push(playerLine);
         }
@@ -752,7 +749,7 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors)
         }
 
         for(var i in playersLeft) {
-          html += playersLeft[i] + '<td>&nbsp;</td>' + playersRight[i]; // add an empty column as a buffer between the two teams
+          html += playersLeft[i] + tdTag('&nbsp;') + playersRight[i]; // add an empty column as a buffer between the two teams
         }
         html += '</table>' + '\n';
         html += '<br>' + '\n';
