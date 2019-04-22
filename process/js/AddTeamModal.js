@@ -121,8 +121,8 @@ class AddTeamModal extends React.Component{
   loadTeam() {
     this.setState({
       teamName: this.props.teamToLoad.teamName,
-      playerNames: this.props.teamToLoad.playerNames,
-      playerYears: this.props.teamToLoad.playerYears,
+      playerNames: Object.keys(this.props.teamToLoad.roster),
+      playerYears: Object.values(this.props.teamToLoad.roster),
       divisions: this.props.teamToLoad.divisions,
       originalTeamLoaded: this.props.teamToLoad
     });

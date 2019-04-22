@@ -787,10 +787,12 @@ class MainInterface extends React.Component{
     var oldTeamIdx = _.indexOf(tempTeams, oldTeam);
     tempTeams[oldTeamIdx] = newTeam;
     var tempGames = this.state.myGames.slice();
+    var originalNames = Object.keys(oldTeam), newNames = Object.keys(newTeam)
 
-    for(var i in oldTeam.roster) {
-      if(!newTeam.roster.includes(oldTeam.roster[i])) {
-        this.updatePlayerName(tempGames, oldTeam.teamName, oldTeam.roster[i], newTeam.roster[i]);
+    for(var i in originalNames) {
+      let oldn = originalNames[i], newn = newNames[i];
+      if(old != newn) {
+        this.updatePlayerName(tempGames, oldTeam.teamName, oldn, newn);
       }
     }
 
@@ -866,9 +868,7 @@ class MainInterface extends React.Component{
 
   /*---------------------------------------------------------
   Permanently delete a team. Does not check whether that team
-  has any game data; rather, it assumes the UI has been
-  constucted so as to prevent the user from deleting a team
-  that has played games.
+  has any game data; make sure it doesn't before calling!
   ---------------------------------------------------------*/
   deleteTeam(item) {
     var newTeams = _.without(this.state.myTeams, item);
