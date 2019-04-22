@@ -791,7 +791,7 @@ class MainInterface extends React.Component{
 
     for(var i in originalNames) {
       let oldn = originalNames[i], newn = newNames[i];
-      if(old != newn) {
+      if(oldn != newn) {
         this.updatePlayerName(tempGames, oldTeam.teamName, oldn, newn);
       }
     }

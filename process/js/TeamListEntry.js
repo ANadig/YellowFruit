@@ -92,6 +92,24 @@ class TeamListEntry extends React.Component{
     );
   }//getDivisionChip
 
+  /*---------------------------------------------------------
+  A list of the players on the team
+  ---------------------------------------------------------*/
+  rosterToString() {
+    var str = '';
+    for(var name in this.props.singleItem.roster) {
+      str += name;
+      let year = this.props.singleItem.roster[name];
+      if(year != undefined && year != '') {
+        str += ' (' + year + '), ';
+      }
+      else {
+        str += ', ';
+      }
+    }
+    return str.substr(0, str.length - 2); //remove the comma+space at the end
+  }
+
 
   render() {
     var deleteButton = this.getDeleteButton();
@@ -128,7 +146,7 @@ class TeamListEntry extends React.Component{
           <button className={'btn-flat item-edit ' + this.canEdit()} title="Edit this team" onClick={this.editTeam}>
           <i className="material-icons">edit</i></button>
           {deleteButton}
-          <br/><span className="roster-display">{this.props.singleItem.roster.join(', ')}</span>
+          <br/><span className="roster-display">{this.rosterToString()}</span>
         </div>
       </a>
     )
