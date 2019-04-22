@@ -18,7 +18,8 @@ class AddTeamModal extends React.Component{
     super(props);
     this.state = {
       teamName: '',
-      roster: [],
+      playerNames: [],
+      playerYears: [],
       divisions: {},
       originalTeamLoaded: null
     };
@@ -27,6 +28,7 @@ class AddTeamModal extends React.Component{
     this.handleAdd = this.handleAdd.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handlePlayerChange = this.handlePlayerChange.bind(this);
+    this.handleYearChange = this.handleYearChange.bind(this);
     this.validateTeam = this.validateTeam.bind(this);
   }
 
@@ -64,19 +66,37 @@ class AddTeamModal extends React.Component{
   } //handleChange
 
   /*---------------------------------------------------------
-  Called when a value in the list of players changes.
+  Called when a value in the list of player names changes.
   ---------------------------------------------------------*/
   handlePlayerChange(e) {
     const target = e.target;
     const value = target.value;
     const name = target.name;
     var whichPlayer = name.replace('player', '');
-    var tempPlayers = this.state.roster.slice();
+    var tempPlayers = this.state.playerNames.slice();
     tempPlayers[whichPlayer] = value;
     for(var last=tempPlayers.pop(); last==''; last=tempPlayers.pop()) { } // remove blank lines
     if(last != undefined) { tempPlayers.push(last); }
+    var tempYears = this.state.playerYears.slice();
+    if(tempYears[whichPlayer] == undefined) { tempYears[whichPlayer] = ''; } // initialize year field
     this.setState({
-      roster: tempPlayers
+      playerNames: tempPlayers,
+      playerYears: tempYears
+    });
+  }
+
+  /*---------------------------------------------------------
+  Called when a value in the list of player years changes.
+  ---------------------------------------------------------*/
+  handleYearChange(e) {
+    const target = e.target;
+    const value = target.value;
+    const name = target.name;
+    var whichPlayer = name.replace('year', '');
+    var tempYears = this.state.playerYears.slice();
+    tempYears[whichPlayer] = value;
+    this.setState({
+      playerYears: tempYears
     });
   }
 
@@ -86,7 +106,8 @@ class AddTeamModal extends React.Component{
   resetState() {
     this.setState({
       teamName: '',
-      roster: [],
+      playerNames: [],
+      playerYears: [],
       divisions: {},
       originalTeamLoaded: null
     });
@@ -100,7 +121,8 @@ class AddTeamModal extends React.Component{
   loadTeam() {
     this.setState({
       teamName: this.props.teamToLoad.teamName,
-      roster: this.props.teamToLoad.roster,
+      playerNames: this.props.teamToLoad.playerNames,
+      playerYears: this.props.teamToLoad.playerYears,
       divisions: this.props.teamToLoad.divisions,
       originalTeamLoaded: this.props.teamToLoad
     });
@@ -115,12 +137,19 @@ class AddTeamModal extends React.Component{
     e.preventDefault();
     if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
     //trim each player name, then remove blank lines
-    var rosterAry = this.state.roster.map(function(s,idx) { return s.trim(); });
-    rosterAry = _.without(rosterAry, '');
+    var nameAry = [], yearAry = [], roster = {};
+    for(var i in this.state.playerNames) {
+      var name = this.state.playerNames[i].trim();
+      if(name != '') {
+        nameAry.push(name);
+        yearAry.push(this.state.playerYears[i].trim());
+        roster[name] = this.state.playerYears[i].trim();
+      }
+    }
 
     var tempItem = {
       teamName: this.state.teamName.trim(),
-      roster: rosterAry,
+      roster: roster,
       divisions: this.state.divisions
     } //tempitems
 
@@ -152,13 +181,13 @@ class AddTeamModal extends React.Component{
   Are there two players with the same name?
   ---------------------------------------------------------*/
   rosterHasDups() {
-    var rosterAry = this.state.roster.map(function(item, idx) {
+    var nameAry = this.state.playerNames.map(function(item, idx) {
       return item.toLowerCase().trim();
     });
-    rosterAry = _.without(rosterAry, '');
-    rosterAry = _.orderBy(rosterAry);
-    for(var i=0; i < (rosterAry.length - 1); i++) {
-      if (rosterAry[i] == rosterAry[i+1]) { return true; }
+    nameAry = _.without(nameAry, '');
+    nameAry = _.orderBy(nameAry);
+    for(var i=0; i < (nameAry.length - 1); i++) {
+      if (nameAry[i] == nameAry[i+1]) { return true; }
     }
     return false;
   }
@@ -169,8 +198,8 @@ class AddTeamModal extends React.Component{
   ---------------------------------------------------------*/
   hasNoPlayers() {
     var noPlayers = true;
-    for(var i in this.state.roster) {
-      if(this.state.roster[i].trim() != '') { noPlayers = false; }
+    for(var i in this.state.playerNames) {
+      if(this.state.playerNames[i].trim() != '') { noPlayers = false; }
     }
     return noPlayers;
   }
@@ -182,8 +211,8 @@ class AddTeamModal extends React.Component{
   illegalEdit() {
     if(this.props.teamToLoad != null || this.props.addOrEdit == 'add') { return false; }
     var playerDeleted = false;
-    for(var i in this.state.originalTeamLoaded.roster) {
-      var p = this.state.roster[i];
+    for(var i in this.state.originalTeamLoaded.playerNames) {
+      var p = this.state.playerNames[i];
       if(p == undefined || p.trim() == '') { playerDeleted = true; }
     }
     return this.props.teamHasGames(this.state.originalTeamLoaded) && playerDeleted;
@@ -201,12 +230,12 @@ class AddTeamModal extends React.Component{
       return [false, 'error', 'There is already a team named ' + this.state.teamName];
     }
     if(this.state.teamName.trim() == '') { return [false, '', '']; } //team name can't be just whitespace
-    if(this.hasNoPlayers()) { return [false, '', '']; } //likewise for roster
+    if(this.hasNoPlayers()) { return [false, '', '']; } //likewise for playerNames
     if(this.illegalEdit()) {
       return [false, 'error', 'You may not remove players from a team that has played games'];
     }
     // fairly aribitrary limit to make sure no one does anything ridiculous
-    if(this.state.roster.length > MAX_PLAYERS_PER_TEAM) {
+    if(this.state.playerNames.length > MAX_PLAYERS_PER_TEAM) {
       return [false, 'error', 'Cannot have more than 30 players on a team'];
     }
     if(this.rosterHasDups()) { return [false, 'error', 'Roster contains two or more players with the same name']; }
@@ -238,26 +267,48 @@ class AddTeamModal extends React.Component{
   The list of text fields conaining the roster.
   ---------------------------------------------------------*/
   getPlayerFields() {
-    var tempPlayers = this.state.roster.slice();
+    var tempPlayers = this.state.playerNames.slice();
     tempPlayers.push('');
-    var playerFields = tempPlayers.map(function(player, idx) {
+    var playerFields = tempPlayers.map((player, idx) => {
       return (
         <li key={idx}>
           <div className="input-field tight-input">
-          <input className="player-field" id={'player'+idx}
-            type="text" name={'player'+idx} placeholder="Add a player"
-            value={tempPlayers[idx]} onChange={this.handlePlayerChange}/>
+          <input id={'player'+idx} type="text" name={'player'+idx} placeholder="Add a player"
+            value={player} onChange={this.handlePlayerChange}/>
           </div>
         </li>
       );
-    }.bind(this));
+    });
     return ( <ul>{playerFields}</ul> );
+  }
+
+  /*---------------------------------------------------------
+  The list of text fields conaining the roster.
+  ---------------------------------------------------------*/
+  getYearFields() {
+    var tempYears = this.state.playerNames.map((name, idx) => { return this.state.playerYears[idx]; });
+    if(this.state.playerYears.length > tempYears.length) {
+      tempYears.push(this.state.playerYears[tempYears.length]);
+    }
+    else { tempYears.push(''); }
+    var yearFields = tempYears.map((year, idx) => {
+      return (
+        <li key={idx}>
+          <div className="input-field tight-input">
+            <input id={'year'+idx} type="text" name={'year'+idx} placeholder="Grade/Year"
+              value={year} onChange={this.handleYearChange}/>
+          </div>
+        </li>
+      );
+    });
+    return ( <ul>{yearFields}</ul> );
   }
 
 
 
   render() {
     var playerFields = this.getPlayerFields();
+    var yearFields = this.getYearFields();
     var [teamIsValid, errorLevel, errorMessage] = this.validateTeam();
     var errorIcon = this.getErrorIcon(errorLevel);
     var acceptHotKey = teamIsValid ? 'a' : '';
@@ -278,7 +329,14 @@ class AddTeamModal extends React.Component{
                 <label htmlFor="teamName">Team Name</label>
               </div>
             <span>Roster</span>
-            {playerFields}
+            <div className="row">
+              <div className="col s9">
+                {playerFields}
+              </div>
+              <div className="col s3">
+                {yearFields}
+              </div>
+            </div>
           </div> {/* modal content */}
           <div className="modal-footer">
             <div className="row">

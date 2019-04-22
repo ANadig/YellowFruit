@@ -1362,6 +1362,8 @@ class MainInterface extends React.Component{
 
 
   render() {
+    console.log(this.state.myTeams);
+
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim();

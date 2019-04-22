@@ -676,6 +676,17 @@ app.on('ready', function() {
           }
         ]
       },{
+        label: '&Report Settings',
+        submenu: [
+          {
+            label: 'Show Grade/Year',
+            type: 'checkbox',
+            click (item, focusedWindow) {
+
+            }
+          }
+        ]
+      },{
         label: '&Help',
         submenu: [
           {
@@ -726,7 +737,6 @@ app.on('ready', function() {
 
   mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
   reportMenu = Menu.buildFromTemplate(reportMenuTemplate);
-  // Menu.setApplicationMenu(mainMenu);
   appWindow.setMenu(mainMenu);
 
 }); //app is ready
