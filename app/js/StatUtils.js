@@ -41,6 +41,9 @@ function useBonus(settings) { return settings.bonuses != 'none'; }
 // include columns for bounceback points and PPBB?
 function useBb(settings) { return settings.bonuses == 'yesBb'; }
 
+// show players' year/grade?
+function showYear(settings) { return settings.yearDisplay; }
+
 /*---------------------------------------------------------
 Number of games played, including forfeits.
 ---------------------------------------------------------*/
@@ -432,30 +435,33 @@ The header for the table in the individual standings.
 ---------------------------------------------------------*/
 function individualsHeader(usingDivisions, settings) {
   var html = '<tr>' + '\n' +
-    tdTag('Rank','left',true) +
-    tdTag('Player','left',true) +
-    tdTag('Team','left',true);
+    tdTag('Rank', 'left', true) +
+    tdTag('Player', 'left', true);
+  if(showYear(settings)) {
+    html += tdTag('Year', 'left', true);
+  }
+  html += tdTag('Team', 'left', true);
   if(usingDivisions) {
-    html += tdTag('Division','left',true);
+    html += tdTag('Division', 'left', true);
   }
-  html += tdTag('GP','left',true);
+  html += tdTag('GP', 'left', true);
   if(usePowers(settings)) {
-    html += tdTag(powerValue(settings),'right',true);
+    html += tdTag(powerValue(settings), 'right', true);
   }
-  html += tdTag('10','right',true);
+  html += tdTag('10', 'right', true);
   if(useNegs(settings)) {
-    html += tdTag('-5','right',true);
+    html += tdTag('-5', 'right', true);
   }
-  html += tdTag('TUH','right',true) +
-    tdTag('PPTUH','right',true);
+  html += tdTag('TUH', 'right', true) +
+    tdTag('PPTUH', 'right', true);
   if(usePPerN(settings)) {
-    html += tdTag('Pwr/N','right',true);
+    html += tdTag('Pwr/N', 'right', true);
   }
   if(useGPerN(settings)) {
-    html += tdTag('G/N','right',true);
+    html += tdTag('G/N', 'right', true);
   }
-  html += tdTag('Pts','right',true) +
-    tdTag('PPG','right',true) +
+  html += tdTag('Pts', 'right', true) +
+    tdTag('PPG', 'right', true) +
     '</tr>' + '\n';
   return html;
 }
@@ -470,8 +476,11 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings) 
 
   var rowHtml = '<tr>' + '\n';
   rowHtml += tdTag(rank,'left');
-  rowHtml += tdTag('<a HREF=' + fileStart + 'playerdetail.html#' + playerLinkId + '>' + playerEntry.playerName + '</a>','left');
-  rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + teamLinkId + '>' + playerEntry.teamName + '</a>','left');
+  rowHtml += tdTag('<a HREF=' + fileStart + 'playerdetail.html#' + playerLinkId + '>' + playerEntry.playerName + '</a>', 'left');
+  if(showYear(settings)) {
+    rowHtml += tdTag(playerEntry.year, 'left');
+  }
+  rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + teamLinkId + '>' + playerEntry.teamName + '</a>', 'left');
 
   if(usingDivisions) {
     var divDisplay = playerEntry.division;
@@ -506,9 +515,10 @@ function compileIndividuals(myTeams, myGames, phase, groupingPhase, settings) {
   var individuals = [];
   for(var i in myTeams) {
     var t = myTeams[i];
-    for(var j in t.roster) {
+    for(var p in t.roster) {
       var obj = {
-        playerName: t.roster[j],
+        playerName: p,
+        year: t.roster[p].year,
         teamName: t.teamName,
         division: groupingPhase != null ? t.divisions[groupingPhase] : null,
         gamesPlayed: 0,

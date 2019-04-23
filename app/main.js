@@ -545,6 +545,15 @@ app.on('ready', function() {
   });
 
   /*---------------------------------------------------------
+  automatically turn on year/grade display
+  ---------------------------------------------------------*/
+  ipc.on('toggleYearDisplay', (event, checked) => {
+    event.returnValue = '';
+    var menuItem = mainMenu.getMenuItemById('year-toggle');
+    menuItem.checked = checked;
+  });
+
+  /*---------------------------------------------------------
   Set up the menu bar.
   ---------------------------------------------------------*/
   mainMenuTemplate = [
@@ -680,9 +689,10 @@ app.on('ready', function() {
         submenu: [
           {
             label: 'Show Grade/Year',
+            id: 'year-toggle',
             type: 'checkbox',
             click (item, focusedWindow) {
-
+                if(focusedWindow) focusedWindow.webContents.send('toggleYearDisplay', item.checked);
             }
           }
         ]

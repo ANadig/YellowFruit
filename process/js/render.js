@@ -37,7 +37,8 @@ const DEFAULT_SETTINGS = {
   negs: 'yes',
   bonuses: 'noBb',
   playersPerTeam: '4',
-  defaultPhase: 'noPhase' // Used to group teams when viewing all games
+  defaultPhase: 'noPhase', // Used to group teams when viewing all games
+  yearDisplay: false // whether to show player's grade/year in the html report
 };
 //Materialize accent-1 colors: yellow, light-green, orange, light-blue, red, purple, teal, deep-purple
 const PHASE_COLORS = ['#ffff8d', '#ccff90', '#ffd180', '#80d8ff',
@@ -78,7 +79,8 @@ class MainInterface extends React.Component{
       editWhichGame: null, // which game to load in the game modal
       gmAddOrEdit: 'add', // either 'add' or 'edit'
       editingSettings: false, // Whether the "settings" section of the settings pane is open for editing
-      gameToBeDeleted: null // which game the user is attempting to delete
+      gameToBeDeleted: null, // which game the user is attempting to delete
+      yearDataExists: false // do any players have grades/years that could be displayed?
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -191,6 +193,9 @@ class MainInterface extends React.Component{
         gameToBeDeleted: null
       });
     });
+    ipc.on('toggleYearDisplay', (event, checked) => {
+      this.toggleYearDisplay(checked);
+    });
   } //componentDidMount
 
   /*---------------------------------------------------------
@@ -216,12 +221,26 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('focusSearch');
     ipc.removeAllListeners('confirmDelete');
     ipc.removeAllListeners('cancelDelete');
+    ipc.removeAllListeners('toggleYearDisplay');
   } //componentWillUnmount
 
   /*---------------------------------------------------------
   Unused at the moment
   ---------------------------------------------------------*/
   componentDidUpdate() {
+  }
+
+  /*---------------------------------------------------------
+  Change whether to display year info in the html report.
+  Checked: boolean - whether or not to show
+  ---------------------------------------------------------*/
+  toggleYearDisplay(checked) {
+    var settings = this.state.settings;
+    settings.yearDisplay = checked;
+    this.setState({
+      settings: settings
+    });
+    ipc.sendSync('unsavedData');
   }
 
   /*---------------------------------------------------------
@@ -310,10 +329,13 @@ class MainInterface extends React.Component{
         }
         curTeam.roster = rosterObj;
       }
+      // also define this setting, which didn't exist
+      loadSettings.yearDisplay = false;
     }
 
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
+    ipc.sendSync('toggleYearDisplay', loadSettings.yearDisplay); // keep menu item in sync
     this.setState({
       settings: loadSettings,
       packets: loadPackets,
@@ -588,6 +610,7 @@ class MainInterface extends React.Component{
   selects "new tournament".
   ---------------------------------------------------------*/
   resetState() {
+    ipc.sendSync('toggleYearDisplay', false); // set back to default
     this.setState({
       tmWindowVisible: false,
       gmWindowVisible: false,
@@ -614,7 +637,8 @@ class MainInterface extends React.Component{
       editWhichGame: null,
       gmAddOrEdit: 'add',
       editingSettings: false,
-      gameToBeDeleted: null
+      gameToBeDeleted: null,
+      yearDataExists: false
     });
   }
 
@@ -762,10 +786,16 @@ class MainInterface extends React.Component{
   addTeam(tempItem) {
     var tempTms = this.state.myTeams.slice();
     tempTms.push(tempItem);
+    var yearDataExists = this.state.yearDataExists;
+    if(!this.state.settings.yearDisplay && !yearDataExists && teamHasYearData(tempItem)) {
+       yearDataExists = true;
+       ipc.sendSync('toggleYearDisplay', true); // assume user will want to show year data if they're entering it
+     }
     ipc.sendSync('unsavedData');
     this.setState({
       myTeams: tempTms,
       tmWindowVisible: false,
+      yearDataExists: yearDataExists
     }) //setState
   } //addTeam
 
@@ -811,11 +841,18 @@ class MainInterface extends React.Component{
       this.updateTeamName(tempGames, oldTeam.teamName, newTeam.teamName);
     }
 
+    var yearDataExists = this.state.yearDataExists;
+    if(!this.state.settings.yearDisplay && !yearDataExists && teamHasYearData(newTeam)) {
+       yearDataExists = true;
+       ipc.sendSync('toggleYearDisplay', true); // assume user will want to show year data if they're entering it
+     }
+
     ipc.sendSync('unsavedData');
     this.setState({
       myTeams: tempTeams,
       myGames: tempGames,
-      tmWindowVisible: false
+      tmWindowVisible: false,
+      yearDataExists: yearDataExists
     });
   }//modifyTeam
 
@@ -1373,8 +1410,6 @@ class MainInterface extends React.Component{
 
 
   render() {
-    console.log(this.state.myTeams);
-
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim();

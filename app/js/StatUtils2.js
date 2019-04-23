@@ -45,6 +45,17 @@ function versionLt(a, b) {
 }
 
 /*---------------------------------------------------------
+Do any players on this team have year/grade info?
+---------------------------------------------------------*/
+function teamHasYearData(team) {
+  for(var p in team.roster) {
+    var year = team.roster[p].year;
+    if(year != undefined && year != '') { return true; }
+  }
+  return false;
+}
+
+/*---------------------------------------------------------
 Generate the data necessary for showing the abbreviated
 standings table in the sidebar
 ---------------------------------------------------------*/
