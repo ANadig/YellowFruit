@@ -1022,8 +1022,11 @@ detail page.
 ---------------------------------------------------------*/
 function teamDetailPlayerTableHeader(settings) {
   var html = '<tr>' + '\n' +
-    tdTag('Player', 'left', true) +
-    tdTag('Team', 'left', true) +
+    tdTag('Player', 'left', true);
+  if(showYear(settings)) {
+    html += tdTag('Year', 'left', true);
+  }
+  html += tdTag('Team', 'left', true) +
     tdTag('GP', 'right', true);
   if(usePowers(settings)) {
     html += tdTag(powerValue(settings), 'right', true);
@@ -1053,6 +1056,9 @@ function teamDetailPlayerRow(player, fileStart, settings) {
     player.playerName.replace(/\W/g, '');
   var html = '<tr>' + '\n';
   html += tdTag('<a HREF=' + fileStart + 'playerdetail.html#' + linkId + '>' + player.playerName + '</a>', 'left');
+  if(showYear(settings)) {
+    html += tdTag(player.year, 'left');
+  }
   html += tdTag(player.teamName, 'left');
   html += tdTag(player.gamesPlayed, 'right');
   if(usePowers(settings)) {
@@ -1473,8 +1479,13 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
     var indvTot = playerTotals[i];
     var linkId = indvTot.teamName.replace(/\W/g, '') + '-' +
       indvTot.playerName.replace(/\W/g, '');
-    html += '<h2 id=' + linkId + '>' +
+    html += '<h2 style="display:inline-block" id=' + linkId + '>' +
       indvTot.playerName + ', ' + indvTot.teamName + '</h2>' + '\n';
+    if(showYear(settings)) {
+      var yearDisp = indvTot.year;
+      if(+yearDisp >= 4 && +yearDisp <= 12) { yearDisp += 'th grade'; }
+      html += '<span style="font-size:10pt; font-style: italic; color: gray">' + yearDisp + '</span>' + '\n';
+    }
     html += '<table width=100%>' + '\n';
     html += playerDetailTableHeader(settings);
     for(var j in games) {
