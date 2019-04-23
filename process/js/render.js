@@ -787,15 +787,18 @@ class MainInterface extends React.Component{
     var tempTms = this.state.myTeams.slice();
     tempTms.push(tempItem);
     var yearDataExists = this.state.yearDataExists;
+    var settings = this.state.settings;
     if(!this.state.settings.yearDisplay && !yearDataExists && teamHasYearData(tempItem)) {
        yearDataExists = true;
        ipc.sendSync('toggleYearDisplay', true); // assume user will want to show year data if they're entering it
+       settings.yearDisplay = true;
      }
     ipc.sendSync('unsavedData');
     this.setState({
       myTeams: tempTms,
       tmWindowVisible: false,
-      yearDataExists: yearDataExists
+      yearDataExists: yearDataExists,
+      settings: settings
     }) //setState
   } //addTeam
 
@@ -842,9 +845,11 @@ class MainInterface extends React.Component{
     }
 
     var yearDataExists = this.state.yearDataExists;
+    var settings = this.state.settings;
     if(!this.state.settings.yearDisplay && !yearDataExists && teamHasYearData(newTeam)) {
        yearDataExists = true;
        ipc.sendSync('toggleYearDisplay', true); // assume user will want to show year data if they're entering it
+       settings.yearDisplay = true;
      }
 
     ipc.sendSync('unsavedData');
@@ -852,7 +857,8 @@ class MainInterface extends React.Component{
       myTeams: tempTeams,
       myGames: tempGames,
       tmWindowVisible: false,
-      yearDataExists: yearDataExists
+      yearDataExists: yearDataExists,
+      settings: settings
     });
   }//modifyTeam
 
