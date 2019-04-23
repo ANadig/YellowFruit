@@ -99,7 +99,7 @@ class TeamListEntry extends React.Component{
     var str = '';
     for(var name in this.props.singleItem.roster) {
       str += name;
-      let year = this.props.singleItem.roster[name];
+      let year = this.props.singleItem.roster[name].year;
       if(year != undefined && year != '') {
         str += ' (' + year + '), ';
       }

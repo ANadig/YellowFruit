@@ -34,6 +34,17 @@ function gameEqual(g1, g2) {
 }
 
 /*---------------------------------------------------------
+Is version a less than version b? Versions are 3-piece
+dot-delimited, e.g. '1.2.3'
+---------------------------------------------------------*/
+function versionLt(a, b) {
+  var aSplit = a.split('.'), bSplit = b.split('.');
+  if(aSplit[0] != bSplit[0]) { return aSplit[0] < bSplit[0]; }
+  if(aSplit[1] != bSplit[1]) { return aSplit[1] < bSplit[1]; }
+  return aSplit[2] < bSplit[2];
+}
+
+/*---------------------------------------------------------
 Generate the data necessary for showing the abbreviated
 standings table in the sidebar
 ---------------------------------------------------------*/

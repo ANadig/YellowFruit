@@ -252,7 +252,7 @@ class MainInterface extends React.Component{
     var jsonAry = fileString.split('\n', 6);
     if(jsonAry.length < 5) {
       //versions prior to 2.0.0 don't have metadata or packet names
-      return [JSON.stringify(METADATA),'{}'].concat(jsonAry);
+      return [JSON.stringify({version:'1.9.9'}),'{}'].concat(jsonAry);
     }
     return jsonAry;
   }
@@ -286,7 +286,7 @@ class MainInterface extends React.Component{
   loadTournament(fileName) {
     if(fileName == '') { return; }
     var [loadMetadata, loadPackets, loadSettings, loadDivisions, loadTeams, loadGames] = this.parseFile(fileName);
-    //loadMetadata = JSON.parse(loadMetadata);  // not used currently
+    loadMetadata = JSON.parse(loadMetadata);
     loadPackets = JSON.parse(loadPackets);
     loadSettings = JSON.parse(loadSettings);
     loadDivisions = JSON.parse(loadDivisions);
@@ -298,6 +298,17 @@ class MainInterface extends React.Component{
       var numberOfPhases = Object.keys(loadDivisions).length;
       if (numberOfPhases > 1 ||  (numberOfPhases == 1 && loadDivisions['noPhase'] == undefined)) {
         loadSettings.defaultPhase = Object.keys(loadDivisions)[0];
+      }
+    }
+    //convert teams to new data structure
+    if(versionLt(loadMetadata.version, '2.1.0')) {
+      for(var i in loadTeams) {
+        var curTeam = loadTeams[i];
+        var rosterObj = {};
+        for(var j in curTeam.roster) {
+          rosterObj[curTeam.roster[j]] = {year: ''};
+        }
+        curTeam.roster = rosterObj;
       }
     }
 
@@ -1395,7 +1406,7 @@ class MainInterface extends React.Component{
       for (var i = 0; i < myTeams.length; i++) {
         if (
           ((myTeams[i].teamName.toLowerCase().indexOf(queryText)!=-1) ||
-          (myTeams[i].roster.join(', ').toLowerCase().indexOf(queryText)!=-1))
+          (Object.keys(myTeams[i].roster).join(', ').toLowerCase().indexOf(queryText)!=-1))
         ) {
           filteredTeams.push(myTeams[i]);
         }

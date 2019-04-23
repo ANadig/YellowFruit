@@ -119,10 +119,14 @@ class AddTeamModal extends React.Component{
   which team to modify.
   ---------------------------------------------------------*/
   loadTeam() {
+    var years = [];
+    for(var p in this.props.teamToLoad.roster) {
+      years.push(this.props.teamToLoad.roster[p].year)
+    }
     this.setState({
       teamName: this.props.teamToLoad.teamName,
       playerNames: Object.keys(this.props.teamToLoad.roster),
-      playerYears: Object.values(this.props.teamToLoad.roster),
+      playerYears: years,
       divisions: this.props.teamToLoad.divisions,
       originalTeamLoaded: this.props.teamToLoad
     });
@@ -143,7 +147,7 @@ class AddTeamModal extends React.Component{
       if(name != '') {
         nameAry.push(name);
         yearAry.push(this.state.playerYears[i].trim());
-        roster[name] = this.state.playerYears[i].trim();
+        roster[name] = {year: this.state.playerYears[i].trim()};
       }
     }
 
