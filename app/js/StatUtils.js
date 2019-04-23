@@ -1482,7 +1482,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
     html += '<h2 style="display:inline-block" id=' + linkId + '>' +
       indvTot.playerName + ', ' + indvTot.teamName + '</h2>' + '\n';
     if(showYear(settings)) {
-      var yearDisp = indvTot.year;
+      var yearDisp = indvTot.year.split('.')[0]; //truncate decimals, if someone is being weird
       if(+yearDisp >= 4 && +yearDisp <= 12) { yearDisp += 'th grade'; }
       html += '<span style="font-style: italic; color: gray">' + yearDisp + '</span>' + '\n';
     }
