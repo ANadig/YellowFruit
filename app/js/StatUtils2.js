@@ -56,6 +56,20 @@ function teamHasYearData(team) {
 }
 
 /*---------------------------------------------------------
+conversion on team data structure (version 2.1.0)
+---------------------------------------------------------*/
+function teamConversion2x1x0(loadTeams) {
+  for(var i in loadTeams) {
+    var curTeam = loadTeams[i];
+    var rosterObj = {};
+    for(var j in curTeam.roster) {
+      rosterObj[curTeam.roster[j]] = {year: ''};
+    }
+    curTeam.roster = rosterObj;
+  }
+}
+
+/*---------------------------------------------------------
 Generate the data necessary for showing the abbreviated
 standings table in the sidebar
 ---------------------------------------------------------*/

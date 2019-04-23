@@ -322,14 +322,7 @@ class MainInterface extends React.Component{
     }
     //convert teams to new data structure
     if(versionLt(loadMetadata.version, '2.1.0')) {
-      for(var i in loadTeams) {
-        var curTeam = loadTeams[i];
-        var rosterObj = {};
-        for(var j in curTeam.roster) {
-          rosterObj[curTeam.roster[j]] = {year: ''};
-        }
-        curTeam.roster = rosterObj;
-      }
+      teamConversion2x1x0(loadTeams);
       // also define this setting, which didn't exist
       loadSettings.yearDisplay = false;
     }
@@ -382,18 +375,18 @@ class MainInterface extends React.Component{
         dupTeams.push(teamName);
         continue;
       }
-      var rosterAry = [];
+      var roster = {};
       var lowercaseRoster = [];
       for(var j=0; j<rosterSize && j<MAX_PLAYERS_PER_TEAM; j++) {
         var nextPlayer = sqbsAry[curLine++].trim();
         if(!lowercaseRoster.includes(nextPlayer.toLowerCase())) {
-          rosterAry.push(nextPlayer);
+          roster[nextPlayer] = {year: ''};
           lowercaseRoster.push(nextPlayer.toLowerCase());
         }
       }
       myTeams.push({
         teamName: teamName,
-        roster: rosterAry,
+        roster: roster,
         divisions: {}
       });
     }
@@ -416,6 +409,7 @@ class MainInterface extends React.Component{
   mergeTournament(fileName) {
     if(fileName == '') { return; }
     var [loadMetadata, loadPackets, loadSettings, loadDivisions, loadTeams, loadGames] = this.parseFile(fileName);
+    loadMetadata = JSON.parse(loadMetadata);
     loadSettings = JSON.parse(loadSettings);
     loadDivisions = JSON.parse(loadDivisions);
     loadTeams = JSON.parse(loadTeams);
@@ -440,6 +434,9 @@ class MainInterface extends React.Component{
       }
     }
     // merge teams
+    if(versionLt(loadMetadata.version, '2.1.0')) {
+      teamConversion2x1x0(loadTeams);
+    }
     var teamsCopy = this.state.myTeams.slice();
     var newTeamCount = 0;
     for(var i in loadTeams) {
