@@ -1484,7 +1484,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
     if(showYear(settings)) {
       var yearDisp = indvTot.year;
       if(+yearDisp >= 4 && +yearDisp <= 12) { yearDisp += 'th grade'; }
-      html += '<span style="font-size:10pt; font-style: italic; color: gray">' + yearDisp + '</span>' + '\n';
+      html += '<span style="font-style: italic; color: gray">' + yearDisp + '</span>' + '\n';
     }
     html += '<table width=100%>' + '\n';
     html += playerDetailTableHeader(settings);
