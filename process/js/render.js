@@ -570,7 +570,7 @@ class MainInterface extends React.Component{
   ---------------------------------------------------------*/
   writeSqbsFile(fileName) {
     var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhase : this.state.viewingPhase;
-    var sqbsData = getSqbsFile(this.state.settings, phaseToGroupBy, this.state.divisions[phaseToGroupBy],
+    var sqbsData = getSqbsFile(this.state.settings, this.state.viewingPhase, phaseToGroupBy, this.state.divisions[phaseToGroupBy],
       this.state.myTeams, this.state.myGames, this.state.packets, this.state.gameIndex);
     fs.writeFile(fileName, sqbsData, 'utf8', function(err) {
       if (err) { console.log(err); }

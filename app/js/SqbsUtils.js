@@ -32,16 +32,23 @@ The first part of the file:
     number of players + 1
     team name
     for each player:
-      player name
+      player name (year/grade)
 ---------------------------------------------------------*/
 function teamList(teams) {
   var output = '';
   output += teams.length + '\n';
   for(var i in teams) {
     var t = teams[i];
-    output += (t.roster.length + 1) + '\n';
+    output += (Object.keys(t.roster).length + 1) + '\n';
     output += t.teamName + '\n';
-    output += t.roster.join('\n') + '\n';
+    for(var p in t.roster) {
+      output += p;
+      var year = t.roster[p].year;
+      if(year != undefined && year != '') {
+        output += ' (' + year + ')';
+      }
+      output += '\n';
+    }
   }
   return output;
 }
@@ -63,7 +70,7 @@ function addOnePlayer(settings, teams, game, whichTeam, playerName) {
   var output = '';
   var teamName = whichTeam == 1 ? game.team1 : game.team2;
   var teamObj = teams.find((t) => { return t.teamName == teamName; });
-  var playerIdx = teamObj.roster.indexOf(playerName);
+  var playerIdx = Object.keys(teamObj.roster).indexOf(playerName);
   output += playerIdx + '\n';
   var playersObj = whichTeam == 1 ? game.players1 : game.players2;
   [tuh, powers, tens, negs] = playerSlashLine(playersObj[playerName]);
@@ -101,11 +108,12 @@ function dummyPlayer() {
 The list of games, including totals and individual stat
 lines.
 ---------------------------------------------------------*/
-function gameList(settings, teams, games) {
-  var output = '';
-  output += games.length + '\n';
+function gameList(settings, teams, games, phase) {
+  var output = '', gameCount = 0;
   for(var i in games) {
     var g = games[i];
+    if(phase != 'all' && !g.phases.includes(phase)) { continue; }
+    gameCount++;
     output += gameID(g) + '\n';
     output += teams.findIndex((t) => { return t.teamName==g.team1; }) + '\n';
     output += teams.findIndex((t) => { return t.teamName==g.team2; }) + '\n';
@@ -178,6 +186,7 @@ function gameList(settings, teams, games) {
       }
     }
   }
+  output = gameCount + '\n' + output; // add number of games to beginning
 
   return output;
 }
@@ -353,16 +362,16 @@ function exhibitionStatuses(teams) {
 /*---------------------------------------------------------
 Generate the SQBS file contents.
 ---------------------------------------------------------*/
-function getSqbsFile(settings, phase, divisions, teams, games, packets, gameIndex) {
+function getSqbsFile(settings, viewingPhase, groupingPhase, divisions, teams, games, packets, gameIndex) {
   var output = teamList(teams);
-  output += gameList(settings, teams, games);
+  output += gameList(settings, teams, games, viewingPhase);
   output += miscSettings(settings, divisions);
   output += blankLines(5); // tournament name + FTP settings. Leave blank
   output += '1\n'; // weird FTP setting. This is the default
   output += fileSuffixes();
   output += blankLines(1);
   output += divisionList(divisions);
-  output += divisionAssignments(phase, divisions, teams);
+  output += divisionAssignments(groupingPhase, divisions, teams);
   output += pointValueList(settings);
   output += packetNamesSqbs(packets, gameIndex);
   output += exhibitionStatuses(teams);
