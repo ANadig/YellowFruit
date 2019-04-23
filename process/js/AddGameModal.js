@@ -72,7 +72,7 @@ class AddGameModal extends React.Component{
     const name = target.name;
     var partialState = {};
     var newTeamObj = this.props.teamData.find((item) => { return item.teamName == value; });
-    var roster = newTeamObj.roster;
+    var roster = Object.keys(newTeamObj.roster);
     //if there can't be any substitutions, autopopulate the total tossups for the round
     var defaultTuh = roster.length <= this.props.settings.playersPerTeam ? this.state.tuhtot : '';
     var newPlayers = {};
@@ -757,10 +757,11 @@ class AddGameModal extends React.Component{
       var team1Obj = teamData.find(function(item){
         return item.teamName == this.state.team1
       }.bind(this));
-      team1PlayerRows = team1Obj.roster.map(function(item, index){
+      var roster = Object.keys(team1Obj.roster);
+      team1PlayerRows = roster.map(function(item, index){
         var init = null;
         if(this.state.players1 != null) { init = this.state.players1[item]; }
-        else if(team1Obj.roster.length <= this.props.settings.playersPerTeam) {
+        else if(roster.length <= this.props.settings.playersPerTeam) {
           init = {tuh: this.state.tuhtot, powers: '', tens: '', negs: ''};
         }
         else { init = null; }
@@ -781,10 +782,11 @@ class AddGameModal extends React.Component{
       var team2Obj = teamData.find(function(item){
         return item.teamName == this.state.team2
       }.bind(this));
-      team2PlayerRows = team2Obj.roster.map(function(item, index){
+      var roster = Object.keys(team2Obj.roster);
+      team2PlayerRows = roster.map(function(item, index){
         var init = null;
         if(this.state.players2 != null) { init = this.state.players2[item]; }
-        else if(team2Obj.roster.length <= this.props.settings.playersPerTeam) {
+        else if(roster.length <= this.props.settings.playersPerTeam) {
           init = {tuh: this.state.tuhtot, powers: '', tens: '', negs: ''};
         }
         else { init = null; }
