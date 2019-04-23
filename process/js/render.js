@@ -49,6 +49,7 @@ class MainInterface extends React.Component{
 
   constructor(props) {
     super(props);
+    var defSettingsCopy = $.extend(true, {}, DEFAULT_SETTINGS);
     this.state = {
       tmWindowVisible: false, // whether the team entry modal is open
       gmWindowVisible: false, // whether the game entry modal is open
@@ -56,7 +57,7 @@ class MainInterface extends React.Component{
       phaseWindowVisible: false, // whether the game phase assignment modal is open
       teamOrder: 'alpha', // sort order. Either 'alpha' or 'division'
       queryText: '', // what's in the search bar
-      settings: DEFAULT_SETTINGS, // object to define the tournament rules
+      settings: defSettingsCopy, // object to define the tournament rules
       packets: {}, // packet names
       divisions: {}, // object where the keys are phases, and their values are the list
                      // of divisions in that phase
@@ -611,6 +612,7 @@ class MainInterface extends React.Component{
   ---------------------------------------------------------*/
   resetState() {
     ipc.sendSync('toggleYearDisplay', false); // set back to default
+    var defSettingsCopy = $.extend(true, {}, DEFAULT_SETTINGS);
     this.setState({
       tmWindowVisible: false,
       gmWindowVisible: false,
@@ -618,7 +620,7 @@ class MainInterface extends React.Component{
       phaseWindowVisible: false,
       teamOrder: 'alpha',
       queryText: '',
-      settings: DEFAULT_SETTINGS,
+      settings: defSettingsCopy,
       packets: {},
       divisions: {},
       myTeams: [],
@@ -1179,9 +1181,9 @@ class MainInterface extends React.Component{
     //also can't have a default grouping phase that doesn't exist
     var newDefaultPhase = this.state.settings.defaultPhase;
     var reloadSettingsPane = this.state.settingsLoadToggle;
-    if(!newPhases.includes(newDefaultPhase)) {
+    if(!newPhases.includes(newDefaultPhase)) { // incl if 'noPhase'
       reloadSettingsPane = !this.state.settingsLoadToggle; //so UI will update
-      if(newPhases.length > 0) { newDefaultPhase = newPhases[0]; }
+      if(newPhases.length > 0 && newDivAry.length > 0) { newDefaultPhase = newPhases[0]; }
       else { newDefaultPhase = 'noPhase'; }
     }
 
@@ -1348,11 +1350,13 @@ class MainInterface extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Save the tournament format settings (powers, negs, etc.)
+  Save the tournament format settings (powers, negs, bonuses,
+  players per team. Merges these settings into the others
+  contained in the settings object.
   ---------------------------------------------------------*/
   saveSettings(newSettings) {
     this.setState ({
-      settings: newSettings
+      settings: $.extend(true, this.state.settings, newSettings)
     });
     ipc.sendSync('unsavedData');
   }

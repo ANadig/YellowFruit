@@ -174,8 +174,7 @@ class SettingsForm extends React.Component{
         powers: this.state.powers,
         negs: this.state.negs,
         bonuses: this.state.bonuses,
-        playersPerTeam: this.state.playersPerTeam,
-        defaultPhase: this.state.defaultPhase
+        playersPerTeam: this.state.playersPerTeam
       };
       this.props.saveSettings(settingsObj);
       this.setState({
@@ -266,15 +265,16 @@ class SettingsForm extends React.Component{
       tempPhaseAssns = _.without(tempPhaseAssns, 'zzzToDelete');
       tempPhaseAssns = tempPhaseAssns.map((x)=>{ return x=='nullPhase' ? '' : x; });
       this.props.saveDivisions(this.state.phases, tempDivs, tempPhaseAssns);
-      var newDefaultPhase = this.state.defaultPhase;
-      if(this.state.phases.length > 0 && this.state.defaultPhase == 'noPhase') {
-        newDefaultPhase = this.state.phases[0];
-      }
+      // var newDefaultPhase = this.state.defaultPhase;
+      // if(this.state.phases.length > 0 && this.state.defaultPhase == 'noPhase') {
+      //   newDefaultPhase = this.state.phases[0];
+      // }
+      //........
+      // this.props.setDefaultGrouping(newDefault);
       this.setState({
         divisions: tempDivs,
         phaseAssignments: tempPhaseAssns,
         editingDivisions: false,
-        defaultPhase: newDefaultPhase
       });
     }
   } //divisionToggle
@@ -592,7 +592,6 @@ class SettingsForm extends React.Component{
 
 
   render(){
-    // console.log(this.state.packets);
     if (this.props.whichPaneActive != 'settingsPane') {
       return null;
     }
