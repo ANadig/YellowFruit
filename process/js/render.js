@@ -304,7 +304,8 @@ class MainInterface extends React.Component{
   tournament.
   ---------------------------------------------------------*/
   loadTournament(fileName) {
-    if(fileName == '') { return; }
+    console.log(fileName);
+    if(fileName == null || !fileName.endsWith('.yft')) { return; }
     var [loadMetadata, loadPackets, loadSettings, loadDivisions, loadTeams, loadGames] = this.parseFile(fileName);
     loadMetadata = JSON.parse(loadMetadata);
     loadPackets = JSON.parse(loadPackets);

@@ -31,7 +31,7 @@ if (handleSquirrelEvent(app)) {
 }
 
 //Set to 'production' to hide developer tools; otherwise set to anything else
-process.env.NODE_ENV = 'production';
+process.env.NODE_ENV = 'dev';
 
 /*---------------------------------------------------------
 Load a new report window, or, if one is already open,
@@ -320,8 +320,6 @@ app.on('ready', function() {
     var argsLength = process.defaultApp ? 3 : 2;
     if (process.argv.length >= argsLength) {
       appWindow.webContents.send('openTournament', process.argv[argsLength-1]);
-
-      // console.log(process.argv[argsLength-1]);
     }
   }); //ready-to-show
 
