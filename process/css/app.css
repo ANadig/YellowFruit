@@ -233,6 +233,14 @@ h1, h2, h3, h4, h5, h6 {
   overflow-y: hidden;
 }
 
+#addTeam .row {
+  margin-bottom: 5px;
+}
+
+#addTeam .row .col:first-child:not(.qb-validation-msg) {
+  padding-left: 0;
+}
+
 .modal h4 {
   margin-top: 0.35em;
   margin-bottom: 1em;

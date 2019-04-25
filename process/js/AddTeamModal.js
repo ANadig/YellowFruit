@@ -275,15 +275,13 @@ class AddTeamModal extends React.Component{
     tempPlayers.push('');
     var playerFields = tempPlayers.map((player, idx) => {
       return (
-        <li key={idx}>
-          <div className="input-field tight-input">
-          <input id={'player'+idx} type="text" name={'player'+idx} placeholder="Add a player"
-            value={player} onChange={this.handlePlayerChange}/>
+          <div key={idx} className="input-field tight-input">
+            <input id={'player'+idx} type="text" name={'player'+idx} placeholder="Add a player"
+              value={player} onChange={this.handlePlayerChange}/>
           </div>
-        </li>
       );
     });
-    return ( <ul>{playerFields}</ul> );
+    return playerFields;
   }
 
   /*---------------------------------------------------------
@@ -297,15 +295,35 @@ class AddTeamModal extends React.Component{
     else { tempYears.push(''); }
     var yearFields = tempYears.map((year, idx) => {
       return (
-        <li key={idx}>
-          <div className="input-field tight-input">
+          <div key={idx} className="input-field tight-input">
             <input id={'year'+idx} type="text" name={'year'+idx} placeholder="Grade/Year"
               value={year} onChange={this.handleYearChange}/>
           </div>
-        </li>
       );
     });
-    return ( <ul>{yearFields}</ul> );
+    return yearFields;
+  }
+
+  /*---------------------------------------------------------
+  Put the sets of fields together into a series of row
+  elements
+  ---------------------------------------------------------*/
+  constructRosterTable(playerFields, yearFields) {
+    var rows = [];
+    for(var i in playerFields) {
+      var oneRow = (
+        <div key={i} className="row">
+          <div className="col s9">
+            {playerFields[i]}
+          </div>
+          <div className="col s3">
+            {yearFields[i]}
+          </div>
+        </div>
+      );
+      rows.push(oneRow);
+    }
+    return rows;
   }
 
 
@@ -313,6 +331,8 @@ class AddTeamModal extends React.Component{
   render() {
     var playerFields = this.getPlayerFields();
     var yearFields = this.getYearFields();
+    var rosterTable = this.constructRosterTable(playerFields, yearFields);
+
     var [teamIsValid, errorLevel, errorMessage] = this.validateTeam();
     var errorIcon = this.getErrorIcon(errorLevel);
     var acceptHotKey = teamIsValid ? 'a' : '';
@@ -333,14 +353,7 @@ class AddTeamModal extends React.Component{
                 <label htmlFor="teamName">Team Name</label>
               </div>
             <span>Roster</span>
-            <div className="row">
-              <div className="col s9">
-                {playerFields}
-              </div>
-              <div className="col s3">
-                {yearFields}
-              </div>
-            </div>
+            {rosterTable}
           </div> {/* modal content */}
           <div className="modal-footer">
             <div className="row">
