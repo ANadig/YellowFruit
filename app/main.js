@@ -31,7 +31,7 @@ if (handleSquirrelEvent(app)) {
 }
 
 //Set to 'production' to hide developer tools; otherwise set to anything else
-process.env.NODE_ENV = 'dev';
+process.env.NODE_ENV = 'production';
 
 /*---------------------------------------------------------
 Load a new report window, or, if one is already open,
