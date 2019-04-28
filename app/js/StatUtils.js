@@ -430,7 +430,8 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
     var ppb = t.bHeard == 0 ? 'inf' : t.bPts / t.bHeard;
     var ppbb = t.bbHeard == 0 ? 'inf' : t.bbPts / bbHrdToFloat(t.bbHeard);
 
-    t.winPct = winPct.toFixed(3);
+    if(winPct == 1) { t.winPct = '1.000'; }
+    else{ t.winPct = winPct.toFixed(3).substr(1); } //remove leading zero
     t.ppg = formatRate(ppg, 1);
     t.papg = formatRate(papg, 1);
     t.margin = margin.toFixed(1);
