@@ -958,7 +958,7 @@ class AddGameModal extends React.Component{
                 <input id="tuhtot" className={this.validateField("tuhtot",false)} disabled={this.state.forfeit ? 'disabled' : ''}
                   type="number" name="tuhtot" min="0"
                   value={this.state.forfeit ? '' : this.state.tuhtot} onChange={this.handleChange}/>
-                <label htmlFor="tuhtot">Toss-ups</label>
+                <label htmlFor="tuhtot">Toss-ups (incl. OT)</label>
               </div>
             </div>
 
