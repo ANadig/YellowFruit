@@ -1404,7 +1404,9 @@ function getIndividualsHtml(teams, games, fileStart, phase, groupingPhase, using
   html += tableStyle();
   html += '<table width=100%>' + individualsHeader(usingDivisions, settings);
   for(var i in individuals) {
-    html += individualsRow(individuals[i], parseFloat(i)+1, fileStart, usingDivisions, settings);
+    if(individuals[i].gamesPlayed > 0) {
+      html += individualsRow(individuals[i], parseFloat(i)+1, fileStart, usingDivisions, settings);
+    }
   }
   return html + '\n' + '</table>' + '\n' +  getStatReportBottom();
 }
@@ -1465,7 +1467,8 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, ph
     html += '<table width=100%>' + '\n';
     html += teamDetailPlayerTableHeader(settings) + '\n';
     for(var i in individuals) {
-      if(individuals[i].teamName == teamName) {
+      var player = individuals[i]
+      if(player.teamName == teamName && player.gamesPlayed > 0) {
         html += teamDetailPlayerRow(individuals[i], fileStart, settings);
       }
     }
@@ -1492,6 +1495,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
   html += tableStyle();
 
   for(var i in playerTotals) {
+    if(playerTotals[i].gamesPlayed == 0) { continue; }
     var indvTot = playerTotals[i];
     var linkId = indvTot.teamName.replace(/\W/g, '') + '-' +
       indvTot.playerName.replace(/\W/g, '');
