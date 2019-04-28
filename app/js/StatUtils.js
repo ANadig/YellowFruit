@@ -208,6 +208,16 @@ function packetNamesExist(packets) {
 }
 
 /*---------------------------------------------------------
+Is there at least one team with at least one tie?
+---------------------------------------------------------*/
+function anyTiesExist(standings) {
+  for(var i in standings) {
+    if(standings[i].ties > 0) { return true; }
+  }
+  return false;
+}
+
+/*---------------------------------------------------------
 API to generate table cell <td> tags (with newline at the end)
   text: inner text
   align: 'left', etc.
@@ -228,14 +238,16 @@ function tdTag(text, align, bold, style) {
 /*---------------------------------------------------------
 Header row for the team standings.
 ---------------------------------------------------------*/
-function standingsHeader(settings) {
+function standingsHeader(settings, tiesExist) {
   var html = '<tr>' + '\n' +
     tdTag('Rank','left',true) +
     tdTag('Team','left',true) +
     tdTag('W','right',true) +
-    tdTag('L','right',true) +
-    tdTag('T','right',true) +
-    tdTag('Pct','right',true) +
+    tdTag('L','right',true);
+  if(tiesExist) {
+    html += tdTag('T','right',true);
+  }
+  html += tdTag('Pct','right',true) +
     tdTag('PPG','right',true) +
     tdTag('PAPG','right',true) +
     tdTag('Mrg','right',true);
@@ -271,14 +283,16 @@ function standingsHeader(settings) {
 /*---------------------------------------------------------
 One row in the team standings
 ---------------------------------------------------------*/
-function standingsRow(teamEntry, rank, fileStart, settings) {
+function standingsRow(teamEntry, rank, fileStart, settings, tiesExist) {
   var linkId = teamEntry.teamName.replace(/\W/g, '');
   var rowHtml = '<tr>';
   rowHtml += tdTag(rank,'left');
   rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + linkId + '>' + teamEntry.teamName + '</a>','left');
   rowHtml += tdTag(teamEntry.wins,'right');
   rowHtml += tdTag(teamEntry.losses,'right');
-  rowHtml += tdTag(teamEntry.ties,'right');
+  if(tiesExist) {
+    rowHtml += tdTag(teamEntry.ties,'right');
+  }
   rowHtml += tdTag(teamEntry.winPct,'right');
   rowHtml += tdTag(teamEntry.ppg,'right');
   rowHtml += tdTag(teamEntry.papg,'right');
@@ -1354,24 +1368,25 @@ Generate the team standings page.
 ---------------------------------------------------------*/
 function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInPhase, settings) {
   var standings = compileStandings(teams, games, phase, groupingPhase, settings);
+  var tiesExist = anyTiesExist(standings);
   var html = getStatReportTop('TeamStandings', fileStart, 'Team Standings') +
     '<h1> Team Standings</h1>' + '\n';
   html += tableStyle();
   if(divsInPhase != undefined && divsInPhase.length > 0) {
     for(var i in divsInPhase) {
       html += '<h2>' + divsInPhase[i] + '</h2>' + '\n';
-      html += '<table width=100%>' + '\n' + standingsHeader(settings);
+      html += '<table width=100%>' + '\n' + standingsHeader(settings, tiesExist);
       var teamsInDiv = _.filter(standings, (t) => { return t.division == divsInPhase[i] });
       for(var j in teamsInDiv) {
-        html += standingsRow(teamsInDiv[j], parseFloat(j)+1, fileStart, settings);
+        html += standingsRow(teamsInDiv[j], parseFloat(j)+1, fileStart, settings, tiesExist);
       }
       html += '</table>' + '\n';
     }
   }
   else { //not using divisions
-    html += '<table width=100%>' + '\n' + standingsHeader(settings);
+    html += '<table width=100%>' + '\n' + standingsHeader(settings, tiesExist);
     for(var i in standings) {
-      html += standingsRow(standings[i], parseFloat(i)+1, fileStart, settings);
+      html += standingsRow(standings[i], parseFloat(i)+1, fileStart, settings, tiesExist);
     }
     html += '\n' + '</table>' + '\n';
   }
