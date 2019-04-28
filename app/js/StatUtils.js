@@ -673,7 +673,7 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors)
       }
       else {
         // game title
-        html += '<div id=' + linkId + ' style="margin:-1.5em;position:absolute"></div>'
+        html += '<div id=' + linkId + ' style="margin:-2.3em;position:absolute"></div>'
         html += '<h3>' + '\n';
         if(phase == 'all') {
           html += '<span style="' + getRoundStyle(g.phases, phaseColors) + '">' +
