@@ -23,6 +23,7 @@ var GameListEntry = require('./GameListEntry');
 var HeaderNav = require('./HeaderNav');
 var AddTeamModal = require('./AddTeamModal');
 var AddGameModal = require('./AddGameModal');
+var RptConfigModal = require('./RptConfigModal');
 var DivAssignModal = require('./DivAssignModal');
 var PhaseAssignModal = require('./PhaseAssignModal');
 var SettingsForm = require('./SettingsForm');
@@ -38,7 +39,6 @@ const DEFAULT_SETTINGS = {
   bonuses: 'noBb',
   playersPerTeam: '4',
   defaultPhase: 'noPhase', // Used to group teams when viewing all games
-  yearDisplay: false // whether to show player's grade/year in the html report
 };
 //Materialize accent-1 colors: yellow, light-green, orange, light-blue, red, purple, teal, deep-purple
 const PHASE_COLORS = ['#ffff8d', '#ccff90', '#ffd180', '#80d8ff',
@@ -53,6 +53,7 @@ class MainInterface extends React.Component{
     this.state = {
       tmWindowVisible: false, // whether the team entry modal is open
       gmWindowVisible: false, // whether the game entry modal is open
+      rptConfigWindowVisible: false, // whether the report configuration modal is open
       divWindowVisible: false, // whether the team division assignment modal is open
       phaseWindowVisible: false, // whether the game phase assignment modal is open
       teamOrder: 'alpha', // sort order. Either 'alpha' or 'division'
@@ -81,7 +82,6 @@ class MainInterface extends React.Component{
       gmAddOrEdit: 'add', // either 'add' or 'edit'
       editingSettings: false, // Whether the "settings" section of the settings pane is open for editing
       gameToBeDeleted: null, // which game the user is attempting to delete
-      yearDataExists: false // do any players have grades/years that could be displayed?
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -194,8 +194,8 @@ class MainInterface extends React.Component{
         gameToBeDeleted: null
       });
     });
-    ipc.on('toggleYearDisplay', (event, checked) => {
-      this.toggleYearDisplay(checked);
+    ipc.on('openRptConfig', (event) => {
+      this.openRptConfigModal();
     });
   } //componentDidMount
 
@@ -222,26 +222,13 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('focusSearch');
     ipc.removeAllListeners('confirmDelete');
     ipc.removeAllListeners('cancelDelete');
-    ipc.removeAllListeners('toggleYearDisplay');
+    ipc.removeAllListeners('openRptConfig');
   } //componentWillUnmount
 
   /*---------------------------------------------------------
   Unused at the moment
   ---------------------------------------------------------*/
   componentDidUpdate() {
-  }
-
-  /*---------------------------------------------------------
-  Change whether to display year info in the html report.
-  Checked: boolean - whether or not to show
-  ---------------------------------------------------------*/
-  toggleYearDisplay(checked) {
-    var settings = this.state.settings;
-    settings.yearDisplay = checked;
-    this.setState({
-      settings: settings
-    });
-    ipc.sendSync('unsavedData');
   }
 
   /*---------------------------------------------------------
@@ -323,13 +310,10 @@ class MainInterface extends React.Component{
     //convert teams to new data structure
     if(versionLt(loadMetadata.version, '2.1.0')) {
       teamConversion2x1x0(loadTeams);
-      // also define this setting, which didn't exist
-      loadSettings.yearDisplay = false;
     }
 
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
-    ipc.sendSync('toggleYearDisplay', loadSettings.yearDisplay); // keep menu item in sync
     this.setState({
       settings: loadSettings,
       packets: loadPackets,
@@ -608,11 +592,11 @@ class MainInterface extends React.Component{
   selects "new tournament".
   ---------------------------------------------------------*/
   resetState() {
-    ipc.sendSync('toggleYearDisplay', false); // set back to default
     var defSettingsCopy = $.extend(true, {}, DEFAULT_SETTINGS);
     this.setState({
       tmWindowVisible: false,
       gmWindowVisible: false,
+      rptConfigWindowVisible: false,
       divWindowVisible: false,
       phaseWindowVisible: false,
       teamOrder: 'alpha',
@@ -637,7 +621,6 @@ class MainInterface extends React.Component{
       gmAddOrEdit: 'add',
       editingSettings: false,
       gameToBeDeleted: null,
-      yearDataExists: false
     });
   }
 
@@ -655,6 +638,7 @@ class MainInterface extends React.Component{
   ---------------------------------------------------------*/
   anyModalOpen() {
     return this.state.tmWindowVisible || this.state.gmWindowVisible ||
+      this.state.rptConfigWindowVisible ||
       this.state.divWindowVisible || this.state.phaseWindowVisible;
   }
 
@@ -756,6 +740,7 @@ class MainInterface extends React.Component{
     this.setState({
       tmWindowVisible: false,
       gmWindowVisible: false,
+      rptConfigWindowVisible: false,
       divWindowVisible: false,
       phaseWindowVisible: false,
       selectedTeams: [],
@@ -785,18 +770,11 @@ class MainInterface extends React.Component{
   addTeam(tempItem) {
     var tempTms = this.state.myTeams.slice();
     tempTms.push(tempItem);
-    var yearDataExists = this.state.yearDataExists;
     var settings = this.state.settings;
-    if(!this.state.settings.yearDisplay && !yearDataExists && teamHasYearData(tempItem)) {
-       yearDataExists = true;
-       ipc.sendSync('toggleYearDisplay', true); // assume user will want to show year data if they're entering it
-       settings.yearDisplay = true;
-     }
     ipc.sendSync('unsavedData');
     this.setState({
       myTeams: tempTms,
       tmWindowVisible: false,
-      yearDataExists: yearDataExists,
       settings: settings
     }) //setState
   } //addTeam
@@ -843,21 +821,11 @@ class MainInterface extends React.Component{
       this.updateTeamName(tempGames, oldTeam.teamName, newTeam.teamName);
     }
 
-    var yearDataExists = this.state.yearDataExists;
-    var settings = this.state.settings;
-    if(!this.state.settings.yearDisplay && !yearDataExists && teamHasYearData(newTeam)) {
-       yearDataExists = true;
-       ipc.sendSync('toggleYearDisplay', true); // assume user will want to show year data if they're entering it
-       settings.yearDisplay = true;
-     }
-
     ipc.sendSync('unsavedData');
     this.setState({
       myTeams: tempTeams,
       myGames: tempGames,
       tmWindowVisible: false,
-      yearDataExists: yearDataExists,
-      settings: settings
     });
   }//modifyTeam
 
@@ -1225,6 +1193,15 @@ class MainInterface extends React.Component{
   }
 
   /*---------------------------------------------------------
+  Open the modal for configuring report settings
+  ---------------------------------------------------------*/
+  openRptConfigModal() {
+    this.setState({
+      rptConfigWindowVisible: true
+    });
+  }
+
+  /*---------------------------------------------------------
   Open the modal for assigning teams to divisions
   ---------------------------------------------------------*/
   openDivModal() {
@@ -1439,6 +1416,7 @@ class MainInterface extends React.Component{
     });
     if(this.state.tmWindowVisible === true) { $('#addTeam').modal('open'); }
     if(this.state.gmWindowVisible === true) { $('#addGame').modal('open'); }
+    if(this.state.rptConfigWindowVisible === true) { $('#rptConfig').modal('open'); }
     if(this.state.divWindowVisible === true) { $('#assignDivisions').modal('open'); }
     if(this.state.phaseWindowVisible === true) { $('#assignPhases').modal('open'); }
 
@@ -1558,6 +1536,10 @@ class MainInterface extends React.Component{
             currentPhase = {this.state.viewingPhase}
             settings = {this.state.settings}
           />
+         <RptConfigModal
+            isOpen = {this.state.rptConfigWindowVisible}
+            tournamentSettings = {this.state.settings}
+         />
          <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkTeamToggle}
             isOpen = {this.state.divWindowVisible}
             teamsToAssign = {this.state.selectedTeams}

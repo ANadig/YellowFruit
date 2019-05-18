@@ -57,6 +57,8 @@ function teamHasYearData(team) {
 
 /*---------------------------------------------------------
 conversion on team data structure (version 2.1.0)
+Changes rosters from arrays of strings to arrays of
+objects with the year property
 ---------------------------------------------------------*/
 function teamConversion2x1x0(loadTeams) {
   for(var i in loadTeams) {

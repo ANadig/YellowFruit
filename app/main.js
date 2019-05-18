@@ -552,11 +552,11 @@ app.on('ready', function() {
   /*---------------------------------------------------------
   automatically turn on year/grade display
   ---------------------------------------------------------*/
-  ipc.on('toggleYearDisplay', (event, checked) => {
-    event.returnValue = '';
-    var menuItem = mainMenu.getMenuItemById('year-toggle');
-    menuItem.checked = checked;
-  });
+  // ipc.on('toggleYearDisplay', (event, checked) => {
+  //   event.returnValue = '';
+  //   var menuItem = mainMenu.getMenuItemById('year-toggle');
+  //   menuItem.checked = checked;
+  // });
 
   /*---------------------------------------------------------
   Set up the menu bar.
@@ -693,11 +693,9 @@ app.on('ready', function() {
         label: '&Report Settings',
         submenu: [
           {
-            label: 'Show Grade/Year',
-            id: 'year-toggle',
-            type: 'checkbox',
+            label: 'Report Settings...',
             click (item, focusedWindow) {
-                if(focusedWindow) focusedWindow.webContents.send('toggleYearDisplay', item.checked);
+                if(focusedWindow) focusedWindow.webContents.send('openRptConfig');
             }
           }
         ]

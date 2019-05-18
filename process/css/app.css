@@ -217,6 +217,17 @@ h1, h2, h3, h4, h5, h6 {
   color: red;
 }
 
+#rptConfig {
+  width: 90%;
+  margin-top: -5vh;
+  max-height: 90%;
+  min-height: 90%
+}
+
+#rptConfig #isDefault {
+  padding-top: 18pt;
+}
+
 #addGame {
   width: 95%;
   margin-top: -9vh;
