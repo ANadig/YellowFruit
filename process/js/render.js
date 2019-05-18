@@ -45,7 +45,7 @@ const PHASE_COLORS = ['#ffff8d', '#ccff90', '#ffd180', '#80d8ff',
   '#ff8a80', '#ea80fc', '#a7ffeb', '#b388ff'];
 
 
-class MainInterface extends React.Component{
+class MainInterface extends React.Component {
 
   constructor(props) {
     super(props);
