@@ -1,0 +1,20 @@
+{
+  "globalSettings": {},
+  "rptConfigList":
+    [
+      {
+        "rptName": "",
+        "isDefault": false,
+        "ppgOrPp20": "ppg",
+        "teamUG": false,
+        "teamD2": false,
+        "playerYear": false,
+        "playerD2": false,
+        "papg": false,
+        "margin": false,
+        "pptuh": false,
+        "pPerN": false,
+        "gPerN": false
+      }
+    ]
+}
