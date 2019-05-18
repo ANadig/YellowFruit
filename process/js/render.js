@@ -43,13 +43,41 @@ const DEFAULT_SETTINGS = {
 //Materialize accent-1 colors: yellow, light-green, orange, light-blue, red, purple, teal, deep-purple
 const PHASE_COLORS = ['#ffff8d', '#ccff90', '#ffd180', '#80d8ff',
   '#ff8a80', '#ea80fc', '#a7ffeb', '#b388ff'];
+const RELEASED_RPT_CONFIG_FILE = Path.resolve('data/ReleasedRptConfig.json');
+const CUSTOM_RPT_CONFIG_FILE = Path.resolve('data/CustomRptConfig.json');
+const EMPTY_CUSTOM_RPT_CONFIG = {
+    defaultRpt: null,
+    rptConfigList: {}
+}
 
 
 class MainInterface extends React.Component{
 
   constructor(props) {
     super(props);
+
     var defSettingsCopy = $.extend(true, {}, DEFAULT_SETTINGS);
+
+    //load report configurations from files
+    var loadRpts = fs.readFileSync(RELEASED_RPT_CONFIG_FILE, 'utf8');
+    var releasedRptList = JSON.parse(loadRpts).rptConfigList;
+    var defaultRpt = 'SQBS Defaults';
+
+    if(fs.existsSync(CUSTOM_RPT_CONFIG_FILE)) {
+      loadRpts = fs.readFileSync(CUSTOM_RPT_CONFIG_FILE, 'utf8');
+      var customRptConfig = JSON.parse(loadRpts);
+      var customRptList = customRptConfig.rptConfigList;
+      if(customRptList[customRptConfig.defaultRpt] != undefined) {
+        defaultRpt = customRptConfig.defaultRpt;
+      }
+    }
+    else {
+      var customRptList = {};
+      fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(EMPTY_CUSTOM_RPT_CONFIG), 'utf8', function(err) {
+        if (err) { console.log(err); }
+      });
+    }
+
     this.state = {
       tmWindowVisible: false, // whether the team entry modal is open
       gmWindowVisible: false, // whether the game entry modal is open
@@ -82,6 +110,9 @@ class MainInterface extends React.Component{
       gmAddOrEdit: 'add', // either 'add' or 'edit'
       editingSettings: false, // Whether the "settings" section of the settings pane is open for editing
       gameToBeDeleted: null, // which game the user is attempting to delete
+      releasedRptList: releasedRptList, // list of uneditable report configurations
+      customRptList: customRptList, // list of user-created report configurations
+      defaultRpt: defaultRpt // which report configuration is default for new tournaments
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -195,7 +226,7 @@ class MainInterface extends React.Component{
       });
     });
     ipc.on('openRptConfig', (event) => {
-      this.openRptConfigModal();
+      if(!this.anyModalOpen()) { this.openRptConfigModal(); }
     });
   } //componentDidMount
 
@@ -620,7 +651,11 @@ class MainInterface extends React.Component{
       editWhichGame: null,
       gmAddOrEdit: 'add',
       editingSettings: false,
-      gameToBeDeleted: null,
+      gameToBeDeleted: null
+      // DO NOT reset these! These should persist across files
+      // releasedRptList: ,
+      // customRptList: ,
+      // defaultRpt:
     });
   }
 
@@ -1539,6 +1574,9 @@ class MainInterface extends React.Component{
          <RptConfigModal
             isOpen = {this.state.rptConfigWindowVisible}
             tournamentSettings = {this.state.settings}
+            releasedRptList = {this.state.releasedRptList}
+            customRptList = {this.state.customRptList}
+            defaultRpt = {this.state.defaultRpt}
          />
          <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkTeamToggle}
             isOpen = {this.state.divWindowVisible}

@@ -14,7 +14,7 @@ class RptConfigModal extends React.Component {
     super(props);
     this.state = {
       rptName: '',
-      isDefault: false,
+      currentRptIsDefault: false,
       ppgOrPp20: 'ppg',
       teamUG: false,
       teamD2: false,
@@ -55,7 +55,15 @@ class RptConfigModal extends React.Component {
 
 
   render() {
-    console.log(this.state);
+
+    var rptCollection = (
+      <div className="collection">
+        <a href="#!" className="collection-item">Alvin</a>
+        <a href="#!" className="collection-item active">Alvin</a>
+        <a href="#!" className="collection-item">Alvin</a>
+        <a href="#!" className="collection-item">Alvin</a>
+      </div>
+    );
 
     var nameRow = (
       <div className="row">
@@ -65,9 +73,9 @@ class RptConfigModal extends React.Component {
             <label htmlFor="rptName">Name</label>
           </div>
         </div>
-        <div className="col s4" id="isDefault">
+        <div className="col s4" id="currentRptIsDefault">
           <label>
-            <input type="checkbox" name="isDefault" checked={this.state.isDefault} onChange={this.handleChange}/>
+            <input type="checkbox" name="currentRptIsDefault" checked={this.state.currentRptIsDefault} onChange={this.handleChange}/>
             <span>Default</span>
           </label>
         </div>
@@ -177,7 +185,7 @@ class RptConfigModal extends React.Component {
             <h4>Report Settings</h4>
             <div className="row">
               <div className="col s3">
-                list of things
+                {rptCollection}
               </div>
               <div className="col s9">
                 {nameRow}
