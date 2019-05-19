@@ -112,7 +112,8 @@ class MainInterface extends React.Component{
       gameToBeDeleted: null, // which game the user is attempting to delete
       releasedRptList: releasedRptList, // list of uneditable report configurations
       customRptList: customRptList, // list of user-created report configurations
-      defaultRpt: defaultRpt // which report configuration is default for new tournaments
+      defaultRpt: defaultRpt, // which report configuration is default for new tournaments
+      modalsInitialized: false // we only need to initialize Materialize modals on the first render
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -149,6 +150,7 @@ class MainInterface extends React.Component{
     this.teamHasPlayedGames = this.teamHasPlayedGames.bind(this);
     this.savePackets = this.savePackets.bind(this);
     this.sortTeamsBy = this.sortTeamsBy.bind(this);
+    this.modifyRptConfig = this.modifyRptConfig.bind(this);
   }
 
   /*---------------------------------------------------------
@@ -257,9 +259,14 @@ class MainInterface extends React.Component{
   } //componentWillUnmount
 
   /*---------------------------------------------------------
-  Unused at the moment
+  Lifecycle method.
   ---------------------------------------------------------*/
   componentDidUpdate() {
+    if(!this.state.modalsInitialized) {
+      this.setState({
+        modalsInitialized: true
+      });
+    }
   }
 
   /*---------------------------------------------------------
@@ -651,11 +658,12 @@ class MainInterface extends React.Component{
       editWhichGame: null,
       gmAddOrEdit: 'add',
       editingSettings: false,
-      gameToBeDeleted: null
-      // DO NOT reset these! These should persist across files
+      gameToBeDeleted: null,
+      // DO NOT reset these! These should persist throughout the session
       // releasedRptList: ,
       // customRptList: ,
-      // defaultRpt:
+      // defaultRpt: ,
+      // modalsInitialized:
     });
   }
 
@@ -1426,9 +1434,34 @@ class MainInterface extends React.Component{
     });
   }
 
+  /*---------------------------------------------------------
+  Save the custom report configuration called configName
+  to file. acceptAndStay is true if the Accept & Stay button
+  was used, false, if the Accept button was used
+  ---------------------------------------------------------*/
+  modifyRptConfig(configName, rptObj, newName, acceptAndStay) {
+    if(this.state.customRptList[configName] == undefined) { return; }
+    var tempRpts = this.state.customRptList;
+    delete tempRpts[configName];
+    tempRpts[newName] = rptObj; //newName may or may not be the same as configName
+    this.setState({
+      customRptList: tempRpts,
+      rptConfigWindowVisible: acceptAndStay
+    });
+    var newCustomRpts = {
+        defaultRpt: null,
+        rptConfigList: tempRpts
+    }
+    fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {
+      if (err) { console.log(err); }
+    });
+  }
+
 
 
   render() {
+    console.log(this.state.customRptList);
+
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim();
@@ -1446,14 +1479,16 @@ class MainInterface extends React.Component{
     $('select').formSelect(); //initialize all dropdowns
     $('.fixed-action-btn').floatingActionButton(); //initialize floating buttons
     //initialize all modals
-    $('.modal').modal({
-      onCloseEnd: this.onModalClose
-    });
+    if(!this.state.modalsInitialized) {
+      $('.modal').modal({
+        onCloseEnd: this.onModalClose
+      });
+    }
     if(this.state.tmWindowVisible === true) { $('#addTeam').modal('open'); }
     if(this.state.gmWindowVisible === true) { $('#addGame').modal('open'); }
-    if(this.state.rptConfigWindowVisible === true) { $('#rptConfig').modal('open'); }
     if(this.state.divWindowVisible === true) { $('#assignDivisions').modal('open'); }
     if(this.state.phaseWindowVisible === true) { $('#assignPhases').modal('open'); }
+    if(this.state.rptConfigWindowVisible === true) { $('#rptConfig').modal('open'); }
 
     //sort and filter teams
     if (activePane == 'teamsPane') {
@@ -1577,6 +1612,7 @@ class MainInterface extends React.Component{
             releasedRptList = {this.state.releasedRptList}
             customRptList = {this.state.customRptList}
             defaultRpt = {this.state.defaultRpt}
+            modifyRptConfig = {this.modifyRptConfig}
          />
          <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkTeamToggle}
             isOpen = {this.state.divWindowVisible}

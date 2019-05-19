@@ -232,6 +232,14 @@ h1, h2, h3, h4, h5, h6 {
   padding-top: 18pt;
 }
 
+#rptConfig .modal-footer .row {
+  margin-bottom: 0;
+}
+
+#rptConfig .modal-footer .col:first-child {
+  text-align: left;
+}
+
 #addGame {
   width: 95%;
   margin-top: -9vh;

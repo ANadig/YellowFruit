@@ -29,7 +29,7 @@ class RptConfigModal extends React.Component {
     super(props);
     this.state = {
       selectedRpt: '',
-      lockDownFields: false,
+      selectedRptType: '',
       rptName: '',
       currentRptIsDefault: false,
       ppgOrPp20: 'ppg',
@@ -68,11 +68,33 @@ class RptConfigModal extends React.Component {
   ---------------------------------------------------------*/
   handleSubmit(e) {
     e.preventDefault();
-    // this.props.handleSubmit(this.state.phaseSelections);
+    var acceptAndStay = e.target.name == 'acceptAndStay';
+    if(this.state.selectedRptType == 'custom') {
+      var rptObj = {
+        ppgOrPp20: this.state.ppgOrPp20,
+        teamUG: this.state.teamUG,
+        teamD2: this.state.teamD2,
+        playerYear: this.state.playerYear,
+        playerD2: this.state.playerD2,
+        papg: this.state.papg,
+        margin: this.state.margin,
+        pptuh: this.state.pptuh,
+        pPerN: this.state.pPerN,
+        gPerN: this.state.gPerN
+      }
+      var trimmedName = this.state.rptName.trim();
+      this.props.modifyRptConfig(this.state.selectedRpt, rptObj, trimmedName, acceptAndStay);
+      if(this.state.selectedRpt != trimmedName) {
+        this.setState({
+          selectedRpt: trimmedName
+        });
+      }
+    }
+
+
   }
 
   selectRpt(title, type) {
-    var lockDownFields = type == 'released';
     if(type == 'addNew') { title = NEW_RPT_DUMMY_KEY; }
     var selectedSettings;
     if(type == 'released') { selectedSettings = this.props.releasedRptList[title]; }
@@ -80,7 +102,7 @@ class RptConfigModal extends React.Component {
     else { selectedSettings = EMPTY_RPT_SETTINGS; } // else new rpt, clear form
     this.setState({
       selectedRpt: title,
-      lockDownFields: lockDownFields,
+      selectedRptType: type,
       rptName: type == 'addNew' ? '' : title,
       ppgOrPp20: selectedSettings.ppgOrPp20,
       teamUG: selectedSettings.teamUG,
@@ -121,16 +143,35 @@ class RptConfigModal extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Names cannot be just whitespace, or be the same as the name
+  of an existing report
+  ---------------------------------------------------------*/
+  nameisInvalid() {
+    var trimmedName = this.state.rptName.trim();
+    if(trimmedName == '') { return true; }
+    if(trimmedName == this.state.selectedRpt) { return false; }
+    var lowerKeys = Object.keys(this.props.releasedRptList).map((k,idx) => { return k.toLowerCase(); });
+    if(lowerKeys.includes(trimmedName.toLowerCase())) { return true; }
+    lowerKeys = Object.keys(this.props.customRptList).map((k,idx) => { return k.toLowerCase(); });
+    if(lowerKeys.includes(trimmedName.toLowerCase())) { return true; }
+    return false;
+  }
+
+  /*---------------------------------------------------------
   Lifecyle method.
   ---------------------------------------------------------*/
   componentDidUpdate(prevProps) {
-    //needed so that labels aren't on top of data when the edit form opens
+    //needed so that labels aren't on top of data when text fields auto-populate
     M.updateTextFields();
   }
 
 
   render() {
-    var disableFields = this.state.lockDownFields ? 'disabled' : '';
+    var invalidName = this.nameisInvalid();
+    var disableFields = this.state.selectedRptType == 'released' ? 'disabled' : '';
+    var disableDeleteButton = this.state.selectedRptType == 'released' || this.state.selectedRptType == 'addNew' ? 'disabled' : '';
+    var disableASButton = this.state.selectedRptType == 'released' || invalidName ? 'disabled' : '';
+    var disableAcceptButton = invalidName ? 'disabled' : '';
 
     var rptCollection = (
       <div className="collection">
@@ -263,33 +304,46 @@ class RptConfigModal extends React.Component {
 
     return (
       <div className="modal modal-fixed-footer" id="rptConfig">
-        <form onSubmit={this.handleSubmit}>
-          <div className="modal-content">
-            <h4>Report Settings</h4>
-            <div className="row">
-              <div className="col s3 rptList">
-                {rptCollection}
-              </div>
-              <div className="col s9">
-                {nameRow}
-                {ppgRow}
-                {teamStatusRow}
-                {playerStatusRow}
-                {teamStandingsRow}
-                {otherRow}
-              </div>
+        <div className="modal-content">
+          <h4>Report Settings</h4>
+          <div className="row">
+            <div className="col s3 rptList">
+              {rptCollection}
             </div>
+            <div className="col s9">
+              {nameRow}
+              {ppgRow}
+              {teamStatusRow}
+              {playerStatusRow}
+              {teamStandingsRow}
+              {otherRow}
+            </div>
+          </div>
+        </div>
 
+        <div className="modal-footer">
+          <div className="row">
+            <div className="col s3">
+              <button type="button" accessKey={this.props.isOpen ? 'd' : ''}
+                className={'btn red lighten-1 ' + disableDeleteButton}>
+                <span className="hotkey-underline">D</span>elete
+              </button>
+            </div>
+            <div className="col s9">
+              <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
+                <span className="hotkey-underline">C</span>ancel
+              </button>&nbsp;
+              <button type="button" accessKey={this.props.isOpen ? 's' : ''} name="acceptAndStay"
+                className={'btn blue lighten-1 ' + disableASButton} onClick={this.handleSubmit}>
+                Accept & <span className="hotkey-underline">S</span>tay
+              </button>&nbsp;
+              <button type="button" accessKey={this.props.isOpen ? 'a' : ''} name="acceptAndClose"
+                className={'modal-close btn green ' + disableAcceptButton} onClick={this.handleSubmit}>
+                <span className="hotkey-underline">A</span>ccept
+              </button>
+            </div>
           </div>
-          <div className="modal-footer">
-            <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
-              <span className="hotkey-underline">C</span>ancel
-            </button>&nbsp;
-            <button type="submit" accessKey={this.props.isOpen ? 'a' : ''} className={'modal-close btn green '}>
-              <span className="hotkey-underline">A</span>ccept
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     );
   }

@@ -25,10 +25,24 @@ class RptConfigListEntry extends React.Component {
   }
 
   render() {
+    var rightIcon = null;
+    if(this.props.type == 'released') {
+      var rightIcon = (
+        <span className="secondary-content" title="This configuration cannot be edited">
+        <i className="material-icons">lock</i></span>
+      );
+    }
+    else if(this.props.type == 'addNew') {
+      var rightIcon = (
+        <span className="secondary-content" title="Add a new configuration">
+        <i className="material-icons">note_add</i></span>
+      );
+    }
 
     return (
       <a href="#!" className={'collection-item ' + this.isActive()} onClick={this.selectSelf}>
         {this.props.title}
+        {rightIcon}
       </a>
     );
   }
