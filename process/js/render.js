@@ -1464,14 +1464,14 @@ class MainInterface extends React.Component{
         console.log(err);
       }
     });
-    if(saveSuccess && acceptAndStay) { M.toast({html: 'Saved ' + newName}); }
+    if(saveSuccess && acceptAndStay) {
+      M.toast({html: 'Saved \"' + newName + '\"', classes: 'green-toast'});
+    }
   }
 
 
 
   render() {
-    console.log(this.state.customRptList);
-
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim();
