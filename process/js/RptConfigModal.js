@@ -28,7 +28,7 @@ class RptConfigModal extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedRpt: '',
+      selectedRpt: Object.keys(this.props.releasedRptList)[0],
       selectedRptType: '',
       rptName: '',
       currentRptIsDefault: false,
@@ -68,30 +68,29 @@ class RptConfigModal extends React.Component {
   ---------------------------------------------------------*/
   handleSubmit(e) {
     e.preventDefault();
+    if(this.state.selectedRptType == 'released') { return; } // sanity check, shouldn't happen
     var acceptAndStay = e.target.name == 'acceptAndStay';
-    if(this.state.selectedRptType == 'custom') {
-      var rptObj = {
-        ppgOrPp20: this.state.ppgOrPp20,
-        teamUG: this.state.teamUG,
-        teamD2: this.state.teamD2,
-        playerYear: this.state.playerYear,
-        playerD2: this.state.playerD2,
-        papg: this.state.papg,
-        margin: this.state.margin,
-        pptuh: this.state.pptuh,
-        pPerN: this.state.pPerN,
-        gPerN: this.state.gPerN
-      }
-      var trimmedName = this.state.rptName.trim();
-      this.props.modifyRptConfig(this.state.selectedRpt, rptObj, trimmedName, acceptAndStay);
-      if(this.state.selectedRpt != trimmedName) {
-        this.setState({
-          selectedRpt: trimmedName
-        });
-      }
+    var rptObj = {
+      ppgOrPp20: this.state.ppgOrPp20,
+      teamUG: this.state.teamUG,
+      teamD2: this.state.teamD2,
+      playerYear: this.state.playerYear,
+      playerD2: this.state.playerD2,
+      papg: this.state.papg,
+      margin: this.state.margin,
+      pptuh: this.state.pptuh,
+      pPerN: this.state.pPerN,
+      gPerN: this.state.gPerN
     }
-
-
+    var trimmedName = this.state.rptName.trim();
+    var rptToReplace = this.state.selectedRptType == 'custom' ? this.state.selectedRpt : null;
+    this.props.modifyRptConfig(rptToReplace, rptObj, trimmedName, acceptAndStay);
+    if(this.state.selectedRpt != trimmedName) {
+      this.setState({
+        selectedRpt: trimmedName,
+        selectedRptType: 'custom'
+      });
+    }
   }
 
   selectRpt(title, type) {
@@ -170,8 +169,7 @@ class RptConfigModal extends React.Component {
     var invalidName = this.nameisInvalid();
     var disableFields = this.state.selectedRptType == 'released' ? 'disabled' : '';
     var disableDeleteButton = this.state.selectedRptType == 'released' || this.state.selectedRptType == 'addNew' ? 'disabled' : '';
-    var disableASButton = this.state.selectedRptType == 'released' || invalidName ? 'disabled' : '';
-    var disableAcceptButton = invalidName ? 'disabled' : '';
+    var disableAcceptButton = this.state.selectedRptType == 'released' || invalidName ? 'disabled' : '';
 
     var rptCollection = (
       <div className="collection">
@@ -331,10 +329,10 @@ class RptConfigModal extends React.Component {
             </div>
             <div className="col s9">
               <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
-                <span className="hotkey-underline">C</span>ancel
+                <span className="hotkey-underline">C</span>lose
               </button>&nbsp;
               <button type="button" accessKey={this.props.isOpen ? 's' : ''} name="acceptAndStay"
-                className={'btn blue lighten-1 ' + disableASButton} onClick={this.handleSubmit}>
+                className={'btn blue lighten-1 ' + disableAcceptButton} onClick={this.handleSubmit}>
                 Accept & <span className="hotkey-underline">S</span>tay
               </button>&nbsp;
               <button type="button" accessKey={this.props.isOpen ? 'a' : ''} name="acceptAndClose"

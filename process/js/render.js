@@ -1436,13 +1436,18 @@ class MainInterface extends React.Component{
 
   /*---------------------------------------------------------
   Save the custom report configuration called configName
-  to file. acceptAndStay is true if the Accept & Stay button
+  to file.
+  If configName is null, add the new configuration without
+  replacing an existing one
+  acceptAndStay is true if the Accept & Stay button
   was used, false, if the Accept button was used
   ---------------------------------------------------------*/
   modifyRptConfig(configName, rptObj, newName, acceptAndStay) {
-    if(this.state.customRptList[configName] == undefined) { return; }
     var tempRpts = this.state.customRptList;
-    delete tempRpts[configName];
+    if(configName != null) {
+      if(this.state.customRptList[configName] == undefined) { return; }
+      delete tempRpts[configName];
+    }
     tempRpts[newName] = rptObj; //newName may or may not be the same as configName
     this.setState({
       customRptList: tempRpts,
@@ -1452,9 +1457,14 @@ class MainInterface extends React.Component{
         defaultRpt: null,
         rptConfigList: tempRpts
     }
+    var saveSuccess = true;
     fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {
-      if (err) { console.log(err); }
+      if (err) {
+        saveSuccess = false;
+        console.log(err);
+      }
     });
+    if(saveSuccess && acceptAndStay) { M.toast({html: 'Saved ' + newName}); }
   }
 
 
