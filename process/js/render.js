@@ -79,6 +79,8 @@ class MainInterface extends React.Component{
       });
     }
 
+    ipc.sendSync('rebuildReportMenu', releasedRptList, customRptList, defaultRpt);
+
     this.state = {
       tmWindowVisible: false, // whether the team entry modal is open
       gmWindowVisible: false, // whether the game entry modal is open
@@ -114,6 +116,7 @@ class MainInterface extends React.Component{
       releasedRptList: releasedRptList, // list of uneditable report configurations
       customRptList: customRptList, // list of user-created report configurations
       defaultRpt: defaultRpt, // which report configuration is default for new tournaments
+      activeRpt: defaultRpt, // which report configuration is currently being used
       modalsInitialized: false // we only need to initialize Materialize modals on the first render
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
@@ -237,6 +240,11 @@ class MainInterface extends React.Component{
     ipc.on('rptDeleteConfirmation', (event, rptName) => {
       this.deleteRpt(rptName);
     });
+    ipc.on('setActiveRptConfig', (event, rptName) => {
+      this.setState({
+        activeRpt: rptName
+      });
+    });
   } //componentDidMount
 
   /*---------------------------------------------------------
@@ -263,6 +271,8 @@ class MainInterface extends React.Component{
     ipc.removeAllListeners('confirmDelete');
     ipc.removeAllListeners('cancelDelete');
     ipc.removeAllListeners('openRptConfig');
+    ipc.removeAllListeners('rptDeleteConfirmation');
+    ipc.removeAllListeners('setActiveRptConfig');
   } //componentWillUnmount
 
   /*---------------------------------------------------------
@@ -1442,23 +1452,26 @@ class MainInterface extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Save the custom report configuration called configName
+  Save the custom report configuration called rptName
   to file.
-  If configName is null, add the new configuration without
+  If rptName is null, add the new configuration without
   replacing an existing one
   acceptAndStay is true if the Accept & Stay button
   was used, false, if the Accept button was used
   ---------------------------------------------------------*/
-  modifyRptConfig(configName, rptObj, newName, acceptAndStay) {
+  modifyRptConfig(rptName, rptObj, newName, acceptAndStay) {
     var tempRpts = this.state.customRptList;
-    if(configName != null) {
-      if(this.state.customRptList[configName] == undefined) { return; }
-      delete tempRpts[configName];
+    var activeRpt = this.state.activeRpt;
+    if(rptName != null) {
+      if(this.state.customRptList[rptName] == undefined) { return; }
+      delete tempRpts[rptName];
+      if(activeRpt == rptName) { activeRpt = newName; }
     }
-    tempRpts[newName] = rptObj; //newName may or may not be the same as configName
+    tempRpts[newName] = rptObj; //newName may or may not be the same as rptName
     this.setState({
       customRptList: tempRpts,
-      rptConfigWindowVisible: acceptAndStay
+      rptConfigWindowVisible: acceptAndStay,
+      activeRpt: activeRpt
     });
     var newCustomRpts = {
         defaultRpt: null,
@@ -1474,6 +1487,7 @@ class MainInterface extends React.Component{
     if(saveSuccess && acceptAndStay) {
       M.toast({html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newName + '\"', classes: 'green-toast'});
     }
+    ipc.sendSync('rebuildReportMenu', this.state.releasedRptList, tempRpts, activeRpt);
   }
 
   /*---------------------------------------------------------
@@ -1538,11 +1552,14 @@ class MainInterface extends React.Component{
   deleteRpt(rptName) {
     var tempRpts = this.state.customRptList;
     var newDefault = this.state.defaultRpt;
+    var activeRpt = this.state.activeRpt;
     delete tempRpts[rptName];
     if(this.state.defaultRpt == rptName) { newDefault = ORIG_DEFAULT_RPT_NAME; }
+    if(this.state.activeRpt == rptName) { activeRpt = ORIG_DEFAULT_RPT_NAME; }
     this.setState({
       customRptList: tempRpts,
-      defaultRpt: newDefault
+      defaultRpt: newDefault,
+      activeRpt: activeRpt
     });
 
     var newCustomRpts = {
@@ -1552,6 +1569,7 @@ class MainInterface extends React.Component{
     fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {
       if (err) { console.log(err); }
     });
+    ipc.sendSync('rebuildReportMenu', this.state.releasedRptList, tempRpts, activeRpt);
   }
 
 

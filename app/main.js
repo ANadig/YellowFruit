@@ -33,6 +33,206 @@ if (handleSquirrelEvent(app)) {
 //Set to 'production' to hide developer tools; otherwise set to anything else
 process.env.NODE_ENV = 'dev';
 
+//Define parts of the menu that don't change dynamically here
+const YF_MENU = {
+  label: '&YellowFruit',
+  submenu: [
+    {
+      label: 'View Full Report',
+      accelerator: 'CmdOrCtrl+I',
+      click(item, focusedWindow) {
+        focusedWindow.webContents.send('compileStatReport');
+        showReportWindow();
+      }
+    },
+    {
+      label: 'Export Full Report',
+      accelerator: 'CmdOrCtrl+U',
+      click(item, focusedWindow) {
+        exportHtmlReport(focusedWindow);
+      }
+    },
+    {
+      label: 'Export as SQBS',
+      accelerator: 'CmdOrCtrl+Y',
+      click(item, focusedWindow) {
+        trySqbsExport(focusedWindow);
+      }
+    },
+    {type: 'separator'},
+    {
+      label: 'New Tournament',
+      accelerator: 'CmdOrCtrl+N',
+      click(item, focusedWindow) {
+        newTournament(focusedWindow);
+      }
+    },
+    {
+      label: 'Import Rosters from SQBS',
+      click(item, focusedWindow) {
+        importRosters(focusedWindow);
+      }
+    },
+    {
+      label: 'Merge Tournament',
+      click(item, focusedWindow) {
+        mergeTournament(focusedWindow);
+      }
+    },
+    {
+      label: 'Open',
+      accelerator: 'CmdOrCtrl+O',
+      click(item, focusedWindow) {
+        openTournament(focusedWindow);
+      }
+    },
+    {
+      label: 'Save As',
+      click(item, focusedWindow) {
+        saveTournamentAs(focusedWindow);
+      }
+    },
+    {
+      label: 'Save',
+      accelerator: 'CmdOrCtrl+S',
+      click(item, focusedWindow) {
+        saveExistingTournament(focusedWindow);
+      }
+    },
+    {type: 'separator'},
+    {role: 'close'},
+  ]
+};
+const EDIT_MENU = {
+  label: '&Edit',
+  submenu: [
+    {
+      label: 'Add Team',
+      accelerator: 'CmdOrCtrl+T',
+      click(item,focusedWindow) {
+        if (focusedWindow == appWindow) focusedWindow.webContents.send('addTeam');
+      }
+    },
+    {
+      label: 'Add Game',
+      accelerator: 'CmdOrCtrl+G',
+      click(item,focusedWindow) {
+        if (focusedWindow == appWindow) focusedWindow.webContents.send('addGame');
+      }
+    }
+  ]
+};
+const VIEW_MENU ={
+    label: '&View',
+    submenu: [
+      {
+        label: 'Search',
+        accelerator: 'CmdOrCtrl+F',
+        click (item, focusedWindow) {
+          if(focusedWindow) focusedWindow.webContents.send('focusSearch');
+        }
+      },
+      {type: 'separator'},
+      {
+        label: 'Previous Page',
+        accelerator: 'CmdOrCtrl+Left',
+        click (item, focusedWindow) {
+          if(focusedWindow) focusedWindow.webContents.send('prevPage');
+        }
+      },
+      {
+        label: 'Next Page',
+        accelerator: 'CmdOrCtrl+Right',
+        click (item, focusedWindow) {
+          if(focusedWindow) focusedWindow.webContents.send('nextPage');
+        }
+      },
+      {type: 'separator'},
+      {
+        label: 'Previous Phase',
+        accelerator: 'Alt+Left',
+        click (item, focusedWindow) {
+          if(focusedWindow) focusedWindow.webContents.send('prevPhase');
+        }
+      },
+      {
+        label: 'Next Phase',
+        accelerator: 'Alt+Right',
+        click (item, focusedWindow) {
+          if(focusedWindow) focusedWindow.webContents.send('nextPhase');
+        }
+      }
+    ]
+  };
+const HELP_MENU = {
+  label: '&Help',
+  submenu: [
+    {
+      label: 'Search Tips',
+      click (item, focusedWindow) {
+        showSearchTips(focusedWindow);
+      }
+    },
+    {
+      label: 'About YellowFruit',
+      click (item, focusedWindow) {
+        showAboutYF(focusedWindow);
+      }
+    }
+  ]
+};
+const DEV_TOOLS_MENU = {
+  label: 'Dev Tools',
+  submenu:[
+    {
+      label: 'Reload',
+      accelerator: 'CmdOrCtrl+R',
+      click (item, focusedWindow) {
+        if (focusedWindow) focusedWindow.reload()
+      }
+    },
+    {
+      label: 'Toggle Developer Tools',
+      accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+      click (item, focusedWindow) {
+        if (focusedWindow) focusedWindow.webContents.toggleDevTools()
+      }
+    }
+  ]
+};
+const REPORT_SUBMENU_STUB = [
+  {
+    label: 'Report Settings...',
+    click (item, focusedWindow) {
+        if(focusedWindow) focusedWindow.webContents.send('openRptConfig');
+    }
+  },
+  {type: 'separator'}
+];
+
+/*---------------------------------------------------------
+Build the main menu.
+---------------------------------------------------------*/
+function buildMainMenu(rptSubMenu) {
+  mainMenuTemplate = [
+    YF_MENU,
+    EDIT_MENU,
+    VIEW_MENU,
+    {
+      label: '&Report Settings',
+      submenu: rptSubMenu
+    },
+    HELP_MENU
+  ]; // mainMenuTemplate
+
+  // Add dev tools if not in production
+  if(process.env.NODE_ENV !== 'production') {
+    mainMenuTemplate.push(DEV_TOOLS_MENU);
+  }
+  return Menu.buildFromTemplate(mainMenuTemplate);
+}
+
+
 /*---------------------------------------------------------
 Load a new report window, or, if one is already open,
 reload and focus it.
@@ -279,6 +479,13 @@ function unsavedDataDialog(focusedWindow, caption) {
     needToSave = false;
   }
   return [willContinue, needToSave];
+}
+
+/*---------------------------------------------------------
+Set which report configuration is currently being used
+---------------------------------------------------------*/
+function setActiveRptConfig(item, focusedWindow) {
+  focusedWindow.webContents.send('setActiveRptConfig', item.id);
 }
 
 /*---------------------------------------------------------
@@ -570,6 +777,36 @@ app.on('ready', function() {
   });
 
   /*---------------------------------------------------------
+  Add items to the report menu corresponding to the available
+  report configurations
+  activeRpt will have its checked property set.
+  ---------------------------------------------------------*/
+  ipc.on('rebuildReportMenu', (event, releasedRptList, customRptList, activeRpt) => {
+    event.returnValue = '';
+    var rptSubMenu = REPORT_SUBMENU_STUB.slice();
+    for(var r in releasedRptList) {
+      rptSubMenu.push({
+        label: r,
+        id: r,
+        type: 'radio',
+        checked: r == activeRpt,
+        click (item, focusedWindow) { setActiveRptConfig(item, focusedWindow); }
+      });
+    }
+    for(var r in customRptList) {
+      rptSubMenu.push({
+        label: r,
+        id: r,
+        type: 'radio',
+        checked: r == activeRpt,
+        click (item, focusedWindow) { setActiveRptConfig(item, focusedWindow); }
+      });
+    }
+    var newMainMenu = buildMainMenu(rptSubMenu);
+    appWindow.setMenu(newMainMenu);
+  });
+
+  /*---------------------------------------------------------
   automatically turn on year/grade display
   ---------------------------------------------------------*/
   // ipc.on('toggleYearDisplay', (event, checked) => {
@@ -578,189 +815,7 @@ app.on('ready', function() {
   //   menuItem.checked = checked;
   // });
 
-  /*---------------------------------------------------------
-  Set up the menu bar.
-  ---------------------------------------------------------*/
-  mainMenuTemplate = [
-    {
-      label: '&YellowFruit',
-      submenu: [
-        {
-          label: 'View Full Report',
-          accelerator: 'CmdOrCtrl+I',
-          click(item, focusedWindow) {
-            focusedWindow.webContents.send('compileStatReport');
-            showReportWindow();
-          }
-        },
-        {
-          label: 'Export Full Report',
-          accelerator: 'CmdOrCtrl+U',
-          click(item, focusedWindow) {
-            exportHtmlReport(focusedWindow);
-          }
-        },
-        {
-          label: 'Export as SQBS',
-          accelerator: 'CmdOrCtrl+Y',
-          click(item, focusedWindow) {
-            trySqbsExport(focusedWindow);
-          }
-        },
-        {type: 'separator'},
-        {
-          label: 'New Tournament',
-          accelerator: 'CmdOrCtrl+N',
-          click(item, focusedWindow) {
-            newTournament(focusedWindow);
-          }
-        },
-        {
-          label: 'Import Rosters from SQBS',
-          click(item, focusedWindow) {
-            importRosters(focusedWindow);
-          }
-        },
-        {
-          label: 'Merge Tournament',
-          click(item, focusedWindow) {
-            mergeTournament(focusedWindow);
-          }
-        },
-        {
-          label: 'Open',
-          accelerator: 'CmdOrCtrl+O',
-          click(item, focusedWindow) {
-            openTournament(focusedWindow);
-          }
-        },
-        {
-          label: 'Save As',
-          click(item, focusedWindow) {
-            saveTournamentAs(focusedWindow);
-          }
-        },
-        {
-          label: 'Save',
-          accelerator: 'CmdOrCtrl+S',
-          click(item, focusedWindow) {
-            saveExistingTournament(focusedWindow);
-          }
-        },
-        {type: 'separator'},
-        {role: 'close'},
-      ]
-    },{
-      label: '&Edit',
-      submenu: [
-        {
-          label: 'Add Team',
-          accelerator: 'CmdOrCtrl+T',
-          click(item,focusedWindow) {
-            if (focusedWindow == appWindow) focusedWindow.webContents.send('addTeam');
-          }
-        },
-        {
-          label: 'Add Game',
-          accelerator: 'CmdOrCtrl+G',
-          click(item,focusedWindow) {
-            if (focusedWindow == appWindow) focusedWindow.webContents.send('addGame');
-          }
-        }
-      ]
-    },{
-        label: '&View',
-        submenu: [
-          {
-            label: 'Search',
-            accelerator: 'CmdOrCtrl+F',
-            click (item, focusedWindow) {
-              if(focusedWindow) focusedWindow.webContents.send('focusSearch');
-            }
-          },
-          {type: 'separator'},
-          {
-            label: 'Previous Page',
-            accelerator: 'CmdOrCtrl+Left',
-            click (item, focusedWindow) {
-              if(focusedWindow) focusedWindow.webContents.send('prevPage');
-            }
-          },
-          {
-            label: 'Next Page',
-            accelerator: 'CmdOrCtrl+Right',
-            click (item, focusedWindow) {
-              if(focusedWindow) focusedWindow.webContents.send('nextPage');
-            }
-          },
-          {type: 'separator'},
-          {
-            label: 'Previous Phase',
-            accelerator: 'Alt+Left',
-            click (item, focusedWindow) {
-              if(focusedWindow) focusedWindow.webContents.send('prevPhase');
-            }
-          },
-          {
-            label: 'Next Phase',
-            accelerator: 'Alt+Right',
-            click (item, focusedWindow) {
-              if(focusedWindow) focusedWindow.webContents.send('nextPhase');
-            }
-          }
-        ]
-      },{
-        label: '&Report Settings',
-        submenu: [
-          {
-            label: 'Report Settings...',
-            click (item, focusedWindow) {
-                if(focusedWindow) focusedWindow.webContents.send('openRptConfig');
-            }
-          }
-        ]
-      },{
-        label: '&Help',
-        submenu: [
-          {
-            label: 'Search Tips',
-            click (item, focusedWindow) {
-              showSearchTips(focusedWindow);
-            }
-          },
-          {
-            label: 'About YellowFruit',
-            click (item, focusedWindow) {
-              showAboutYF(focusedWindow);
-            }
-          }
-        ]
-      }
-  ]; // mainMenuTemplate
-
-  // Add dev tools if not in production
-  if(process.env.NODE_ENV !== 'production') {
-    mainMenuTemplate.push({
-      label: 'Dev Tools',
-      submenu:[
-        {
-          label: 'Reload',
-          accelerator: 'CmdOrCtrl+R',
-          click (item, focusedWindow) {
-            if (focusedWindow) focusedWindow.reload()
-          }
-        },
-        {
-          label: 'Toggle Developer Tools',
-          accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
-          click (item, focusedWindow) {
-            if (focusedWindow) focusedWindow.webContents.toggleDevTools()
-          }
-        }
-      ]
-    });
-  }
-
+  //set up the menu bars
   reportMenuTemplate = [
     {
       label: 'YellowFruit',
@@ -768,7 +823,7 @@ app.on('ready', function() {
     }
   ]; // reportMenuTemplate
 
-  mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+  mainMenu = buildMainMenu(REPORT_SUBMENU_STUB);
   reportMenu = Menu.buildFromTemplate(reportMenuTemplate);
   appWindow.setMenu(mainMenu);
 

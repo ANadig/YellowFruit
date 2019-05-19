@@ -230,6 +230,28 @@ class RptConfigModal extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Format Pwr/N option with strikethrough if the current
+  tournament's settings make it irrelevant
+  ---------------------------------------------------------*/
+  formatPperN() {
+    if(this.props.tournamentSettings.powers == 'none' || this.props.tournamentSettings.negs == 'no') {
+      return ( <s>Powers per neg</s> );
+    }
+    return 'Powers per neg';
+  }
+
+  /*---------------------------------------------------------
+  Format G/N option with strikethrough if the current
+  tournament's settings make it irrelevant
+  ---------------------------------------------------------*/
+  formatGperN() {
+    if(this.props.tournamentSettings.negs == 'no') {
+      return ( <s>Gets per neg</s> );
+    }
+    return 'Gets per neg';
+  }
+
+  /*---------------------------------------------------------
   Lifecyle method.
   ---------------------------------------------------------*/
   componentDidUpdate(prevProps) {
@@ -252,8 +274,6 @@ class RptConfigModal extends React.Component {
 
 
   render() {
-    console.log(this.state.unsavedDataExists);
-
     var invalidName = this.nameisInvalid();
     var disableFields = this.state.selectedRptType == 'released' ? 'disabled' : '';
     var disableDeleteButton = this.state.selectedRptType == 'released' || this.state.selectedRptType == 'addNew' ? 'disabled' : '';
@@ -378,12 +398,12 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="pPerN" disabled={disableFields}
               checked={this.state.pPerN} onChange={this.handleChange}/>
-            <span>Powers per neg&emsp;&emsp;</span>
+            <span>{this.formatPperN()}&emsp;&emsp;</span>
           </label>
           <label>
             <input type="checkbox" name="gPerN" disabled={disableFields}
               checked={this.state.gPerN} onChange={this.handleChange}/>
-            <span>Gets per neg</span>
+            <span>{this.formatGperN()}&emsp;&emsp;</span>
           </label>
         </div>
       </div>
