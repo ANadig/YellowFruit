@@ -169,7 +169,7 @@ class RptConfigModal extends React.Component {
   ---------------------------------------------------------*/
   previewButtonToggled(whichButton) {
     if(whichButton == this.state.selectedPreview) {
-      return 'blue accent-1';
+      return 'teal lighten-1';
     }
     return 'grey lighten-5';
   }
@@ -456,7 +456,7 @@ class RptConfigModal extends React.Component {
           <div className="row">
             <div className="col s3">
               <button type="button" accessKey={this.props.isOpen ? 'd' : ''}
-                className={'btn red lighten-1 ' + disableDeleteButton}>
+                className={'btn red accent-1 ' + disableDeleteButton}>
                 <span className="hotkey-underline">D</span>elete
               </button>
             </div>
