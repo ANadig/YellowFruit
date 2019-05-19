@@ -1472,7 +1472,7 @@ class MainInterface extends React.Component{
       }
     });
     if(saveSuccess && acceptAndStay) {
-      M.toast({html: 'Saved \"' + newName + '\"', classes: 'green-toast'});
+      M.toast({html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newName + '\"', classes: 'green-toast'});
     }
   }
 
@@ -1495,7 +1495,7 @@ class MainInterface extends React.Component{
       }
     });
     if(saveSuccess) {
-      M.toast({html: 'Set \"' + rptName + '\" as the default for new tournaments', classes: 'green-toast'});
+      M.toast({html: '<i class=\"material-icons\">check_circle</i>&emsp;Set \"' + rptName + '\" as the default for new tournaments', classes: 'green-toast'});
     }
   }
 
@@ -1519,7 +1519,7 @@ class MainInterface extends React.Component{
       }
     });
     if(saveSuccess) {
-      M.toast({html: 'Removed default status', classes: 'green-toast'});
+      M.toast({html: '<i class=\"material-icons\">check_circle</i>&emsp;Removed default status', classes: 'green-toast'});
     }
   }
 

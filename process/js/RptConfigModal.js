@@ -45,7 +45,8 @@ class RptConfigModal extends React.Component {
       pptuh: startRpt.pptuh,
       pPerN: startRpt.pPerN,
       gPerN: startRpt.gPerN,
-      selectedPreview: 'teamStandings'
+      selectedPreview: 'teamStandings',
+      unsavedDataExists: false
     }
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -66,6 +67,7 @@ class RptConfigModal extends React.Component {
     const name = target.name;
     var partialState = {};
     partialState[name] = value;
+    partialState.unsavedDataExists = true;
     this.setState(partialState);
   } //handleChange
 
@@ -235,13 +237,23 @@ class RptConfigModal extends React.Component {
     M.updateTextFields();
     //if the selected report was just deleted, load something else
     if(this.props.releasedRptList[this.state.selectedRpt] == undefined &&
-      this.props.customRptList[this.state.selectedRpt] == undefined) {
+      this.props.customRptList[this.state.selectedRpt] == undefined &&
+      this.state.selectedRptType != 'addNew') {
       this.selectRpt(this.props.originalDefault, 'released');
+    }
+    // discard unsaved data when the form closes
+    if(!this.props.isOpen && this.state.unsavedDataExists) {
+      this.selectRpt(this.state.selectedRpt, this.state.selectedRptType);
+      this.setState({
+        unsavedDataExists: false
+      });
     }
   }
 
 
   render() {
+    console.log(this.state.unsavedDataExists);
+
     var invalidName = this.nameisInvalid();
     var disableFields = this.state.selectedRptType == 'released' ? 'disabled' : '';
     var disableDeleteButton = this.state.selectedRptType == 'released' || this.state.selectedRptType == 'addNew' ? 'disabled' : '';

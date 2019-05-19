@@ -576,6 +576,14 @@ h1, h2, h3, h4, h5, h6 {
   list-style-type: disc;
 }
 
+/* Override materialize and don't make toast location depend on screen size */
+#toast-container {
+    top: 10%;
+    right: 7%;
+    left: auto;
+    max-width: 86%;
+  }
+
 .green-toast {
   background-color: #4caf50;
 }
