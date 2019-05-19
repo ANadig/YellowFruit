@@ -562,14 +562,16 @@ class MainInterface extends React.Component{
     for(var p in this.state.divisions) {
       phaseColors[p] = PHASE_COLORS[phaseCnt++];
     }
+    var activeRpt = this.state.releasedRptList[this.state.activeRpt];
+    if(activeRpt == undefined) { activeRpt = this.state.customRptList[this.state.activeRpt]; }
 
     var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, phaseToGroupBy, divsInPhase, this.state.settings);
+      endFileStart, phase, phaseToGroupBy, divsInPhase, this.state.settings, activeRpt);
     fs.writeFile(standingsLocation, standingsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - standings
     var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, phaseToGroupBy, usingDivisions, this.state.settings);
+      endFileStart, phase, phaseToGroupBy, usingDivisions, this.state.settings, activeRpt);
     fs.writeFile(individualsLocation, individualsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individuals
@@ -579,12 +581,12 @@ class MainInterface extends React.Component{
       if (err) { console.log(err); }
     });//writeFile - scoreboard
     var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.packets, this.state.settings, phaseColors);
+      endFileStart, phase, this.state.packets, this.state.settings, phaseColors, activeRpt);
     fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - team detail
     var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.settings, phaseColors);
+      endFileStart, phase, this.state.settings, phaseColors, activeRpt);
     fs.writeFile(playerDetailLocation, playerDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individual Detail
