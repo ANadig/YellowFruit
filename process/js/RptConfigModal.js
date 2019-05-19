@@ -34,7 +34,7 @@ class RptConfigModal extends React.Component {
       selectedRpt: startRptName,
       selectedRptType: 'released',
       rptName: startRptName,
-      currentRptIsDefault: false,
+      currentRptIsDefault: this.props.defaultRpt == startRptName,
       ppgOrPp20: startRpt.ppgOrPp20,
       teamUG: startRpt.teamUG,
       teamD2: startRpt.teamD2,
@@ -49,8 +49,10 @@ class RptConfigModal extends React.Component {
     }
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.handleDefaultChange = this.handleDefaultChange.bind(this);
     this.selectRpt = this.selectRpt.bind(this);
     this.togglePreview = this.togglePreview.bind(this);
+    this.attemptDeletion = this.attemptDeletion.bind(this);
   }
 
   /*---------------------------------------------------------
@@ -66,6 +68,24 @@ class RptConfigModal extends React.Component {
     partialState[name] = value;
     this.setState(partialState);
   } //handleChange
+
+  /*---------------------------------------------------------
+  Called when the default checkbox changes its value
+  ---------------------------------------------------------*/
+  handleDefaultChange(e) {
+    const target = e.target;
+    if(target.name != 'currentRptIsDefault') { return; }
+    if(target.checked) {
+      this.props.setDefaultRpt(this.state.selectedRpt);
+    }
+    else {
+      this.props.clearDefaultRpt();
+    }
+
+    this.setState({
+      currentRptIsDefault: target.checked
+    });
+  }
 
   /*---------------------------------------------------------
   Tell the MainInterface to update data when the form is
@@ -98,6 +118,10 @@ class RptConfigModal extends React.Component {
     }
   }
 
+  /*---------------------------------------------------------
+  Update the form with the settings for the configuration
+  that the user has just selected
+  ---------------------------------------------------------*/
   selectRpt(title, type) {
     if(type == 'addNew') { title = NEW_RPT_DUMMY_KEY; }
     var selectedSettings;
@@ -107,6 +131,7 @@ class RptConfigModal extends React.Component {
     this.setState({
       selectedRpt: title,
       selectedRptType: type,
+      currentRptIsDefault: this.props.defaultRpt == title,
       rptName: type == 'addNew' ? '' : title,
       ppgOrPp20: selectedSettings.ppgOrPp20,
       teamUG: selectedSettings.teamUG,
@@ -119,6 +144,14 @@ class RptConfigModal extends React.Component {
       pPerN: selectedSettings.pPerN,
       gPerN: selectedSettings.gPerN
     });
+  }
+
+  /*---------------------------------------------------------
+  Tell the main process (via the MainInterface) to prompt
+  the user to confirm that they want to delete this rpt
+  ---------------------------------------------------------*/
+  attemptDeletion(e) {
+    this.props.attemptDeletion(this.state.selectedRpt);
   }
 
   /*---------------------------------------------------------
@@ -184,11 +217,27 @@ class RptConfigModal extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Whether or not the default checkbox should be disabled
+  ---------------------------------------------------------*/
+  disableDefaultCheckBox() {
+    if(this.state.selectedRptType == 'addNew') { return 'disabled'; }
+    if(this.state.selectedRpt == this.props.originalDefault && this.state.currentRptIsDefault) {
+      return 'disabled';
+    }
+    return '';
+  }
+
+  /*---------------------------------------------------------
   Lifecyle method.
   ---------------------------------------------------------*/
   componentDidUpdate(prevProps) {
     //needed so that labels aren't on top of data when text fields auto-populate
     M.updateTextFields();
+    //if the selected report was just deleted, load something else
+    if(this.props.releasedRptList[this.state.selectedRpt] == undefined &&
+      this.props.customRptList[this.state.selectedRpt] == undefined) {
+      this.selectRpt(this.props.originalDefault, 'released');
+    }
   }
 
 
@@ -215,7 +264,8 @@ class RptConfigModal extends React.Component {
         </div>
         <div className="col s4" id="currentRptIsDefault">
           <label>
-            <input type="checkbox" name="currentRptIsDefault" checked={this.state.currentRptIsDefault} onChange={this.handleChange}/>
+            <input type="checkbox" name="currentRptIsDefault" disabled={this.disableDefaultCheckBox()}
+              checked={this.state.currentRptIsDefault} onChange={this.handleDefaultChange}/>
             <span>Default</span>
           </label>
         </div>
@@ -361,7 +411,7 @@ class RptConfigModal extends React.Component {
     var tdPlayer = ( <td>Player</td> );
     var tdYear = this.state.playerYear ? ( <td>Year</td> ) : null;
     var tdPlayerD2 = this.state.playerD2 ? ( <td>D2</td> ) : null;
-    var tdDivision = ( <td>Division</td> );
+    var tdDivision = this.props.usingDivisions ? ( <td>Division</td> ) : null;
     var tdGP = ( <td>GP</td> );
 
     //additional table cells for the team detail preview
@@ -421,8 +471,6 @@ class RptConfigModal extends React.Component {
       </table>
     );
 
-
-
     return (
       <div className="modal modal-fixed-footer" id="rptConfig">
         <div className="modal-content">
@@ -456,7 +504,7 @@ class RptConfigModal extends React.Component {
           <div className="row">
             <div className="col s3">
               <button type="button" accessKey={this.props.isOpen ? 'd' : ''}
-                className={'btn red accent-1 ' + disableDeleteButton}>
+                className={'btn red accent-1 ' + disableDeleteButton} onClick={this.attemptDeletion}>
                 <span className="hotkey-underline">D</span>elete
               </button>
             </div>

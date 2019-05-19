@@ -550,6 +550,26 @@ app.on('ready', function() {
   });
 
   /*---------------------------------------------------------
+  Prompt the user to confirm that they want to delete this
+  report configuration
+  ---------------------------------------------------------*/
+  ipc.on('rptDeletionPrompt', (event, rptName) => {
+    event.returnValue = '';
+    var choice = dialog.showMessageBox(
+      appWindow,
+      {
+        type: 'warning',
+        buttons: ['&Delete', 'Go Ba&ck'],
+        defaultId: 1,
+        cancelId: 1,
+        title: 'YellowFruit',
+        message: 'Are you sure you want to delete \"' + rptName + '\"?'
+      }
+    );
+    if(choice == 0) { event.sender.send('rptDeleteConfirmation', rptName); }
+  });
+
+  /*---------------------------------------------------------
   automatically turn on year/grade display
   ---------------------------------------------------------*/
   // ipc.on('toggleYearDisplay', (event, checked) => {

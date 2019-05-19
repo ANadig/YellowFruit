@@ -49,6 +49,7 @@ const EMPTY_CUSTOM_RPT_CONFIG = {
     defaultRpt: null,
     rptConfigList: {}
 }
+const ORIG_DEFAULT_RPT_NAME = 'SQBS Defaults';
 
 
 class MainInterface extends React.Component{
@@ -61,7 +62,7 @@ class MainInterface extends React.Component{
     //load report configurations from files
     var loadRpts = fs.readFileSync(RELEASED_RPT_CONFIG_FILE, 'utf8');
     var releasedRptList = JSON.parse(loadRpts).rptConfigList;
-    var defaultRpt = 'SQBS Defaults';
+    var defaultRpt = ORIG_DEFAULT_RPT_NAME;
 
     if(fs.existsSync(CUSTOM_RPT_CONFIG_FILE)) {
       loadRpts = fs.readFileSync(CUSTOM_RPT_CONFIG_FILE, 'utf8');
@@ -151,6 +152,9 @@ class MainInterface extends React.Component{
     this.savePackets = this.savePackets.bind(this);
     this.sortTeamsBy = this.sortTeamsBy.bind(this);
     this.modifyRptConfig = this.modifyRptConfig.bind(this);
+    this.setDefaultRpt = this.setDefaultRpt.bind(this);
+    this.clearDefaultRpt = this.clearDefaultRpt.bind(this);
+    this.rptDeletionPrompt = this.rptDeletionPrompt.bind(this);
   }
 
   /*---------------------------------------------------------
@@ -229,6 +233,9 @@ class MainInterface extends React.Component{
     });
     ipc.on('openRptConfig', (event) => {
       if(!this.anyModalOpen()) { this.openRptConfigModal(); }
+    });
+    ipc.on('rptDeleteConfirmation', (event, rptName) => {
+      this.deleteRpt(rptName);
     });
   } //componentDidMount
 
@@ -1469,6 +1476,84 @@ class MainInterface extends React.Component{
     }
   }
 
+  /*---------------------------------------------------------
+  Set the default report configuration and write to file
+  ---------------------------------------------------------*/
+  setDefaultRpt(rptName) {
+    var newCustomRpts = {
+      defaultRpt: rptName,
+      rptConfigList: this.state.customRptList
+    }
+    this.setState({
+      defaultRpt: rptName
+    });
+    var saveSuccess = true;
+    fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {
+      if (err) {
+        saveSuccess = false;
+        console.log(err);
+      }
+    });
+    if(saveSuccess) {
+      M.toast({html: 'Set \"' + rptName + '\" as the default for new tournaments', classes: 'green-toast'});
+    }
+  }
+
+  /*---------------------------------------------------------
+  Set the default report configuration back to the original
+  default and write to file.
+  ---------------------------------------------------------*/
+  clearDefaultRpt() {
+    var newCustomRpts = {
+      defaultRpt: null,
+      rptConfigList: this.state.customRptList
+    }
+    this.setState({
+      defaultRpt: ORIG_DEFAULT_RPT_NAME
+    });
+    var saveSuccess = true;
+    fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {
+      if (err) {
+        saveSuccess = false;
+        console.log(err);
+      }
+    });
+    if(saveSuccess) {
+      M.toast({html: 'Removed default status', classes: 'green-toast'});
+    }
+  }
+
+  /*---------------------------------------------------------
+  Tell the main process to prompt the user to confirm that
+  they want to delete this rpt
+  ---------------------------------------------------------*/
+  rptDeletionPrompt(rptName) {
+    ipc.sendSync('rptDeletionPrompt', rptName);
+  }
+
+  /*---------------------------------------------------------
+  Delete a report configuration. Called after the user
+  confirms that they want to delete it.
+  ---------------------------------------------------------*/
+  deleteRpt(rptName) {
+    var tempRpts = this.state.customRptList;
+    var newDefault = this.state.defaultRpt;
+    delete tempRpts[rptName];
+    if(this.state.defaultRpt == rptName) { newDefault = ORIG_DEFAULT_RPT_NAME; }
+    this.setState({
+      customRptList: tempRpts,
+      defaultRpt: newDefault
+    });
+
+    var newCustomRpts = {
+      defaultRpt: newDefault == ORIG_DEFAULT_RPT_NAME ? null : newDefault,
+      rptConfigList: tempRpts
+    }
+    fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {
+      if (err) { console.log(err); }
+    });
+  }
+
 
 
   render() {
@@ -1623,6 +1708,11 @@ class MainInterface extends React.Component{
             customRptList = {this.state.customRptList}
             defaultRpt = {this.state.defaultRpt}
             modifyRptConfig = {this.modifyRptConfig}
+            setDefaultRpt = {this.setDefaultRpt}
+            clearDefaultRpt = {this.clearDefaultRpt}
+            attemptDeletion = {this.rptDeletionPrompt}
+            originalDefault = {ORIG_DEFAULT_RPT_NAME}
+            usingDivisions = {usingDivisions}
          />
          <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkTeamToggle}
             isOpen = {this.state.divWindowVisible}
