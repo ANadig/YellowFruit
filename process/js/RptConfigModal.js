@@ -168,7 +168,7 @@ class RptConfigModal extends React.Component {
           selected={this.state.selectedRpt==r} onSelected={this.selectRpt}/>
       );
     }
-    var sortedRpts = _.orderBy(Object.keys(this.props.customRptList));
+    var sortedRpts = _.orderBy(Object.keys(this.props.customRptList), [(r) => { return r.toLowerCase(); }]);
     for(var i in sortedRpts) {
       var r = sortedRpts[i];
       rptList.push(

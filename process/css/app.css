@@ -234,6 +234,10 @@ h1, h2, h3, h4, h5, h6 {
   overflow-y: scroll;
 }
 
+#rptConfig .rptList i {
+  font-size: 20px;
+}
+
 #rptConfig #currentRptIsDefault {
   padding-top: 18pt;
 }
@@ -586,4 +590,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .green-toast {
   background-color: #4caf50;
+}
+
+.row .pp20-control:hover {
+  background-color: #ffd600;
 }

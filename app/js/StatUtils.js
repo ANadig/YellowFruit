@@ -1150,6 +1150,9 @@ function teamDetailPlayerTableHeader(settings, rptConfig) {
   if(showPlayerYear(rptConfig)) {
     html += tdTag('Year', 'left', true);
   }
+  if(showPlayerD2(rptConfig)) {
+    html += tdTag('D2', 'left', true);
+  }
   html += tdTag('Team', 'left', true) +
     tdTag('GP', 'right', true);
   if(showPowers(settings)) {
@@ -1189,6 +1192,9 @@ function teamDetailPlayerRow(player, fileStart, settings, rptConfig) {
   html += tdTag('<a HREF=' + fileStart + 'playerdetail.html#' + linkId + '>' + player.playerName + '</a>', 'left');
   if(showPlayerYear(rptConfig)) {
     html += tdTag(player.year, 'left');
+  }
+  if(showPlayerD2(rptConfig)) {
+    html += tdTag('', 'left');
   }
   html += tdTag(player.teamName, 'left');
   html += tdTag(player.gamesPlayed, 'right');
@@ -1640,7 +1646,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
       indvTot.playerName.replace(/\W/g, '');
     html += '<h2 style="display:inline-block" id=' + linkId + '>' +
       indvTot.playerName + ', ' + indvTot.teamName + '</h2>' + '\n';
-    if(showPlayerYear(settings)) {
+    if(showPlayerYear(rptConfig)) {
       var yearDisp = indvTot.year.split('.')[0]; //truncate decimals, if someone is being weird
       if(+yearDisp >= 4 && +yearDisp <= 12) { yearDisp += 'th grade'; }
       html += '<span style="font-style: italic; color: gray">' + yearDisp + '</span>' + '\n';

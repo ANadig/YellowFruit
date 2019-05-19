@@ -15,6 +15,7 @@ var Menu = electron.Menu;
 var app = electron.app;
 var ipc = electron.ipcMain;
 var Path = require('path');
+var _ = require('lodash');
 var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate;
 var reportWindow; //to show the html report
 var currentFile = '';
@@ -793,7 +794,9 @@ app.on('ready', function() {
         click (item, focusedWindow) { setActiveRptConfig(item, focusedWindow); }
       });
     }
-    for(var r in customRptList) {
+    var sortedRpts = _.orderBy(Object.keys(customRptList), [(r) => { return r.toLowerCase(); }]);
+    for(var i in sortedRpts) {
+      var r = sortedRpts[i];
       rptSubMenu.push({
         label: r,
         id: r,
