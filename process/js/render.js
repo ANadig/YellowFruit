@@ -39,6 +39,7 @@ const DEFAULT_SETTINGS = {
   bonuses: 'noBb',
   playersPerTeam: '4',
   defaultPhase: 'noPhase', // Used to group teams when viewing all games
+  rptConfig: 'SQBS Defaults'
 };
 //Materialize accent-1 colors: yellow, light-green, orange, light-blue, red, purple, teal, deep-purple
 const PHASE_COLORS = ['#ffff8d', '#ccff90', '#ffd180', '#80d8ff',
@@ -291,9 +292,12 @@ class MainInterface extends React.Component{
   Filename: the file to write to
   ---------------------------------------------------------*/
   writeJSON(fileName) {
+    var tempSettings = this.state.settings;
+    // whichever report config is active becomes this tournament's config
+    tempSettings.rptConfig = this.state.activeRpt;
     var fileString = JSON.stringify(METADATA) + '\n' +
       JSON.stringify(this.state.packets) + '\n' +
-      JSON.stringify(this.state.settings) + '\n' +
+      JSON.stringify(tempSettings) + '\n' +
       JSON.stringify(this.state.divisions) + '\n' +
       JSON.stringify(this.state.myTeams) + '\n' +
       JSON.stringify(this.state.myGames);
@@ -302,6 +306,9 @@ class MainInterface extends React.Component{
     });
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
+    this.setState({
+      settings: tempSettings
+    });
   }
 
   /*---------------------------------------------------------
@@ -354,6 +361,7 @@ class MainInterface extends React.Component{
     loadDivisions = JSON.parse(loadDivisions);
     loadTeams = JSON.parse(loadTeams);
     loadGames = JSON.parse(loadGames);
+    var assocRpt = loadSettings.rptConfig;
 
     //if coming from 2.0.4 or earlier, arbitrarily pick the first phase as default
     if(loadSettings.defaultPhase == undefined) {
@@ -362,13 +370,23 @@ class MainInterface extends React.Component{
         loadSettings.defaultPhase = Object.keys(loadDivisions)[0];
       }
     }
+    //if coming from 2.1.0 or earlier, assign the SQBS default report
+    if(assocRpt == undefined) {
+      assocRpt = ORIG_DEFAULT_RPT_NAME;
+    }
     //convert teams to new data structure
     if(versionLt(loadMetadata.version, '2.1.0')) {
       teamConversion2x1x0(loadTeams);
     }
+    //revert to SQBS defaults if we can't find this file's report configuration
+    if(this.state.releasedRptList[assocRpt] == undefined && this.state.customRptList[assocRpt] == undefined) {
+      assocRpt = ORIG_DEFAULT_RPT_NAME;
+    }
 
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
+    ipc.sendSync('rebuildReportMenu', this.state.releasedRptList, this.state.customRptList, assocRpt);
+
     this.setState({
       settings: loadSettings,
       packets: loadPackets,
@@ -377,7 +395,8 @@ class MainInterface extends React.Component{
       myGames: loadGames,
       settingsLoadToggle: !this.state.settingsLoadToggle,
       viewingPhase: 'all',
-      activePane: 'settingsPane'
+      activePane: 'settingsPane',
+      activeRpt: assocRpt
     });
     //the value of settingsLoadToggle doesn't matter; it just needs to change
     //in order to make the settings form load
@@ -678,12 +697,14 @@ class MainInterface extends React.Component{
       gmAddOrEdit: 'add',
       editingSettings: false,
       gameToBeDeleted: null,
+      activeRpt: this.state.defaultRpt
       // DO NOT reset these! These should persist throughout the session
       // releasedRptList: ,
       // customRptList: ,
       // defaultRpt: ,
       // modalsInitialized:
     });
+    ipc.sendSync('rebuildReportMenu', this.state.releasedRptList, this.state.customRptList, this.state.defaultRpt);
   }
 
   //clear text from the search bar in order to show all teams/games
@@ -1476,7 +1497,7 @@ class MainInterface extends React.Component{
       activeRpt: activeRpt
     });
     var newCustomRpts = {
-        defaultRpt: null,
+        defaultRpt: this.state.defaultRpt,
         rptConfigList: tempRpts
     }
     var saveSuccess = true;
@@ -1501,7 +1522,7 @@ class MainInterface extends React.Component{
       rptConfigList: this.state.customRptList
     }
     this.setState({
-      defaultRpt: rptName
+      defaultRpt: rptName,
     });
     var saveSuccess = true;
     fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {
@@ -1525,7 +1546,7 @@ class MainInterface extends React.Component{
       rptConfigList: this.state.customRptList
     }
     this.setState({
-      defaultRpt: ORIG_DEFAULT_RPT_NAME
+      defaultRpt: ORIG_DEFAULT_RPT_NAME,
     });
     var saveSuccess = true;
     fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {

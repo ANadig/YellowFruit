@@ -219,9 +219,9 @@ h1, h2, h3, h4, h5, h6 {
 
 #rptConfig {
   width: 92%;
-  margin-top: -5vh;
-  max-height: 90%;
-  min-height: 90%
+  margin-top: -6vh;
+  max-height: 92%;
+  min-height: 92%
 }
 
 #rptConfig .main-form {
@@ -582,7 +582,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Override materialize and don't make toast location depend on screen size */
 #toast-container {
-    top: 10%;
+    top: 4%;
     right: 7%;
     left: auto;
     max-width: 86%;
