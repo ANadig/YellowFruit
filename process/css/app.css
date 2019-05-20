@@ -278,6 +278,14 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 0.4em;
 }
 
+#addTeam .team-level-checkbox {
+  margin-top: 2em;
+}
+
+#addTeam h5 {
+  margin-bottom: 1em;
+}
+
 .modal h4 {
   margin-top: 0.35em;
   margin-bottom: 1em;

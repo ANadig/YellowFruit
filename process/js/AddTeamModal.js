@@ -18,6 +18,8 @@ class AddTeamModal extends React.Component{
     super(props);
     this.state = {
       teamName: '',
+      teamUgStatus: false,
+      teamD2Status: false,
       playerNames: [],
       playerYears: [],
       playerD2Statuses: [],
@@ -54,13 +56,13 @@ class AddTeamModal extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Called when the value in the team name field changes.
-  This is a controlled component, so the state is the
-  single source of truth.
+  Called when the value in on of the team-level fields
+  changes. This is a controlled component, so the state is
+  the single source of truth.
   ---------------------------------------------------------*/
   handleChange(e) {
     const target = e.target;
-    const value = target.value;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
     var partialState = {};
     partialState[name] = value;
@@ -131,6 +133,8 @@ class AddTeamModal extends React.Component{
       teamName: '',
       playerNames: [],
       playerYears: [],
+      teamUgStatus: false,
+      teamD2Status: false,
       playerD2Statuses: [],
       divisions: {},
       originalTeamLoaded: null
@@ -349,7 +353,7 @@ class AddTeamModal extends React.Component{
         <div key={idx} className="player-d2-checkbox">
           <label>
             <input id={'d2'+idx} type="checkbox" name={'d2'+idx} checked={status} onChange={this.handlePlayerD2Change}/>
-            <span>D2?</span>
+            <span>D2</span>
           </label>
         </div>
       );
@@ -405,11 +409,27 @@ class AddTeamModal extends React.Component{
         <form onSubmit={this.handleAdd}>
           <div className="modal-content">
             <h4>{this.getModalHeader()}</h4>
-              <div className="input-field">
-                <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
-                <label htmlFor="teamName">Team Name</label>
+            <div className="row">
+              <div className="col s8">
+                <div className="input-field">
+                  <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
+                  <label htmlFor="teamName">Team Name</label>
+                </div>
               </div>
-            <span>Roster</span>
+              <div className="col s4">
+                <div className="team-level-checkbox">
+                  <label>
+                    <input id="teamUgStatus" type="checkbox" name="teamUgStatus" checked={this.state.teamUgStatus} onChange={this.handleChange}/>
+                    <span>UG&emsp;&emsp;</span>
+                  </label>
+                  <label>
+                    <input id="teamD2Status" type="checkbox" name="teamD2Status" checked={this.state.teamD2Status} onChange={this.handleChange}/>
+                    <span>D2</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <h5>Roster</h5>
             {rosterTable}
           </div> {/* modal content */}
           <div className="modal-footer">
