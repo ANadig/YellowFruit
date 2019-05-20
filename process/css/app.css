@@ -274,6 +274,10 @@ h1, h2, h3, h4, h5, h6 {
   padding-left: 0;
 }
 
+#addTeam .player-d2-checkbox {
+  margin-top: 0.4em;
+}
+
 .modal h4 {
   margin-top: 0.35em;
   margin-bottom: 1em;

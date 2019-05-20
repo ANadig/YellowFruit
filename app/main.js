@@ -111,14 +111,14 @@ const EDIT_MENU = {
       label: 'Add Team',
       accelerator: 'CmdOrCtrl+T',
       click(item,focusedWindow) {
-        if (focusedWindow == appWindow) focusedWindow.webContents.send('addTeam');
+        if (focusedWindow) focusedWindow.webContents.send('addTeam');
       }
     },
     {
       label: 'Add Game',
       accelerator: 'CmdOrCtrl+G',
       click(item,focusedWindow) {
-        if (focusedWindow == appWindow) focusedWindow.webContents.send('addGame');
+        if (focusedWindow) focusedWindow.webContents.send('addGame');
       }
     }
   ]
