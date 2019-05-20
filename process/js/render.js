@@ -378,6 +378,9 @@ class MainInterface extends React.Component{
     if(versionLt(loadMetadata.version, '2.1.0')) {
       teamConversion2x1x0(loadTeams);
     }
+    if(versionLt(loadMetadata.version, '2.2.0')) {
+      teamConversion2x2x0(loadTeams);
+    }
     //revert to SQBS defaults if we can't find this file's report configuration
     if(this.state.releasedRptList[assocRpt] == undefined && this.state.customRptList[assocRpt] == undefined) {
       assocRpt = ORIG_DEFAULT_RPT_NAME;
@@ -438,7 +441,7 @@ class MainInterface extends React.Component{
       for(var j=0; j<rosterSize && j<MAX_PLAYERS_PER_TEAM; j++) {
         var nextPlayer = sqbsAry[curLine++].trim();
         if(!lowercaseRoster.includes(nextPlayer.toLowerCase())) {
-          roster[nextPlayer] = {year: ''};
+          roster[nextPlayer] = {year: '', div2: false};
           lowercaseRoster.push(nextPlayer.toLowerCase());
         }
       }
@@ -494,6 +497,9 @@ class MainInterface extends React.Component{
     // merge teams
     if(versionLt(loadMetadata.version, '2.1.0')) {
       teamConversion2x1x0(loadTeams);
+    }
+    if(versionLt(loadMetadata.version, '2.2.0')) {
+      teamConversion2x2x0(loadTeams);
     }
     var teamsCopy = this.state.myTeams.slice();
     var newTeamCount = 0;

@@ -72,6 +72,19 @@ function teamConversion2x1x0(loadTeams) {
 }
 
 /*---------------------------------------------------------
+conversion on team data structure (version 2.2.0)
+Adds division 2 property to each player
+---------------------------------------------------------*/
+function teamConversion2x2x0(loadTeams) {
+  for(var i in loadTeams) {
+    var curTeam = loadTeams[i];
+    for(var player in curTeam.roster) {
+      curTeam.roster[player].div2 = false;
+    }
+  }
+}
+
+/*---------------------------------------------------------
 Generate the data necessary for showing the abbreviated
 standings table in the sidebar
 ---------------------------------------------------------*/

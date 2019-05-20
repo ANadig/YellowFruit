@@ -576,7 +576,7 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings, 
     rowHtml += tdTag(playerEntry.year, 'left');
   }
   if(showPlayerD2(rptConfig)) {
-    rowHtml += tdTag('', 'left');
+    rowHtml += tdTag(playerEntry.div2 ? 'D2' : '', 'left');
   }
   rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + teamLinkId + '>' + playerEntry.teamName + '</a>', 'left');
 
@@ -624,6 +624,7 @@ function compileIndividuals(myTeams, myGames, phase, groupingPhase, settings) {
       var obj = {
         playerName: p,
         year: t.roster[p].year,
+        div2: t.roster[p].div2,
         teamName: t.teamName,
         division: groupingPhase != null ? t.divisions[groupingPhase] : null,
         gamesPlayed: 0,
@@ -1194,7 +1195,7 @@ function teamDetailPlayerRow(player, fileStart, settings, rptConfig) {
     html += tdTag(player.year, 'left');
   }
   if(showPlayerD2(rptConfig)) {
-    html += tdTag('', 'left');
+    html += tdTag(player.div2 ? 'D2' : '', 'left');
   }
   html += tdTag(player.teamName, 'left');
   html += tdTag(player.gamesPlayed, 'right');
@@ -1646,11 +1647,28 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
       indvTot.playerName.replace(/\W/g, '');
     html += '<h2 style="display:inline-block" id=' + linkId + '>' +
       indvTot.playerName + ', ' + indvTot.teamName + '</h2>' + '\n';
+    //year and D2 status
+    var demogDisp = '';
     if(showPlayerYear(rptConfig)) {
       var yearDisp = indvTot.year.split('.')[0]; //truncate decimals, if someone is being weird
       if(+yearDisp >= 4 && +yearDisp <= 12) { yearDisp += 'th grade'; }
-      html += '<span style="font-style: italic; color: gray">' + yearDisp + '</span>' + '\n';
+      if(yearDisp.length > 0) {
+        demogDisp = '<span style="font-style: italic; color: gray">' + yearDisp;
+      }
     }
+    if(showPlayerD2(rptConfig) && indvTot.div2) {
+      if(demogDisp.length == 0) {
+        demogDisp = '<span style="font-style: italic; color: gray">' + 'D2';
+      }
+      else{
+        demogDisp += ', D2';
+      }
+    }
+    if(demogDisp.length >= 0) {
+      demogDisp += '</span>' + '\n';
+    }
+    html += demogDisp;
+
     html += '<table width=100%>' + '\n';
     html += playerDetailTableHeader(settings, rptConfig);
     for(var j in games) {
