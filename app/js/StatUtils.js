@@ -333,10 +333,10 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
   rowHtml += tdTag(rank,'left');
   rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + linkId + '>' + teamEntry.teamName + '</a>','left');
   if(showTeamUG(rptConfig)) {
-    rowHtml += tdTag(teamEntry.teamUgStatus ? 'UG' : '', 'left', true);
+    rowHtml += tdTag(teamEntry.teamUgStatus ? 'UG' : '', 'left');
   }
   if(showTeamD2(rptConfig)) {
-    rowHtml += tdTag(teamEntry.teamD2Status ? 'D2' : '', 'left', true);
+    rowHtml += tdTag(teamEntry.teamD2Status ? 'D2' : '', 'left');
   }
   rowHtml += tdTag(teamEntry.wins,'right');
   rowHtml += tdTag(teamEntry.losses,'right');
@@ -1607,7 +1607,23 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, ph
   for(var i in teams) {
     var teamName = teams[i].teamName;
     var linkId = teamName.replace(/\W/g, '');
-    html += '<h2 id=' + linkId + '>' + teamName + '</h2>' + '\n';
+    html += '<h2 style="display:inline-block" id=' + linkId + '>' + teamName + '</h2>' + '\n';
+    //display UG, D2 status
+    var statusDisp = '';
+    if(showTeamUG(rptConfig) && teams[i].teamUgStatus) {
+      statusDisp += '<span style=" font-style: italic; color: gray">' + 'UG';
+    }
+    if(showTeamD2(rptConfig) && teams[i].teamD2Status) {
+      if(statusDisp.length == 0) {
+        statusDisp += '<span style=" font-style: italic; color: gray">' + 'D2';
+      }
+      else { statusDisp += ', D2'; }
+    }
+    if(statusDisp.length > 0) {
+      statusDisp += '</span>' + '\n';
+    }
+    html += statusDisp;
+
     html += '<table width=100%>' + '\n';
     html += teamDetailGameTableHeader(packetsExist, settings, rptConfig) + '\n';
     for(var j in games) {
