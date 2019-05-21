@@ -97,6 +97,7 @@ class MainInterface extends React.Component{
       myTeams: [], // the list of teams
       myGames: [], // the list of games
       gameIndex: {}, // the list of rounds, and how many games exist for that round
+      playerIndex: {}, // the list of teams with their players, and how many games each player has played
       selectedTeams: [], // teams with checkbox checked on the teams pane
       selectedGames: [], // games with checkbox checked on the games pane
       checkTeamToggle: false, // used in the key of TeamListEntry components in order to
@@ -348,6 +349,41 @@ class MainInterface extends React.Component{
   }
 
   /*---------------------------------------------------------
+  Update the player index with the games being loaded from a
+  file. set startOver to true to wipe out the current index,
+  false to add to it.
+  ---------------------------------------------------------*/
+  loadPlayerIndex(loadTeams, loadGames, startOver) {
+    var curTeam, tempIndex, idxPiece;
+    if(startOver) {
+      tempIndex = {};
+      for(var i in loadTeams) {
+        tempIndex[loadTeams[i].teamName] = {};
+      }
+    }
+    else {
+      tempIndex = this.state.playerIndex;
+    }
+    for(var i in loadGames) {
+      var curGame = loadGames[i];
+      var team1 = curGame.team1, team2 = curGame.team2;
+      if(tempIndex[team1] == undefined) { tempIndex[team1] = {}; }
+      for(var p in curGame.players1) {
+        if(tempIndex[team1][p] == undefined) { tempIndex[team1][p] = 0; }
+        if(curGame.players1[p].tuh > 0) { tempIndex[team1][p]++; }
+      }
+      if(tempIndex[team2] == undefined) { tempIndex[team2] = {}; }
+      for(var p in curGame.players2) {
+        if(tempIndex[team2][p] == undefined) { tempIndex[team2][p] = 0; }
+        if(curGame.players2[p].tuh > 0) { tempIndex[team2][p]++; }
+      }
+    }
+    this.setState({
+      playerIndex: tempIndex
+    });
+  }
+
+  /*---------------------------------------------------------
   Load the tournament data from fileName into the appropriate
   state variables. The user may now begin editing this
   tournament.
@@ -404,6 +440,7 @@ class MainInterface extends React.Component{
     //the value of settingsLoadToggle doesn't matter; it just needs to change
     //in order to make the settings form load
     this.loadGameIndex(loadGames, true);
+    this.loadPlayerIndex(loadTeams, loadGames, true);
   }
 
   /*---------------------------------------------------------
@@ -496,13 +533,14 @@ class MainInterface extends React.Component{
         }
       }
     }
-    // merge teams
+    //convert team data structures if necessary
     if(versionLt(loadMetadata.version, '2.1.0')) {
       teamConversion2x1x0(loadTeams);
     }
     if(versionLt(loadMetadata.version, '2.2.0')) {
       teamConversion2x2x0(loadTeams);
     }
+    // merge teams
     var teamsCopy = this.state.myTeams.slice();
     var newTeamCount = 0;
     for(var i in loadTeams) {
@@ -514,9 +552,9 @@ class MainInterface extends React.Component{
       }
       else {
         // merge rosters
-        for(var j in newTeam.roster) {
-          if(!oldTeam.roster.includes(newTeam.roster[j])) {
-            oldTeam.roster.push(newTeam.roster[j]);
+        for(var p in newTeam.roster) {
+          if(oldTeam.roster[p] == undefined) {
+            oldTeam.roster[p] = newTeam.roster[p];
           }
         }
         // merge division assignments
@@ -547,6 +585,7 @@ class MainInterface extends React.Component{
       settingsLoadToggle: !this.state.settingsLoadToggle
     });
     this.loadGameIndex(gamesCopy, false);
+    this.loadPlayerIndex(teamsCopy, gamesCopy, false);
     ipc.sendSync('unsavedData');
     ipc.sendSync('successfulMerge', newTeamCount, newGameCount, conflictGames);
   } // mergeTournament
@@ -691,6 +730,7 @@ class MainInterface extends React.Component{
       myTeams: [],
       myGames: [],
       gameIndex: {},
+      playerIndex: {},
       selectedTeams: [],
       selectedGames: [],
       checkTeamToggle: false,
@@ -863,10 +903,15 @@ class MainInterface extends React.Component{
     tempTms.push(tempItem);
     var settings = this.state.settings;
     ipc.sendSync('unsavedData');
+    //update player index
+    var tempIndex = this.state.playerIndex, teamName = tempItem.teamName;
+    tempIndex[teamName] = {};
+    for(var p in tempItem.roster) { tempIndex[teamName][p] = 0; }
     this.setState({
       myTeams: tempTms,
       tmWindowVisible: false,
-      settings: settings
+      settings: settings,
+      playerIndex: tempIndex
     }) //setState
   } //addTeam
 
@@ -876,14 +921,17 @@ class MainInterface extends React.Component{
   addGame(tempItem) {
     var tempGms = this.state.myGames.slice();
     tempGms.push(tempItem);
-    var tempIndex = this.state.gameIndex;
+    var tempGameIndex = this.state.gameIndex;
     var round = tempItem.round;
-    if(tempIndex[round] == undefined) { tempIndex[round] = 1; }
-    else { tempIndex[round]++; }
+    if(tempGameIndex[round] == undefined) { tempGameIndex[round] = 1; }
+    else { tempGameIndex[round]++; }
+    var tempPlayerIndex = this.state.playerIndex;
+    addGameToPlayerIndex(tempItem, tempPlayerIndex); //statUtils2
     ipc.sendSync('unsavedData');
     this.setState({
       myGames: tempGms,
-      gameIndex: tempIndex,
+      gameIndex: tempGameIndex,
+      playerIndex: tempPlayerIndex,
       gmWindowVisible: false
     }) //setState
   } //addTeam
@@ -899,7 +947,7 @@ class MainInterface extends React.Component{
     var oldTeamIdx = _.indexOf(tempTeams, oldTeam);
     tempTeams[oldTeamIdx] = newTeam;
     var tempGames = this.state.myGames.slice();
-    var originalNames = Object.keys(oldTeam), newNames = Object.keys(newTeam)
+    var originalNames = Object.keys(oldTeam.roster), newNames = Object.keys(newTeam.roster);
 
     for(var i in originalNames) {
       let oldn = originalNames[i], newn = newNames[i];
@@ -963,17 +1011,20 @@ class MainInterface extends React.Component{
      });
     tempGameAry[oldGameIdx] = newGame;
     // update game index
-    var tempIndex = this.state.gameIndex;
+    var tempGameIndex = this.state.gameIndex;
     var oldRound = oldGame.round, newRound = newGame.round;
     if(oldRound != newRound) {
-      if(tempIndex[newRound] == undefined) { tempIndex[newRound] = 1; }
-      else { tempIndex[newRound]++; }
-      if(--tempIndex[oldRound] == 0) { delete tempIndex[oldRound]; }
+      if(tempGameIndex[newRound] == undefined) { tempGameIndex[newRound] = 1; }
+      else { tempGameIndex[newRound]++; }
+      if(--tempGameIndex[oldRound] == 0) { delete tempGameIndex[oldRound]; }
     }
+    var tempPlayerIndex = this.state.playerIndex;
+    modifyGameInPlayerIndex(oldGame, newGame, tempPlayerIndex); //statUtils2
     ipc.sendSync('unsavedData');
     this.setState({
       myGames: tempGameAry,
-      gameIndex: tempIndex,
+      gameIndex: tempGameIndex,
+      playerIndex: tempPlayerIndex,
       gmWindowVisible: false
     });
   }
@@ -1009,11 +1060,14 @@ class MainInterface extends React.Component{
     var allGames = this.state.myGames;
     var newGames = _.without(allGames, this.state.gameToBeDeleted);
     // update index
-    var tempIndex = this.state.gameIndex, round = this.state.gameToBeDeleted.round;
-    if(--tempIndex[round] == 0) { delete tempIndex[round]; }
+    var tempGameIndex = this.state.gameIndex, round = this.state.gameToBeDeleted.round;
+    if(--tempGameIndex[round] == 0) { delete tempGameIndex[round]; }
+    var tempPlayerIndex = this.state.playerIndex;
+    modifyGameInPlayerIndex(this.state.gameToBeDeleted, null, tempPlayerIndex); //statUtils2
     this.setState({
       myGames: newGames,
-      gameIndex: tempIndex,
+      gameIndex: tempGameIndex,
+      playerIndex: tempPlayerIndex,
       gameToBeDeleted: null
     });
     ipc.sendSync('unsavedData');
@@ -1606,6 +1660,7 @@ class MainInterface extends React.Component{
 
 
   render() {
+    console.log(this.state.playerIndex);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim();

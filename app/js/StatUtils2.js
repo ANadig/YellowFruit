@@ -88,6 +88,47 @@ function teamConversion2x2x0(loadTeams) {
 }
 
 /*---------------------------------------------------------
+For each player in this game, increment that player's
+count in the index. Assumes that teams and players are
+already defined.
+---------------------------------------------------------*/
+function addGameToPlayerIndex(game, index) {
+  var team1 = game.team1, team2 = game.team2;
+  for(var p in game.players1) {
+    if(toNum(game.players1[p].tuh) > 0) { index[team1][p]++; }
+  }
+  for(var p in game.players2) {
+    if(toNum(game.players2[p].tuh) > 0) { index[team2][p]++; }
+  }
+}
+
+/*---------------------------------------------------------
+Update the player index when a game is modified.
+Decrementing ever player in the old game, then incrementing
+every player in the new game is superfluous but
+much cleaner code.
+Set newGame to null if deleteing rather than modifying
+oldGame
+---------------------------------------------------------*/
+function modifyGameInPlayerIndex(oldGame, newGame, index) {
+  var oldTeam1 = oldGame.team1, oldTeam2 = oldGame.team2;
+  for(var p in oldGame.players1) {
+    if(toNum(oldGame.players1[p].tuh) > 0) { index[oldTeam1][p]--; }
+  }
+  for(var p in oldGame.players2) {
+    if(toNum(oldGame.players2[p].tuh) > 0) { index[oldTeam2][p]--; }
+  }
+  if(newGame == null) { return; }
+  var newTeam1 = newGame.team1, newTeam2 = newGame.team2;
+  for(var p in newGame.players1) {
+    if(toNum(newGame.players1[p].tuh) > 0) { index[newTeam1][p]++; }
+  }
+  for(var p in newGame.players2) {
+    if(toNum(newGame.players2[p].tuh) > 0) { index[newTeam2][p]++; }
+  }
+}
+
+/*---------------------------------------------------------
 Generate the data necessary for showing the abbreviated
 standings table in the sidebar
 ---------------------------------------------------------*/

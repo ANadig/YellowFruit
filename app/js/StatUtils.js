@@ -333,10 +333,10 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
   rowHtml += tdTag(rank,'left');
   rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + linkId + '>' + teamEntry.teamName + '</a>','left');
   if(showTeamUG(rptConfig)) {
-    rowHtml += tdTag('', 'left', true);
+    rowHtml += tdTag(teamEntry.teamUgStatus ? 'UG' : '', 'left', true);
   }
   if(showTeamD2(rptConfig)) {
-    rowHtml += tdTag('', 'left', true);
+    rowHtml += tdTag(teamEntry.teamD2Status ? 'D2' : '', 'left', true);
   }
   rowHtml += tdTag(teamEntry.wins,'right');
   rowHtml += tdTag(teamEntry.losses,'right');
@@ -395,6 +395,7 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
   var standings = myTeams.map(function(item, index) {
     var obj =
       { teamName: item.teamName,
+        teamUgStatus: item.teamUgStatus, teamD2Status: item.teamD2Status,
         division: groupingPhase != null ? item.divisions[groupingPhase] : null,
         wins: 0, losses: 0, ties: 0,
         winPct: 0,

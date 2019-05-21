@@ -154,6 +154,8 @@ class AddTeamModal extends React.Component{
     }
     this.setState({
       teamName: this.props.teamToLoad.teamName,
+      teamUgStatus: this.props.teamToLoad.teamUgStatus,
+      teamD2Status: this.props.teamToLoad.teamD2Status,
       playerNames: Object.keys(this.props.teamToLoad.roster),
       playerYears: years,
       playerD2Statuses: div2Statuses,
@@ -186,6 +188,8 @@ class AddTeamModal extends React.Component{
 
     var tempItem = {
       teamName: this.state.teamName.trim(),
+      teamUgStatus: this.state.teamUgStatus,
+      teamD2Status: this.state.teamD2Status,
       roster: roster,
       divisions: this.state.divisions
     } //tempitems
@@ -248,7 +252,7 @@ class AddTeamModal extends React.Component{
   illegalEdit() {
     if(this.props.teamToLoad != null || this.props.addOrEdit == 'add') { return false; }
     var playerDeleted = false;
-    for(var i in this.state.originalTeamLoaded.playerNames) {
+    for(var p in this.state.originalTeamLoaded.playerNames) {
       var p = this.state.playerNames[i];
       if(p == undefined || p.trim() == '') { playerDeleted = true; }
     }
