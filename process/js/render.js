@@ -944,14 +944,12 @@ class MainInterface extends React.Component{
   ---------------------------------------------------------*/
   modifyTeam(oldTeam, newTeam) {
     var tempTeams = this.state.myTeams.slice();
-    var oldTeamIdx = _.indexOf(tempTeams, oldTeam);
-    tempTeams[oldTeamIdx] = newTeam;
     var tempGames = this.state.myGames.slice();
     var originalNames = Object.keys(oldTeam.roster), newNames = Object.keys(newTeam.roster);
 
     for(var i in originalNames) {
       let oldn = originalNames[i], newn = newNames[i];
-      if(oldn != newn) {
+      if(oldn != newn) { //newn can be the empty string, if the user deleted players
         this.updatePlayerName(tempGames, oldTeam.teamName, oldn, newn);
       }
     }
@@ -960,11 +958,27 @@ class MainInterface extends React.Component{
       this.updateTeamName(tempGames, oldTeam.teamName, newTeam.teamName);
     }
 
+    //update index
+    var tempPlayerIndex = this.state.playerIndex;
+    modifyTeamInPlayerIndex(oldTeam, newTeam, tempPlayerIndex); //statUtils2
+
+    //don't save the dummy placeholders for deleted teams
+    var deletedTeams = [];
+    for(var p in newTeam.roster) {
+      if(newTeam.roster[p].deleted != undefined) { deletedTeams.push(p); }
+    }
+    for(var i in deletedTeams) {
+      delete newTeam.roster[deletedTeams[i]];
+    }
+    var oldTeamIdx = _.indexOf(tempTeams, oldTeam);
+    tempTeams[oldTeamIdx] = newTeam;
+
     ipc.sendSync('unsavedData');
     this.setState({
       myTeams: tempTeams,
       myGames: tempGames,
       tmWindowVisible: false,
+      playerIndex: tempPlayerIndex
     });
   }//modifyTeam
 
@@ -985,17 +999,23 @@ class MainInterface extends React.Component{
 
   /*---------------------------------------------------------
   Change the name of team teamName's player oldPlayerName to
-  newPlayerName for all applicable games in gameAry
+  newPlayerName for all applicable games in gameAry.
+  Pass the empty string as newPlayerName in order to simply delete
+  this player
   ---------------------------------------------------------*/
   updatePlayerName(gameAry, teamName, oldPlayerName, newPlayerName) {
     for(var i in gameAry) {
       if(gameAry[i].forfeit) { continue; }
       if(teamName == gameAry[i].team1) {
-        gameAry[i].players1[newPlayerName] = gameAry[i].players1[oldPlayerName];
+        if(newPlayerName != '') {
+          gameAry[i].players1[newPlayerName] = gameAry[i].players1[oldPlayerName];
+        }
         delete gameAry[i].players1[oldPlayerName];
       }
       else if(teamName == gameAry[i].team2) {
-        gameAry[i].players2[newPlayerName] = gameAry[i].players2[oldPlayerName];
+        if(newPlayerName != '') {
+          gameAry[i].players2[newPlayerName] = gameAry[i].players2[oldPlayerName];
+        }
         delete gameAry[i].players2[oldPlayerName];
       }
     }
@@ -1663,6 +1683,7 @@ class MainInterface extends React.Component{
 
 
   render() {
+    console.log(this.state.playerIndex);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim();

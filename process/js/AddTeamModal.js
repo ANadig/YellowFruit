@@ -173,16 +173,21 @@ class AddTeamModal extends React.Component{
     e.preventDefault();
     if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
     //trim each player name, then remove blank lines
-    var nameAry = [], yearAry = [], roster = {};
+    var roster = {};
+    var count = 0, playerDeleted = false;
     for(var i in this.state.playerNames) {
       var name = this.state.playerNames[i].trim();
-      if(name != '') {
-        nameAry.push(name);
-        yearAry.push(this.state.playerYears[i].trim());
-        roster[name] = {
-          year: this.state.playerYears[i].trim(),
-          div2: this.state.playerD2Statuses[i]
-        };
+      if(name != '' || (this.props.addOrEdit == 'edit' && i < Object.keys(this.state.originalTeamLoaded.roster).length)) {
+        //if editing existing team, need to keep empty lines so we know which players were deleted
+        if(name == '') {
+          roster['deletedPlayerPlaceholder'+(count++)] = {deleted: true};
+        } // dummy name, so we don't have duplicates if the user just deleted two players
+        else {
+          roster[name] = {
+            year: this.state.playerYears[i].trim(),
+            div2: this.state.playerD2Statuses[i]
+          };
+        }
       }
     }
 

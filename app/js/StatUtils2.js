@@ -129,6 +129,28 @@ function modifyGameInPlayerIndex(oldGame, newGame, index) {
 }
 
 /*---------------------------------------------------------
+Update team names and rosters in the player index
+---------------------------------------------------------*/
+function modifyTeamInPlayerIndex(oldTeam, newTeam, index) {
+  var oldTeamName = oldTeam.teamName;
+  var newPlayerList = Object.keys(newTeam.roster);
+  var newIndexPiece = {};
+  var count = 0;
+  for(var p in oldTeam.roster) {
+    var newPlayerName = newPlayerList[count++];
+    if(newTeam.roster[newPlayerName].deleted == undefined) {  // property only defined for players that were just deleted
+      newIndexPiece[newPlayerName] = index[oldTeamName][p];
+    }
+  }
+  //add any new players that the user just added
+  while(count < newPlayerList.length) {
+    newIndexPiece[newPlayerList[count++]] = 0;
+  }
+  delete index[oldTeamName];
+  index[newTeam.teamName] = newIndexPiece;
+}
+
+/*---------------------------------------------------------
 Generate the data necessary for showing the abbreviated
 standings table in the sidebar
 ---------------------------------------------------------*/
