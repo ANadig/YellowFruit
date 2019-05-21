@@ -1411,6 +1411,7 @@ function compileRoundSummaries(games, phase, settings) {
   for(var i in summaries) {
     var smry = summaries[i];
     smry.ppg = smry.totalPoints / (2 * smry.numberOfGames);
+    smry.pp20 = 20 * smry.totalPoints / (2 * smry.tuh);
     smry.tuPtsPTu = smry.tuPts / smry.tuh;
     smry.ppb = smry.bHeard == 0 ? 0 : smry.bPts / smry.bHeard;
     smry.ppbb = smry.bbPts / bbHrdToFloat(smry.bbHeard);
@@ -1421,14 +1422,19 @@ function compileRoundSummaries(games, phase, settings) {
 /*---------------------------------------------------------
 Header row for the table in the round report.
 ---------------------------------------------------------*/
-function roundReportTableHeader(packetsExist, settings) {
+function roundReportTableHeader(packetsExist, settings, rptConfig) {
   var html = '<tr>' + '\n' +
     tdTag('Round', 'left', true);
   if(packetsExist) {
     html += tdTag('Packet', 'left', true);
   }
   html += tdTag('No. Games', 'right', true);
-  html += tdTag('PPG/Team', 'right', true);
+  if(showPpg(rptConfig)) {
+    html += tdTag('PPG/Team', 'right', true);
+  }
+  else { //show pp20
+    html += tdTag('PP20/Team', 'right', true);
+  }
   if(showBonus(settings)) {
     html += tdTag('TUPts/TUH', 'right', true);
     html += tdTag('PPB', 'right', true);
@@ -1444,7 +1450,7 @@ function roundReportTableHeader(packetsExist, settings) {
 /*---------------------------------------------------------
 A row of data in the round report.
 ---------------------------------------------------------*/
-function roundReportRow(smry, roundNo, packetsExist, packets, settings) {
+function roundReportRow(smry, roundNo, packetsExist, packets, settings, rptConfig) {
   var html = '<tr>' + '\n' +
     tdTag(roundNo, 'left');
   if(packetsExist) {
@@ -1452,7 +1458,12 @@ function roundReportRow(smry, roundNo, packetsExist, packets, settings) {
     html += tdTag(packetName, 'left');
   }
   html += tdTag(smry.numberOfGames, 'right');
-  html += tdTag(smry.ppg.toFixed(1), 'right');
+  if(showPpg(rptConfig)) {
+    html += tdTag(smry.ppg.toFixed(1), 'right');
+  }
+  else { //pp20
+    html += tdTag(smry.pp20.toFixed(1), 'right');
+  }
   html += tdTag(smry.tuPtsPTu.toFixed(2), 'right');
   if(showBonus(settings)) {
     html += tdTag(smry.ppb.toFixed(2), 'right');
@@ -1704,7 +1715,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
 /*---------------------------------------------------------
 Generate the team round report page.
 ---------------------------------------------------------*/
-function getRoundReportHtml(teams, games, fileStart, phase, packets, settings) {
+function getRoundReportHtml(teams, games, fileStart, phase, packets, settings, rptConfig) {
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
   var roundSummaries = compileRoundSummaries(games, phase, settings);
   var packetsExist = packetNamesExist(packets);
@@ -1712,9 +1723,9 @@ function getRoundReportHtml(teams, games, fileStart, phase, packets, settings) {
     '<h1> Round Report</h1>' + '\n';
   html += tableStyle();
   html += '<table width=100%>' + '\n';
-  html += roundReportTableHeader(packetsExist, settings);
+  html += roundReportTableHeader(packetsExist, settings, rptConfig);
   for(var i in roundSummaries) {
-    html += roundReportRow(roundSummaries[i], i, packetsExist, packets, settings);
+    html += roundReportRow(roundSummaries[i], i, packetsExist, packets, settings, rptConfig);
   }
   html += '</table>' + '\n';
   return html + getStatReportBottom();

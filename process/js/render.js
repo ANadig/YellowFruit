@@ -657,7 +657,7 @@ class MainInterface extends React.Component{
       if (err) { console.log(err); }
     });//writeFile - individual Detail
     var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.packets, this.state.settings);
+      endFileStart, phase, this.state.packets, this.state.settings, activeRpt);
     fs.writeFile(roundReportLocation, roundReportHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - round report
@@ -1683,7 +1683,6 @@ class MainInterface extends React.Component{
 
 
   render() {
-    console.log(this.state.playerIndex);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim();
