@@ -1036,9 +1036,12 @@ class MainInterface extends React.Component{
   deleteTeam(item) {
     var newTeams = _.without(this.state.myTeams, item);
     var newSelected = _.without(this.state.selectedTeams, item);
+    var tempPlayerIndex = this.state.playerIndex;
+    delete tempPlayerIndex[item.teamName];
     this.setState({
       myTeams: newTeams,
-      selectedTeams: newSelected
+      selectedTeams: newSelected,
+      playerIndex: tempPlayerIndex
     });
     ipc.sendSync('unsavedData');
   } //deleteTeam
@@ -1660,7 +1663,6 @@ class MainInterface extends React.Component{
 
 
   render() {
-    console.log(this.state.playerIndex);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim();
@@ -1789,6 +1791,7 @@ class MainInterface extends React.Component{
             isOpen = {this.state.tmWindowVisible}
             validateTeamName = {this.validateTeamName}
             teamHasGames = {this.teamHasPlayedGames}
+            playerIndex = {this.state.playerIndex}
           />
           <AddGameModal
             gameToLoad = {gameToLoadCopy}

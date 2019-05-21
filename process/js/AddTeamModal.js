@@ -246,17 +246,20 @@ class AddTeamModal extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Returns true if user has tried to delete a player from a
-  team that already has games entered.
+  Returns true if user has tried to delete a player that has
+  already played in at least one game
   ---------------------------------------------------------*/
   illegalEdit() {
     if(this.props.teamToLoad != null || this.props.addOrEdit == 'add') { return false; }
-    var playerDeleted = false;
-    for(var p in this.state.originalTeamLoaded.playerNames) {
-      var p = this.state.playerNames[i];
-      if(p == undefined || p.trim() == '') { playerDeleted = true; }
+    var playerDeleted = null;
+    var originalNames = Object.keys(this.state.originalTeamLoaded.roster);
+    for(var i in originalNames) {
+      var currentName = this.state.playerNames[i];
+      if(currentName == undefined || currentName.trim() == '') { playerDeleted = originalNames[i]; }
     }
-    return this.props.teamHasGames(this.state.originalTeamLoaded) && playerDeleted;
+    if(playerDeleted == null) { return false; }
+    return this.props.playerIndex[this.state.originalTeamLoaded.teamName][playerDeleted] > 0;
+    // return this.props.teamHasGames(this.state.originalTeamLoaded) && playerDeleted;
   }
 
   /*---------------------------------------------------------
@@ -273,7 +276,7 @@ class AddTeamModal extends React.Component{
     if(this.state.teamName.trim() == '') { return [false, '', '']; } //team name can't be just whitespace
     if(this.hasNoPlayers()) { return [false, '', '']; } //likewise for playerNames
     if(this.illegalEdit()) {
-      return [false, 'error', 'You may not remove players from a team that has played games'];
+      return [false, 'error', 'You may not remove players that have already played in a game'];
     }
     // fairly aribitrary limit to make sure no one does anything ridiculous
     if(this.state.playerNames.length > MAX_PLAYERS_PER_TEAM) {
