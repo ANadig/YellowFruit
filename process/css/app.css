@@ -217,6 +217,39 @@ h1, h2, h3, h4, h5, h6 {
   color: red;
 }
 
+#rptConfig {
+  width: 92%;
+  margin-top: -6vh;
+  max-height: 92%;
+  min-height: 92%
+}
+
+#rptConfig .main-form {
+  position: sticky;
+}
+
+#rptConfig .rptList {
+  padding-left: 0;
+  max-height: 325px;
+  overflow-y: scroll;
+}
+
+#rptConfig .rptList i {
+  font-size: 20px;
+}
+
+#rptConfig #currentRptIsDefault {
+  padding-top: 18pt;
+}
+
+#rptConfig .modal-footer .row {
+  margin-bottom: 0;
+}
+
+#rptConfig .modal-footer .col:first-child {
+  text-align: left;
+}
+
 #addGame {
   width: 95%;
   margin-top: -9vh;
@@ -239,6 +272,18 @@ h1, h2, h3, h4, h5, h6 {
 
 #addTeam .row .col:first-child:not(.qb-validation-msg) {
   padding-left: 0;
+}
+
+#addTeam .player-d2-checkbox {
+  margin-top: 0.4em;
+}
+
+#addTeam .team-level-checkbox {
+  margin-top: 2em;
+}
+
+#addTeam h5 {
+  margin-bottom: 1em;
 }
 
 .modal h4 {
@@ -545,4 +590,20 @@ h1, h2, h3, h4, h5, h6 {
 
 .search-tips {
   list-style-type: disc;
+}
+
+/* Override materialize and don't make toast location depend on screen size */
+#toast-container {
+    top: 4%;
+    right: 7%;
+    left: auto;
+    max-width: 86%;
+  }
+
+.green-toast {
+  background-color: #4caf50;
+}
+
+.row .pp20-control:hover {
+  background-color: #ffd600;
 }

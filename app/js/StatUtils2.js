@@ -57,6 +57,8 @@ function teamHasYearData(team) {
 
 /*---------------------------------------------------------
 conversion on team data structure (version 2.1.0)
+Changes rosters from arrays of strings to arrays of
+objects with the year property
 ---------------------------------------------------------*/
 function teamConversion2x1x0(loadTeams) {
   for(var i in loadTeams) {
@@ -67,6 +69,85 @@ function teamConversion2x1x0(loadTeams) {
     }
     curTeam.roster = rosterObj;
   }
+}
+
+/*---------------------------------------------------------
+conversion on team data structure (version 2.2.0)
+Adds the team-level UG and D2 properties, and adds the
+division 2 property to each player
+---------------------------------------------------------*/
+function teamConversion2x2x0(loadTeams) {
+  for(var i in loadTeams) {
+    var curTeam = loadTeams[i];
+    curTeam.teamUgStatus = false;
+    curTeam.teamD2Status = false;
+    for(var player in curTeam.roster) {
+      curTeam.roster[player].div2 = false;
+    }
+  }
+}
+
+/*---------------------------------------------------------
+For each player in this game, increment that player's
+count in the index. Assumes that teams and players are
+already defined.
+---------------------------------------------------------*/
+function addGameToPlayerIndex(game, index) {
+  var team1 = game.team1, team2 = game.team2;
+  for(var p in game.players1) {
+    if(toNum(game.players1[p].tuh) > 0) { index[team1][p]++; }
+  }
+  for(var p in game.players2) {
+    if(toNum(game.players2[p].tuh) > 0) { index[team2][p]++; }
+  }
+}
+
+/*---------------------------------------------------------
+Update the player index when a game is modified.
+Decrementing ever player in the old game, then incrementing
+every player in the new game is superfluous but
+much cleaner code.
+Set newGame to null if deleteing rather than modifying
+oldGame
+---------------------------------------------------------*/
+function modifyGameInPlayerIndex(oldGame, newGame, index) {
+  var oldTeam1 = oldGame.team1, oldTeam2 = oldGame.team2;
+  for(var p in oldGame.players1) {
+    if(toNum(oldGame.players1[p].tuh) > 0) { index[oldTeam1][p]--; }
+  }
+  for(var p in oldGame.players2) {
+    if(toNum(oldGame.players2[p].tuh) > 0) { index[oldTeam2][p]--; }
+  }
+  if(newGame == null) { return; }
+  var newTeam1 = newGame.team1, newTeam2 = newGame.team2;
+  for(var p in newGame.players1) {
+    if(toNum(newGame.players1[p].tuh) > 0) { index[newTeam1][p]++; }
+  }
+  for(var p in newGame.players2) {
+    if(toNum(newGame.players2[p].tuh) > 0) { index[newTeam2][p]++; }
+  }
+}
+
+/*---------------------------------------------------------
+Update team names and rosters in the player index
+---------------------------------------------------------*/
+function modifyTeamInPlayerIndex(oldTeam, newTeam, index) {
+  var oldTeamName = oldTeam.teamName;
+  var newPlayerList = Object.keys(newTeam.roster);
+  var newIndexPiece = {};
+  var count = 0;
+  for(var p in oldTeam.roster) {
+    var newPlayerName = newPlayerList[count++];
+    if(newTeam.roster[newPlayerName].deleted == undefined) {  // property only defined for players that were just deleted
+      newIndexPiece[newPlayerName] = index[oldTeamName][p];
+    }
+  }
+  //add any new players that the user just added
+  while(count < newPlayerList.length) {
+    newIndexPiece[newPlayerList[count++]] = 0;
+  }
+  delete index[oldTeamName];
+  index[newTeam.teamName] = newIndexPiece;
 }
 
 /*---------------------------------------------------------

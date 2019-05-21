@@ -1,0 +1,17 @@
+{
+  "rptConfigList": {
+    "SQBS Defaults":
+      {
+        "ppgOrPp20": "ppg",
+        "teamUG": false,
+        "teamD2": false,
+        "playerYear": false,
+        "playerD2": false,
+        "papg": true,
+        "margin": true,
+        "pptuh": true,
+        "pPerN": true,
+        "gPerN": true
+      }
+    }
+}
