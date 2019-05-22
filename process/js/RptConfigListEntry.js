@@ -21,6 +21,7 @@ class RptConfigListEntry extends React.Component {
   }
 
   selectSelf() {
+    if(this.props.disabled) { return; }
     this.props.onSelected(this.props.title, this.props.type);
   }
 
@@ -33,14 +34,16 @@ class RptConfigListEntry extends React.Component {
       );
     }
     else if(this.props.type == 'addNew') {
+      var title = this.props.disabled ? 'You may not add additional configurations' : 'Add a new configuration';
       rightIcon = (
-        <span className="secondary-content" title="Add a new configuration">
+        <span className="secondary-content" title={title}>
         <i className="material-icons">note_add</i></span>
       );
     }
 
+    var disabledClass = this.props.disabled ? 'new-rpt-disabled' : '';
     return (
-      <a href="#!" className={'collection-item truncate ' + this.isActive()} onClick={this.selectSelf}>
+      <a href="#!" className={'collection-item truncate ' + this.isActive() + ' ' + disabledClass} onClick={this.selectSelf}>
         {this.props.title}
         {rightIcon}
       </a>

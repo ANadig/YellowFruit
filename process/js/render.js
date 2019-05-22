@@ -51,6 +51,7 @@ const EMPTY_CUSTOM_RPT_CONFIG = {
     rptConfigList: {}
 }
 const ORIG_DEFAULT_RPT_NAME = 'SQBS Defaults';
+const MAX_CUSTOM_RPT_CONFIGS = 25;
 const DEFAULT_FORM_SETTINGS = {
   year: true,
   playerUG: true,
@@ -84,6 +85,11 @@ class MainInterface extends React.Component {
       fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(EMPTY_CUSTOM_RPT_CONFIG), 'utf8', function(err) {
         if (err) { console.log(err); }
       });
+    }
+    // don't allow >25 custom configs (you'd have to manually mess with the file to have this happen)
+    if(Object.keys(customRptList).length > MAX_CUSTOM_RPT_CONFIGS) {
+      var customRptSlice = Object.keys(customRptList).slice(MAX_CUSTOM_RPT_CONFIGS);
+      for(var i in customRptSlice) { delete customRptList[customRptSlice[i]]; }
     }
 
     ipc.sendSync('rebuildMenus', releasedRptList, customRptList, defaultRpt, defFormSettingsCopy);
@@ -285,6 +291,7 @@ class MainInterface extends React.Component {
     ipc.removeAllListeners('openRptConfig');
     ipc.removeAllListeners('rptDeleteConfirmation');
     ipc.removeAllListeners('setActiveRptConfig');
+    ipc.removeAllListeners('toggleFormField');
   } //componentWillUnmount
 
   /*---------------------------------------------------------

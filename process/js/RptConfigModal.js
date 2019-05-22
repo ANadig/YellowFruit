@@ -10,6 +10,7 @@ var _ = require('lodash');
 var M = require('materialize-css');
 var RptConfigListEntry = require('./RptConfigListEntry');
 
+const MAX_CUSTOM_RPT_CONFIGS = 25;
 const NEW_RPT_DUMMY_KEY = 'WAo2WKjY6Jx8QDnufmjz'; //aribitrary string that hopefully no one will use for an rpt name
 const EMPTY_RPT_SETTINGS = {
   ppgOrPp20: 'ppg',
@@ -168,7 +169,7 @@ class RptConfigModal extends React.Component {
     var rptList = [];
     for(var r in this.props.releasedRptList) {
       rptList.push(
-        <RptConfigListEntry key={r} title={r} type={'released'}
+        <RptConfigListEntry key={r} title={r} type={'released'} disabled={false}
           selected={this.state.selectedRpt==r} onSelected={this.selectRpt}/>
       );
     }
@@ -176,12 +177,13 @@ class RptConfigModal extends React.Component {
     for(var i in sortedRpts) {
       var r = sortedRpts[i];
       rptList.push(
-        <RptConfigListEntry key={r} title={r} type={'custom'}
+        <RptConfigListEntry key={r} title={r} type={'custom'} disabled={false}
           selected={this.state.selectedRpt==r} onSelected={this.selectRpt}/>
       );
     }
+    var preventNewRpts = sortedRpts.length >= MAX_CUSTOM_RPT_CONFIGS;
     rptList.push(
-      <RptConfigListEntry key={NEW_RPT_DUMMY_KEY} title={'(New)'} type={'addNew'}
+      <RptConfigListEntry key={NEW_RPT_DUMMY_KEY} title={'(New)'} type={'addNew'} disabled={preventNewRpts}
         selected={this.state.selectedRpt==NEW_RPT_DUMMY_KEY} onSelected={this.selectRpt}/>
     );
     return rptList;
