@@ -1714,10 +1714,16 @@ class MainInterface extends React.Component {
     $('.fixed-action-btn').floatingActionButton(); //initialize floating buttons
     //initialize all modals
     if(!this.state.modalsInitialized) {
-      $('.modal').modal({
+      $('#addTeam, #addGame, #rptConfig').modal({
         onCloseEnd: this.onModalClose
       });
     }
+    //for some reason, Materialize code will crash if I only initialize these once
+    //perhaps one day I will figure out why
+    $('#assignDivisions, #assignPhases').modal({
+      onCloseEnd: this.onModalClose
+    });
+    //open modals if appropriate
     if(this.state.tmWindowVisible === true) { $('#addTeam').modal('open'); }
     if(this.state.gmWindowVisible === true) { $('#addGame').modal('open'); }
     if(this.state.divWindowVisible === true) { $('#assignDivisions').modal('open'); }

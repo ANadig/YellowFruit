@@ -971,9 +971,14 @@ function getRoundStyle(gamePhases, phaseColors) {
   if(gamePhases.length == 1) {
     return 'background-color: ' + phaseColors[gamePhases[0]];
   }
-  else if(gamePhases.length > 1) {
+  else if(gamePhases.length == 2) {
     return 'background-image: linear-gradient(to bottom right, ' +
       phaseColors[gamePhases[0]] + ' 50%, ' + phaseColors[gamePhases[1]] + ' 51%)';
+  }
+  else if(gamePhases.length > 2) {
+    return 'background-image: linear-gradient(to bottom right, ' +
+      phaseColors[gamePhases[0]] + ' 33%, ' + phaseColors[gamePhases[1]] + ' 34%, ' +
+      phaseColors[gamePhases[1]] + ' 66%, ' + phaseColors[gamePhases[2]] + ' 67%)';
   }
   return '';
 }
