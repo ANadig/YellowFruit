@@ -136,7 +136,7 @@ class MainInterface extends React.Component {
     this.onLoadTeamInModal = this.onLoadTeamInModal.bind(this);
     this.onLoadGameInModal = this.onLoadGameInModal.bind(this);
     this.validateTeamName = this.validateTeamName.bind(this);
-    this.hasTeamPlayedInRound = this.hasTeamPlayedInRound.bind(this);
+    this.haveTeamsPlayedInRound = this.haveTeamsPlayedInRound.bind(this);
     this.onSelectTeam = this.onSelectTeam.bind(this);
     this.onSelectGame = this.onSelectGame.bind(this);
     this.reOrder = this.reOrder.bind(this);
@@ -1187,19 +1187,32 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
-  Whether the given team has already played a game in the
-  given round.
+  Whether the given teams have already played in this round.
   originalGameLoaded: the game currently open for editing
+  Returns: 0 if neither team has
+  1 if teamA has
+  2 if teamB has
+  3 if both teams have
+  4 if both teams have already played each other in this round
   ---------------------------------------------------------*/
-  hasTeamPlayedInRound(teamName, roundNo, originalGameLoaded) {
+  haveTeamsPlayedInRound(teamA, teamB, roundNo, originalGameLoaded) {
+    var teamAPlayed = false, teamBPlayed = false;
     for(var i in this.state.myGames) {
       var g = this.state.myGames[i];
-      if(!gameEqual(g, originalGameLoaded) && g.round == roundNo &&
-        (g.team1 == teamName || g.team2 == teamName)) {
-        return true;
+      if(!gameEqual(g, originalGameLoaded) && g.round == roundNo) {
+        if((g.team1 == teamA && g.team2 == teamB) || (g.team2 == teamA && g.team1 == teamB)) {
+          return 4;
+        }
+        var teamAPlayed = teamAPlayed || (g.team1 == teamA || g.team2 == teamA);
+        var teamBPlayed = teamBPlayed || (g.team1 == teamB || g.team2 == teamB);
       }
     }
-    return false;
+    if(teamAPlayed) {
+      if(teamBPlayed) { return 3; }
+      return 1;
+    }
+    if(teamBPlayed) { return 2; }
+    return 0;
   }
 
   /*---------------------------------------------------------
@@ -1823,7 +1836,7 @@ class MainInterface extends React.Component {
             onForceReset = {this.onForceReset}
             isOpen = {this.state.gmWindowVisible}
             teamData = {myTeams.slice()}
-            hasTeamPlayedInRound = {this.hasTeamPlayedInRound}
+            haveTeamsPlayedInRound = {this.haveTeamsPlayedInRound}
             allPhases = {Object.keys(this.state.divisions)}
             currentPhase = {this.state.viewingPhase}
             settings = {this.state.settings}

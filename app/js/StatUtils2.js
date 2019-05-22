@@ -20,8 +20,7 @@ function settingsEqual(s1, s2) {
 }
 
 /*---------------------------------------------------------
-Equality test for two games. Probably does more work than
-necessary because round/team1/team2 should be unique
+Equality test for two games. 
 ---------------------------------------------------------*/
 function gameEqual(g1, g2) {
   if((g1 == undefined && g2 != undefined) || (g1 != undefined && g2 == undefined)) {

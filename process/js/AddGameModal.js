@@ -487,17 +487,10 @@ class AddGameModal extends React.Component{
     if(round == '') {
       return [false, '', ''];
     }
-    //no team can play more than one game in a particular round
-    var team1AlreadyPlayed = this.props.hasTeamPlayedInRound(team1, round, this.state.originalGameLoaded);
-    var team2AlreadyPlayed = this.props.hasTeamPlayedInRound(team2, round, this.state.originalGameLoaded);
-    if(team1AlreadyPlayed) {
-      if(team2AlreadyPlayed) {
-        return [false, 'error', 'Both teams have already played a game in round ' + round];
-      }
-      return [false, 'error', team1 + ' has already played a game in round ' + round];
-    }
-    if(team2AlreadyPlayed) {
-      return [false, 'error', team2 + ' has already played a game in round ' + round];
+    //two teams cah't play each other twice in the same round
+    var haveTeamsPlayedInRound = this.props.haveTeamsPlayedInRound(team1, team2, round, this.state.originalGameLoaded);
+    if(haveTeamsPlayedInRound == 4) {
+      return [false, 'error', 'These teams already played each other in round ' + round];
     }
     //team names and round are the only required info for a forfeit
     if(this.state.forfeit) {
@@ -636,6 +629,21 @@ class AddGameModal extends React.Component{
       warningsExist = true;
       warningList += team2 + '\'s players have heard fewer than ' +
         idealCollectiveTuh + ' tossups. ';
+    }
+
+    //warn if the team already has a game in this round, but make it legal to allow for
+    //partial-packet tiebreakers
+    if(haveTeamsPlayedInRound == 1) {
+      warningsExist = true;
+      warningList += team1 + ' has already played a game in round ' + round + '. ';
+    }
+    else if(haveTeamsPlayedInRound == 2) {
+      warningsExist = true;
+      warningList += team2 + ' has already played a game in round ' + round + '. ';
+    }
+    else if(haveTeamsPlayedInRound == 3) {
+      warningsExist = true;
+      warningList += 'Both teams have already played a game in round ' + round + '. ';
     }
 
     //Warn if the score is a tie. Ties are bad. You shouldn't have ties.
