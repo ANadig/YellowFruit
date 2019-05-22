@@ -93,6 +93,20 @@ class TeamListEntry extends React.Component{
   }//getDivisionChip
 
   /*---------------------------------------------------------
+  String with the team's name and UG/D2 status if applicable
+  ---------------------------------------------------------*/
+  teamNameDisplay() {
+    var str = this.props.singleItem.teamName;
+    if(this.props.singleItem.teamUGStatus) {
+      str += ' (UG';
+      if(this.props.singleItem.teamD2Status) { str += ', D2)'; }
+      else { str += ')'; }
+    }
+    else if(this.props.singleItem.teamD2Status) { str += ' (D2)'; }
+    return str;
+  }
+
+  /*---------------------------------------------------------
   A list of the players on the team
   ---------------------------------------------------------*/
   rosterToString() {
@@ -140,7 +154,7 @@ class TeamListEntry extends React.Component{
         <div>
           {checkbox}
           <div className={this.props.activeInPhase ? 'team-name' : 'team-name-inactive'}>
-            {this.props.singleItem.teamName}&emsp;
+            {this.teamNameDisplay()}&emsp;
           </div>
           {divisionChips}
           <button className={'btn-flat item-edit ' + this.canEdit()} title="Edit this team" onClick={this.editTeam}>

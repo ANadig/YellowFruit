@@ -18,7 +18,7 @@ class AddTeamModal extends React.Component{
     super(props);
     this.state = {
       teamName: '',
-      teamUgStatus: false,
+      teamUGStatus: false,
       teamD2Status: false,
       playerNames: [],
       playerYears: [],
@@ -154,7 +154,7 @@ class AddTeamModal extends React.Component{
       teamName: '',
       playerNames: [],
       playerYears: [],
-      teamUgStatus: false,
+      teamUGStatus: false,
       teamD2Status: false,
       playerUGStatuses: [],
       playerD2Statuses: [],
@@ -177,7 +177,7 @@ class AddTeamModal extends React.Component{
     }
     this.setState({
       teamName: this.props.teamToLoad.teamName,
-      teamUgStatus: this.props.teamToLoad.teamUgStatus,
+      teamUGStatus: this.props.teamToLoad.teamUGStatus,
       teamD2Status: this.props.teamToLoad.teamD2Status,
       playerNames: Object.keys(this.props.teamToLoad.roster),
       playerYears: years,
@@ -218,7 +218,7 @@ class AddTeamModal extends React.Component{
 
     var tempItem = {
       teamName: this.state.teamName.trim(),
-      teamUgStatus: this.state.teamUgStatus,
+      teamUGStatus: this.state.teamUGStatus,
       teamD2Status: this.state.teamD2Status,
       roster: roster,
       divisions: this.state.divisions
@@ -503,7 +503,7 @@ class AddTeamModal extends React.Component{
               <div className="col l1 s2">
                 <div className="team-level-checkbox">
                   <label>
-                    <input id="teamUgStatus" type="checkbox" name="teamUgStatus" checked={this.state.teamUgStatus} onChange={this.handleChange}/>
+                    <input id="teamUGStatus" type="checkbox" name="teamUGStatus" checked={this.state.teamUGStatus} onChange={this.handleChange}/>
                     <span>UG</span>
                   </label>
                 </div>

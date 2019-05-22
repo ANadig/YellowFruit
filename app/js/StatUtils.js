@@ -67,6 +67,9 @@ function showBb(settings) { return settings.bonuses == 'yesBb'; }
 // show players' year/grade?
 function showPlayerYear(rptConfig) { return rptConfig.playerYear; }
 
+// show players' UG status?
+function showPlayerUG(rptConfig) { return rptConfig.playerUG; }
+
 // show player D2 status?
 function showPlayerD2(rptConfig) { return rptConfig.playerD2; }
 
@@ -333,7 +336,7 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
   rowHtml += tdTag(rank,'left');
   rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + linkId + '>' + teamEntry.teamName + '</a>','left');
   if(showTeamUG(rptConfig)) {
-    rowHtml += tdTag(teamEntry.teamUgStatus ? 'UG' : '', 'left');
+    rowHtml += tdTag(teamEntry.teamUGStatus ? 'UG' : '', 'left');
   }
   if(showTeamD2(rptConfig)) {
     rowHtml += tdTag(teamEntry.teamD2Status ? 'D2' : '', 'left');
@@ -395,7 +398,7 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
   var standings = myTeams.map(function(item, index) {
     var obj =
       { teamName: item.teamName,
-        teamUgStatus: item.teamUgStatus, teamD2Status: item.teamD2Status,
+        teamUGStatus: item.teamUGStatus, teamD2Status: item.teamD2Status,
         division: groupingPhase != null ? item.divisions[groupingPhase] : null,
         wins: 0, losses: 0, ties: 0,
         winPct: 0,
@@ -526,6 +529,9 @@ function individualsHeader(usingDivisions, settings, rptConfig) {
   if(showPlayerYear(rptConfig)) {
     html += tdTag('Year', 'left', true);
   }
+  if(showPlayerUG(rptConfig)) {
+    html += tdTag('UG', 'left', true);
+  }
   if(showPlayerD2(rptConfig)) {
     html += tdTag('D2', 'left', true);
   }
@@ -576,6 +582,9 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings, 
   if(showPlayerYear(rptConfig)) {
     rowHtml += tdTag(playerEntry.year, 'left');
   }
+  if(showPlayerUG(rptConfig)) {
+    rowHtml += tdTag(playerEntry.undergrad ? 'UG' : '', 'left');
+  }
   if(showPlayerD2(rptConfig)) {
     rowHtml += tdTag(playerEntry.div2 ? 'D2' : '', 'left');
   }
@@ -625,6 +634,7 @@ function compileIndividuals(myTeams, myGames, phase, groupingPhase, settings) {
       var obj = {
         playerName: p,
         year: t.roster[p].year,
+        undergrad: t.roster[p].undergrad,
         div2: t.roster[p].div2,
         teamName: t.teamName,
         division: groupingPhase != null ? t.divisions[groupingPhase] : null,
@@ -1157,6 +1167,9 @@ function teamDetailPlayerTableHeader(settings, rptConfig) {
   if(showPlayerYear(rptConfig)) {
     html += tdTag('Year', 'left', true);
   }
+  if(showPlayerUG(rptConfig)) {
+    html += tdTag('UG', 'left', true);
+  }
   if(showPlayerD2(rptConfig)) {
     html += tdTag('D2', 'left', true);
   }
@@ -1199,6 +1212,9 @@ function teamDetailPlayerRow(player, fileStart, settings, rptConfig) {
   html += tdTag('<a HREF=' + fileStart + 'playerdetail.html#' + linkId + '>' + player.playerName + '</a>', 'left');
   if(showPlayerYear(rptConfig)) {
     html += tdTag(player.year, 'left');
+  }
+  if(showPlayerUG(rptConfig)) {
+    html += tdTag(player.undergrad ? 'D2' : '', 'left');
   }
   if(showPlayerD2(rptConfig)) {
     html += tdTag(player.div2 ? 'D2' : '', 'left');
@@ -1615,7 +1631,7 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, ph
     html += '<h2 style="display:inline-block" id=' + linkId + '>' + teamName + '</h2>' + '\n';
     //display UG, D2 status
     var statusDisp = '';
-    if(showTeamUG(rptConfig) && teams[i].teamUgStatus) {
+    if(showTeamUG(rptConfig) && teams[i].teamUGStatus) {
       statusDisp += '<span style=" font-style: italic; color: gray">' + 'UG';
     }
     if(showTeamD2(rptConfig) && teams[i].teamD2Status) {
@@ -1680,7 +1696,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
       indvTot.playerName.replace(/\W/g, '');
     html += '<h2 style="display:inline-block" id=' + linkId + '>' +
       indvTot.playerName + ', ' + indvTot.teamName + '</h2>' + '\n';
-    //year and D2 status
+    //year, UG, and D2 status
     var demogDisp = '';
     if(showPlayerYear(rptConfig)) {
       var yearDisp = indvTot.year.split('.')[0]; //truncate decimals, if someone is being weird
@@ -1689,13 +1705,17 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
         demogDisp = '<span style="font-style: italic; color: gray">' + yearDisp;
       }
     }
+    if(showPlayerUG(rptConfig) && indvTot.undergrad) {
+      if(demogDisp.length == 0) {
+        demogDisp = '<span style="font-style: italic; color: gray">' + 'UG';
+      }
+      else{ demogDisp += ', UG'; }
+    }
     if(showPlayerD2(rptConfig) && indvTot.div2) {
       if(demogDisp.length == 0) {
         demogDisp = '<span style="font-style: italic; color: gray">' + 'D2';
       }
-      else{
-        demogDisp += ', D2';
-      }
+      else{ demogDisp += ', D2'; }
     }
     if(demogDisp.length >= 0) {
       demogDisp += '</span>' + '\n';

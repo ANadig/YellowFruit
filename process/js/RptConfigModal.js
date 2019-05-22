@@ -16,6 +16,7 @@ const EMPTY_RPT_SETTINGS = {
   teamUG: false,
   teamD2: false,
   playerYear: false,
+  playerUG: false,
   playerD2: false,
   papg: false,
   margin: false,
@@ -39,6 +40,7 @@ class RptConfigModal extends React.Component {
       teamUG: startRpt.teamUG,
       teamD2: startRpt.teamD2,
       playerYear: startRpt.playerYear,
+      playerUG: startRpt.playerUG,
       playerD2: startRpt.playerD2,
       papg: startRpt.papg,
       margin: startRpt.margin,
@@ -102,6 +104,7 @@ class RptConfigModal extends React.Component {
       teamUG: this.state.teamUG,
       teamD2: this.state.teamD2,
       playerYear: this.state.playerYear,
+      playerUG: this.state.playerUG,
       playerD2: this.state.playerD2,
       papg: this.state.papg,
       margin: this.state.margin,
@@ -139,6 +142,7 @@ class RptConfigModal extends React.Component {
       teamUG: selectedSettings.teamUG,
       teamD2: selectedSettings.teamD2,
       playerYear: selectedSettings.playerYear,
+      playerUG: selectedSettings.playerUG,
       playerD2: selectedSettings.playerD2,
       papg: selectedSettings.papg,
       margin: selectedSettings.margin,
@@ -356,6 +360,11 @@ class RptConfigModal extends React.Component {
             <span>Year/Grade&emsp;&emsp;</span>
           </label>
           <label>
+            <input type="checkbox" name="playerUG" disabled={disableFields}
+              checked={this.state.playerUG} onChange={this.handleChange}/>
+            <span>Undergrad&emsp;&emsp;</span>
+          </label>
+          <label>
             <input type="checkbox" name="playerD2" disabled={disableFields}
               checked={this.state.playerD2} onChange={this.handleChange}/>
             <span>Div. 2</span>
@@ -442,6 +451,7 @@ class RptConfigModal extends React.Component {
     //additional table cells for the individual standings preview
     var tdPlayer = ( <td>Player</td> );
     var tdYear = this.state.playerYear ? ( <td>Year</td> ) : null;
+    var tdPlayerUG = this.state.playerUG ? ( <td>UG</td> ) : null;
     var tdPlayerD2 = this.state.playerD2 ? ( <td>D2</td> ) : null;
     var tdDivision = this.props.usingDivisions ? ( <td>Division</td> ) : null;
     var tdGP = ( <td>GP</td> );
@@ -474,8 +484,8 @@ class RptConfigModal extends React.Component {
       <table>
         <tbody>
           <tr>
-          {tdRank}{tdPlayer}{tdYear}{tdPlayerD2}{tdTeam}{tdDivision}{tdGP}{tdPwr}
-            {tdTen}{tdNeg}{tdTuh}{tdPptuh}{tdPperN}{tdGperN}{tdPPG}{tdPP20}
+          {tdRank}{tdPlayer}{tdYear}{tdPlayerUG}{tdPlayerD2}{tdTeam}{tdDivision}{tdGP}
+            {tdPwr}{tdTen}{tdNeg}{tdTuh}{tdPptuh}{tdPperN}{tdGperN}{tdPPG}{tdPP20}
           </tr>
         </tbody>
       </table>

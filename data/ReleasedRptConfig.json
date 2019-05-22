@@ -6,6 +6,7 @@
         "teamUG": false,
         "teamD2": false,
         "playerYear": false,
+        "playerUG": false,
         "playerD2": false,
         "papg": true,
         "margin": true,

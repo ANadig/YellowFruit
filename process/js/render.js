@@ -494,7 +494,7 @@ class MainInterface extends React.Component {
       }
       myTeams.push({
         teamName: teamName,
-        teamUgStatus: false,
+        teamUGStatus: false,
         teamD2Status: false,
         roster: roster,
         divisions: {}

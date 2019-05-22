@@ -78,7 +78,7 @@ division 2 property to each player
 function teamConversion2x2x0(loadTeams) {
   for(var i in loadTeams) {
     var curTeam = loadTeams[i];
-    curTeam.teamUgStatus = false;
+    curTeam.teamUGStatus = false;
     curTeam.teamD2Status = false;
     for(var player in curTeam.roster) {
       curTeam.roster[player].div2 = false;
