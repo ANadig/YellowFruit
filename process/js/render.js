@@ -51,6 +51,11 @@ const EMPTY_CUSTOM_RPT_CONFIG = {
     rptConfigList: {}
 }
 const ORIG_DEFAULT_RPT_NAME = 'SQBS Defaults';
+const DEFAULT_FORM_SETTINGS = {
+  year: true,
+  playerUG: true,
+  playerD2: true
+};
 
 
 class MainInterface extends React.Component {
@@ -59,6 +64,7 @@ class MainInterface extends React.Component {
     super(props);
 
     var defSettingsCopy = $.extend(true, {}, DEFAULT_SETTINGS);
+    var defFormSettingsCopy = $.extend(true, {}, DEFAULT_FORM_SETTINGS);
 
     //load report configurations from files
     var loadRpts = fs.readFileSync(RELEASED_RPT_CONFIG_FILE, 'utf8');
@@ -80,7 +86,7 @@ class MainInterface extends React.Component {
       });
     }
 
-    ipc.sendSync('rebuildReportMenu', releasedRptList, customRptList, defaultRpt);
+    ipc.sendSync('rebuildMenus', releasedRptList, customRptList, defaultRpt, defFormSettingsCopy);
 
     this.state = {
       tmWindowVisible: false, // whether the team entry modal is open
@@ -119,7 +125,8 @@ class MainInterface extends React.Component {
       customRptList: customRptList, // list of user-created report configurations
       defaultRpt: defaultRpt, // which report configuration is default for new tournaments
       activeRpt: defaultRpt, // which report configuration is currently being used
-      modalsInitialized: false // we only need to initialize Materialize modals on the first render
+      modalsInitialized: false, // we only need to initialize Materialize modals on the first render
+      formSettings: defFormSettingsCopy // which optional entry fields to turn on or off
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -246,6 +253,9 @@ class MainInterface extends React.Component {
       this.setState({
         activeRpt: rptName
       });
+    });
+    ipc.on('toggleFormField', (event, whichField, status) => {
+      this.toggleFormField(whichField, status);
     });
   } //componentDidMount
 
@@ -424,7 +434,7 @@ class MainInterface extends React.Component {
 
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
-    ipc.sendSync('rebuildReportMenu', this.state.releasedRptList, this.state.customRptList, assocRpt);
+    ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, assocRpt, this.state.formSettings);
 
     this.setState({
       settings: loadSettings,
@@ -751,8 +761,9 @@ class MainInterface extends React.Component {
       // customRptList: ,
       // defaultRpt: ,
       // modalsInitialized:
+      // formSettings
     });
-    ipc.sendSync('rebuildReportMenu', this.state.releasedRptList, this.state.customRptList, this.state.defaultRpt);
+    ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, this.state.defaultRpt, this.state.formSettings);
   }
 
   //clear text from the search bar in order to show all teams/games
@@ -1608,7 +1619,7 @@ class MainInterface extends React.Component {
     if(saveSuccess && acceptAndStay) {
       M.toast({html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newName + '\"', classes: 'green-toast'});
     }
-    ipc.sendSync('rebuildReportMenu', this.state.releasedRptList, tempRpts, activeRpt);
+    ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt, this.state.formSettings);
   }
 
   /*---------------------------------------------------------
@@ -1690,12 +1701,25 @@ class MainInterface extends React.Component {
     fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {
       if (err) { console.log(err); }
     });
-    ipc.sendSync('rebuildReportMenu', this.state.releasedRptList, tempRpts, activeRpt);
+    ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt, this.state.formSettings);
+  }
+
+  /*---------------------------------------------------------
+  Turn on and off settings for which optional entry fields
+  should appear
+  ---------------------------------------------------------*/
+  toggleFormField(whichField, status) {
+    var tempFormSettings = this.state.formSettings;
+    tempFormSettings[whichField] = status;
+    this.setState({
+      formSettings: tempFormSettings
+    });
   }
 
 
 
   render() {
+    console.log(this.state.formSettings);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim();

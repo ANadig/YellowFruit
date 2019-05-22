@@ -165,6 +165,38 @@ const VIEW_MENU ={
       }
     ]
   };
+const FORM_MENU = {
+  label: '&Form Layout',
+  submenu: [
+    {
+      label: 'Show Year/Grade fields',
+      id: 'year',
+      type: 'checkbox',
+      checked: true,
+      click (item, focusedWindow) {
+        if(focusedWindow) focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+      }
+    },
+    {
+      label: 'Show Player UG fields',
+      id: 'playerUG',
+      type: 'checkbox',
+      checked: true,
+      click (item, focusedWindow) {
+        if(focusedWindow) focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+      }
+    },
+    {
+      label: 'Show Player D2 fields',
+      id: 'playerD2',
+      type: 'checkbox',
+      checked: true,
+      click (item, focusedWindow) {
+        if(focusedWindow) focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+      }
+    }
+  ]
+};
 const HELP_MENU = {
   label: '&Help',
   submenu: [
@@ -223,6 +255,7 @@ function buildMainMenu(rptSubMenu) {
       label: '&Report Settings',
       submenu: rptSubMenu
     },
+    FORM_MENU,
     HELP_MENU
   ]; // mainMenuTemplate
 
@@ -782,7 +815,7 @@ app.on('ready', function() {
   report configurations
   activeRpt will have its checked property set.
   ---------------------------------------------------------*/
-  ipc.on('rebuildReportMenu', (event, releasedRptList, customRptList, activeRpt) => {
+  ipc.on('rebuildMenus', (event, releasedRptList, customRptList, activeRpt, formSettings) => {
     event.returnValue = '';
     var rptSubMenu = REPORT_SUBMENU_STUB.slice();
     for(var r in releasedRptList) {
@@ -806,6 +839,10 @@ app.on('ready', function() {
       });
     }
     var newMainMenu = buildMainMenu(rptSubMenu);
+    for(var s in formSettings) { // keep form layout settings in sync
+      let item = newMainMenu.getMenuItemById(s);
+      item.checked = formSettings[s];
+    }
     appWindow.setMenu(newMainMenu);
   });
 
