@@ -737,12 +737,12 @@ function scoreboardRoundLinks(roundList, fileStart) {
 The title for each section of the scoreboard.
 ---------------------------------------------------------*/
 function scoreboardRoundHeader(roundNo,packetName) {
-  var title = 'Round ' + roundNo;
-  if(packetName != undefined && packetName != '') {
-    title += ' (Packet: ' + packetName + ')';
-  }
   var html = '<div id=round-' + roundNo + ' style="margin:-3em;position:absolute"></div>' + '\n';
-  return html + '<h2><font color=red>' + title + '</font></h2>' + '\n';
+  html += '<h2 style="display:inline-block">Round ' + roundNo + '</h2>';
+  if(packetName != undefined && packetName != '') {
+    html += '<span style=" font-style: italic; color: gray">&ensp;Packet: ' + packetName + '</span>';
+  }
+  return html += '\n';
 }
 
 /*---------------------------------------------------------
