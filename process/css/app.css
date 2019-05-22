@@ -275,11 +275,17 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 #addTeam .player-d2-checkbox {
-  margin-top: 0.4em;
+  margin-top: 0.5em;
 }
 
 #addTeam .team-level-checkbox {
   margin-top: 2em;
+}
+
+@media screen and (min-width: 993px) {
+  #addTeam label input + span {
+    padding-left: 30px;
+  }
 }
 
 #addTeam h5 {

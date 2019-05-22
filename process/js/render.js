@@ -488,7 +488,7 @@ class MainInterface extends React.Component {
       for(var j=0; j<rosterSize && j<MAX_PLAYERS_PER_TEAM; j++) {
         var nextPlayer = sqbsAry[curLine++].trim();
         if(!lowercaseRoster.includes(nextPlayer.toLowerCase())) {
-          roster[nextPlayer] = {year: '', div2: false};
+          roster[nextPlayer] = {year: '', div2: false, undergrad: false};
           lowercaseRoster.push(nextPlayer.toLowerCase());
         }
       }
@@ -1719,7 +1719,6 @@ class MainInterface extends React.Component {
 
 
   render() {
-    console.log(this.state.formSettings);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim();
@@ -1855,6 +1854,7 @@ class MainInterface extends React.Component {
             validateTeamName = {this.validateTeamName}
             teamHasGames = {this.teamHasPlayedGames}
             playerIndex = {this.state.playerIndex}
+            formSettings = {this.state.formSettings}
           />
           <AddGameModal
             gameToLoad = {gameToLoadCopy}

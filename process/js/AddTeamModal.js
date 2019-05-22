@@ -22,6 +22,7 @@ class AddTeamModal extends React.Component{
       teamD2Status: false,
       playerNames: [],
       playerYears: [],
+      playerUGStatuses: [],
       playerD2Statuses: [],
       divisions: {},
       originalTeamLoaded: null
@@ -32,6 +33,7 @@ class AddTeamModal extends React.Component{
     this.handleChange = this.handleChange.bind(this);
     this.handlePlayerChange = this.handlePlayerChange.bind(this);
     this.handleYearChange = this.handleYearChange.bind(this);
+    this.handlePlayerUGChange = this.handlePlayerUGChange.bind(this);
     this.handlePlayerD2Change = this.handlePlayerD2Change.bind(this);
     this.validateTeam = this.validateTeam.bind(this);
   }
@@ -83,13 +85,16 @@ class AddTeamModal extends React.Component{
     if(last != undefined) { tempPlayers.push(last); }
     var tempYears = this.state.playerYears.slice();
     var tempD2Statuses = this.state.playerD2Statuses.slice();
+    var tempUGStatuses = this.state.playerUGStatuses.slice();
     if(tempYears[whichPlayer] == undefined) {
       tempYears[whichPlayer] = ''; // initialize year field
+      tempUGStatuses[whichPlayer] = false; // initialize UG field
       tempD2Statuses[whichPlayer] = false; // initialize d2 field
     }
     this.setState({
       playerNames: tempPlayers,
       playerYears: tempYears,
+      playerUGStatuses: tempUGStatuses,
       playerD2Statuses: tempD2Statuses
     });
   }
@@ -106,6 +111,22 @@ class AddTeamModal extends React.Component{
     tempYears[whichPlayer] = value;
     this.setState({
       playerYears: tempYears
+    });
+  }
+
+  /*---------------------------------------------------------
+  Called when a value in the list of player UG statuses
+  changes.
+  ---------------------------------------------------------*/
+  handlePlayerUGChange(e) {
+    const target = e.target;
+    const value = target.checked;
+    const name = target.name;
+    var whichPlayer = name.replace('ug', '');
+    var tempStatuses = this.state.playerUGStatuses.slice();
+    tempStatuses[whichPlayer] = value;
+    this.setState({
+      playerUGStatuses: tempStatuses
     });
   }
 
@@ -135,6 +156,7 @@ class AddTeamModal extends React.Component{
       playerYears: [],
       teamUgStatus: false,
       teamD2Status: false,
+      playerUGStatuses: [],
       playerD2Statuses: [],
       divisions: {},
       originalTeamLoaded: null
@@ -147,10 +169,11 @@ class AddTeamModal extends React.Component{
   which team to modify.
   ---------------------------------------------------------*/
   loadTeam() {
-    var years = [], div2Statuses = [];
+    var years = [], ugStatuses = [], div2Statuses = [];
     for(var p in this.props.teamToLoad.roster) {
       years.push(this.props.teamToLoad.roster[p].year);
       div2Statuses.push(this.props.teamToLoad.roster[p].div2);
+      ugStatuses.push(this.props.teamToLoad.roster[p].undergrad);
     }
     this.setState({
       teamName: this.props.teamToLoad.teamName,
@@ -158,6 +181,7 @@ class AddTeamModal extends React.Component{
       teamD2Status: this.props.teamToLoad.teamD2Status,
       playerNames: Object.keys(this.props.teamToLoad.roster),
       playerYears: years,
+      playerUGStatuses: ugStatuses,
       playerD2Statuses: div2Statuses,
       divisions: this.props.teamToLoad.divisions,
       originalTeamLoaded: this.props.teamToLoad
@@ -185,6 +209,7 @@ class AddTeamModal extends React.Component{
         else {
           roster[name] = {
             year: this.state.playerYears[i].trim(),
+            undergrad: this.state.playerUGStatuses[i],
             div2: this.state.playerD2Statuses[i]
           };
         }
@@ -351,6 +376,29 @@ class AddTeamModal extends React.Component{
   }
 
   /*---------------------------------------------------------
+  The list of checkboxes denoting the undergrad status of
+  each player
+  ---------------------------------------------------------*/
+  getUGFields() {
+    var tempStatuses = this.state.playerNames.map((name, idx) => { return this.state.playerUGStatuses[idx]; });
+    if(this.state.playerUGStatuses.length > tempStatuses.length) {
+      tempStatuses.push(this.state.playerUGStatuses[tempStatuses.length]);
+    }
+    else { tempStatuses.push(false); }
+    var ugFields = tempStatuses.map((status, idx) => {
+      return (
+        <div key={idx} className="player-d2-checkbox">
+          <label>
+            <input id={'ug'+idx} type="checkbox" name={'ug'+idx} checked={status} onChange={this.handlePlayerUGChange}/>
+            <span>UG</span>
+          </label>
+        </div>
+      );
+    });
+    return ugFields;
+  }
+
+  /*---------------------------------------------------------
   The list of checkboxes denoting the Div. 2 status of
   each player
   ---------------------------------------------------------*/
@@ -377,20 +425,43 @@ class AddTeamModal extends React.Component{
   Put the sets of fields together into a series of row
   elements
   ---------------------------------------------------------*/
-  constructRosterTable(playerFields, yearFields, d2Fields) {
+  constructRosterTable(playerFields, yearFields, ugFields, d2Fields) {
+    var numCheckBoxes = (+this.props.formSettings.playerUG) + (+this.props.formSettings.playerD2);
+    var yearWidth = this.props.formSettings.year ? 3 : 0;
+    var nameWidthL = 12 - yearWidth - numCheckBoxes;
+    var nameWidthS = 12 - yearWidth - 2*numCheckBoxes;
     var rows = [];
     for(var i in playerFields) {
-      var oneRow = (
-        <div key={i} className="row">
-          <div className="col l9 s7">
-            {playerFields[i]}
-          </div>
-          <div className="col l2 s3">
+      var yearField = null, ugField = null, d2Field = null;
+      if(this.props.formSettings.year) {
+        yearField = (
+          <div className="col s3">
             {yearFields[i]}
           </div>
+        );
+      }
+      if(this.props.formSettings.playerUG) {
+        ugField = (
+          <div className="col l1 s2">
+            {ugFields[i]}
+          </div>
+        );
+      }
+      if(this.props.formSettings.playerD2) {
+        d2Field = (
           <div className="col l1 s2">
             {d2Fields[i]}
           </div>
+        );
+      }
+      var oneRow = (
+        <div key={i} className="row">
+          <div className={'col l' + nameWidthL + ' s' + nameWidthS}>
+            {playerFields[i]}
+          </div>
+          {yearField}
+          {ugField}
+          {d2Field}
         </div>
       );
       rows.push(oneRow);
@@ -403,8 +474,9 @@ class AddTeamModal extends React.Component{
   render() {
     var playerFields = this.getPlayerFields();
     var yearFields = this.getYearFields();
+    var ugFields = this.getUGFields();
     var d2Fields = this.getD2Fields();
-    var rosterTable = this.constructRosterTable(playerFields, yearFields, d2Fields);
+    var rosterTable = this.constructRosterTable(playerFields, yearFields, ugFields, d2Fields);
 
     var [teamIsValid, errorLevel, errorMessage] = this.validateTeam();
     var errorIcon = this.getErrorIcon(errorLevel);
@@ -422,18 +494,22 @@ class AddTeamModal extends React.Component{
           <div className="modal-content">
             <h4>{this.getModalHeader()}</h4>
             <div className="row">
-              <div className="col s8">
+              <div className="col l10 s8">
                 <div className="input-field">
                   <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
                   <label htmlFor="teamName">Team Name</label>
                 </div>
               </div>
-              <div className="col s4">
+              <div className="col l1 s2">
                 <div className="team-level-checkbox">
                   <label>
                     <input id="teamUgStatus" type="checkbox" name="teamUgStatus" checked={this.state.teamUgStatus} onChange={this.handleChange}/>
-                    <span>UG&emsp;&emsp;</span>
+                    <span>UG</span>
                   </label>
+                </div>
+              </div>
+              <div className="col l1 s2">
+                <div className="team-level-checkbox">
                   <label>
                     <input id="teamD2Status" type="checkbox" name="teamD2Status" checked={this.state.teamD2Status} onChange={this.handleChange}/>
                     <span>D2</span>

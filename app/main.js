@@ -846,15 +846,6 @@ app.on('ready', function() {
     appWindow.setMenu(newMainMenu);
   });
 
-  /*---------------------------------------------------------
-  automatically turn on year/grade display
-  ---------------------------------------------------------*/
-  // ipc.on('toggleYearDisplay', (event, checked) => {
-  //   event.returnValue = '';
-  //   var menuItem = mainMenu.getMenuItemById('year-toggle');
-  //   menuItem.checked = checked;
-  // });
-
   //set up the menu bars
   reportMenuTemplate = [
     {

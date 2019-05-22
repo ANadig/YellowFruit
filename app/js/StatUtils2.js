@@ -20,7 +20,7 @@ function settingsEqual(s1, s2) {
 }
 
 /*---------------------------------------------------------
-Equality test for two games. 
+Equality test for two games.
 ---------------------------------------------------------*/
 function gameEqual(g1, g2) {
   if((g1 == undefined && g2 != undefined) || (g1 != undefined && g2 == undefined)) {
@@ -82,6 +82,7 @@ function teamConversion2x2x0(loadTeams) {
     curTeam.teamD2Status = false;
     for(var player in curTeam.roster) {
       curTeam.roster[player].div2 = false;
+      curTeam.roster[player].undergrad = false;
     }
   }
 }
