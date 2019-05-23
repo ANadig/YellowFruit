@@ -68,6 +68,17 @@ class AddTeamModal extends React.Component{
     const name = target.name;
     var partialState = {};
     partialState[name] = value;
+    var playerUGStatuses = this.state.playerUGStatuses.slice();
+    var playerD2Statuses = this.state.playerD2Statuses.slice();
+    // mark every player as UG/D2 if the whole team was just marked as UG/D2
+    if(name == 'teamUGStatus' && value) {
+      for(var i in this.state.playerNames) { playerUGStatuses[i] = true; }
+      partialState.playerUGStatuses = playerUGStatuses;
+    }
+    else if(name == 'teamD2Status' && value) {
+      for(var i in this.state.playerNames) { playerD2Statuses[i] = true; }
+      partialState.playerD2Statuses = playerD2Statuses;
+    }
     this.setState(partialState);
   } //handleChange
 
@@ -79,6 +90,7 @@ class AddTeamModal extends React.Component{
     const value = target.value;
     const name = target.name;
     var whichPlayer = name.replace('player', '');
+    var previousValue = this.state.playerNames[whichPlayer];
     var tempPlayers = this.state.playerNames.slice();
     tempPlayers[whichPlayer] = value;
     for(var last=tempPlayers.pop(); last==''; last=tempPlayers.pop()) { } // remove blank lines
@@ -86,11 +98,16 @@ class AddTeamModal extends React.Component{
     var tempYears = this.state.playerYears.slice();
     var tempD2Statuses = this.state.playerD2Statuses.slice();
     var tempUGStatuses = this.state.playerUGStatuses.slice();
-    if(tempYears[whichPlayer] == undefined) {
-      tempYears[whichPlayer] = ''; // initialize year field
-      tempUGStatuses[whichPlayer] = false; // initialize UG field
-      tempD2Statuses[whichPlayer] = false; // initialize d2 field
-    }
+    //initialize the other fields
+    if(tempYears[whichPlayer] == undefined) { tempYears[whichPlayer] = ''; }
+    if(tempUGStatuses[whichPlayer] == undefined) { tempUGStatuses[whichPlayer] = this.state.teamUGStatus; }
+    if(tempD2Statuses[whichPlayer] == undefined) { tempD2Statuses[whichPlayer] = this.state.teamD2Status; }
+    // remove other data for the blank lines we removed earlier
+    var newPlayerCnt = tempPlayers.length;
+    var deletedLines = this.state.playerNames.length - newPlayerCnt;
+    tempYears = tempYears.slice(0, newPlayerCnt + (deletedLines < 2));
+    tempUGStatuses = tempUGStatuses.slice(0, newPlayerCnt + (deletedLines < 2));
+    tempD2Statuses = tempD2Statuses.slice(0, newPlayerCnt + (deletedLines < 2));
     this.setState({
       playerNames: tempPlayers,
       playerYears: tempYears,
@@ -125,9 +142,12 @@ class AddTeamModal extends React.Component{
     var whichPlayer = name.replace('ug', '');
     var tempStatuses = this.state.playerUGStatuses.slice();
     tempStatuses[whichPlayer] = value;
-    this.setState({
-      playerUGStatuses: tempStatuses
-    });
+    var partialState = {};
+    partialState.playerUGStatuses = tempStatuses;
+    if(whichPlayer < this.state.playerNames.length && !value) {
+      partialState.teamUGStatus = false; // team can't be UG if one of its players isn't
+    }
+    this.setState(partialState);
   }
 
   /*---------------------------------------------------------
@@ -141,9 +161,12 @@ class AddTeamModal extends React.Component{
     var whichPlayer = name.replace('d2', '');
     var tempStatuses = this.state.playerD2Statuses.slice();
     tempStatuses[whichPlayer] = value;
-    this.setState({
-      playerD2Statuses: tempStatuses
-    });
+    var partialState = {};
+    partialState.playerD2Statuses = tempStatuses;
+    if(whichPlayer < this.state.playerNames.length && !value) {
+      partialState.teamD2Status = false; // team can't be D2 if one of its players isn't
+    }
+    this.setState(partialState);
   }
 
   /*---------------------------------------------------------
@@ -472,6 +495,7 @@ class AddTeamModal extends React.Component{
 
 
   render() {
+    console.log(this.state);
     var playerFields = this.getPlayerFields();
     var yearFields = this.getYearFields();
     var ugFields = this.getUGFields();
