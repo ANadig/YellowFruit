@@ -16,9 +16,11 @@ const EMPTY_RPT_SETTINGS = {
   ppgOrPp20: 'ppg',
   teamUG: false,
   teamD2: false,
+  teamCombinedStatus: false,
   playerYear: false,
   playerUG: false,
   playerD2: false,
+  playerCombinedStatus: false,
   papg: false,
   margin: false,
   pptuh: false,
@@ -40,9 +42,11 @@ class RptConfigModal extends React.Component {
       ppgOrPp20: startRpt.ppgOrPp20,
       teamUG: startRpt.teamUG,
       teamD2: startRpt.teamD2,
+      teamCombinedStatus: startRpt.teamCombinedStatus,
       playerYear: startRpt.playerYear,
       playerUG: startRpt.playerUG,
       playerD2: startRpt.playerD2,
+      playerCombinedStatus: startRpt.playerCombinedStatus,
       papg: startRpt.papg,
       margin: startRpt.margin,
       pptuh: startRpt.pptuh,
@@ -70,6 +74,21 @@ class RptConfigModal extends React.Component {
     const name = target.name;
     var partialState = {};
     partialState[name] = value;
+    // form scripting: you can't have combined and separate UG/D2 columns at the same time
+    if(name == 'teamCombinedStatus' && value) {
+      partialState.teamUG = false;
+      partialState.teamD2 = false;
+    }
+    else if(name == 'playerCombinedStatus' && value) {
+      partialState.playerUG = false;
+      partialState.playerD2 = false;
+    }
+    else if((name == 'teamUG' || name == 'teamD2') && value) {
+      partialState.teamCombinedStatus = false;
+    }
+    else if((name == 'playerUG' || name == 'playerD2') && value) {
+      partialState.playerCombinedStatus = false;
+    }
     partialState.unsavedDataExists = true;
     this.setState(partialState);
   } //handleChange
@@ -104,9 +123,11 @@ class RptConfigModal extends React.Component {
       ppgOrPp20: this.state.ppgOrPp20,
       teamUG: this.state.teamUG,
       teamD2: this.state.teamD2,
+      teamCombinedStatus: this.state.teamCombinedStatus,
       playerYear: this.state.playerYear,
       playerUG: this.state.playerUG,
       playerD2: this.state.playerD2,
+      playerCombinedStatus: this.state.playerCombinedStatus,
       papg: this.state.papg,
       margin: this.state.margin,
       pptuh: this.state.pptuh,
@@ -142,9 +163,11 @@ class RptConfigModal extends React.Component {
       ppgOrPp20: selectedSettings.ppgOrPp20,
       teamUG: selectedSettings.teamUG,
       teamD2: selectedSettings.teamD2,
+      teamCombinedStatus: selectedSettings.teamCombinedStatus,
       playerYear: selectedSettings.playerYear,
       playerUG: selectedSettings.playerUG,
       playerD2: selectedSettings.playerD2,
+      playerCombinedStatus: selectedSettings.playerCombinedStatus,
       papg: selectedSettings.papg,
       margin: selectedSettings.margin,
       pptuh: selectedSettings.pptuh,
@@ -296,7 +319,7 @@ class RptConfigModal extends React.Component {
         <div className="col s8">
           <div className="input-field">
             <input type="text" id="rptName" name="rptName" disabled={disableFields}
-            onChange={this.handleChange} value={this.state.rptName}/>
+            className={invalidName ? 'invalid' : ''} onChange={this.handleChange} value={this.state.rptName}/>
             <label htmlFor="rptName">Name</label>
           </div>
         </div>
@@ -339,12 +362,17 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="teamUG" disabled={disableFields}
               checked={this.state.teamUG} onChange={this.handleChange}/>
-            <span>Undergrad&emsp;&emsp;</span>
+            <span>UG&emsp;&emsp;</span>
           </label>
           <label>
             <input type="checkbox" name="teamD2" disabled={disableFields}
               checked={this.state.teamD2} onChange={this.handleChange}/>
-            <span>Div. 2</span>
+            <span>D2&emsp;&emsp;</span>
+          </label>
+          <label>
+            <input type="checkbox" name="teamCombinedStatus" disabled={disableFields}
+              checked={this.state.teamCombinedStatus} onChange={this.handleChange}/>
+            <span>Combined UG/D2</span>
           </label>
         </div>
       </div>
@@ -364,12 +392,17 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="playerUG" disabled={disableFields}
               checked={this.state.playerUG} onChange={this.handleChange}/>
-            <span>Undergrad&emsp;&emsp;</span>
+            <span>UG&emsp;&emsp;</span>
           </label>
           <label>
             <input type="checkbox" name="playerD2" disabled={disableFields}
               checked={this.state.playerD2} onChange={this.handleChange}/>
-            <span>Div. 2</span>
+            <span>D2&emsp;&emsp;</span>
+          </label>
+          <label>
+            <input type="checkbox" name="playerCombinedStatus" disabled={disableFields}
+              checked={this.state.playerCombinedStatus} onChange={this.handleChange}/>
+            <span>Combined UG/D2</span>
           </label>
         </div>
       </div>
@@ -425,6 +458,7 @@ class RptConfigModal extends React.Component {
     var tdTeam = ( <td>Team</td> );
     var tdUG = this.state.teamUG ? ( <td>UG</td> ) : null;
     var tdD2 = this.state.teamD2 ? ( <td>D2</td> ) : null;
+    var tdTmComb = this.state.teamCombinedStatus ? ( <td>UG/D2</td> ) : null;
     var tdW = ( <td>W</td> );
     var tdL = ( <td>L</td> );
     var tdT = ( <td>T</td> );
@@ -455,6 +489,7 @@ class RptConfigModal extends React.Component {
     var tdYear = this.state.playerYear ? ( <td>Year</td> ) : null;
     var tdPlayerUG = this.state.playerUG ? ( <td>UG</td> ) : null;
     var tdPlayerD2 = this.state.playerD2 ? ( <td>D2</td> ) : null;
+    var tdPlComb = this.state.playerCombinedStatus ? ( <td>UG/D2</td> ) : null;
     var tdDivision = this.props.usingDivisions ? ( <td>Division</td> ) : null;
     var tdGP = ( <td>GP</td> );
 
@@ -474,9 +509,9 @@ class RptConfigModal extends React.Component {
       <table>
         <tbody>
           <tr>
-          {tdRank}{tdTeam}{tdUG}{tdD2}{tdW}{tdL}{tdT}{tdPct}{tdPPG}{tdPP20}{tdPapg}
-            {tdPap20}{tdMrg}{tdPwr}{tdTen}{tdNeg}{tdTuh}{tdPptuh}{tdPperN}{tdGperN}
-            {tdBPts}{tdBHrd}{tdPpb}{tdBbpts}{tdBBHrd}{tdPpbb}
+          {tdRank}{tdTeam}{tdUG}{tdD2}{tdTmComb}{tdW}{tdL}{tdT}{tdPct}{tdPPG}{tdPP20}
+            {tdPapg}{tdPap20}{tdMrg}{tdPwr}{tdTen}{tdNeg}{tdTuh}{tdPptuh}
+            {tdPperN}{tdGperN}{tdBPts}{tdBHrd}{tdPpb}{tdBbpts}{tdBBHrd}{tdPpbb}
           </tr>
         </tbody>
       </table>
@@ -486,8 +521,8 @@ class RptConfigModal extends React.Component {
       <table>
         <tbody>
           <tr>
-          {tdRank}{tdPlayer}{tdYear}{tdPlayerUG}{tdPlayerD2}{tdTeam}{tdDivision}{tdGP}
-            {tdPwr}{tdTen}{tdNeg}{tdTuh}{tdPptuh}{tdPperN}{tdGperN}{tdPPG}{tdPP20}
+          {tdRank}{tdPlayer}{tdYear}{tdPlayerUG}{tdPlayerD2}{tdPlComb}{tdTeam}{tdDivision}
+            {tdGP}{tdPwr}{tdTen}{tdNeg}{tdTuh}{tdPptuh}{tdPperN}{tdGperN}{tdPPG}{tdPP20}
           </tr>
         </tbody>
       </table>

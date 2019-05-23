@@ -29,6 +29,9 @@ function showTeamUG(rptConfig) { return rptConfig.teamUG; }
 // include column for team div. 2 status?
 function showTeamD2(rptConfig) { return rptConfig.teamD2; }
 
+// include the combined UG/D2 column?
+function showTeamCombined(rptConfig) { return rptConfig.teamCombinedStatus; }
+
 // track ppg (rather than pp20TUH)?
 function showPpg(rptConfig) { return rptConfig.ppgOrPp20 == 'ppg'; }
 
@@ -72,6 +75,9 @@ function showPlayerUG(rptConfig) { return rptConfig.playerUG; }
 
 // show player D2 status?
 function showPlayerD2(rptConfig) { return rptConfig.playerD2; }
+
+// include the combined UG/D2 column?
+function showPlayerCombined(rptConfig) { return rptConfig.playerCombinedStatus; }
 
 /*---------------------------------------------------------
 Number of games played, including forfeits.
@@ -277,6 +283,9 @@ function standingsHeader(settings, tiesExist, rptConfig) {
   if(showTeamD2(rptConfig)) {
     html += tdTag('D2', 'left', true);
   }
+  if(showTeamCombined(rptConfig)) {
+    html += tdTag('', 'left', true);
+  }
   html += tdTag('W','right',true) +
     tdTag('L','right',true);
   if(tiesExist) {
@@ -340,6 +349,12 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
   }
   if(showTeamD2(rptConfig)) {
     rowHtml += tdTag(teamEntry.teamD2Status ? 'D2' : '', 'left');
+  }
+  if(showTeamCombined(rptConfig)) {
+    var tmComb = '';
+    if(teamEntry.teamD2Status) { tmComb = 'D2'; }
+    else if(teamEntry.teamUGStatus) { tmComb = 'UG'; }
+    rowHtml += tdTag(tmComb, 'left');
   }
   rowHtml += tdTag(teamEntry.wins,'right');
   rowHtml += tdTag(teamEntry.losses,'right');
@@ -535,6 +550,9 @@ function individualsHeader(usingDivisions, settings, rptConfig) {
   if(showPlayerD2(rptConfig)) {
     html += tdTag('D2', 'left', true);
   }
+  if(showPlayerCombined(rptConfig)) {
+    html += tdTag('', 'left', true);
+  }
   html += tdTag('Team', 'left', true);
   if(usingDivisions) {
     html += tdTag('Division', 'left', true);
@@ -587,6 +605,12 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings, 
   }
   if(showPlayerD2(rptConfig)) {
     rowHtml += tdTag(playerEntry.div2 ? 'D2' : '', 'left');
+  }
+  if(showPlayerCombined(rptConfig)) {
+    var plComb = '';
+    if(playerEntry.div2) { plComb = 'D2'; }
+    else if(playerEntry.undergrad) { plComb = 'UG'; }
+    rowHtml += tdTag(plComb, 'left');
   }
   rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + teamLinkId + '>' + playerEntry.teamName + '</a>', 'left');
 
@@ -1631,10 +1655,10 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, ph
     html += '<h2 style="display:inline-block" id=' + linkId + '>' + teamName + '</h2>' + '\n';
     //display UG, D2 status
     var statusDisp = '';
-    if(showTeamUG(rptConfig) && teams[i].teamUGStatus) {
+    if((showTeamUG(rptConfig) || showTeamCombined(rptConfig)) && teams[i].teamUGStatus) {
       statusDisp += '<span style=" font-style: italic; color: gray">' + 'UG';
     }
-    if(showTeamD2(rptConfig) && teams[i].teamD2Status) {
+    if((showTeamD2(rptConfig) || showTeamCombined(rptConfig)) && teams[i].teamD2Status) {
       if(statusDisp.length == 0) {
         statusDisp += '<span style=" font-style: italic; color: gray">' + 'D2';
       }
@@ -1705,13 +1729,13 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
         demogDisp = '<span style="font-style: italic; color: gray">' + yearDisp;
       }
     }
-    if(showPlayerUG(rptConfig) && indvTot.undergrad) {
+    if((showPlayerUG(rptConfig) || showPlayerCombined(rptConfig)) && indvTot.undergrad) {
       if(demogDisp.length == 0) {
         demogDisp = '<span style="font-style: italic; color: gray">' + 'UG';
       }
       else{ demogDisp += ', UG'; }
     }
-    if(showPlayerD2(rptConfig) && indvTot.div2) {
+    if((showPlayerD2(rptConfig) || showPlayerCombined(rptConfig)) && indvTot.div2) {
       if(demogDisp.length == 0) {
         demogDisp = '<span style="font-style: italic; color: gray">' + 'D2';
       }

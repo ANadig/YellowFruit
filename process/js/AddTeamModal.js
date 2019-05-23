@@ -96,7 +96,7 @@ class AddTeamModal extends React.Component{
     var tempUGStatuses = this.state.playerUGStatuses.slice();
     //initialize the other fields
     if(tempYears[whichPlayer] == undefined) { tempYears[whichPlayer] = ''; }
-    if(tempUGStatuses[whichPlayer] == undefined) { tempUGStatuses[whichPlayer] = this.state.teamUGStatus; }
+    if(tempUGStatuses[whichPlayer] == undefined) { tempUGStatuses[whichPlayer] = false; }
     if(tempD2Statuses[whichPlayer] == undefined) { tempD2Statuses[whichPlayer] = this.state.teamD2Status; }
     // remove other data for the blank lines we removed earlier
     var newPlayerCnt = tempPlayers.length;
