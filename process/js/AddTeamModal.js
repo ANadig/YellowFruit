@@ -70,12 +70,8 @@ class AddTeamModal extends React.Component{
     partialState[name] = value;
     var playerUGStatuses = this.state.playerUGStatuses.slice();
     var playerD2Statuses = this.state.playerD2Statuses.slice();
-    // mark every player as UG/D2 if the whole team was just marked as UG/D2
-    if(name == 'teamUGStatus' && value) {
-      for(var i in this.state.playerNames) { playerUGStatuses[i] = true; }
-      partialState.playerUGStatuses = playerUGStatuses;
-    }
-    else if(name == 'teamD2Status' && value) {
+    // mark every player as D2 if the whole team was just marked as D2
+    if(name == 'teamD2Status' && value) {
       for(var i in this.state.playerNames) { playerD2Statuses[i] = true; }
       partialState.playerD2Statuses = playerD2Statuses;
     }
@@ -144,9 +140,6 @@ class AddTeamModal extends React.Component{
     tempStatuses[whichPlayer] = value;
     var partialState = {};
     partialState.playerUGStatuses = tempStatuses;
-    if(whichPlayer < this.state.playerNames.length && !value) {
-      partialState.teamUGStatus = false; // team can't be UG if one of its players isn't
-    }
     this.setState(partialState);
   }
 
