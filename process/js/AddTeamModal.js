@@ -495,7 +495,6 @@ class AddTeamModal extends React.Component{
 
 
   render() {
-    console.log(this.state);
     var playerFields = this.getPlayerFields();
     var yearFields = this.getYearFields();
     var ugFields = this.getUGFields();
