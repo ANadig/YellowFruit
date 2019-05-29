@@ -879,6 +879,7 @@ class MainInterface extends React.Component {
     this.setState({
       gmWindowVisible: true
     });
+    $('#round').focus();
   }
 
   /*---------------------------------------------------------
@@ -1728,7 +1729,7 @@ class MainInterface extends React.Component {
   render() {
     var filteredTeams = [];
     var filteredGames = [];
-    var queryText = this.state.queryText.trim();
+    var queryText = this.state.queryText.trim().toLowerCase();
     var myTeams = this.state.myTeams;
     var myGames = this.state.myGames;
     var activePane = this.state.activePane;

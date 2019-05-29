@@ -1197,6 +1197,9 @@ function teamDetailPlayerTableHeader(settings, rptConfig) {
   if(showPlayerD2(rptConfig)) {
     html += tdTag('D2', 'left', true);
   }
+  if(showPlayerCombined(rptConfig)) {
+    html += tdTag('', 'left', true);
+  }
   html += tdTag('Team', 'left', true) +
     tdTag('GP', 'right', true);
   if(showPowers(settings)) {
@@ -1242,6 +1245,12 @@ function teamDetailPlayerRow(player, fileStart, settings, rptConfig) {
   }
   if(showPlayerD2(rptConfig)) {
     html += tdTag(player.div2 ? 'D2' : '', 'left');
+  }
+  if(showPlayerCombined(rptConfig)) {
+    var plComb = '';
+    if(player.div2) { plComb = 'D2'; }
+    else if(player.undergrad) { plComb = 'UG'; }
+    html += tdTag(plComb, 'left');
   }
   html += tdTag(player.teamName, 'left');
   html += tdTag(player.gamesPlayed, 'right');
