@@ -1546,6 +1546,24 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Does the search text match this game?
+  ---------------------------------------------------------*/
+  gameQueryMatch(queryText, game) {
+    if(queryText.length <= 1) { return true; } // ignore 1-character searches for performance reasons
+    if(this.noPhaseQuery(queryText, game)) { return true; }
+    if(!this.gameBelongsToCurrentPhase(game)) { return false; }
+    var team1 = game.team1.toLowerCase(), team2 = game.team2.toLowerCase();
+    if(queryText.startsWith('=') && !queryText.includes('/')) { // '=' to require exact match
+      return team1 == queryText.substr(1) || team2 == queryText.substr(1);
+    }
+    return game.team1.toLowerCase().indexOf(queryText)!=-1 ||
+    game.team2.toLowerCase().indexOf(queryText)!=-1 ||
+    game.notes.toLowerCase().indexOf(queryText)!=-1 ||
+    this.matchRoundSearch(queryText,game) ||
+    this.matchBothTeams(queryText, game);
+  }
+
+  /*---------------------------------------------------------
   Returns true if the query text starts with "Round###" or
   "R###" and if the game's round matches ###
   ---------------------------------------------------------*/
@@ -1562,13 +1580,20 @@ class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   matchBothTeams(queryText, game) {
     var matchFirst = false, matchSecond = false;
+    var team1 = game.team1.toLowerCase(), team2 = game.team2.toLowerCase();
     var words = queryText.split('/');
     words = words.map(function(str,idx) { return str.trim(); });
     words = _.without(words, '');
     if(words.length < 2) { return false; }
     for(var i in words) {
-      if(game.team1.toLowerCase().indexOf(words[i])!=-1) { matchFirst = true; }
-      else if(game.team2.toLowerCase().indexOf(words[i])!=-1) { matchSecond = true; }
+      if(words[i].startsWith('=')) {
+        if(team1 == words[i].substr(1)) { matchFirst = true; }
+        else if(team2 == words[i].substr(1)) { matchSecond = true; }
+      }
+      else {
+        if(team1.indexOf(words[i])!=-1) { matchFirst = true; }
+        else if(team2.indexOf(words[i])!=-1) { matchSecond = true; }
+      }
     }
     return matchFirst && matchSecond;
   }
@@ -1791,14 +1816,7 @@ class MainInterface extends React.Component {
     else if (activePane == 'gamesPane') {
       //Filter list of games
       for (var i = 0; i < myGames.length; i++) {
-        if (this.noPhaseQuery(queryText, myGames[i]) ||
-          ((myGames[i].team1.toLowerCase().indexOf(queryText)!=-1 ||
-          myGames[i].team2.toLowerCase().indexOf(queryText)!=-1 ||
-          myGames[i].notes.toLowerCase().indexOf(queryText)!=-1 ||
-          this.matchRoundSearch(queryText, myGames[i]) ||
-          this.matchBothTeams(queryText, myGames[i])) &&
-          this.gameBelongsToCurrentPhase(myGames[i]))
-        ) {
+        if (this.gameQueryMatch(queryText, myGames[i])) {
           filteredGames.push(myGames[i]);
         }
       }
