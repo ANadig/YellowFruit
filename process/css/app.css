@@ -122,6 +122,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .qb-nav .nav-content .tabs {
+  display: flex;
+}
+
+.qb-nav .nav-content .skinny-tabs {
   height: 28px;
 }
 

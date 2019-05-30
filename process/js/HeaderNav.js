@@ -5,11 +5,15 @@ Andrew Nadig
 React component representing the navigation bar at the top.
 ***********************************************************/
 var React = require('react');
+var $ = jQuery = require('jquery');
 
 class HeaderNav extends React.Component{
 
   constructor(props) {
     super(props);
+    this.state = {
+      overflowTabs: false
+    }
     this.handleSearch = this.handleSearch.bind(this);
     this.setPane = this.setPane.bind(this);
     this.setPhase = this.setPhase.bind(this);
@@ -115,15 +119,33 @@ class HeaderNav extends React.Component{
         tabList.push(oneTab);
       }
     }
+    var skinny = this.state.overflowTabs ? '' : ' skinny-tabs';
     return (
       <div className="nav-content">
-        <ul className="tabs tabs-transparent">
+        <ul className={'tabs tabs-transparent' + skinny} id="phase-tabs">
           {tabList}
         </ul>
       </div>
     );
   }//phaseTabs
 
+  /*---------------------------------------------------------
+  Lifecyle method
+  ---------------------------------------------------------*/
+  componentDidUpdate(prevProps) {
+    // re-render if the phase tabs have just started or stopped overflowing 
+    var tabs = $('#phase-tabs')[0];
+    if(tabs != undefined && tabs.scrollWidth > tabs.clientWidth && !this.state.overflowTabs) {
+      this.setState({
+        overflowTabs: true
+      });
+    }
+    else if(tabs != undefined && tabs.scrollWidth <= tabs.clientWidth && this.state.overflowTabs) {
+      this.setState({
+        overflowTabs: false
+      });
+    }
+  }
 
 
 
