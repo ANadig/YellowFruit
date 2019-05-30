@@ -81,6 +81,12 @@ h1, h2, h3, h4, h5, h6 {
   bottom: 0;
 }
 
+@media screen and (max-width: 1200px) {
+  #stat-sidebar {
+    display: none;
+  }
+}
+
 #stat-sidebar td, #stat-sidebar th {
   padding: 8px 5px;
   text-align: right;
@@ -96,7 +102,7 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* keep things out of the sidebar */
-@media screen and (min-width: 993px) {
+@media screen and (min-width: 1201px) {
   .btn-floating-div {
       right: 37%;
   }
@@ -443,7 +449,7 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 990;
 }
 
-@media screen and (min-width: 993px) {
+@media screen and (min-width: 1201px) {
   .selected-counter {
     right: 35%;
   }

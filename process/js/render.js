@@ -1907,7 +1907,7 @@ class MainInterface extends React.Component {
           />
 
           <div className="row">
-            <div id="main-window" className="col s12 m12 l8">
+            <div id="main-window" className="col s12 xl8">
               <HeaderNav
                 onSearch= {this.searchLists}
                 setPane = {this.setPane}
@@ -1952,7 +1952,7 @@ class MainInterface extends React.Component {
                 numberSelected = {this.state.selectedGames.length}
               />
             </div>
-            <div id="stat-sidebar" className="col l4 hide-on-med-and-down">
+            <div id="stat-sidebar" className="col xl4 s0">
               <StatSidebar
                 standings = {getSmallStandings(myTeams, myGames, this.state.viewingPhase, phaseToGroupBy, this.state.settings)}
                 divisions = {divsInPhase}
