@@ -8,7 +8,7 @@ divisions (teams).
 ***********************************************************/
 var React = require('react');
 const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
-  'red', 'purple', 'teal', 'deep-purple'];
+  'red', 'purple', 'teal', 'deep-purple', 'pink', 'green'];
 
 class ColorChip extends React.Component{
 

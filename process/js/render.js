@@ -41,9 +41,9 @@ const DEFAULT_SETTINGS = {
   defaultPhase: 'noPhase', // Used to group teams when viewing all games
   rptConfig: 'SQBS Defaults'
 };
-//Materialize accent-1 colors: yellow, light-green, orange, light-blue, red, purple, teal, deep-purple
+//Materialize accent-1 colors: yellow, light-green, orange, light-blue, red, purple, teal, deep-purple, pink, green
 const PHASE_COLORS = ['#ffff8d', '#ccff90', '#ffd180', '#80d8ff',
-  '#ff8a80', '#ea80fc', '#a7ffeb', '#b388ff'];
+  '#ff8a80', '#ea80fc', '#a7ffeb', '#b388ff', '#ff80ab', '#b9fc6a'];
 const RELEASED_RPT_CONFIG_FILE = Path.resolve('data/ReleasedRptConfig.json');
 const CUSTOM_RPT_CONFIG_FILE = Path.resolve('data/CustomRptConfig.json');
 const EMPTY_CUSTOM_RPT_CONFIG = {

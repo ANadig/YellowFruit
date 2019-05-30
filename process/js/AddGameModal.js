@@ -13,7 +13,7 @@ var TeamOption = require('./TeamOption');
 var PlayerRow = require('./PlayerRow');
 
 const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
-  'red', 'purple', 'teal', 'deep-purple'];
+  'red', 'purple', 'teal', 'deep-purple', 'pink', 'green'];
 
 class AddGameModal extends React.Component{
 
