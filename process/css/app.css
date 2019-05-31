@@ -266,6 +266,12 @@ h1, h2, h3, h4, h5, h6 {
   padding-left: 30px;
 }
 
+#rptConfig [title]:not([title=""]) {
+  cursor: help;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
 #rptConfig #currentRptIsDefault {
   padding-top: 18pt;
 }

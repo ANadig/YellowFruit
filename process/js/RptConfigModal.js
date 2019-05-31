@@ -23,6 +23,7 @@ const EMPTY_RPT_SETTINGS = {
   playerCombinedStatus: false,
   papg: false,
   margin: false,
+  phaseRecord: false,
   pptuh: false,
   pPerN: false,
   gPerN: false
@@ -49,6 +50,7 @@ class RptConfigModal extends React.Component {
       playerCombinedStatus: startRpt.playerCombinedStatus,
       papg: startRpt.papg,
       margin: startRpt.margin,
+      phaseRecord: startRpt.phaseRecord,
       pptuh: startRpt.pptuh,
       pPerN: startRpt.pPerN,
       gPerN: startRpt.gPerN,
@@ -130,6 +132,7 @@ class RptConfigModal extends React.Component {
       playerCombinedStatus: this.state.playerCombinedStatus,
       papg: this.state.papg,
       margin: this.state.margin,
+      phaseRecord: this.state.phaseRecord,
       pptuh: this.state.pptuh,
       pPerN: this.state.pPerN,
       gPerN: this.state.gPerN
@@ -170,6 +173,7 @@ class RptConfigModal extends React.Component {
       playerCombinedStatus: selectedSettings.playerCombinedStatus,
       papg: selectedSettings.papg,
       margin: selectedSettings.margin,
+      phaseRecord: selectedSettings.phaseRecord,
       pptuh: selectedSettings.pptuh,
       pPerN: selectedSettings.pPerN,
       gPerN: selectedSettings.gPerN
@@ -422,7 +426,12 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="margin" disabled={disableFields}
               checked={this.state.margin} onChange={this.handleChange}/>
-            <span>Margin</span>
+            <span>Margin&emsp;&emsp;</span>
+          </label>
+          <label>
+            <input type="checkbox" name="phaseRecord" disabled={disableFields}
+              checked={this.state.phaseRecord} onChange={this.handleChange}/>
+            <span title="Show teams' records in the grouping phase when viewing all games. Standings will be sorted by win percentage in this column.">This Stage</span>
           </label>
         </div>
       </div>
@@ -463,6 +472,7 @@ class RptConfigModal extends React.Component {
     var tdL = ( <td>L</td> );
     var tdT = ( <td>T</td> );
     var tdPct = ( <td>Pct.</td> );
+    var tdPhaseRecord = this.state.phaseRecord ? ( <td>Stage</td> ) : null;
     var tdPPG = this.state.ppgOrPp20 == 'ppg' ? ( <td>PPG</td> ) : null;
     var tdPP20 = this.state.ppgOrPp20 == 'pp20' ? ( <td>PP20</td> ) : null;
     var tdPapg = this.state.ppgOrPp20 == 'ppg' && this.state.papg ? ( <td>PAPG</td> ) : null;
@@ -509,8 +519,8 @@ class RptConfigModal extends React.Component {
       <table>
         <tbody>
           <tr>
-          {tdRank}{tdTeam}{tdUG}{tdD2}{tdTmComb}{tdW}{tdL}{tdT}{tdPct}{tdPPG}{tdPP20}
-            {tdPapg}{tdPap20}{tdMrg}{tdPwr}{tdTen}{tdNeg}{tdTuh}{tdPptuh}
+          {tdRank}{tdTeam}{tdUG}{tdD2}{tdTmComb}{tdW}{tdL}{tdT}{tdPct}{tdPhaseRecord}
+            {tdPPG}{tdPP20}{tdPapg}{tdPap20}{tdMrg}{tdPwr}{tdTen}{tdNeg}{tdTuh}{tdPptuh}
             {tdPperN}{tdGperN}{tdBHrd}{tdBPts}{tdPpb}{tdBBHrd}{tdBbpts}{tdPpbb}
           </tr>
         </tbody>

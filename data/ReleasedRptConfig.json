@@ -12,6 +12,7 @@
         "playerCombinedStatus": false,
         "papg": true,
         "margin": true,
+        "phaseRecord": false,
         "pptuh": true,
         "pPerN": true,
         "gPerN": true
