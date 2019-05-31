@@ -480,8 +480,8 @@ class RptConfigModal extends React.Component {
     var tdBPts = this.props.tournamentSettings.bonuses != 'none' ? ( <td>BPts</td> ) : null;
     var tdBHrd = this.props.tournamentSettings.bonuses != 'none' ? ( <td>BHrd</td> ) : null;
     var tdPpb = this.props.tournamentSettings.bonuses != 'none' ? ( <td>PPB</td> ) : null;
-    var tdBbpts = this.props.tournamentSettings.bonuses == 'yesBb' ? ( <td>BBPts</td> ) : null;
     var tdBBHrd = this.props.tournamentSettings.bonuses == 'yesBb' ? ( <td>BBHrd</td> ) : null;
+    var tdBbpts = this.props.tournamentSettings.bonuses == 'yesBb' ? ( <td>BBPts</td> ) : null;
     var tdPpbb = this.props.tournamentSettings.bonuses == 'yesBb' ? ( <td>PPBB</td> ) : null;
 
     //additional table cells for the individual standings preview
@@ -511,7 +511,7 @@ class RptConfigModal extends React.Component {
           <tr>
           {tdRank}{tdTeam}{tdUG}{tdD2}{tdTmComb}{tdW}{tdL}{tdT}{tdPct}{tdPPG}{tdPP20}
             {tdPapg}{tdPap20}{tdMrg}{tdPwr}{tdTen}{tdNeg}{tdTuh}{tdPptuh}
-            {tdPperN}{tdGperN}{tdBPts}{tdBHrd}{tdPpb}{tdBbpts}{tdBBHrd}{tdPpbb}
+            {tdPperN}{tdGperN}{tdBHrd}{tdBPts}{tdPpb}{tdBBHrd}{tdBbpts}{tdPpbb}
           </tr>
         </tbody>
       </table>
@@ -533,7 +533,7 @@ class RptConfigModal extends React.Component {
         <tbody>
           <tr>
           {tdRd}{tdOpp}{tdResult}{tdPf}{tdPa}{tdPwr}{tdTen}{tdNeg}{tdTuh}{tdPptuh}
-            {tdPP20}{tdPperN}{tdGperN}{tdBPts}{tdBHrd}{tdPpb}{tdBbpts}{tdBBHrd}{tdPpbb}
+            {tdPP20}{tdPperN}{tdGperN}{tdBHrd}{tdBPts}{tdPpb}{tdBBHrd}{tdBbpts}{tdPpbb}
           </tr>
         </tbody>
       </table>
