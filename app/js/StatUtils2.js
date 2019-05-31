@@ -163,6 +163,7 @@ function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase, settings
         losses: 0,
         ties: 0,
         points: 0,
+        tuh: 0,
         bHeard: 0,
         bPts: 0,
         forfeits: 0,
@@ -199,6 +200,8 @@ function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase, settings
         }
         summary[idx1].points += parseFloat(g.score1) - otPoints(g, 1, settings);
         summary[idx2].points += parseFloat(g.score2) - otPoints(g, 2, settings);
+        summary[idx1].tuh += toNum(g.tuhtot) - toNum(g.ottu);
+        summary[idx2].tuh += toNum(g.tuhtot) - toNum(g.ottu);
         summary[idx1].bHeard += bonusesHeard(g,1);
         summary[idx2].bHeard += bonusesHeard(g,2);
         summary[idx1].bPts += bonusPoints(g,1,settings);

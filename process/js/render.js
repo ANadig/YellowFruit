@@ -1790,6 +1790,8 @@ class MainInterface extends React.Component {
     var usingDivisions = this.usingDivisions();
     var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhase : this.state.viewingPhase;
     var divsInPhase = this.state.divisions[phaseToGroupBy];
+    var rptObj = this.state.releasedRptList[this.state.activeRpt];
+    if(rptObj == undefined) { rptObj = this.state.customRptList[this.state.activeRpt]; }
 
     // Get Materialize features to show up correctly
     $(document).ready(function() { $('.tooltipped').tooltip(); });//initialize tooltips
@@ -2000,6 +2002,7 @@ class MainInterface extends React.Component {
                 standings = {getSmallStandings(myTeams, myGames, this.state.viewingPhase, phaseToGroupBy, this.state.settings)}
                 divisions = {divsInPhase}
                 settings = {this.state.settings}
+                activeRpt = {rptObj}
                 filterByTeam = {this.filterByTeam}
               />
             </div>
