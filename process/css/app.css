@@ -100,6 +100,15 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 10px;
 }
 
+#stat-sidebar a {
+  color: black;
+}
+
+#stat-sidebar a:hover{
+  color: blue;
+  cursor: pointer;
+}
+
 
 /* keep things out of the sidebar */
 @media screen and (min-width: 1201px) {
@@ -153,6 +162,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .qb-search {
   padding-left: 5px;
+}
+
+#search:focus {
+  border-bottom: none;
+  box-shadow: 0 1px 0 0 white;
 }
 
 .container {

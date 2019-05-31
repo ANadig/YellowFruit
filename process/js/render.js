@@ -117,6 +117,7 @@ class MainInterface extends React.Component {
       checkGameToggle: false, // see checkTeamToggle
       settingsLoadToggle: false, // used to force the whole settings pane to redraw when
                                  // when divisions or phases are changed
+      navbarLoadToggle: false, //used to force the navbar to redraw
       activePane: 'settingsPane',  // settings, teams, or games
       viewingPhase: 'all', // 'all' or the name of a user-defined phase
       forceResetForms: false, // used to force an additional render in the team and game
@@ -173,6 +174,7 @@ class MainInterface extends React.Component {
     this.setDefaultRpt = this.setDefaultRpt.bind(this);
     this.clearDefaultRpt = this.clearDefaultRpt.bind(this);
     this.rptDeletionPrompt = this.rptDeletionPrompt.bind(this);
+    this.filterByTeam = this.filterByTeam.bind(this);
   }
 
   /*---------------------------------------------------------
@@ -1546,10 +1548,19 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Does the search text match this team?
+  ---------------------------------------------------------*/
+  teamQueryMatch(queryText, team) {
+    var teamName = team.teamName.toLowerCase();
+    if(queryText.startsWith('=')) { return queryText.substr(1) == teamName; }
+    return teamName.indexOf(queryText)!=-1 || Object.keys(team.roster).join(', ').toLowerCase().indexOf(queryText)!=-1
+  }
+
+  /*---------------------------------------------------------
   Does the search text match this game?
   ---------------------------------------------------------*/
   gameQueryMatch(queryText, game) {
-    if(queryText.length <= 1) { return true; } // ignore 1-character searches for performance reasons
+    if(queryText.length <= 1) { return this.gameBelongsToCurrentPhase(game); } // ignore 1-character searches for performance reasons
     if(this.noPhaseQuery(queryText, game)) { return true; }
     if(!this.gameBelongsToCurrentPhase(game)) { return false; }
     var team1 = game.team1.toLowerCase(), team2 = game.team2.toLowerCase();
@@ -1613,6 +1624,22 @@ class MainInterface extends React.Component {
   sortTeamsBy(orderBy) {
     this.setState({
       teamOrder: orderBy
+    });
+  }
+
+  /*---------------------------------------------------------
+  When the user clicks a team's name in the sidebar,
+  find that team's games. Or, if they just did that,
+  clear the search bar.
+  ---------------------------------------------------------*/
+  filterByTeam(teamName) {
+    var newQueryText = '';
+    if(this.state.queryText != '=' + teamName) {
+      newQueryText = '=' + teamName;
+    }
+    this.setState({
+      queryText: newQueryText,
+      navbarLoadToggle: !this.state.navbarLoadToggle
     });
   }
 
@@ -1790,10 +1817,7 @@ class MainInterface extends React.Component {
     if (activePane == 'teamsPane') {
       //Filter list of teams
       for (var i = 0; i < myTeams.length; i++) {
-        if (
-          ((myTeams[i].teamName.toLowerCase().indexOf(queryText)!=-1) ||
-          (Object.keys(myTeams[i].roster).join(', ').toLowerCase().indexOf(queryText)!=-1))
-        ) {
+        if (this.teamQueryMatch(queryText, myTeams[i])) {
           filteredTeams.push(myTeams[i]);
         }
       }
@@ -1926,7 +1950,7 @@ class MainInterface extends React.Component {
 
           <div className="row">
             <div id="main-window" className="col s12 xl8">
-              <HeaderNav
+              <HeaderNav key={'nav' + this.state.navbarLoadToggle}
                 onSearch= {this.searchLists}
                 setPane = {this.setPane}
                 setPhase = {this.setPhase}
@@ -1937,6 +1961,7 @@ class MainInterface extends React.Component {
                 usingDivisions = {usingDivisions}
                 openDivModal = {this.openDivModal}
                 openPhaseModal = {this.openPhaseModal}
+                queryText = {this.state.queryText}
               />
               <SettingsForm key = {this.state.settingsLoadToggle}
                 whichPaneActive = {activePane}
@@ -1975,6 +2000,7 @@ class MainInterface extends React.Component {
                 standings = {getSmallStandings(myTeams, myGames, this.state.viewingPhase, phaseToGroupBy, this.state.settings)}
                 divisions = {divsInPhase}
                 settings = {this.state.settings}
+                filterByTeam = {this.filterByTeam}
               />
             </div>
 

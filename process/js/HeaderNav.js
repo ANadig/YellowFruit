@@ -12,7 +12,8 @@ class HeaderNav extends React.Component{
   constructor(props) {
     super(props);
     this.state = {
-      overflowTabs: false
+      overflowTabs: false,
+      queryText: props.queryText
     }
     this.handleSearch = this.handleSearch.bind(this);
     this.setPane = this.setPane.bind(this);
@@ -26,7 +27,11 @@ class HeaderNav extends React.Component{
   in the search bar.
   ---------------------------------------------------------*/
   handleSearch(e) {
-    this.props.onSearch(e.target.value);
+    var text = e.target.value;
+    this.props.onSearch(text);
+    this.setState({
+      queryText: text
+    });
   }
 
   /*---------------------------------------------------------
@@ -130,10 +135,10 @@ class HeaderNav extends React.Component{
   }//phaseTabs
 
   /*---------------------------------------------------------
-  Lifecyle method
+  re-render if the phase tabs have just started or stopped
+  overflowing
   ---------------------------------------------------------*/
-  componentDidUpdate(prevProps) {
-    // re-render if the phase tabs have just started or stopped overflowing 
+  adjustTabs() {
     var tabs = $('#phase-tabs')[0];
     if(tabs != undefined && tabs.scrollWidth > tabs.clientWidth && !this.state.overflowTabs) {
       this.setState({
@@ -145,6 +150,20 @@ class HeaderNav extends React.Component{
         overflowTabs: false
       });
     }
+  }
+
+  /*---------------------------------------------------------
+  Lifecyle method
+  ---------------------------------------------------------*/
+  componentDidUpdate(prevProps) {
+    this.adjustTabs();
+  }
+
+  /*---------------------------------------------------------
+  Lifecyle method
+  ---------------------------------------------------------*/
+  componentDidMount() {
+    this.adjustTabs();
   }
 
 
@@ -171,7 +190,7 @@ class HeaderNav extends React.Component{
               <li className={this.isActive("gamesPane")}><a id="gamesPane" onClick={this.setPane}>Games</a></li>
               <li>
                 <div className="input-field qb-search">
-                  <input id="search" className="qb-search-input" type="search"
+                  <input id="search" className="qb-search-input" type="search" value={this.state.queryText}
                   onChange={this.handleSearch} placeholder="Search" autoFocus type="text"
                   className="form-control" aria-label="Search Appointments" />
                 </div>

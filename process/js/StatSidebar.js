@@ -21,6 +21,19 @@ var _ = require('lodash');
 
 class StatSidebar extends React.Component{
 
+  constructor(props) {
+    super(props);
+    this.filterByTeam = this.filterByTeam.bind(this);
+  }
+
+  /*---------------------------------------------------------
+  When a team's name is clicked on, filter the list of games
+  ---------------------------------------------------------*/
+  filterByTeam(e) {
+    var teamName = e.target.name;
+    this.props.filterByTeam(teamName);
+  }
+
   /*---------------------------------------------------------
   Sort by winning percentage, then by ppg
   ---------------------------------------------------------*/
@@ -89,7 +102,10 @@ class StatSidebar extends React.Component{
       var tiesCell = this.tiesExist() ? ( <td>{item.ties}</td> ) : null;
       return (
         <tr key={item.teamName}>
-          <td className="text-cell">{item.teamName}</td>
+          <td className="text-cell">
+            <a onClick={this.filterByTeam} name={item.teamName}
+            title="Find this team's games">{item.teamName}</a>
+          </td>
           <td>{item.wins}</td>
           <td>{item.losses}</td>
           {tiesCell}

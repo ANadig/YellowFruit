@@ -265,12 +265,7 @@ class SettingsForm extends React.Component{
       tempPhaseAssns = _.without(tempPhaseAssns, 'zzzToDelete');
       tempPhaseAssns = tempPhaseAssns.map((x)=>{ return x=='nullPhase' ? '' : x; });
       this.props.saveDivisions(this.state.phases, tempDivs, tempPhaseAssns);
-      // var newDefaultPhase = this.state.defaultPhase;
-      // if(this.state.phases.length > 0 && this.state.defaultPhase == 'noPhase') {
-      //   newDefaultPhase = this.state.phases[0];
-      // }
-      //........
-      // this.props.setDefaultGrouping(newDefault);
+
       this.setState({
         divisions: tempDivs,
         phaseAssignments: tempPhaseAssns,
