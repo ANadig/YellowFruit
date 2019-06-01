@@ -32,7 +32,8 @@ const TOOLTIPS = {
   round: 'Round No.',
   ppgPerTeam: 'Points per game, per team',
   pp20PerTeam: 'Points per 20 tossups heard, per team',
-  tuPtsPTu: 'Average number of points scored on each tossup heard'
+  tuPtsPTu: 'Average number of points scored on each tossup heard',
+  phaseRecord: ['Record in the ', ' stage of the tournament. Teams are sorted by this record.']
 }
 
 /*---------------------------------------------------------
@@ -58,6 +59,9 @@ function showTeamD2(rptConfig) { return rptConfig.teamD2; }
 
 // include the combined UG/D2 column?
 function showTeamCombined(rptConfig) { return rptConfig.teamCombinedStatus; }
+
+// include the column for W-L record in the grouping phase?
+function showPhaseRecord(rptConfig) { return rptConfig.phaseRecord; }
 
 // track ppg (rather than pp20TUH)?
 function showPpg(rptConfig) { return rptConfig.ppgOrPp20 == 'ppg'; }
@@ -302,7 +306,7 @@ function tdTag(text, align, bold, title, style) {
 /*---------------------------------------------------------
 Header row for the team standings.
 ---------------------------------------------------------*/
-function standingsHeader(settings, tiesExist, rptConfig) {
+function standingsHeader(settings, tiesExist, rptConfig, groupingPhase) {
   var html = '<tr>' + '\n' +
     tdTag('Rank', 'left', true) +
     tdTag('Team', 'left', true);
@@ -321,6 +325,9 @@ function standingsHeader(settings, tiesExist, rptConfig) {
     html += tdTag('T','right',true);
   }
   html += tdTag('Pct','right',true);
+  if(showPhaseRecord(rptConfig)) {
+    html += tdTag('Stage', 'right', true, TOOLTIPS.phaseRecord[0] + groupingPhase + TOOLTIPS.phaseRecord[1]);
+  }
   if(showPpg(rptConfig)) {
     html +=  tdTag('PPG','right',true, TOOLTIPS.ppg);
   }
@@ -392,6 +399,11 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
     rowHtml += tdTag(teamEntry.ties,'right');
   }
   rowHtml += tdTag(teamEntry.winPct,'right');
+  if(showPhaseRecord(rptConfig)) {
+    var phaseRecord = teamEntry.phaseWins + '-' + teamEntry.phaseLosses;
+    if(teamEntry.phaseTies > 0) { phaseRecord += teamEntry.phaseTies; }
+    rowHtml += tdTag(phaseRecord, 'right');
+  }
   if(showPpg(rptConfig)) {
     rowHtml += tdTag(teamEntry.ppg,'right');
   }
@@ -439,14 +451,14 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
 /*---------------------------------------------------------
 Gather data for the team standings
 ---------------------------------------------------------*/
-function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
+function compileStandings(myTeams, myGames, phase, groupingPhase, settings, rptConfig) {
   var standings = myTeams.map(function(item, index) {
     var obj =
       { teamName: item.teamName,
         teamUGStatus: item.teamUGStatus, teamD2Status: item.teamD2Status,
         division: groupingPhase != null ? item.divisions[groupingPhase] : null,
-        wins: 0, losses: 0, ties: 0,
-        winPct: 0,
+        wins: 0, losses: 0, ties: 0, winPct: 0,
+        phaseWins: 0, phaseLosses: 0, phaseTies: 0, phaseWinPct: 0,
         ppg: 0, papg: 0, margin: 0,
         pp20: 0, pap20: 0, mrg20: 0,
         powers: 0, tens: 0, negs: 0,
@@ -467,6 +479,7 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
 
   for(var i in myGames) {
     var g = myGames[i];
+    var gameInGroupingPhase = g.phases.includes(groupingPhase);
     if(phase == 'all' || g.phases.includes(phase)) {
       var team1Line = _.find(standings, function (o) {
         return o.teamName == g.team1;
@@ -479,19 +492,35 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
         team2Line.losses += 1;
         team1Line.forfeits += 1;
         team2Line.forfeits += 1;
+        if(gameInGroupingPhase) {
+          team1Line.phaseWins += 1;
+          team2Line.phaseLosses += 1;
+        }
       }
       else { //not a forfeit
         if(+g.score1 > +g.score2) {
           team1Line.wins += 1;
           team2Line.losses += 1;
+          if(gameInGroupingPhase) {
+            team1Line.phaseWins += 1;
+            team2Line.phaseLosses += 1;
+          }
         }
         else if(+g.score2 > +g.score1) {
           team1Line.losses += 1;
           team2Line.wins += 1;
+          if(gameInGroupingPhase) {
+            team1Line.phaseLosses += 1;
+            team2Line.phaseWins += 1;
+          }
         }
         else { //it's a tie
           team1Line.ties += 1;
           team2Line.ties += 1;
+          if(gameInGroupingPhase) {
+            team1Line.phaseTies += 1;
+            team2Line.phaseTies += 1;
+          }
         }
         team1Line.points += +g.score1;
         team2Line.points += +g.score2;
@@ -545,9 +574,11 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
     var gPerN = t.negs == 0 ? 'inf' : (t.powers + t.tens) / t.negs;
     var ppb = t.bHeard == 0 ? 'inf' : t.bPts / t.bHeard;
     var ppbb = t.bbHeard == 0 ? 'inf' : t.bbPts / bbHrdToFloat(t.bbHeard);
+    var phaseGames = t.phaseWins + t.phaseLosses + t.phaseTies;
 
     if(winPct == 1) { t.winPct = '1.000'; }
     else{ t.winPct = winPct.toFixed(3).substr(1); } //remove leading zero
+    t.phaseWinPct = phaseGames == 0 ? 0 : (t.phaseWins + t.phaseTies/2) / phaseGames;
     t.ppg = formatRate(ppg, 1);
     t.papg = formatRate(papg, 1);
     t.margin = margin.toFixed(1);
@@ -561,6 +592,9 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings) {
     t.ppbb = formatRate(ppbb, 2);
   }
 
+  if(showPhaseRecord(rptConfig)) {
+    return _.orderBy(standings, ['phaseWinPct', 'winPct', (t)=>{return toNum(t.ppg)}], ['desc', 'desc', 'desc']);
+  }
   return _.orderBy(standings, ['winPct', (t)=>{return toNum(t.ppg)}], ['desc', 'desc']);
 } //compileStandings
 
@@ -1611,7 +1645,7 @@ function tableStyle() {
 Generate the team standings page.
 ---------------------------------------------------------*/
 function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInPhase, settings, rptConfig) {
-  var standings = compileStandings(teams, games, phase, groupingPhase, settings);
+  var standings = compileStandings(teams, games, phase, groupingPhase, settings, rptConfig);
   var tiesExist = anyTiesExist(standings);
   var html = getStatReportTop('TeamStandings', fileStart, 'Team Standings') +
     '<h1> Team Standings</h1>' + '\n';
@@ -1619,7 +1653,7 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInP
   if(divsInPhase != undefined && divsInPhase.length > 0) {
     for(var i in divsInPhase) {
       html += '<h2>' + divsInPhase[i] + '</h2>' + '\n';
-      html += '<table width=100%>' + '\n' + standingsHeader(settings, tiesExist, rptConfig);
+      html += '<table width=100%>' + '\n' + standingsHeader(settings, tiesExist, rptConfig, groupingPhase);
       var teamsInDiv = _.filter(standings, (t) => { return t.division == divsInPhase[i] });
       for(var j in teamsInDiv) {
         html += standingsRow(teamsInDiv[j], parseFloat(j)+1, fileStart, settings, tiesExist, rptConfig);
@@ -1680,7 +1714,7 @@ Generate the team detail page.
 function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, phaseColors, rptConfig) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return toNum(item.round); }, 'asc');
-  var standings = compileStandings(teams, games, phase, null, settings);
+  var standings = compileStandings(teams, games, phase, null, settings, rptConfig);
   var individuals = compileIndividuals(teams, games, phase, null, settings);
   var packetsExist = packetNamesExist(packets);
 
