@@ -1648,8 +1648,8 @@ class MainInterface extends React.Component {
   to file.
   If rptName is null, add the new configuration without
   replacing an existing one
-  acceptAndStay is true if the Accept & Stay button
-  was used, false, if the Accept button was used
+  acceptAndStay is true if we want the modal to stay open,
+  false if not.
   ---------------------------------------------------------*/
   modifyRptConfig(rptName, rptObj, newName, acceptAndStay) {
     var tempRpts = this.state.customRptList;

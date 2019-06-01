@@ -190,10 +190,34 @@ class RptConfigModal extends React.Component {
   }
 
   /*---------------------------------------------------------
-  Make a copy of the selected configuration 
+  Make a copy of the selected configuration
   ---------------------------------------------------------*/
   copyRpt(e) {
-
+    if(Object.keys(this.props.customRptList).length >= MAX_CUSTOM_RPT_CONFIGS) { return; }
+    var rptObj = {
+      ppgOrPp20: this.state.ppgOrPp20,
+      teamUG: this.state.teamUG,
+      teamD2: this.state.teamD2,
+      teamCombinedStatus: this.state.teamCombinedStatus,
+      playerYear: this.state.playerYear,
+      playerUG: this.state.playerUG,
+      playerD2: this.state.playerD2,
+      playerCombinedStatus: this.state.playerCombinedStatus,
+      papg: this.state.papg,
+      margin: this.state.margin,
+      phaseRecord: this.state.phaseRecord,
+      pptuh: this.state.pptuh,
+      pPerN: this.state.pPerN,
+      gPerN: this.state.gPerN
+    }
+    var copyNameStub = 'Copy of ' + this.state.selectedRpt;
+    var uniqueName = copyNameStub;
+    var counter = 2;
+    while(this.nameisInvalid(uniqueName)) {
+      uniqueName = copyNameStub + ' (' + counter++ + ')';
+    }
+    this.props.modifyRptConfig(null, rptObj, uniqueName, true);
+    this.selectRpt(uniqueName, 'custom');
   }
 
   /*---------------------------------------------------------
@@ -228,8 +252,8 @@ class RptConfigModal extends React.Component {
   Names cannot be just whitespace, or be the same as the name
   of an existing report
   ---------------------------------------------------------*/
-  nameisInvalid() {
-    var trimmedName = this.state.rptName.trim();
+  nameisInvalid(name) {
+    var trimmedName = name.trim();
     if(trimmedName == '') { return true; }
     if(trimmedName == this.state.selectedRpt) { return false; }
     var lowerKeys = Object.keys(this.props.releasedRptList).map((k,idx) => { return k.toLowerCase(); });
@@ -302,7 +326,15 @@ class RptConfigModal extends React.Component {
     if(this.props.releasedRptList[this.state.selectedRpt] == undefined &&
       this.props.customRptList[this.state.selectedRpt] == undefined &&
       this.state.selectedRptType != 'addNew') {
-      this.selectRpt(this.props.originalDefault, 'released');
+      var sortedRpts = _.orderBy(Object.keys(this.props.customRptList), [(r) => { return r.toLowerCase(); }]);
+      var rptCount = sortedRpts.length;
+      if(rptCount == 0) { this.selectRpt(this.props.originalDefault, 'released'); }
+      else {
+        var nextIdx = 0;
+        while(sortedRpts[nextIdx] < this.state.selectedRpt) { nextIdx++; }
+        if(nextIdx >= rptCount) { nextIdx = rptCount-1; }
+        this.selectRpt(sortedRpts[nextIdx], 'custom');
+      }
     }
     // discard unsaved data when the form closes
     if(!this.props.isOpen && this.state.unsavedDataExists) {
@@ -315,10 +347,12 @@ class RptConfigModal extends React.Component {
 
 
   render() {
-    var invalidName = this.nameisInvalid();
+    var invalidName = this.nameisInvalid(this.state.rptName);
     var disableFields = this.state.selectedRptType == 'released' ? 'disabled' : '';
     var disableDeleteButton = this.state.selectedRptType == 'released' || this.state.selectedRptType == 'addNew' ? 'disabled' : '';
     var disableAcceptButton = this.state.selectedRptType == 'released' || invalidName ? 'disabled' : '';
+    var disableCopyButton = invalidName || Object.keys(this.props.customRptList).length >= MAX_CUSTOM_RPT_CONFIGS ||
+      this.state.selectedRptType == 'addNew' ? 'disabled' : '';
 
     var rptCollection = (
       <div className="collection">
@@ -605,7 +639,7 @@ class RptConfigModal extends React.Component {
                 <span className="hotkey-underline">D</span>elete
               </button>&nbsp;
               <button type="button" accessKey={this.props.isOpen ? 'o' : ''}
-                className={'btn deep-purple accent-1 ' + disableAcceptButton} onClick={this.copyRpt}>
+                className={'btn deep-purple accent-1 ' + disableCopyButton} onClick={this.copyRpt}>
                 C<span className="hotkey-underline">o</span>py
               </button>
             </div>
