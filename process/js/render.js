@@ -30,6 +30,7 @@ var SettingsForm = require('./SettingsForm');
 var TeamList = require('./TeamList');
 var GameList = require('./GameList');
 var StatSidebar = require('./StatSidebar');
+var SidebarToggleButton = require('./SidebarToggleButton');
 
 const MAX_PLAYERS_PER_TEAM = 30;
 const METADATA = {version:'2.2.0'};
@@ -133,7 +134,8 @@ class MainInterface extends React.Component {
       defaultRpt: defaultRpt, // which report configuration is default for new tournaments
       activeRpt: defaultRpt, // which report configuration is currently being used
       modalsInitialized: false, // we only need to initialize Materialize modals on the first render
-      formSettings: defFormSettingsCopy // which optional entry fields to turn on or off
+      formSettings: defFormSettingsCopy, // which optional entry fields to turn on or off
+      sidebarOpen: true // whether the sidebar is visible
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -175,6 +177,7 @@ class MainInterface extends React.Component {
     this.clearDefaultRpt = this.clearDefaultRpt.bind(this);
     this.rptDeletionPrompt = this.rptDeletionPrompt.bind(this);
     this.filterByTeam = this.filterByTeam.bind(this);
+    this.toggleSidebar = this.toggleSidebar.bind(this);
   }
 
   /*---------------------------------------------------------
@@ -1295,6 +1298,15 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Open or close the sidebar
+  ---------------------------------------------------------*/
+  toggleSidebar() {
+    this.setState({
+      sidebarOpen: !this.state.sidebarOpen
+    })
+  }
+
+  /*---------------------------------------------------------
   Modify phases and divisions, as well as the assignments
   of teams to divisions and games to phases if necessary.
   Called from the settings form.
@@ -1891,6 +1903,24 @@ class MainInterface extends React.Component {
     // to prevent player stats from updating before I tell them to
     var gameToLoadCopy = this.state.editWhichGame == null ? null : $.extend(true, {}, this.state.editWhichGame);
 
+    var mainWindowClass = this.state.sidebarOpen ? 'col s12 xl8' : 'col s12';
+
+    var sidebar = null;
+    if(this.state.sidebarOpen) {
+      sidebar = (
+        <div id="stat-sidebar" className="col xl4 s0">
+          <StatSidebar
+            visible = {this.state.sidebarOpen}
+            standings = {getSmallStandings(myTeams, myGames, this.state.viewingPhase, phaseToGroupBy, this.state.settings)}
+            divisions = {divsInPhase}
+            settings = {this.state.settings}
+            activeRpt = {rptObj}
+            filterByTeam = {this.filterByTeam}
+          />
+        </div>
+      );
+    }
+
     return(
       <div className="application">
         <div className="interface">
@@ -1951,7 +1981,7 @@ class MainInterface extends React.Component {
           />
 
           <div className="row">
-            <div id="main-window" className="col s12 xl8">
+            <div id="main-window" className={mainWindowClass}>
               <HeaderNav key={'nav' + this.state.navbarLoadToggle}
                 onSearch= {this.searchLists}
                 setPane = {this.setPane}
@@ -1996,16 +2026,12 @@ class MainInterface extends React.Component {
                 totalGames = {myGames.length}
                 numberSelected = {this.state.selectedGames.length}
               />
-            </div>
-            <div id="stat-sidebar" className="col xl4 s0">
-              <StatSidebar
-                standings = {getSmallStandings(myTeams, myGames, this.state.viewingPhase, phaseToGroupBy, this.state.settings)}
-                divisions = {divsInPhase}
-                settings = {this.state.settings}
-                activeRpt = {rptObj}
-                filterByTeam = {this.filterByTeam}
+              <SidebarToggleButton
+                toggle = {this.toggleSidebar}
+                sidebarOpen = {this.state.sidebarOpen}
               />
             </div>
+            {sidebar}
 
           </div>
         </div>{/* interface */}

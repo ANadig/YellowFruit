@@ -145,6 +145,7 @@ class StatSidebar extends React.Component{
 
 
   render(){
+    if(!this.props.visible) { return null; }
     if(this.props.activeRpt == undefined) { return ( <span>Report configuration error</span> ); }
 
     var sortedSummary = this.standingsSort(this.props.standings.slice());
