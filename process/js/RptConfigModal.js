@@ -331,7 +331,7 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="currentRptIsDefault" disabled={this.disableDefaultCheckBox()}
               checked={this.state.currentRptIsDefault} onChange={this.handleDefaultChange}/>
-            <span>Default</span>
+            <span title="Make this configuration the default for new tournaments">Default</span>
           </label>
         </div>
       </div>
@@ -376,7 +376,7 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="teamCombinedStatus" disabled={disableFields}
               checked={this.state.teamCombinedStatus} onChange={this.handleChange}/>
-            <span>Combined UG/D2</span>
+            <span title="Show UG and D2 status in the same column. Use this for ACF-style elibility rules where all D2 teams are UG.">Combined UG/D2</span>
           </label>
         </div>
       </div>
@@ -406,7 +406,7 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="playerCombinedStatus" disabled={disableFields}
               checked={this.state.playerCombinedStatus} onChange={this.handleChange}/>
-            <span>Combined UG/D2</span>
+            <span title="Show UG and D2 status in the same column. Use this for ACF-style elibility rules where all D2 players are UG.">Combined UG/D2</span>
           </label>
         </div>
       </div>
@@ -431,7 +431,7 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="phaseRecord" disabled={disableFields}
               checked={this.state.phaseRecord} onChange={this.handleChange}/>
-            <span title="Show teams' records in the grouping phase when viewing all games. Standings will be sorted by win percentage in this column.">This Stage</span>
+            <span title="Show teams' records in the grouping phase when viewing all games. Standings will be sorted by win percentage in this column.">This stage</span>
           </label>
         </div>
       </div>

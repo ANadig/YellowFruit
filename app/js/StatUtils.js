@@ -33,7 +33,7 @@ const TOOLTIPS = {
   ppgPerTeam: 'Points per game, per team',
   pp20PerTeam: 'Points per 20 tossups heard, per team',
   tuPtsPTu: 'Average number of points scored on each tossup heard',
-  phaseRecord: ['Record in the ', ' stage of the tournament. Teams are sorted by this record.']
+  phaseRecord: ['Record in the ', ' stage of the tournament. Teams are ranked by this record.']
 }
 
 /*---------------------------------------------------------
