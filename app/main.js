@@ -162,6 +162,20 @@ const VIEW_MENU ={
         click (item, focusedWindow) {
           if(focusedWindow) focusedWindow.webContents.send('nextPhase');
         }
+      },
+      {
+        label: 'Open Sidebar',
+        accelerator: 'Alt+Shift+Left',
+        click (item, focusedWindow) {
+          if(focusedWindow) focusedWindow.webContents.send('toggleSidebar', true);
+        }
+      },
+      {
+        label: 'Close Sidebar',
+        accelerator: 'Alt+Shift+Right',
+        click (item, focusedWindow) {
+          if(focusedWindow) focusedWindow.webContents.send('toggleSidebar', false);
+        }
       }
     ]
   };

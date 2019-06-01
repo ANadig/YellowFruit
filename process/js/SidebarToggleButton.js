@@ -22,7 +22,7 @@ class SidebarToggleButton extends React.Component{
   render() {
     var leftOrRight = this.props.sidebarOpen ? 'right-arrow' : 'left-arrow';
     var chevron = this.props.sidebarOpen ? 'chevron_right' : 'chevron_left';
-    var tooltip = this.props.sidebarOpen ? 'Close the sidebar' : 'Open the sidebar';
+    var tooltip = this.props.sidebarOpen ? 'Close the sidebar (Alt+Shift+Right)' : 'Open the sidebar (Alt+Shift+Left)';
 
     return (
       <div className={'sidebar-toggle ' + leftOrRight}>

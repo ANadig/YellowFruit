@@ -268,6 +268,11 @@ class MainInterface extends React.Component {
     ipc.on('toggleFormField', (event, whichField, status) => {
       this.toggleFormField(whichField, status);
     });
+    ipc.on('toggleSidebar', (event, open) => {
+      this.setState({
+        sidebarOpen: open
+      });
+    });
   } //componentDidMount
 
   /*---------------------------------------------------------
@@ -297,6 +302,7 @@ class MainInterface extends React.Component {
     ipc.removeAllListeners('rptDeleteConfirmation');
     ipc.removeAllListeners('setActiveRptConfig');
     ipc.removeAllListeners('toggleFormField');
+    ipc.removeAllListeners('toggleSidebar');
   } //componentWillUnmount
 
   /*---------------------------------------------------------
