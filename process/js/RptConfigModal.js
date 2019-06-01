@@ -63,6 +63,7 @@ class RptConfigModal extends React.Component {
     this.selectRpt = this.selectRpt.bind(this);
     this.togglePreview = this.togglePreview.bind(this);
     this.attemptDeletion = this.attemptDeletion.bind(this);
+    this.copyRpt = this.copyRpt.bind(this);
   }
 
   /*---------------------------------------------------------
@@ -186,6 +187,13 @@ class RptConfigModal extends React.Component {
   ---------------------------------------------------------*/
   attemptDeletion(e) {
     this.props.attemptDeletion(this.state.selectedRpt);
+  }
+
+  /*---------------------------------------------------------
+  Make a copy of the selected configuration 
+  ---------------------------------------------------------*/
+  copyRpt(e) {
+
   }
 
   /*---------------------------------------------------------
@@ -595,6 +603,10 @@ class RptConfigModal extends React.Component {
               <button type="button" accessKey={this.props.isOpen ? 'd' : ''}
                 className={'btn red accent-1 ' + disableDeleteButton} onClick={this.attemptDeletion}>
                 <span className="hotkey-underline">D</span>elete
+              </button>&nbsp;
+              <button type="button" accessKey={this.props.isOpen ? 'o' : ''}
+                className={'btn deep-purple accent-1 ' + disableAcceptButton} onClick={this.copyRpt}>
+                C<span className="hotkey-underline">o</span>py
               </button>
             </div>
             <div className="col s9">
