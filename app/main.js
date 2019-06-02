@@ -544,7 +544,7 @@ Initialize window and menubars, and set up ipc listeners
 app.on('ready', function() {
   var appWindow;
   appWindow = new BrowserWindow({
-    width: 1200,
+    width: 1250,
     height: 700,
     show: false,
     title: 'YellowFruit - New Tournament',

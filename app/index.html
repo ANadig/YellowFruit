@@ -34,7 +34,8 @@
     var eRequire = require;
     var dirName = __dirname;
     var Path = require('path');
-    var defaultGameDataLocation = Path.resolve(__dirname, '..', 'data', 'gameData.json');
+    const RELEASED_RPT_CONFIG_FILE = Path.resolve(__dirname, '..', 'data', 'ReleasedRptConfig.json');
+    const CUSTOM_RPT_CONFIG_FILE = Path.resolve(__dirname, '..', 'data', 'CustomRptConfig.json');
     var defaultStandingsLocation = Path.resolve(__dirname, 'standings.html');
     var defaultIndividualsLocation = Path.resolve(__dirname, 'individuals.html');
     var defaultScoreboardLocation = Path.resolve(__dirname, 'games.html');

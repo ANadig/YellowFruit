@@ -45,8 +45,6 @@ const DEFAULT_SETTINGS = {
 //Materialize accent-1 colors: yellow, light-green, orange, light-blue, red, purple, teal, deep-purple, pink, green
 const PHASE_COLORS = ['#ffff8d', '#ccff90', '#ffd180', '#80d8ff',
   '#ff8a80', '#ea80fc', '#a7ffeb', '#b388ff', '#ff80ab', '#b9fc6a'];
-const RELEASED_RPT_CONFIG_FILE = Path.resolve('data/ReleasedRptConfig.json');
-const CUSTOM_RPT_CONFIG_FILE = Path.resolve('data/CustomRptConfig.json');
 const EMPTY_CUSTOM_RPT_CONFIG = {
     defaultRpt: null,
     rptConfigList: {}
@@ -68,7 +66,7 @@ class MainInterface extends React.Component {
     var defSettingsCopy = $.extend(true, {}, DEFAULT_SETTINGS);
     var defFormSettingsCopy = $.extend(true, {}, DEFAULT_FORM_SETTINGS);
 
-    //load report configurations from files
+    //load report configurations from files. Paths are defined in index.html 
     var loadRpts = fs.readFileSync(RELEASED_RPT_CONFIG_FILE, 'utf8');
     var releasedRptList = JSON.parse(loadRpts).rptConfigList;
     var defaultRpt = ORIG_DEFAULT_RPT_NAME;
