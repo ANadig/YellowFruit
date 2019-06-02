@@ -32,7 +32,7 @@ if (handleSquirrelEvent(app)) {
 }
 
 //Set to 'production' to hide developer tools; otherwise set to anything else
-process.env.NODE_ENV = 'dev';
+process.env.NODE_ENV = 'production';
 
 //Define parts of the menu that don't change dynamically here
 const YF_MENU = {
@@ -102,13 +102,10 @@ const YF_MENU = {
     },
     {type: 'separator'},
     {role: 'close'},
-  ]
-};
-const EDIT_MENU = {
-  label: '&Edit',
-  submenu: [
+    // items below this point in the submenu are hidden! Just there for keyboard shortcuts
     {
       label: 'Add Team',
+      visible: false,
       accelerator: 'CmdOrCtrl+T',
       click(item,focusedWindow) {
         if (focusedWindow) focusedWindow.webContents.send('addTeam');
@@ -116,11 +113,12 @@ const EDIT_MENU = {
     },
     {
       label: 'Add Game',
+      visible: false,
       accelerator: 'CmdOrCtrl+G',
       click(item,focusedWindow) {
         if (focusedWindow) focusedWindow.webContents.send('addGame');
       }
-    }, // items below this point in the submenu are hidden! Just there for keyboard shortcuts
+    },
     {
       label: 'Search',
       visible: false,
@@ -269,7 +267,6 @@ Build the main menu.
 function buildMainMenu(rptSubMenu) {
   mainMenuTemplate = [
     YF_MENU,
-    EDIT_MENU,
     {
       label: '&Report Settings',
       submenu: rptSubMenu
