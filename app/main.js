@@ -542,7 +542,7 @@ app.on('ready', function() {
   var appWindow;
   appWindow = new BrowserWindow({
     width: 1250,
-    height: 700,
+    height: 710,
     show: false,
     title: 'YellowFruit - New Tournament',
     icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')

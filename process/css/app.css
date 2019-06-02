@@ -299,6 +299,7 @@ nav .btn-flat {
 #rptConfig .rptList {
   padding-left: 0;
   max-height: 325px;
+  min-height: 325px;
   overflow-y: scroll;
 }
 
