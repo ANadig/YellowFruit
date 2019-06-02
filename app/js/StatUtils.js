@@ -1638,7 +1638,7 @@ function tableStyle() {
     'tr:nth-child(even) {\n  background-color: #f2f2f2;\n}\n' +
     'table {\n  border-spacing: 0;\n  border-collapse: collapse;\n}\n' +
     '[title]:not([title=""]) {\n cursor: help;\n text-decoration: underline;\n text-decoration-style: dotted;\n}\n' +
-    '</style>'
+    '</style>\n';
 }
 
 /*---------------------------------------------------------

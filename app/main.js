@@ -304,10 +304,8 @@ function showReportWindow() {
       icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
     }); //reportWindow
 
-    // reportWindow.loadURL('file://' + __dirname + '/standings.html');
     reportWindow.loadURL('file://' + __dirname + '/report_load_spinner.html');
     reportWindow.setMenu(reportMenu);
-
     reportWindow.once('ready-to-show', function () { reportWindow.show(); });
   }
 } //showReportWindow
@@ -330,25 +328,6 @@ function showHelpWindow(focusedWindow, fileName, width, height) {
   helpWindow.setMenu(reportMenu);
   helpWindow.once('ready-to-show', ()=>{ helpWindow.show(); });
   helpWindow.once('close', () => { focusedWindow.focus(); }); //prevent flickering
-}
-
-/*---------------------------------------------------------
-A small window with info about the application.
----------------------------------------------------------*/
-function showAboutYF(focusedWindow) {
-  var aboutWindow = new BrowserWindow({
-    width: 550,
-    height: 300,
-    show: false,
-    parent: focusedWindow,
-    modal: true,
-    autoHideMenuBar: true,
-    icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
-  });
-  aboutWindow.loadURL('file://' + __dirname + '/AboutYF.html');
-  aboutWindow.setMenu(reportMenu);
-  aboutWindow.once('ready-to-show', ()=>{ aboutWindow.show(); });
-  aboutWindow.once('close', () => { focusedWindow.focus(); }); //prevent flickering
 }
 
 /*---------------------------------------------------------
