@@ -120,65 +120,65 @@ const EDIT_MENU = {
       click(item,focusedWindow) {
         if (focusedWindow) focusedWindow.webContents.send('addGame');
       }
+    }, // items below this point in the submenu are hidden! Just there for keyboard shortcuts
+    {
+      label: 'Search',
+      visible: false,
+      accelerator: 'CmdOrCtrl+F',
+      click (item, focusedWindow) {
+        if(focusedWindow) focusedWindow.webContents.send('focusSearch');
+      }
+    },
+    {
+      label: 'Previous Page',
+      visible: false,
+      accelerator: 'CmdOrCtrl+Left',
+      click (item, focusedWindow) {
+        if(focusedWindow) focusedWindow.webContents.send('prevPage');
+      }
+    },
+    {
+      label: 'Next Page',
+      visible: false,
+      accelerator: 'CmdOrCtrl+Right',
+      click (item, focusedWindow) {
+        if(focusedWindow) focusedWindow.webContents.send('nextPage');
+      }
+    },
+    {
+      label: 'Previous Phase',
+      visible: false,
+      accelerator: 'Alt+Left',
+      click (item, focusedWindow) {
+        if(focusedWindow) focusedWindow.webContents.send('prevPhase');
+      }
+    },
+    {
+      label: 'Next Phase',
+      visible: false,
+      accelerator: 'Alt+Right',
+      click (item, focusedWindow) {
+        if(focusedWindow) focusedWindow.webContents.send('nextPhase');
+      }
+    },
+    {
+      label: 'Open Sidebar',
+      visible: false,
+      accelerator: 'Alt+Shift+Left',
+      click (item, focusedWindow) {
+        if(focusedWindow) focusedWindow.webContents.send('toggleSidebar', true);
+      }
+    },
+    {
+      label: 'Close Sidebar',
+      visible: false,
+      accelerator: 'Alt+Shift+Right',
+      click (item, focusedWindow) {
+        if(focusedWindow) focusedWindow.webContents.send('toggleSidebar', false);
+      }
     }
   ]
 };
-const VIEW_MENU ={
-    label: '&View',
-    submenu: [
-      {
-        label: 'Search',
-        accelerator: 'CmdOrCtrl+F',
-        click (item, focusedWindow) {
-          if(focusedWindow) focusedWindow.webContents.send('focusSearch');
-        }
-      },
-      {type: 'separator'},
-      {
-        label: 'Previous Page',
-        accelerator: 'CmdOrCtrl+Left',
-        click (item, focusedWindow) {
-          if(focusedWindow) focusedWindow.webContents.send('prevPage');
-        }
-      },
-      {
-        label: 'Next Page',
-        accelerator: 'CmdOrCtrl+Right',
-        click (item, focusedWindow) {
-          if(focusedWindow) focusedWindow.webContents.send('nextPage');
-        }
-      },
-      {type: 'separator'},
-      {
-        label: 'Previous Phase',
-        accelerator: 'Alt+Left',
-        click (item, focusedWindow) {
-          if(focusedWindow) focusedWindow.webContents.send('prevPhase');
-        }
-      },
-      {
-        label: 'Next Phase',
-        accelerator: 'Alt+Right',
-        click (item, focusedWindow) {
-          if(focusedWindow) focusedWindow.webContents.send('nextPhase');
-        }
-      },
-      {
-        label: 'Open Sidebar',
-        accelerator: 'Alt+Shift+Left',
-        click (item, focusedWindow) {
-          if(focusedWindow) focusedWindow.webContents.send('toggleSidebar', true);
-        }
-      },
-      {
-        label: 'Close Sidebar',
-        accelerator: 'Alt+Shift+Right',
-        click (item, focusedWindow) {
-          if(focusedWindow) focusedWindow.webContents.send('toggleSidebar', false);
-        }
-      }
-    ]
-  };
 const FORM_MENU = {
   label: '&Form Layout',
   submenu: [
@@ -217,13 +217,19 @@ const HELP_MENU = {
     {
       label: 'Search Tips',
       click (item, focusedWindow) {
-        showSearchTips(focusedWindow);
+        showHelpWindow(focusedWindow, 'searchtips.html');
+      }
+    },
+    {
+      label: 'Keyboard Shortcuts',
+      click (item, focusedWindow) {
+        showHelpWindow(focusedWindow, 'keyboardshortcuts.html', 700, 400);
       }
     },
     {
       label: 'About YellowFruit',
       click (item, focusedWindow) {
-        showAboutYF(focusedWindow);
+        showHelpWindow(focusedWindow, 'AboutYF.html');
       }
     }
   ]
@@ -264,7 +270,6 @@ function buildMainMenu(rptSubMenu) {
   mainMenuTemplate = [
     YF_MENU,
     EDIT_MENU,
-    VIEW_MENU,
     {
       label: '&Report Settings',
       submenu: rptSubMenu
@@ -308,23 +313,23 @@ function showReportWindow() {
 } //showReportWindow
 
 /*---------------------------------------------------------
-A small modal that loads a page about how to use the
-search bar.
+A small modal that loads one of the pages launched from
+the Help menu
 ---------------------------------------------------------*/
-function showSearchTips(focusedWindow) {
-  var searchWindow = new BrowserWindow({
-    width: 550,
-    height: 300,
+function showHelpWindow(focusedWindow, fileName, width, height) {
+  var helpWindow = new BrowserWindow({
+    width: width == null ? 550 : width,
+    height: height == null ? 300 : height,
     show: false,
     parent: focusedWindow,
     modal: true,
     autoHideMenuBar: true,
     icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
   });
-  searchWindow.loadURL('file://' + __dirname + '/searchtips.html');
-  searchWindow.setMenu(reportMenu);
-  searchWindow.once('ready-to-show', ()=>{ searchWindow.show(); });
-  searchWindow.once('close', () => { focusedWindow.focus(); }); //prevent flickering
+  helpWindow.loadURL('file://' + __dirname + '/' + fileName);
+  helpWindow.setMenu(reportMenu);
+  helpWindow.once('ready-to-show', ()=>{ helpWindow.show(); });
+  helpWindow.once('close', () => { focusedWindow.focus(); }); //prevent flickering
 }
 
 /*---------------------------------------------------------
@@ -386,7 +391,7 @@ function sqbsSaveDialog(focusedWindow) {
 }
 
 /*---------------------------------------------------------
-Prompt the user to select a filename for the data
+Prompt the user to select a file name for the data
 (YellowFruit, not SQBS format)
 ---------------------------------------------------------*/
 function saveTournamentAs(focusedWindow) {
