@@ -2,6 +2,7 @@
   "name": "YellowFruit",
   "version": "2.2.0",
   "description": "QB Stats Program",
+  "author": {"name": "Andrew Nadig"},
   "scripts": {
     "pack": "electron-packager . YellowFruit --out C:/Users/awnad/Desktop --overwrite --icon ./icons/banana",
     "pack-win": "electron-packager . YellowFruit --platform=win32 --arch=all --out C:/Users/awnad/Desktop --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig",
