@@ -553,6 +553,8 @@ app.on('ready', function() {
   appWindow.once('ready-to-show', function() {
     appWindow.show();
 
+    appWindow.webContents.send('loadRptConfigs', process.env.NODE_ENV);
+
     var argsLength = process.defaultApp ? 3 : 2;
     if (process.argv.length >= argsLength) {
       appWindow.webContents.send('openTournament', process.argv[argsLength-1]);

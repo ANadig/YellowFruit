@@ -33,7 +33,7 @@ var StatSidebar = require('./StatSidebar');
 var SidebarToggleButton = require('./SidebarToggleButton');
 
 const MAX_PLAYERS_PER_TEAM = 30;
-const METADATA = {version:'2.2.0'};
+const METADATA = {version:'2.2.1'};
 const DEFAULT_SETTINGS = {
   powers: '15pts',
   negs: 'yes',
@@ -66,32 +66,8 @@ class MainInterface extends React.Component {
     var defSettingsCopy = $.extend(true, {}, DEFAULT_SETTINGS);
     var defFormSettingsCopy = $.extend(true, {}, DEFAULT_FORM_SETTINGS);
 
-    //load report configurations from files. Paths are defined in index.html 
     var loadRpts = fs.readFileSync(RELEASED_RPT_CONFIG_FILE, 'utf8');
     var releasedRptList = JSON.parse(loadRpts).rptConfigList;
-    var defaultRpt = ORIG_DEFAULT_RPT_NAME;
-
-    if(fs.existsSync(CUSTOM_RPT_CONFIG_FILE)) {
-      loadRpts = fs.readFileSync(CUSTOM_RPT_CONFIG_FILE, 'utf8');
-      var customRptConfig = JSON.parse(loadRpts);
-      var customRptList = customRptConfig.rptConfigList;
-      if(customRptList[customRptConfig.defaultRpt] != undefined) {
-        defaultRpt = customRptConfig.defaultRpt;
-      }
-    }
-    else {
-      var customRptList = {};
-      fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(EMPTY_CUSTOM_RPT_CONFIG), 'utf8', function(err) {
-        if (err) { console.log(err); }
-      });
-    }
-    // don't allow >25 custom configs (you'd have to manually mess with the file to have this happen)
-    if(Object.keys(customRptList).length > MAX_CUSTOM_RPT_CONFIGS) {
-      var customRptSlice = Object.keys(customRptList).slice(MAX_CUSTOM_RPT_CONFIGS);
-      for(var i in customRptSlice) { delete customRptList[customRptSlice[i]]; }
-    }
-
-    ipc.sendSync('rebuildMenus', releasedRptList, customRptList, defaultRpt, defFormSettingsCopy);
 
     this.state = {
       tmWindowVisible: false, // whether the team entry modal is open
@@ -128,9 +104,10 @@ class MainInterface extends React.Component {
       editingSettings: false, // Whether the "settings" section of the settings pane is open for editing
       gameToBeDeleted: null, // which game the user is attempting to delete
       releasedRptList: releasedRptList, // list of uneditable report configurations
-      customRptList: customRptList, // list of user-created report configurations
-      defaultRpt: defaultRpt, // which report configuration is default for new tournaments
-      activeRpt: defaultRpt, // which report configuration is currently being used
+      customRptList: {}, // list of user-created report configurations
+      customRptFile: null, // file path to score user configuration
+      defaultRpt: ORIG_DEFAULT_RPT_NAME, // which report configuration is default for new tournaments
+      activeRpt: ORIG_DEFAULT_RPT_NAME, // which report configuration is currently being used
       modalsInitialized: false, // we only need to initialize Materialize modals on the first render
       formSettings: defFormSettingsCopy, // which optional entry fields to turn on or off
       sidebarOpen: true // whether the sidebar is visible
@@ -271,6 +248,9 @@ class MainInterface extends React.Component {
         sidebarOpen: open
       });
     });
+    ipc.on('loadRptConfigs', (event, env) => {
+      this.loadCustomRptConfigs(env);
+    });
   } //componentDidMount
 
   /*---------------------------------------------------------
@@ -301,6 +281,7 @@ class MainInterface extends React.Component {
     ipc.removeAllListeners('setActiveRptConfig');
     ipc.removeAllListeners('toggleFormField');
     ipc.removeAllListeners('toggleSidebar');
+    ipc.removeAllListeners('loadRptConfigs');
   } //componentWillUnmount
 
   /*---------------------------------------------------------
@@ -312,6 +293,51 @@ class MainInterface extends React.Component {
         modalsInitialized: true
       });
     }
+  }
+
+  /*---------------------------------------------------------
+  Load report configurations, after the main process has
+  told us where to look. Called once when the application
+  starts.
+  ---------------------------------------------------------*/
+  loadCustomRptConfigs(env) {
+    console.log(env);
+    //load report configurations from files. Paths are defined in index.html
+    var loadRpts = fs.readFileSync(RELEASED_RPT_CONFIG_FILE, 'utf8');
+    var releasedRptList = JSON.parse(loadRpts).rptConfigList;
+    var defaultRpt = ORIG_DEFAULT_RPT_NAME;
+
+    var customRptFile = env == 'production' ? CUSTOM_RPT_CONFIG_FILE_PROD : CUSTOM_RPT_CONFIG_FILE_DEV;
+    if(fs.existsSync(customRptFile)) {
+      loadRpts = fs.readFileSync(customRptFile, 'utf8');
+      var customRptConfig = JSON.parse(loadRpts);
+      var customRptList = customRptConfig.rptConfigList;
+      if(customRptList[customRptConfig.defaultRpt] != undefined) {
+        defaultRpt = customRptConfig.defaultRpt;
+      }
+    }
+    else {
+      var customRptList = {};
+      fs.writeFile(customRptFile, JSON.stringify(EMPTY_CUSTOM_RPT_CONFIG), 'utf8', function(err) {
+        if (err) { console.log(err); }
+      });
+    }
+    // don't allow >25 custom configs (you'd have to manually mess with the file to have this happen)
+    if(Object.keys(customRptList).length > MAX_CUSTOM_RPT_CONFIGS) {
+      var customRptSlice = Object.keys(customRptList).slice(MAX_CUSTOM_RPT_CONFIGS);
+      for(var i in customRptSlice) { delete customRptList[customRptSlice[i]]; }
+    }
+
+    var defFormSettingsCopy = $.extend(true, {}, DEFAULT_FORM_SETTINGS);
+    ipc.sendSync('rebuildMenus', releasedRptList, customRptList, defaultRpt, defFormSettingsCopy);
+
+    this.setState({
+      releasedRptList: releasedRptList, // list of uneditable report configurations
+      customRptList: customRptList, // list of user-created report configurations
+      customRptFile: customRptFile, // file path to store use configuration
+      defaultRpt: defaultRpt, // which report configuration is default for new tournaments
+      activeRpt: defaultRpt, // which report configuration is currently being used
+    });
   }
 
   /*---------------------------------------------------------
@@ -1686,7 +1712,7 @@ class MainInterface extends React.Component {
         rptConfigList: tempRpts
     }
     var saveSuccess = true;
-    fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {
+    fs.writeFile(this.state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', (err) => {
       if (err) {
         saveSuccess = false;
         console.log(err);
@@ -1710,7 +1736,7 @@ class MainInterface extends React.Component {
       defaultRpt: rptName,
     });
     var saveSuccess = true;
-    fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {
+    fs.writeFile(this.state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', (err) => {
       if (err) {
         saveSuccess = false;
         console.log(err);
@@ -1734,7 +1760,7 @@ class MainInterface extends React.Component {
       defaultRpt: ORIG_DEFAULT_RPT_NAME,
     });
     var saveSuccess = true;
-    fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {
+    fs.writeFile(this.state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', (err) => {
       if (err) {
         saveSuccess = false;
         console.log(err);
@@ -1774,7 +1800,7 @@ class MainInterface extends React.Component {
       defaultRpt: newDefault == ORIG_DEFAULT_RPT_NAME ? null : newDefault,
       rptConfigList: tempRpts
     }
-    fs.writeFile(CUSTOM_RPT_CONFIG_FILE, JSON.stringify(newCustomRpts), 'utf8', (err) => {
+    fs.writeFile(this.state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', (err) => {
       if (err) { console.log(err); }
     });
     ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt, this.state.formSettings);
