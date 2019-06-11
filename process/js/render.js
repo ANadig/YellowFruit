@@ -301,13 +301,15 @@ class MainInterface extends React.Component {
   starts.
   ---------------------------------------------------------*/
   loadCustomRptConfigs(env) {
-    console.log(env);
     //load report configurations from files. Paths are defined in index.html
     var loadRpts = fs.readFileSync(RELEASED_RPT_CONFIG_FILE, 'utf8');
     var releasedRptList = JSON.parse(loadRpts).rptConfigList;
     var defaultRpt = ORIG_DEFAULT_RPT_NAME;
 
     var customRptFile = env == 'production' ? CUSTOM_RPT_CONFIG_FILE_PROD : CUSTOM_RPT_CONFIG_FILE_DEV;
+    if(env == 'production' && !fs.existsSync(USER_CONFIG_FOLDER_PROD)) {
+      fs.mkdirSync(USER_CONFIG_FOLDER_PROD);
+    }
     if(fs.existsSync(customRptFile)) {
       loadRpts = fs.readFileSync(customRptFile, 'utf8');
       var customRptConfig = JSON.parse(loadRpts);
