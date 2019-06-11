@@ -1651,13 +1651,21 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInP
     '<h1> Team Standings</h1>' + '\n';
   html += tableStyle();
   if(divsInPhase != undefined && divsInPhase.length > 0) {
+    var teamsInPriorDivisions = 0;
     for(var i in divsInPhase) {
       html += '<h2>' + divsInPhase[i] + '</h2>' + '\n';
       html += '<table width=100%>' + '\n' + standingsHeader(settings, tiesExist, rptConfig, groupingPhase);
       var teamsInDiv = _.filter(standings, (t) => { return t.division == divsInPhase[i] });
+      var curRank = 0, prevPhaseRecord = null, curTeam;
       for(var j in teamsInDiv) {
-        html += standingsRow(teamsInDiv[j], parseFloat(j)+1, fileStart, settings, tiesExist, rptConfig);
+        curTeam = teamsInDiv[j];
+        if(!showPhaseRecord(rptConfig) || (prevPhaseRecord == null || curTeam.phaseWinPct != prevPhaseRecord)) {
+          curRank = teamsInPriorDivisions + (+j) + 1;
+        }
+        html += standingsRow(curTeam, curRank, fileStart, settings, tiesExist, rptConfig);
+        prevPhaseRecord = curTeam.phaseWinPct;
       }
+      if(showPhaseRecord(rptConfig)) { teamsInPriorDivisions += +j+1; }
       html += '</table>' + '\n';
     }
   }
