@@ -859,7 +859,7 @@ app.on('ready', function() {
 
 
 ///////////////////////////////////////////////////////////////////////////
-// All code below this point was not written by me
+// Install code mostly taken from a tutorial
 ///////////////////////////////////////////////////////////////////////////
 
 
@@ -871,11 +871,14 @@ function handleSquirrelEvent(application) {
 
     const ChildProcess = require('child_process');
     const path = require('path');
+    const fs = require('fs');
 
     const appFolder = path.resolve(process.execPath, '..');
     const rootAtomFolder = path.resolve(appFolder, '..');
     const updateDotExe = path.resolve(path.join(rootAtomFolder, 'Update.exe'));
     const exeName = path.basename(process.execPath);
+
+    const userConfigFolder = path.resolve(rootAtomFolder, '..', 'YellowFruitUserData');
 
     const spawn = function(command, args) {
         let spawnedProcess, error;
@@ -905,6 +908,11 @@ function handleSquirrelEvent(application) {
             // Install desktop and start menu shortcuts
             spawnUpdate(['--createShortcut', exeName]);
 
+            // awn 6/19 add user config folder
+            if(!fs.existsSync(userConfigFolder)) {
+              fs.mkdirSync(userConfigFolder);
+            }
+
             setTimeout(application.quit, 1000);
             return true;
 
@@ -914,6 +922,9 @@ function handleSquirrelEvent(application) {
 
             // Remove desktop and start menu shortcuts
             spawnUpdate(['--removeShortcut', exeName]);
+            // awn 6/19 remove user config folder
+            fs.unlinkSync(path.resolve(userConfigFolder, 'CustomRptConfig.json'));
+            fs.rmdirSync(userConfigFolder);
 
             setTimeout(application.quit, 1000);
             return true;

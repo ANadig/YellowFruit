@@ -307,9 +307,7 @@ class MainInterface extends React.Component {
     var defaultRpt = ORIG_DEFAULT_RPT_NAME;
 
     var customRptFile = env == 'production' ? CUSTOM_RPT_CONFIG_FILE_PROD : CUSTOM_RPT_CONFIG_FILE_DEV;
-    if(env == 'production' && !fs.existsSync(USER_CONFIG_FOLDER_PROD)) {
-      fs.mkdirSync(USER_CONFIG_FOLDER_PROD);
-    }
+
     if(fs.existsSync(customRptFile)) {
       loadRpts = fs.readFileSync(customRptFile, 'utf8');
       var customRptConfig = JSON.parse(loadRpts);
