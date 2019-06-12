@@ -1089,7 +1089,7 @@ page since it doesn't use tableStyle()
 ---------------------------------------------------------*/
 function phaseLegend(phaseColors) {
   var phaseCnt = 0;
-  var html = '<table border=0' +
+  var html = '<table border=0 class="phaseLegend"' +
     ' style="bottom:20px;right:35px;position:fixed;box-shadow: 4px 4px 7px #999999;border-spacing:0;border-collapse:separate;">' + '\n';
   for(var p in phaseColors) {
     html += '<tr>' + '\n';
@@ -1638,6 +1638,7 @@ function tableStyle() {
     'tr:nth-child(even) {\n  background-color: #f2f2f2;\n}\n' +
     'table {\n  border-spacing: 0;\n  border-collapse: collapse;\n}\n' +
     '[title]:not([title=""]) {\n cursor: help;\n text-decoration: underline;\n text-decoration-style: dotted;\n}\n' +
+    '.phaseLegend:hover {\n color: lightgray;\n opacity: 0.3;\n}\n' +
     '</style>\n';
 }
 
