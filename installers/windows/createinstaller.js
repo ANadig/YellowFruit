@@ -11,7 +11,7 @@ function getInstallerConfig () {
   console.log('creating windows installer')
 
   return Promise.resolve({
-    appDirectory: 'C:/Users/awnad/Desktop/YellowFruit-win32-x64',
+    appDirectory: 'dist/pkg/YellowFruit-win32-x64',
     authors: 'Andrew Nadig',
     noMsi: true,
     iconUrl: 'C:/Users/awnad/Desktop/banana.ico',

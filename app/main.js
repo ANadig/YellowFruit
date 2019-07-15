@@ -31,8 +31,8 @@ if (handleSquirrelEvent(app)) {
     return;
 }
 
-//Set to 'production' to hide developer tools; otherwise set to anything else
-process.env.NODE_ENV = 'production';
+//Set to 'production' to hide developer tools if not specified; otherwise set to anything else
+if (process.env.NODE_ENV === undefined) process.env.NODE_ENV = 'production';
 
 //Define parts of the menu that don't change dynamically here
 const YF_MENU = {
