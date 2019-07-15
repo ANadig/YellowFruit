@@ -1201,7 +1201,7 @@ function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, pha
 The totals row of a games table on the team detail page.
 ---------------------------------------------------------*/
 function teamDetailTeamSummaryRow(teamSummary, packetsExist, settings, rptConfig) {
-  var html = '<tfoot>' + '\n' + '<tr>' + '\n';
+  var html = '<tr class="pseudo-tfoot">' + '\n';
   html += tdTag('', null, false, null, 'border-top:1px solid white');
   html += tdTag('Total', 'left', true);
   html += tdTag('');
@@ -1240,7 +1240,7 @@ function teamDetailTeamSummaryRow(teamSummary, packetsExist, settings, rptConfig
   if(packetsExist) {
     html += tdTag('');
   }
-  html += '</tr>' + '\n' + '</tfoot>' + '\n';
+  html += '</tr>' + '\n';
 
   return html;
 }
@@ -1456,7 +1456,7 @@ Total row for a table on the player detail page. Reuse
 results of compileIndividuals
 ---------------------------------------------------------*/
 function playerDetailTotalRow(player, settings, rptConfig) {
-  var html = '<tfoot>' + '\n' + '<tr>' + '\n';
+  var html = '<tr class="pseudo-tfoot">' + '\n';
   html += tdTag('', null, false, null, 'border-top:1px solid white');
   html += tdTag('Total', 'left', true);
   html += tdTag('');
@@ -1482,7 +1482,7 @@ function playerDetailTotalRow(player, settings, rptConfig) {
   if(showPp20(rptConfig)) {
     html += tdTag(player.pp20, 'right', true);
   }
-  html += '</tr>' + '\n' + '</tfoot>' + '\n';
+  html += '</tr>' + '\n';
   return html;
 }
 
@@ -1634,8 +1634,10 @@ this in the body.
 function tableStyle() {
   return '<style>\n' +
     'td {\n  padding: 5px;\n}\n' +
-    'tfoot {\n  border-top: 1px solid #909090;\n}\n' +
+    'tfoot {\n  border-top: 1px solid #909090;\n}\n' + // unused currently
     'tr:nth-child(even) {\n  background-color: #f2f2f2;\n}\n' +
+    // this one is needed because HSQB doesn't allow uploading files with tfoot tags >:(
+    '.pseudo-tfoot {\n border-top: 1px solid #909090;\n background-color: #ffffff !important;\n}\n' +
     'table {\n  border-spacing: 0;\n  border-collapse: collapse;\n}\n' +
     '[title]:not([title=""]) {\n cursor: help;\n text-decoration: underline;\n text-decoration-style: dotted;\n}\n' +
     '.phaseLegend:hover {\n color: lightgray;\n opacity: 0.3;\n}\n' +
