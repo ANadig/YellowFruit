@@ -852,7 +852,7 @@ function blankPlayerLineScore(size) {
   while(output.length < size) {
     output.push(tdTag(''));
   }
-  return output.join('\n');
+  return output.join('');
 }
 
 /*---------------------------------------------------------
@@ -962,7 +962,7 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors)
           playersRight.push(blankPlayerLineScore(columnsPerTeam) + '\n' + '</tr>' + '\n');
         }
         while (playersLeft.length < playersRight.length) {
-          playersLeft.push('<tr>' + blankPlayerLineScore(columnsPerTeam) + '\n');
+          playersLeft.push('<tr>' + '\n' + blankPlayerLineScore(columnsPerTeam) + '\n');
         }
 
         for(var i in playersLeft) {
