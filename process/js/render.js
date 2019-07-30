@@ -808,15 +808,6 @@ class MainInterface extends React.Component {
     ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, this.state.defaultRpt, this.state.formSettings);
   }
 
-  //clear text from the search bar in order to show all teams/games
-  // clearSearch() {
-  //   if(this.state.activePane == 'settingsPane') { return; }
-  //   $('#search').val('');
-  //   this.setState({
-  //     queryText: '',
-  //   });
-  // }
-
   /*---------------------------------------------------------
   Whether any of the modal windows are open
   ---------------------------------------------------------*/

@@ -883,7 +883,7 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors)
         // game title
         html += '<div id=' + linkId + ' style="margin:-2.3em;position:absolute"></div>'
         html += '<h3>' + '\n';
-        if(phase == 'all') {
+        if(phase == 'all' && g.phases.length != 0) {
           html += '<span style="' + getRoundStyle(g.phases, phaseColors) + '">' +
             '&nbsp;&nbsp;&nbsp;&nbsp;</span>' + '\n';
         }
@@ -1107,7 +1107,7 @@ page.
 ---------------------------------------------------------*/
 function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, phaseColors, formatRdCol, fileStart, rptConfig) {
   var opponent, opponentScore, result, score, players;
-  var roundStyle = formatRdCol ? getRoundStyle(game.phases, phaseColors) : '';
+  var roundStyle = formatRdCol ? getRoundStyle(game.phases, phaseColors) : null;
 
   if(whichTeam == 1) {
     opponent = game.team2;
@@ -1419,7 +1419,7 @@ function playerDetailGameRow(player, tuhtot, opponent, round, link, settings, ga
   var pPerN = negs == 0 ? 'inf' : powers / negs;
   var gPerN = negs == 0 ? 'inf' : (powers + tens) / negs;
 
-  var roundStyle = formatRdCol ? getRoundStyle(gamePhases, phaseColors) : '';
+  var roundStyle = formatRdCol ? getRoundStyle(gamePhases, phaseColors) : null;
 
   var html = '<tr>' + '\n';
   html += tdTag(round, 'center', false, null, roundStyle);
@@ -1758,11 +1758,12 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, ph
     html += teamDetailGameTableHeader(packetsExist, settings, rptConfig) + '\n';
     for(var j in games) {
       let gameInPhase = phase == 'all' || games[j].phases.includes(phase);
+      var formatRdCol = phase == 'all' && games[j].phases.length > 0;
       if(gameInPhase && games[j].team1 == teamName) {
-        html += teamDetailGameRow(games[j], 1, packetsExist, packets, settings, phaseColors, phase=='all', fileStart, rptConfig);
+        html += teamDetailGameRow(games[j], 1, packetsExist, packets, settings, phaseColors, formatRdCol, fileStart, rptConfig);
       }
       else if(gameInPhase && games[j].team2 == teamName) {
-        html += teamDetailGameRow(games[j], 2, packetsExist, packets, settings, phaseColors, phase=='all', fileStart, rptConfig);
+        html += teamDetailGameRow(games[j], 2, packetsExist, packets, settings, phaseColors, formatRdCol, fileStart, rptConfig);
       }
     }
     var teamSummary = _.find(standings, (o) => { return o.teamName == teamName; });
@@ -1836,12 +1837,13 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
     for(var j in games) {
       var game = games[j];
       let gameInPhase = phase == 'all' || game.phases.includes(phase);
+      var formatRdCol = phase == 'all' && game.phases.length > 0;
       if (gameInPhase && game.team1 == indvTot.teamName) {
         for(var p in game.players1) {
           if(p == indvTot.playerName) {
             var link = playerDetailGameLink(game, 1, fileStart);
             html += playerDetailGameRow(game.players1[p], game.tuhtot, game.team2,
-              game.round, link, settings, game.phases, phaseColors, phase == 'all', rptConfig);
+              game.round, link, settings, game.phases, phaseColors, formatRdCol, rptConfig);
           }
         }
       }
@@ -1850,7 +1852,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
         for(var p in game.players2) {
           if(p == indvTot.playerName) {
             html += playerDetailGameRow(game.players2[p], game.tuhtot, game.team1,
-              game.round, link, settings, game.phases, phaseColors, phase == 'all', rptConfig);
+              game.round, link, settings, game.phases, phaseColors, formatRdCol, rptConfig);
           }
         }
       }
