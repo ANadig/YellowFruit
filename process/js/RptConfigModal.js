@@ -418,7 +418,7 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="teamCombinedStatus" disabled={disableFields}
               checked={this.state.teamCombinedStatus} onChange={this.handleChange}/>
-            <span title="Show UG and D2 status in the same column. Use this for ACF-style elibility rules where all D2 teams are UG.">Combined UG/D2</span>
+            <span title="Show UG and D2 status in the same column. Use this for ACF-style eligibility rules where all D2 teams are UG.">Combined UG/D2</span>
           </label>
         </div>
       </div>
@@ -448,7 +448,7 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="playerCombinedStatus" disabled={disableFields}
               checked={this.state.playerCombinedStatus} onChange={this.handleChange}/>
-            <span title="Show UG and D2 status in the same column. Use this for ACF-style elibility rules where all D2 players are UG.">Combined UG/D2</span>
+            <span title="Show UG and D2 status in the same column. Use this for ACF-style eligibility rules where all D2 players are UG.">Combined UG/D2</span>
           </label>
         </div>
       </div>
