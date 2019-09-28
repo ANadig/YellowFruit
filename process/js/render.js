@@ -994,7 +994,7 @@ class MainInterface extends React.Component {
 
     for(var i in originalNames) {
       let oldn = originalNames[i], newn = newNames[i];
-      if(oldn != newn) { //newn can be the empty string, if the user deleted players
+      if(oldn != newn && newn != undefined) {
         this.updatePlayerName(tempGames, oldTeam.teamName, oldn, newn);
       }
     }
@@ -1005,7 +1005,8 @@ class MainInterface extends React.Component {
 
     //update index
     var tempPlayerIndex = this.state.playerIndex;
-    modifyTeamInPlayerIndex(oldTeam, newTeam, tempPlayerIndex); //statUtils2
+    var newTeamCopy = $.extend(true, {}, newTeam);
+    modifyTeamInPlayerIndex(oldTeam, newTeamCopy, tempPlayerIndex); //statUtils2
 
     //don't save the dummy placeholders for deleted teams
     var deletedTeams = [];

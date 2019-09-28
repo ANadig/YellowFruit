@@ -138,7 +138,7 @@ function modifyTeamInPlayerIndex(oldTeam, newTeam, index) {
   var count = 0;
   for(var p in oldTeam.roster) {
     var newPlayerName = newPlayerList[count++];
-    if(newTeam.roster[newPlayerName].deleted == undefined) {  // property only defined for players that were just deleted
+    if(newPlayerName != undefined && newTeam.roster[newPlayerName].deleted == undefined) {  // property only defined for players that were just deleted
       newIndexPiece[newPlayerName] = index[oldTeamName][p];
     }
   }
