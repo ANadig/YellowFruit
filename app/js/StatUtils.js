@@ -1088,7 +1088,6 @@ player detail pages, but it's needed for the scoreboard
 page since it doesn't use tableStyle()
 ---------------------------------------------------------*/
 function phaseLegend(phaseColors) {
-  var phaseCnt = 0;
   var html = '<table border=0 class="phaseLegend"' +
     ' style="bottom:20px;right:35px;position:fixed;box-shadow: 4px 4px 7px #999999;border-spacing:0;border-collapse:separate;">' + '\n';
   for(var p in phaseColors) {

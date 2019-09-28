@@ -678,7 +678,7 @@ class MainInterface extends React.Component {
     var endFileStart = filePathSegments.pop();
     var phaseColors = {}, phaseCnt = 0;
     for(var p in this.state.divisions) {
-      phaseColors[p] = PHASE_COLORS[phaseCnt++];
+      if(p != "noPhase") { phaseColors[p] = PHASE_COLORS[phaseCnt++]; }
     }
     var activeRpt = this.state.releasedRptList[this.state.activeRpt];
     if(activeRpt == undefined) { activeRpt = this.state.customRptList[this.state.activeRpt]; }
