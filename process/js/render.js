@@ -1332,8 +1332,10 @@ class MainInterface extends React.Component {
   Modify phases and divisions, as well as the assignments
   of teams to divisions and games to phases if necessary.
   Called from the settings form.
+  oldDivisions provides the state
+  of the data at the time the card was opened for editing
   ---------------------------------------------------------*/
-  saveDivisions(newPhases, newDivAry, newPhaseAssignments) {
+  saveDivisions(newPhases, newDivAry, newPhaseAssignments, oldDivisions) {
     var tempDivisions = {};
     if(newPhases.length == 0 && newDivAry.length > 0) {
       tempDivisions.noPhase = newDivAry;
@@ -1356,13 +1358,31 @@ class MainInterface extends React.Component {
       }
       if(noPhase.length > 0) { tempDivisions.noPhase = noPhase; }
     }
-    //delete team's division if the phase doesn't exist or doesn't have that division
+    //map old divisions to new divisions based on their position in the list,
+    //  so that we can edit division names
+    var nameUpdates = {};
+    var divsToCheck = newDivAry.length > oldDivisions.length ? oldDivisions.length : newDivAry.length;
+    for(var i=0; i<divsToCheck; i++) {
+      var oldD = oldDivisions[i], newD = newDivAry[i];
+      if(oldD != newD) { nameUpdates[oldD] = [newD, newPhaseAssignments[i]]; }
+    }
+    //update team's divisions
     var tempTeams = this.state.myTeams;
     for(var i in tempTeams) {
       for(var phase in tempTeams[i].divisions) {
-        if(tempDivisions[phase] == undefined ||
-            !tempDivisions[phase].includes(tempTeams[i].divisions[phase])) {
+        //delete divisions for phases that no longer exist
+        if(tempDivisions[phase] == undefined) {
           delete tempTeams[i].divisions[phase];
+        }
+        else {
+          var update = nameUpdates[tempTeams[i].divisions[phase]];
+          // if a divisions name was changed, and it's still in the same phase, update it
+          if(update != undefined && update[1] == phase) {
+            tempTeams[i].divisions[phase] = update[0];
+          }
+          else if(!tempDivisions[phase].includes(tempTeams[i].divisions[phase])) {
+            delete tempTeams[i].divisions[phase];
+          }
         }
       }
     }

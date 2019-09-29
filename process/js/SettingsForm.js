@@ -40,7 +40,8 @@ class SettingsForm extends React.Component{
       editingPackets: false,
       editingDivisions: false,
       editingPhases: false,
-      needToReRender: false
+      needToReRender: false,
+      oldDivisions: [],  //used to track what was changed while the card was open
     }
     this.handleChange = this.handleChange.bind(this);
     this.handlePacketChange = this.handlePacketChange.bind(this);
@@ -232,7 +233,7 @@ class SettingsForm extends React.Component{
           tempPhaseAssns[i] = '';
         }
       }
-      this.props.saveDivisions(tempPhases, this.state.divisions, tempPhaseAssns);
+      this.props.saveDivisions(tempPhases, this.state.divisions, tempPhaseAssns, this.state.divisions);
       this.setState({
         editingPhases: false,
         phases: tempPhases,
@@ -249,7 +250,9 @@ class SettingsForm extends React.Component{
     if(!this.state.editingDivisions) {
       this.setState({
         editingDivisions: true,
-        needToReRender: true
+        needToReRender: true,
+        oldDivisions: this.state.divisions.slice(),
+        oldPhaseAssignments: this.state.phaseAssignments.slice()
       });
       if(this.state.editingPhases) { this.phaseToggle(); }
       if(this.state.editingSettings) { this.settingsToggle(); }
@@ -264,7 +267,7 @@ class SettingsForm extends React.Component{
       tempDivs = _.without(tempDivs, '');
       tempPhaseAssns = _.without(tempPhaseAssns, 'zzzToDelete');
       tempPhaseAssns = tempPhaseAssns.map((x)=>{ return x=='nullPhase' ? '' : x; });
-      this.props.saveDivisions(this.state.phases, tempDivs, tempPhaseAssns);
+      this.props.saveDivisions(this.state.phases, tempDivs, tempPhaseAssns, this.state.oldDivisions);
 
       this.setState({
         divisions: tempDivs,

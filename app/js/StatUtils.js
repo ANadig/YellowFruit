@@ -284,7 +284,7 @@ function anyTiesExist(standings) {
 }
 
 /*---------------------------------------------------------
-API to generate table cell <td> tags (with newline at the end)
+Generate table cell <td> tags (with newline at the end)
   text: inner text
   align: 'left', etc.
   bold: boolean
