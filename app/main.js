@@ -15,7 +15,17 @@ var Menu = electron.Menu;
 var app = electron.app;
 var ipc = electron.ipcMain;
 var Path = require('path');
+var fs = require('fs');
 var _ = require('lodash');
+const USER_CONFIG_FOLDER_PROD = Path.resolve(__dirname,  '..', '..', '..', '..', '..', 'YellowFruitUserData');
+const USER_CONFIG_FILE_PROD = Path.resolve(USER_CONFIG_FOLDER_PROD, 'UserConfig.json');
+const USER_CONFIG_FILE_DEV = Path.resolve(__dirname, '..', 'data', 'UserConfig.json');
+const DEFAULT_USER_CONFIG = {
+  autoSave: true
+};
+var currentUserConfig;
+var autoSaveIntervalId = null; // store the interval ID from setInterval here
+const AUTO_SAVE_TIME_MS = 300000; //number of milliseconds between auto-saves
 var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate;
 var reportWindow; //to show the html report
 var currentFile = '';
@@ -33,6 +43,19 @@ if (handleSquirrelEvent(app)) {
 
 //Set to 'production' to hide developer tools; otherwise set to anything else
 process.env.NODE_ENV = 'production';
+
+// load user configuration
+var userConfigFile = process.env.NODE_ENV == 'production' ? USER_CONFIG_FILE_PROD : USER_CONFIG_FILE_DEV;
+if(fs.existsSync(userConfigFile)) {
+  var loadConfig = fs.readFileSync(userConfigFile, 'utf8');
+  currentUserConfig = JSON.parse(loadConfig);
+}
+else {
+  currentUserConfig = DEFAULT_USER_CONFIG;
+  fs.writeFile(userConfigFile, JSON.stringify(currentUserConfig), 'utf8', function(err) {
+    if (err) { console.log(err); }
+  });
+}
 
 //Define parts of the menu that don't change dynamically here
 const YF_MENU = {
@@ -177,38 +200,6 @@ const YF_MENU = {
     }
   ]
 };
-const FORM_MENU = {
-  label: '&Form Layout',
-  submenu: [
-    {
-      label: 'Show Year/Grade fields',
-      id: 'year',
-      type: 'checkbox',
-      checked: true,
-      click (item, focusedWindow) {
-        if(focusedWindow) focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
-      }
-    },
-    {
-      label: 'Show Player UG fields',
-      id: 'playerUG',
-      type: 'checkbox',
-      checked: true,
-      click (item, focusedWindow) {
-        if(focusedWindow) focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
-      }
-    },
-    {
-      label: 'Show Player D2 fields',
-      id: 'playerD2',
-      type: 'checkbox',
-      checked: true,
-      click (item, focusedWindow) {
-        if(focusedWindow) focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
-      }
-    }
-  ]
-};
 const HELP_MENU = {
   label: '&Help',
   submenu: [
@@ -268,10 +259,53 @@ function buildMainMenu(rptSubMenu) {
   mainMenuTemplate = [
     YF_MENU,
     {
-      label: '&Report Settings',
+      label: '&Report Layout',
       submenu: rptSubMenu
     },
-    FORM_MENU,
+    {
+      label: '&Settings',
+      submenu: [
+        {
+          label: 'Show Year/Grade fields',
+          id: 'year',
+          type: 'checkbox',
+          checked: true,
+          click (item, focusedWindow) {
+            if(focusedWindow) focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+          }
+        },
+        {
+          label: 'Show Player UG fields',
+          id: 'playerUG',
+          type: 'checkbox',
+          checked: true,
+          click (item, focusedWindow) {
+            if(focusedWindow) focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+          }
+        },
+        {
+          label: 'Show Player D2 fields',
+          id: 'playerD2',
+          type: 'checkbox',
+          checked: true,
+          click (item, focusedWindow) {
+            if(focusedWindow) focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+          }
+        },
+        {type: 'separator'},
+        {
+          label: 'Auto-save every 5 minutes',
+          type: 'checkbox',
+          checked: currentUserConfig.autoSave,
+          click(item, focusedWindow) {
+            if(focusedWindow) {
+              toggleAutoSave(item.checked, focusedWindow);
+              updateUserConfig('autoSave', item.checked);
+            }
+          }
+        }
+      ]
+    },
     HELP_MENU
   ]; // mainMenuTemplate
 
@@ -282,6 +316,37 @@ function buildMainMenu(rptSubMenu) {
   return Menu.buildFromTemplate(mainMenuTemplate);
 }
 
+/*---------------------------------------------------------
+Automatically save every 5 minutes.
+---------------------------------------------------------*/
+function startAutoSaveTimer(focusedWindow) {
+  autoSaveIntervalId = setInterval(() => {
+    saveExistingTournament(focusedWindow, true);
+  }, AUTO_SAVE_TIME_MS);
+}
+
+/*---------------------------------------------------------
+turn auto-save on or off
+---------------------------------------------------------*/
+function toggleAutoSave(autoSave, focusedWindow) {
+  if(!autoSave && autoSaveIntervalId != null) {
+    clearInterval(autoSaveIntervalId);
+    autoSaveIntervalId = null;
+  }
+  else {
+    startAutoSaveTimer(focusedWindow);
+  }
+}
+
+/*---------------------------------------------------------
+Write the specified item to the user config settings
+---------------------------------------------------------*/
+function updateUserConfig(item, value) {
+  currentUserConfig[item] = value;
+  fs.writeFile(userConfigFile, JSON.stringify(currentUserConfig), 'utf8', function(err) {
+    if (err) { console.log(err); }
+  });
+}
 
 /*---------------------------------------------------------
 Load a new report window, or, if one is already open,
@@ -386,11 +451,11 @@ function saveTournamentAs(focusedWindow) {
 Save the tournament. If we don't have a file to save to,
 redirect to Save As.
 ---------------------------------------------------------*/
-function saveExistingTournament(focusedWindow) {
+function saveExistingTournament(focusedWindow, fromAutoSave) {
   if(currentFile != '') {
     focusedWindow.webContents.send('saveExistingTournament', currentFile);
   }
-  else{
+  else if(!fromAutoSave) {
     saveTournamentAs(focusedWindow);
   }
 }
@@ -553,7 +618,9 @@ app.on('ready', function() {
   appWindow.once('ready-to-show', function() {
     appWindow.show();
 
-    appWindow.webContents.send('loadRptConfigs', process.env.NODE_ENV);
+    appWindow.webContents.send('loadReportConfig', process.env.NODE_ENV);
+
+    if(currentUserConfig.autoSave) { startAutoSaveTimer(appWindow); }
 
     var argsLength = process.defaultApp ? 3 : 2;
     if (process.argv.length >= argsLength) {
@@ -841,7 +908,7 @@ app.on('ready', function() {
       item.checked = formSettings[s];
     }
     appWindow.setMenu(newMainMenu);
-  });
+  }); //on rebuildMenus
 
   //set up the menu bars
   reportMenuTemplate = [

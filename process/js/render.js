@@ -248,7 +248,7 @@ class MainInterface extends React.Component {
         sidebarOpen: open
       });
     });
-    ipc.on('loadRptConfigs', (event, env) => {
+    ipc.on('loadReportConfig', (event, env) => {
       this.loadCustomRptConfigs(env);
     });
   } //componentDidMount

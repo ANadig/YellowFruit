@@ -1,5 +1,6 @@
 /node_modules
 /data/CustomRptConfig.json
+/data/UserConfig.json
 /app/js/render.js
 /app/css/app.css
 /app/games.html
