@@ -266,7 +266,7 @@ function buildMainMenu(rptSubMenu) {
       submenu: rptSubMenu
     },
     {
-      label: '&Settings',
+      label: 'S&ettings',
       submenu: [
         {
           label: 'Show Year/Grade fields',
