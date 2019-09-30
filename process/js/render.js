@@ -52,9 +52,9 @@ const EMPTY_CUSTOM_RPT_CONFIG = {
 const ORIG_DEFAULT_RPT_NAME = 'SQBS Defaults';
 const MAX_CUSTOM_RPT_CONFIGS = 25;
 const DEFAULT_FORM_SETTINGS = {
-  year: true,
-  playerUG: true,
-  playerD2: true
+  showYearField: true,
+  showPlayerUGField: true,
+  showPlayerD2Field: true
 };
 
 
@@ -328,8 +328,7 @@ class MainInterface extends React.Component {
       for(var i in customRptSlice) { delete customRptList[customRptSlice[i]]; }
     }
 
-    var defFormSettingsCopy = $.extend(true, {}, DEFAULT_FORM_SETTINGS);
-    ipc.sendSync('rebuildMenus', releasedRptList, customRptList, defaultRpt, defFormSettingsCopy);
+    ipc.sendSync('rebuildMenus', releasedRptList, customRptList, defaultRpt);
 
     this.setState({
       releasedRptList: releasedRptList, // list of uneditable report configurations
@@ -476,7 +475,7 @@ class MainInterface extends React.Component {
 
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
-    ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, assocRpt, this.state.formSettings);
+    ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, assocRpt);
 
     this.setState({
       settings: loadSettings,
@@ -805,7 +804,7 @@ class MainInterface extends React.Component {
       // modalsInitialized:
       // formSettings
     });
-    ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, this.state.defaultRpt, this.state.formSettings);
+    ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, this.state.defaultRpt);
   }
 
   /*---------------------------------------------------------
@@ -1733,7 +1732,7 @@ class MainInterface extends React.Component {
     if(saveSuccess && acceptAndStay) {
       M.toast({html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newName + '\"', classes: 'green-toast'});
     }
-    ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt, this.state.formSettings);
+    ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
   }
 
   /*---------------------------------------------------------
@@ -1815,7 +1814,7 @@ class MainInterface extends React.Component {
     fs.writeFile(this.state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', (err) => {
       if (err) { console.log(err); }
     });
-    ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt, this.state.formSettings);
+    ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
   }
 
   /*---------------------------------------------------------
@@ -1823,6 +1822,7 @@ class MainInterface extends React.Component {
   should appear
   ---------------------------------------------------------*/
   toggleFormField(whichField, status) {
+    if(this.state.formSettings[whichField] == undefined) { return; }
     var tempFormSettings = this.state.formSettings;
     tempFormSettings[whichField] = status;
     this.setState({

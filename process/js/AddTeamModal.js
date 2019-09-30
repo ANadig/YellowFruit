@@ -442,28 +442,28 @@ class AddTeamModal extends React.Component{
   elements
   ---------------------------------------------------------*/
   constructRosterTable(playerFields, yearFields, ugFields, d2Fields) {
-    var numCheckBoxes = (+this.props.formSettings.playerUG) + (+this.props.formSettings.playerD2);
-    var yearWidth = this.props.formSettings.year ? 3 : 0;
+    var numCheckBoxes = (+this.props.formSettings.showPlayerUGField) + (+this.props.formSettings.showPlayerD2Field);
+    var yearWidth = this.props.formSettings.showYearField ? 3 : 0;
     var nameWidthL = 12 - yearWidth - numCheckBoxes;
     var nameWidthS = 12 - yearWidth - 2*numCheckBoxes;
     var rows = [];
     for(var i in playerFields) {
       var yearField = null, ugField = null, d2Field = null;
-      if(this.props.formSettings.year) {
+      if(this.props.formSettings.showYearField) {
         yearField = (
           <div className="col s3">
             {yearFields[i]}
           </div>
         );
       }
-      if(this.props.formSettings.playerUG) {
+      if(this.props.formSettings.showPlayerUGField) {
         ugField = (
           <div className="col l1 s2">
             {ugFields[i]}
           </div>
         );
       }
-      if(this.props.formSettings.playerD2) {
+      if(this.props.formSettings.showPlayerD2Field) {
         d2Field = (
           <div className="col l1 s2">
             {d2Fields[i]}

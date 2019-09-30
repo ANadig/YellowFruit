@@ -21,7 +21,10 @@ const USER_CONFIG_FOLDER_PROD = Path.resolve(__dirname,  '..', '..', '..', '..',
 const USER_CONFIG_FILE_PROD = Path.resolve(USER_CONFIG_FOLDER_PROD, 'UserConfig.json');
 const USER_CONFIG_FILE_DEV = Path.resolve(__dirname, '..', 'data', 'UserConfig.json');
 const DEFAULT_USER_CONFIG = {
-  autoSave: true
+  autoSave: true,
+  showYearField: true,
+  showPlayerUGField: true,
+  showPlayerD2Field: true
 };
 var currentUserConfig;
 var autoSaveIntervalId = null; // store the interval ID from setInterval here
@@ -267,34 +270,44 @@ function buildMainMenu(rptSubMenu) {
       submenu: [
         {
           label: 'Show Year/Grade fields',
-          id: 'year',
+          id: 'showYearField',
           type: 'checkbox',
-          checked: true,
+          checked: currentUserConfig.showYearField,
           click (item, focusedWindow) {
-            if(focusedWindow) focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+            if(focusedWindow) {
+              focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+              updateUserConfig('showYearField', item.checked);
+            }
           }
         },
         {
           label: 'Show Player UG fields',
-          id: 'playerUG',
+          id: 'showPlayerUGField',
           type: 'checkbox',
-          checked: true,
+          checked: currentUserConfig.showPlayerUGField,
           click (item, focusedWindow) {
-            if(focusedWindow) focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+            if(focusedWindow) {
+              focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+              updateUserConfig('showPlayerUGField', item.checked);
+            }
           }
         },
         {
           label: 'Show Player D2 fields',
-          id: 'playerD2',
+          id: 'showPlayerD2Field',
           type: 'checkbox',
-          checked: true,
+          checked: currentUserConfig.showPlayerD2Field,
           click (item, focusedWindow) {
-            if(focusedWindow) focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+            if(focusedWindow) {
+              focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+              updateUserConfig('showPlayerD2Field', item.checked);
+            }
           }
         },
         {type: 'separator'},
         {
           label: 'Auto-save every 5 minutes',
+          id: 'autoSave',
           type: 'checkbox',
           checked: currentUserConfig.autoSave,
           click(item, focusedWindow) {
@@ -620,6 +633,10 @@ app.on('ready', function() {
 
     appWindow.webContents.send('loadReportConfig', process.env.NODE_ENV);
 
+    for(var conf in currentUserConfig) {
+      appWindow.webContents.send('toggleFormField', conf, currentUserConfig[conf]);
+    }
+
     if(currentUserConfig.autoSave) { startAutoSaveTimer(appWindow); }
 
     var argsLength = process.defaultApp ? 3 : 2;
@@ -879,7 +896,7 @@ app.on('ready', function() {
   report configurations
   activeRpt will have its checked property set.
   ---------------------------------------------------------*/
-  ipc.on('rebuildMenus', (event, releasedRptList, customRptList, activeRpt, formSettings) => {
+  ipc.on('rebuildMenus', (event, releasedRptList, customRptList, activeRpt) => {
     event.returnValue = '';
     var rptSubMenu = REPORT_SUBMENU_STUB.slice();
     for(var r in releasedRptList) {
@@ -903,9 +920,9 @@ app.on('ready', function() {
       });
     }
     var newMainMenu = buildMainMenu(rptSubMenu);
-    for(var s in formSettings) { // keep form layout settings in sync
-      let item = newMainMenu.getMenuItemById(s);
-      item.checked = formSettings[s];
+    for(var conf in currentUserConfig) { // keep user settings in sync
+      let item = newMainMenu.getMenuItemById(conf);
+      item.checked = currentUserConfig[conf];
     }
     appWindow.setMenu(newMainMenu);
   }); //on rebuildMenus
