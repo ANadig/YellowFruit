@@ -9,6 +9,7 @@ cards.
 var React = require('react');
 var _ = require('lodash');
 var $ = require('jquery');
+var DivisionListEntry = require('./DivisionListEntry');
 const DEF_PHASE_TOOLTIP = 'Team standings are grouped by this phase\'s divisions when all games are shown';
 const DEF_PHASE_LINK_TOOLTIP = 'Click to change how teams are grouped when viewing all games';
 
@@ -57,6 +58,7 @@ class SettingsForm extends React.Component{
     this.cancelPackets = this.cancelPackets.bind(this);
     this.cancelPhases = this.cancelPhases.bind(this);
     this.cancelDivisions = this.cancelDivisions.bind(this);
+    this.newDivision = this.newDivision.bind(this);
   }
 
   /*---------------------------------------------------------
@@ -340,6 +342,13 @@ class SettingsForm extends React.Component{
   }
 
   /*---------------------------------------------------------
+  Open the (blank) division edit modal
+  ---------------------------------------------------------*/
+  newDivision() {
+    this.props.newDivision();
+  }
+
+  /*---------------------------------------------------------
   Settings card edit/save button
   ---------------------------------------------------------*/
   getSettingsButtonCaption() {
@@ -606,70 +615,79 @@ class SettingsForm extends React.Component{
     var divHotKey = divisionError == null && this.state.editingDivisions ? 'a' : '';
 
     // generate read-only division list
-    if(!this.state.editingDivisions) {
-      var divList = this.state.divisions.map(function(divName, idx) {
-        var pa = this.state.phaseAssignments[idx];
-        var phaseAssn = '';
-        if(this.state.numberOfSavedPhases > 0 && (pa == undefined || pa == '')) {
-          phaseAssn = ( <span className="noPhase">(No phase)</span> );
-        }
-        else if(pa != undefined && pa != '') { phaseAssn = '(' + pa + ')'; }
-        return (
-          <div  key={idx} className="col s12">
-            <li>{divName}&nbsp;{phaseAssn}</li>
-          </div>
-        );
-      }.bind(this));
-      divisionCard = (<ul>{divList}</ul>);
-      phasePickers = null;
-    }
-    //generate editable list of divisions and phase select dropdowns
-    else {
-      var tempDivs = this.state.divisions.slice();
-      tempDivs.push('');
-      var divFields = tempDivs.map(function(divName, idx) {
-        return (
-          <li key={idx}>
-            <div className="input-field tight-input">
-              <input id={'division'+idx} type="text" name={'division'+idx} placeholder="Add a division"
-                value={tempDivs[idx]} onChange={this.handleDivisionChange}/>
-            </div>
-          </li>
-        );
-      }.bind(this));
-      var columnWidth = this.state.phases.length > 0 ? 's6' : 's12';
-      divisionCard = (
-        <div className={'col ' + columnWidth}>
-          <ul>{divFields}</ul>
-        </div>
-      );
+    // var divList = this.state.divisions.map(function(divName, idx) {
+    //   var pa = this.state.phaseAssignments[idx];
+    //   var phaseAssn = '';
+    //   if(this.state.numberOfSavedPhases > 0 && (pa == undefined || pa == '')) {
+    //     phaseAssn = ( <span className="noPhase">(No phase)</span> );
+    //   }
+    //   else if(pa != undefined && pa != '') { phaseAssn = '(' + pa + ')'; }
+    //   return (
+    //     <div  key={idx} className="col s12">
+    //       <li>{divName}&nbsp;{phaseAssn}</li>
+    //     </div>
+    //   );
+    // }.bind(this));
 
-      if(this.state.phases.length == 0) { phasePickers = null; }
-      else {
-        var phaseOptionList = this.state.phases.map(function(phaseName, idx) {
-          return (<option key={idx} value={phaseName}>{phaseName}</option>);
-        });
-        var nullOption = (<option key={-1} value="nullPhase">Phase...</option>);
-        phaseOptionList = [nullOption].concat(phaseOptionList);
-        var phasePickerElems = divFields.map(function(item, idx) {
-          return (
-            <li key={idx}>
-              <div className="input-field tight-input">
-                <select id={'phaseAssn'+idx} name={'phaseAssn'+idx}
-                value={this.state.phaseAssignments[idx]} onChange={this.handlePhaseAssnChange}>
-                  {phaseOptionList}
-                </select>
-              </div>
-            </li>
-          );
-        }.bind(this));
-        phasePickers = (
-          <div className="col s6">
-            <ul>{phasePickerElems}</ul>
-          </div>
-        );
-      }//else we need phase pickers
-    } //else editing divisions
+    var divList = this.state.divisions.map((divName, idx) => {
+      let phase = this.state.phaseAssignments[idx]
+      return (
+        <DivisionListEntry key = {divName+phase}
+          divisionName = {divName}
+          phase = {phase}
+          colorNo = {this.state.phases.indexOf(phase)}
+        />
+      );
+    });
+
+    divisionCard = (<ul className="collection">{divList}</ul>);
+    //generate editable list of divisions and phase select dropdowns
+    // else {
+    //   var tempDivs = this.state.divisions.slice();
+    //   tempDivs.push('');
+    //   var divFields = tempDivs.map(function(divName, idx) {
+    //     return (
+    //       <li key={idx}>
+    //         <div className="input-field tight-input">
+    //           <input id={'division'+idx} type="text" name={'division'+idx} placeholder="Add a division"
+    //             value={tempDivs[idx]} onChange={this.handleDivisionChange}/>
+    //         </div>
+    //       </li>
+    //     );
+    //   }.bind(this));
+    //   var columnWidth = this.state.phases.length > 0 ? 's6' : 's12';
+    //   divisionCard = (
+    //     <div className={'col ' + columnWidth}>
+    //       <ul>{divFields}</ul>
+    //     </div>
+    //   );
+    //
+    //   if(this.state.phases.length == 0) { phasePickers = null; }
+    //   else {
+    //     var phaseOptionList = this.state.phases.map(function(phaseName, idx) {
+    //       return (<option key={idx} value={phaseName}>{phaseName}</option>);
+    //     });
+    //     var nullOption = (<option key={-1} value="nullPhase">Phase...</option>);
+    //     phaseOptionList = [nullOption].concat(phaseOptionList);
+    //     var phasePickerElems = divFields.map(function(item, idx) {
+    //       return (
+    //         <li key={idx}>
+    //           <div className="input-field tight-input">
+    //             <select id={'phaseAssn'+idx} name={'phaseAssn'+idx}
+    //             value={this.state.phaseAssignments[idx]} onChange={this.handlePhaseAssnChange}>
+    //               {phaseOptionList}
+    //             </select>
+    //           </div>
+    //         </li>
+    //       );
+    //     }.bind(this));
+    //     phasePickers = (
+    //       <div className="col s6">
+    //         <ul>{phasePickerElems}</ul>
+    //       </div>
+    //     );
+    //   }//else we need phase pickers
+    // } //else editing divisions
 
     // read-only list of phases
     if(!this.state.editingPhases) {
@@ -921,10 +939,8 @@ class SettingsForm extends React.Component{
                   {divisionError}
                 </div>
                 <div className="card-action">
-                  <button className={"btn-flat " + togglesDisabled}
-                    accessKey={divHotKey} onClick={this.divisionToggle}>
-                  {this.getDivisionButtonCaption()}</button>
-                  {this.divisionsCancelButton()}
+                  <button className="btn-flat" accessKey={'d'} onClick={this.newDivision}>
+                  Add Division</button>
                 </div>
               </div>
             </div>

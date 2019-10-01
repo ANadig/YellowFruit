@@ -268,6 +268,14 @@ nav .btn-flat {
   padding-left: 2rem;
 }
 
+.settings-divisions .collection {
+  margin: 1rem 0 1rem 0;
+}
+
+.settings-divisions .collection .collection-item {
+  padding: 5px 8px;
+}
+
 .settings-tournsettings {
   margin-top: 3rem;
 }
@@ -581,6 +589,12 @@ nav .btn-flat {
   padding-right: 5px;
 }
 
+.collection-item .division-name {
+  display: inline-block;
+  color: black;
+  font-size: 11pt;
+}
+
 .collection-item .roster-display {
   color: #989898;
 }
@@ -598,6 +612,10 @@ nav .btn-flat {
   line-height: 20px;
   padding: 0 4px 0 7px;
   margin-bottom: 0;
+}
+
+.collection-item .chip.no-delete {
+  padding: 0 7px 0 7px;
 }
 
 .collection-item .chip .close {

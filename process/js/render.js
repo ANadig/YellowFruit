@@ -23,6 +23,7 @@ var GameListEntry = require('./GameListEntry');
 var HeaderNav = require('./HeaderNav');
 var AddTeamModal = require('./AddTeamModal');
 var AddGameModal = require('./AddGameModal');
+var DivisionEditModal = require('./DivisionEditModal');
 var RptConfigModal = require('./RptConfigModal');
 var DivAssignModal = require('./DivAssignModal');
 var PhaseAssignModal = require('./PhaseAssignModal');
@@ -72,6 +73,7 @@ class MainInterface extends React.Component {
     this.state = {
       tmWindowVisible: false, // whether the team entry modal is open
       gmWindowVisible: false, // whether the game entry modal is open
+      divEditWindowVisible: false, // whether the division edit modal is open
       rptConfigWindowVisible: false, // whether the report configuration modal is open
       divWindowVisible: false, // whether the team division assignment modal is open
       phaseWindowVisible: false, // whether the game phase assignment modal is open
@@ -114,6 +116,7 @@ class MainInterface extends React.Component {
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
+    this.openDivEditModal = this.openDivEditModal.bind(this);
     this.onModalClose = this.onModalClose.bind(this);
     this.onForceReset = this.onForceReset.bind(this);
     this.addTeam = this.addTeam.bind(this);
@@ -770,6 +773,7 @@ class MainInterface extends React.Component {
     this.setState({
       tmWindowVisible: false,
       gmWindowVisible: false,
+      divEditWindowVisible: false,
       rptConfigWindowVisible: false,
       divWindowVisible: false,
       phaseWindowVisible: false,
@@ -812,7 +816,7 @@ class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   anyModalOpen() {
     return this.state.tmWindowVisible || this.state.gmWindowVisible ||
-      this.state.rptConfigWindowVisible ||
+      this.state.divEditWindowVisible || this.state.rptConfigWindowVisible ||
       this.state.divWindowVisible || this.state.phaseWindowVisible;
   }
 
@@ -915,6 +919,7 @@ class MainInterface extends React.Component {
     this.setState({
       tmWindowVisible: false,
       gmWindowVisible: false,
+      divEditWindowVisible: false,
       rptConfigWindowVisible: false,
       divWindowVisible: false,
       phaseWindowVisible: false,
@@ -1448,6 +1453,15 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Open the modal for editing divisions
+  ---------------------------------------------------------*/
+  openDivEditModal() {
+    this.setState({
+      divEditWindowVisible: true
+    });
+  }
+
+  /*---------------------------------------------------------
   Open the modal for configuring report settings
   ---------------------------------------------------------*/
   openRptConfigModal() {
@@ -1853,7 +1867,7 @@ class MainInterface extends React.Component {
     $('.fixed-action-btn').floatingActionButton(); //initialize floating buttons
     //initialize all modals
     if(!this.state.modalsInitialized) {
-      $('#addTeam, #addGame, #rptConfig').modal({
+      $('#addTeam, #addGame, #editDivision, #rptConfig').modal({
         onCloseEnd: this.onModalClose
       });
     }
@@ -1865,6 +1879,7 @@ class MainInterface extends React.Component {
     //open modals if appropriate
     if(this.state.tmWindowVisible === true) { $('#addTeam').modal('open'); }
     if(this.state.gmWindowVisible === true) { $('#addGame').modal('open'); }
+    if(this.state.divEditWindowVisible === true) { $('#editDivision').modal('open'); }
     if(this.state.divWindowVisible === true) { $('#assignDivisions').modal('open'); }
     if(this.state.phaseWindowVisible === true) { $('#assignPhases').modal('open'); }
     if(this.state.rptConfigWindowVisible === true) { $('#rptConfig').modal('open'); }
@@ -2021,6 +2036,10 @@ class MainInterface extends React.Component {
             divisions = {this.state.divisions}
             handleSubmit = {this.submitPhaseAssignments}
           />
+          <DivisionEditModal
+            divisions = {this.state.divisions}
+            isOpen = {this.state.divEditWindowVisible}
+          />
 
           <div className="row">
             <div id="main-window" className={mainWindowClass}>
@@ -2043,6 +2062,7 @@ class MainInterface extends React.Component {
                 packets = {this.state.packets}
                 divisions = {this.state.divisions}
                 saveDivisions = {this.saveDivisions}
+                newDivision = {this.openDivEditModal}
                 defaultPhase = {this.state.settings.defaultPhase}
                 setDefaultGrouping = {this.setDefaultGrouping}
                 saveSettings = {this.saveSettings}
