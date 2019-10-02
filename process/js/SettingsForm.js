@@ -603,7 +603,7 @@ class SettingsForm extends React.Component{
       return null;
     }
 
-    var packetCard, phaseCard, divisionCard, phasePickers, playersPerTeamDisplay;
+    var packetCard, phaseCard, divisionCard, playersPerTeamDisplay;
     var phaseError = this.phaseSaveError();
     var divisionError = this.divisionSaveError();
     var phaseSaveDisabled = this.phaseSaveDisabled();
@@ -932,14 +932,11 @@ class SettingsForm extends React.Component{
               <div className="card">
                 <div className="card-content">
                   <span className="card-title">Divisions</span>
-                  <div className="row">
                     {divisionCard}
-                    {phasePickers}
-                  </div>
                   {divisionError}
                 </div>
                 <div className="card-action">
-                  <button className="btn-flat" accessKey={'d'} onClick={this.newDivision}>
+                  <button className="btn-flat" onClick={this.newDivision}>
                   Add Division</button>
                 </div>
               </div>

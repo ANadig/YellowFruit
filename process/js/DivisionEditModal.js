@@ -18,6 +18,7 @@ class DivisionEditModal extends React.Component {
       divisionName: '',
       phase: ''
     }
+    this.handleChange = this.handleChange.bind(this);
   }
 
   handleChange(e) {
@@ -45,8 +46,23 @@ class DivisionEditModal extends React.Component {
   }
 
   render() {
+    console.log(this.state);
+
     var errorIcon = null, errorMessage = null;
     var acceptHotKey = 'a';
+
+    var phaseList = Object.keys(this.props.divisions);
+    var phaseOptionList = phaseList.map(function(phase, idx) {
+      return ( <option key={idx} value={phase}>{phase}</option> );
+    });
+    var nullOption = (<option key={-1} value="nullPhase">Phase...</option>);
+    phaseOptionList = [nullOption].concat(phaseOptionList);
+
+    //Don't allow Enter key to submit form
+    $(document).on("keypress", "#addTeam :input:not(textarea)", function(event) {
+      // return teamIsValid || event.keyCode != 13;
+      return event.keyCode != 13;
+    });
 
     return (
       <div className="modal modal-fixed-footer" id="editDivision">
@@ -61,9 +77,9 @@ class DivisionEditModal extends React.Component {
                 </div>
               </div>
               <div className="col l2 s4">
-                <div>
-                  <select id="phaseAssignment" name="phaseAssignment"
-                    value={this.state.phaseAssignment} onChange={this.handlePhaseAssnChange}>
+                <div className="phase-select">
+                  <select id="phase" name="phase" value={this.state.phase} onChange={this.handleChange}>
+                    {phaseOptionList}
                   </select>
                 </div>
               </div>

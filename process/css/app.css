@@ -341,6 +341,21 @@ nav .btn-flat {
   cursor: not-allowed;
 }
 
+#editDivision {
+  width: 70%;
+  margin-top: 8vh;
+  max-height: 50%;
+  overflow-y: hidden;
+}
+
+#editDivision .phase-select {
+  padding-top: 14px;
+}
+
+#editDivision .dropdown-content {
+  max-height: 150px;
+}
+
 #addGame {
   width: 95%;
   margin-top: -9vh;
@@ -399,6 +414,10 @@ nav .btn-flat {
 
 #addGame .chip {
   margin-top: 19px;
+}
+
+#addGame .dropdown-content {
+  max-height: 450px;
 }
 
 #addGame .scroll-footer {
