@@ -548,6 +548,11 @@ nav .btn-flat {
   }
 }
 
+.collection-item button {
+  padding: 0;
+  height: 20px;
+}
+
 
 .collection-item .item-delete {
   right: 0px;

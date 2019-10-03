@@ -19,6 +19,7 @@ class DivisionEditModal extends React.Component {
       phase: ''
     }
     this.handleChange = this.handleChange.bind(this);
+    this.handleAdd = this.handleAdd.bind(this);
   }
 
   handleChange(e) {
@@ -30,8 +31,13 @@ class DivisionEditModal extends React.Component {
     this.setState(partialState);
   }
 
-  handleAdd() {
-
+  /*---------------------------------------------------------
+  Send data to mainInterface when the form is submitted
+  ---------------------------------------------------------*/
+  handleAdd(e) {
+    e.preventDefault();
+    if(!this.props.isOpen) { return; }
+    this.props.addDivision(this.state.divisionName, this.state.phase);
   }
 
   /*---------------------------------------------------------
@@ -46,16 +52,14 @@ class DivisionEditModal extends React.Component {
   }
 
   render() {
-    console.log(this.state);
-
     var errorIcon = null, errorMessage = null;
-    var acceptHotKey = 'a';
+    var acceptHotKey = '';
 
     var phaseList = Object.keys(this.props.divisions);
     var phaseOptionList = phaseList.map(function(phase, idx) {
       return ( <option key={idx} value={phase}>{phase}</option> );
     });
-    var nullOption = (<option key={-1} value="nullPhase">Phase...</option>);
+    var nullOption = (<option key={-1} value="noPhase">Phase...</option>);
     phaseOptionList = [nullOption].concat(phaseOptionList);
 
     //Don't allow Enter key to submit form

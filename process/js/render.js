@@ -137,6 +137,7 @@ class MainInterface extends React.Component {
     this.searchLists = this.searchLists.bind(this);
     this.setPane = this.setPane.bind(this);
     this.setPhase = this.setPhase.bind(this);
+    this.addDivision = this.addDivision.bind(this);
     this.saveDivisions = this.saveDivisions.bind(this);
     this.openDivModal = this.openDivModal.bind(this);
     this.openPhaseModal = this.openPhaseModal.bind(this);
@@ -1333,6 +1334,21 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Add a single new division to the specified phase
+  (Phase can be 'noPhase')
+  ---------------------------------------------------------*/
+  addDivision(divName, phase) {
+    var tempDivisions = this.state.divisions;
+    tempDivisions[phase].push(divName);
+    this.setState({
+     divisions: tempDivisions,
+     divEditWindowVisible: false,
+     settingsLoadToggle: !this.state.settingsLoadToggle
+    });
+    ipc.sendSync('unsavedData');
+  }
+
+  /*---------------------------------------------------------
   Modify phases and divisions, as well as the assignments
   of teams to divisions and games to phases if necessary.
   Called from the settings form.
@@ -1491,7 +1507,7 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
-  Assign divisions to the selected games.
+  Assign divisions to the selected teams.
   ---------------------------------------------------------*/
   submitDivAssignments(divSelections) {
     var selTeams = this.state.selectedTeams;
@@ -1847,6 +1863,7 @@ class MainInterface extends React.Component {
 
 
   render() {
+    console.log(this.state.divisions);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim().toLowerCase();
@@ -2037,8 +2054,9 @@ class MainInterface extends React.Component {
             handleSubmit = {this.submitPhaseAssignments}
           />
           <DivisionEditModal
-            divisions = {this.state.divisions}
             isOpen = {this.state.divEditWindowVisible}
+            divisions = {this.state.divisions}
+            addDivision = {this.addDivision}
           />
 
           <div className="row">
