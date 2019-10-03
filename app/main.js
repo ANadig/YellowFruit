@@ -45,7 +45,7 @@ if (handleSquirrelEvent(app)) {
 }
 
 //Set to 'production' to hide developer tools; otherwise set to anything else
-process.env.NODE_ENV = 'production';
+process.env.NODE_ENV = 'dev';
 
 // load user configuration
 var userConfigFile = process.env.NODE_ENV == 'production' ? USER_CONFIG_FILE_PROD : USER_CONFIG_FILE_DEV;

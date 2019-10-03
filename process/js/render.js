@@ -1339,6 +1339,9 @@ class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   addDivision(divName, phase) {
     var tempDivisions = this.state.divisions;
+    if(phase == 'noPhase' && tempDivisions.noPhase == undefined) {
+      tempDivisions.noPhase = [];
+    }
     tempDivisions[phase].push(divName);
     this.setState({
      divisions: tempDivisions,
@@ -1863,7 +1866,6 @@ class MainInterface extends React.Component {
 
 
   render() {
-    console.log(this.state.divisions);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim().toLowerCase();

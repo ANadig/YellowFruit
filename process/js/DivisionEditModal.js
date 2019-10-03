@@ -16,7 +16,7 @@ class DivisionEditModal extends React.Component {
     super(props);
     this.state = {
       divisionName: '',
-      phase: ''
+      phase: 'noPhase'
     }
     this.handleChange = this.handleChange.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
@@ -38,6 +38,17 @@ class DivisionEditModal extends React.Component {
     e.preventDefault();
     if(!this.props.isOpen) { return; }
     this.props.addDivision(this.state.divisionName, this.state.phase);
+    this.resetState();
+  }
+
+  /*---------------------------------------------------------
+  Once we're done with the form, clear the data.
+  ---------------------------------------------------------*/
+  resetState() {
+    this.setState({
+      divisionName: '',
+      phase: 'noPhase'
+    });
   }
 
   /*---------------------------------------------------------
