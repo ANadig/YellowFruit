@@ -74,8 +74,7 @@ class DivisionEditModal extends React.Component {
     phaseOptionList = [nullOption].concat(phaseOptionList);
 
     //Don't allow Enter key to submit form
-    $(document).on("keypress", "#addTeam :input:not(textarea)", function(event) {
-      // return teamIsValid || event.keyCode != 13;
+    $(document).on("keypress", "#editDivision :input:not(textarea)", function(event) {
       return event.keyCode != 13;
     });
 
