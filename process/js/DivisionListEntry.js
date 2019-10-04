@@ -11,9 +11,6 @@ class DivisionListEntry extends React.Component{
 
   constructor(props) {
     super(props);
-    this.state = {
-      selected: props.selected
-    };
     this.handleDelete = this.handleDelete.bind(this);
     this.editDivision = this.editDivision.bind(this);
   }
@@ -22,14 +19,14 @@ class DivisionListEntry extends React.Component{
   Tell the MainInterface to delete this division.
   ---------------------------------------------------------*/
   handleDelete() {
-    this.props.onDelete(this.props.whichItem);
+    this.props.onDelete(this.props.divisionName, this.props.phase);
   }
 
   /*---------------------------------------------------------
   Tell the MainInterface to open this division for editing.
   ---------------------------------------------------------*/
   editDivision() {
-    this.props.onOpenDivision(this.props.whichItem);
+    this.props.onOpenDivision(this.props.divisionName, this.props.phase);
   }
 
   render() {

@@ -105,6 +105,7 @@ class MainInterface extends React.Component {
       gmAddOrEdit: 'add', // either 'add' or 'edit'
       editingSettings: false, // Whether the "settings" section of the settings pane is open for editing
       gameToBeDeleted: null, // which game the user is attempting to delete
+      divToBeDeleted: null, // which deivision the user is attempting to delete
       releasedRptList: releasedRptList, // list of uneditable report configurations
       customRptList: {}, // list of user-created report configurations
       customRptFile: null, // file path to score user configuration
@@ -138,6 +139,7 @@ class MainInterface extends React.Component {
     this.setPane = this.setPane.bind(this);
     this.setPhase = this.setPhase.bind(this);
     this.addDivision = this.addDivision.bind(this);
+    this.deleteDivision = this.deleteDivision.bind(this);
     this.saveDivisions = this.saveDivisions.bind(this);
     this.openDivModal = this.openDivModal.bind(this);
     this.openPhaseModal = this.openPhaseModal.bind(this);
@@ -225,12 +227,20 @@ class MainInterface extends React.Component {
         $('#search').select();
       }
     });
-    ipc.on('confirmDelete', (event) => {
+    ipc.on('confirmGameDeletion', (event) => {
       this.deleteGame();
     });
-    ipc.on('cancelDelete', (event) => {
+    ipc.on('cancelGameDeletion', (event) => {
       this.setState({
         gameToBeDeleted: null
+      });
+    });
+    ipc.on('confirmDivDeletion', (event) => {
+      this.deleteDivision();
+    });
+    ipc.on('cancelDivDeletion', (event) => {
+      this.setState({
+        divToBeDeleted: null
       });
     });
     ipc.on('openRptConfig', (event) => {
@@ -278,8 +288,8 @@ class MainInterface extends React.Component {
     ipc.removeAllListeners('prevPhase');
     ipc.removeAllListeners('nextPhase');
     ipc.removeAllListeners('focusSearch');
-    ipc.removeAllListeners('confirmDelete');
-    ipc.removeAllListeners('cancelDelete');
+    ipc.removeAllListeners('confirmGameDeletion');
+    ipc.removeAllListeners('cancelGameDeletion');
     ipc.removeAllListeners('openRptConfig');
     ipc.removeAllListeners('rptDeleteConfirmation');
     ipc.removeAllListeners('setActiveRptConfig');
@@ -801,6 +811,7 @@ class MainInterface extends React.Component {
       gmAddOrEdit: 'add',
       editingSettings: false,
       gameToBeDeleted: null,
+      divToBeDeleted: null,
       activeRpt: this.state.defaultRpt
       // DO NOT reset these! These should persist throughout the session
       // releasedRptList: ,
@@ -1128,7 +1139,7 @@ class MainInterface extends React.Component {
       this.setState({
         gameToBeDeleted: item
       });
-      ipc.send('tryDelete', 'Round ' + item.round + ': ' + item.team1 + ' vs. ' + item.team2);
+      ipc.send('tryGameDelete', 'Round ' + item.round + ': ' + item.team1 + ' vs. ' + item.team2);
       return;
     }
     var allGames = this.state.myGames;
@@ -1350,6 +1361,45 @@ class MainInterface extends React.Component {
     });
     ipc.sendSync('unsavedData');
   }
+
+  /*---------------------------------------------------------
+  Delete a single division
+  Called twice during the division deletion workflow. The
+  first time it triggers a confirmation message. The second
+  time, once the user has confirmed, it permanently deletes
+  the game
+  ---------------------------------------------------------*/
+  deleteDivision(item) {
+    if(this.state.divToBeDeleted == null) {
+      this.setState({
+        divToBeDeleted: item
+      });
+      ipc.send('tryDivDelete', item.divisionName + ' (' + item.phase + ')');
+      return;
+    }
+    // delete the division from any teams that have it
+    var tempTeams = this.state.myTeams;
+    var divName = this.state.divToBeDeleted.divisionName;
+    var phase = this.state.divToBeDeleted.phase;
+    for(var i in tempTeams) {
+      if(tempTeams[i].divisions[phase] == divName) {
+        delete tempTeams[i].divisions[phase];
+      }
+    }
+    // delete the division from the division object
+    var tempDivisions = this.state.divisions;
+    _.pull(tempDivisions[phase], divName);
+    if(phase == 'noPhase' && tempDivisions.noPhase.length == 0) {
+      delete tempDivisions.noPhase;
+    }
+    this.setState({
+      divisions: tempDivisions,
+      teams: tempTeams,
+      settingsLoadToggle: !this.state.settingsLoadToggle,
+      divToBeDeleted: null
+    });
+    ipc.sendSync('unsavedData');
+  }//deleteDivision
 
   /*---------------------------------------------------------
   Modify phases and divisions, as well as the assignments
@@ -1866,6 +1916,7 @@ class MainInterface extends React.Component {
 
 
   render() {
+    console.log(this.state.divisions);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim().toLowerCase();
@@ -2083,6 +2134,7 @@ class MainInterface extends React.Component {
                 divisions = {this.state.divisions}
                 saveDivisions = {this.saveDivisions}
                 newDivision = {this.openDivEditModal}
+                deleteDivision = {this.deleteDivision}
                 defaultPhase = {this.state.settings.defaultPhase}
                 setDefaultGrouping = {this.setDefaultGrouping}
                 saveSettings = {this.saveSettings}

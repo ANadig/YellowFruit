@@ -714,11 +714,28 @@ app.on('ready', function() {
     }
   });
 
+  ipc.on('tryDivDelete', (event, message) => {
+    event.returnValue = '';
+    var choice = dialog.showMessageBox(
+      appWindow,
+      {
+        type: 'warning',
+        buttons: ['&Delete', 'Go Ba&ck'],
+        defaultId: 1,
+        cancelId: 1,
+        title: 'YellowFruit',
+        message: 'Are you sure you want to delete this division?\n\n' + message
+      }
+    );
+    if(choice == 0) { event.sender.send('confirmDivDeletion'); }
+    else if(choice == 1) { event.sender.send('cancelDivDeletion'); }
+  }); //on tryDivDelete
+
   /*---------------------------------------------------------
   When the user tries to delete a game, prompt them to
   confirm that they want to do this.
   ---------------------------------------------------------*/
-  ipc.on('tryDelete', (event, message) => {
+  ipc.on('tryGameDelete', (event, message) => {
     event.returnValue = '';
     var choice = dialog.showMessageBox(
       appWindow,
@@ -731,9 +748,9 @@ app.on('ready', function() {
         message: 'Are you sure you want to delete this game?\n\n' + message
       }
     );
-    if(choice == 0) { event.sender.send('confirmDelete'); }
-    else if(choice == 1) { event.sender.send('cancelDelete'); }
-  });//on tryDelete
+    if(choice == 0) { event.sender.send('confirmGameDeletion'); }
+    else if(choice == 1) { event.sender.send('cancelGameDeletion'); }
+  });//on tryGameDelete
 
   /*---------------------------------------------------------
   Export data in SQBS format

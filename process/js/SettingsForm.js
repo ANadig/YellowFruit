@@ -21,7 +21,7 @@ class SettingsForm extends React.Component{
     for(var phase in props.divisions) {
       for(var i in props.divisions[phase]) {
         divList.push(props.divisions[phase][i]);
-        if(phase != 'noPhase') { phaseAssnList.push(phase); }
+        phaseAssnList.push(phase); // can be 'noPhase'
       }
     }
     var allPhases = Object.keys(props.divisions);
@@ -59,6 +59,7 @@ class SettingsForm extends React.Component{
     this.cancelPhases = this.cancelPhases.bind(this);
     this.cancelDivisions = this.cancelDivisions.bind(this);
     this.newDivision = this.newDivision.bind(this);
+    this.deleteDivision = this.deleteDivision.bind(this);
   }
 
   /*---------------------------------------------------------
@@ -349,6 +350,14 @@ class SettingsForm extends React.Component{
   }
 
   /*---------------------------------------------------------
+  Delete a single division
+  ---------------------------------------------------------*/
+  deleteDivision(division, phase) {
+    console.log(division + ' / ' + phase);
+    this.props.deleteDivision({divisionName: division, phase: phase});
+  }
+
+  /*---------------------------------------------------------
   Settings card edit/save button
   ---------------------------------------------------------*/
   getSettingsButtonCaption() {
@@ -636,6 +645,7 @@ class SettingsForm extends React.Component{
           divisionName = {divName}
           phase = {phase}
           colorNo = {this.state.phases.indexOf(phase)}
+          onDelete = {this.deleteDivision}
         />
       );
     });
