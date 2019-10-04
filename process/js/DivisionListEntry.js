@@ -30,16 +30,22 @@ class DivisionListEntry extends React.Component{
   }
 
   render() {
+    var phaseChip = null;
+    if(this.props.phase != 'noPhase') {
+      phaseChip = (
+        <ColorChip key={this.props.phase}
+          displayTitle = {this.props.phase}
+          colorNo = {this.props.colorNo}
+        />
+      );
+    }
     return(
       <a className="collection-item">
         <div>
           <div className="division-name">
             {this.props.divisionName}&emsp;
           </div>
-          <ColorChip key={this.props.phase}
-            displayTitle = {this.props.phase}
-            colorNo = {this.props.colorNo}
-          />
+          {phaseChip}
           <button className="btn-flat item-edit" title="Edit this division" onClick={this.editDivision}>
           <i className="material-icons">edit</i></button>
           <button className="secondary-content btn-flat item-delete" title="Delete this division" onClick={this.handleDelete}>
