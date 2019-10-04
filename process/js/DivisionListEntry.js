@@ -26,7 +26,7 @@ class DivisionListEntry extends React.Component{
   Tell the MainInterface to open this division for editing.
   ---------------------------------------------------------*/
   editDivision() {
-    this.props.onOpenDivision(this.props.divisionName, this.props.phase);
+    this.props.onEdit(this.props.divisionName, this.props.phase);
   }
 
   render() {

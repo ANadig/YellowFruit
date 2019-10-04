@@ -59,6 +59,7 @@ class SettingsForm extends React.Component{
     this.cancelPhases = this.cancelPhases.bind(this);
     this.cancelDivisions = this.cancelDivisions.bind(this);
     this.newDivision = this.newDivision.bind(this);
+    this.editDivision = this.editDivision.bind(this);
     this.deleteDivision = this.deleteDivision.bind(this);
   }
 
@@ -350,10 +351,16 @@ class SettingsForm extends React.Component{
   }
 
   /*---------------------------------------------------------
+  Open a division for editing
+  ---------------------------------------------------------*/
+  editDivision(division, phase) {
+    this.props.editDivision({divisionName: division, phase: phase});
+  }
+
+  /*---------------------------------------------------------
   Delete a single division
   ---------------------------------------------------------*/
   deleteDivision(division, phase) {
-    console.log(division + ' / ' + phase);
     this.props.deleteDivision({divisionName: division, phase: phase});
   }
 
@@ -646,6 +653,7 @@ class SettingsForm extends React.Component{
           phase = {phase}
           colorNo = {this.state.phases.indexOf(phase)}
           onDelete = {this.deleteDivision}
+          onEdit = {this.editDivision}
         />
       );
     });
@@ -946,8 +954,8 @@ class SettingsForm extends React.Component{
                   {divisionError}
                 </div>
                 <div className="card-action">
-                  <button className="btn-flat" onClick={this.newDivision}>
-                  Add Division</button>
+                  <button className="btn-flat" accessKey={'d'} onClick={this.newDivision}>
+                  Add <span className="hotkey-underline">D</span>ivision</button>
                 </div>
               </div>
             </div>

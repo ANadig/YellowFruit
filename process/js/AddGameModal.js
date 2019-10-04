@@ -240,7 +240,7 @@ class AddGameModal extends React.Component{
     M.updateTextFields();
     if(this.props.forceReset) {
       this.resetState();
-      //seting mainInterface's forceReset to false will avoid infinite loop
+      //setting mainInterface's forceReset to false will avoid infinite loop
       this.props.onForceReset();
     }
     if(this.props.gameToLoad != null) {

@@ -99,6 +99,8 @@ class MainInterface extends React.Component {
       viewingPhase: 'all', // 'all' or the name of a user-defined phase
       forceResetForms: false, // used to force an additional render in the team and game
                               // modals in order to clear form data
+      editWhichDivision: null, // which division to load in the division edit modal
+      divAddOrEdit: 'add', // either 'add' or 'edit'
       editWhichTeam: null,    // which team to load in the team modal
       tmAddOrEdit: 'add', //either 'add' or 'edit'
       editWhichGame: null, // which game to load in the game modal
@@ -126,8 +128,10 @@ class MainInterface extends React.Component {
     this.modifyGame = this.modifyGame.bind(this);
     this.deleteTeam = this.deleteTeam.bind(this);
     this.deleteGame = this.deleteGame.bind(this);
+    this.openDivForEdit = this.openDivForEdit.bind(this);
     this.openTeamForEdit = this.openTeamForEdit.bind(this);
     this.openGameForEdit = this.openGameForEdit.bind(this);
+    this.onLoadDivInModal = this.onLoadDivInModal.bind(this);
     this.onLoadTeamInModal = this.onLoadTeamInModal.bind(this);
     this.onLoadGameInModal = this.onLoadGameInModal.bind(this);
     this.validateTeamName = this.validateTeamName.bind(this);
@@ -805,6 +809,8 @@ class MainInterface extends React.Component {
       activePane: 'settingsPane',  //settings, teams, or games
       viewingPhase: 'all',
       forceResetForms: false,
+      editWhichDivision: null,
+      divAddOrEdit: 'add',
       editWhichTeam: null,
       tmAddOrEdit: 'add', //either 'add' or 'edit'
       editWhichGame: null,
@@ -929,9 +935,9 @@ class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   onModalClose() {
     this.setState({
+      divEditWindowVisible: false,
       tmWindowVisible: false,
       gmWindowVisible: false,
-      divEditWindowVisible: false,
       rptConfigWindowVisible: false,
       divWindowVisible: false,
       phaseWindowVisible: false,
@@ -951,6 +957,7 @@ class MainInterface extends React.Component {
   onForceReset() {
     this.setState({
       forceResetForms: false,
+      divAddOrEdit: 'add',
       tmAddOrEdit: 'add',
       gmAddOrEdit: 'add'
     });
@@ -1186,6 +1193,17 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Tell the division edit modal to load the given division
+  ---------------------------------------------------------*/
+  openDivForEdit(item) {
+    this.setState({
+      editWhichDivision: item,
+      divAddOrEdit: 'edit'
+    });
+    this.openDivEditModal()
+  }
+
+  /*---------------------------------------------------------
   Tell the team modal to load the given team
   ---------------------------------------------------------*/
   openTeamForEdit(item) {
@@ -1205,6 +1223,17 @@ class MainInterface extends React.Component {
       gmAddOrEdit: 'edit'
     });
     this.openGameAddWindow();
+  }
+
+  /*---------------------------------------------------------
+  Called by div edit modal once it's finished loading data.
+  Prevents an infinite render loop from the div edit modal's
+  componentDidUpdate method.
+  ---------------------------------------------------------*/
+  onLoadDivInModal() {
+    this.setState({
+      editWhichDivision: null
+    });
   }
 
   /*---------------------------------------------------------
@@ -1916,7 +1945,6 @@ class MainInterface extends React.Component {
 
 
   render() {
-    console.log(this.state.divisions);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim().toLowerCase();
@@ -2108,8 +2136,13 @@ class MainInterface extends React.Component {
           />
           <DivisionEditModal
             isOpen = {this.state.divEditWindowVisible}
+            addOrEdit = {this.state.divAddOrEdit}
+            divisionToLoad = {this.state.editWhichDivision}
+            onLoadDivInModal = {this.onLoadDivInModal}
             divisions = {this.state.divisions}
             addDivision = {this.addDivision}
+            forceReset = {this.state.forceResetForms}
+            onForceReset = {this.onForceReset}
           />
 
           <div className="row">
@@ -2134,6 +2167,7 @@ class MainInterface extends React.Component {
                 divisions = {this.state.divisions}
                 saveDivisions = {this.saveDivisions}
                 newDivision = {this.openDivEditModal}
+                editDivision = {this.openDivForEdit}
                 deleteDivision = {this.deleteDivision}
                 defaultPhase = {this.state.settings.defaultPhase}
                 setDefaultGrouping = {this.setDefaultGrouping}

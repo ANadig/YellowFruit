@@ -16,10 +16,30 @@ class DivisionEditModal extends React.Component {
     super(props);
     this.state = {
       divisionName: '',
-      phase: 'noPhase'
+      phase: 'noPhase',
+      originalDivLoaded: null
     }
     this.handleChange = this.handleChange.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
+  }
+
+  /*---------------------------------------------------------
+  Lifecyle method. Need an extra render when opening or
+  closing in order for fields to populate and clear properly.
+  ---------------------------------------------------------*/
+  componentDidUpdate(prevProps) {
+    //needed so that labels aren't on top of data when the edit form opens
+    M.updateTextFields();
+    if(this.props.forceReset) {
+      this.resetState();
+      //setting mainInterface's forceReset to false will avoid infinite loop
+      this.props.onForceReset();
+    }
+    if(this.props.divisionToLoad != null) {
+      this.loadDivision();
+      //setting mainInterface's editWhichDivision to null will avoid infinite loop
+      this.props.onLoadDivInModal();
+    }
   }
 
   handleChange(e) {
@@ -47,7 +67,21 @@ class DivisionEditModal extends React.Component {
   resetState() {
     this.setState({
       divisionName: '',
-      phase: 'noPhase'
+      phase: 'noPhase',
+      originalDivLoaded: null
+    });
+  }
+
+  /*---------------------------------------------------------
+  Populate form with the existing team's data. Also keep a
+  pointer to this team so the MainInterface can remember
+  which team to modify.
+  ---------------------------------------------------------*/
+  loadDivision() {
+    this.setState({
+      divisionName: this.props.divisionToLoad.divisionName,
+      phase: this.props.divisionToLoad.phase,
+      originalDivLoaded: this.props.divisionToLoad
     });
   }
 
@@ -84,13 +118,13 @@ class DivisionEditModal extends React.Component {
           <div className="modal-content">
             <h4>{this.getModalHeader()}</h4>
             <div className="row">
-              <div className="col l10 s8">
+              <div className="col s8">
                 <div className="input-field">
                   <input type="text" id="divisionName" name="divisionName" onChange={this.handleChange} value={this.state.divisionName}/>
                   <label htmlFor="divisionName">Name</label>
                 </div>
               </div>
-              <div className="col l2 s4">
+              <div className="col s4">
                 <div className="phase-select">
                   <select id="phase" name="phase" value={this.state.phase} onChange={this.handleChange}>
                     {phaseOptionList}
