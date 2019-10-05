@@ -1403,7 +1403,8 @@ class MainInterface extends React.Component {
       this.setState({
         divToBeDeleted: item
       });
-      ipc.send('tryDivDelete', item.divisionName + ' (' + item.phase + ')');
+      var phaseString = item.phase != 'noPhase' ? ' (' + item.phase + ')' : ''
+      ipc.send('tryDivDelete', item.divisionName + phaseString);
       return;
     }
     // delete the division from any teams that have it
