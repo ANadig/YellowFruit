@@ -30,6 +30,8 @@ class DivisionEditModal extends React.Component {
   componentDidUpdate(prevProps) {
     //needed so that labels aren't on top of data when the edit form opens
     M.updateTextFields();
+    //needed so that dropdown shows its value
+    $('select#phase').formSelect();
     if(this.props.forceReset) {
       this.resetState();
       //setting mainInterface's forceReset to false will avoid infinite loop
@@ -118,13 +120,13 @@ class DivisionEditModal extends React.Component {
           <div className="modal-content">
             <h4>{this.getModalHeader()}</h4>
             <div className="row">
-              <div className="col s8">
+              <div className="col s7 l8">
                 <div className="input-field">
                   <input type="text" id="divisionName" name="divisionName" onChange={this.handleChange} value={this.state.divisionName}/>
                   <label htmlFor="divisionName">Name</label>
                 </div>
               </div>
-              <div className="col s4">
+              <div className="col s5 l4">
                 <div className="phase-select">
                   <select id="phase" name="phase" value={this.state.phase} onChange={this.handleChange}>
                     {phaseOptionList}
