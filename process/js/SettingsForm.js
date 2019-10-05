@@ -39,17 +39,14 @@ class SettingsForm extends React.Component{
       numberOfSavedPhases: _.without(allPhases, 'noPhase').length,
       editingSettings: false,
       editingPackets: false,
-      editingDivisions: false,
       editingPhases: false,
       needToReRender: false,
+      dragPhase: null,
       oldDivisions: [],  //used to track what was changed while the card was open
     }
     this.handleChange = this.handleChange.bind(this);
     this.handlePacketChange = this.handlePacketChange.bind(this);
     this.handlePhaseChange = this.handlePhaseChange.bind(this);
-    this.handleDivisionChange = this.handleDivisionChange.bind(this);
-    this.handlePhaseAssnChange = this.handlePhaseAssnChange.bind(this);
-    this.divisionToggle = this.divisionToggle.bind(this);
     this.phaseToggle = this.phaseToggle.bind(this);
     this.settingsToggle = this.settingsToggle.bind(this);
     this.packetsToggle = this.packetsToggle.bind(this);
@@ -61,6 +58,8 @@ class SettingsForm extends React.Component{
     this.newDivision = this.newDivision.bind(this);
     this.editDivision = this.editDivision.bind(this);
     this.deleteDivision = this.deleteDivision.bind(this);
+    this.reorderDivisions = this.reorderDivisions.bind(this);
+    this.setDragPhase = this.setDragPhase.bind(this);
   }
 
   /*---------------------------------------------------------
@@ -116,50 +115,6 @@ class SettingsForm extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Called when the list of divisions is changed. Immediately
-  updates the list of divisions and phase assignments;
-  conflicts with team and game data are not handled until
-  the division card is saved (via divisionToggle)
-  ---------------------------------------------------------*/
-  handleDivisionChange(e) {
-    const target = e.target;
-    const value = target.value;
-    const name = target.name;
-    var whichDiv = name.replace('division', '');
-    var tempDivs = this.state.divisions.slice();
-    if(value == '' && tempDivs[whichDiv] == undefined) { return; } //don't add null divisions
-    tempDivs[whichDiv] = value;
-    var tempPA = this.state.phaseAssignments.slice();
-    if(tempPA[whichDiv] == undefined) {
-      tempPA[whichDiv] == 'nullPhase';
-    }
-    //remove blank lines
-    for(var lastDiv=tempDivs.pop(), lastPA=tempPA.pop(); lastDiv==''; lastDiv=tempDivs.pop()) { }
-    if(lastDiv != undefined) { tempDivs.push(lastDiv); tempPA.push(lastPA); }
-    this.setState({
-      divisions: tempDivs
-    });
-  }
-
-  /*---------------------------------------------------------
-  Called when the list of phase assignments is changed.
-  Immediately updates the list of phases assignments;
-  conflicts with team and game data are not handled until
-  the division card is saved (via divisionToggle)
-  ---------------------------------------------------------*/
-  handlePhaseAssnChange(e) {
-    const target = e.target;
-    const value = target.value;
-    const name = target.name;
-    var whichPA = name.replace('phaseAssn', '');
-    var tempPA = this.state.phaseAssignments.slice();
-    tempPA[whichPA] = value;
-    this.setState({
-      phaseAssignments: tempPA
-    });
-  }
-
-  /*---------------------------------------------------------
   Settings card - open for editing or close and save.
   ---------------------------------------------------------*/
   settingsToggle() {
@@ -170,7 +125,6 @@ class SettingsForm extends React.Component{
         editingSettings: true
       });
       if(this.state.editingPhases) { this.phaseToggle(); }
-      if(this.state.editingDivisions) { this.divisionToggle(); }
       if(this.state.editingPackets) { this.packetsToggle(); }
     }
     else {
@@ -198,7 +152,6 @@ class SettingsForm extends React.Component{
       });
       if(this.state.editingSettings) { this.settingsToggle(); }
       if(this.state.editingPhases) { this.phaseToggle(); }
-      if(this.state.editingDivisions) { this.divisionToggle(); }
     }
     else {
       var tempPackets = this.state.packets;
@@ -221,7 +174,6 @@ class SettingsForm extends React.Component{
       this.setState({
         editingPhases: true,
       });
-      if(this.state.editingDivisions) { this.divisionToggle(); }
       if(this.state.editingSettings) { this.settingsToggle(); }
       if(this.state.editingPackets) { this.packetsToggle(); }
     }
@@ -246,40 +198,6 @@ class SettingsForm extends React.Component{
       });
     }
   } //phaseToggle
-
-  /*---------------------------------------------------------
-  Divisions card - open for editing or close and save.
-  ---------------------------------------------------------*/
-  divisionToggle() {
-    if(!this.state.editingDivisions) {
-      this.setState({
-        editingDivisions: true,
-        needToReRender: true,
-        oldDivisions: this.state.divisions.slice(),
-        oldPhaseAssignments: this.state.phaseAssignments.slice()
-      });
-      if(this.state.editingPhases) { this.phaseToggle(); }
-      if(this.state.editingSettings) { this.settingsToggle(); }
-      if(this.state.editingPackets) { this.packetsToggle(); }
-    }
-    else {
-      //remove null divisions and their corresponding phase assignments
-      var tempDivs = this.state.divisions.map(function(str) { return str.trim(); });
-      var tempPhaseAssns = this.state.divisions.map(function(div, idx) {
-        return div != '' ? this.state.phaseAssignments[idx] : 'zzzToDelete';
-      }.bind(this));
-      tempDivs = _.without(tempDivs, '');
-      tempPhaseAssns = _.without(tempPhaseAssns, 'zzzToDelete');
-      tempPhaseAssns = tempPhaseAssns.map((x)=>{ return x=='nullPhase' ? '' : x; });
-      this.props.saveDivisions(this.state.phases, tempDivs, tempPhaseAssns, this.state.oldDivisions);
-
-      this.setState({
-        divisions: tempDivs,
-        phaseAssignments: tempPhaseAssns,
-        editingDivisions: false,
-      });
-    }
-  } //divisionToggle
 
   /*---------------------------------------------------------
   Discard changes made to settings card.
@@ -322,28 +240,6 @@ class SettingsForm extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Discard changes made to divisions card.
-  ---------------------------------------------------------*/
-  cancelDivisions() {
-    if(this.state.editingDivisions) {
-      //copied from constructor
-      var divList = [], phaseAssnList = [];
-      for(var phase in this.props.divisions) {
-        for(var i in this.props.divisions[phase]) {
-          divList.push(this.props.divisions[phase][i]);
-          if(phase != 'noPhase') { phaseAssnList.push(phase); }
-          else { phaseAssnList.push(''); }
-        }
-      }
-      this.setState({
-        divisions: divList,
-        phaseAssignments: phaseAssnList,
-        editingDivisions: false
-      });
-    }
-  }
-
-  /*---------------------------------------------------------
   Open the (blank) division edit modal
   ---------------------------------------------------------*/
   newDivision() {
@@ -362,6 +258,25 @@ class SettingsForm extends React.Component{
   ---------------------------------------------------------*/
   deleteDivision(division, phase) {
     this.props.deleteDivision({divisionName: division, phase: phase});
+  }
+
+  /*---------------------------------------------------------
+  reorder the list of divisions so that droppedItem is
+  immediately above receivingItem
+  ---------------------------------------------------------*/
+  reorderDivisions(droppedItem, receivingItem) {
+    this.props.reorderDivisions(droppedItem, receivingItem);
+  }
+
+  /*---------------------------------------------------------
+  Track the phase of the division being dragged so that
+  DivisionListEntrys know when to make themselves visible
+  as drag targets
+  ---------------------------------------------------------*/
+  setDragPhase(phase) {
+    this.setState({
+      dragPhase: phase
+    });
   }
 
   /*---------------------------------------------------------
@@ -389,16 +304,6 @@ class SettingsForm extends React.Component{
   ---------------------------------------------------------*/
   getPhaseButtonCaption() {
     if(this.state.editingPhases) {
-      return ( <span>S<span className="hotkey-underline">a</span>ve</span> );
-    }
-    return 'Edit';
-  }
-
-  /*---------------------------------------------------------
-  Division card edit/save button
-  ---------------------------------------------------------*/
-  getDivisionButtonCaption() {
-    if(this.state.editingDivisions) {
       return ( <span>S<span className="hotkey-underline">a</span>ve</span> );
     }
     return 'Edit';
@@ -442,49 +347,10 @@ class SettingsForm extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Are there two divisions in the same phase with the same
-  name?
-  ---------------------------------------------------------*/
-  divsHasDups() {
-    for(var i in this.state.divisions) {
-      for(var j=(+i)+1; j<this.state.divisions.length; j++) {
-        if(this.state.divisions[i].toLowerCase().trim() == this.state.divisions[j].toLowerCase().trim() &&
-          this.state.phaseAssignments[i] == this.state.phaseAssignments[j]) {
-            return true;
-          }
-      }
-    }
-    return false;
-  }
-
-  /*---------------------------------------------------------
-  Add the disabled class to the division save button.
-  ---------------------------------------------------------*/
-  divisionSaveDisabled() {
-    return this.state.editingDivisions && this.divsHasDups() ? 'disabled' : '';
-  }
-
-  /*---------------------------------------------------------
-  JSX element to display duplicate divisions error
-  ---------------------------------------------------------*/
-  divisionSaveError() {
-    if(this.state.editingDivisions && this.divsHasDups()) {
-      return (
-        <div>
-          <i className="material-icons red-text text-darken-4 qb-modal-error">error</i>
-          &nbsp;Duplicate divisions
-        </div>
-      );
-    }
-    return null;
-  }
-
-  /*---------------------------------------------------------
   Are there errors anywhere in the settings pane?
   ---------------------------------------------------------*/
   togglesDisabled() {
-    return (this.state.editingPhases && this.phasesHasDups()) ||
-      (this.state.editingDivisions && this.divsHasDups());
+    return (this.state.editingPhases && this.phasesHasDups());
   }
 
   /*---------------------------------------------------------
@@ -541,19 +407,6 @@ class SettingsForm extends React.Component{
     if(this.state.editingPhases) {
       return (
         <button className="btn-flat" accessKey="C" onClick={this.cancelPhases}>
-          <span className="hotkey-underline">C</span>ancel</button>
-      );
-    }
-    return null;
-  }
-
-  /*---------------------------------------------------------
-  JSX element for divisions card cancel button
-  ---------------------------------------------------------*/
-  divisionsCancelButton() {
-    if(this.state.editingDivisions) {
-      return (
-        <button className="btn-flat" accessKey="C" onClick={this.cancelDivisions}>
           <span className="hotkey-underline">C</span>ancel</button>
       );
     }
@@ -621,30 +474,13 @@ class SettingsForm extends React.Component{
 
     var packetCard, phaseCard, divisionCard, playersPerTeamDisplay;
     var phaseError = this.phaseSaveError();
-    var divisionError = this.divisionSaveError();
     var phaseSaveDisabled = this.phaseSaveDisabled();
-    var divisionSaveDisabled = this.divisionSaveDisabled();
     var togglesDisabled = this.togglesDisabled() ? ' disabled' : '';
     var settingsHotKey = this.state.editingSettings ? 'a' : '';
     var packetsHotkey = this.state.editingPackets ? 'a' : '';
     var phaseHotKey = phaseError == null && this.state.editingPhases ? 'a' : '';
-    var divHotKey = divisionError == null && this.state.editingDivisions ? 'a' : '';
 
-    // generate read-only division list
-    // var divList = this.state.divisions.map(function(divName, idx) {
-    //   var pa = this.state.phaseAssignments[idx];
-    //   var phaseAssn = '';
-    //   if(this.state.numberOfSavedPhases > 0 && (pa == undefined || pa == '')) {
-    //     phaseAssn = ( <span className="noPhase">(No phase)</span> );
-    //   }
-    //   else if(pa != undefined && pa != '') { phaseAssn = '(' + pa + ')'; }
-    //   return (
-    //     <div  key={idx} className="col s12">
-    //       <li>{divName}&nbsp;{phaseAssn}</li>
-    //     </div>
-    //   );
-    // }.bind(this));
-
+    //list of divisions
     var divList = this.state.divisions.map((divName, idx) => {
       let phase = this.state.phaseAssignments[idx]
       return (
@@ -654,58 +490,14 @@ class SettingsForm extends React.Component{
           colorNo = {this.state.phases.indexOf(phase)}
           onDelete = {this.deleteDivision}
           onEdit = {this.editDivision}
+          reorderDivisions = {this.reorderDivisions}
+          dragPhase = {this.state.dragPhase}
+          setDragPhase = {this.setDragPhase}
         />
       );
     });
 
     divisionCard = (<ul className="collection">{divList}</ul>);
-    //generate editable list of divisions and phase select dropdowns
-    // else {
-    //   var tempDivs = this.state.divisions.slice();
-    //   tempDivs.push('');
-    //   var divFields = tempDivs.map(function(divName, idx) {
-    //     return (
-    //       <li key={idx}>
-    //         <div className="input-field tight-input">
-    //           <input id={'division'+idx} type="text" name={'division'+idx} placeholder="Add a division"
-    //             value={tempDivs[idx]} onChange={this.handleDivisionChange}/>
-    //         </div>
-    //       </li>
-    //     );
-    //   }.bind(this));
-    //   var columnWidth = this.state.phases.length > 0 ? 's6' : 's12';
-    //   divisionCard = (
-    //     <div className={'col ' + columnWidth}>
-    //       <ul>{divFields}</ul>
-    //     </div>
-    //   );
-    //
-    //   if(this.state.phases.length == 0) { phasePickers = null; }
-    //   else {
-    //     var phaseOptionList = this.state.phases.map(function(phaseName, idx) {
-    //       return (<option key={idx} value={phaseName}>{phaseName}</option>);
-    //     });
-    //     var nullOption = (<option key={-1} value="nullPhase">Phase...</option>);
-    //     phaseOptionList = [nullOption].concat(phaseOptionList);
-    //     var phasePickerElems = divFields.map(function(item, idx) {
-    //       return (
-    //         <li key={idx}>
-    //           <div className="input-field tight-input">
-    //             <select id={'phaseAssn'+idx} name={'phaseAssn'+idx}
-    //             value={this.state.phaseAssignments[idx]} onChange={this.handlePhaseAssnChange}>
-    //               {phaseOptionList}
-    //             </select>
-    //           </div>
-    //         </li>
-    //       );
-    //     }.bind(this));
-    //     phasePickers = (
-    //       <div className="col s6">
-    //         <ul>{phasePickerElems}</ul>
-    //       </div>
-    //     );
-    //   }//else we need phase pickers
-    // } //else editing divisions
 
     // read-only list of phases
     if(!this.state.editingPhases) {
@@ -945,13 +737,11 @@ class SettingsForm extends React.Component{
               </div>
             </div>
 
-
             <div className="row settings-divisions">
               <div className="card">
                 <div className="card-content">
                   <span className="card-title">Divisions</span>
                     {divisionCard}
-                  {divisionError}
                 </div>
                 <div className="card-action">
                   <button className="btn-flat" accessKey={'d'} onClick={this.newDivision}>
@@ -959,7 +749,6 @@ class SettingsForm extends React.Component{
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>

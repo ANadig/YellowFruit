@@ -146,6 +146,7 @@ class MainInterface extends React.Component {
     this.addDivision = this.addDivision.bind(this);
     this.modifyDivision = this.modifyDivision.bind(this);
     this.deleteDivision = this.deleteDivision.bind(this);
+    this.reorderDivisions = this.reorderDivisions.bind(this);
     this.saveDivisions = this.saveDivisions.bind(this);
     this.openDivModal = this.openDivModal.bind(this);
     this.openPhaseModal = this.openPhaseModal.bind(this);
@@ -1515,6 +1516,28 @@ class MainInterface extends React.Component {
   }//deleteDivision
 
   /*---------------------------------------------------------
+  reorder the list of divisions so that droppedItem is
+  immediately above receivingItem
+  ---------------------------------------------------------*/
+  reorderDivisions(droppedItem, receivingItem) {
+    // don't bother if the divisions are from different phases, or if they're the same division
+    if(droppedItem.phase != receivingItem.phase ||
+      droppedItem.divisionName == receivingItem.divisionName) {
+        return;
+      }
+    var phase = droppedItem.phase;
+    var tempDivisions = this.state.divisions;
+    var onePhase = _.without(tempDivisions[phase], droppedItem.divisionName);
+    var recItemIdx = onePhase.indexOf(receivingItem.divisionName);
+    tempDivisions[phase] = onePhase.slice(0,recItemIdx).concat([droppedItem.divisionName], onePhase.slice(recItemIdx));
+    this.setState({
+      divisions: tempDivisions,
+      settingsLoadToggle: !this.state.settingsLoadToggle,
+    });
+    ipc.sendSync('unsavedData');
+  }
+
+  /*---------------------------------------------------------
   Modify phases and divisions, as well as the assignments
   of teams to divisions and games to phases if necessary.
   Called from the settings form.
@@ -2255,6 +2278,7 @@ class MainInterface extends React.Component {
                 newDivision = {this.openDivEditModal}
                 editDivision = {this.openDivForEdit}
                 deleteDivision = {this.deleteDivision}
+                reorderDivisions = {this.reorderDivisions}
                 defaultPhase = {this.state.settings.defaultPhase}
                 setDefaultGrouping = {this.setDefaultGrouping}
                 saveSettings = {this.saveSettings}

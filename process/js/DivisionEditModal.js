@@ -148,7 +148,6 @@ class DivisionEditModal extends React.Component {
 
 
   render() {
-    console.log(this.props.addOrEdit);
     var [isValid, errorLevel, errorMessage] = this.validateDivision();
     var errorIcon = this.getErrorIcon(errorLevel);
     var acceptHotKey = isValid ? 'a' : '';

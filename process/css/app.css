@@ -274,6 +274,15 @@ nav .btn-flat {
 
 .settings-divisions .collection .collection-item {
   padding: 5px 8px;
+  cursor: -webkit-grab;
+}
+
+.settings-divisions .collection .collection-item:active {
+  cursor: -webkit-grabbing;
+}
+
+.settings-divisions .collection .drop-target {
+  border-top: 3px solid black;
 }
 
 .settings-tournsettings {
