@@ -147,7 +147,7 @@ class MainInterface extends React.Component {
     this.modifyDivision = this.modifyDivision.bind(this);
     this.deleteDivision = this.deleteDivision.bind(this);
     this.reorderDivisions = this.reorderDivisions.bind(this);
-    this.saveDivisions = this.saveDivisions.bind(this);
+    this.savePhases = this.savePhases.bind(this);
     this.openDivModal = this.openDivModal.bind(this);
     this.openPhaseModal = this.openPhaseModal.bind(this);
     this.submitDivAssignments = this.submitDivAssignments.bind(this);
@@ -1541,10 +1541,8 @@ class MainInterface extends React.Component {
   Modify phases and divisions, as well as the assignments
   of teams to divisions and games to phases if necessary.
   Called from the settings form.
-  oldDivisions provides the state
-  of the data at the time the card was opened for editing
   ---------------------------------------------------------*/
-  saveDivisions(newPhases, newDivAry, newPhaseAssignments, oldDivisions) {
+  savePhases(newPhases, newDivAry, newPhaseAssignments) {
     var tempDivisions = {};
     if(newPhases.length == 0 && newDivAry.length > 0) {
       tempDivisions.noPhase = newDivAry;
@@ -1616,7 +1614,7 @@ class MainInterface extends React.Component {
       settingsLoadToggle: reloadSettingsPane
     });
     ipc.sendSync('unsavedData');
-  } //saveDivisions
+  } //savePhases
 
   /*---------------------------------------------------------
   When a team is selected or deselected using the checkbox
@@ -2261,7 +2259,7 @@ class MainInterface extends React.Component {
                 settings = {this.state.settings}
                 packets = {this.state.packets}
                 divisions = {this.state.divisions}
-                saveDivisions = {this.saveDivisions}
+                savePhases = {this.savePhases}
                 newDivision = {this.openDivEditModal}
                 editDivision = {this.openDivForEdit}
                 deleteDivision = {this.deleteDivision}

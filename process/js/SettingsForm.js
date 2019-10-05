@@ -188,7 +188,7 @@ class SettingsForm extends React.Component{
           tempPhaseAssns[i] = 'noPhase';
         }
       }
-      this.props.saveDivisions(tempPhases, this.state.divisions, tempPhaseAssns, this.state.divisions);
+      this.props.savePhases(tempPhases, this.state.divisions, tempPhaseAssns);
       this.setState({
         editingPhases: false,
         phases: tempPhases,
