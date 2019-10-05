@@ -100,7 +100,7 @@ class DivisionEditModal extends React.Component {
     var errorIcon = null, errorMessage = null;
     var acceptHotKey = '';
 
-    var phaseList = Object.keys(this.props.divisions);
+    var phaseList = _.without(Object.keys(this.props.divisions), 'noPhase');
     var phaseOptionList = phaseList.map(function(phase, idx) {
       return ( <option key={idx} value={phase}>{phase}</option> );
     });
