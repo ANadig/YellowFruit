@@ -345,15 +345,15 @@ nav .btn-flat {
   width: 60%;
   margin-top: 8vh;
   max-height: 50%;
-  overflow-y: hidden;
+  overflow: visible; /* so dropdown can extend out of window */
+}
+
+#editDivision .modal-content {
+  overflow-y: visible; /* so dropdown can extend out of window */
 }
 
 #editDivision .phase-select {
   padding-top: 14px;
-}
-
-#editDivision .dropdown-content {
-  max-height: 150px;
 }
 
 #addGame {
