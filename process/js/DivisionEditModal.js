@@ -97,19 +97,58 @@ class DivisionEditModal extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Whether there are any issues with the team. 3-element array:
+  - Are there errors, true/false
+  - Severity level (error: can't save team; warning: can
+    override)
+  - Error message
+  ---------------------------------------------------------*/
+  validateDivision() {
+    if(this.state.divisionName.trim() == '') { return [false, '', '']; } // name can't be just whitespace
+    if(!this.props.validateName(this.state.divisionName.trim(), this.state.phase, this.state.originalDivLoaded)) {
+      return [false, 'error', 'Duplicate division'];
+    }
+    if(this.props.addOrEdit == 'edit' && this.state.originalDivLoaded != null &&
+      this.state.phase != this.state.originalDivLoaded.phase) {
+        return [true, 'warning', 'This division will be removed from all teams'];
+      }
+    return [true, '', ''];
+  }
+
+  /*---------------------------------------------------------
   Title at the top of the window
   ---------------------------------------------------------*/
   getModalHeader() {
     return this.props.addOrEdit == 'add' ? 'New division' : 'Edit division';
   }
 
-  disabledButton() {
-    return '';
+  /*---------------------------------------------------------
+  Add the disabled attribute to the submit button.
+  ---------------------------------------------------------*/
+  disabledButton(isValid) {
+    return isValid ? '' : 'disabled';
   }
 
+  /*---------------------------------------------------------
+  Returns a JSX element containing the appropriate icon
+  (or null if no error)
+  ---------------------------------------------------------*/
+  getErrorIcon(errorLevel) {
+    if(errorLevel == 'error') {
+      return ( <i className="material-icons red-text text-darken-4 qb-modal-error">error</i> );
+    }
+    if(errorLevel == 'warning') {
+      return ( <i className="material-icons yellow-text text-accent-4 qb-modal-error">warning</i> );
+    }
+    return null;
+  }
+
+
+
   render() {
-    var errorIcon = null, errorMessage = null;
-    var acceptHotKey = '';
+    var [isValid, errorLevel, errorMessage] = this.validateDivision();
+    var errorIcon = this.getErrorIcon(errorLevel);
+    var acceptHotKey = isValid ? 'a' : '';
 
     var phaseList = _.without(Object.keys(this.props.divisions), 'noPhase');
     var phaseOptionList = phaseList.map(function(phase, idx) {
@@ -153,8 +192,8 @@ class DivisionEditModal extends React.Component {
                 <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
                   <span className="hotkey-underline">C</span>ancel
                 </button>&nbsp;
-                <button type="submit" accessKey={acceptHotKey} className={'modal-close btn green ' + this.disabledButton()}>
-                  <span className="hotkey-underline">A</span>ccept
+                <button type="submit" accessKey={acceptHotKey} className={'modal-close btn green ' + this.disabledButton(isValid)}>
+                  S<span className="hotkey-underline">a</span>ve
                 </button>
               </div>
             </div>

@@ -134,6 +134,7 @@ class MainInterface extends React.Component {
     this.onLoadDivInModal = this.onLoadDivInModal.bind(this);
     this.onLoadTeamInModal = this.onLoadTeamInModal.bind(this);
     this.onLoadGameInModal = this.onLoadGameInModal.bind(this);
+    this.validateDivisionName = this.validateDivisionName.bind(this);
     this.validateTeamName = this.validateTeamName.bind(this);
     this.haveTeamsPlayedInRound = this.haveTeamsPlayedInRound.bind(this);
     this.onSelectTeam = this.onSelectTeam.bind(this);
@@ -1260,6 +1261,24 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Determine whether newDivName is a legal division name.
+  Can't already be the name of an existing division in
+  newPhase, other than savedDivision, the one that's
+  currently being edited
+  ---------------------------------------------------------*/
+  validateDivisionName(newDivName, newPhase, savedDivision) {
+    var otherDivisions = this.state.divisions[newPhase];
+    if(otherDivisions == undefined) { return true; }
+    if(savedDivision != null) {
+      otherDivisions = _.without(otherDivisions, savedDivision.divisionName);
+    }
+    var idx = otherDivisions.findIndex((d) => {
+      return d.toLowerCase() == newDivName.toLowerCase();
+    });
+    return idx==-1;
+  }
+
+  /*---------------------------------------------------------
   Determine whether newTeamName is a legal team name.
   Can't already be the name of an existing team other
   than savedTeam, the one that's currently being edited.
@@ -1272,7 +1291,7 @@ class MainInterface extends React.Component {
     else {
       otherTeams = this.state.myTeams;
     }
-    var idx = _.findIndex(otherTeams, function(t) {
+    var idx = otherTeams.findIndex((t) => {
       return t.teamName.toLowerCase() == newTeamName.toLowerCase();
     });
     return idx==-1;
@@ -1989,9 +2008,6 @@ class MainInterface extends React.Component {
 
 
   render() {
-    console.log('************');
-    console.log(this.state.divisions);
-    console.log(this.state.myTeams);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim().toLowerCase();
@@ -2189,6 +2205,7 @@ class MainInterface extends React.Component {
             divisions = {this.state.divisions}
             addDivision = {this.addDivision}
             modifyDivision = {this.modifyDivision}
+            validateName = {this.validateDivisionName}
             forceReset = {this.state.forceResetForms}
             onForceReset = {this.onForceReset}
           />
