@@ -143,6 +143,7 @@ class MainInterface extends React.Component {
     this.setPane = this.setPane.bind(this);
     this.setPhase = this.setPhase.bind(this);
     this.addDivision = this.addDivision.bind(this);
+    this.modifyDivision = this.modifyDivision.bind(this);
     this.deleteDivision = this.deleteDivision.bind(this);
     this.saveDivisions = this.saveDivisions.bind(this);
     this.openDivModal = this.openDivModal.bind(this);
@@ -1392,6 +1393,48 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Modify a single division
+  ---------------------------------------------------------*/
+  modifyDivision(oldDivision, newDivName, newPhase) {
+    var tempDivisions = this.state.divisions;
+    var tempTeams = this.state.myTeams;
+    var oldDivName = oldDivision.divisionName, oldPhase = oldDivision.phase;
+    //if phase was changed remove it from teams and from division structure
+    if(oldPhase != newPhase) {
+      for(var i in tempTeams) {
+        if(tempTeams[i].divisions[oldPhase] == oldDivName) {
+          delete tempTeams[i].divisions[oldPhase];
+        }
+      }
+      _.pull(tempDivisions[oldPhase], oldDivName);
+      if(newPhase != 'noPhase') {
+        tempDivisions[newPhase].push(newDivName);
+      }
+      else {
+        if(tempDivisions.noPhase != undefined) { tempDivisions.noPhase.push(newDivName); }
+        else { tempDivisions.noPhase = [newDivName]; }
+      }
+    }
+    //otherwise just change division name
+    else if(oldDivName != newDivName) {
+      for(var i in tempTeams) {
+        if(tempTeams[i].divisions[newPhase] == oldDivName) {
+          tempTeams[i].divisions[newPhase] = newDivName;
+        }
+      }
+      var idx = tempDivisions[newPhase].findIndex((d) => { return d == oldDivName });
+      tempDivisions[newPhase][idx] = newDivName;
+    }
+    this.setState({
+      divisions: tempDivisions,
+      myTeams: tempTeams,
+      settingsLoadToggle: !this.state.settingsLoadToggle,
+      divEditWindowVisible: false
+    });
+    ipc.sendSync('unsavedData');
+  } //modifyDivision
+
+  /*---------------------------------------------------------
   Delete a single division
   Called twice during the division deletion workflow. The
   first time it triggers a confirmation message. The second
@@ -1946,6 +1989,9 @@ class MainInterface extends React.Component {
 
 
   render() {
+    console.log('************');
+    console.log(this.state.divisions);
+    console.log(this.state.myTeams);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim().toLowerCase();
@@ -2142,6 +2188,7 @@ class MainInterface extends React.Component {
             onLoadDivInModal = {this.onLoadDivInModal}
             divisions = {this.state.divisions}
             addDivision = {this.addDivision}
+            modifyDivision = {this.modifyDivision}
             forceReset = {this.state.forceResetForms}
             onForceReset = {this.onForceReset}
           />

@@ -44,6 +44,9 @@ class DivisionEditModal extends React.Component {
     }
   }
 
+  /*---------------------------------------------------------
+  Update state when a value in the form changes
+  ---------------------------------------------------------*/
   handleChange(e) {
     const target = e.target;
     const value = target.value;
@@ -59,7 +62,13 @@ class DivisionEditModal extends React.Component {
   handleAdd(e) {
     e.preventDefault();
     if(!this.props.isOpen) { return; }
-    this.props.addDivision(this.state.divisionName, this.state.phase);
+    var newDivName = this.state.divisionName.trim();
+    if(this.props.addOrEdit == 'add') {
+      this.props.addDivision(newDivName, this.state.phase);
+    }
+    else {
+      this.props.modifyDivision(this.state.originalDivLoaded, this.state.divisionName, this.state.phase);
+    }
     this.resetState();
   }
 
