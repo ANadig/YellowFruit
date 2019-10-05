@@ -54,7 +54,6 @@ class SettingsForm extends React.Component{
     this.cancelSettings = this.cancelSettings.bind(this);
     this.cancelPackets = this.cancelPackets.bind(this);
     this.cancelPhases = this.cancelPhases.bind(this);
-    this.cancelDivisions = this.cancelDivisions.bind(this);
     this.newDivision = this.newDivision.bind(this);
     this.editDivision = this.editDivision.bind(this);
     this.deleteDivision = this.deleteDivision.bind(this);
