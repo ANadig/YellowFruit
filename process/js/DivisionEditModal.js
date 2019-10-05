@@ -135,10 +135,10 @@ class DivisionEditModal extends React.Component {
           </div> {/* modal content */}
           <div className="modal-footer">
             <div className="row">
-              <div className="col s5 l8 qb-validation-msg">
+              <div className="col s5 l7 qb-validation-msg">
                 {errorIcon}&nbsp;{errorMessage}
               </div>
-              <div className="col s7 l4">
+              <div className="col s7 l5">
                 <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
                   <span className="hotkey-underline">C</span>ancel
                 </button>&nbsp;
