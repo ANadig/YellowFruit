@@ -62,12 +62,14 @@ class DivisionEditModal extends React.Component {
   handleAdd(e) {
     e.preventDefault();
     if(!this.props.isOpen) { return; }
+    var acceptAndStay = e.target.name == 'acceptAndStay';
     var newDivName = this.state.divisionName.trim();
     if(this.props.addOrEdit == 'add') {
-      this.props.addDivision(newDivName, this.state.phase);
+      this.props.addDivision(newDivName, this.state.phase, acceptAndStay);
     }
     else {
-      this.props.modifyDivision(this.state.originalDivLoaded, this.state.divisionName, this.state.phase);
+      this.props.modifyDivision(this.state.originalDivLoaded, this.state.divisionName,
+        this.state.phase, acceptAndStay);
     }
     this.resetState();
   }
@@ -146,9 +148,11 @@ class DivisionEditModal extends React.Component {
 
 
   render() {
+    console.log(this.props.addOrEdit);
     var [isValid, errorLevel, errorMessage] = this.validateDivision();
     var errorIcon = this.getErrorIcon(errorLevel);
     var acceptHotKey = isValid ? 'a' : '';
+    var acceptStayHotKey = isValid ? 's' : '';
 
     var phaseList = _.without(Object.keys(this.props.divisions), 'noPhase');
     var phaseOptionList = phaseList.map(function(phase, idx) {
@@ -164,41 +168,44 @@ class DivisionEditModal extends React.Component {
 
     return (
       <div className="modal modal-fixed-footer" id="editDivision">
-        <form onSubmit={this.handleAdd}>
-          <div className="modal-content">
-            <h4>{this.getModalHeader()}</h4>
-            <div className="row">
-              <div className="col s7 l8">
-                <div className="input-field">
-                  <input type="text" id="divisionName" name="divisionName" onChange={this.handleChange} value={this.state.divisionName}/>
-                  <label htmlFor="divisionName">Name</label>
-                </div>
-              </div>
-              <div className="col s5 l4">
-                <div className="phase-select">
-                  <select id="phase" name="phase" value={this.state.phase} onChange={this.handleChange}>
-                    {phaseOptionList}
-                  </select>
-                </div>
+        <div className="modal-content">
+          <h4>{this.getModalHeader()}</h4>
+          <div className="row">
+            <div className="col s7 l8">
+              <div className="input-field">
+                <input type="text" id="divisionName" name="divisionName" onChange={this.handleChange} value={this.state.divisionName}/>
+                <label htmlFor="divisionName">Name</label>
               </div>
             </div>
-          </div> {/* modal content */}
-          <div className="modal-footer">
-            <div className="row">
-              <div className="col s5 l7 qb-validation-msg">
-                {errorIcon}&nbsp;{errorMessage}
-              </div>
-              <div className="col s7 l5">
-                <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
-                  <span className="hotkey-underline">C</span>ancel
-                </button>&nbsp;
-                <button type="submit" accessKey={acceptHotKey} className={'modal-close btn green ' + this.disabledButton(isValid)}>
-                  S<span className="hotkey-underline">a</span>ve
-                </button>
+            <div className="col s5 l4">
+              <div className="phase-select">
+                <select id="phase" name="phase" value={this.state.phase} onChange={this.handleChange}>
+                  {phaseOptionList}
+                </select>
               </div>
             </div>
           </div>
-        </form>
+        </div> {/* modal content */}
+        <div className="modal-footer">
+          <div className="row">
+            <div className="col s4 l5 qb-validation-msg">
+              {errorIcon}&nbsp;{errorMessage}
+            </div>
+            <div className="col s8 l7">
+              <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
+                <span className="hotkey-underline">C</span>ancel
+              </button>&nbsp;
+              <button accessKey={acceptStayHotKey} name="acceptAndStay" onClick={this.handleAdd}
+              className={'btn blue accent-1 ' + this.disabledButton(isValid)}>
+                <span className="hotkey-underline">S</span>ave & New
+              </button>&nbsp;
+              <button accessKey={acceptHotKey} name="acceptAndClose" onClick={this.handleAdd}
+              className={'modal-close btn green ' + this.disabledButton(isValid)}>
+                S<span className="hotkey-underline">a</span>ve
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

@@ -296,6 +296,8 @@ class MainInterface extends React.Component {
     ipc.removeAllListeners('focusSearch');
     ipc.removeAllListeners('confirmGameDeletion');
     ipc.removeAllListeners('cancelGameDeletion');
+    ipc.removeAllListeners('confirmDivDeletion');
+    ipc.removeAllListeners('cancelDivDeletion');
     ipc.removeAllListeners('openRptConfig');
     ipc.removeAllListeners('rptDeleteConfirmation');
     ipc.removeAllListeners('setActiveRptConfig');
@@ -1396,8 +1398,10 @@ class MainInterface extends React.Component {
   /*---------------------------------------------------------
   Add a single new division to the specified phase
   (Phase can be 'noPhase')
+  acceptAndStay is true if we want the modal to stay open,
+  false if not.
   ---------------------------------------------------------*/
-  addDivision(divName, phase) {
+  addDivision(divName, phase, acceptAndStay) {
     var tempDivisions = this.state.divisions;
     if(phase == 'noPhase' && tempDivisions.noPhase == undefined) {
       tempDivisions.noPhase = [];
@@ -1405,16 +1409,25 @@ class MainInterface extends React.Component {
     tempDivisions[phase].push(divName);
     this.setState({
      divisions: tempDivisions,
-     divEditWindowVisible: false,
+     divEditWindowVisible: acceptAndStay,
      settingsLoadToggle: !this.state.settingsLoadToggle
     });
     ipc.sendSync('unsavedData');
+    if(acceptAndStay) {
+      var phaseDisplay = phase != 'noPhase' ? ' (' + phase + ')' : '';
+      M.toast({
+        html: '<i class=\"material-icons\">check_circle</i>&emsp;Added \"' + divName + phaseDisplay + '\"',
+        classes: 'green-toast'
+      });
+    }
   }
 
   /*---------------------------------------------------------
   Modify a single division
+  acceptAndStay is true if we want the modal to stay open,
+  false if not.
   ---------------------------------------------------------*/
-  modifyDivision(oldDivision, newDivName, newPhase) {
+  modifyDivision(oldDivision, newDivName, newPhase, acceptAndStay) {
     var tempDivisions = this.state.divisions;
     var tempTeams = this.state.myTeams;
     var oldDivName = oldDivision.divisionName, oldPhase = oldDivision.phase;
@@ -1448,9 +1461,17 @@ class MainInterface extends React.Component {
       divisions: tempDivisions,
       myTeams: tempTeams,
       settingsLoadToggle: !this.state.settingsLoadToggle,
-      divEditWindowVisible: false
+      divEditWindowVisible: acceptAndStay,
+      divAddOrEdit: 'add' // need to reset this here in case of acceptAndStay
     });
     ipc.sendSync('unsavedData');
+    if(acceptAndStay) {
+      var phaseDisplay = newPhase != 'noPhase' ? ' (' + newPhase + ')' : '';
+      M.toast({
+        html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newDivName + phaseDisplay + '\"',
+        classes: 'green-toast'
+      });
+    }
   } //modifyDivision
 
   /*---------------------------------------------------------
