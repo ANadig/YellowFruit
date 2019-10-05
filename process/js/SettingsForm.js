@@ -185,7 +185,7 @@ class SettingsForm extends React.Component{
           return p == tempPhaseAssns[i];
         });
         if(idx == -1) {
-          tempPhaseAssns[i] = '';
+          tempPhaseAssns[i] = 'noPhase';
         }
       }
       this.props.saveDivisions(tempPhases, this.state.divisions, tempPhaseAssns, this.state.divisions);
