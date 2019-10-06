@@ -9,7 +9,6 @@ var React = require('react');
 var $ = require('jquery');
 var _ = require('lodash');
 var M = require('materialize-css');
-var TeamOption = require('./TeamOption');
 var PlayerRow = require('./PlayerRow');
 
 const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
@@ -44,8 +43,38 @@ class AddGameModal extends React.Component{
     this.handleTeamChange = this.handleTeamChange.bind(this);
     this.handlePhaseChange = this.handlePhaseChange.bind(this);
     this.updatePlayer = this.updatePlayer.bind(this);
-    this.getTeamOptions = this.getTeamOptions.bind(this);
   } //constructor
+
+  /*---------------------------------------------------------
+  Lifecycle method
+  ---------------------------------------------------------*/
+  componentDidMount() {
+    //don't let the Enter key submit the form
+    $(document).on("keypress", "#addGame :input:not(textarea)", function(event) {
+      return event.keyCode != 13;
+    });
+  }
+
+  /*---------------------------------------------------------
+  Lifecyle method. Need an extra render when opening or
+  closing in order for fields to populate and clear properly.
+  ---------------------------------------------------------*/
+  componentDidUpdate(prevProps) {
+    //needed so that labels aren't on top of data when the edit form opens
+    M.updateTextFields();
+    //needed so that dropdowns show their value
+    $('#addGame select').formSelect();
+    if(this.props.forceReset) {
+      this.resetState();
+      //setting mainInterface's forceReset to false will avoid infinite loop
+      this.props.onForceReset();
+    }
+    if(this.props.gameToLoad != null) {
+      this.loadGame();
+      //setting mainInterface's editWhichGame to null will avoid infinite loop
+      this.props.onLoadGameInModal();
+    }
+  }
 
   /*---------------------------------------------------------
   Called any time a value in the form changes, other than
@@ -221,34 +250,16 @@ class AddGameModal extends React.Component{
       notes: this.state.notes
     } //tempitems
 
+    var acceptAndStay = e.target.name == 'acceptAndStay';
     if(this.props.addOrEdit == 'add') {
-      this.props.addGame(tempItem);
+      this.props.addGame(tempItem, acceptAndStay);
     }
     else {
-      this.props.modifyGame(this.state.originalGameLoaded, tempItem);
+      this.props.modifyGame(this.state.originalGameLoaded, tempItem, acceptAndStay);
     }
 
     this.resetState();
   } //handleAdd
-
-  /*---------------------------------------------------------
-  Lifecyle method. Need an extra render when opening or
-  closing in order for fields to populate and clear properly.
-  ---------------------------------------------------------*/
-  componentDidUpdate(prevProps) {
-    //needed so that labels aren't on top of data when the edit form opens
-    M.updateTextFields();
-    if(this.props.forceReset) {
-      this.resetState();
-      //seting mainInterface's forceReset to false will avoid infinite loop
-      this.props.onForceReset();
-    }
-    if(this.props.gameToLoad != null) {
-      this.loadGame();
-      //setting mainInterface's editWhichGame to null will avoid infinite loop
-      this.props.onLoadGameInModal();
-    }
-  }
 
   /*---------------------------------------------------------
   Convert string to number, treating the empty string as zero.
@@ -393,73 +404,18 @@ class AddGameModal extends React.Component{
   }
 
   /*---------------------------------------------------------
-  For the accept button at the bottom.
-  ---------------------------------------------------------*/
-  getSubmitWord() {
-    return this.props.addOrEdit == 'add' ? 'Add ' : 'Save ';
-  }
-
-  /*---------------------------------------------------------
-  Returns an array of length 2. First element is the
-  correctly ordered list of options for the team1 field.
-  Second element likewise for team 2.
-  I'm programmatically putting the selected team at the top
-  upon opening a game, because I can't otheriwse get it to
-  automatically show as the selected option.
+  Returns the list of dropdown options
   ---------------------------------------------------------*/
   getTeamOptions() {
     var teamData = this.props.teamData;
     //alphebetize
     teamData = _.orderBy(teamData, function(item) { return item.teamName.toLowerCase(); });
-    if(this.props.addOrEdit == 'add') {
-      var teamOptions = teamData.map(function(item, index) {
-        return(<TeamOption key={index} teamName={teamData[index].teamName}/>);
-      });
-      var nullOption = (<option key={-1} value="nullTeam" disabled>&nbsp;Select a team...</option>);
-      teamOptions = [nullOption].concat(teamOptions);
-      return [teamOptions, teamOptions];
-    }
-    if(this.props.addOrEdit == 'edit') {
-      //need to look at gameToLoad because state won't be populated with game data
-      //until the next render. Need to look at originalGameLoaded for subsequent
-      //renders, because gameToLoad will be null.
-      var gameToLoad = this.props.gameToLoad;
-      var orig = this.state.originalGameLoaded;
-      var team1Name, team2Name;
-      if(gameToLoad != null) {
-        team1Name = gameToLoad.team1;
-        team2Name = gameToLoad.team2;
-      }
-      else if(orig != null) {
-        team1Name = orig.team1;
-        team2Name = orig.team2;
-      }
-      // if gameToLoad and originalGameLoaded are both null or undefined,
-      //it means that the modal is closed, so we don't care about any of this.
-      else {
-        return [null,null];
-      }
-      //get team1 options
-      var team1Others = _.without(teamData, _.find(teamData, function(o) {
-        return o.teamName == team1Name;
-      }.bind(this)));
-      var team1Options = team1Others.map(function(item, index) {
-        return(<TeamOption key={index} teamName={team1Others[index].teamName}/>);
-      });
-      var defaultOption1 = (<TeamOption key={-1} teamName={team1Name}/>);
-      team1Options = [defaultOption1].concat(team1Options);
-      // do the same for team2
-      var team2Others = _.without(teamData, _.find(teamData, function(o) {
-        return o.teamName == team2Name;
-      }.bind(this)));
-      var team2Options = team2Others.map(function(item, index) {
-        return(<TeamOption key={index} teamName={team2Others[index].teamName}/>);
-      });
-      var defaultOption2 = (<TeamOption key={-1} teamName={team2Name}/>);
-      team2Options = [defaultOption2].concat(team2Options);
-
-      return [team1Options, team2Options];
-    }
+    var teamOptions = teamData.map(function(item, index) {
+      return ( <option key={index} value={item.teamName}>{item.teamName}</option> );
+    });
+    var nullOption = (<option key={-1} value="nullTeam" disabled>&nbsp;Select a team...</option>);
+    teamOptions = [nullOption].concat(teamOptions);
+    return teamOptions;
   }
 
   /*---------------------------------------------------------
@@ -722,6 +678,7 @@ class AddGameModal extends React.Component{
     var [gameIsValid, errorLevel, errorMessage] = this.validateGame();
     var errorIcon = this.getErrorIcon(errorLevel);
     var acceptHotKey = gameIsValid ? 'a' : '';
+    var acceptStayHotKey = gameIsValid ? 's' : '';
 
     //labels for every phase the game is part of
     var phaseChips = [];
@@ -749,16 +706,10 @@ class AddGameModal extends React.Component{
       );
     }
 
-    //don't let the Enter key submit the form
-    $(document).on("keypress", "#addGame :input:not(textarea)", function(event) {
-      // return gameIsValid || event.keyCode != 13;
-      return event.keyCode != 13;
-    });
-
     var teamData = this.props.teamData
     var team1PlayerRows = null;
     var team2PlayerRows = null;
-    var [team1Options, team2Options] = this.getTeamOptions();
+    var teamOptions = this.getTeamOptions();
 
     // create team 1's player stats grid if it's not a forfeit
     if(!this.state.forfeit && this.state.team1 != 'nullTeam' && this.state.team1 != '') {
@@ -947,122 +898,122 @@ class AddGameModal extends React.Component{
 
     return(
       <div className="modal modal-fixed-footer" id="addGame">
-        <form onSubmit={this.handleAdd}>
-          <div className="modal-content">
-
-            <div className="row game-entry-top-row">
-              <div className={'col ' + (canEditPhase ? 's3' : 's6')}>
-                <h4>{this.getModalHeader()}</h4>
-                {phaseChips}
-              </div>
-
-              {phaseSelect}
-
-              <div className="input-field col s3">
-                <input id="round" className={this.validateField("round",true)} type="number" name="round" min="0" value={this.state.round} onChange={this.handleChange}/>
-                <label htmlFor="round">Round No.</label>
-              </div>
-              <div className="input-field col s3">
-                <input id="tuhtot" className={this.validateField("tuhtot",false)} disabled={this.state.forfeit ? 'disabled' : ''}
-                  type="number" name="tuhtot" min="0"
-                  value={this.state.forfeit ? '' : this.state.tuhtot} onChange={this.handleChange}/>
-                <label htmlFor="tuhtot">Toss-ups (incl. OT)</label>
-              </div>
+        <div className="modal-content">
+          <div className="row game-entry-top-row">
+            <div className={'col ' + (canEditPhase ? 's3' : 's6')}>
+              <h4>{this.getModalHeader()}</h4>
+              {phaseChips}
             </div>
 
-            <div className="row game-entry-2nd-row">
-              <div className={"input-field col s8 m3 l4 "+this.validateTeamSelect(1)}>
-                <select id="tm1Name"  name="team1" value={this.state.team1} onChange={this.handleTeamChange}>
-                  {team1Options}
-                </select>
-              </div>
-              <div className="input-field col s4 m2 l1">
-                <input className={this.validateField("score1",false)} disabled={this.state.forfeit ? 'disabled' : ''} type="number"
-                step={this.scoreDivisor()} id="tm1Score" name="score1"
-                value={this.state.forfeit ? '' : this.state.score1} onChange={this.handleChange}/>
-                <label htmlFor="tm1Score">Score</label>
-              </div>
-              <div className="col m2 hide-on-small-only">
-                <div className="match-divider">
-                  &mdash;
-                </div>
-              </div>
-              <div className="input-field col s4 m2 l1">
-                <input className={this.validateField("score2",false)} disabled={this.state.forfeit ? 'disabled' : ''} type="number"
-                step={this.scoreDivisor()} id="tm2Score" name="score2"
-                value={this.state.forfeit ? '' : this.state.score2} onChange={this.handleChange}/>
-                <label htmlFor="tm2Score">Score</label>
-              </div>
-              <div className={"input-field col s8 m3 l4 "+this.validateTeamSelect(2)}>
-                <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleTeamChange}>
-                  {team2Options}
-                </select>
-              </div>
+            {phaseSelect}
+
+            <div className="input-field col s3">
+              <input id="round" className={this.validateField("round",true)} type="number" name="round" min="0" value={this.state.round} onChange={this.handleChange}/>
+              <label htmlFor="round">Round No.</label>
             </div>
-
-            <div className="row">
-              <div className="col s12 m6">
-                <table className="striped player-table">
-                  {tableHeader}
-                  <tbody>
-                    {team1PlayerRows}
-                  </tbody>
-                </table>
-              </div>
-              <div className="col s12 m6">
-                <table className="striped player-table">
-                  {tableHeader}
-                  <tbody>
-                    {team2PlayerRows}
-                  </tbody>
-                </table>
-              </div>
-
-            </div>
-
-            {bonusCalcRow}
-
-            {bouncebackRow}
-
-            <div className="row game-entry-bottom-row">
-              <div className="input-field col s6 m8">
-                <textarea className="materialize-textarea" id="gameNotes" name="notes" onChange={this.handleChange} value={this.state.notes} />
-                <label htmlFor="gameNotes">Notes about this game</label>
-              </div>
-              <div className="input-field col s3 m2">
-                <input id="ottu" disabled={this.state.forfeit ? 'disabled' : ''} type="number" name="ottu" min="0"
-                value={this.state.forfeit ? '' : this.state.ottu} onChange={this.handleChange}/>
-                <label htmlFor="ottu">Overtime TU</label>
-              </div>
-              <div className="col s3 m2 forfeit-ctrl">
-                <label>
-                  <input type="checkbox" name="forfeit" checked={this.state.forfeit} onChange={this.handleChange}/>
-                  <span>Forfeit?</span>
-                </label>
-              </div>
-            </div>
-
-            {overtimeRow}
-          </div> {/* modal-content*/}
-
-          <div className={'modal-footer ' + (errorMessage.length > 150 ? 'scroll-footer' : '')}>
-            <div className="row">
-              <div className="col s7 l8 qb-validation-msg">
-                {errorIcon}&nbsp;{errorMessage}
-              </div>
-              <div className="col s5 l4">
-                <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
-                  <span className="hotkey-underline">C</span>ancel
-                </button>&nbsp;
-                <button type="submit" accessKey={acceptHotKey}
-                className={'modal-close btn green ' + this.disabledButton(gameIsValid)}>
-                  {this.getSubmitWord()} G<span className="hotkey-underline">a</span>me
-                </button>
-              </div>
+            <div className="input-field col s3">
+              <input id="tuhtot" className={this.validateField("tuhtot",false)} disabled={this.state.forfeit ? 'disabled' : ''}
+                type="number" name="tuhtot" min="0"
+                value={this.state.forfeit ? '' : this.state.tuhtot} onChange={this.handleChange}/>
+              <label htmlFor="tuhtot">Toss-ups (incl. OT)</label>
             </div>
           </div>
 
-        </form>
+          <div className="row game-entry-2nd-row">
+            <div className={"input-field col s8 m3 l4 "+this.validateTeamSelect(1)}>
+              <select id="tm1Name"  name="team1" value={this.state.team1} onChange={this.handleTeamChange}>
+                {teamOptions}
+              </select>
+            </div>
+            <div className="input-field col s4 m2 l1">
+              <input className={this.validateField("score1",false)} disabled={this.state.forfeit ? 'disabled' : ''} type="number"
+              step={this.scoreDivisor()} id="tm1Score" name="score1"
+              value={this.state.forfeit ? '' : this.state.score1} onChange={this.handleChange}/>
+              <label htmlFor="tm1Score">Score</label>
+            </div>
+            <div className="col m2 hide-on-small-only">
+              <div className="match-divider">
+                &mdash;
+              </div>
+            </div>
+            <div className="input-field col s4 m2 l1">
+              <input className={this.validateField("score2",false)} disabled={this.state.forfeit ? 'disabled' : ''} type="number"
+              step={this.scoreDivisor()} id="tm2Score" name="score2"
+              value={this.state.forfeit ? '' : this.state.score2} onChange={this.handleChange}/>
+              <label htmlFor="tm2Score">Score</label>
+            </div>
+            <div className={"input-field col s8 m3 l4 "+this.validateTeamSelect(2)}>
+              <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleTeamChange}>
+                {teamOptions}
+              </select>
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="col s12 m6">
+              <table className="striped player-table">
+                {tableHeader}
+                <tbody>
+                  {team1PlayerRows}
+                </tbody>
+              </table>
+            </div>
+            <div className="col s12 m6">
+              <table className="striped player-table">
+                {tableHeader}
+                <tbody>
+                  {team2PlayerRows}
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+
+          {bonusCalcRow}
+
+          {bouncebackRow}
+
+          <div className="row game-entry-bottom-row">
+            <div className="input-field col s6 m8">
+              <textarea className="materialize-textarea" id="gameNotes" name="notes" onChange={this.handleChange} value={this.state.notes} />
+              <label htmlFor="gameNotes">Notes about this game</label>
+            </div>
+            <div className="input-field col s3 m2">
+              <input id="ottu" disabled={this.state.forfeit ? 'disabled' : ''} type="number" name="ottu" min="0"
+              value={this.state.forfeit ? '' : this.state.ottu} onChange={this.handleChange}/>
+              <label htmlFor="ottu">Overtime TU</label>
+            </div>
+            <div className="col s3 m2 forfeit-ctrl">
+              <label>
+                <input type="checkbox" name="forfeit" checked={this.state.forfeit} onChange={this.handleChange}/>
+                <span>Forfeit?</span>
+              </label>
+            </div>
+          </div>
+
+          {overtimeRow}
+        </div> {/* modal-content*/}
+
+        <div className={'modal-footer ' + (errorMessage.length > 150 ? 'scroll-footer' : '')}>
+          <div className="row">
+            <div className="col s7 l8 qb-validation-msg">
+              {errorIcon}&nbsp;{errorMessage}
+            </div>
+            <div className="col s5 l4">
+              <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
+                <span className="hotkey-underline">C</span>ancel
+              </button>&nbsp;
+              <button accessKey={acceptStayHotKey} name="acceptAndStay" onClick={this.handleAdd}
+              className={'btn blue accent-1 ' + this.disabledButton(gameIsValid)}>
+                <span className="hotkey-underline">S</span>ave & New
+              </button>&nbsp;
+              <button accessKey={acceptHotKey} onClick={this.handleAdd}
+              className={'modal-close btn green ' + this.disabledButton(gameIsValid)}>
+                S<span className="hotkey-underline">a</span>ve
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     ) //return
   } //render

@@ -18,6 +18,8 @@ class AddTeamModal extends React.Component{
     super(props);
     this.state = {
       teamName: '',
+      smallSchool: false,
+      jrVarsity: false,
       teamUGStatus: false,
       teamD2Status: false,
       playerNames: [],
@@ -36,6 +38,16 @@ class AddTeamModal extends React.Component{
     this.handlePlayerUGChange = this.handlePlayerUGChange.bind(this);
     this.handlePlayerD2Change = this.handlePlayerD2Change.bind(this);
     this.validateTeam = this.validateTeam.bind(this);
+  }
+
+  /*---------------------------------------------------------
+  Lifecyle method.
+  ---------------------------------------------------------*/
+  componentDidMount() {
+    //Don't allow Enter key to submit form
+    $(document).on("keypress", "#addTeam :input:not(textarea)", function(event) {
+      return event.keyCode != 13;
+    });
   }
 
   /*---------------------------------------------------------
@@ -58,7 +70,7 @@ class AddTeamModal extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Called when the value in on of the team-level fields
+  Called when the value in one of the team-level fields
   changes. This is a controlled component, so the state is
   the single source of truth.
   ---------------------------------------------------------*/
@@ -168,10 +180,12 @@ class AddTeamModal extends React.Component{
   resetState() {
     this.setState({
       teamName: '',
-      playerNames: [],
-      playerYears: [],
+      smallSchool: false,
+      jrVarsity: false,
       teamUGStatus: false,
       teamD2Status: false,
+      playerNames: [],
+      playerYears: [],
       playerUGStatuses: [],
       playerD2Statuses: [],
       divisions: {},
@@ -193,6 +207,8 @@ class AddTeamModal extends React.Component{
     }
     this.setState({
       teamName: this.props.teamToLoad.teamName,
+      smallSchool: this.props.teamToLoad.smallSchool,
+      jrVarsity: this.props.teamToLoad.jrVarsity,
       teamUGStatus: this.props.teamToLoad.teamUGStatus,
       teamD2Status: this.props.teamToLoad.teamD2Status,
       playerNames: Object.keys(this.props.teamToLoad.roster),
@@ -234,17 +250,20 @@ class AddTeamModal extends React.Component{
 
     var tempItem = {
       teamName: this.state.teamName.trim(),
+      smallSchool: this.state.smallSchool,
+      jrVarsity: this.state.jrVarsity,
       teamUGStatus: this.state.teamUGStatus,
       teamD2Status: this.state.teamD2Status,
       roster: roster,
       divisions: this.state.divisions
     } //tempitems
 
+    var acceptAndStay = e.target.name == 'acceptAndStay';
     if(this.props.addOrEdit == 'add') {
-      this.props.addTeam(tempItem);
+      this.props.addTeam(tempItem, acceptAndStay);
     }
     else {
-      this.props.modifyTeam(this.state.originalTeamLoaded, tempItem);
+      this.props.modifyTeam(this.state.originalTeamLoaded, tempItem, acceptAndStay);
     }
 
     this.resetState();
@@ -255,13 +274,6 @@ class AddTeamModal extends React.Component{
   ---------------------------------------------------------*/
   getModalHeader() {
     return this.props.addOrEdit == 'add' ? 'New team' : 'Edit team';
-  }
-
-  /*---------------------------------------------------------
-  For the Accept button at the bottom.
-  ---------------------------------------------------------*/
-  getSubmitWord() {
-    return this.props.addOrEdit == 'add' ? 'Add ' : 'Save ';
   }
 
   /*---------------------------------------------------------
@@ -403,12 +415,12 @@ class AddTeamModal extends React.Component{
     else { tempStatuses.push(false); }
     var ugFields = tempStatuses.map((status, idx) => {
       return (
-        <div key={idx} className="player-d2-checkbox">
+        <span key={'ug'+idx} className="player-checkbox">
           <label>
             <input id={'ug'+idx} type="checkbox" name={'ug'+idx} checked={status} onChange={this.handlePlayerUGChange}/>
             <span>UG</span>
           </label>
-        </div>
+        </span>
       );
     });
     return ugFields;
@@ -426,12 +438,12 @@ class AddTeamModal extends React.Component{
     else { tempStatuses.push(false); }
     var d2Fields = tempStatuses.map((status, idx) => {
       return (
-        <div key={idx} className="player-d2-checkbox">
+        <span key={'d2'+idx} className="player-checkbox">
           <label>
             <input id={'d2'+idx} type="checkbox" name={'d2'+idx} checked={status} onChange={this.handlePlayerD2Change}/>
             <span>D2</span>
           </label>
-        </div>
+        </span>
       );
     });
     return d2Fields;
@@ -442,42 +454,41 @@ class AddTeamModal extends React.Component{
   elements
   ---------------------------------------------------------*/
   constructRosterTable(playerFields, yearFields, ugFields, d2Fields) {
-    var numCheckBoxes = (+this.props.formSettings.playerUG) + (+this.props.formSettings.playerD2);
-    var yearWidth = this.props.formSettings.year ? 3 : 0;
-    var nameWidthL = 12 - yearWidth - numCheckBoxes;
-    var nameWidthS = 12 - yearWidth - 2*numCheckBoxes;
+    var anyCheckBoxes = this.props.formSettings.showUGFields || this.props.formSettings.showD2Fields;
+    var yearWidth = this.props.formSettings.showYearField ? 3 : 0;
+    var nameWidthL = 12 - yearWidth - 3*anyCheckBoxes;
+    var nameWidthM = 12 - yearWidth - 4*anyCheckBoxes;
+    var nameWidthS = 12 - yearWidth - 5*anyCheckBoxes;
     var rows = [];
     for(var i in playerFields) {
-      var yearField = null, ugField = null, d2Field = null;
-      if(this.props.formSettings.year) {
+      var yearField = null, checkBoxCol = null, ugField = null, d2Field = null;
+      if(this.props.formSettings.showYearField) {
         yearField = (
           <div className="col s3">
             {yearFields[i]}
           </div>
         );
       }
-      if(this.props.formSettings.playerUG) {
-        ugField = (
-          <div className="col l1 s2">
-            {ugFields[i]}
-          </div>
-        );
+      if(this.props.formSettings.showUGFields) {
+        ugField = ugFields[i];
       }
-      if(this.props.formSettings.playerD2) {
-        d2Field = (
-          <div className="col l1 s2">
-            {d2Fields[i]}
+      if(this.props.formSettings.showD2Fields) {
+        d2Field = d2Fields[i];
+      }
+      if(anyCheckBoxes) {
+        checkBoxCol = (
+          <div className="col l3 m4 s5">
+            {ugField}{d2Field}
           </div>
         );
       }
       var oneRow = (
         <div key={i} className="row">
-          <div className={'col l' + nameWidthL + ' s' + nameWidthS}>
+          <div className={'col l' + nameWidthL + ' m' + nameWidthM + ' s' + nameWidthS}>
             {playerFields[i]}
           </div>
           {yearField}
-          {ugField}
-          {d2Field}
+          {checkBoxCol}
         </div>
       );
       rows.push(oneRow);
@@ -497,61 +508,91 @@ class AddTeamModal extends React.Component{
     var [teamIsValid, errorLevel, errorMessage] = this.validateTeam();
     var errorIcon = this.getErrorIcon(errorLevel);
     var acceptHotKey = teamIsValid ? 'a' : '';
+    var acceptStayHotKey = teamIsValid ? 's' : '';
 
-    //Don't allow Enter key to submit form
-    $(document).on("keypress", "#addTeam :input:not(textarea)", function(event) {
-      // return teamIsValid || event.keyCode != 13;
-      return event.keyCode != 13;
-    });
+    var teamSSField = null, teamJVField = null, teamUGField = null, teamD2Field = null;
+    if(this.props.formSettings.showSmallSchool) {
+      teamSSField = (
+        <span>
+          <label>
+            <input id="smallSchool" type="checkbox" name="smallSchool" checked={this.state.smallSchool} onChange={this.handleChange}/>
+            <span>SS</span>
+          </label>
+        </span>
+      );
+    }
+    if(this.props.formSettings.showJrVarsity) {
+      teamJVField = (
+        <span>
+          <label>
+            <input id="jrVarsity" type="checkbox" name="jrVarsity" checked={this.state.jrVarsity} onChange={this.handleChange}/>
+            <span>JV</span>
+          </label>
+        </span>
+      );
+    }
+    if(this.props.formSettings.showUGFields) {
+      teamUGField = (
+        <span>
+          <label>
+            <input id="teamUGStatus" type="checkbox" name="teamUGStatus" checked={this.state.teamUGStatus} onChange={this.handleChange}/>
+            <span>UG</span>
+          </label>
+        </span>
+      );
+    }
+    if(this.props.formSettings.showD2Fields) {
+      teamD2Field = (
+        <span>
+          <label>
+            <input id="teamD2Status" type="checkbox" name="teamD2Status" checked={this.state.teamD2Status} onChange={this.handleChange}/>
+            <span>D2</span>
+          </label>
+        </span>
+      );
+    }
 
     return(
       <div className="modal modal-fixed-footer" id="addTeam">
-        <form onSubmit={this.handleAdd}>
-          <div className="modal-content">
-            <h4>{this.getModalHeader()}</h4>
-            <div className="row">
-              <div className="col l10 s8">
-                <div className="input-field">
-                  <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
-                  <label htmlFor="teamName">Team Name</label>
-                </div>
-              </div>
-              <div className="col l1 s2">
-                <div className="team-level-checkbox">
-                  <label>
-                    <input id="teamUGStatus" type="checkbox" name="teamUGStatus" checked={this.state.teamUGStatus} onChange={this.handleChange}/>
-                    <span>UG</span>
-                  </label>
-                </div>
-              </div>
-              <div className="col l1 s2">
-                <div className="team-level-checkbox">
-                  <label>
-                    <input id="teamD2Status" type="checkbox" name="teamD2Status" checked={this.state.teamD2Status} onChange={this.handleChange}/>
-                    <span>D2</span>
-                  </label>
-                </div>
+        <div className="modal-content">
+          <h4>{this.getModalHeader()}</h4>
+          <div className="row">
+            <div className="col l9 m8 s7">
+              <div className="input-field">
+                <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
+                <label htmlFor="teamName">Team Name</label>
               </div>
             </div>
-            <h5>Roster</h5>
-            {rosterTable}
-          </div> {/* modal content */}
-          <div className="modal-footer">
-            <div className="row">
-              <div className="col s5 l8 qb-validation-msg">
-                {errorIcon}&nbsp;{errorMessage}
-              </div>
-              <div className="col s7 l4">
-                <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
-                  <span className="hotkey-underline">C</span>ancel
-                </button>&nbsp;
-                <button type="submit" accessKey={acceptHotKey} className={'modal-close btn green ' + this.disabledButton(teamIsValid)}>
-                  {this.getSubmitWord()} Te<span className="hotkey-underline">a</span>m
-                </button>
-              </div>
+            <div className="col l3 m4 s5 team-level-checkbox">
+              {teamSSField}
+              {teamJVField}
+              {teamUGField}
+              {teamD2Field}
             </div>
           </div>
-        </form>
+          <h5>Roster</h5>
+          {rosterTable}
+        </div> {/* modal content */}
+        <div className="modal-footer">
+          <div className="row">
+            <div className="col s5 l7 qb-validation-msg">
+              {errorIcon}&nbsp;{errorMessage}
+            </div>
+            <div className="col s7 l5">
+              <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
+                <span className="hotkey-underline">C</span>ancel
+              </button>&nbsp;
+              <button accessKey={acceptStayHotKey} name="acceptAndStay" onClick={this.handleAdd}
+              className={'btn blue accent-1 ' + this.disabledButton(teamIsValid)}>
+                <span className="hotkey-underline">S</span>ave & New
+              </button>&nbsp;
+              <button accessKey={acceptHotKey} onClick={this.handleAdd}
+              className={'modal-close btn green ' + this.disabledButton(teamIsValid)}>
+                S<span className="hotkey-underline">a</span>ve
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     ) //return
   } //render

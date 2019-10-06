@@ -1,16 +1,12 @@
 {
   "name": "YellowFruit",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "description": "QB Stats Program",
   "author": {
     "name": "Andrew Nadig"
   },
   "scripts": {
-    "pack": "electron-packager . YellowFruit --out dist/pkg --overwrite --icon ./icons/banana",
-    "pack-win": "electron-packager . YellowFruit --platform=win32 --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig",
-    "pack-osx": "electron-packager . YellowFruit --platform=darwin --arch=all --out dist/pkg --overwrite --icon ./icons/banana",
-    "pack-linux": "electron-packager . YellowFruit --platform=linux --arch=all --out dist/pkg --overwrite --icon ./icons/banana",
-    "pack-all": "electron-packager . YellowFruit --all --out dist/pkg --overwrite --icon ./icons/banana"
+    "pack-win": "electron-packager . YellowFruit --platform=win32 --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig"
   },
   "main": "app/main.js",
   "devDependencies": {
@@ -27,12 +23,13 @@
     "reactify": "^1.1.1"
   },
   "dependencies": {
-    "electron-reload": "^1.2.5",
-    "electron-squirrel-startup": "^1.0.0",
     "jquery": "^3.3.1",
-    "lodash": "^4.17.10",
     "material-icons": "^0.3.1",
     "materialize-css": "^1.0.0",
     "popper.js": "^1.14.3"
+    "lodash": "^4.17.10",
+    "electron-reload": "^1.2.5",
+    "electron-squirrel-startup": "^1.0.0",
+    "dotenv": "^8.1.0"
   }
 }

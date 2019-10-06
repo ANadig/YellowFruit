@@ -268,6 +268,23 @@ nav .btn-flat {
   padding-left: 2rem;
 }
 
+.settings-divisions .collection {
+  margin: 1rem 0 1rem 0;
+}
+
+.settings-divisions .collection .collection-item {
+  padding: 5px 8px;
+  cursor: -webkit-grab;
+}
+
+.settings-divisions .collection .collection-item:active {
+  cursor: -webkit-grabbing;
+}
+
+.settings-divisions .collection .drop-target {
+  border-top: 3px solid black;
+}
+
 .settings-tournsettings {
   margin-top: 3rem;
 }
@@ -333,6 +350,33 @@ nav .btn-flat {
   cursor: not-allowed;
 }
 
+#editDivision {
+  width: 60%;
+  margin-top: 10vh;
+  max-height: 45%;
+  overflow: visible; /* so dropdown can extend out of window */
+}
+
+@media screen and (min-width: 1201px) {
+  #editDivision {
+    width: 50%;
+  }
+}
+
+#editDivision .modal-content {
+  overflow-y: visible; /* so dropdown can extend out of window */
+}
+
+#editDivision .phase-select {
+  padding-top: 14px;
+}
+
+#assignPhases {
+  max-height: 350px;
+  max-width: 450px;
+  margin-top: 9vh;
+}
+
 #addGame {
   width: 95%;
   margin-top: -9vh;
@@ -357,12 +401,17 @@ nav .btn-flat {
   padding-left: 0;
 }
 
-#addTeam .player-d2-checkbox {
-  margin-top: 0.5em;
-}
-
 #addTeam .team-level-checkbox {
   margin-top: 2em;
+}
+
+#addTeam .team-level-checkbox label span, #addTeam .player-checkbox label span {
+  padding-left: 27px;
+  padding-right: 16px;
+}
+
+#addTeam .player-checkbox label span {
+  margin-top: 4px;
 }
 
 @media screen and (min-width: 993px) {
@@ -391,6 +440,10 @@ nav .btn-flat {
 
 #addGame .chip {
   margin-top: 19px;
+}
+
+#addGame .dropdown-content {
+  max-height: 450px;
 }
 
 #addGame .scroll-footer {
@@ -521,6 +574,11 @@ nav .btn-flat {
   }
 }
 
+.collection-item button {
+  padding: 0;
+  height: 20px;
+}
+
 
 .collection-item .item-delete {
   right: 0px;
@@ -581,6 +639,12 @@ nav .btn-flat {
   padding-right: 5px;
 }
 
+.collection-item .division-name {
+  display: inline-block;
+  color: black;
+  font-size: 11pt;
+}
+
 .collection-item .roster-display {
   color: #989898;
 }
@@ -600,6 +664,10 @@ nav .btn-flat {
   margin-bottom: 0;
 }
 
+.collection-item .chip.no-delete {
+  padding: 0 7px 0 7px;
+}
+
 .collection-item .chip .close {
   line-height: 22px;
 }
@@ -615,28 +683,36 @@ nav .btn-flat {
   text-decoration: underline;
 }
 
-/*
-
-.item-list .item-notes {
-  font-style: italic;
-} */
-
-
 .search-tips {
   list-style-type: disc;
 }
 
 /* Override materialize and don't make toast location depend on screen size */
-#toast-container {
-    top: 4%;
-    right: 7%;
-    left: auto;
-    max-width: 86%;
-  }
+/* But use .toast-bottom-left to override my override for the game modal */
+#toast-container:not(.toast-bottom-left) {
+  top: 4%;
+  right: 7%;
+  left: auto;
+  max-width: 86%;
+}
+
+#toast-container.toast-bottom-left {
+  top: 87%;
+  left: 4%;
+  max-width: 40%;
+}
 
 .green-toast {
   background-color: #4caf50;
 }
+
+/* .game-toast {
+  bottom: 4%;
+  left: 7%;
+  left: auto;
+  max-width: 86%;
+  background-color: #4caf50;
+} */
 
 .row .pp20-control:hover {
   background-color: #ffd600;

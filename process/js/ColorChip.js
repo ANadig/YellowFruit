@@ -27,13 +27,21 @@ class ColorChip extends React.Component{
   }
 
   render() {
+    var removeIcon = null, noDelete = '';
+    if(this.props.removeMe != null) {
+      removeIcon = ( <i className="close material-icons" onClick={this.removeMe}>close</i> );
+    }
+    else {
+      noDelete = 'no-delete ';
+    }
+
     // Need to wrap it in another div so that Materialize's code deleting the chip
     // doesn't delete the entire React element; app will crash otherwise
     return (
       <div className="chip-wrapper">
-        <div className={'chip accent-1 ' + CHIP_COLORS[this.props.colorNo % CHIP_COLORS.length]}>
+        <div className={'chip ' + noDelete + 'accent-1 ' + CHIP_COLORS[this.props.colorNo % CHIP_COLORS.length]}>
           {this.props.displayTitle}
-          <i className="close material-icons" onClick={this.removeMe}>close</i>
+          {removeIcon}
         </div>
       </div>
     );

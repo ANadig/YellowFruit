@@ -93,16 +93,26 @@ class TeamListEntry extends React.Component{
   }//getDivisionChip
 
   /*---------------------------------------------------------
-  String with the team's name and UG/D2 status if applicable
+  String with the team's name and SS,etc. status if applicable
   ---------------------------------------------------------*/
   teamNameDisplay() {
-    var str = this.props.singleItem.teamName;
-    if(this.props.singleItem.teamUGStatus) {
-      str += ' (UG';
-      if(this.props.singleItem.teamD2Status) { str += ', D2)'; }
-      else { str += ')'; }
+    var attributes = [];
+    if(this.props.singleItem.smallSchool) {
+      attributes.push('SS');
     }
-    else if(this.props.singleItem.teamD2Status) { str += ' (D2)'; }
+    if(this.props.singleItem.jrVarsity) {
+      attributes.push('JV');
+    }
+    if(this.props.singleItem.teamUGStatus) {
+      attributes.push('UG');
+    }
+    if(this.props.singleItem.teamD2Status) {
+      attributes.push('D2');
+    }
+    var str = this.props.singleItem.teamName;
+    if(attributes.length > 0) {
+      str += ' (' + attributes.join(', ') + ')';
+    }
     return str;
   }
 
@@ -150,7 +160,7 @@ class TeamListEntry extends React.Component{
     }
 
     return(
-      <a className="collection-item">
+      <a className="collection-item" onDoubleClick={this.editTeam}>
         <div>
           {checkbox}
           <div className={this.props.activeInPhase ? 'team-name' : 'team-name-inactive'}>

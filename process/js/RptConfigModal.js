@@ -14,6 +14,8 @@ const MAX_CUSTOM_RPT_CONFIGS = 25;
 const NEW_RPT_DUMMY_KEY = 'WAo2WKjY6Jx8QDnufmjz'; //aribitrary string that hopefully no one will use for an rpt name
 const EMPTY_RPT_SETTINGS = {
   ppgOrPp20: 'ppg',
+  smallSchool: false,
+  jrVarsity: false,
   teamUG: false,
   teamD2: false,
   teamCombinedStatus: false,
@@ -41,6 +43,8 @@ class RptConfigModal extends React.Component {
       rptName: startRptName,
       currentRptIsDefault: this.props.defaultRpt == startRptName,
       ppgOrPp20: startRpt.ppgOrPp20,
+      smallSchool: startRpt.smallSchool,
+      jrVarsity: startRpt.jrVarsity,
       teamUG: startRpt.teamUG,
       teamD2: startRpt.teamD2,
       teamCombinedStatus: startRpt.teamCombinedStatus,
@@ -124,6 +128,8 @@ class RptConfigModal extends React.Component {
     var acceptAndStay = e.target.name == 'acceptAndStay';
     var rptObj = {
       ppgOrPp20: this.state.ppgOrPp20,
+      smallSchool: this.state.smallSchool,
+      jrVarsity: this.state.jrVarsity,
       teamUG: this.state.teamUG,
       teamD2: this.state.teamD2,
       teamCombinedStatus: this.state.teamCombinedStatus,
@@ -159,12 +165,17 @@ class RptConfigModal extends React.Component {
     if(type == 'released') { selectedSettings = this.props.releasedRptList[title]; }
     else if(type == 'custom') { selectedSettings = this.props.customRptList[title]; }
     else { selectedSettings = EMPTY_RPT_SETTINGS; } // else new rpt, clear form
+
+    var smallSchool = selectedSettings.smallSchool
+    var jrVarsity = selectedSettings.jrVarsity
     this.setState({
       selectedRpt: title,
       selectedRptType: type,
       currentRptIsDefault: this.props.defaultRpt == title,
       rptName: type == 'addNew' ? '' : title,
       ppgOrPp20: selectedSettings.ppgOrPp20,
+      smallSchool: smallSchool != undefined ? smallSchool : false, // items that were added on later need special handling
+      jrVarsity: jrVarsity != undefined ? jrVarsity : false,
       teamUG: selectedSettings.teamUG,
       teamD2: selectedSettings.teamD2,
       teamCombinedStatus: selectedSettings.teamCombinedStatus,
@@ -196,6 +207,8 @@ class RptConfigModal extends React.Component {
     if(Object.keys(this.props.customRptList).length >= MAX_CUSTOM_RPT_CONFIGS) { return; }
     var rptObj = {
       ppgOrPp20: this.state.ppgOrPp20,
+      smallSchool: this.state.smallSchool,
+      jrVarsity: this.state.jrVarsity,
       teamUG: this.state.teamUG,
       teamD2: this.state.teamD2,
       teamCombinedStatus: this.state.teamCombinedStatus,
@@ -406,6 +419,16 @@ class RptConfigModal extends React.Component {
         </div>
         <div className="col s9" >
           <label>
+            <input type="checkbox" name="smallSchool" disabled={disableFields}
+              checked={this.state.smallSchool} onChange={this.handleChange}/>
+            <span title="Small School">SS</span>&emsp;&emsp;
+          </label>
+          <label>
+            <input type="checkbox" name="jrVarsity" disabled={disableFields}
+              checked={this.state.jrVarsity} onChange={this.handleChange}/>
+            <span>JV&emsp;&emsp;</span>
+          </label>
+          <label>
             <input type="checkbox" name="teamUG" disabled={disableFields}
               checked={this.state.teamUG} onChange={this.handleChange}/>
             <span>UG&emsp;&emsp;</span>
@@ -418,7 +441,7 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="teamCombinedStatus" disabled={disableFields}
               checked={this.state.teamCombinedStatus} onChange={this.handleChange}/>
-            <span title="Show UG and D2 status in the same column. Use this for ACF-style elibility rules where all D2 teams are UG.">Combined UG/D2</span>
+            <span title="Show UG and D2 status in the same column. Use this for ACF-style eligibility rules where all D2 teams are UG.">Combined UG/D2</span>
           </label>
         </div>
       </div>
@@ -448,7 +471,7 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="playerCombinedStatus" disabled={disableFields}
               checked={this.state.playerCombinedStatus} onChange={this.handleChange}/>
-            <span title="Show UG and D2 status in the same column. Use this for ACF-style elibility rules where all D2 players are UG.">Combined UG/D2</span>
+            <span title="Show UG and D2 status in the same column. Use this for ACF-style eligibility rules where all D2 players are UG.">Combined UG/D2</span>
           </label>
         </div>
       </div>
@@ -507,6 +530,8 @@ class RptConfigModal extends React.Component {
     //table cells for the team standings preview
     var tdRank = ( <td>Rank</td> );
     var tdTeam = ( <td>Team</td> );
+    var tdSS = this.state.smallSchool ? ( <td>SS</td> ) : null;
+    var tdJV = this.state.jrVarsity ? ( <td>JV</td> ) : null;
     var tdUG = this.state.teamUG ? ( <td>UG</td> ) : null;
     var tdD2 = this.state.teamD2 ? ( <td>D2</td> ) : null;
     var tdTmComb = this.state.teamCombinedStatus ? ( <td>UG/D2</td> ) : null;
@@ -561,7 +586,7 @@ class RptConfigModal extends React.Component {
       <table>
         <tbody>
           <tr>
-          {tdRank}{tdTeam}{tdUG}{tdD2}{tdTmComb}{tdW}{tdL}{tdT}{tdPct}{tdPhaseRecord}
+          {tdRank}{tdTeam}{tdSS}{tdJV}{tdUG}{tdD2}{tdTmComb}{tdW}{tdL}{tdT}{tdPct}{tdPhaseRecord}
             {tdPPG}{tdPP20}{tdPapg}{tdPap20}{tdMrg}{tdPwr}{tdTen}{tdNeg}{tdTuh}{tdPptuh}
             {tdPperN}{tdGperN}{tdBHrd}{tdBPts}{tdPpb}{tdBBHrd}{tdBbpts}{tdPpbb}
           </tr>

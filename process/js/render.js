@@ -23,6 +23,7 @@ var GameListEntry = require('./GameListEntry');
 var HeaderNav = require('./HeaderNav');
 var AddTeamModal = require('./AddTeamModal');
 var AddGameModal = require('./AddGameModal');
+var DivisionEditModal = require('./DivisionEditModal');
 var RptConfigModal = require('./RptConfigModal');
 var DivAssignModal = require('./DivAssignModal');
 var PhaseAssignModal = require('./PhaseAssignModal');
@@ -33,7 +34,7 @@ var StatSidebar = require('./StatSidebar');
 var SidebarToggleButton = require('./SidebarToggleButton');
 
 const MAX_PLAYERS_PER_TEAM = 30;
-const METADATA = {version:'2.2.2'};
+const METADATA = {version:'2.3.0'};
 const DEFAULT_SETTINGS = {
   powers: '15pts',
   negs: 'yes',
@@ -52,9 +53,11 @@ const EMPTY_CUSTOM_RPT_CONFIG = {
 const ORIG_DEFAULT_RPT_NAME = 'SQBS Defaults';
 const MAX_CUSTOM_RPT_CONFIGS = 25;
 const DEFAULT_FORM_SETTINGS = {
-  year: true,
-  playerUG: true,
-  playerD2: true
+  showYearField: true,
+  showSmallSchool: true,
+  showJrVarsity: true,
+  showUGFields: true,
+  showD2Fields: true
 };
 
 
@@ -72,6 +75,7 @@ class MainInterface extends React.Component {
     this.state = {
       tmWindowVisible: false, // whether the team entry modal is open
       gmWindowVisible: false, // whether the game entry modal is open
+      divEditWindowVisible: false, // whether the division edit modal is open
       rptConfigWindowVisible: false, // whether the report configuration modal is open
       divWindowVisible: false, // whether the team division assignment modal is open
       phaseWindowVisible: false, // whether the game phase assignment modal is open
@@ -97,12 +101,15 @@ class MainInterface extends React.Component {
       viewingPhase: 'all', // 'all' or the name of a user-defined phase
       forceResetForms: false, // used to force an additional render in the team and game
                               // modals in order to clear form data
+      editWhichDivision: null, // which division to load in the division edit modal
+      divAddOrEdit: 'add', // either 'add' or 'edit'
       editWhichTeam: null,    // which team to load in the team modal
       tmAddOrEdit: 'add', //either 'add' or 'edit'
       editWhichGame: null, // which game to load in the game modal
       gmAddOrEdit: 'add', // either 'add' or 'edit'
       editingSettings: false, // Whether the "settings" section of the settings pane is open for editing
       gameToBeDeleted: null, // which game the user is attempting to delete
+      divToBeDeleted: null, // which deivision the user is attempting to delete
       releasedRptList: releasedRptList, // list of uneditable report configurations
       customRptList: {}, // list of user-created report configurations
       customRptFile: null, // file path to score user configuration
@@ -114,6 +121,7 @@ class MainInterface extends React.Component {
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
+    this.openDivEditModal = this.openDivEditModal.bind(this);
     this.onModalClose = this.onModalClose.bind(this);
     this.onForceReset = this.onForceReset.bind(this);
     this.addTeam = this.addTeam.bind(this);
@@ -122,10 +130,13 @@ class MainInterface extends React.Component {
     this.modifyGame = this.modifyGame.bind(this);
     this.deleteTeam = this.deleteTeam.bind(this);
     this.deleteGame = this.deleteGame.bind(this);
+    this.openDivForEdit = this.openDivForEdit.bind(this);
     this.openTeamForEdit = this.openTeamForEdit.bind(this);
     this.openGameForEdit = this.openGameForEdit.bind(this);
+    this.onLoadDivInModal = this.onLoadDivInModal.bind(this);
     this.onLoadTeamInModal = this.onLoadTeamInModal.bind(this);
     this.onLoadGameInModal = this.onLoadGameInModal.bind(this);
+    this.validateDivisionName = this.validateDivisionName.bind(this);
     this.validateTeamName = this.validateTeamName.bind(this);
     this.haveTeamsPlayedInRound = this.haveTeamsPlayedInRound.bind(this);
     this.onSelectTeam = this.onSelectTeam.bind(this);
@@ -134,7 +145,11 @@ class MainInterface extends React.Component {
     this.searchLists = this.searchLists.bind(this);
     this.setPane = this.setPane.bind(this);
     this.setPhase = this.setPhase.bind(this);
-    this.saveDivisions = this.saveDivisions.bind(this);
+    this.addDivision = this.addDivision.bind(this);
+    this.modifyDivision = this.modifyDivision.bind(this);
+    this.deleteDivision = this.deleteDivision.bind(this);
+    this.reorderDivisions = this.reorderDivisions.bind(this);
+    this.savePhases = this.savePhases.bind(this);
     this.openDivModal = this.openDivModal.bind(this);
     this.openPhaseModal = this.openPhaseModal.bind(this);
     this.submitDivAssignments = this.submitDivAssignments.bind(this);
@@ -160,6 +175,11 @@ class MainInterface extends React.Component {
   process.
   ---------------------------------------------------------*/
   componentDidMount() {
+    //initialize modals
+    $('#addTeam, #addGame, #editDivision, #rptConfig, #assignDivisions, #assignPhases').modal({
+      onCloseEnd: this.onModalClose
+    });
+    //set up event listeners
     ipc.on('addTeam', (event, message) => {
       if(!this.anyModalOpen()) { this.openTeamAddWindow(); }
     });
@@ -221,12 +241,20 @@ class MainInterface extends React.Component {
         $('#search').select();
       }
     });
-    ipc.on('confirmDelete', (event) => {
+    ipc.on('confirmGameDeletion', (event) => {
       this.deleteGame();
     });
-    ipc.on('cancelDelete', (event) => {
+    ipc.on('cancelGameDeletion', (event) => {
       this.setState({
         gameToBeDeleted: null
+      });
+    });
+    ipc.on('confirmDivDeletion', (event) => {
+      this.deleteDivision();
+    });
+    ipc.on('cancelDivDeletion', (event) => {
+      this.setState({
+        divToBeDeleted: null
       });
     });
     ipc.on('openRptConfig', (event) => {
@@ -248,7 +276,7 @@ class MainInterface extends React.Component {
         sidebarOpen: open
       });
     });
-    ipc.on('loadRptConfigs', (event, env) => {
+    ipc.on('loadReportConfig', (event, env) => {
       this.loadCustomRptConfigs(env);
     });
   } //componentDidMount
@@ -274,8 +302,10 @@ class MainInterface extends React.Component {
     ipc.removeAllListeners('prevPhase');
     ipc.removeAllListeners('nextPhase');
     ipc.removeAllListeners('focusSearch');
-    ipc.removeAllListeners('confirmDelete');
-    ipc.removeAllListeners('cancelDelete');
+    ipc.removeAllListeners('confirmGameDeletion');
+    ipc.removeAllListeners('cancelGameDeletion');
+    ipc.removeAllListeners('confirmDivDeletion');
+    ipc.removeAllListeners('cancelDivDeletion');
     ipc.removeAllListeners('openRptConfig');
     ipc.removeAllListeners('rptDeleteConfirmation');
     ipc.removeAllListeners('setActiveRptConfig');
@@ -306,7 +336,7 @@ class MainInterface extends React.Component {
     var releasedRptList = JSON.parse(loadRpts).rptConfigList;
     var defaultRpt = ORIG_DEFAULT_RPT_NAME;
 
-    var customRptFile = env == 'production' ? CUSTOM_RPT_CONFIG_FILE_PROD : CUSTOM_RPT_CONFIG_FILE_DEV;
+    var customRptFile = env != 'development' ? CUSTOM_RPT_CONFIG_FILE_PROD : CUSTOM_RPT_CONFIG_FILE_DEV;
 
     if(fs.existsSync(customRptFile)) {
       loadRpts = fs.readFileSync(customRptFile, 'utf8');
@@ -328,8 +358,7 @@ class MainInterface extends React.Component {
       for(var i in customRptSlice) { delete customRptList[customRptSlice[i]]; }
     }
 
-    var defFormSettingsCopy = $.extend(true, {}, DEFAULT_FORM_SETTINGS);
-    ipc.sendSync('rebuildMenus', releasedRptList, customRptList, defaultRpt, defFormSettingsCopy);
+    ipc.sendSync('rebuildMenus', releasedRptList, customRptList, defaultRpt);
 
     this.setState({
       releasedRptList: releasedRptList, // list of uneditable report configurations
@@ -469,6 +498,9 @@ class MainInterface extends React.Component {
     if(versionLt(loadMetadata.version, '2.2.0')) {
       teamConversion2x2x0(loadTeams);
     }
+    if(versionLt(loadMetadata.version, '2.3.0')) {
+      teamConversion2x3x0(loadTeams);
+    }
     //revert to SQBS defaults if we can't find this file's report configuration
     if(this.state.releasedRptList[assocRpt] == undefined && this.state.customRptList[assocRpt] == undefined) {
       assocRpt = ORIG_DEFAULT_RPT_NAME;
@@ -476,7 +508,7 @@ class MainInterface extends React.Component {
 
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
-    ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, assocRpt, this.state.formSettings);
+    ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, assocRpt);
 
     this.setState({
       settings: loadSettings,
@@ -536,6 +568,8 @@ class MainInterface extends React.Component {
       }
       myTeams.push({
         teamName: teamName,
+        smallSchool: false,
+        jrVarsity: false,
         teamUGStatus: false,
         teamD2Status: false,
         roster: roster,
@@ -591,6 +625,9 @@ class MainInterface extends React.Component {
     }
     if(versionLt(loadMetadata.version, '2.2.0')) {
       teamConversion2x2x0(loadTeams);
+    }
+    if(versionLt(loadMetadata.version, '2.3.0')) {
+      teamConversion2x3x0(loadTeams);
     }
     // merge teams
     var teamsCopy = this.state.myTeams.slice();
@@ -678,7 +715,7 @@ class MainInterface extends React.Component {
     var endFileStart = filePathSegments.pop();
     var phaseColors = {}, phaseCnt = 0;
     for(var p in this.state.divisions) {
-      phaseColors[p] = PHASE_COLORS[phaseCnt++];
+      if(p != "noPhase") { phaseColors[p] = PHASE_COLORS[phaseCnt++]; }
     }
     var activeRpt = this.state.releasedRptList[this.state.activeRpt];
     if(activeRpt == undefined) { activeRpt = this.state.customRptList[this.state.activeRpt]; }
@@ -771,6 +808,7 @@ class MainInterface extends React.Component {
     this.setState({
       tmWindowVisible: false,
       gmWindowVisible: false,
+      divEditWindowVisible: false,
       rptConfigWindowVisible: false,
       divWindowVisible: false,
       phaseWindowVisible: false,
@@ -791,12 +829,15 @@ class MainInterface extends React.Component {
       activePane: 'settingsPane',  //settings, teams, or games
       viewingPhase: 'all',
       forceResetForms: false,
+      editWhichDivision: null,
+      divAddOrEdit: 'add',
       editWhichTeam: null,
       tmAddOrEdit: 'add', //either 'add' or 'edit'
       editWhichGame: null,
       gmAddOrEdit: 'add',
       editingSettings: false,
       gameToBeDeleted: null,
+      divToBeDeleted: null,
       activeRpt: this.state.defaultRpt
       // DO NOT reset these! These should persist throughout the session
       // releasedRptList: ,
@@ -805,24 +846,15 @@ class MainInterface extends React.Component {
       // modalsInitialized:
       // formSettings
     });
-    ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, this.state.defaultRpt, this.state.formSettings);
+    ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, this.state.defaultRpt);
   }
-
-  //clear text from the search bar in order to show all teams/games
-  // clearSearch() {
-  //   if(this.state.activePane == 'settingsPane') { return; }
-  //   $('#search').val('');
-  //   this.setState({
-  //     queryText: '',
-  //   });
-  // }
 
   /*---------------------------------------------------------
   Whether any of the modal windows are open
   ---------------------------------------------------------*/
   anyModalOpen() {
     return this.state.tmWindowVisible || this.state.gmWindowVisible ||
-      this.state.rptConfigWindowVisible ||
+      this.state.divEditWindowVisible || this.state.rptConfigWindowVisible ||
       this.state.divWindowVisible || this.state.phaseWindowVisible;
   }
 
@@ -923,6 +955,7 @@ class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   onModalClose() {
     this.setState({
+      divEditWindowVisible: false,
       tmWindowVisible: false,
       gmWindowVisible: false,
       rptConfigWindowVisible: false,
@@ -944,6 +977,7 @@ class MainInterface extends React.Component {
   onForceReset() {
     this.setState({
       forceResetForms: false,
+      divAddOrEdit: 'add',
       tmAddOrEdit: 'add',
       gmAddOrEdit: 'add'
     });
@@ -952,7 +986,7 @@ class MainInterface extends React.Component {
   /*---------------------------------------------------------
   Add the new team, then close the form
   ---------------------------------------------------------*/
-  addTeam(tempItem) {
+  addTeam(tempItem, acceptAndStay) {
     var tempTms = this.state.myTeams.slice();
     tempTms.push(tempItem);
     var settings = this.state.settings;
@@ -963,16 +997,24 @@ class MainInterface extends React.Component {
     for(var p in tempItem.roster) { tempIndex[teamName][p] = 0; }
     this.setState({
       myTeams: tempTms,
-      tmWindowVisible: false,
+      tmWindowVisible: acceptAndStay,
       settings: settings,
       playerIndex: tempIndex
     }) //setState
+    if(acceptAndStay) {
+      $('#teamName').focus();
+      M.toast({
+        html: '<i class=\"material-icons\">check_circle</i>&emsp;Added \"' + teamName + '\"',
+        classes: 'green-toast',
+        displayLength: 2000
+      });
+    }
   } //addTeam
 
   /*---------------------------------------------------------
   Add the new game, then close the form
   ---------------------------------------------------------*/
-  addGame(tempItem) {
+  addGame(tempItem, acceptAndStay) {
     var tempGms = this.state.myGames.slice();
     tempGms.push(tempItem);
     var tempGameIndex = this.state.gameIndex;
@@ -986,8 +1028,17 @@ class MainInterface extends React.Component {
       myGames: tempGms,
       gameIndex: tempGameIndex,
       playerIndex: tempPlayerIndex,
-      gmWindowVisible: false
+      gmWindowVisible: acceptAndStay
     }) //setState
+    if(acceptAndStay) {
+      $('#round').focus();
+      var gameDisp = 'Round ' + tempItem.round + ' ' + tempItem.team1 + ' vs ' + tempItem.team2;
+      M.toast({
+        html: '<i class=\"material-icons\">check_circle</i>&emsp;Added \"' + gameDisp + '\"',
+        classes: 'green-toast',
+        displayLength: 2000
+      });
+    }
   } //addTeam
 
   /*---------------------------------------------------------
@@ -996,14 +1047,14 @@ class MainInterface extends React.Component {
   Assumes whitespace has alredy been removed from the form
   data
   ---------------------------------------------------------*/
-  modifyTeam(oldTeam, newTeam) {
+  modifyTeam(oldTeam, newTeam, acceptAndStay) {
     var tempTeams = this.state.myTeams.slice();
     var tempGames = this.state.myGames.slice();
     var originalNames = Object.keys(oldTeam.roster), newNames = Object.keys(newTeam.roster);
 
     for(var i in originalNames) {
       let oldn = originalNames[i], newn = newNames[i];
-      if(oldn != newn) { //newn can be the empty string, if the user deleted players
+      if(oldn != newn && newn != undefined) {
         this.updatePlayerName(tempGames, oldTeam.teamName, oldn, newn);
       }
     }
@@ -1014,7 +1065,8 @@ class MainInterface extends React.Component {
 
     //update index
     var tempPlayerIndex = this.state.playerIndex;
-    modifyTeamInPlayerIndex(oldTeam, newTeam, tempPlayerIndex); //statUtils2
+    var newTeamCopy = $.extend(true, {}, newTeam);
+    modifyTeamInPlayerIndex(oldTeam, newTeamCopy, tempPlayerIndex); //statUtils2
 
     //don't save the dummy placeholders for deleted teams
     var deletedTeams = [];
@@ -1032,8 +1084,17 @@ class MainInterface extends React.Component {
       myTeams: tempTeams,
       myGames: tempGames,
       tmWindowVisible: false,
-      playerIndex: tempPlayerIndex
+      playerIndex: tempPlayerIndex,
+      tmAddOrEdit: 'add' // need to set here in case of acceptAndStay
     });
+    if(acceptAndStay) {
+      $('#teamName').focus();
+      M.toast({
+        html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newTeam.teamName + '\"',
+        classes: 'green-toast',
+        displayLength: 2000
+      });
+    }
   }//modifyTeam
 
   /*---------------------------------------------------------
@@ -1078,7 +1139,7 @@ class MainInterface extends React.Component {
   /*---------------------------------------------------------
   Updat the appropriate game and close the form
   ---------------------------------------------------------*/
-  modifyGame(oldGame, newGame) {
+  modifyGame(oldGame, newGame, acceptAndStay) {
     var tempGameAry = this.state.myGames.slice();
     var oldGameIdx = _.findIndex(tempGameAry, function (o) {
        return gameEqual(o, oldGame)
@@ -1099,8 +1160,19 @@ class MainInterface extends React.Component {
       myGames: tempGameAry,
       gameIndex: tempGameIndex,
       playerIndex: tempPlayerIndex,
-      gmWindowVisible: false
+      gmWindowVisible: false,
+      gmAddOrEdit: 'add' // needed in case of acceptAndStay
     });
+    if(acceptAndStay) {
+      $('#round').focus();
+      var gameDisp = 'Round ' + newGame.round + ' ' + newGame.team1 + ' vs ' + newGame.team2;
+      M.toast({
+        html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + gameDisp + '\"',
+        classes: 'green-toast',
+        displayLength: 2000
+      });
+      $('#toast-container').addClass('toast-bottom-left');
+    }
   }
 
   /*---------------------------------------------------------
@@ -1131,7 +1203,7 @@ class MainInterface extends React.Component {
       this.setState({
         gameToBeDeleted: item
       });
-      ipc.send('tryDelete', 'Round ' + item.round + ': ' + item.team1 + ' vs. ' + item.team2);
+      ipc.send('tryGameDelete', 'Round ' + item.round + ': ' + item.team1 + ' vs. ' + item.team2);
       return;
     }
     var allGames = this.state.myGames;
@@ -1178,6 +1250,17 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Tell the division edit modal to load the given division
+  ---------------------------------------------------------*/
+  openDivForEdit(item) {
+    this.setState({
+      editWhichDivision: item,
+      divAddOrEdit: 'edit'
+    });
+    this.openDivEditModal()
+  }
+
+  /*---------------------------------------------------------
   Tell the team modal to load the given team
   ---------------------------------------------------------*/
   openTeamForEdit(item) {
@@ -1197,6 +1280,17 @@ class MainInterface extends React.Component {
       gmAddOrEdit: 'edit'
     });
     this.openGameAddWindow();
+  }
+
+  /*---------------------------------------------------------
+  Called by div edit modal once it's finished loading data.
+  Prevents an infinite render loop from the div edit modal's
+  componentDidUpdate method.
+  ---------------------------------------------------------*/
+  onLoadDivInModal() {
+    this.setState({
+      editWhichDivision: null
+    });
   }
 
   /*---------------------------------------------------------
@@ -1222,6 +1316,24 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Determine whether newDivName is a legal division name.
+  Can't already be the name of an existing division in
+  newPhase, other than savedDivision, the one that's
+  currently being edited
+  ---------------------------------------------------------*/
+  validateDivisionName(newDivName, newPhase, savedDivision) {
+    var otherDivisions = this.state.divisions[newPhase];
+    if(otherDivisions == undefined) { return true; }
+    if(savedDivision != null) {
+      otherDivisions = _.without(otherDivisions, savedDivision.divisionName);
+    }
+    var idx = otherDivisions.findIndex((d) => {
+      return d.toLowerCase() == newDivName.toLowerCase();
+    });
+    return idx==-1;
+  }
+
+  /*---------------------------------------------------------
   Determine whether newTeamName is a legal team name.
   Can't already be the name of an existing team other
   than savedTeam, the one that's currently being edited.
@@ -1234,7 +1346,7 @@ class MainInterface extends React.Component {
     else {
       otherTeams = this.state.myTeams;
     }
-    var idx = _.findIndex(otherTeams, function(t) {
+    var idx = otherTeams.findIndex((t) => {
       return t.teamName.toLowerCase() == newTeamName.toLowerCase();
     });
     return idx==-1;
@@ -1337,11 +1449,156 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Add a single new division to the specified phase
+  (Phase can be 'noPhase')
+  acceptAndStay is true if we want the modal to stay open,
+  false if not.
+  ---------------------------------------------------------*/
+  addDivision(divName, phase, acceptAndStay) {
+    var tempDivisions = this.state.divisions;
+    if(phase == 'noPhase' && tempDivisions.noPhase == undefined) {
+      tempDivisions.noPhase = [];
+    }
+    tempDivisions[phase].push(divName);
+    this.setState({
+     divisions: tempDivisions,
+     divEditWindowVisible: acceptAndStay,
+     settingsLoadToggle: !this.state.settingsLoadToggle
+    });
+    ipc.sendSync('unsavedData');
+    if(acceptAndStay) {
+      $('#divisionName').focus();
+      var phaseDisplay = phase != 'noPhase' ? ' (' + phase + ')' : '';
+      M.toast({
+        html: '<i class=\"material-icons\">check_circle</i>&emsp;Added \"' + divName + phaseDisplay + '\"',
+        classes: 'green-toast',
+        displayLength: 2000
+      });
+    }
+  }
+
+  /*---------------------------------------------------------
+  Modify a single division
+  acceptAndStay is true if we want the modal to stay open,
+  false if not.
+  ---------------------------------------------------------*/
+  modifyDivision(oldDivision, newDivName, newPhase, acceptAndStay) {
+    var tempDivisions = this.state.divisions;
+    var tempTeams = this.state.myTeams;
+    var oldDivName = oldDivision.divisionName, oldPhase = oldDivision.phase;
+    //if phase was changed remove it from teams and from division structure
+    if(oldPhase != newPhase) {
+      for(var i in tempTeams) {
+        if(tempTeams[i].divisions[oldPhase] == oldDivName) {
+          delete tempTeams[i].divisions[oldPhase];
+        }
+      }
+      _.pull(tempDivisions[oldPhase], oldDivName);
+      if(newPhase != 'noPhase') {
+        tempDivisions[newPhase].push(newDivName);
+      }
+      else {
+        if(tempDivisions.noPhase != undefined) { tempDivisions.noPhase.push(newDivName); }
+        else { tempDivisions.noPhase = [newDivName]; }
+      }
+    }
+    //otherwise just change division name
+    else if(oldDivName != newDivName) {
+      for(var i in tempTeams) {
+        if(tempTeams[i].divisions[newPhase] == oldDivName) {
+          tempTeams[i].divisions[newPhase] = newDivName;
+        }
+      }
+      var idx = tempDivisions[newPhase].findIndex((d) => { return d == oldDivName });
+      tempDivisions[newPhase][idx] = newDivName;
+    }
+    this.setState({
+      divisions: tempDivisions,
+      myTeams: tempTeams,
+      settingsLoadToggle: !this.state.settingsLoadToggle,
+      divEditWindowVisible: acceptAndStay,
+      divAddOrEdit: 'add' // need to reset this here in case of acceptAndStay
+    });
+    ipc.sendSync('unsavedData');
+    if(acceptAndStay) {
+      $('#divisionName').focus();
+      var phaseDisplay = newPhase != 'noPhase' ? ' (' + newPhase + ')' : '';
+      M.toast({
+        html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newDivName + phaseDisplay + '\"',
+        classes: 'green-toast',
+        displayLength: 2000
+      });
+    }
+  } //modifyDivision
+
+  /*---------------------------------------------------------
+  Delete a single division
+  Called twice during the division deletion workflow. The
+  first time it triggers a confirmation message. The second
+  time, once the user has confirmed, it permanently deletes
+  the game
+  ---------------------------------------------------------*/
+  deleteDivision(item) {
+    if(this.state.divToBeDeleted == null) {
+      this.setState({
+        divToBeDeleted: item
+      });
+      var phaseString = item.phase != 'noPhase' ? ' (' + item.phase + ')' : ''
+      ipc.send('tryDivDelete', item.divisionName + phaseString);
+      return;
+    }
+    // delete the division from any teams that have it
+    var tempTeams = this.state.myTeams;
+    var divName = this.state.divToBeDeleted.divisionName;
+    var phase = this.state.divToBeDeleted.phase;
+    for(var i in tempTeams) {
+      if(tempTeams[i].divisions[phase] == divName) {
+        delete tempTeams[i].divisions[phase];
+      }
+    }
+    // delete the division from the division object
+    var tempDivisions = this.state.divisions;
+    _.pull(tempDivisions[phase], divName);
+    if(phase == 'noPhase' && tempDivisions.noPhase.length == 0) {
+      delete tempDivisions.noPhase;
+    }
+    this.setState({
+      divisions: tempDivisions,
+      teams: tempTeams,
+      settingsLoadToggle: !this.state.settingsLoadToggle,
+      divToBeDeleted: null
+    });
+    ipc.sendSync('unsavedData');
+  }//deleteDivision
+
+  /*---------------------------------------------------------
+  reorder the list of divisions so that droppedItem is
+  immediately above receivingItem
+  ---------------------------------------------------------*/
+  reorderDivisions(droppedItem, receivingItem) {
+    // don't bother if the divisions are from different phases, or if they're the same division
+    if(droppedItem.phase != receivingItem.phase ||
+      droppedItem.divisionName == receivingItem.divisionName) {
+        return;
+      }
+    var phase = droppedItem.phase;
+    var tempDivisions = this.state.divisions;
+    var onePhase = _.without(tempDivisions[phase], droppedItem.divisionName);
+    var recItemIdx = onePhase.indexOf(receivingItem.divisionName);
+    tempDivisions[phase] = onePhase.slice(0,recItemIdx).concat([droppedItem.divisionName], onePhase.slice(recItemIdx));
+    this.setState({
+      divisions: tempDivisions,
+      settingsLoadToggle: !this.state.settingsLoadToggle,
+    });
+    ipc.sendSync('unsavedData');
+  }
+
+  /*---------------------------------------------------------
   Modify phases and divisions, as well as the assignments
   of teams to divisions and games to phases if necessary.
   Called from the settings form.
   ---------------------------------------------------------*/
-  saveDivisions(newPhases, newDivAry, newPhaseAssignments) {
+  savePhases(newPhases, newDivAry, newPhaseAssignments) {
     var tempDivisions = {};
     if(newPhases.length == 0 && newDivAry.length > 0) {
       tempDivisions.noPhase = newDivAry;
@@ -1364,13 +1621,18 @@ class MainInterface extends React.Component {
       }
       if(noPhase.length > 0) { tempDivisions.noPhase = noPhase; }
     }
-    //delete team's division if the phase doesn't exist or doesn't have that division
+    //update team's divisions
     var tempTeams = this.state.myTeams;
     for(var i in tempTeams) {
       for(var phase in tempTeams[i].divisions) {
-        if(tempDivisions[phase] == undefined ||
-            !tempDivisions[phase].includes(tempTeams[i].divisions[phase])) {
+        //delete divisions for phases that no longer exist
+        if(tempDivisions[phase] == undefined) {
           delete tempTeams[i].divisions[phase];
+        }
+        else {
+          if(!tempDivisions[phase].includes(tempTeams[i].divisions[phase])) {
+            delete tempTeams[i].divisions[phase];
+          }
         }
       }
     }
@@ -1408,7 +1670,7 @@ class MainInterface extends React.Component {
       settingsLoadToggle: reloadSettingsPane
     });
     ipc.sendSync('unsavedData');
-  } //saveDivisions
+  } //savePhases
 
   /*---------------------------------------------------------
   When a team is selected or deselected using the checkbox
@@ -1434,6 +1696,19 @@ class MainInterface extends React.Component {
     this.setState({
       selectedGames: tempSelGames
     });
+  }
+
+  /*---------------------------------------------------------
+  Open the modal for editing divisions
+  ---------------------------------------------------------*/
+  openDivEditModal() {
+    this.setState({
+      divEditWindowVisible: true
+    });
+    // for some reason I can't call focus() normally for this field.
+    // fortunately this delay is not perceptible
+    setTimeout(function() { $('#divisionName').focus() }, 50);
+    // $('#divisionName').focus();
   }
 
   /*---------------------------------------------------------
@@ -1466,7 +1741,7 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
-  Assign divisions to the selected games.
+  Assign divisions to the selected teams.
   ---------------------------------------------------------*/
   submitDivAssignments(divSelections) {
     var selTeams = this.state.selectedTeams;
@@ -1721,7 +1996,7 @@ class MainInterface extends React.Component {
     if(saveSuccess && acceptAndStay) {
       M.toast({html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newName + '\"', classes: 'green-toast'});
     }
-    ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt, this.state.formSettings);
+    ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
   }
 
   /*---------------------------------------------------------
@@ -1803,7 +2078,7 @@ class MainInterface extends React.Component {
     fs.writeFile(this.state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', (err) => {
       if (err) { console.log(err); }
     });
-    ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt, this.state.formSettings);
+    ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
   }
 
   /*---------------------------------------------------------
@@ -1811,6 +2086,7 @@ class MainInterface extends React.Component {
   should appear
   ---------------------------------------------------------*/
   toggleFormField(whichField, status) {
+    if(this.state.formSettings[whichField] == undefined) { return; }
     var tempFormSettings = this.state.formSettings;
     tempFormSettings[whichField] = status;
     this.setState({
@@ -1839,12 +2115,6 @@ class MainInterface extends React.Component {
     $(document).ready(function() { $('.tooltipped').tooltip(); });//initialize tooltips
     $('select').formSelect(); //initialize all dropdowns
     $('.fixed-action-btn').floatingActionButton(); //initialize floating buttons
-    //initialize all modals
-    if(!this.state.modalsInitialized) {
-      $('#addTeam, #addGame, #rptConfig').modal({
-        onCloseEnd: this.onModalClose
-      });
-    }
     //for some reason, Materialize code will crash if I only initialize these once
     //perhaps one day I will figure out why
     $('#assignDivisions, #assignPhases').modal({
@@ -1853,6 +2123,7 @@ class MainInterface extends React.Component {
     //open modals if appropriate
     if(this.state.tmWindowVisible === true) { $('#addTeam').modal('open'); }
     if(this.state.gmWindowVisible === true) { $('#addGame').modal('open'); }
+    if(this.state.divEditWindowVisible === true) { $('#editDivision').modal('open'); }
     if(this.state.divWindowVisible === true) { $('#assignDivisions').modal('open'); }
     if(this.state.phaseWindowVisible === true) { $('#assignPhases').modal('open'); }
     if(this.state.rptConfigWindowVisible === true) { $('#rptConfig').modal('open'); }
@@ -2009,6 +2280,18 @@ class MainInterface extends React.Component {
             divisions = {this.state.divisions}
             handleSubmit = {this.submitPhaseAssignments}
           />
+          <DivisionEditModal
+            isOpen = {this.state.divEditWindowVisible}
+            addOrEdit = {this.state.divAddOrEdit}
+            divisionToLoad = {this.state.editWhichDivision}
+            onLoadDivInModal = {this.onLoadDivInModal}
+            divisions = {this.state.divisions}
+            addDivision = {this.addDivision}
+            modifyDivision = {this.modifyDivision}
+            validateName = {this.validateDivisionName}
+            forceReset = {this.state.forceResetForms}
+            onForceReset = {this.onForceReset}
+          />
 
           <div className="row">
             <div id="main-window" className={mainWindowClass}>
@@ -2030,7 +2313,11 @@ class MainInterface extends React.Component {
                 settings = {this.state.settings}
                 packets = {this.state.packets}
                 divisions = {this.state.divisions}
-                saveDivisions = {this.saveDivisions}
+                savePhases = {this.savePhases}
+                newDivision = {this.openDivEditModal}
+                editDivision = {this.openDivForEdit}
+                deleteDivision = {this.deleteDivision}
+                reorderDivisions = {this.reorderDivisions}
                 defaultPhase = {this.state.settings.defaultPhase}
                 setDefaultGrouping = {this.setDefaultGrouping}
                 saveSettings = {this.saveSettings}
