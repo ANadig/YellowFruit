@@ -1,5 +1,6 @@
 .env
 /node_modules
+/dist
 /data/CustomRptConfig.json
 /data/UserConfig.json
 /app/js/render.js
