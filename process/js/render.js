@@ -999,7 +999,7 @@ class MainInterface extends React.Component {
   /*---------------------------------------------------------
   Add the new game, then close the form
   ---------------------------------------------------------*/
-  addGame(tempItem) {
+  addGame(tempItem, acceptAndStay) {
     var tempGms = this.state.myGames.slice();
     tempGms.push(tempItem);
     var tempGameIndex = this.state.gameIndex;
@@ -1013,8 +1013,17 @@ class MainInterface extends React.Component {
       myGames: tempGms,
       gameIndex: tempGameIndex,
       playerIndex: tempPlayerIndex,
-      gmWindowVisible: false
+      gmWindowVisible: acceptAndStay
     }) //setState
+    if(acceptAndStay) {
+      $('#round').focus();
+      var gameDisp = 'Round ' + tempItem.round + ' ' + tempItem.team1 + ' vs ' + tempItem.team2;
+      M.toast({
+        html: '<i class=\"material-icons\">check_circle</i>&emsp;Added \"' + gameDisp + '\"',
+        classes: 'green-toast',
+        displayLength: 2000
+      });
+    }
   } //addTeam
 
   /*---------------------------------------------------------
@@ -1115,7 +1124,7 @@ class MainInterface extends React.Component {
   /*---------------------------------------------------------
   Updat the appropriate game and close the form
   ---------------------------------------------------------*/
-  modifyGame(oldGame, newGame) {
+  modifyGame(oldGame, newGame, acceptAndStay) {
     var tempGameAry = this.state.myGames.slice();
     var oldGameIdx = _.findIndex(tempGameAry, function (o) {
        return gameEqual(o, oldGame)
@@ -1136,8 +1145,19 @@ class MainInterface extends React.Component {
       myGames: tempGameAry,
       gameIndex: tempGameIndex,
       playerIndex: tempPlayerIndex,
-      gmWindowVisible: false
+      gmWindowVisible: false,
+      gmAddOrEdit: 'add' // needed in case of acceptAndStay
     });
+    if(acceptAndStay) {
+      $('#round').focus();
+      var gameDisp = 'Round ' + newGame.round + ' ' + newGame.team1 + ' vs ' + newGame.team2;
+      M.toast({
+        html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + gameDisp + '\"',
+        classes: 'green-toast',
+        displayLength: 2000
+      });
+      $('#toast-container').addClass('toast-bottom-left');
+    }
   }
 
   /*---------------------------------------------------------

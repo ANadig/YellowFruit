@@ -259,13 +259,6 @@ class AddTeamModal extends React.Component{
   }
 
   /*---------------------------------------------------------
-  For the Accept button at the bottom.
-  ---------------------------------------------------------*/
-  getSubmitWord() {
-    return this.props.addOrEdit == 'add' ? 'Add ' : 'Save ';
-  }
-
-  /*---------------------------------------------------------
   Are there two players with the same name?
   ---------------------------------------------------------*/
   rosterHasDups() {
