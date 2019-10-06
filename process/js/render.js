@@ -971,7 +971,7 @@ class MainInterface extends React.Component {
   /*---------------------------------------------------------
   Add the new team, then close the form
   ---------------------------------------------------------*/
-  addTeam(tempItem) {
+  addTeam(tempItem, acceptAndStay) {
     var tempTms = this.state.myTeams.slice();
     tempTms.push(tempItem);
     var settings = this.state.settings;
@@ -982,10 +982,18 @@ class MainInterface extends React.Component {
     for(var p in tempItem.roster) { tempIndex[teamName][p] = 0; }
     this.setState({
       myTeams: tempTms,
-      tmWindowVisible: false,
+      tmWindowVisible: acceptAndStay,
       settings: settings,
       playerIndex: tempIndex
     }) //setState
+    if(acceptAndStay) {
+      $('#teamName').focus();
+      M.toast({
+        html: '<i class=\"material-icons\">check_circle</i>&emsp;Added \"' + teamName + '\"',
+        classes: 'green-toast',
+        displayLength: 2000
+      });
+    }
   } //addTeam
 
   /*---------------------------------------------------------
@@ -1015,7 +1023,7 @@ class MainInterface extends React.Component {
   Assumes whitespace has alredy been removed from the form
   data
   ---------------------------------------------------------*/
-  modifyTeam(oldTeam, newTeam) {
+  modifyTeam(oldTeam, newTeam, acceptAndStay) {
     var tempTeams = this.state.myTeams.slice();
     var tempGames = this.state.myGames.slice();
     var originalNames = Object.keys(oldTeam.roster), newNames = Object.keys(newTeam.roster);
@@ -1052,8 +1060,17 @@ class MainInterface extends React.Component {
       myTeams: tempTeams,
       myGames: tempGames,
       tmWindowVisible: false,
-      playerIndex: tempPlayerIndex
+      playerIndex: tempPlayerIndex,
+      tmAddOrEdit: 'add' // need to set here in case of acceptAndStay
     });
+    if(acceptAndStay) {
+      $('#teamName').focus();
+      M.toast({
+        html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newTeam.teamName + '\"',
+        classes: 'green-toast',
+        displayLength: 2000
+      });
+    }
   }//modifyTeam
 
   /*---------------------------------------------------------

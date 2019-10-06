@@ -240,11 +240,12 @@ class AddTeamModal extends React.Component{
       divisions: this.state.divisions
     } //tempitems
 
+    var acceptAndStay = e.target.name == 'acceptAndStay';
     if(this.props.addOrEdit == 'add') {
-      this.props.addTeam(tempItem);
+      this.props.addTeam(tempItem, acceptAndStay);
     }
     else {
-      this.props.modifyTeam(this.state.originalTeamLoaded, tempItem);
+      this.props.modifyTeam(this.state.originalTeamLoaded, tempItem, acceptAndStay);
     }
 
     this.resetState();
@@ -497,61 +498,64 @@ class AddTeamModal extends React.Component{
     var [teamIsValid, errorLevel, errorMessage] = this.validateTeam();
     var errorIcon = this.getErrorIcon(errorLevel);
     var acceptHotKey = teamIsValid ? 'a' : '';
+    var acceptStayHotKey = teamIsValid ? 's' : '';
 
     //Don't allow Enter key to submit form
     $(document).on("keypress", "#addTeam :input:not(textarea)", function(event) {
-      // return teamIsValid || event.keyCode != 13;
       return event.keyCode != 13;
     });
 
     return(
       <div className="modal modal-fixed-footer" id="addTeam">
-        <form onSubmit={this.handleAdd}>
-          <div className="modal-content">
-            <h4>{this.getModalHeader()}</h4>
-            <div className="row">
-              <div className="col l10 s8">
-                <div className="input-field">
-                  <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
-                  <label htmlFor="teamName">Team Name</label>
-                </div>
-              </div>
-              <div className="col l1 s2">
-                <div className="team-level-checkbox">
-                  <label>
-                    <input id="teamUGStatus" type="checkbox" name="teamUGStatus" checked={this.state.teamUGStatus} onChange={this.handleChange}/>
-                    <span>UG</span>
-                  </label>
-                </div>
-              </div>
-              <div className="col l1 s2">
-                <div className="team-level-checkbox">
-                  <label>
-                    <input id="teamD2Status" type="checkbox" name="teamD2Status" checked={this.state.teamD2Status} onChange={this.handleChange}/>
-                    <span>D2</span>
-                  </label>
-                </div>
+        <div className="modal-content">
+          <h4>{this.getModalHeader()}</h4>
+          <div className="row">
+            <div className="col l10 s8">
+              <div className="input-field">
+                <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
+                <label htmlFor="teamName">Team Name</label>
               </div>
             </div>
-            <h5>Roster</h5>
-            {rosterTable}
-          </div> {/* modal content */}
-          <div className="modal-footer">
-            <div className="row">
-              <div className="col s5 l8 qb-validation-msg">
-                {errorIcon}&nbsp;{errorMessage}
+            <div className="col l1 s2">
+              <div className="team-level-checkbox">
+                <label>
+                  <input id="teamUGStatus" type="checkbox" name="teamUGStatus" checked={this.state.teamUGStatus} onChange={this.handleChange}/>
+                  <span>UG</span>
+                </label>
               </div>
-              <div className="col s7 l4">
-                <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
-                  <span className="hotkey-underline">C</span>ancel
-                </button>&nbsp;
-                <button type="submit" accessKey={acceptHotKey} className={'modal-close btn green ' + this.disabledButton(teamIsValid)}>
-                  {this.getSubmitWord()} Te<span className="hotkey-underline">a</span>m
-                </button>
+            </div>
+            <div className="col l1 s2">
+              <div className="team-level-checkbox">
+                <label>
+                  <input id="teamD2Status" type="checkbox" name="teamD2Status" checked={this.state.teamD2Status} onChange={this.handleChange}/>
+                  <span>D2</span>
+                </label>
               </div>
             </div>
           </div>
-        </form>
+          <h5>Roster</h5>
+          {rosterTable}
+        </div> {/* modal content */}
+        <div className="modal-footer">
+          <div className="row">
+            <div className="col s5 l7 qb-validation-msg">
+              {errorIcon}&nbsp;{errorMessage}
+            </div>
+            <div className="col s7 l5">
+              <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
+                <span className="hotkey-underline">C</span>ancel
+              </button>&nbsp;
+              <button accessKey={acceptStayHotKey} name="acceptAndStay" onClick={this.handleAdd}
+              className={'btn blue accent-1 ' + this.disabledButton(teamIsValid)}>
+                <span className="hotkey-underline">S</span>ave & New
+              </button>&nbsp;
+              <button accessKey={acceptHotKey} onClick={this.handleAdd}
+              className={'modal-close btn green ' + this.disabledButton(teamIsValid)}>
+                S<span className="hotkey-underline">a</span>ve
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     ) //return
   } //render
