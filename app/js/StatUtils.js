@@ -8,6 +8,8 @@ var _ = require('lodash');
 var fs = require('fs');
 var Path = require('path');
 const TOOLTIPS = {
+  smallSchool: 'Small School',
+  jrVarsity: 'Junior Varsity',
   teamUG: 'Undergraduate status',
   teamD2: 'Division 2 status',
   ppg: 'Points per game',
@@ -50,6 +52,12 @@ divide-by-zero calculations to an em-dash.
 function formatRate(r, precision) {
   return isNaN(r) ? '&mdash;&ensp;' : r.toFixed(precision);
 }
+
+// include column for small school status?
+function showSS(rptConfig) { return rptConfig.smallSchool != null && rptConfig.smallSchool }
+
+// include column for JV status?
+function showJV(rptConfig) { return rptConfig.jrVarsity != null && rptConfig.jrVarsity }
 
 // include column for team undergrad status?
 function showTeamUG(rptConfig) { return rptConfig.teamUG; }
@@ -310,6 +318,12 @@ function standingsHeader(settings, tiesExist, rptConfig, groupingPhase) {
   var html = '<tr>' + '\n' +
     tdTag('Rank', 'left', true) +
     tdTag('Team', 'left', true);
+  if(showSS(rptConfig)) {
+    html += tdTag('SS', 'left', true, TOOLTIPS.smallSchool);
+  }
+  if(showJV(rptConfig)) {
+    html += tdTag('JV', 'left', true, TOOLTIPS.jrVarsity);
+  }
   if(showTeamUG(rptConfig)) {
     html += tdTag('UG', 'left', true, TOOLTIPS.teamUG);
   }
@@ -381,6 +395,12 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
   var rowHtml = '<tr>';
   rowHtml += tdTag(rank,'left');
   rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + linkId + '>' + teamEntry.teamName + '</a>','left');
+  if(showSS(rptConfig)) {
+    rowHtml += tdTag(teamEntry.smallSchool ? 'SS' : '', 'left');
+  }
+  if(showJV(rptConfig)) {
+    rowHtml += tdTag(teamEntry.jrVarsity ? 'JV' : '', 'left');
+  }
   if(showTeamUG(rptConfig)) {
     rowHtml += tdTag(teamEntry.teamUGStatus ? 'UG' : '', 'left');
   }
@@ -455,6 +475,7 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings, rptC
   var standings = myTeams.map(function(item, index) {
     var obj =
       { teamName: item.teamName,
+        smallSchool: item.smallSchool, jrVarsity: item.jrVarsity,
         teamUGStatus: item.teamUGStatus, teamD2Status: item.teamD2Status,
         division: groupingPhase != null ? item.divisions[groupingPhase] : null,
         wins: 0, losses: 0, ties: 0, winPct: 0,
@@ -1738,21 +1759,27 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, ph
     var linkId = teamName.replace(/\W/g, '');
     html += '<h2 style="display:inline-block" id=' + linkId + '>' + teamName + '</h2>' + '\n';
     //display UG, D2 status
-    var statusDisp = '';
+    var attributes = [];
+    if(showSS(rptConfig) && teams[i].smallSchool) {
+      attributes.push('SS');
+    }
+    if(showJV(rptConfig) && teams[i].jrVarsity) {
+      attributes.push('JV');
+    }
     if((showTeamUG(rptConfig) || showTeamCombined(rptConfig)) && teams[i].teamUGStatus) {
-      statusDisp += '<span style=" font-style: italic; color: gray">' + 'UG';
+      attributes.push('UG');
     }
     if((showTeamD2(rptConfig) || showTeamCombined(rptConfig)) && teams[i].teamD2Status) {
-      if(statusDisp.length == 0) {
-        statusDisp += '<span style=" font-style: italic; color: gray">' + 'D2';
-      }
-      else { statusDisp += ', D2'; }
+      attributes.push('D2');
     }
-    if(statusDisp.length > 0) {
+    var statusDisp = '';
+    if(attributes.length > 0) {
+      statusDisp += '<span style=" font-style: italic; color: gray">';
+      statusDisp += attributes.join(', ');
       statusDisp += '</span>' + '\n';
     }
     html += statusDisp;
-
+    // list games
     html += '<table width=100%>' + '\n';
     html += teamDetailGameTableHeader(packetsExist, settings, rptConfig) + '\n';
     for(var j in games) {

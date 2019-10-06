@@ -93,7 +93,7 @@ class TeamListEntry extends React.Component{
   }//getDivisionChip
 
   /*---------------------------------------------------------
-  String with the team's name and UG/D2 status if applicable
+  String with the team's name and SS,etc. status if applicable
   ---------------------------------------------------------*/
   teamNameDisplay() {
     var attributes = [];
