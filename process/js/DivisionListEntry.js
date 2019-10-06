@@ -102,7 +102,7 @@ class DivisionListEntry extends React.Component{
       );
     }
     return(
-      <a className={'collection-item ' + dropTarget} draggable="true" onDragStart={this.onDragStart}
+      <a className={'collection-item ' + dropTarget} onDoubleClick={this.editDivision} draggable="true" onDragStart={this.onDragStart}
       onDragEnter={this.onDragEnter} onDragOver={this.onDragOver} onDragLeave={this.onDragLeave} onDrop={this.onDrop}>
         <div className="division-name">
           {this.props.divisionName}&emsp;
