@@ -2,7 +2,9 @@
   "name": "YellowFruit",
   "version": "2.3.0",
   "description": "QB Stats Program",
-  "author": {"name": "Andrew Nadig"},
+  "author": {
+    "name": "Andrew Nadig"
+  },
   "scripts": {
     "pack-win": "electron-packager . YellowFruit --platform=win32 --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig"
   },
@@ -21,10 +23,10 @@
     "reactify": "^1.1.1"
   },
   "dependencies": {
-    "popper.js": "^1.14.3",
     "jquery": "^3.3.1",
+    "material-icons": "^0.3.1",
     "materialize-css": "^1.0.0",
-
+    "popper.js": "^1.14.3"
     "lodash": "^4.17.10",
     "electron-reload": "^1.2.5",
     "electron-squirrel-startup": "^1.0.0",
