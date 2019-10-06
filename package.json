@@ -30,6 +30,7 @@
     "materialize-css": "^1.0.0",
     "lodash": "^4.17.10",
     "electron-reload": "^1.2.5",
-    "electron-squirrel-startup": "^1.0.0"
+    "electron-squirrel-startup": "^1.0.0",
+    "dotenv": "^8.1.0"
   }
 }

@@ -336,7 +336,7 @@ class MainInterface extends React.Component {
     var releasedRptList = JSON.parse(loadRpts).rptConfigList;
     var defaultRpt = ORIG_DEFAULT_RPT_NAME;
 
-    var customRptFile = env == 'production' ? CUSTOM_RPT_CONFIG_FILE_PROD : CUSTOM_RPT_CONFIG_FILE_DEV;
+    var customRptFile = env != 'development' ? CUSTOM_RPT_CONFIG_FILE_PROD : CUSTOM_RPT_CONFIG_FILE_DEV;
 
     if(fs.existsSync(customRptFile)) {
       loadRpts = fs.readFileSync(customRptFile, 'utf8');

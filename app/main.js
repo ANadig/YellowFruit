@@ -14,6 +14,7 @@ var BrowserWindow = electron.BrowserWindow;
 var Menu = electron.Menu;
 var app = electron.app;
 var ipc = electron.ipcMain;
+require('dotenv').config()
 var Path = require('path');
 var fs = require('fs');
 var _ = require('lodash');
@@ -46,11 +47,8 @@ if (handleSquirrelEvent(app)) {
     return;
 }
 
-//Set to 'production' to hide developer tools; otherwise set to anything else
-process.env.NODE_ENV = 'dev';
-
 // load user configuration
-var userConfigFile = process.env.NODE_ENV == 'production' ? USER_CONFIG_FILE_PROD : USER_CONFIG_FILE_DEV;
+var userConfigFile = process.env.NODE_ENV != 'development' ? USER_CONFIG_FILE_PROD : USER_CONFIG_FILE_DEV;
 if(fs.existsSync(userConfigFile)) {
   var loadConfig = fs.readFileSync(userConfigFile, 'utf8');
   currentUserConfig = JSON.parse(loadConfig);
@@ -349,7 +347,7 @@ function buildMainMenu(rptSubMenu) {
   ]; // mainMenuTemplate
 
   // Add dev tools if not in production
-  if(process.env.NODE_ENV !== 'production') {
+  if(process.env.NODE_ENV == 'development') {
     mainMenuTemplate.push(DEV_TOOLS_MENU);
   }
   return Menu.buildFromTemplate(mainMenuTemplate);
