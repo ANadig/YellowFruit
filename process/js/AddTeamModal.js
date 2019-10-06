@@ -41,6 +41,16 @@ class AddTeamModal extends React.Component{
   }
 
   /*---------------------------------------------------------
+  Lifecyle method.
+  ---------------------------------------------------------*/
+  componentDidMount() {
+    //Don't allow Enter key to submit form
+    $(document).on("keypress", "#addTeam :input:not(textarea)", function(event) {
+      return event.keyCode != 13;
+    });
+  }
+
+  /*---------------------------------------------------------
   Lifecyle method. Need an extra render when opening or
   closing in order for fields to populate and clear properly.
   ---------------------------------------------------------*/
@@ -499,11 +509,6 @@ class AddTeamModal extends React.Component{
     var errorIcon = this.getErrorIcon(errorLevel);
     var acceptHotKey = teamIsValid ? 'a' : '';
     var acceptStayHotKey = teamIsValid ? 's' : '';
-
-    //Don't allow Enter key to submit form
-    $(document).on("keypress", "#addTeam :input:not(textarea)", function(event) {
-      return event.keyCode != 13;
-    });
 
     var teamSSField = null, teamJVField = null, teamUGField = null, teamD2Field = null;
     if(this.props.formSettings.showSmallSchool) {

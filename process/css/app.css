@@ -371,6 +371,12 @@ nav .btn-flat {
   padding-top: 14px;
 }
 
+#assignPhases {
+  max-height: 350px;
+  max-width: 450px;
+  margin-top: 9vh;
+}
+
 #addGame {
   width: 95%;
   margin-top: -9vh;

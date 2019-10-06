@@ -9,7 +9,6 @@ var React = require('react');
 var $ = require('jquery');
 var _ = require('lodash');
 var M = require('materialize-css');
-var TeamOption = require('./TeamOption');
 var PlayerRow = require('./PlayerRow');
 
 const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
@@ -44,8 +43,38 @@ class AddGameModal extends React.Component{
     this.handleTeamChange = this.handleTeamChange.bind(this);
     this.handlePhaseChange = this.handlePhaseChange.bind(this);
     this.updatePlayer = this.updatePlayer.bind(this);
-    this.getTeamOptions = this.getTeamOptions.bind(this);
   } //constructor
+
+  /*---------------------------------------------------------
+  Lifecycle method
+  ---------------------------------------------------------*/
+  componentDidMount() {
+    //don't let the Enter key submit the form
+    $(document).on("keypress", "#addGame :input:not(textarea)", function(event) {
+      return event.keyCode != 13;
+    });
+  }
+
+  /*---------------------------------------------------------
+  Lifecyle method. Need an extra render when opening or
+  closing in order for fields to populate and clear properly.
+  ---------------------------------------------------------*/
+  componentDidUpdate(prevProps) {
+    //needed so that labels aren't on top of data when the edit form opens
+    M.updateTextFields();
+    //needed so that dropdowns show their value
+    $('#addGame select').formSelect();
+    if(this.props.forceReset) {
+      this.resetState();
+      //setting mainInterface's forceReset to false will avoid infinite loop
+      this.props.onForceReset();
+    }
+    if(this.props.gameToLoad != null) {
+      this.loadGame();
+      //setting mainInterface's editWhichGame to null will avoid infinite loop
+      this.props.onLoadGameInModal();
+    }
+  }
 
   /*---------------------------------------------------------
   Called any time a value in the form changes, other than
@@ -233,25 +262,6 @@ class AddGameModal extends React.Component{
   } //handleAdd
 
   /*---------------------------------------------------------
-  Lifecyle method. Need an extra render when opening or
-  closing in order for fields to populate and clear properly.
-  ---------------------------------------------------------*/
-  componentDidUpdate(prevProps) {
-    //needed so that labels aren't on top of data when the edit form opens
-    M.updateTextFields();
-    if(this.props.forceReset) {
-      this.resetState();
-      //setting mainInterface's forceReset to false will avoid infinite loop
-      this.props.onForceReset();
-    }
-    if(this.props.gameToLoad != null) {
-      this.loadGame();
-      //setting mainInterface's editWhichGame to null will avoid infinite loop
-      this.props.onLoadGameInModal();
-    }
-  }
-
-  /*---------------------------------------------------------
   Convert string to number, treating the empty string as zero.
   ---------------------------------------------------------*/
   toNum(str) {
@@ -394,66 +404,18 @@ class AddGameModal extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Returns an array of length 2. First element is the
-  correctly ordered list of options for the team1 field.
-  Second element likewise for team 2.
-  I'm programmatically putting the selected team at the top
-  upon opening a game, because I can't otheriwse get it to
-  automatically show as the selected option.
+  Returns the list of dropdown options
   ---------------------------------------------------------*/
   getTeamOptions() {
     var teamData = this.props.teamData;
     //alphebetize
     teamData = _.orderBy(teamData, function(item) { return item.teamName.toLowerCase(); });
-    if(this.props.addOrEdit == 'add') {
-      var teamOptions = teamData.map(function(item, index) {
-        return(<TeamOption key={index} teamName={teamData[index].teamName}/>);
-      });
-      var nullOption = (<option key={-1} value="nullTeam" disabled>&nbsp;Select a team...</option>);
-      teamOptions = [nullOption].concat(teamOptions);
-      return [teamOptions, teamOptions];
-    }
-    if(this.props.addOrEdit == 'edit') {
-      //need to look at gameToLoad because state won't be populated with game data
-      //until the next render. Need to look at originalGameLoaded for subsequent
-      //renders, because gameToLoad will be null.
-      var gameToLoad = this.props.gameToLoad;
-      var orig = this.state.originalGameLoaded;
-      var team1Name, team2Name;
-      if(gameToLoad != null) {
-        team1Name = gameToLoad.team1;
-        team2Name = gameToLoad.team2;
-      }
-      else if(orig != null) {
-        team1Name = orig.team1;
-        team2Name = orig.team2;
-      }
-      // if gameToLoad and originalGameLoaded are both null or undefined,
-      //it means that the modal is closed, so we don't care about any of this.
-      else {
-        return [null,null];
-      }
-      //get team1 options
-      var team1Others = _.without(teamData, _.find(teamData, function(o) {
-        return o.teamName == team1Name;
-      }.bind(this)));
-      var team1Options = team1Others.map(function(item, index) {
-        return(<TeamOption key={index} teamName={team1Others[index].teamName}/>);
-      });
-      var defaultOption1 = (<TeamOption key={-1} teamName={team1Name}/>);
-      team1Options = [defaultOption1].concat(team1Options);
-      // do the same for team2
-      var team2Others = _.without(teamData, _.find(teamData, function(o) {
-        return o.teamName == team2Name;
-      }.bind(this)));
-      var team2Options = team2Others.map(function(item, index) {
-        return(<TeamOption key={index} teamName={team2Others[index].teamName}/>);
-      });
-      var defaultOption2 = (<TeamOption key={-1} teamName={team2Name}/>);
-      team2Options = [defaultOption2].concat(team2Options);
-
-      return [team1Options, team2Options];
-    }
+    var teamOptions = teamData.map(function(item, index) {
+      return ( <option key={index} value={item.teamName}>{item.teamName}</option> );
+    });
+    var nullOption = (<option key={-1} value="nullTeam" disabled>&nbsp;Select a team...</option>);
+    teamOptions = [nullOption].concat(teamOptions);
+    return teamOptions;
   }
 
   /*---------------------------------------------------------
@@ -744,16 +706,10 @@ class AddGameModal extends React.Component{
       );
     }
 
-    //don't let the Enter key submit the form
-    $(document).on("keypress", "#addGame :input:not(textarea)", function(event) {
-      // return gameIsValid || event.keyCode != 13;
-      return event.keyCode != 13;
-    });
-
     var teamData = this.props.teamData
     var team1PlayerRows = null;
     var team2PlayerRows = null;
-    var [team1Options, team2Options] = this.getTeamOptions();
+    var teamOptions = this.getTeamOptions();
 
     // create team 1's player stats grid if it's not a forfeit
     if(!this.state.forfeit && this.state.team1 != 'nullTeam' && this.state.team1 != '') {
@@ -966,7 +922,7 @@ class AddGameModal extends React.Component{
           <div className="row game-entry-2nd-row">
             <div className={"input-field col s8 m3 l4 "+this.validateTeamSelect(1)}>
               <select id="tm1Name"  name="team1" value={this.state.team1} onChange={this.handleTeamChange}>
-                {team1Options}
+                {teamOptions}
               </select>
             </div>
             <div className="input-field col s4 m2 l1">
@@ -988,7 +944,7 @@ class AddGameModal extends React.Component{
             </div>
             <div className={"input-field col s8 m3 l4 "+this.validateTeamSelect(2)}>
               <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleTeamChange}>
-                {team2Options}
+                {teamOptions}
               </select>
             </div>
           </div>

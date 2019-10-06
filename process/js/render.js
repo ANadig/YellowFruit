@@ -175,6 +175,11 @@ class MainInterface extends React.Component {
   process.
   ---------------------------------------------------------*/
   componentDidMount() {
+    //initialize modals
+    $('#addTeam, #addGame, #editDivision, #rptConfig, #assignDivisions, #assignPhases').modal({
+      onCloseEnd: this.onModalClose
+    });
+    //set up event listeners
     ipc.on('addTeam', (event, message) => {
       if(!this.anyModalOpen()) { this.openTeamAddWindow(); }
     });
@@ -2110,12 +2115,6 @@ class MainInterface extends React.Component {
     $(document).ready(function() { $('.tooltipped').tooltip(); });//initialize tooltips
     $('select').formSelect(); //initialize all dropdowns
     $('.fixed-action-btn').floatingActionButton(); //initialize floating buttons
-    //initialize all modals
-    if(!this.state.modalsInitialized) {
-      $('#addTeam, #addGame, #editDivision, #rptConfig').modal({
-        onCloseEnd: this.onModalClose
-      });
-    }
     //for some reason, Materialize code will crash if I only initialize these once
     //perhaps one day I will figure out why
     $('#assignDivisions, #assignPhases').modal({

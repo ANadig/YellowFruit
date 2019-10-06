@@ -6,7 +6,6 @@ React component representing the list of teams on the teams
 pane.
 ***********************************************************/
 var React = require('react');
-var $ = jQuery = require('jquery');
 var Path = require('path');
 const MAX_ALLOWED_TEAMS = 200;
 

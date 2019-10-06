@@ -24,6 +24,16 @@ class DivisionEditModal extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Lifecyle method.
+  ---------------------------------------------------------*/
+  componentDidMount() {
+    //Don't allow Enter key to submit form
+    $(document).on("keypress", "#editDivision :input:not(textarea)", function(event) {
+      return event.keyCode != 13;
+    });
+  }
+
+  /*---------------------------------------------------------
   Lifecyle method. Need an extra render when opening or
   closing in order for fields to populate and clear properly.
   ---------------------------------------------------------*/
@@ -159,11 +169,6 @@ class DivisionEditModal extends React.Component {
     });
     var nullOption = (<option key={-1} value="noPhase">Phase...</option>);
     phaseOptionList = [nullOption].concat(phaseOptionList);
-
-    //Don't allow Enter key to submit form
-    $(document).on("keypress", "#editDivision :input:not(textarea)", function(event) {
-      return event.keyCode != 13;
-    });
 
     return (
       <div className="modal modal-fixed-footer" id="editDivision">
