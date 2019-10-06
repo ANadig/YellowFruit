@@ -30,7 +30,7 @@ gulp.task('css', function() {
 });
 
 gulp.task('fonts', function() {
-    gulp.src('node_modules/materialize-css/dist/fonts/**/*')
+    gulp.src('node_modules/material-icons/iconfont/*')
     .pipe(gulp.dest(app + '/fonts'));
 });
 
