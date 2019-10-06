@@ -96,13 +96,23 @@ class TeamListEntry extends React.Component{
   String with the team's name and UG/D2 status if applicable
   ---------------------------------------------------------*/
   teamNameDisplay() {
-    var str = this.props.singleItem.teamName;
-    if(this.props.singleItem.teamUGStatus) {
-      str += ' (UG';
-      if(this.props.singleItem.teamD2Status) { str += ', D2)'; }
-      else { str += ')'; }
+    var attributes = [];
+    if(this.props.singleItem.smallSchool) {
+      attributes.push('SS');
     }
-    else if(this.props.singleItem.teamD2Status) { str += ' (D2)'; }
+    if(this.props.singleItem.jrVarsity) {
+      attributes.push('JV');
+    }
+    if(this.props.singleItem.teamUGStatus) {
+      attributes.push('UG');
+    }
+    if(this.props.singleItem.teamD2Status) {
+      attributes.push('D2');
+    }
+    var str = this.props.singleItem.teamName;
+    if(attributes.length > 0) {
+      str += ' (' + attributes.join(', ') + ')';
+    }
     return str;
   }
 

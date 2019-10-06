@@ -421,7 +421,7 @@ class RptConfigModal extends React.Component {
           <label>
             <input type="checkbox" name="smallSchool" disabled={disableFields}
               checked={this.state.smallSchool} onChange={this.handleChange}/>
-            <span title="Small School">SS&emsp;&emsp;</span>
+            <span title="Small School">SS</span>&emsp;&emsp;
           </label>
           <label>
             <input type="checkbox" name="jrVarsity" disabled={disableFields}
