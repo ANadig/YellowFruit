@@ -3,6 +3,8 @@
     "SQBS Defaults":
       {
         "ppgOrPp20": "ppg",
+        "smallSchool": false,
+        "jrVarsity": false,
         "teamUG": false,
         "teamD2": false,
         "teamCombinedStatus": false,

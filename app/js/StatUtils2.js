@@ -88,6 +88,18 @@ function teamConversion2x2x0(loadTeams) {
 }
 
 /*---------------------------------------------------------
+conversion on team data structure (version 2.3.0)
+Adds the team-level small school and JV properties.
+---------------------------------------------------------*/
+function teamConversion2x3x0(loadTeams) {
+  for(var i in loadTeams) {
+    var curTeam = loadTeams[i];
+    curTeam.smallSchool = false;
+    curTeam.jrVarsity = false;
+  }
+}
+
+/*---------------------------------------------------------
 For each player in this game, increment that player's
 count in the index. Assumes that teams and players are
 already defined.

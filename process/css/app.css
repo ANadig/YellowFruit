@@ -403,6 +403,11 @@ nav .btn-flat {
   margin-top: 2em;
 }
 
+#addTeam .team-level-checkbox label span {
+  padding-left: 27px;
+  padding-right: 16px;
+}
+
 @media screen and (min-width: 993px) {
   #addTeam label input + span {
     padding-left: 30px;

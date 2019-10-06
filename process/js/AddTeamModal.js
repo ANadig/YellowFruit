@@ -18,6 +18,8 @@ class AddTeamModal extends React.Component{
     super(props);
     this.state = {
       teamName: '',
+      smallSchool: false,
+      jrVarsity: false,
       teamUGStatus: false,
       teamD2Status: false,
       playerNames: [],
@@ -58,7 +60,7 @@ class AddTeamModal extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Called when the value in on of the team-level fields
+  Called when the value in one of the team-level fields
   changes. This is a controlled component, so the state is
   the single source of truth.
   ---------------------------------------------------------*/
@@ -168,10 +170,12 @@ class AddTeamModal extends React.Component{
   resetState() {
     this.setState({
       teamName: '',
-      playerNames: [],
-      playerYears: [],
+      smallSchool: false,
+      jrVarsity: false,
       teamUGStatus: false,
       teamD2Status: false,
+      playerNames: [],
+      playerYears: [],
       playerUGStatuses: [],
       playerD2Statuses: [],
       divisions: {},
@@ -193,6 +197,8 @@ class AddTeamModal extends React.Component{
     }
     this.setState({
       teamName: this.props.teamToLoad.teamName,
+      smallSchool: this.props.teamToLoad.smallSchool,
+      jrVarsity: this.props.teamToLoad.jrVarsity,
       teamUGStatus: this.props.teamToLoad.teamUGStatus,
       teamD2Status: this.props.teamToLoad.teamD2Status,
       playerNames: Object.keys(this.props.teamToLoad.roster),
@@ -234,6 +240,8 @@ class AddTeamModal extends React.Component{
 
     var tempItem = {
       teamName: this.state.teamName.trim(),
+      smallSchool: this.state.smallSchool,
+      jrVarsity: this.state.jrVarsity,
       teamUGStatus: this.state.teamUGStatus,
       teamD2Status: this.state.teamD2Status,
       roster: roster,
@@ -436,7 +444,7 @@ class AddTeamModal extends React.Component{
   elements
   ---------------------------------------------------------*/
   constructRosterTable(playerFields, yearFields, ugFields, d2Fields) {
-    var numCheckBoxes = (+this.props.formSettings.showPlayerUGField) + (+this.props.formSettings.showPlayerD2Field);
+    var numCheckBoxes = (+this.props.formSettings.showUGFields) + (+this.props.formSettings.showD2Fields);
     var yearWidth = this.props.formSettings.showYearField ? 3 : 0;
     var nameWidthL = 12 - yearWidth - numCheckBoxes;
     var nameWidthS = 12 - yearWidth - 2*numCheckBoxes;
@@ -450,14 +458,14 @@ class AddTeamModal extends React.Component{
           </div>
         );
       }
-      if(this.props.formSettings.showPlayerUGField) {
+      if(this.props.formSettings.showUGFields) {
         ugField = (
           <div className="col l1 s2">
             {ugFields[i]}
           </div>
         );
       }
-      if(this.props.formSettings.showPlayerD2Field) {
+      if(this.props.formSettings.showD2Fields) {
         d2Field = (
           <div className="col l1 s2">
             {d2Fields[i]}
@@ -498,32 +506,64 @@ class AddTeamModal extends React.Component{
       return event.keyCode != 13;
     });
 
+    var teamSSField = null, teamJVField = null, teamUGField = null, teamD2Field = null;
+    if(this.props.formSettings.showSmallSchool) {
+      teamSSField = (
+        <span>
+          <label>
+            <input id="smallSchool" type="checkbox" name="smallSchool" checked={this.state.smallSchool} onChange={this.handleChange}/>
+            <span>SS</span>
+          </label>
+        </span>
+      );
+    }
+    if(this.props.formSettings.showJrVarsity) {
+      teamJVField = (
+        <span>
+          <label>
+            <input id="jrVarsity" type="checkbox" name="jrVarsity" checked={this.state.jrVarsity} onChange={this.handleChange}/>
+            <span>JV</span>
+          </label>
+        </span>
+      );
+    }
+    if(this.props.formSettings.showUGFields) {
+      teamUGField = (
+        <span>
+          <label>
+            <input id="teamUGStatus" type="checkbox" name="teamUGStatus" checked={this.state.teamUGStatus} onChange={this.handleChange}/>
+            <span>UG</span>
+          </label>
+        </span>
+      );
+    }
+    if(this.props.formSettings.showD2Fields) {
+      teamD2Field = (
+        <span>
+          <label>
+            <input id="teamD2Status" type="checkbox" name="teamD2Status" checked={this.state.teamD2Status} onChange={this.handleChange}/>
+            <span>D2</span>
+          </label>
+        </span>
+      );
+    }
+
     return(
       <div className="modal modal-fixed-footer" id="addTeam">
         <div className="modal-content">
           <h4>{this.getModalHeader()}</h4>
           <div className="row">
-            <div className="col l10 s8">
+            <div className="col l9 m8 s7">
               <div className="input-field">
                 <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
                 <label htmlFor="teamName">Team Name</label>
               </div>
             </div>
-            <div className="col l1 s2">
-              <div className="team-level-checkbox">
-                <label>
-                  <input id="teamUGStatus" type="checkbox" name="teamUGStatus" checked={this.state.teamUGStatus} onChange={this.handleChange}/>
-                  <span>UG</span>
-                </label>
-              </div>
-            </div>
-            <div className="col l1 s2">
-              <div className="team-level-checkbox">
-                <label>
-                  <input id="teamD2Status" type="checkbox" name="teamD2Status" checked={this.state.teamD2Status} onChange={this.handleChange}/>
-                  <span>D2</span>
-                </label>
-              </div>
+            <div className="col l3 m4 s5 team-level-checkbox">
+              {teamSSField}
+              {teamJVField}
+              {teamUGField}
+              {teamD2Field}
             </div>
           </div>
           <h5>Roster</h5>

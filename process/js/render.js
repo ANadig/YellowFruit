@@ -54,8 +54,10 @@ const ORIG_DEFAULT_RPT_NAME = 'SQBS Defaults';
 const MAX_CUSTOM_RPT_CONFIGS = 25;
 const DEFAULT_FORM_SETTINGS = {
   showYearField: true,
-  showPlayerUGField: true,
-  showPlayerD2Field: true
+  showSmallSchool: true,
+  showJrVarsity: true,
+  showUGFields: true,
+  showD2Fields: true
 };
 
 
@@ -491,6 +493,9 @@ class MainInterface extends React.Component {
     if(versionLt(loadMetadata.version, '2.2.0')) {
       teamConversion2x2x0(loadTeams);
     }
+    if(versionLt(loadMetadata.version, '2.3.0')) {
+      teamConversion2x3x0(loadTeams);
+    }
     //revert to SQBS defaults if we can't find this file's report configuration
     if(this.state.releasedRptList[assocRpt] == undefined && this.state.customRptList[assocRpt] == undefined) {
       assocRpt = ORIG_DEFAULT_RPT_NAME;
@@ -558,6 +563,8 @@ class MainInterface extends React.Component {
       }
       myTeams.push({
         teamName: teamName,
+        smallSchool: false,
+        jrVarsity: false,
         teamUGStatus: false,
         teamD2Status: false,
         roster: roster,
@@ -613,6 +620,9 @@ class MainInterface extends React.Component {
     }
     if(versionLt(loadMetadata.version, '2.2.0')) {
       teamConversion2x2x0(loadTeams);
+    }
+    if(versionLt(loadMetadata.version, '2.3.0')) {
+      teamConversion2x3x0(loadTeams);
     }
     // merge teams
     var teamsCopy = this.state.myTeams.slice();
@@ -2082,6 +2092,7 @@ class MainInterface extends React.Component {
 
 
   render() {
+    console.log(this.state.formSettings);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim().toLowerCase();

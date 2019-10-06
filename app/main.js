@@ -23,8 +23,10 @@ const USER_CONFIG_FILE_DEV = Path.resolve(__dirname, '..', 'data', 'UserConfig.j
 const DEFAULT_USER_CONFIG = {
   autoSave: true,
   showYearField: true,
-  showPlayerUGField: true,
-  showPlayerD2Field: true
+  showSmallSchool: true,
+  showJrVarsity: true,
+  showUGFields: true,
+  showD2Fields: true
 };
 var currentUserConfig;
 var autoSaveIntervalId = null; // store the interval ID from setInterval here
@@ -269,38 +271,62 @@ function buildMainMenu(rptSubMenu) {
       label: 'S&ettings',
       submenu: [
         {
-          label: 'Show Year/Grade fields',
+          label: 'Track Year/Grade',
           id: 'showYearField',
           type: 'checkbox',
           checked: currentUserConfig.showYearField,
           click (item, focusedWindow) {
             if(focusedWindow) {
               focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
-              updateUserConfig('showYearField', item.checked);
+              updateUserConfig(item.id, item.checked);
             }
           }
         },
         {
-          label: 'Show Player UG fields',
-          id: 'showPlayerUGField',
+          label: 'Track Small School',
+          id: 'showSmallSchool',
           type: 'checkbox',
-          checked: currentUserConfig.showPlayerUGField,
+          checked: currentUserConfig.showSmallSchool,
           click (item, focusedWindow) {
             if(focusedWindow) {
               focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
-              updateUserConfig('showPlayerUGField', item.checked);
+              updateUserConfig(item.id, item.checked);
             }
           }
         },
         {
-          label: 'Show Player D2 fields',
-          id: 'showPlayerD2Field',
+          label: 'Track Junior Varsity',
+          id: 'showJrVarsity',
           type: 'checkbox',
-          checked: currentUserConfig.showPlayerD2Field,
+          checked: currentUserConfig.showJrVarsity,
           click (item, focusedWindow) {
             if(focusedWindow) {
               focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
-              updateUserConfig('showPlayerD2Field', item.checked);
+              updateUserConfig(item.id, item.checked);
+            }
+          }
+        },
+        {
+          label: 'Track Undergrad',
+          id: 'showUGFields',
+          type: 'checkbox',
+          checked: currentUserConfig.showUGFields,
+          click (item, focusedWindow) {
+            if(focusedWindow) {
+              focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+              updateUserConfig(item.id, item.checked);
+            }
+          }
+        },
+        {
+          label: 'Track Division 2',
+          id: 'showD2Fields',
+          type: 'checkbox',
+          checked: currentUserConfig.showD2Fields,
+          click (item, focusedWindow) {
+            if(focusedWindow) {
+              focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
+              updateUserConfig(item.id, item.checked);
             }
           }
         },
@@ -313,7 +339,7 @@ function buildMainMenu(rptSubMenu) {
           click(item, focusedWindow) {
             if(focusedWindow) {
               toggleAutoSave(item.checked, focusedWindow);
-              updateUserConfig('autoSave', item.checked);
+              updateUserConfig(item.id, item.checked);
             }
           }
         }
