@@ -352,9 +352,15 @@ nav .btn-flat {
 
 #editDivision {
   width: 60%;
-  margin-top: 8vh;
-  max-height: 50%;
+  margin-top: 10vh;
+  max-height: 45%;
   overflow: visible; /* so dropdown can extend out of window */
+}
+
+@media screen and (min-width: 1201px) {
+  #editDivision {
+    width: 50%;
+  }
 }
 
 #editDivision .modal-content {

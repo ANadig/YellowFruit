@@ -1415,10 +1415,12 @@ class MainInterface extends React.Component {
     });
     ipc.sendSync('unsavedData');
     if(acceptAndStay) {
+      $('#divisionName').focus();
       var phaseDisplay = phase != 'noPhase' ? ' (' + phase + ')' : '';
       M.toast({
         html: '<i class=\"material-icons\">check_circle</i>&emsp;Added \"' + divName + phaseDisplay + '\"',
-        classes: 'green-toast'
+        classes: 'green-toast',
+        displayLength: 2000
       });
     }
   }
@@ -1467,10 +1469,12 @@ class MainInterface extends React.Component {
     });
     ipc.sendSync('unsavedData');
     if(acceptAndStay) {
+      $('#divisionName').focus();
       var phaseDisplay = newPhase != 'noPhase' ? ' (' + newPhase + ')' : '';
       M.toast({
         html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newDivName + phaseDisplay + '\"',
-        classes: 'green-toast'
+        classes: 'green-toast',
+        displayLength: 2000
       });
     }
   } //modifyDivision
@@ -1649,6 +1653,10 @@ class MainInterface extends React.Component {
     this.setState({
       divEditWindowVisible: true
     });
+    // for some reason I can't call focus() normally for this field.
+    // fortunately this delay is not perceptible
+    setTimeout(function() { $('#divisionName').focus() }, 50);
+    // $('#divisionName').focus();
   }
 
   /*---------------------------------------------------------

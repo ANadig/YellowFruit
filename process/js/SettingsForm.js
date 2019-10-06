@@ -495,8 +495,10 @@ class SettingsForm extends React.Component{
         />
       );
     });
-
-    divisionCard = (<ul className="collection">{divList}</ul>);
+    if(divList.length > 0) {
+      divisionCard = (<ul className="collection">{divList}</ul>);
+    }
+    else { divisionCard = null; }
 
     // read-only list of phases
     if(!this.state.editingPhases) {
