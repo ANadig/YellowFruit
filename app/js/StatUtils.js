@@ -821,7 +821,7 @@ to each round.
 ---------------------------------------------------------*/
 function scoreboardRoundLinks(roundList, fileStart) {
   var html = '<table border=0 width=70% ' +
-    'style="top:4px;position:sticky;background-color:#cccccc;margin-top:5px;box-shadow: 4px 4px 7px #999999">' + '\n' +
+    'style="top:4px;position:sticky;table-layout:fixed;background-color:#cccccc;margin-top:5px;box-shadow: 4px 4px 7px #999999">' + '\n' +
     '<tr>' + '\n';
   for(var i in roundList) {
     html += tdTag('<a HREF=' + fileStart + 'games.html#round-' + roundList[i] + '>' + roundList[i] + '</a>', 'left');
