@@ -127,7 +127,8 @@ function gameList(settings, teams, games, phase) {
       output += g.score2 + '\n';
     }
     //total tossups heard and round
-    output += g.tuhtot + '\n';
+    if(g.forfeit) { output += '0' + '\n'; }
+    else { output += g.tuhtot + '\n'; }
     output += g.round + '\n';
     //bonuses
     if(settings.bonuses == 'noBb') {
