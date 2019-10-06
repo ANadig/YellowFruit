@@ -160,7 +160,7 @@ class TeamListEntry extends React.Component{
     }
 
     return(
-      <a className="collection-item">
+      <a className="collection-item" onDoubleClick={this.editTeam}>
         <div>
           {checkbox}
           <div className={this.props.activeInPhase ? 'team-name' : 'team-name-inactive'}>

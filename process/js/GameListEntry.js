@@ -140,7 +140,7 @@ class GameListEntry extends React.Component{
     }
 
     return(
-      <a className="collection-item">
+      <a className="collection-item" onDoubleClick={this.editGame}>
         <div>
           {checkbox}
           <div className="game-name">
