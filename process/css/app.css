@@ -395,17 +395,17 @@ nav .btn-flat {
   padding-left: 0;
 }
 
-#addTeam .player-d2-checkbox {
-  margin-top: 0.5em;
-}
-
 #addTeam .team-level-checkbox {
   margin-top: 2em;
 }
 
-#addTeam .team-level-checkbox label span {
+#addTeam .team-level-checkbox label span, #addTeam .player-checkbox label span {
   padding-left: 27px;
   padding-right: 16px;
+}
+
+#addTeam .player-checkbox label span {
+  margin-top: 4px;
 }
 
 @media screen and (min-width: 993px) {

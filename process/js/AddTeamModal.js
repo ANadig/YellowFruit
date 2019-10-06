@@ -405,12 +405,12 @@ class AddTeamModal extends React.Component{
     else { tempStatuses.push(false); }
     var ugFields = tempStatuses.map((status, idx) => {
       return (
-        <div key={idx} className="player-d2-checkbox">
+        <span key={'ug'+idx} className="player-checkbox">
           <label>
             <input id={'ug'+idx} type="checkbox" name={'ug'+idx} checked={status} onChange={this.handlePlayerUGChange}/>
             <span>UG</span>
           </label>
-        </div>
+        </span>
       );
     });
     return ugFields;
@@ -428,12 +428,12 @@ class AddTeamModal extends React.Component{
     else { tempStatuses.push(false); }
     var d2Fields = tempStatuses.map((status, idx) => {
       return (
-        <div key={idx} className="player-d2-checkbox">
+        <span key={'d2'+idx} className="player-checkbox">
           <label>
             <input id={'d2'+idx} type="checkbox" name={'d2'+idx} checked={status} onChange={this.handlePlayerD2Change}/>
             <span>D2</span>
           </label>
-        </div>
+        </span>
       );
     });
     return d2Fields;
@@ -444,13 +444,14 @@ class AddTeamModal extends React.Component{
   elements
   ---------------------------------------------------------*/
   constructRosterTable(playerFields, yearFields, ugFields, d2Fields) {
-    var numCheckBoxes = (+this.props.formSettings.showUGFields) + (+this.props.formSettings.showD2Fields);
+    var anyCheckBoxes = this.props.formSettings.showUGFields || this.props.formSettings.showD2Fields;
     var yearWidth = this.props.formSettings.showYearField ? 3 : 0;
-    var nameWidthL = 12 - yearWidth - numCheckBoxes;
-    var nameWidthS = 12 - yearWidth - 2*numCheckBoxes;
+    var nameWidthL = 12 - yearWidth - 3*anyCheckBoxes;
+    var nameWidthM = 12 - yearWidth - 4*anyCheckBoxes;
+    var nameWidthS = 12 - yearWidth - 5*anyCheckBoxes;
     var rows = [];
     for(var i in playerFields) {
-      var yearField = null, ugField = null, d2Field = null;
+      var yearField = null, checkBoxCol = null, ugField = null, d2Field = null;
       if(this.props.formSettings.showYearField) {
         yearField = (
           <div className="col s3">
@@ -459,27 +460,25 @@ class AddTeamModal extends React.Component{
         );
       }
       if(this.props.formSettings.showUGFields) {
-        ugField = (
-          <div className="col l1 s2">
-            {ugFields[i]}
-          </div>
-        );
+        ugField = ugFields[i];
       }
       if(this.props.formSettings.showD2Fields) {
-        d2Field = (
-          <div className="col l1 s2">
-            {d2Fields[i]}
+        d2Field = d2Fields[i];
+      }
+      if(anyCheckBoxes) {
+        checkBoxCol = (
+          <div className="col l3 m4 s5">
+            {ugField}{d2Field}
           </div>
         );
       }
       var oneRow = (
         <div key={i} className="row">
-          <div className={'col l' + nameWidthL + ' s' + nameWidthS}>
+          <div className={'col l' + nameWidthL + ' m' + nameWidthM + ' s' + nameWidthS}>
             {playerFields[i]}
           </div>
           {yearField}
-          {ugField}
-          {d2Field}
+          {checkBoxCol}
         </div>
       );
       rows.push(oneRow);
