@@ -3,6 +3,7 @@
 /dist
 /data/CustomRptConfig.json
 /data/UserConfig.json
+/app/fonts
 /app/js/render.js
 /app/css/app.css
 /app/games.html
@@ -13,4 +14,3 @@
 /app/teamdetail.html
 /app/statkey.html
 dist
-/app/fonts
