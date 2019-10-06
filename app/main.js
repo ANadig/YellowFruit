@@ -14,7 +14,7 @@ var BrowserWindow = electron.BrowserWindow;
 var Menu = electron.Menu;
 var app = electron.app;
 var ipc = electron.ipcMain;
-require('dotenv').config()
+require('dotenv').config(); //set NODE_ENV via the .env file in the root directory
 var Path = require('path');
 var fs = require('fs');
 var _ = require('lodash');

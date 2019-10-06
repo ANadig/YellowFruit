@@ -1,4 +1,5 @@
 const createWindowsInstaller = require('electron-winstaller').createWindowsInstaller
+const Path = require('path')
 
 getInstallerConfig()
   .then(createWindowsInstaller)
@@ -11,10 +12,10 @@ function getInstallerConfig () {
   console.log('creating windows installer')
 
   return Promise.resolve({
-    appDirectory: 'C:/Users/awnad/Desktop/YellowFruit-win32-x64',
+    appDirectory: Path.resolve(__dirname, '..', '..', 'dist', 'pkg', 'YellowFruit-win32-x64'),
     authors: 'Andrew Nadig',
     noMsi: true,
-    iconUrl: 'C:/Users/awnad/Desktop/banana.ico',
+    iconUrl: Path.resolve(__dirname, 'banana.ico'),
     outputDirectory: 'C:/Users/awnad/Desktop/YellowFruit-installer-win',
     exe: 'YellowFruit.exe',
     setupExe: 'Install-YellowFruit.exe'
