@@ -177,7 +177,13 @@ class MainInterface extends React.Component {
   componentDidMount() {
     //initialize modals
     $('#addTeam, #addGame, #editDivision, #rptConfig, #assignDivisions, #assignPhases').modal({
-      onCloseEnd: this.onModalClose
+      onCloseEnd: this.onModalClose,
+      dismissible: false
+    });
+    //listen for escape key to close modals, since we made them non-dismissible so that
+    // clicking outside them doesn't close them
+    $(document).on("keydown", (event) => {
+      if(event.keyCode == 27) { $('.modal').modal('close'); }
     });
     //set up event listeners
     ipc.on('addTeam', (event, message) => {
@@ -2121,7 +2127,8 @@ class MainInterface extends React.Component {
     //for some reason, Materialize code will crash if I only initialize these once
     //perhaps one day I will figure out why
     $('#assignDivisions, #assignPhases').modal({
-      onCloseEnd: this.onModalClose
+      onCloseEnd: this.onModalClose,
+      dismissible: false
     });
     //open modals if appropriate
     if(this.state.tmWindowVisible === true) { $('#addTeam').modal('open'); }

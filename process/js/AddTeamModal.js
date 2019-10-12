@@ -45,7 +45,7 @@ class AddTeamModal extends React.Component{
   ---------------------------------------------------------*/
   componentDidMount() {
     //Don't allow Enter key to submit form
-    $(document).on("keypress", "#addTeam :input:not(textarea)", function(event) {
+    $(document).on("keydown", "#addTeam :input:not(textarea)", function(event) {
       return event.keyCode != 13;
     });
   }

@@ -50,7 +50,7 @@ class AddGameModal extends React.Component{
   ---------------------------------------------------------*/
   componentDidMount() {
     //don't let the Enter key submit the form
-    $(document).on("keypress", "#addGame :input:not(textarea)", function(event) {
+    $(document).on("keydown", "#addGame :input:not(textarea)", function(event) {
       return event.keyCode != 13;
     });
   }

@@ -28,7 +28,7 @@ class DivisionEditModal extends React.Component {
   ---------------------------------------------------------*/
   componentDidMount() {
     //Don't allow Enter key to submit form
-    $(document).on("keypress", "#editDivision :input:not(textarea)", function(event) {
+    $(document).on("keydown", "#editDivision :input:not(textarea)", function(event) {
       return event.keyCode != 13;
     });
   }
