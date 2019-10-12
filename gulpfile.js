@@ -1,5 +1,5 @@
 var gulp = require('gulp'),
-    browserify = require('gulp-browserify'),
+    bro = require('gulp-bro'),
     concatCss = require('gulp-concat-css'),
     run = require('gulp-run');
 
@@ -8,7 +8,7 @@ var src = './process',
 
 gulp.task('js', function() {
   return gulp.src( src + '/js/render.js' )
-    .pipe(browserify({
+    .pipe(bro({
       transform: 'reactify',
       extensions: 'browserify-css',
       debug: true
