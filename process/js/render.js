@@ -1048,13 +1048,19 @@ class MainInterface extends React.Component {
   data
   ---------------------------------------------------------*/
   modifyTeam(oldTeam, newTeam, acceptAndStay) {
+    // console.log($.extend(true, {}, oldTeam));
+    // console.log($.extend(true, {}, newTeam));
     var tempTeams = this.state.myTeams.slice();
     var tempGames = this.state.myGames.slice();
     var originalNames = Object.keys(oldTeam.roster), newNames = Object.keys(newTeam.roster);
 
     for(var i in originalNames) {
       let oldn = originalNames[i], newn = newNames[i];
-      if(oldn != newn && newn != undefined) {
+      if(oldn != newn) { // including if newn is undefined, or is a deleted player placeholder
+        console.log(newn);
+        if(newn == undefined || newTeam.roster[newn].deleted != undefined) {
+          newn = ''; // don't count deleted player placeholders as actual players
+        }
         this.updatePlayerName(tempGames, oldTeam.teamName, oldn, newn);
       }
     }
@@ -2097,6 +2103,9 @@ class MainInterface extends React.Component {
 
 
   render() {
+    console.log(this.state.myTeams);
+    console.log(this.state.myGames);
+
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim().toLowerCase();
