@@ -115,7 +115,6 @@ class MainInterface extends React.Component {
       customRptFile: null, // file path to score user configuration
       defaultRpt: ORIG_DEFAULT_RPT_NAME, // which report configuration is default for new tournaments
       activeRpt: ORIG_DEFAULT_RPT_NAME, // which report configuration is currently being used
-      modalsInitialized: false, // we only need to initialize Materialize modals on the first render
       formSettings: defFormSettingsCopy, // which optional entry fields to turn on or off
       sidebarOpen: true // whether the sidebar is visible
     };
@@ -324,11 +323,6 @@ class MainInterface extends React.Component {
   Lifecycle method.
   ---------------------------------------------------------*/
   componentDidUpdate() {
-    if(!this.state.modalsInitialized) {
-      this.setState({
-        modalsInitialized: true
-      });
-    }
   }
 
   /*---------------------------------------------------------
@@ -849,7 +843,6 @@ class MainInterface extends React.Component {
       // releasedRptList: ,
       // customRptList: ,
       // defaultRpt: ,
-      // modalsInitialized:
       // formSettings
     });
     ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, this.state.defaultRpt);
