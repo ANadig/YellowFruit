@@ -10,7 +10,7 @@ var $ = require('jquery');
 var _ = require('lodash');
 var M = require('materialize-css');
 
-const MAX_PLAYERS_PER_TEAM = 30;
+const MAX_PLAYERS_PER_TEAM = 50;
 
 class AddTeamModal extends React.Component{
 

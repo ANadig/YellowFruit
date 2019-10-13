@@ -33,7 +33,7 @@ var GameList = require('./GameList');
 var StatSidebar = require('./StatSidebar');
 var SidebarToggleButton = require('./SidebarToggleButton');
 
-const MAX_PLAYERS_PER_TEAM = 30;
+const MAX_PLAYERS_PER_TEAM = 50;
 const METADATA = {version:'2.3.2'};
 const DEFAULT_SETTINGS = {
   powers: '15pts',
