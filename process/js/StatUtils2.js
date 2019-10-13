@@ -9,6 +9,14 @@ var StatUtils = require('./StatUtils');
 var _ = require('lodash');
 module.exports = {};
 
+
+/*---------------------------------------------------------
+Simple callback function for writeFile, etc.
+---------------------------------------------------------*/
+module.exports.printError = function(err) {
+  if (err) { console.log(err); }
+}
+
 /*---------------------------------------------------------
 Equality test for settings objects
 ---------------------------------------------------------*/

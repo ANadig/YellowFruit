@@ -723,42 +723,31 @@ class MainInterface extends React.Component {
     var activeRpt = this.state.releasedRptList[this.state.activeRpt];
     if(activeRpt == undefined) { activeRpt = this.state.customRptList[this.state.activeRpt]; }
 
-    var standingsHtml = StatUtils.getStandingsHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, phaseToGroupBy, divsInPhase, this.state.settings, activeRpt);
-    fs.writeFile(standingsLocation, standingsHtml, 'utf8', function(err) {
-      if (err) { console.log(err); }
-    });//writeFile - standings
-    var individualsHtml = StatUtils.getIndividualsHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, phaseToGroupBy, usingDivisions, this.state.settings, activeRpt);
-    fs.writeFile(individualsLocation, individualsHtml, 'utf8', function(err) {
-      if (err) { console.log(err); }
-    });//writeFile - individuals
-    var scoreboardHtml = StatUtils.getScoreboardHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.settings, this.state.packets, phaseColors);
-    fs.writeFile(scoreboardLocation, scoreboardHtml, 'utf8', function(err) {
-      if (err) { console.log(err); }
-    });//writeFile - scoreboard
-    var teamDetailHtml = StatUtils.getTeamDetailHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.packets, this.state.settings, phaseColors, activeRpt);
-    fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
-      if (err) { console.log(err); }
-    });//writeFile - team detail
-    var playerDetailHtml = StatUtils.getPlayerDetailHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.settings, phaseColors, activeRpt);
-    fs.writeFile(playerDetailLocation, playerDetailHtml, 'utf8', function(err) {
-      if (err) { console.log(err); }
-    });//writeFile - individual Detail
-    var roundReportHtml = StatUtils.getRoundReportHtml(this.state.myTeams, this.state.myGames,
-      endFileStart, phase, this.state.packets, this.state.settings, activeRpt);
-    fs.writeFile(roundReportLocation, roundReportHtml, 'utf8', function(err) {
-      if (err) { console.log(err); }
-    });//writeFile - round report
-    var statKeyHtml = StatUtils.getStatKeyHtml(endFileStart);
-    fs.writeFile(statKeyLocation, statKeyHtml, 'utf8', function(err) {
-      if (err) { console.log(err); }
-    });//writeFile - stat key
-    // don't tell stat window to reload if we're exporting the html report
-    if(fileStart == '') { ipc.sendSync('statReportReady'); }
+
+    Promise.all([
+      StatUtils.getStandingsHtml(this.state.myTeams, this.state.myGames, endFileStart,
+        phase, phaseToGroupBy, divsInPhase, this.state.settings, activeRpt),
+      StatUtils.getIndividualsHtml(this.state.myTeams, this.state.myGames, endFileStart,
+        phase, phaseToGroupBy, usingDivisions, this.state.settings, activeRpt),
+      StatUtils.getScoreboardHtml(this.state.myTeams, this.state.myGames, endFileStart,
+        phase, this.state.settings, this.state.packets, phaseColors),
+      StatUtils.getTeamDetailHtml(this.state.myTeams, this.state.myGames, endFileStart,
+        phase, this.state.packets, this.state.settings, phaseColors, activeRpt),
+      StatUtils.getPlayerDetailHtml(this.state.myTeams, this.state.myGames, endFileStart,
+        phase, this.state.settings, phaseColors, activeRpt),
+      StatUtils.getRoundReportHtml(this.state.myTeams, this.state.myGames, endFileStart,
+        phase, this.state.packets, this.state.settings, activeRpt),
+      StatUtils.getStatKeyHtml(endFileStart),
+    ]).then(([standings, individuals, scoreboard, teamDet, playerDet, roundRep, statKey]) => {
+      fs.writeFile(standingsLocation, standings, 'utf8', StatUtils2.printError);
+      fs.writeFile(individualsLocation, individuals, 'utf8', StatUtils2.printError);
+      fs.writeFile(scoreboardLocation, scoreboard, 'utf8', StatUtils2.printError);
+      fs.writeFile(teamDetailLocation, teamDet, 'utf8', StatUtils2.printError);
+      fs.writeFile(playerDetailLocation, playerDet, 'utf8', StatUtils2.printError);
+      fs.writeFile(roundReportLocation, roundRep, 'utf8', StatUtils2.printError);
+      fs.writeFile(statKeyLocation, statKey, 'utf8', StatUtils2.printError);
+    }).then(() => { if(fileStart == '') { ipc.sendSync('statReportReady'); }});
+
   } //writeStatReport
 
   /*---------------------------------------------------------
