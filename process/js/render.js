@@ -17,6 +17,8 @@ var ipc = electron.ipcRenderer;
 
 var React = require('react');
 var ReactDOM = require('react-dom');
+var SqbsUtils = require('./SqbsUtils');
+var StatUtils2 = require('./StatUtils2');
 // Bring in all the other React components
 var TeamListEntry = require('./TeamListEntry');
 var GameListEntry = require('./GameListEntry');
@@ -492,14 +494,14 @@ class MainInterface extends React.Component {
       assocRpt = ORIG_DEFAULT_RPT_NAME;
     }
     //convert teams to new data structure
-    if(versionLt(loadMetadata.version, '2.1.0')) {
-      teamConversion2x1x0(loadTeams);
+    if(StatUtils2.versionLt(loadMetadata.version, '2.1.0')) {
+      StatUtils2.teamConversion2x1x0(loadTeams);
     }
-    if(versionLt(loadMetadata.version, '2.2.0')) {
-      teamConversion2x2x0(loadTeams);
+    if(StatUtils2.versionLt(loadMetadata.version, '2.2.0')) {
+      StatUtils2.teamConversion2x2x0(loadTeams);
     }
-    if(versionLt(loadMetadata.version, '2.3.0')) {
-      teamConversion2x3x0(loadTeams);
+    if(StatUtils2.versionLt(loadMetadata.version, '2.3.0')) {
+      StatUtils2.teamConversion2x3x0(loadTeams);
     }
     //revert to SQBS defaults if we can't find this file's report configuration
     if(this.state.releasedRptList[assocRpt] == undefined && this.state.customRptList[assocRpt] == undefined) {
@@ -601,7 +603,7 @@ class MainInterface extends React.Component {
     loadTeams = JSON.parse(loadTeams);
     loadGames = JSON.parse(loadGames);
     // check settings
-    if(!settingsEqual(loadSettings, this.state.settings)) {
+    if(!StatUtils2.settingsEqual(loadSettings, this.state.settings)) {
       ipc.sendSync('mergeError', 'Tournaments with different settings cannot be merged');
       return;
     }
@@ -620,14 +622,14 @@ class MainInterface extends React.Component {
       }
     }
     //convert team data structures if necessary
-    if(versionLt(loadMetadata.version, '2.1.0')) {
-      teamConversion2x1x0(loadTeams);
+    if(StatUtils2.versionLt(loadMetadata.version, '2.1.0')) {
+      StatUtils2.teamConversion2x1x0(loadTeams);
     }
-    if(versionLt(loadMetadata.version, '2.2.0')) {
-      teamConversion2x2x0(loadTeams);
+    if(StatUtils2.versionLt(loadMetadata.version, '2.2.0')) {
+      StatUtils2.teamConversion2x2x0(loadTeams);
     }
-    if(versionLt(loadMetadata.version, '2.3.0')) {
-      teamConversion2x3x0(loadTeams);
+    if(StatUtils2.versionLt(loadMetadata.version, '2.3.0')) {
+      StatUtils2.teamConversion2x3x0(loadTeams);
     }
     // merge teams
     var teamsCopy = this.state.myTeams.slice();
@@ -763,8 +765,9 @@ class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   writeSqbsFile(fileName) {
     var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhase : this.state.viewingPhase;
-    var sqbsData = getSqbsFile(this.state.settings, this.state.viewingPhase, phaseToGroupBy, this.state.divisions[phaseToGroupBy],
-      this.state.myTeams, this.state.myGames, this.state.packets, this.state.gameIndex);
+    var sqbsData = SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
+      phaseToGroupBy, this.state.divisions[phaseToGroupBy], this.state.myTeams,
+      this.state.myGames, this.state.packets, this.state.gameIndex);
     fs.writeFile(fileName, sqbsData, 'utf8', function(err) {
       if (err) { console.log(err); }
     });
@@ -1021,7 +1024,7 @@ class MainInterface extends React.Component {
     if(tempGameIndex[round] == undefined) { tempGameIndex[round] = 1; }
     else { tempGameIndex[round]++; }
     var tempPlayerIndex = this.state.playerIndex;
-    addGameToPlayerIndex(tempItem, tempPlayerIndex); //statUtils2
+    StatUtils2.addGameToPlayerIndex(tempItem, tempPlayerIndex);
     ipc.sendSync('unsavedData');
     this.setState({
       myGames: tempGms,
@@ -1068,7 +1071,7 @@ class MainInterface extends React.Component {
     //update index
     var tempPlayerIndex = this.state.playerIndex;
     var newTeamCopy = $.extend(true, {}, newTeam);
-    modifyTeamInPlayerIndex(oldTeam, newTeamCopy, tempPlayerIndex); //statUtils2
+    StatUtils2.modifyTeamInPlayerIndex(oldTeam, newTeamCopy, tempPlayerIndex);
 
     //don't save the dummy placeholders for deleted teams
     var deletedTeams = [];
@@ -1144,7 +1147,7 @@ class MainInterface extends React.Component {
   modifyGame(oldGame, newGame, acceptAndStay) {
     var tempGameAry = this.state.myGames.slice();
     var oldGameIdx = _.findIndex(tempGameAry, function (o) {
-       return gameEqual(o, oldGame)
+       return StatUtils2.gameEqual(o, oldGame)
      });
     tempGameAry[oldGameIdx] = newGame;
     // update game index
@@ -1156,7 +1159,7 @@ class MainInterface extends React.Component {
       if(--tempGameIndex[oldRound] == 0) { delete tempGameIndex[oldRound]; }
     }
     var tempPlayerIndex = this.state.playerIndex;
-    modifyGameInPlayerIndex(oldGame, newGame, tempPlayerIndex); //statUtils2
+    StatUtils2.modifyGameInPlayerIndex(oldGame, newGame, tempPlayerIndex);
     ipc.sendSync('unsavedData');
     this.setState({
       myGames: tempGameAry,
@@ -1214,7 +1217,7 @@ class MainInterface extends React.Component {
     var tempGameIndex = this.state.gameIndex, round = this.state.gameToBeDeleted.round;
     if(--tempGameIndex[round] == 0) { delete tempGameIndex[round]; }
     var tempPlayerIndex = this.state.playerIndex;
-    modifyGameInPlayerIndex(this.state.gameToBeDeleted, null, tempPlayerIndex); //statUtils2
+    StatUtils2.modifyGameInPlayerIndex(this.state.gameToBeDeleted, null, tempPlayerIndex);
     this.setState({
       myGames: newGames,
       gameIndex: tempGameIndex,
@@ -1367,7 +1370,7 @@ class MainInterface extends React.Component {
     var teamAPlayed = false, teamBPlayed = false;
     for(var i in this.state.myGames) {
       var g = this.state.myGames[i];
-      if(!gameEqual(g, originalGameLoaded) && g.round == roundNo) {
+      if(!StatUtils2.gameEqual(g, originalGameLoaded) && g.round == roundNo) {
         if((g.team1 == teamA && g.team2 == teamB) || (g.team2 == teamA && g.team1 == teamB)) {
           return 4;
         }
@@ -2215,7 +2218,7 @@ class MainInterface extends React.Component {
         <div id="stat-sidebar" className="col xl4 s0">
           <StatSidebar
             visible = {this.state.sidebarOpen}
-            standings = {getSmallStandings(myTeams, myGames, this.state.viewingPhase, phaseToGroupBy, this.state.settings)}
+            standings = {StatUtils2.getSmallStandings(myTeams, myGames, this.state.viewingPhase, phaseToGroupBy, this.state.settings)}
             divisions = {divsInPhase}
             settings = {this.state.settings}
             activeRpt = {rptObj}

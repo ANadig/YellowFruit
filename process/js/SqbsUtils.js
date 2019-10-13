@@ -3,6 +3,8 @@ SqbsUtils.js
 Andrew Nadig
 
 code for generating an SQBS-format file.
+
+Callable functions: getPacketRounds, getSqbsFile
 ***********************************************************/
 
 
@@ -378,3 +380,5 @@ function getSqbsFile(settings, viewingPhase, groupingPhase, divisions, teams, ga
   output += exhibitionStatuses(teams);
   return output;
 }
+
+module.exports = {getSqbsFile, getPacketRounds};

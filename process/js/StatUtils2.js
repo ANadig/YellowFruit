@@ -1,20 +1,16 @@
+/***********************************************************
+StatUtils2.js
+Andrew Nadig
 
-/*---------------------------------------------------------
-Merge two arrays of strings, ignoring case and whitespace
----------------------------------------------------------*/
-function mergeArrays(a,b) {
-  aLower = a.map((x) => { return x.trim().toLowerCase(); });
-  bLower = b.map((x) => { return x.trim().toLowerCase(); });
-  for(var i in b) {
-    if(aLower.includes(bLower[i])) { a.push(b[i]); }
-  }
-  return a;
-}
+miscellaneous functions
+***********************************************************/
+
+module.exports = {};
 
 /*---------------------------------------------------------
 Equality test for settings objects
 ---------------------------------------------------------*/
-function settingsEqual(s1, s2) {
+module.exports.settingsEqual = function(s1, s2) {
   return s1.powers == s2.powers && s1.negs == s2.negs &&
     s1.bonuses == s2.bonuses && s1.playersPerTeam == s2.playersPerTeam;
 }
@@ -22,7 +18,7 @@ function settingsEqual(s1, s2) {
 /*---------------------------------------------------------
 Equality test for two games.
 ---------------------------------------------------------*/
-function gameEqual(g1, g2) {
+module.exports.gameEqual = function(g1, g2) {
   if((g1 == undefined && g2 != undefined) || (g1 != undefined && g2 == undefined)) {
     return false;
   }
@@ -36,7 +32,7 @@ function gameEqual(g1, g2) {
 Is version a less than version b? Versions are 3-piece
 dot-delimited, e.g. '1.2.3'
 ---------------------------------------------------------*/
-function versionLt(a, b) {
+module.exports.versionLt = function(a, b) {
   var aSplit = a.split('.'), bSplit = b.split('.');
   if(aSplit[0] != bSplit[0]) { return aSplit[0] < bSplit[0]; }
   if(aSplit[1] != bSplit[1]) { return aSplit[1] < bSplit[1]; }
@@ -44,22 +40,11 @@ function versionLt(a, b) {
 }
 
 /*---------------------------------------------------------
-Do any players on this team have year/grade info?
----------------------------------------------------------*/
-function teamHasYearData(team) {
-  for(var p in team.roster) {
-    var year = team.roster[p].year;
-    if(year != undefined && year != '') { return true; }
-  }
-  return false;
-}
-
-/*---------------------------------------------------------
 conversion on team data structure (version 2.1.0)
 Changes rosters from arrays of strings to arrays of
 objects with the year property
 ---------------------------------------------------------*/
-function teamConversion2x1x0(loadTeams) {
+module.exports.teamConversion2x1x0 = function(loadTeams) {
   for(var i in loadTeams) {
     var curTeam = loadTeams[i];
     var rosterObj = {};
@@ -75,7 +60,7 @@ conversion on team data structure (version 2.2.0)
 Adds the team-level UG and D2 properties, and adds the
 division 2 property to each player
 ---------------------------------------------------------*/
-function teamConversion2x2x0(loadTeams) {
+module.exports.teamConversion2x2x0 = function(loadTeams) {
   for(var i in loadTeams) {
     var curTeam = loadTeams[i];
     curTeam.teamUGStatus = false;
@@ -91,7 +76,7 @@ function teamConversion2x2x0(loadTeams) {
 conversion on team data structure (version 2.3.0)
 Adds the team-level small school and JV properties.
 ---------------------------------------------------------*/
-function teamConversion2x3x0(loadTeams) {
+module.exports.teamConversion2x3x0 = function(loadTeams) {
   for(var i in loadTeams) {
     var curTeam = loadTeams[i];
     curTeam.smallSchool = false;
@@ -104,7 +89,7 @@ For each player in this game, increment that player's
 count in the index. Assumes that teams and players are
 already defined.
 ---------------------------------------------------------*/
-function addGameToPlayerIndex(game, index) {
+module.exports.addGameToPlayerIndex = function(game, index) {
   var team1 = game.team1, team2 = game.team2;
   for(var p in game.players1) {
     if(toNum(game.players1[p].tuh) > 0) { index[team1][p]++; }
@@ -122,7 +107,7 @@ much cleaner code.
 Set newGame to null if deleteing rather than modifying
 oldGame
 ---------------------------------------------------------*/
-function modifyGameInPlayerIndex(oldGame, newGame, index) {
+module.exports.modifyGameInPlayerIndex = function(oldGame, newGame, index) {
   var oldTeam1 = oldGame.team1, oldTeam2 = oldGame.team2;
   for(var p in oldGame.players1) {
     if(toNum(oldGame.players1[p].tuh) > 0) { index[oldTeam1][p]--; }
@@ -143,7 +128,7 @@ function modifyGameInPlayerIndex(oldGame, newGame, index) {
 /*---------------------------------------------------------
 Update team names and rosters in the player index
 ---------------------------------------------------------*/
-function modifyTeamInPlayerIndex(oldTeam, newTeam, index) {
+module.exports.modifyTeamInPlayerIndex = function(oldTeam, newTeam, index) {
   var oldTeamName = oldTeam.teamName;
   var newPlayerList = Object.keys(newTeam.roster);
   var newIndexPiece = {};
@@ -166,7 +151,7 @@ function modifyTeamInPlayerIndex(oldTeam, newTeam, index) {
 Generate the data necessary for showing the abbreviated
 standings table in the sidebar
 ---------------------------------------------------------*/
-function getSmallStandings(myTeams, myGames, gamesPhase, groupingPhase, settings) {
+module.exports.getSmallStandings = function(myTeams, myGames, gamesPhase, groupingPhase, settings) {
   var summary = myTeams.map(function(item, index) {
     var obj =
       { teamName: item.teamName,

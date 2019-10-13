@@ -9,6 +9,7 @@ cards.
 var React = require('react');
 var _ = require('lodash');
 var $ = require('jquery');
+var SqbsUtils = require('./SqbsUtils');
 var DivisionListEntry = require('./DivisionListEntry');
 const DEF_PHASE_TOOLTIP = 'Team standings are grouped by this phase\'s divisions when all games are shown';
 const DEF_PHASE_LINK_TOOLTIP = 'Click to change how teams are grouped when viewing all games';
@@ -85,7 +86,7 @@ class SettingsForm extends React.Component{
     var whichPacket = name.replace('packet', '');
     var tempPackets = $.extend(true, {}, this.state.packets);
     tempPackets[whichPacket] = value;
-    for(var i=getPacketRounds(this.state.packets, this.props.gameIndex).length; tempPackets[i]==''; i++) {
+    for(var i=SqbsUtils.getPacketRounds(this.state.packets, this.props.gameIndex).length; tempPackets[i]==''; i++) {
       delete tempPackets[i];
     }
     this.setState({
@@ -630,7 +631,7 @@ class SettingsForm extends React.Component{
     }//else editing settings
 
 
-    var packetRounds = getPacketRounds(this.state.packets, this.props.gameIndex);
+    var packetRounds = SqbsUtils.getPacketRounds(this.state.packets, this.props.gameIndex);
     var packetFieldCol = null, packetNumCol = null;
     // read-only list of packets
     if(!this.state.editingPackets) {
