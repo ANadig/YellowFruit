@@ -32,7 +32,7 @@ const DEFAULT_USER_CONFIG = {
 var currentUserConfig;
 var autoSaveIntervalId = null; // store the interval ID from setInterval here
 const AUTO_SAVE_TIME_MS = 300000; //number of milliseconds between auto-saves
-var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate;
+var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate, helpMenu, helpMenuTemplate;
 var reportWindow; //to show the html report
 var currentFile = '';
 var unsavedData = false;
@@ -399,7 +399,6 @@ function showReportWindow() {
       width: 1050,
       height: 550,
       show: false,
-      autoHideMenuBar: true,
       icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
     }); //reportWindow
 
@@ -424,7 +423,7 @@ function showHelpWindow(focusedWindow, fileName, width, height) {
     icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
   });
   helpWindow.loadURL('file://' + __dirname + '/' + fileName);
-  helpWindow.setMenu(reportMenu);
+  helpWindow.setMenu(helpMenu);
   helpWindow.once('ready-to-show', ()=>{ helpWindow.show(); });
   helpWindow.once('close', () => { focusedWindow.focus(); }); //prevent flickering
 }
@@ -969,14 +968,28 @@ app.on('ready', function() {
   }); //on rebuildMenus
 
   //set up the menu bars
-  reportMenuTemplate = [
+  helpMenuTemplate = [
     {
       label: 'YellowFruit',
       submenu: [{role: 'close'}]
     }
   ]; // reportMenuTemplate
+  reportMenuTemplate = [
+    {
+      label: 'YellowFruit',
+      submenu: [
+      {
+        label: 'Print',
+        accelerator: 'CmdOrCtrl+P',
+        click (item, focusedWindow) {
+          if(focusedWindow) focusedWindow.webContents.print({printBackgroud: true}); }
+      },
+      {role: 'close'}]
+    }
+  ];
 
   mainMenu = buildMainMenu(REPORT_SUBMENU_STUB);
+  helpMenu = Menu.buildFromTemplate(helpMenuTemplate);
   reportMenu = Menu.buildFromTemplate(reportMenuTemplate);
   appWindow.setMenu(mainMenu);
 
