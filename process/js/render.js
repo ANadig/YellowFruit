@@ -1089,7 +1089,7 @@ class MainInterface extends React.Component {
     this.setState({
       myTeams: tempTeams,
       myGames: tempGames,
-      tmWindowVisible: false,
+      tmWindowVisible: acceptAndStay,
       playerIndex: tempPlayerIndex,
       tmAddOrEdit: 'add' // need to set here in case of acceptAndStay
     });
@@ -1166,7 +1166,7 @@ class MainInterface extends React.Component {
       myGames: tempGameAry,
       gameIndex: tempGameIndex,
       playerIndex: tempPlayerIndex,
-      gmWindowVisible: false,
+      gmWindowVisible: acceptAndStay,
       gmAddOrEdit: 'add' // needed in case of acceptAndStay
     });
     if(acceptAndStay) {
