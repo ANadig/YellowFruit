@@ -7,6 +7,7 @@ code for generating an SQBS-format file.
 Callable functions: getPacketRounds, getSqbsFile
 ***********************************************************/
 
+var StatUtils = require('./StatUtils');
 
 /*---------------------------------------------------------
 Return the list of rounds for which we care about packet
@@ -20,7 +21,7 @@ function getPacketRounds(packets, gameIndex) {
   if(maxGameRound == undefined) { maxGameRound = 0; }
   if(maxPacketRound == undefined) { maxPacketRound = 0; }
   var maxRound;
-  if(!packetNamesExist(packets)) { maxRound = maxGameRound; }
+  if(!StatUtils.packetNamesExist(packets)) { maxRound = maxGameRound; }
   else { maxRound = +maxGameRound >= +maxPacketRound ? +maxGameRound : +maxPacketRound; }
   var rounds = [];
   for(var i=1; i<=maxRound; i++) { rounds.push(i); }
@@ -75,7 +76,7 @@ function addOnePlayer(settings, teams, game, whichTeam, playerName) {
   var playerIdx = Object.keys(teamObj.roster).indexOf(playerName);
   output += playerIdx + '\n';
   var playersObj = whichTeam == 1 ? game.players1 : game.players2;
-  [tuh, powers, tens, negs] = playerSlashLine(playersObj[playerName]);
+  [tuh, powers, tens, negs] = StatUtils.playerSlashLine(playersObj[playerName]);
   output += (tuh / game.tuhtot).toFixed(2) + '\n'; //games played
   var pointCatCounter = 0;
   if(settings.powers != 'none') {
@@ -93,7 +94,7 @@ function addOnePlayer(settings, teams, game, whichTeam, playerName) {
     pointCatCounter++;
   }
   //total points
-  output += (powers*powerValue(settings) + tens*10 + negs*negValue(settings)) + '\n';
+  output += (powers*StatUtils.powerValue(settings) + tens*10 + negs*StatUtils.negValue(settings)) + '\n';
 
   return output;
 }
@@ -134,27 +135,27 @@ function gameList(settings, teams, games, phase) {
     output += g.round + '\n';
     //bonuses
     if(settings.bonuses == 'noBb') {
-      output += bonusesHeard(g, 1) + '\n';
-      output += bonusPoints(g, 1, settings) + '\n';
-      output += bonusesHeard(g, 2) + '\n';
-      output += bonusPoints(g, 2, settings) + '\n';
+      output += StatUtils.bonusesHeard(g, 1) + '\n';
+      output += StatUtils.bonusPoints(g, 1, settings) + '\n';
+      output += StatUtils.bonusesHeard(g, 2) + '\n';
+      output += StatUtils.bonusPoints(g, 2, settings) + '\n';
     }
     else if(settings.bonuses == 'yesBb') {
       // track bouncebacks heard in units of bonus parts, not bonuses
-      var bbHrd1 = (3*bbHrdToFloat(bbHeard(g, 1, settings))).toFixed(0);
-      output += 10000*bbHrd1 + bonusesHeard(g, 1) + '\n';
-      output += 10000*g.bbPts1 + bonusPoints(g, 1, settings) + '\n';
-      var bbHrd2 = (3*bbHrdToFloat(bbHeard(g, 2, settings))).toFixed(0);
-      output += 10000*bbHrd2 + bonusesHeard(g, 2) + '\n';
-      output += 10000*g.bbPts2 + bonusPoints(g, 2, settings) + '\n';
+      var bbHrd1 = (3*StatUtils.bbHrdToFloat(StatUtils.bbHeard(g, 1, settings))).toFixed(0);
+      output += 10000*bbHrd1 + StatUtils.bonusesHeard(g, 1) + '\n';
+      output += 10000*g.bbPts1 + StatUtils.bonusPoints(g, 1, settings) + '\n';
+      var bbHrd2 = (3*StatUtils.bbHrdToFloat(StatUtils.bbHeard(g, 2, settings))).toFixed(0);
+      output += 10000*bbHrd2 + StatUtils.bonusesHeard(g, 2) + '\n';
+      output += 10000*g.bbPts2 + StatUtils.bonusPoints(g, 2, settings) + '\n';
     }
     else { // no bonuses, so just fill with zeros
       output += '0\n0\n0\n0\n';
     }
     // overtime
     output += g.ottu>0 ? '1\n' : '0\n';
-    output += (toNum(g.otPwr1) + toNum(g.otTen1)) + '\n';
-    output += (toNum(g.otPwr2) + toNum(g.otTen2)) + '\n';
+    output += (StatUtils.toNum(g.otPwr1) + StatUtils.toNum(g.otTen1)) + '\n';
+    output += (StatUtils.toNum(g.otPwr2) + StatUtils.toNum(g.otTen2)) + '\n';
     // forfeit?
     output += g.forfeit ? '1\n' : '0\n';
     // lightning rounds. Don't exist here, so just add zeroes
@@ -167,7 +168,7 @@ function gameList(settings, teams, games, phase) {
     var playerIdx1 = 0;
     var playerIdx2 = 0;
     for(i=0; i<8; i++) {
-      while(playerIdx1 < gamePlayers1.length && toNum(g.players1[gamePlayers1[playerIdx1]].tuh) <= 0) {
+      while(playerIdx1 < gamePlayers1.length && StatUtils.toNum(g.players1[gamePlayers1[playerIdx1]].tuh) <= 0) {
         playerIdx1++;
       }
       if(playerIdx1 < gamePlayers1.length) {
@@ -177,7 +178,7 @@ function gameList(settings, teams, games, phase) {
       else {
         output += dummyPlayer();
       }
-      while(playerIdx2 < gamePlayers2.length && toNum(g.players2[gamePlayers2[playerIdx2]].tuh) <= 0) {
+      while(playerIdx2 < gamePlayers2.length && StatUtils.toNum(g.players2[gamePlayers2[playerIdx2]].tuh) <= 0) {
         playerIdx2++;
       }
       if(playerIdx2 < gamePlayers2.length) {
@@ -331,7 +332,7 @@ The number of named packets (including blanks), follwed by
 the list of packet names
 ---------------------------------------------------------*/
 function packetNamesSqbs(packets, gameIndex) {
-  if(!packetNamesExist(packets)) {
+  if(!StatUtils.packetNamesExist(packets)) {
     return '0\n';
   }
   var output = '';

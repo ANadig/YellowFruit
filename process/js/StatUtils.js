@@ -5,8 +5,7 @@ Andrew Nadig
 code for generating the HTML stats report.
 ***********************************************************/
 var _ = require('lodash');
-var fs = require('fs');
-var Path = require('path');
+var fs = eRequire('fs');
 const TOOLTIPS = {
   smallSchool: 'Small School',
   jrVarsity: 'Junior Varsity',
@@ -1918,7 +1917,11 @@ Generate the stat key page.
 ---------------------------------------------------------*/
 function getStatKeyHtml(fileStart) {
   var html = getStatReportTop('', fileStart, 'Stat Key');
-  var statKeyBodyLocation = Path.resolve(__dirname, 'statKeyBody.html');
-  html += fs.readFileSync(statKeyBodyLocation, 'utf8');
+  html += fs.readFileSync(statKeyBodyLocation, 'utf8'); //filepath defined in index.html
   return html + getStatReportBottom();
 }
+
+module.exports = {toNum, gamesPlayed, powerValue, negValue, bonusesHeard, bonusPoints,
+  bbHeard, bbHrdToFloat, otPoints, playerSlashLine, packetNamesExist,
+  getStandingsHtml, getIndividualsHtml, getScoreboardHtml, getTeamDetailHtml,
+  getPlayerDetailHtml, getRoundReportHtml, getStatKeyHtml}

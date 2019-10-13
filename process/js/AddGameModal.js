@@ -9,6 +9,7 @@ var React = require('react');
 var $ = require('jquery');
 var _ = require('lodash');
 var M = require('materialize-css');
+var StatUtils = require('./StatUtils');
 var PlayerRow = require('./PlayerRow');
 
 const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
@@ -262,13 +263,6 @@ class AddGameModal extends React.Component{
   } //handleAdd
 
   /*---------------------------------------------------------
-  Convert string to number, treating the empty string as zero.
-  ---------------------------------------------------------*/
-  toNum(str) {
-    return isNaN(+str) ? 0 : +str;
-  }
-
-  /*---------------------------------------------------------
   The greatest integer guaranteed to divide a game score
   evenly.
   ---------------------------------------------------------*/
@@ -296,13 +290,13 @@ class AddGameModal extends React.Component{
     var tot=0;
     var players = this.state['players'+whichTeam]
     for(var p in players) {
-      tot += this.toNum(players[p].powers) + this.toNum(players[p].tens);
+      tot += StatUtils.toNum(players[p].powers) + StatUtils.toNum(players[p].tens);
     }
-    if(this.toNum(this.state.ottu) > 0) {
+    if(StatUtils.toNum(this.state.ottu) > 0) {
       var otPwr = this.state['otPwr'+whichTeam];
       var otTen = this.state['otTen'+whichTeam];
-      tot -= this.toNum(otPwr); //subtract TUs converted in overtime
-      tot -= this.toNum(otTen);
+      tot -= StatUtils.toNum(otPwr); //subtract TUs converted in overtime
+      tot -= StatUtils.toNum(otTen);
     }
     return tot;
   }
@@ -316,8 +310,8 @@ class AddGameModal extends React.Component{
     var totScore = whichTeam == 1 ? this.state.score1 : this.state.score2;
     var bbPts = whichTeam == 1 ? this.state.bbPts1 : this.state.bbPts2;
     for(var p in players) {
-      tuPts += this.powerValue()*this.toNum(players[p].powers) +
-        10*this.toNum(players[p].tens) - 5*this.toNum(players[p].negs);
+      tuPts += this.powerValue()*StatUtils.toNum(players[p].powers) +
+        10*StatUtils.toNum(players[p].tens) - 5*StatUtils.toNum(players[p].negs);
     }
     return totScore - tuPts - bbPts;
   }
@@ -388,11 +382,10 @@ class AddGameModal extends React.Component{
   How many points the team scored on overtime tossups.
   ---------------------------------------------------------*/
   otPoints(whichTeam) {
-    if(toNum(this.state.ottu) <= 0) { return 0; }
+    if(StatUtils.toNum(this.state.ottu) <= 0) { return 0; }
     var otPwr = whichTeam == 1 ? this.state.otPwr1 : this.state.otPwr2;
     var otTen = whichTeam == 1 ? this.state.otTen1 : this.state.otTen2;
     var otNeg = whichTeam == 1 ? this.state.otNeg1 : this.state.otNeg2;
-    var totScore = whichTeam == 1 ? this.state.score1 : this.state.score2;
     return this.powerValue()*otPwr + 10*otTen - 5*otNeg;
   }
 
@@ -428,7 +421,7 @@ class AddGameModal extends React.Component{
   ---------------------------------------------------------*/
   validateGame() {
     var team1 = this.state.team1, team2 = this.state.team2;
-    var round = this.state.round, tuhtot = this.toNum(this.state.tuhtot);
+    var round = this.state.round, tuhtot = StatUtils.toNum(this.state.tuhtot);
     var score1 = this.state.score1, score2 = this.state.score2;
     var players1 = this.state.players1, players2 = this.state.players2;
     //teams are required
@@ -463,25 +456,25 @@ class AddGameModal extends React.Component{
     //and no player can answer more tossups than he's heard
     var playerTuhSums = [0,0];
     for(var p in players1) {
-      if(this.toNum(players1[p].tuh) > tuhtot) {
+      if(StatUtils.toNum(players1[p].tuh) > tuhtot) {
         return [false, 'error', p + ' has heard more than ' + tuhtot + ' tossups'];
       }
-      var tuAnswered = this.toNum(players1[p].powers) + this.toNum(players1[p].tens) + this.toNum(players1[p].negs);
-      if(this.toNum(players1[p].tuh) < tuAnswered) {
+      var tuAnswered = StatUtils.toNum(players1[p].powers) + StatUtils.toNum(players1[p].tens) + StatUtils.toNum(players1[p].negs);
+      if(StatUtils.toNum(players1[p].tuh) < tuAnswered) {
         return [false, 'error', p + ' has more tossups answered than tossups heard']
       }
-      playerTuhSums[0] += this.toNum(players1[p].tuh);
+      playerTuhSums[0] += StatUtils.toNum(players1[p].tuh);
     }
     //likewise for team 2
     for(var p in players2) {
-      if(this.toNum(players2[p].tuh) > tuhtot) {
+      if(StatUtils.toNum(players2[p].tuh) > tuhtot) {
         return [false, 'error', p + ' has heard more than ' + tuhtot + ' tossups'];
       }
-      var tuAnswered = this.toNum(players2[p].powers) + this.toNum(players2[p].tens) + this.toNum(players2[p].negs);
-      if(this.toNum(players2[p].tuh) < tuAnswered) {
+      var tuAnswered = StatUtils.toNum(players2[p].powers) + StatUtils.toNum(players2[p].tens) + StatUtils.toNum(players2[p].negs);
+      if(StatUtils.toNum(players2[p].tuh) < tuAnswered) {
         return [false, 'error', p + ' has more tossups answered than tossups heard']
       }
-      playerTuhSums[1] += this.toNum(players2[p].tuh);
+      playerTuhSums[1] += StatUtils.toNum(players2[p].tuh);
     }
     //A team's players cannot have heard more tossups collectively than the
     //total tossups for the game, times the number of players per team
@@ -531,13 +524,13 @@ class AddGameModal extends React.Component{
     }
 
     // can't have more buzzes in overtime than tossups you actually heard
-    var otPwr1 = toNum(this.state.otPwr1);
-    var otPwr2 = toNum(this.state.otPwr2);
-    var otTen1 = toNum(this.state.otTen1);
-    var otTen2 = toNum(this.state.otTen2);
-    var otNeg1 = toNum(this.state.otNeg1);
-    var otNeg2 = toNum(this.state.otNeg2);
-    var ottu = toNum(this.state.ottu);
+    var otPwr1 =StatUtils.toNum(this.state.otPwr1);
+    var otPwr2 =StatUtils.toNum(this.state.otPwr2);
+    var otTen1 =StatUtils.toNum(this.state.otTen1);
+    var otTen2 =StatUtils.toNum(this.state.otTen2);
+    var otNeg1 =StatUtils.toNum(this.state.otNeg1);
+    var otNeg2 =StatUtils.toNum(this.state.otNeg2);
+    var ottu =StatUtils.toNum(this.state.ottu);
     if(otPwr1 + otTen1 + otNeg1 > ottu) {
       return [false, 'error', team1 + ' has more overtime buzzes than tossups heard'];
     }

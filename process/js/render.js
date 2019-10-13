@@ -18,6 +18,7 @@ var ipc = electron.ipcRenderer;
 var React = require('react');
 var ReactDOM = require('react-dom');
 var SqbsUtils = require('./SqbsUtils');
+var StatUtils = require('./StatUtils');
 var StatUtils2 = require('./StatUtils2');
 // Bring in all the other React components
 var TeamListEntry = require('./TeamListEntry');
@@ -722,37 +723,37 @@ class MainInterface extends React.Component {
     var activeRpt = this.state.releasedRptList[this.state.activeRpt];
     if(activeRpt == undefined) { activeRpt = this.state.customRptList[this.state.activeRpt]; }
 
-    var standingsHtml = getStandingsHtml(this.state.myTeams, this.state.myGames,
+    var standingsHtml = StatUtils.getStandingsHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, phaseToGroupBy, divsInPhase, this.state.settings, activeRpt);
     fs.writeFile(standingsLocation, standingsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - standings
-    var individualsHtml = getIndividualsHtml(this.state.myTeams, this.state.myGames,
+    var individualsHtml = StatUtils.getIndividualsHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, phaseToGroupBy, usingDivisions, this.state.settings, activeRpt);
     fs.writeFile(individualsLocation, individualsHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individuals
-    var scoreboardHtml = getScoreboardHtml(this.state.myTeams, this.state.myGames,
+    var scoreboardHtml = StatUtils.getScoreboardHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, this.state.settings, this.state.packets, phaseColors);
     fs.writeFile(scoreboardLocation, scoreboardHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - scoreboard
-    var teamDetailHtml = getTeamDetailHtml(this.state.myTeams, this.state.myGames,
+    var teamDetailHtml = StatUtils.getTeamDetailHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, this.state.packets, this.state.settings, phaseColors, activeRpt);
     fs.writeFile(teamDetailLocation, teamDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - team detail
-    var playerDetailHtml = getPlayerDetailHtml(this.state.myTeams, this.state.myGames,
+    var playerDetailHtml = StatUtils.getPlayerDetailHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, this.state.settings, phaseColors, activeRpt);
     fs.writeFile(playerDetailLocation, playerDetailHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - individual Detail
-    var roundReportHtml = getRoundReportHtml(this.state.myTeams, this.state.myGames,
+    var roundReportHtml = StatUtils.getRoundReportHtml(this.state.myTeams, this.state.myGames,
       endFileStart, phase, this.state.packets, this.state.settings, activeRpt);
     fs.writeFile(roundReportLocation, roundReportHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - round report
-    var statKeyHtml = getStatKeyHtml(endFileStart);
+    var statKeyHtml = StatUtils.getStatKeyHtml(endFileStart);
     fs.writeFile(statKeyLocation, statKeyHtml, 'utf8', function(err) {
       if (err) { console.log(err); }
     });//writeFile - stat key
@@ -785,7 +786,7 @@ class MainInterface extends React.Component {
       var g = this.state.myGames[i];
       var playerCount = 0;
       for(var p in g.players1) {
-        if(toNum(g.players1[p].tuh) > 0) { playerCount++; }
+        if(StatUtils.toNum(g.players1[p].tuh) > 0) { playerCount++; }
       }
       if(playerCount > 8) {
         badGameAry.push('Round ' + g.round + ': ' + g.team1 + " vs. " + g.team2);
@@ -793,7 +794,7 @@ class MainInterface extends React.Component {
       }
       playerCount = 0;
       for(var p in g.players2) {
-        if(toNum(g.players2[p].tuh) > 0) { playerCount++; }
+        if(StatUtils.toNum(g.players2[p].tuh) > 0) { playerCount++; }
       }
       if(playerCount > 8) {
         badGameAry.push('Round ' + g.round + ': ' + g.team1 + " vs. " + g.team2);
@@ -2181,7 +2182,7 @@ class MainInterface extends React.Component {
           onOpenTeam = {this.openTeamForEdit}
           onSelectTeam = {this.onSelectTeam}
           selected = {this.state.selectedTeams.includes(item)}
-          numGamesPlayed = {gamesPlayed(item, myGames)}
+          numGamesPlayed = {StatUtils.gamesPlayed(item, myGames)}
           allPhases = {Object.keys(this.state.divisions)}
           usingDivisions = {usingDivisions}
           removeDivision = {this.removeDivisionFromTeam}

@@ -5,6 +5,8 @@ Andrew Nadig
 miscellaneous functions
 ***********************************************************/
 
+var StatUtils = require('./StatUtils');
+var _ = require('lodash');
 module.exports = {};
 
 /*---------------------------------------------------------
@@ -92,10 +94,10 @@ already defined.
 module.exports.addGameToPlayerIndex = function(game, index) {
   var team1 = game.team1, team2 = game.team2;
   for(var p in game.players1) {
-    if(toNum(game.players1[p].tuh) > 0) { index[team1][p]++; }
+    if(StatUtils.toNum(game.players1[p].tuh) > 0) { index[team1][p]++; }
   }
   for(var p in game.players2) {
-    if(toNum(game.players2[p].tuh) > 0) { index[team2][p]++; }
+    if(StatUtils.toNum(game.players2[p].tuh) > 0) { index[team2][p]++; }
   }
 }
 
@@ -110,18 +112,18 @@ oldGame
 module.exports.modifyGameInPlayerIndex = function(oldGame, newGame, index) {
   var oldTeam1 = oldGame.team1, oldTeam2 = oldGame.team2;
   for(var p in oldGame.players1) {
-    if(toNum(oldGame.players1[p].tuh) > 0) { index[oldTeam1][p]--; }
+    if(StatUtils.toNum(oldGame.players1[p].tuh) > 0) { index[oldTeam1][p]--; }
   }
   for(var p in oldGame.players2) {
-    if(toNum(oldGame.players2[p].tuh) > 0) { index[oldTeam2][p]--; }
+    if(StatUtils.toNum(oldGame.players2[p].tuh) > 0) { index[oldTeam2][p]--; }
   }
   if(newGame == null) { return; }
   var newTeam1 = newGame.team1, newTeam2 = newGame.team2;
   for(var p in newGame.players1) {
-    if(toNum(newGame.players1[p].tuh) > 0) { index[newTeam1][p]++; }
+    if(StatUtils.toNum(newGame.players1[p].tuh) > 0) { index[newTeam1][p]++; }
   }
   for(var p in newGame.players2) {
-    if(toNum(newGame.players2[p].tuh) > 0) { index[newTeam2][p]++; }
+    if(StatUtils.toNum(newGame.players2[p].tuh) > 0) { index[newTeam2][p]++; }
   }
 }
 
@@ -195,14 +197,14 @@ module.exports.getSmallStandings = function(myTeams, myGames, gamesPhase, groupi
           summary[idx1].ties += 1;
           summary[idx2].ties += 1;
         }
-        summary[idx1].points += parseFloat(g.score1) - otPoints(g, 1, settings);
-        summary[idx2].points += parseFloat(g.score2) - otPoints(g, 2, settings);
-        summary[idx1].tuh += toNum(g.tuhtot) - toNum(g.ottu);
-        summary[idx2].tuh += toNum(g.tuhtot) - toNum(g.ottu);
-        summary[idx1].bHeard += bonusesHeard(g,1);
-        summary[idx2].bHeard += bonusesHeard(g,2);
-        summary[idx1].bPts += bonusPoints(g,1,settings);
-        summary[idx2].bPts += bonusPoints(g,2,settings);
+        summary[idx1].points += parseFloat(g.score1) - StatUtils.otPoints(g, 1, settings);
+        summary[idx2].points += parseFloat(g.score2) - StatUtils.otPoints(g, 2, settings);
+        summary[idx1].tuh += StatUtils.toNum(g.tuhtot) - StatUtils.toNum(g.ottu);
+        summary[idx2].tuh += StatUtils.toNum(g.tuhtot) - StatUtils.toNum(g.ottu);
+        summary[idx1].bHeard += StatUtils.bonusesHeard(g,1);
+        summary[idx2].bHeard += StatUtils.bonusesHeard(g,2);
+        summary[idx1].bPts += StatUtils.bonusPoints(g,1,settings);
+        summary[idx2].bPts += StatUtils.bonusPoints(g,2,settings);
       }//else not a forfeit
     }//if game is in phase
   }//loop over games

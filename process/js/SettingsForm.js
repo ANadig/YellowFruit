@@ -9,6 +9,7 @@ cards.
 var React = require('react');
 var _ = require('lodash');
 var $ = require('jquery');
+var StatUtils = require('./StatUtils');
 var SqbsUtils = require('./SqbsUtils');
 var DivisionListEntry = require('./DivisionListEntry');
 const DEF_PHASE_TOOLTIP = 'Team standings are grouped by this phase\'s divisions when all games are shown';
@@ -635,7 +636,7 @@ class SettingsForm extends React.Component{
     var packetFieldCol = null, packetNumCol = null;
     // read-only list of packets
     if(!this.state.editingPackets) {
-      if(!packetNamesExist(this.state.packets)) { packetCard = null; }
+      if(!StatUtils.packetNamesExist(this.state.packets)) { packetCard = null; }
       else {
         var packetList = packetRounds.map((round, idx) => {
           var roundDisplay = this.state.packets[round] == undefined ? '' : this.state.packets[round];
