@@ -34,6 +34,7 @@ class AddTeamModal extends React.Component{
     this.handleAdd = this.handleAdd.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handlePlayerChange = this.handlePlayerChange.bind(this);
+    this.handlePlayerPaste = this.handlePlayerPaste.bind(this);
     this.handleYearChange = this.handleYearChange.bind(this);
     this.handlePlayerUGChange = this.handlePlayerUGChange.bind(this);
     this.handlePlayerD2Change = this.handlePlayerD2Change.bind(this);
@@ -98,10 +99,9 @@ class AddTeamModal extends React.Component{
     const value = target.value;
     const name = target.name;
     var whichPlayer = name.replace('player', '');
-    var previousValue = this.state.playerNames[whichPlayer];
     var tempPlayers = this.state.playerNames.slice();
     tempPlayers[whichPlayer] = value;
-    for(var last=tempPlayers.pop(); last==''; last=tempPlayers.pop()) { } // remove blank lines
+    for(var last=tempPlayers.pop(); last==''; last=tempPlayers.pop()) { } // remove blank lines from end
     if(last != undefined) { tempPlayers.push(last); }
     var tempYears = this.state.playerYears.slice();
     var tempD2Statuses = this.state.playerD2Statuses.slice();
@@ -116,6 +116,42 @@ class AddTeamModal extends React.Component{
     tempYears = tempYears.slice(0, newPlayerCnt + (deletedLines < 2));
     tempUGStatuses = tempUGStatuses.slice(0, newPlayerCnt + (deletedLines < 2));
     tempD2Statuses = tempD2Statuses.slice(0, newPlayerCnt + (deletedLines < 2));
+    this.setState({
+      playerNames: tempPlayers,
+      playerYears: tempYears,
+      playerUGStatuses: tempUGStatuses,
+      playerD2Statuses: tempD2Statuses
+    });
+  }
+
+  /*---------------------------------------------------------
+  Allow pasting in multiple players at a time, separated by
+  newlines.
+  ---------------------------------------------------------*/
+  handlePlayerPaste(e) {
+    const target = e.target;
+    const value = target.value;
+    const name = target.name;
+    var whichPlayer = name.replace('player', '');
+    var tempPlayers = this.state.playerNames.slice();
+    var tempYears = this.state.playerYears.slice();
+    var tempD2Statuses = this.state.playerD2Statuses.slice();
+    var tempUGStatuses = this.state.playerUGStatuses.slice();
+    var nameList = e.clipboardData.getData('Text').split('\n');
+    if(nameList.length <= 1 || whichPlayer < tempPlayers.length) {
+      return; // only allowed if you're pasting at the end of the list
+    }
+    e.preventDefault();
+    nameList = _.without(nameList, '', '\r');
+    // console.log(nameList[2].charCodeAt(0));
+    for(var i=0; i<nameList.length; i++) {
+      var playerIdx = +whichPlayer + i;
+      tempPlayers[playerIdx] = nameList[i].trim();
+      //initialize the other fields
+      if(tempYears[playerIdx] == undefined) { tempYears[playerIdx] = ''; }
+      if(tempUGStatuses[playerIdx] == undefined) { tempUGStatuses[playerIdx] = false; }
+      if(tempD2Statuses[playerIdx] == undefined) { tempD2Statuses[playerIdx] = this.state.teamD2Status; }
+    }
     this.setState({
       playerNames: tempPlayers,
       playerYears: tempYears,
@@ -338,7 +374,7 @@ class AddTeamModal extends React.Component{
     }
     // fairly aribitrary limit to make sure no one does anything ridiculous
     if(this.state.playerNames.length > MAX_PLAYERS_PER_TEAM) {
-      return [false, 'error', 'Cannot have more than 30 players on a team'];
+      return [false, 'error', 'Cannot have more than ' + MAX_PLAYERS_PER_TEAM + ' players on a team'];
     }
     if(this.rosterHasDups()) { return [false, 'error', 'Roster contains two or more players with the same name']; }
     return [true, '', ''];
@@ -375,7 +411,7 @@ class AddTeamModal extends React.Component{
       return (
           <div key={idx} className="input-field tight-input">
             <input id={'player'+idx} type="text" name={'player'+idx} placeholder="Add a player"
-              value={player} onChange={this.handlePlayerChange}/>
+              value={player} onChange={this.handlePlayerChange} onPaste={this.handlePlayerPaste}/>
           </div>
       );
     });

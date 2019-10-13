@@ -723,7 +723,6 @@ class MainInterface extends React.Component {
     var activeRpt = this.state.releasedRptList[this.state.activeRpt];
     if(activeRpt == undefined) { activeRpt = this.state.customRptList[this.state.activeRpt]; }
 
-
     Promise.all([
       StatUtils.getStandingsHtml(this.state.myTeams, this.state.myGames, endFileStart,
         phase, phaseToGroupBy, divsInPhase, this.state.settings, activeRpt),
