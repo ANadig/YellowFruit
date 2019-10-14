@@ -546,7 +546,11 @@ class AddTeamModal extends React.Component{
     var acceptHotKey = teamIsValid ? 'a' : '';
     var acceptStayHotKey = teamIsValid ? 's' : '';
 
-    var teamSSField = null, teamJVField = null, teamUGField = null, teamD2Field = null;
+    var teamSSField = null,
+      teamJVField = null,
+      teamUGField = null,
+      teamD2Field = null,
+      teamFieldGroup = null;
     if(this.props.formSettings.showSmallSchool) {
       teamSSField = (
         <span>
@@ -588,23 +592,30 @@ class AddTeamModal extends React.Component{
       );
     }
 
+    if(teamSSField != null || teamJVField != null || teamUGField != null || teamD2Field != null) {
+      teamFieldGroup = (
+        <div className="col l3 m4 s5 team-level-checkbox">
+          {teamSSField}
+          {teamJVField}
+          {teamUGField}
+          {teamD2Field}
+        </div>
+      );
+    }
+    var teamNameCol = teamFieldGroup != null ? 'col l9 m8 s7' : 'col s12';
+
     return(
       <div className="modal modal-fixed-footer" id="addTeam">
         <div className="modal-content">
           <h4>{this.getModalHeader()}</h4>
           <div className="row">
-            <div className="col l9 m8 s7">
+            <div className={teamNameCol}>
               <div className="input-field">
                 <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
                 <label htmlFor="teamName">Team Name</label>
               </div>
             </div>
-            <div className="col l3 m4 s5 team-level-checkbox">
-              {teamSSField}
-              {teamJVField}
-              {teamUGField}
-              {teamD2Field}
-            </div>
+            {teamFieldGroup}
           </div>
           <h5>Roster</h5>
           {rosterTable}
