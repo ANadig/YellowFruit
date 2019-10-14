@@ -1636,8 +1636,6 @@ class MainInterface extends React.Component {
       for(var phase in tm.divisions) {
         // rename phases
         if(nameChanges[phase] != undefined) {
-          console.log(phase);
-          console.log(tm.divisions[phase]);
           tempTeams[i].divisions[nameChanges[phase]] = tm.divisions[phase];
           delete tempTeams[i].divisions[phase];
         }
@@ -2115,7 +2113,6 @@ class MainInterface extends React.Component {
 
 
   render() {
-    console.log(this.state.myTeams);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim().toLowerCase();
