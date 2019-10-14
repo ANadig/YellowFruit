@@ -1592,62 +1592,86 @@ class MainInterface extends React.Component {
   of teams to divisions and games to phases if necessary.
   Called from the settings form.
   ---------------------------------------------------------*/
-  savePhases(newPhases, newDivAry, newPhaseAssignments) {
-    var tempDivisions = {};
-    if(newPhases.length == 0 && newDivAry.length > 0) {
-      tempDivisions.noPhase = newDivAry;
-    }
-    else { //populate divisions per phase
-      for(var i in newPhases) {
-        tempDivisions[newPhases[i]] = [];
-        for(var j in newDivAry) {
-          if(newPhaseAssignments[j] == newPhases[i]) {
-            tempDivisions[newPhases[i]].push(newDivAry[j]);
-          }
-        }
+  savePhases(newPhases, newDivAry, nameChanges) {
+    var tempDivisions = $.extend(true, {}, this.state.divisions);
+    var divsWithDeletedPhases = [];
+    // adjust division structure
+    for(var phase in this.state.divisions) {
+      // rename phases
+      if(nameChanges[phase] != undefined) {
+        delete tempDivisions[phase];
+        tempDivisions[nameChanges[phase]] = this.state.divisions[phase];
       }
-      //divisions not assigned to a phase
-      var noPhase = [];
-      for(var i in newDivAry) {
-        if(newPhaseAssignments[i] == undefined || newPhaseAssignments[i] == '') {
-          noPhase.push(newDivAry[i]);
-        }
+      // remove phases that were deleted
+      else if(!newPhases.includes(phase)) {
+        divsWithDeletedPhases = divsWithDeletedPhases.concat(this.state.divisions[phase]);
+        delete tempDivisions[phase];
       }
-      if(noPhase.length > 0) { tempDivisions.noPhase = noPhase; }
     }
-    //update team's divisions
-    var tempTeams = this.state.myTeams;
-    for(var i in tempTeams) {
-      for(var phase in tempTeams[i].divisions) {
-        //delete divisions for phases that no longer exist
-        if(tempDivisions[phase] == undefined) {
+    for(var i in newPhases) {
+      // initialize new phases
+      let phase = newPhases[i];
+      if(tempDivisions[phase] == undefined){
+        tempDivisions[phase] = [];
+      }
+    }
+    if(tempDivisions.noPhase != undefined) {
+      tempDivisions.noPhase = tempDivisions.noPhase.concat(divsWithDeletedPhases);
+    }
+    else if(divsWithDeletedPhases.length > 0) {
+      tempDivisions.noPhase = divsWithDeletedPhases;
+    }
+    // put the phases back in the order they were listed when the user submitted the form,
+    //  so that the order doesn't change arbitrarily
+    var reorderedPhases = {};
+    for(var i in newPhases) {
+      reorderedPhases[newPhases[i]] = tempDivisions[newPhases[i]];
+    }
+    tempDivisions = reorderedPhases;
+
+    // adjust team structure
+    var tempTeams = this.state.myTeams.slice();
+    for(var i in this.state.myTeams) {
+      let tm = this.state.myTeams[i]
+      for(var phase in tm.divisions) {
+        // rename phases
+        if(nameChanges[phase] != undefined) {
+          console.log(phase);
+          console.log(tm.divisions[phase]);
+          tempTeams[i].divisions[nameChanges[phase]] = tm.divisions[phase];
           delete tempTeams[i].divisions[phase];
         }
-        else {
-          if(!tempDivisions[phase].includes(tempTeams[i].divisions[phase])) {
-            delete tempTeams[i].divisions[phase];
-          }
+        // remove phases that were deleted
+        else if(!newPhases.includes(phase)) {
+          delete tempTeams[i].divisions[phase];
         }
       }
     }
-    //delete phases in the game data that no longer exist
-    var tempGames = this.state.myGames;
-    for(var i in tempGames) {
-      var phases = tempGames[i].phases;
-      for(var j in phases) {
-        if(!Object.keys(tempDivisions).includes(phases[j])) {
-          _.pull(phases, phases[j]);
+
+    // adjust game structure
+    var tempGames = this.state.myGames.slice();
+    for(var i in this.state.myGames) {
+      let gm = this.state.myGames[i];
+      for(var j in gm.phases) {
+        let phase = gm.phases[j];
+        // rename phases
+        if(nameChanges[phase] != undefined) {
+          _.pull(tempGames[i].phases, phase);
+          tempGames[i].phases.push(nameChanges[phase]);
+        }
+        // remove phases that were deleted
+        if(!newPhases.includes(phase)) {
+          _.pull(tempGames[i].phases, phase);
         }
       }
     }
+
     //can't be viewing a phase that doesn't exist
     var newViewingPhase = this.state.viewingPhase;
     if(!newPhases.includes(newViewingPhase)) { newViewingPhase = 'all'; }
     //also can't have a default grouping phase that doesn't exist
     var newDefaultPhase = this.state.settings.defaultPhase;
-    var reloadSettingsPane = this.state.settingsLoadToggle;
     if(!newPhases.includes(newDefaultPhase)) { // incl if 'noPhase'
-      reloadSettingsPane = !this.state.settingsLoadToggle; //so UI will update
       if(newPhases.length > 0 && newDivAry.length > 0) { newDefaultPhase = newPhases[0]; }
       else { newDefaultPhase = 'noPhase'; }
     }
@@ -1661,7 +1685,7 @@ class MainInterface extends React.Component {
       myGames: tempGames,
       viewingPhase: newViewingPhase,
       settings: newSettings,
-      settingsLoadToggle: reloadSettingsPane
+      settingsLoadToggle: !this.state.settingsLoadToggle
     });
     ipc.sendSync('unsavedData');
   } //savePhases
@@ -2091,6 +2115,7 @@ class MainInterface extends React.Component {
 
 
   render() {
+    console.log(this.state.myTeams);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim().toLowerCase();

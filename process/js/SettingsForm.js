@@ -44,7 +44,7 @@ class SettingsForm extends React.Component{
       editingPhases: false,
       needToReRender: false,
       dragPhase: null,
-      oldDivisions: [],  //used to track what was changed while the card was open
+      oldPhases: [], // used to keep track of what changed while the card was open
     }
     this.handleChange = this.handleChange.bind(this);
     this.handlePacketChange = this.handlePacketChange.bind(this);
@@ -174,28 +174,27 @@ class SettingsForm extends React.Component{
     if(!this.state.editingPhases) {
       this.setState({
         editingPhases: true,
+        oldPhases: this.state.phases
       });
       if(this.state.editingSettings) { this.settingsToggle(); }
       if(this.state.editingPackets) { this.packetsToggle(); }
     }
     else {
-      var tempPhases = this.state.phases.map(function(str) { return str.trim(); });
-      tempPhases = _.without(tempPhases, '');
-      var tempPhaseAssns = this.state.phaseAssignments.slice();
-      for(var i in tempPhaseAssns) {
-        var idx = _.findIndex(this.state.phases, function(p) {
-          return p == tempPhaseAssns[i];
-        });
-        if(idx == -1) {
-          tempPhaseAssns[i] = 'noPhase';
+      var tempPhases = this.state.phases.map((str) => { return str.trim(); });
+      var nameChanges = {};
+      for(var i in this.state.oldPhases) {
+        let newp = tempPhases[i], oldp = this.state.oldPhases[i]
+        if(newp != undefined && newp != '' && newp != oldp && !this.state.oldPhases.includes(newp)) {
+          nameChanges[oldp] = newp;
         }
       }
-      this.props.savePhases(tempPhases, this.state.divisions, tempPhaseAssns);
+      tempPhases = _.without(tempPhases, '');
+      this.props.savePhases(tempPhases, this.state.divisions, nameChanges);
       this.setState({
         editingPhases: false,
         phases: tempPhases,
-        phaseAssignments: tempPhaseAssns,
         numberOfSavedPhases: tempPhases.length,
+        oldPhases: []
       });
     }
   } //phaseToggle
