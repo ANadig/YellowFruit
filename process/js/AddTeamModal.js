@@ -410,8 +410,9 @@ class AddTeamModal extends React.Component{
     var playerFields = tempPlayers.map((player, idx) => {
       return (
           <div key={idx} className="input-field tight-input">
-            <input id={'player'+idx} type="text" name={'player'+idx} placeholder="Add a player"
-              value={player} onChange={this.handlePlayerChange} onPaste={this.handlePlayerPaste}/>
+            <input id={'player'+idx} type="text" name={'player'+idx}
+              maxlength="100" placeholder="Add a player" value={player}
+              onChange={this.handlePlayerChange} onPaste={this.handlePlayerPaste}/>
           </div>
       );
     });
@@ -431,8 +432,8 @@ class AddTeamModal extends React.Component{
     var yearFields = tempYears.map((year, idx) => {
       return (
           <div key={idx} className="input-field tight-input">
-            <input id={'year'+idx} type="text" name={'year'+idx} placeholder="Grade/Year"
-              value={year} onChange={this.handleYearChange}/>
+            <input id={'year'+idx} type="text" name={'year'+idx} maxlength="20"
+              placeholder="Grade/Year" value={year} onChange={this.handleYearChange}/>
           </div>
       );
     });
@@ -611,7 +612,8 @@ class AddTeamModal extends React.Component{
           <div className="row">
             <div className={teamNameCol}>
               <div className="input-field">
-                <input type="text" id="teamName" name="teamName" onChange={this.handleChange} value={this.state.teamName}/>
+                <input type="text" id="teamName" name="teamName" maxlength="100"
+                onChange={this.handleChange} value={this.state.teamName}/>
                 <label htmlFor="teamName">Team Name</label>
               </div>
             </div>

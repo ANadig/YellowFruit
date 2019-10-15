@@ -177,7 +177,8 @@ class DivisionEditModal extends React.Component {
           <div className="row">
             <div className="col s7 l8">
               <div className="input-field">
-                <input type="text" id="divisionName" name="divisionName" onChange={this.handleChange} value={this.state.divisionName}/>
+                <input type="text" id="divisionName" name="divisionName" maxlength="100"
+                  onChange={this.handleChange} value={this.state.divisionName}/>
                 <label htmlFor="divisionName">Name</label>
               </div>
             </div>
