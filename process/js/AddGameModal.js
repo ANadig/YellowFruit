@@ -969,7 +969,7 @@ class AddGameModal extends React.Component{
           <div className="row game-entry-bottom-row">
             <div className="input-field col s6 m8">
               <textarea className="materialize-textarea" id="gameNotes" name="notes"
-                maxlength="500" onChange={this.handleChange} value={this.state.notes} />
+                maxLength="500" onChange={this.handleChange} value={this.state.notes} />
               <label htmlFor="gameNotes">Notes about this game</label>
             </div>
             <div className="input-field col s3 m2">

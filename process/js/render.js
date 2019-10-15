@@ -745,7 +745,10 @@ class MainInterface extends React.Component {
       fs.writeFile(playerDetailLocation, playerDet, 'utf8', StatUtils2.printError);
       fs.writeFile(roundReportLocation, roundRep, 'utf8', StatUtils2.printError);
       fs.writeFile(statKeyLocation, statKey, 'utf8', StatUtils2.printError);
-    }).then(() => { if(fileStart == '') { ipc.sendSync('statReportReady'); }});
+    }).then(() => {
+      if(fileStart == '') { ipc.sendSync('statReportReady'); }
+      else { this.toast('Report generation successful'); }
+    });
 
   } //writeStatReport
 
@@ -754,12 +757,18 @@ class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   writeSqbsFile(fileName) {
     var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhase : this.state.viewingPhase;
-    var sqbsData = SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
+    Promise.resolve(SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
       phaseToGroupBy, this.state.divisions[phaseToGroupBy], this.state.myTeams,
-      this.state.myGames, this.state.packets, this.state.gameIndex);
-    fs.writeFile(fileName, sqbsData, 'utf8', function(err) {
-      if (err) { console.log(err); }
-    });
+      this.state.myGames, this.state.packets, this.state.gameIndex))
+      .then((sqbsData) => { fs.writeFile(fileName, sqbsData, 'utf8', StatUtils2.printError); })
+      .then(() => { this.toast('SQBS file generated'); });
+
+    // var sqbsData = SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
+    //   phaseToGroupBy, this.state.divisions[phaseToGroupBy], this.state.myTeams,
+    //   this.state.myGames, this.state.packets, this.state.gameIndex);
+    // fs.writeFile(fileName, sqbsData, 'utf8', function(err) {
+    //   if (err) { console.log(err); }
+    // });
   } //writeSqbsFile
 
   /*---------------------------------------------------------
@@ -994,11 +1003,7 @@ class MainInterface extends React.Component {
     }) //setState
     if(acceptAndStay) {
       $('#teamName').focus();
-      M.toast({
-        html: '<i class=\"material-icons\">check_circle</i>&emsp;Added \"' + teamName + '\"',
-        classes: 'green-toast',
-        displayLength: 2000
-      });
+      this.toast('Added ' + teamName);
     }
   } //addTeam
 
@@ -1024,11 +1029,7 @@ class MainInterface extends React.Component {
     if(acceptAndStay) {
       $('#round').focus();
       var gameDisp = 'Round ' + tempItem.round + ' ' + tempItem.team1 + ' vs ' + tempItem.team2;
-      M.toast({
-        html: '<i class=\"material-icons\">check_circle</i>&emsp;Added \"' + gameDisp + '\"',
-        classes: 'green-toast',
-        displayLength: 2000
-      });
+      this.toast('Added ' + gameDisp);
       $('#toast-container').addClass('toast-bottom-left');
     }
   } //addTeam
@@ -1084,11 +1085,7 @@ class MainInterface extends React.Component {
     });
     if(acceptAndStay) {
       $('#teamName').focus();
-      M.toast({
-        html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newTeam.teamName + '\"',
-        classes: 'green-toast',
-        displayLength: 2000
-      });
+      this.toast('Saved ' + newTeam.teamName);
     }
   }//modifyTeam
 
@@ -1161,11 +1158,7 @@ class MainInterface extends React.Component {
     if(acceptAndStay) {
       $('#round').focus();
       var gameDisp = 'Round ' + newGame.round + ' ' + newGame.team1 + ' vs ' + newGame.team2;
-      M.toast({
-        html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + gameDisp + '\"',
-        classes: 'green-toast',
-        displayLength: 2000
-      });
+      this.toast('Saved ' + gameDisp);
       $('#toast-container').addClass('toast-bottom-left');
     }
   }
@@ -1464,11 +1457,7 @@ class MainInterface extends React.Component {
     if(acceptAndStay) {
       $('#divisionName').focus();
       var phaseDisplay = phase != 'noPhase' ? ' (' + phase + ')' : '';
-      M.toast({
-        html: '<i class=\"material-icons\">check_circle</i>&emsp;Added \"' + divName + phaseDisplay + '\"',
-        classes: 'green-toast',
-        displayLength: 2000
-      });
+      this.toast('Added ' + divName + phaseDisplay);
     }
   }
 
@@ -1518,11 +1507,7 @@ class MainInterface extends React.Component {
     if(acceptAndStay) {
       $('#divisionName').focus();
       var phaseDisplay = newPhase != 'noPhase' ? ' (' + newPhase + ')' : '';
-      M.toast({
-        html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newDivName + phaseDisplay + '\"',
-        classes: 'green-toast',
-        displayLength: 2000
-      });
+      this.toast('Saved ' + newDivName + phaseDisplay);
     }
   } //modifyDivision
 
@@ -2012,7 +1997,7 @@ class MainInterface extends React.Component {
       }
     });
     if(saveSuccess && acceptAndStay) {
-      M.toast({html: '<i class=\"material-icons\">check_circle</i>&emsp;Saved \"' + newName + '\"', classes: 'green-toast'});
+      this.toast('Saved ' + newName);
     }
     ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
   }
@@ -2036,7 +2021,7 @@ class MainInterface extends React.Component {
       }
     });
     if(saveSuccess) {
-      M.toast({html: '<i class=\"material-icons\">check_circle</i>&emsp;Set \"' + rptName + '\" as the default for new tournaments', classes: 'green-toast'});
+      this.toast('Set ' + rptName + ' as the default for new tournaments');
     }
   }
 
@@ -2060,7 +2045,7 @@ class MainInterface extends React.Component {
       }
     });
     if(saveSuccess) {
-      M.toast({html: '<i class=\"material-icons\">check_circle</i>&emsp;Removed default status', classes: 'green-toast'});
+      this.toast('Removed default status');
     }
   }
 
@@ -2109,6 +2094,17 @@ class MainInterface extends React.Component {
     tempFormSettings[whichField] = status;
     this.setState({
       formSettings: tempFormSettings
+    });
+  }
+
+  /*---------------------------------------------------------
+  Wrapper for materialize toast messages
+  ---------------------------------------------------------*/
+  toast(text) {
+    M.toast({
+      html: '<i class=\"material-icons\">check_circle</i>&emsp;' + text,
+      classes: 'green-toast',
+      displayLength: 2000
     });
   }
 
