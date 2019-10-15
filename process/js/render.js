@@ -749,7 +749,7 @@ class MainInterface extends React.Component {
     }).then(() => {
       if(fileStart == '') { ipc.sendSync('statReportReady'); }
       else { this.toast('Report generation successful'); }
-    }).catch((err) => { console.log(err); });
+    }).catch((err) => { ipc.sendSync('genericError', 'Error generating stat report:', err.stack); });
 
   } //writeStatReport
 

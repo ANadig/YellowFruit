@@ -932,6 +932,24 @@ app.on('ready', function() {
   });
 
   /*---------------------------------------------------------
+  Show errors that the render process catches
+  ---------------------------------------------------------*/
+  ipc.on('genericError', (event, header, stack) => {
+    event.returnValue = '';
+    dialog.showMessageBox(
+      appWindow,
+      {
+        type: 'error',
+        buttons: ['&OK'],
+        defaultID: 0,
+        cancelId: 0,
+        title: 'Error',
+        message: header + '\n\n' + stack
+      }
+    );
+  });
+
+  /*---------------------------------------------------------
   Add items to the report menu corresponding to the available
   report configurations
   activeRpt will have its checked property set.
