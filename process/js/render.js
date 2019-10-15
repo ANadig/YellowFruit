@@ -1604,7 +1604,7 @@ class MainInterface extends React.Component {
         tempDivisions[nameChanges[phase]] = this.state.divisions[phase];
       }
       // remove phases that were deleted
-      else if(!newPhases.includes(phase)) {
+      else if(!newPhases.includes(phase) && phase != 'noPhase') {
         divsWithDeletedPhases = divsWithDeletedPhases.concat(this.state.divisions[phase]);
         delete tempDivisions[phase];
       }
@@ -1628,6 +1628,7 @@ class MainInterface extends React.Component {
     for(var i in newPhases) {
       reorderedPhases[newPhases[i]] = tempDivisions[newPhases[i]];
     }
+    reorderedPhases.noPhase = tempDivisions.noPhase;
     tempDivisions = reorderedPhases;
 
     // adjust team structure
