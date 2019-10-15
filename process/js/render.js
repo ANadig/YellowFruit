@@ -1984,17 +1984,14 @@ class MainInterface extends React.Component {
         defaultRpt: this.state.defaultRpt,
         rptConfigList: tempRpts
     }
-    var saveSuccess = true;
-    fs.writeFile(this.state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', (err) => {
-      if (err) {
-        saveSuccess = false;
-        console.log(err);
-      }
-    });
-    if(saveSuccess && acceptAndStay) {
-      this.toast('Saved ' + newName);
-    }
-    ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
+    var state = this.state;
+    new Promise(function(resolve, reject) {
+      resolve(fs.writeFile(state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', StatUtils2.printError));
+    }).then(() => {
+      if(acceptAndStay) { this.toast('Saved ' + newName); }
+      ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
+      return 1;
+    }).catch((err) => { ipc.sendSync('genericError', 'Error saving settings:', err.stack); });
   }
 
   /*---------------------------------------------------------
