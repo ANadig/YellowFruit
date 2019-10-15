@@ -724,31 +724,32 @@ class MainInterface extends React.Component {
     if(activeRpt == undefined) { activeRpt = this.state.customRptList[this.state.activeRpt]; }
 
     Promise.all([
-      StatUtils.getStandingsHtml(this.state.myTeams, this.state.myGames, endFileStart,
+      StatUtils.getStandingsPage(this.state.myTeams, this.state.myGames, endFileStart,
         phase, phaseToGroupBy, divsInPhase, this.state.settings, activeRpt),
-      StatUtils.getIndividualsHtml(this.state.myTeams, this.state.myGames, endFileStart,
+      StatUtils.getIndividualsPage(this.state.myTeams, this.state.myGames, endFileStart,
         phase, phaseToGroupBy, usingDivisions, this.state.settings, activeRpt),
-      StatUtils.getScoreboardHtml(this.state.myTeams, this.state.myGames, endFileStart,
+      StatUtils.getScoreboardPage(this.state.myTeams, this.state.myGames, endFileStart,
         phase, this.state.settings, this.state.packets, phaseColors),
-      StatUtils.getTeamDetailHtml(this.state.myTeams, this.state.myGames, endFileStart,
+      StatUtils.getTeamDetailPage(this.state.myTeams, this.state.myGames, endFileStart,
         phase, this.state.packets, this.state.settings, phaseColors, activeRpt),
-      StatUtils.getPlayerDetailHtml(this.state.myTeams, this.state.myGames, endFileStart,
+      StatUtils.getPlayerDetailPage(this.state.myTeams, this.state.myGames, endFileStart,
         phase, this.state.settings, phaseColors, activeRpt),
-      StatUtils.getRoundReportHtml(this.state.myTeams, this.state.myGames, endFileStart,
+      StatUtils.getRoundReportPage(this.state.myTeams, this.state.myGames, endFileStart,
         phase, this.state.packets, this.state.settings, activeRpt),
-      StatUtils.getStatKeyHtml(endFileStart),
+      StatUtils.getStatKeyPage(endFileStart),
     ]).then(([standings, individuals, scoreboard, teamDet, playerDet, roundRep, statKey]) => {
-      fs.writeFile(standingsLocation, standings, 'utf8', StatUtils2.printError);
-      fs.writeFile(individualsLocation, individuals, 'utf8', StatUtils2.printError);
-      fs.writeFile(scoreboardLocation, scoreboard, 'utf8', StatUtils2.printError);
-      fs.writeFile(teamDetailLocation, teamDet, 'utf8', StatUtils2.printError);
-      fs.writeFile(playerDetailLocation, playerDet, 'utf8', StatUtils2.printError);
-      fs.writeFile(roundReportLocation, roundRep, 'utf8', StatUtils2.printError);
-      fs.writeFile(statKeyLocation, statKey, 'utf8', StatUtils2.printError);
+      fs.writeFileSync(standingsLocation, standings, 'utf8', StatUtils2.printError);
+      fs.writeFileSync(individualsLocation, individuals, 'utf8', StatUtils2.printError);
+      fs.writeFileSync(scoreboardLocation, scoreboard, 'utf8', StatUtils2.printError);
+      fs.writeFileSync(teamDetailLocation, teamDet, 'utf8', StatUtils2.printError);
+      fs.writeFileSync(playerDetailLocation, playerDet, 'utf8', StatUtils2.printError);
+      fs.writeFileSync(roundReportLocation, roundRep, 'utf8', StatUtils2.printError);
+      fs.writeFileSync(statKeyLocation, statKey, 'utf8', StatUtils2.printError);
+      return 1;
     }).then(() => {
       if(fileStart == '') { ipc.sendSync('statReportReady'); }
       else { this.toast('Report generation successful'); }
-    });
+    }).catch((err) => { console.log(err); });
 
   } //writeStatReport
 
@@ -757,18 +758,12 @@ class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   writeSqbsFile(fileName) {
     var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhase : this.state.viewingPhase;
-    Promise.resolve(SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
+    var sqbsData = SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
       phaseToGroupBy, this.state.divisions[phaseToGroupBy], this.state.myTeams,
-      this.state.myGames, this.state.packets, this.state.gameIndex))
-      .then((sqbsData) => { fs.writeFile(fileName, sqbsData, 'utf8', StatUtils2.printError); })
-      .then(() => { this.toast('SQBS file generated'); });
-
-    // var sqbsData = SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
-    //   phaseToGroupBy, this.state.divisions[phaseToGroupBy], this.state.myTeams,
-    //   this.state.myGames, this.state.packets, this.state.gameIndex);
-    // fs.writeFile(fileName, sqbsData, 'utf8', function(err) {
-    //   if (err) { console.log(err); }
-    // });
+      this.state.myGames, this.state.packets, this.state.gameIndex);
+    fs.writeFile(fileName, sqbsData, 'utf8', function(err) {
+      if (err) { console.log(err); }
+    });
   } //writeSqbsFile
 
   /*---------------------------------------------------------

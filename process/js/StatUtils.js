@@ -1921,7 +1921,52 @@ function getStatKeyHtml(fileStart) {
   return html + getStatReportBottom();
 }
 
+/*---------------------------------------------------------
+Stat report generation APIs
+---------------------------------------------------------*/
+function getStandingsPage(teams, games, fileStart, phase, groupingPhase, divsInPhase, settings, rptConfig) {
+  return new Promise(function(resolve, reject) {
+    resolve(getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInPhase, settings, rptConfig));
+  });
+}
+
+function getIndividualsPage(teams, games, fileStart, phase, groupingPhase, usingDivisions, settings, rptConfig) {
+  return new Promise(function(resolve, reject) {
+    resolve(getIndividualsHtml(teams, games, fileStart, phase, groupingPhase, usingDivisions, settings, rptConfig));
+  });
+}
+
+function getScoreboardPage(teams, games, fileStart, phase, settings, packets, phaseColors) {
+  return new Promise(function(resolve, reject) {
+    resolve(getScoreboardHtml(teams, games, fileStart, phase, settings, packets, phaseColors));
+  });
+}
+
+function getTeamDetailPage(teams, games, fileStart, phase, packets, settings, phaseColors, rptConfig) {
+  return new Promise(function(resolve, reject) {
+    resolve(getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, phaseColors, rptConfig));
+  });
+}
+
+function getPlayerDetailPage(teams, games, fileStart, phase, settings, phaseColors, rptConfig) {
+  return new Promise(function(resolve, reject) {
+    resolve(getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColors, rptConfig));
+  });
+}
+
+function getRoundReportPage(teams, games, fileStart, phase, packets, settings, rptConfig) {
+  return new Promise(function(resolve, reject) {
+    resolve(getRoundReportHtml(teams, games, fileStart, phase, packets, settings, rptConfig));
+  });
+}
+
+function getStatKeyPage(fileStart) {
+  return new Promise(function(resolve, reject) {
+    resolve(getStatKeyHtml(fileStart));
+  });
+}
+
 module.exports = {toNum, gamesPlayed, powerValue, negValue, bonusesHeard, bonusPoints,
   bbHeard, bbHrdToFloat, otPoints, playerSlashLine, packetNamesExist,
-  getStandingsHtml, getIndividualsHtml, getScoreboardHtml, getTeamDetailHtml,
-  getPlayerDetailHtml, getRoundReportHtml, getStatKeyHtml}
+  getStandingsPage, getIndividualsPage, getScoreboardPage, getTeamDetailPage,
+  getPlayerDetailPage, getRoundReportPage, getStatKeyPage}
