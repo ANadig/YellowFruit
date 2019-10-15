@@ -185,7 +185,7 @@ class MainInterface extends React.Component {
     //listen for escape key to close modals, since we made them non-dismissible so that
     // clicking outside them doesn't close them
     $(document).on("keydown", (event) => {
-      if(event.keyCode == 27) { $('.modal').modal('close'); }
+      if(event.keyCode == 27) { console.log($('.modal.open')); $('.modal.open').modal('close'); }
     });
     //set up event listeners
     ipc.on('addTeam', (event, message) => {
@@ -1029,6 +1029,7 @@ class MainInterface extends React.Component {
         classes: 'green-toast',
         displayLength: 2000
       });
+      $('#toast-container').addClass('toast-bottom-left');
     }
   } //addTeam
 
