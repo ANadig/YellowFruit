@@ -2005,16 +2005,13 @@ class MainInterface extends React.Component {
     this.setState({
       defaultRpt: rptName,
     });
-    var saveSuccess = true;
-    fs.writeFile(this.state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', (err) => {
-      if (err) {
-        saveSuccess = false;
-        console.log(err);
-      }
-    });
-    if(saveSuccess) {
+    var state = this.state;
+    new Promise(function(resolve, reject) {
+      resolve(fs.writeFile(state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', StatUtils2.printError));
+    }).then(() => {
       this.toast('Set ' + rptName + ' as the default for new tournaments');
-    }
+      return 1;
+    }).catch((err) => { ipc.sendSync('genericError', 'Error saving settings:', err.stack); });
   }
 
   /*---------------------------------------------------------
@@ -2029,16 +2026,14 @@ class MainInterface extends React.Component {
     this.setState({
       defaultRpt: ORIG_DEFAULT_RPT_NAME,
     });
-    var saveSuccess = true;
-    fs.writeFile(this.state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', (err) => {
-      if (err) {
-        saveSuccess = false;
-        console.log(err);
-      }
-    });
-    if(saveSuccess) {
+
+    var state = this.state;
+    new Promise(function(resolve, reject) {
+      resolve(fs.writeFile(state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', StatUtils2.printError));
+    }).then(() => {
       this.toast('Removed default status');
-    }
+      return 1;
+    }).catch((err) => { ipc.sendSync('genericError', 'Error saving settings:', err.stack); });
   }
 
   /*---------------------------------------------------------
@@ -2065,15 +2060,18 @@ class MainInterface extends React.Component {
       defaultRpt: newDefault,
       activeRpt: activeRpt
     });
-
     var newCustomRpts = {
       defaultRpt: newDefault == ORIG_DEFAULT_RPT_NAME ? null : newDefault,
       rptConfigList: tempRpts
     }
-    fs.writeFile(this.state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', (err) => {
-      if (err) { console.log(err); }
-    });
-    ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
+
+    var state = this.state;
+    new Promise(function(resolve, reject) {
+      resolve(fs.writeFile(state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', StatUtils2.printError));
+    }).then(() => {
+      ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
+      return 1;
+    }).catch((err) => { ipc.sendSync('genericError', 'Error saving settings:', err.stack); });
   }
 
   /*---------------------------------------------------------
