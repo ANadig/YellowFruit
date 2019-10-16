@@ -936,6 +936,9 @@ app.on('ready', function() {
   ---------------------------------------------------------*/
   ipc.on('genericError', (event, header, stack) => {
     event.returnValue = '';
+    if(reportWindow != undefined) {
+      reportWindow.close();
+    }
     dialog.showMessageBox(
       appWindow,
       {
