@@ -386,11 +386,13 @@ class MainInterface extends React.Component {
       JSON.stringify(this.state.divisions) + '\n' +
       JSON.stringify(this.state.myTeams) + '\n' +
       JSON.stringify(this.state.myGames);
-    fs.writeFile(fileName, fileString, 'utf8', function(err) {
-      if (err) { console.log(err); }
-    });
-    ipc.sendSync('setWindowTitle',
-      fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
+
+    new Promise(function(resolve, reject) {
+      resolve(fs.writeFile(fileName, fileString, 'utf8', StatUtils2.printError));
+    }).then(() => {
+      ipc.sendSync('setWindowTitle', fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
+      return 1;
+    }).catch((err) => { ipc.sendSync('genericError', 'Error saving file:', err.stack); });
     this.setState({
       settings: tempSettings
     });
@@ -761,9 +763,9 @@ class MainInterface extends React.Component {
     var sqbsData = SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
       phaseToGroupBy, this.state.divisions[phaseToGroupBy], this.state.myTeams,
       this.state.myGames, this.state.packets, this.state.gameIndex);
-    fs.writeFile(fileName, sqbsData, 'utf8', function(err) {
-      if (err) { console.log(err); }
-    });
+    new Promise(function(resolve, reject) {
+      resolve(fs.writeFile(fileName, sqbsData, 'utf8', StatUtils2.printError));
+    }).catch((err) => { ipc.sendSync('genericError', 'Error saving file:', err.stack); });
   } //writeSqbsFile
 
   /*---------------------------------------------------------
