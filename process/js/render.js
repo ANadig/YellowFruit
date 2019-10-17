@@ -750,7 +750,7 @@ class MainInterface extends React.Component {
       return 1;
     }).then(() => {
       if(fileStart == '') { ipc.sendSync('statReportReady'); }
-      else { this.toast('Report generation successful'); }
+      else { this.toast('Stat report generated'); }
     }).catch((err) => { ipc.sendSync('genericError', 'Error generating stat report:', err.stack); });
 
   } //writeStatReport
@@ -765,6 +765,8 @@ class MainInterface extends React.Component {
       this.state.myGames, this.state.packets, this.state.gameIndex);
     new Promise(function(resolve, reject) {
       resolve(fs.writeFile(fileName, sqbsData, 'utf8', StatUtils2.printError));
+    }).then(() => {
+      this.toast('SQBS file generated');
     }).catch((err) => { ipc.sendSync('genericError', 'Error saving file:', err.stack); });
   } //writeSqbsFile
 
