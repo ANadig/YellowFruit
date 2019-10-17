@@ -515,6 +515,7 @@ function openTournament(focusedWindow) {
           currentFile = fileNameAry[0]; //open dialog doesn't allow selecting multiple files
           focusedWindow.webContents.send('openTournament', currentFile);
           unsavedData = false;
+          app.addRecentDocument(currentFile);
         }
       }
     );
