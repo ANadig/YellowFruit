@@ -641,6 +641,17 @@ app.on('web-contents-created', (event, contents) => {
 Initialize window and menubars, and set up ipc listeners
 ---------------------------------------------------------*/
 app.on('ready', function() {
+  var splashWindow = new BrowserWindow({
+    width: 346,
+    height: 149,
+    frame: false,
+    show: false
+  });
+  splashWindow.loadURL('file://' + __dirname + '/splash.html');
+  splashWindow.once('ready-to-show', () => {
+    splashWindow.show();
+  });
+
   var appWindow;
   appWindow = new BrowserWindow({
     width: 1250,
@@ -653,6 +664,7 @@ app.on('ready', function() {
   appWindow.loadURL('file://' + __dirname + '/index.html');
 
   appWindow.once('ready-to-show', function() {
+    splashWindow.close();
     appWindow.show();
 
     appWindow.webContents.send('loadReportConfig', process.env.NODE_ENV);
