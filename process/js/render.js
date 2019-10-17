@@ -388,7 +388,7 @@ class MainInterface extends React.Component {
       JSON.stringify(this.state.myGames);
 
     new Promise(function(resolve, reject) {
-      resolve(fs.writeFile(fileName, fileString, 'utf8', StatUtils2.printError));
+      resolve(fs.writeFileSync(fileName, fileString, 'utf8', StatUtils2.printError));
     }).then(() => {
       ipc.sendSync('setWindowTitle', fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
       return 1;
@@ -764,7 +764,7 @@ class MainInterface extends React.Component {
       phaseToGroupBy, this.state.divisions[phaseToGroupBy], this.state.myTeams,
       this.state.myGames, this.state.packets, this.state.gameIndex);
     new Promise(function(resolve, reject) {
-      resolve(fs.writeFile(fileName, sqbsData, 'utf8', StatUtils2.printError));
+      resolve(fs.writeFileSync(fileName, sqbsData, 'utf8', StatUtils2.printError));
     }).then(() => {
       this.toast('SQBS file generated');
     }).catch((err) => { ipc.sendSync('genericError', 'Error saving file:', err.stack); });
@@ -1990,7 +1990,7 @@ class MainInterface extends React.Component {
     }
     var state = this.state;
     new Promise(function(resolve, reject) {
-      resolve(fs.writeFile(state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', StatUtils2.printError));
+      resolve(fs.writeFileSync(state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', StatUtils2.printError));
     }).then(() => {
       if(acceptAndStay) { this.toast('Saved ' + newName); }
       ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
@@ -2011,7 +2011,7 @@ class MainInterface extends React.Component {
     });
     var state = this.state;
     new Promise(function(resolve, reject) {
-      resolve(fs.writeFile(state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', StatUtils2.printError));
+      resolve(fs.writeFileSync(state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', StatUtils2.printError));
     }).then(() => {
       this.toast('Set ' + rptName + ' as the default for new tournaments');
       return 1;
@@ -2033,7 +2033,7 @@ class MainInterface extends React.Component {
 
     var state = this.state;
     new Promise(function(resolve, reject) {
-      resolve(fs.writeFile(state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', StatUtils2.printError));
+      resolve(fs.writeFileSync(state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', StatUtils2.printError));
     }).then(() => {
       this.toast('Removed default status');
       return 1;
@@ -2071,7 +2071,7 @@ class MainInterface extends React.Component {
 
     var state = this.state;
     new Promise(function(resolve, reject) {
-      resolve(fs.writeFile(state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', StatUtils2.printError));
+      resolve(fs.writeFileSync(state.customRptFile, JSON.stringify(newCustomRpts), 'utf8', StatUtils2.printError));
     }).then(() => {
       ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
       return 1;
