@@ -1612,7 +1612,9 @@ class MainInterface extends React.Component {
     for(var i in newPhases) {
       reorderedPhases[newPhases[i]] = tempDivisions[newPhases[i]];
     }
-    reorderedPhases.noPhase = tempDivisions.noPhase;
+    if(tempDivisions.noPhase != undefined) {
+      reorderedPhases.noPhase = tempDivisions.noPhase;
+    }
     tempDivisions = reorderedPhases;
 
     // adjust team structure
@@ -2105,6 +2107,7 @@ class MainInterface extends React.Component {
 
 
   render() {
+    console.log(this.state.divisions);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim().toLowerCase();
