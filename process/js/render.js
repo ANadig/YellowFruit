@@ -2107,7 +2107,6 @@ class MainInterface extends React.Component {
 
 
   render() {
-    console.log(this.state.divisions);
     var filteredTeams = [];
     var filteredGames = [];
     var queryText = this.state.queryText.trim().toLowerCase();
