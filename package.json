@@ -11,7 +11,7 @@
   "main": "app/main.js",
   "devDependencies": {
     "browserify": "^16.5.0",
-    "electron": "^2.0.3",
+    "electron": "^2.0.18",
     "electron-packager": "^12.1.0",
     "electron-winstaller": "^2.6.4",
     "gulp": "^3.9.1",
@@ -24,13 +24,13 @@
     "reactify": "^1.1.1"
   },
   "dependencies": {
-    "jquery": "^3.3.1",
-    "material-icons": "^0.3.1",
-    "materialize-css": "^1.0.0",
-    "popper.js": "^1.14.3",
-    "lodash": "^4.17.10",
+    "dotenv": "^8.1.0",
     "electron-reload": "^1.2.5",
     "electron-squirrel-startup": "^1.0.0",
-    "dotenv": "^8.1.0"
+    "jquery": "^3.4.1",
+    "lodash": "^4.17.15",
+    "material-icons": "^0.3.1",
+    "materialize-css": "^1.0.0",
+    "popper.js": "^1.14.3"
   }
 }
