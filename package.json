@@ -10,6 +10,7 @@
   },
   "main": "app/main.js",
   "devDependencies": {
+    "browserify": "^16.5.0",
     "electron": "^2.0.3",
     "electron-packager": "^12.1.0",
     "electron-winstaller": "^2.6.4",
