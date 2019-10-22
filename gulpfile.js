@@ -19,30 +19,32 @@ gulp.task('js', function() {
     .pipe(gulp.dest(app + '/js'));
 });
 
-gulp.task('html', function() {
+gulp.task('html', function(cb) {
   gulp.src( src + '/**/*.html');
+  cb();
 });
 
 gulp.task('css', function() {
-  gulp.src( src + '/css/*.css')
+  return gulp.src( src + '/css/*.css')
   .pipe(concatCss('app.css'))
   .pipe(gulp.dest(app + '/css'));
 });
 
 gulp.task('fonts', function() {
-    gulp.src('node_modules/material-icons/iconfont/*')
+    return gulp.src('node_modules/material-icons/iconfont/*')
     .pipe(gulp.dest(app + '/fonts'));
 });
 
-gulp.task('watch', ['serve'], function() {
-  gulp.watch( src + '/js/**/*', ['js']);
-  gulp.watch( src + '/css/**/*.css', ['css']);
-  gulp.watch([ app + '/**/*.html'], ['html']);
-});
-
-gulp.task('serve', ['html', 'js', 'css'], function() {
+gulp.task('serve', gulp.series('html', 'js', 'css', (cb) => {
   run('electron app/main.js').exec();
-});
+  cb();
+}));
 
-gulp.task('default', ['watch', 'fonts', 'serve']);
-//gulp.task('default', ['watch', 'serve']);
+gulp.task('watch', gulp.series('serve', (cb) => {
+  gulp.watch( src + '/js/**/*', gulp.series('js'));
+  gulp.watch( src + '/css/**/*.css', gulp.series('css'));
+  gulp.watch([ app + '/**/*.html'], gulp.series('html'));
+  cb();
+}));
+
+exports.default = gulp.series('watch', 'fonts', 'serve');
