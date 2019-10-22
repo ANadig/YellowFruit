@@ -764,7 +764,6 @@ function compileIndividuals(myTeams, myGames, phase, groupingPhase, settings) {
   for(var i in myGames) {
     var pEntry, tuh;
     var g = myGames[i];
-    // console.log(g);
     if(phase == 'all' || g.phases.includes(phase)) {
       var players1 = g.players1, players2 = g.players2;
       for(var p in players1) {
@@ -780,7 +779,6 @@ function compileIndividuals(myTeams, myGames, phase, groupingPhase, settings) {
         pEntry.tuh += tuh;
       }
       for(var p in players2) {
-        // console.log(p);
         pEntry = _.find(individuals, function (o) {
           return o.teamName == g.team2 && o.playerName == p;
         });

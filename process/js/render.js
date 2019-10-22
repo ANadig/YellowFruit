@@ -1114,13 +1114,19 @@ class MainInterface extends React.Component {
       if(gameAry[i].forfeit) { continue; }
       if(teamName == gameAry[i].team1) {
         if(newPlayerName != '') {
-          gameAry[i].players1[newPlayerName] = gameAry[i].players1[oldPlayerName];
+          let statLine = gameAry[i].players1[oldPlayerName];
+          if(statLine != undefined) {
+            gameAry[i].players1[newPlayerName] = statLine;
+          }
         }
         delete gameAry[i].players1[oldPlayerName];
       }
       else if(teamName == gameAry[i].team2) {
         if(newPlayerName != '') {
-          gameAry[i].players2[newPlayerName] = gameAry[i].players2[oldPlayerName];
+          let statLine = gameAry[i].players2[oldPlayerName];
+          if(statLine != undefined) {
+            gameAry[i].players2[newPlayerName] = statLine;
+          }
         }
         delete gameAry[i].players2[oldPlayerName];
       }
