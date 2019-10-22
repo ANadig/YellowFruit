@@ -997,12 +997,8 @@ app.on('ready', function() {
       let item = newMainMenu.getMenuItemById(conf);
       item.checked = currentUserConfig[conf];
     }
-    if(process.platform === 'darwin') {
-      Menu.setApplicationMenu(newMainMenu);
-    }
-    else {
-      appWindow.setMenu(newMainMenu);
-    }
+    if(process.platform === 'darwin') { Menu.setApplicationMenu(newMainMenu); }
+    else { appWindow.setMenu(newMainMenu); }
   }); //on rebuildMenus
 
   //set up the menu bars
