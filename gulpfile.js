@@ -47,4 +47,4 @@ gulp.task('watch', gulp.series('serve', (cb) => {
   cb();
 }));
 
-exports.default = gulp.series('watch', 'fonts', 'serve');
+exports.default = gulp.series('watch', 'fonts');
