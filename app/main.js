@@ -997,7 +997,12 @@ app.on('ready', function() {
       let item = newMainMenu.getMenuItemById(conf);
       item.checked = currentUserConfig[conf];
     }
-    appWindow.setMenu(newMainMenu);
+    if(process.platform === 'darwin') {
+      Menu.setApplicationMenu(newMainMenu);
+    }
+    else {
+      appWindow.setMenu(newMainMenu);
+    }
   }); //on rebuildMenus
 
   //set up the menu bars
@@ -1024,7 +1029,12 @@ app.on('ready', function() {
   mainMenu = buildMainMenu(REPORT_SUBMENU_STUB);
   helpMenu = Menu.buildFromTemplate(helpMenuTemplate);
   reportMenu = Menu.buildFromTemplate(reportMenuTemplate);
-  appWindow.setMenu(mainMenu);
+  if(process.platform === 'darwin') {
+    Menu.setApplicationMenu(mainMenu);
+  }
+  else {
+    appWindow.setMenu(mainMenu);
+  }
 
 }); //app is ready
 
