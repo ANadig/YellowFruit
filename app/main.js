@@ -1026,7 +1026,7 @@ app.on('ready', function() {
   helpMenu = Menu.buildFromTemplate(helpMenuTemplate);
   reportMenu = Menu.buildFromTemplate(reportMenuTemplate);
   if(process.platform === 'darwin') { Menu.setApplicationMenu(mainMenu); }
-  else { appWindow.setMenu(mainMenu); }
+  else { appWindow.setMenu(mainMenu); } 
 }); //app is ready
 
 
