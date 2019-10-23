@@ -62,171 +62,181 @@ else {
 }
 
 //Define parts of the menu that don't change dynamically here
-const YF_MENU = {
+const YF_SUBMENU_VISIBLE = [
+  {
+    label: 'View Full Report',
+    accelerator: 'CmdOrCtrl+I',
+    click(item, focusedWindow) {
+      focusedWindow.webContents.send('compileStatReport');
+      showReportWindow();
+    }
+  },
+  {
+    label: 'Export Full Report',
+    accelerator: 'CmdOrCtrl+U',
+    click(item, focusedWindow) {
+      exportHtmlReport(focusedWindow);
+    }
+  },
+  {
+    label: 'Export as SQBS',
+    accelerator: 'CmdOrCtrl+Y',
+    click(item, focusedWindow) {
+      trySqbsExport(focusedWindow);
+    }
+  },
+  {type: 'separator'},
+  {
+    label: 'New Tournament',
+    accelerator: 'CmdOrCtrl+N',
+    click(item, focusedWindow) {
+      newTournament(focusedWindow);
+    }
+  },
+  {
+    label: 'Import Rosters from SQBS',
+    click(item, focusedWindow) {
+      importRosters(focusedWindow);
+    }
+  },
+  {
+    label: 'Merge Tournament',
+    click(item, focusedWindow) {
+      mergeTournament(focusedWindow);
+    }
+  },
+  {
+    label: 'Open',
+    accelerator: 'CmdOrCtrl+O',
+    click(item, focusedWindow) {
+      openTournament(focusedWindow);
+    }
+  },
+  {
+    label: 'Save As',
+    click(item, focusedWindow) {
+      saveTournamentAs(focusedWindow);
+    }
+  },
+  {
+    label: 'Save',
+    accelerator: 'CmdOrCtrl+S',
+    click(item, focusedWindow) {
+      saveExistingTournament(focusedWindow);
+    }
+  },
+  {type: 'separator'},
+  {role: 'close'},
+];
+const YF_SUBMENU_WINDOWS_HIDDEN = [
+  {
+    label: 'Add Team',
+    visible: false,
+    accelerator: 'CmdOrCtrl+T',
+    click(item,focusedWindow) {
+      if (focusedWindow) focusedWindow.webContents.send('addTeam');
+    }
+  },
+  {
+    label: 'Add Game',
+    visible: false,
+    accelerator: 'CmdOrCtrl+G',
+    click(item,focusedWindow) {
+      if (focusedWindow) focusedWindow.webContents.send('addGame');
+    }
+  },
+  {
+    label: 'Search',
+    visible: false,
+    accelerator: 'CmdOrCtrl+F',
+    click (item, focusedWindow) {
+      if(focusedWindow) focusedWindow.webContents.send('focusSearch');
+    }
+  },
+  {
+    label: 'Previous Page',
+    visible: false,
+    accelerator: 'CmdOrCtrl+Left',
+    click (item, focusedWindow) {
+      if(focusedWindow) focusedWindow.webContents.send('prevPage');
+    }
+  },
+  {
+    label: 'Next Page',
+    visible: false,
+    accelerator: 'CmdOrCtrl+Right',
+    click (item, focusedWindow) {
+      if(focusedWindow) focusedWindow.webContents.send('nextPage');
+    }
+  },
+  {
+    label: 'Previous Phase',
+    visible: false,
+    accelerator: 'Alt+Left',
+    click (item, focusedWindow) {
+      if(focusedWindow) focusedWindow.webContents.send('prevPhase');
+    }
+  },
+  {
+    label: 'Next Phase',
+    visible: false,
+    accelerator: 'Alt+Right',
+    click (item, focusedWindow) {
+      if(focusedWindow) focusedWindow.webContents.send('nextPhase');
+    }
+  },
+  {
+    label: 'Open Sidebar',
+    visible: false,
+    accelerator: 'Alt+Shift+Left',
+    click (item, focusedWindow) {
+      if(focusedWindow) focusedWindow.webContents.send('toggleSidebar', true);
+    }
+  },
+  {
+    label: 'Close Sidebar',
+    visible: false,
+    accelerator: 'Alt+Shift+Right',
+    click (item, focusedWindow) {
+      if(focusedWindow) focusedWindow.webContents.send('toggleSidebar', false);
+    }
+  }
+];
+const YF_MENU_WINDOWS = {
   label: '&YellowFruit',
-  submenu: [
-    {
-      label: 'View Full Report',
-      accelerator: 'CmdOrCtrl+I',
-      click(item, focusedWindow) {
-        focusedWindow.webContents.send('compileStatReport');
-        showReportWindow();
-      }
-    },
-    {
-      label: 'Export Full Report',
-      accelerator: 'CmdOrCtrl+U',
-      click(item, focusedWindow) {
-        exportHtmlReport(focusedWindow);
-      }
-    },
-    {
-      label: 'Export as SQBS',
-      accelerator: 'CmdOrCtrl+Y',
-      click(item, focusedWindow) {
-        trySqbsExport(focusedWindow);
-      }
-    },
-    {type: 'separator'},
-    {
-      label: 'New Tournament',
-      accelerator: 'CmdOrCtrl+N',
-      click(item, focusedWindow) {
-        newTournament(focusedWindow);
-      }
-    },
-    {
-      label: 'Import Rosters from SQBS',
-      click(item, focusedWindow) {
-        importRosters(focusedWindow);
-      }
-    },
-    {
-      label: 'Merge Tournament',
-      click(item, focusedWindow) {
-        mergeTournament(focusedWindow);
-      }
-    },
-    {
-      label: 'Open',
-      accelerator: 'CmdOrCtrl+O',
-      click(item, focusedWindow) {
-        openTournament(focusedWindow);
-      }
-    },
-    {
-      label: 'Save As',
-      click(item, focusedWindow) {
-        saveTournamentAs(focusedWindow);
-      }
-    },
-    {
-      label: 'Save',
-      accelerator: 'CmdOrCtrl+S',
-      click(item, focusedWindow) {
-        saveExistingTournament(focusedWindow);
-      }
-    },
-    {type: 'separator'},
-    {role: 'close'},
-    // items below this point in the submenu are hidden! Just there for keyboard shortcuts
-    {
-      label: 'Add Team',
-      visible: false,
-      accelerator: 'CmdOrCtrl+T',
-      click(item,focusedWindow) {
-        if (focusedWindow) focusedWindow.webContents.send('addTeam');
-      }
-    },
-    {
-      label: 'Add Game',
-      visible: false,
-      accelerator: 'CmdOrCtrl+G',
-      click(item,focusedWindow) {
-        if (focusedWindow) focusedWindow.webContents.send('addGame');
-      }
-    },
-    {
-      label: 'Search',
-      visible: false,
-      accelerator: 'CmdOrCtrl+F',
-      click (item, focusedWindow) {
-        if(focusedWindow) focusedWindow.webContents.send('focusSearch');
-      }
-    },
-    {
-      label: 'Previous Page',
-      visible: false,
-      accelerator: 'CmdOrCtrl+Left',
-      click (item, focusedWindow) {
-        if(focusedWindow) focusedWindow.webContents.send('prevPage');
-      }
-    },
-    {
-      label: 'Next Page',
-      visible: false,
-      accelerator: 'CmdOrCtrl+Right',
-      click (item, focusedWindow) {
-        if(focusedWindow) focusedWindow.webContents.send('nextPage');
-      }
-    },
-    {
-      label: 'Previous Phase',
-      visible: false,
-      accelerator: 'Alt+Left',
-      click (item, focusedWindow) {
-        if(focusedWindow) focusedWindow.webContents.send('prevPhase');
-      }
-    },
-    {
-      label: 'Next Phase',
-      visible: false,
-      accelerator: 'Alt+Right',
-      click (item, focusedWindow) {
-        if(focusedWindow) focusedWindow.webContents.send('nextPhase');
-      }
-    },
-    {
-      label: 'Open Sidebar',
-      visible: false,
-      accelerator: 'Alt+Shift+Left',
-      click (item, focusedWindow) {
-        if(focusedWindow) focusedWindow.webContents.send('toggleSidebar', true);
-      }
-    },
-    {
-      label: 'Close Sidebar',
-      visible: false,
-      accelerator: 'Alt+Shift+Right',
-      click (item, focusedWindow) {
-        if(focusedWindow) focusedWindow.webContents.send('toggleSidebar', false);
-      }
-    }
-  ]
+  submenu: YF_SUBMENU_VISIBLE.concat(YF_SUBMENU_WINDOWS_HIDDEN)
 };
-const HELP_MENU = {
+const YF_MENU_MACOS = {
+  label: '&YellowFruit',
+  submenu: YF_SUBMENU_VISIBLE
+};
+const MENUITEM_SEARCH_TIPS = {
+  label: 'Search Tips',
+  click (item, focusedWindow) {
+    showHelpWindow(focusedWindow, 'searchtips.html');
+  }
+};
+const MENUITEM_KEYBOARD = {
+  label: 'Keyboard Shortcuts',
+  click (item, focusedWindow) {
+    showHelpWindow(focusedWindow, 'keyboardshortcuts.html', 700, 400);
+  }
+};
+const MENUITEM_ABOUT = {
+  label: 'About YellowFruit',
+  click (item, focusedWindow) {
+    showHelpWindow(focusedWindow, 'AboutYF.html');
+  }
+};
+const HELP_MENU_WINDOWS = {
   label: '&Help',
-  submenu: [
-    {
-      label: 'Search Tips',
-      click (item, focusedWindow) {
-        showHelpWindow(focusedWindow, 'searchtips.html');
-      }
-    },
-    {
-      label: 'Keyboard Shortcuts',
-      click (item, focusedWindow) {
-        showHelpWindow(focusedWindow, 'keyboardshortcuts.html', 700, 400);
-      }
-    },
-    {
-      label: 'About YellowFruit',
-      click (item, focusedWindow) {
-        showHelpWindow(focusedWindow, 'AboutYF.html');
-      }
-    }
-  ]
+  submenu: [MENUITEM_SEARCH_TIPS, MENUITEM_KEYBOARD, MENUITEM_ABOUT]
 };
+const HELP_MENU_MACOS = {
+  label: '&Help',
+  submenu: [MENUITEM_SEARCH_TIPS, MENUITEM_ABOUT]
+};
+
 const DEV_TOOLS_MENU = {
   label: 'Dev Tools',
   submenu:[
@@ -261,7 +271,7 @@ Build the main menu.
 ---------------------------------------------------------*/
 function buildMainMenu(rptSubMenu) {
   mainMenuTemplate = [
-    YF_MENU,
+    process.platform === 'darwin' ? YF_MENU_MACOS : YF_MENU_WINDOWS,
     {
       label: '&Report Layout',
       submenu: rptSubMenu
@@ -344,7 +354,7 @@ function buildMainMenu(rptSubMenu) {
         }
       ]
     },
-    HELP_MENU
+    process.platform === 'darwin' ? HELP_MENU_MACOS : HELP_MENU_WINDOWS
   ]; // mainMenuTemplate
 
   // Add dev tools if not in production
