@@ -6,14 +6,22 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title> About YellowFruit</title>
   <link rel="stylesheet" href="css/app.css">
+  <script type="text/javascript">
+    var electron = require('electron');
+    var shell = electron.shell;
+    var ipc = electron.ipcRenderer;
+  </script>
 </head>
 <body>
   <div class="main">
     <div class="page">
-      <div class="container">
+      <div class="container" style="margin-top:15px;">
         <h5>YellowFruit</h5>
         <p>2.3.2</p>
         <p>Copyright 2019 Andrew Nadig</p>
+      </div>
+      <div class="help-window-footer">
+        <a class="btn-small grey help-close" onclick="ipc.sendSync('closeHelpWindow')">Close</a>
       </div>
     </div>
   </div><!-- Main -->

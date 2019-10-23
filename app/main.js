@@ -34,6 +34,7 @@ var autoSaveIntervalId = null; // store the interval ID from setInterval here
 const AUTO_SAVE_TIME_MS = 300000; //number of milliseconds between auto-saves
 var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate, helpMenu, helpMenuTemplate;
 var reportWindow; //to show the html report
+var helpWindow; // one of several possible modals from the Help menu
 var currentFile = '';
 var unsavedData = false;
 
@@ -413,9 +414,9 @@ A small modal that loads one of the pages launched from
 the Help menu
 ---------------------------------------------------------*/
 function showHelpWindow(focusedWindow, fileName, width, height) {
-  var helpWindow = new BrowserWindow({
+  helpWindow = new BrowserWindow({
     width: width == null ? 550 : width,
-    height: height == null ? 300 : height,
+    height: height == null ? 350 : height,
     show: false,
     parent: focusedWindow,
     modal: true,
@@ -965,6 +966,16 @@ app.on('ready', function() {
   });
 
   /*---------------------------------------------------------
+  Close whichever help window is open
+  ---------------------------------------------------------*/
+  ipc.on('closeHelpWindow', (event) => {
+    event.returnValue = '';
+    if(helpWindow != undefined) {
+      helpWindow.close();
+    }
+  });
+
+  /*---------------------------------------------------------
   Add items to the report menu corresponding to the available
   report configurations
   activeRpt will have its checked property set.
@@ -1026,7 +1037,7 @@ app.on('ready', function() {
   helpMenu = Menu.buildFromTemplate(helpMenuTemplate);
   reportMenu = Menu.buildFromTemplate(reportMenuTemplate);
   if(process.platform === 'darwin') { Menu.setApplicationMenu(mainMenu); }
-  else { appWindow.setMenu(mainMenu); } 
+  else { appWindow.setMenu(mainMenu); }
 }); //app is ready
 
 

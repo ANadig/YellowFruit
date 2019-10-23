@@ -6,16 +6,24 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>YellowFruit</title>
   <link rel="stylesheet" href="css/app.css">
+  <script type="text/javascript">
+    var electron = require('electron');
+    var shell = electron.shell;
+    var ipc = electron.ipcRenderer;
+  </script>
 </head>
 <body>
   <div class="main">
     <div class="page">
-      <div class="container">
+      <div class="container" style="margin-top:15px;">
         <h4>Search Tips</h4>
         <p>Use "Round #" or "R#" to search for games in a specific round</p>
         <p>Use a slash ("/") to find specific matchups. For example, "Central / West" will find games between Central and West.</p>
         <p>Use a "=" to force an exact match. For example, "=Kansas" will find Kansas but not Kansas State.</p>
         <p>Use "No phase" to find games that do not belong to any phase</p>
+      </div>
+      <div class="help-window-footer">
+        <a class="btn-small grey help-close" onclick="ipc.sendSync('closeHelpWindow')">Close</a>
       </div>
     </div>
   </div><!-- Main -->

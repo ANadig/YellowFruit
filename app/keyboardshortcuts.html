@@ -4,12 +4,19 @@
   <meta charset="UTF-8">
   <title>YellowFruit</title>
   <link rel="stylesheet" href="css/app.css">
-  <style> body { overflow-y: scroll; } </style> <!-- need to override Materialize here -->
+  <style>
+    body { overflow-y: scroll; } /* need to override Materialize here */
+  </style>
+  <script type="text/javascript">
+    var electron = require('electron');
+    var shell = electron.shell;
+    var ipc = electron.ipcRenderer;
+  </script>
 </head>
 <body>
   <div class="main">
     <div class="page">
-      <div class="container">
+      <div class="container" style="margin:15px auto 60px;">
         <h4>Keyboard Shortcuts</h4>
         <br>
         <table>
@@ -41,6 +48,9 @@
             <td>Alt+Shift+Right</td>
           </tr>
         </table>
+      </div>
+      <div class="help-window-footer">
+        <a class="btn-small grey help-close" onclick="ipc.sendSync('closeHelpWindow')">Close</a>
       </div>
     </div>
   </div><!-- Main -->

@@ -717,3 +717,17 @@ nav .btn-flat {
 .row .pp20-control:hover {
   background-color: #ffd600;
 }
+
+/* hold close button in the modal help windows */
+.help-window-footer {
+  position: absolute;
+  bottom: 0;
+  width: 85%;
+  margin: 0 7.5%;
+  background-color: white;
+}
+
+/* close button in the modal help windows */
+.help-close {
+  margin-bottom: 8px;
+}
