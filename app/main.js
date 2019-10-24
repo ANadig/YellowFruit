@@ -516,7 +516,8 @@ function unsavedDataDialog(focusedWindow, caption) {
         defaultId: 2,
         cancelId: 2,
         title: 'YellowFruit - ' + caption,
-        message: 'You have unsaved data.'
+        message: 'You have unsaved data.',
+        normalizeAccessKeys: true
       }
     );
     willContinue = choice != 2;
@@ -531,7 +532,8 @@ function unsavedDataDialog(focusedWindow, caption) {
         defaultId: 1,
         cancelId: 1,
         title: 'YellowFruit',
-        message: 'You have unsaved data.'
+        message: 'You have unsaved data.',
+        normalizeAccessKeys: true
       }
     );
     willContinue = choice == 0;
@@ -625,7 +627,8 @@ app.on('ready', function() {
           defaultId: 1,
           cancelId: 1,
           title: 'YellowFruit',
-          message: 'You have unsaved data.'
+          message: 'You have unsaved data.',
+          normalizeAccessKeys: true
         }
       );
       willClose = choice == 0;
@@ -690,7 +693,8 @@ app.on('ready', function() {
         defaultId: 1,
         cancelId: 1,
         title: 'YellowFruit',
-        message: 'Are you sure you want to delete this division?\n\n' + message
+        message: 'Are you sure you want to delete this division?\n\n' + message,
+        normalizeAccessKeys: true
       }
     );
     if(choice == 0) { event.sender.send('confirmDivDeletion'); }
@@ -711,7 +715,8 @@ app.on('ready', function() {
         defaultId: 1,
         cancelId: 1,
         title: 'YellowFruit',
-        message: 'Are you sure you want to delete this game?\n\n' + message
+        message: 'Are you sure you want to delete this game?\n\n' + message,
+        normalizeAccessKeys: true
       }
     );
     if(choice == 0) { event.sender.send('confirmGameDeletion'); }
@@ -742,7 +747,8 @@ app.on('ready', function() {
         title: 'YellowFruit',
         message: 'The following games exceed SQBS\'s limit of eight players per team:\n\n' +
           badGameAry.join('\n') +
-          '\n\nOnly the first eight players in these games will be used.'
+          '\n\nOnly the first eight players in these games will be used.',
+        normalizeAccessKeys: true
       }
     );
     if(choice == 0) { sqbsSaveDialog(appWindow); }
@@ -757,12 +763,13 @@ app.on('ready', function() {
       appWindow,
       {
         type: 'error',
-        buttons: ['OK'],
+        buttons: ['&OK'],
         defaultId: 0,
         cancelId: 0,
         title: 'Import error',
         message: 'Import failed. Encountered an error on line ' + lineNo +
-          ' of the SQBS file.'
+          ' of the SQBS file.',
+        normalizeAccessKeys: true
       }
     );
   });
@@ -781,11 +788,12 @@ app.on('ready', function() {
       appWindow,
       {
         type: 'info',
-        buttons: ['OK'],
+        buttons: ['&OK'],
         defaultId: 0,
         cancelId: 0,
         title: 'Successful import',
-        message: message
+        message: message,
+        normalizeAccessKeys: true
       }
     );
   });
@@ -800,11 +808,12 @@ app.on('ready', function() {
       appWindow,
       {
         type: 'warning',
-        buttons: ['OK'],
+        buttons: ['&OK'],
         defaultId: 0,
         cancelId: 0,
         title: 'YellowFruit',
-        message: 'No teams were imported because all teams in the file already exist.'
+        message: 'No teams were imported because all teams in the file already exist.',
+        normalizeAccessKeys: true
       }
     );
   });
@@ -818,11 +827,12 @@ app.on('ready', function() {
       appWindow,
       {
         type: 'error',
-        buttons: ['OK'],
+        buttons: ['&OK'],
         defaultId: 0,
         cancelId: 0,
         title: 'Merge error',
-        message: 'Tournaments were not merged:\n\n' + errorString
+        message: 'Tournaments were not merged:\n\n' + errorString,
+        normalizeAccessKeys: true
       }
     );
   });
@@ -845,11 +855,12 @@ app.on('ready', function() {
       appWindow,
       {
         type: 'info',
-        buttons: ['OK'],
+        buttons: ['&OK'],
         defaultId: 0,
         cancelId: 0,
         title: 'Successful merge',
-        message: mergeSummary
+        message: mergeSummary,
+        normalizeAccessKeys: true
       }
     );
   });
@@ -868,7 +879,8 @@ app.on('ready', function() {
         defaultId: 1,
         cancelId: 1,
         title: 'YellowFruit',
-        message: 'Are you sure you want to delete \"' + rptName + '\"?'
+        message: 'Are you sure you want to delete \"' + rptName + '\"?',
+        normalizeAccessKeys: true
       }
     );
     if(choice == 0) { event.sender.send('rptDeleteConfirmation', rptName); }
@@ -890,7 +902,8 @@ app.on('ready', function() {
         defaultID: 0,
         cancelId: 0,
         title: 'Error',
-        message: header + '\n\n' + stack
+        message: header + '\n\n' + stack,
+        normalizeAccessKeys: true
       }
     );
   });
