@@ -82,7 +82,6 @@ const YF_MENU = {
     },
     {
       label: 'Export as SQBS',
-      accelerator: 'CmdOrCtrl+Y',
       click(item, focusedWindow) {
         trySqbsExport(focusedWindow);
       }
@@ -131,6 +130,18 @@ const YF_MENU = {
     {role: 'close'},
   ]
 };
+const EDIT_MENU_MACOS = {
+  label: 'Edit',
+  submenu: [
+    {role: 'undo'},
+    {role: 'redo'},
+    {type: 'separator'},
+    {role: 'cut'},
+    {role: 'copy'},
+    {role: 'paste'},
+    {role: 'selectAll'}
+  ]
+}
 const HELP_MENU = {
   label: '&Help',
   submenu: [
@@ -187,8 +198,9 @@ const REPORT_SUBMENU_STUB = [
 Build the main menu.
 ---------------------------------------------------------*/
 function buildMainMenu(rptSubMenu) {
-  mainMenuTemplate = [
-    YF_MENU,
+  mainMenuTemplate = [YF_MENU];
+  if(process.platform === 'darwin') { mainMenuTemplate.push(EDIT_MENU_MACOS); }
+  mainMenuTemplate = mainMenuTemplate.concat([
     {
       label: '&Report Layout',
       submenu: rptSubMenu
@@ -272,7 +284,7 @@ function buildMainMenu(rptSubMenu) {
       ]
     },
     HELP_MENU
-  ]; // mainMenuTemplate
+  ]); // mainMenuTemplate
 
   // Add dev tools if not in production
   if(process.env.NODE_ENV == 'development') {
