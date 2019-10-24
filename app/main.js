@@ -33,6 +33,7 @@ var currentUserConfig;
 var autoSaveIntervalId = null; // store the interval ID from setInterval here
 const AUTO_SAVE_TIME_MS = 300000; //number of milliseconds between auto-saves
 var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate, helpMenu, helpMenuTemplate;
+var mainWindowId; // keep track of which window is the main app window
 var reportWindow; //to show the html report
 var helpWindow; // one of several possible modals from the Help menu
 var currentFile = '';
@@ -69,6 +70,7 @@ const YF_MENU = {
       label: 'View Full Report',
       accelerator: 'CmdOrCtrl+I',
       click(item, focusedWindow) {
+        if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
         focusedWindow.webContents.send('compileStatReport');
         showReportWindow();
       }
@@ -76,55 +78,39 @@ const YF_MENU = {
     {
       label: 'Export Full Report',
       accelerator: 'CmdOrCtrl+U',
-      click(item, focusedWindow) {
-        exportHtmlReport(focusedWindow);
-      }
+      click(item, focusedWindow) { exportHtmlReport(focusedWindow); }
     },
     {
       label: 'Export as SQBS',
-      click(item, focusedWindow) {
-        trySqbsExport(focusedWindow);
-      }
+      click(item, focusedWindow) { trySqbsExport(focusedWindow); }
     },
     {type: 'separator'},
     {
       label: 'New Tournament',
       accelerator: 'CmdOrCtrl+N',
-      click(item, focusedWindow) {
-        newTournament(focusedWindow);
-      }
+      click(item, focusedWindow) { newTournament(focusedWindow); }
     },
     {
       label: 'Import Rosters from SQBS',
-      click(item, focusedWindow) {
-        importRosters(focusedWindow);
-      }
+      click(item, focusedWindow) { importRosters(focusedWindow); }
     },
     {
       label: 'Merge Tournament',
-      click(item, focusedWindow) {
-        mergeTournament(focusedWindow);
-      }
+      click(item, focusedWindow) { mergeTournament(focusedWindow); }
     },
     {
       label: 'Open',
       accelerator: 'CmdOrCtrl+O',
-      click(item, focusedWindow) {
-        openTournament(focusedWindow);
-      }
+      click(item, focusedWindow) { openTournament(focusedWindow); }
     },
     {
       label: 'Save As',
-      click(item, focusedWindow) {
-        saveTournamentAs(focusedWindow);
-      }
+      click(item, focusedWindow) { saveTournamentAs(focusedWindow); }
     },
     {
       label: 'Save',
       accelerator: 'CmdOrCtrl+S',
-      click(item, focusedWindow) {
-        saveExistingTournament(focusedWindow);
-      }
+      click(item, focusedWindow) { saveExistingTournament(focusedWindow); }
     },
     {type: 'separator'},
     {role: 'close'},
@@ -374,6 +360,7 @@ user can select any page of the existing report in order
 to replace all seven pages with new versions.
 ---------------------------------------------------------*/
 function exportHtmlReport(focusedWindow) {
+  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
   dialog.showSaveDialog(focusedWindow,
     {filters: [{name: 'HTML Webpages', extensions: ['html']}]},
     (fileName) => {
@@ -390,6 +377,7 @@ Attempt to export the data in SQBS format. The user may
 then get a warning about losing some of their data.
 ---------------------------------------------------------*/
 function trySqbsExport(focusedWindow) {
+  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
   focusedWindow.webContents.send('trySqbsExport');
 }
 
@@ -412,6 +400,7 @@ Prompt the user to select a file name for the data
 (YellowFruit, not SQBS format)
 ---------------------------------------------------------*/
 function saveTournamentAs(focusedWindow) {
+  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
   dialog.showSaveDialog(focusedWindow,
     {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
     (fileName) => {
@@ -428,6 +417,7 @@ Save the tournament. If we don't have a file to save to,
 redirect to Save As.
 ---------------------------------------------------------*/
 function saveExistingTournament(focusedWindow, fromAutoSave) {
+  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
   if(currentFile != '') {
     focusedWindow.webContents.send('saveExistingTournament', currentFile);
   }
@@ -440,6 +430,7 @@ function saveExistingTournament(focusedWindow, fromAutoSave) {
 Load a tournament from a file.
 ---------------------------------------------------------*/
 function openTournament(focusedWindow) {
+  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
   var willContinue = true, needToSave = false;
   if(unsavedData) {
     [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Open Tournament');
@@ -467,6 +458,7 @@ save the tournament if there's unsaved data. If it would be
 a Save As situation, force to user to go back.
 ---------------------------------------------------------*/
 function newTournament(focusedWindow) {
+  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
   var willContinue = true, needToSave = false;
   if(unsavedData) {
     [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Create New Tournament');
@@ -487,6 +479,7 @@ Prompt the user to select an SQBS file from which to
 import rosters.
 ---------------------------------------------------------*/
 function importRosters(focusedWindow) {
+  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
   dialog.showOpenDialog(focusedWindow,
     {filters: [{name: 'SQBS Tournament', extensions: ['sqbs']}]},
     (fileNameAry) => {
@@ -502,6 +495,7 @@ Prompt the user to select a YellowFruit tournament to
 merge into the current file.
 ---------------------------------------------------------*/
 function mergeTournament(focusedWindow) {
+  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
   dialog.showOpenDialog(focusedWindow,
     {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
     (fileNameAry) => {
@@ -600,6 +594,7 @@ app.on('ready', function() {
     icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
   }); //appWindow
 
+  mainWindowId = appWindow.id;
   appWindow.loadURL('file://' + __dirname + '/index.html');
 
   appWindow.once('ready-to-show', function() {
