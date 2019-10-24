@@ -578,7 +578,8 @@ app.on('ready', function() {
     width: 346,
     height: 149,
     frame: false,
-    show: false
+    show: false,
+    transparent: true
   });
   splashWindow.loadURL('file://' + __dirname + '/splash.html');
   splashWindow.once('ready-to-show', () => {
