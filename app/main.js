@@ -31,7 +31,7 @@ const DEFAULT_USER_CONFIG = {
 };
 var currentUserConfig;
 var autoSaveIntervalId = null; // store the interval ID from setInterval here
-const AUTO_SAVE_TIME_MS = 300000; //number of milliseconds between auto-saves
+const AUTO_SAVE_TIME_MS = 300000; //number of milliseconds between auto-saves. 300000=5min
 var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate, helpMenu, helpMenuTemplate;
 var mainWindowId; // keep track of which window is the main app window
 var reportWindow; //to show the html report
@@ -239,7 +239,7 @@ function buildMainMenu(rptSubMenu) {
           click(item, focusedWindow) {
             updateUserConfig(item.id, item.checked);
             var mainWin = BrowserWindow.fromId(mainWindowId);
-            if(mainWin) { toggleAutoSave(item.checked, focusedWindow); }
+            if(mainWin) { toggleAutoSave(item.checked, mainWin); }
           }
         }
       ]
@@ -412,11 +412,11 @@ Save the tournament. If we don't have a file to save to,
 redirect to Save As.
 ---------------------------------------------------------*/
 function saveExistingTournament(focusedWindow, fromAutoSave) {
-  if(!isMainWindow(focusedWindow)) { return; }
   if(currentFile != '') {
-    focusedWindow.webContents.send('saveExistingTournament', currentFile);
+    var mainWin = BrowserWindow.fromId(mainWindowId);
+    if(mainWin) { mainWin.webContents.send('saveExistingTournament', currentFile); }
   }
-  else if(!fromAutoSave) {
+  else if(!fromAutoSave && isMainWindow(focusedWindow)) {
     saveTournamentAs(focusedWindow);
   }
 }
