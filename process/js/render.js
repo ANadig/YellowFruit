@@ -9,6 +9,7 @@ main window
 var $ = jQuery = require('jquery');
 var _ = require('lodash');
 var M = require('materialize-css');
+var Mousetrap = require('mousetrap');
 // eRequire is defined in index.html
 // I took these two lines from a tutorial and don't remember why it's necessary
 var fs = eRequire('fs');
@@ -187,13 +188,38 @@ class MainInterface extends React.Component {
     $(document).on("keydown", (event) => {
       if(event.keyCode == 27) { $('.modal.open').modal('close'); }
     });
-    //set up event listeners
-    ipc.on('addTeam', (event, message) => {
+
+    Mousetrap.bind(['command+f', 'ctrl+k'], () => {
+      if(!this.anyModalOpen()) {
+        $('#search').focus();
+        $('#search').select();
+      }
+    });
+    Mousetrap.bind(['command+t', 'ctrl+t'], () => {
       if(!this.anyModalOpen()) { this.openTeamAddWindow(); }
     });
-    ipc.on('addGame', (event, message) => {
+    Mousetrap.bind(['command+g', 'ctrl+g'], () => {
       if(!this.anyModalOpen()) { this.openGameAddWindow(); }
     });
+    Mousetrap.bind(['command+left', 'ctrl+left'], () => {
+      if(!this.anyModalOpen()) { this.previousPage(); }
+    });
+    Mousetrap.bind(['command+right', 'ctrl+right'], () => {
+      if(!this.anyModalOpen()) { this.nextPage(); }
+    });
+    Mousetrap.bind('alt+left', () => {
+      if(!this.anyModalOpen()) { this.previousPhase(); }
+    });
+    Mousetrap.bind('alt+right', () => {
+      if(!this.anyModalOpen()) { this.nextPhase(); }
+    });
+    Mousetrap.bind('alt+shift+left', () => {
+      if(!this.anyModalOpen()) { this.setState({sidebarOpen: true}); }
+    });
+    Mousetrap.bind('alt+shift+right', () => {
+      if(!this.anyModalOpen()) { this.setState({sidebarOpen: false}); }
+    });
+    //set up event listeners
     ipc.on('compileStatReport', (event, message) => {
       this.writeStatReport('');
     });
@@ -231,24 +257,6 @@ class MainInterface extends React.Component {
     ipc.on('exportSqbsFile', (event, fileName) => {
       if(!this.anyModalOpen()) { this.writeSqbsFile(fileName); }
     });
-    ipc.on('prevPage', (event) => {
-      if(!this.anyModalOpen()) { this.previousPage(); }
-    });
-    ipc.on('nextPage', (event) => {
-      if(!this.anyModalOpen()) { this.nextPage(); }
-    });
-    ipc.on('prevPhase', (event) => {
-      if(!this.anyModalOpen()) { this.previousPhase(); }
-    });
-    ipc.on('nextPhase', (event) => {
-      if(!this.anyModalOpen()) { this.nextPhase(); }
-    });
-    ipc.on('focusSearch', (event) => {
-      if(!this.anyModalOpen()) {
-        $('#search').focus();
-        $('#search').select();
-      }
-    });
     ipc.on('confirmGameDeletion', (event) => {
       this.deleteGame();
     });
@@ -278,11 +286,6 @@ class MainInterface extends React.Component {
     });
     ipc.on('toggleFormField', (event, whichField, status) => {
       this.toggleFormField(whichField, status);
-    });
-    ipc.on('toggleSidebar', (event, open) => {
-      this.setState({
-        sidebarOpen: open
-      });
     });
     ipc.on('loadReportConfig', (event, env) => {
       this.loadCustomRptConfigs(env);
