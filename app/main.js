@@ -137,7 +137,7 @@ const HELP_MENU = {
     {
       label: 'Search Tips',
       click (item, focusedWindow) {
-        showHelpWindow(focusedWindow, 'searchtips.html');
+        showHelpWindow(focusedWindow, 'searchtips.html', 550, 350);
       }
     },
     {
@@ -149,7 +149,7 @@ const HELP_MENU = {
     {
       label: 'About YellowFruit',
       click (item, focusedWindow) {
-        showHelpWindow(focusedWindow, 'AboutYF.html');
+        showHelpWindow(focusedWindow, 'AboutYF.html', 375, 225);
       }
     }
   ]
