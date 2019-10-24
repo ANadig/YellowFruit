@@ -182,14 +182,6 @@ const REPORT_SUBMENU_STUB = [
 ];
 
 /*---------------------------------------------------------
-Whether this window is the main app window, not a help
-window, etc.
----------------------------------------------------------*/
-function isMainWindow(focusedWindow) {
-  return focusedWindow && focusedWindow.id == mainWindowId;
-}
-
-/*---------------------------------------------------------
 Build the main menu.
 ---------------------------------------------------------*/
 function buildMainMenu(rptSubMenu) {
@@ -208,60 +200,35 @@ function buildMainMenu(rptSubMenu) {
           id: 'showYearField',
           type: 'checkbox',
           checked: currentUserConfig.showYearField,
-          click (item, focusedWindow) {
-            if(isMainWindow(focusedWindow)) {
-              focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
-              updateUserConfig(item.id, item.checked);
-            }
-          }
+          click (item, focusedWindow) { toggleFormSetting(item); }
         },
         {
           label: 'Track Small School',
           id: 'showSmallSchool',
           type: 'checkbox',
           checked: currentUserConfig.showSmallSchool,
-          click (item, focusedWindow) {
-            if(isMainWindow(focusedWindow)) {
-              focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
-              updateUserConfig(item.id, item.checked);
-            }
-          }
+          click (item, focusedWindow) { toggleFormSetting(item); }
         },
         {
           label: 'Track Junior Varsity',
           id: 'showJrVarsity',
           type: 'checkbox',
           checked: currentUserConfig.showJrVarsity,
-          click (item, focusedWindow) {
-            if(isMainWindow(focusedWindow)) {
-              focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
-              updateUserConfig(item.id, item.checked);
-            }
-          }
+          click (item, focusedWindow) { toggleFormSetting(item); }
         },
         {
           label: 'Track Undergrad',
           id: 'showUGFields',
           type: 'checkbox',
           checked: currentUserConfig.showUGFields,
-          click (item, focusedWindow) {
-            if(isMainWindow(focusedWindow)) {
-              focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
-              updateUserConfig(item.id, item.checked);
-            }
-          }
+          click (item, focusedWindow) { toggleFormSetting(item); }
         },
         {
           label: 'Track Division 2',
           id: 'showD2Fields',
           type: 'checkbox',
           checked: currentUserConfig.showD2Fields,
-          click (item, focusedWindow) {
-            if(isMainWindow(focusedWindow)) {
-              focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
-              updateUserConfig(item.id, item.checked);
-            }
-          }
+          click (item, focusedWindow) { toggleFormSetting(item); }
         },
         {type: 'separator'},
         {
@@ -270,10 +237,9 @@ function buildMainMenu(rptSubMenu) {
           type: 'checkbox',
           checked: currentUserConfig.autoSave,
           click(item, focusedWindow) {
-            if(isMainWindow(focusedWindow)) {
-              toggleAutoSave(item.checked, focusedWindow);
-              updateUserConfig(item.id, item.checked);
-            }
+            updateUserConfig(item.id, item.checked);
+            var mainWin = BrowserWindow.fromId(mainWindowId);
+            if(mainWin) { toggleAutoSave(item.checked, focusedWindow); }
           }
         }
       ]
@@ -286,6 +252,25 @@ function buildMainMenu(rptSubMenu) {
     mainMenuTemplate.push(DEV_TOOLS_MENU);
   }
   return Menu.buildFromTemplate(mainMenuTemplate);
+}
+
+/*---------------------------------------------------------
+Whether this window is the main app window, not a help
+window, etc.
+---------------------------------------------------------*/
+function isMainWindow(focusedWindow) {
+  return focusedWindow && focusedWindow.id == mainWindowId;
+}
+
+/*---------------------------------------------------------
+Toggle show year, show JV, etc.
+---------------------------------------------------------*/
+function toggleFormSetting(item) {
+  updateUserConfig(item.id, item.checked);
+  var mainWin = BrowserWindow.fromId(mainWindowId);
+  if(mainWin) {
+    mainWin.webContents.send('toggleFormField', item.id, item.checked);
+  }
 }
 
 /*---------------------------------------------------------
