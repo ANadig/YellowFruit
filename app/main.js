@@ -70,8 +70,9 @@ const YF_MENU = {
       label: 'View Full Report',
       accelerator: 'CmdOrCtrl+I',
       click(item, focusedWindow) {
-        if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
-        focusedWindow.webContents.send('compileStatReport');
+        if(isMainWindow(focusedWindow)) {
+          focusedWindow.webContents.send('compileStatReport');
+        }
         showReportWindow();
       }
     },
@@ -174,11 +175,19 @@ const REPORT_SUBMENU_STUB = [
   {
     label: 'Report Settings...',
     click (item, focusedWindow) {
-        if(focusedWindow) focusedWindow.webContents.send('openRptConfig');
+      if(isMainWindow(focusedWindow)) { focusedWindow.webContents.send('openRptConfig'); }
     }
   },
   {type: 'separator'}
 ];
+
+/*---------------------------------------------------------
+Whether this window is the main app window, not a help
+window, etc.
+---------------------------------------------------------*/
+function isMainWindow(focusedWindow) {
+  return focusedWindow && focusedWindow.id == mainWindowId;
+}
 
 /*---------------------------------------------------------
 Build the main menu.
@@ -200,7 +209,7 @@ function buildMainMenu(rptSubMenu) {
           type: 'checkbox',
           checked: currentUserConfig.showYearField,
           click (item, focusedWindow) {
-            if(focusedWindow) {
+            if(isMainWindow(focusedWindow)) {
               focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
               updateUserConfig(item.id, item.checked);
             }
@@ -212,7 +221,7 @@ function buildMainMenu(rptSubMenu) {
           type: 'checkbox',
           checked: currentUserConfig.showSmallSchool,
           click (item, focusedWindow) {
-            if(focusedWindow) {
+            if(isMainWindow(focusedWindow)) {
               focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
               updateUserConfig(item.id, item.checked);
             }
@@ -224,7 +233,7 @@ function buildMainMenu(rptSubMenu) {
           type: 'checkbox',
           checked: currentUserConfig.showJrVarsity,
           click (item, focusedWindow) {
-            if(focusedWindow) {
+            if(isMainWindow(focusedWindow)) {
               focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
               updateUserConfig(item.id, item.checked);
             }
@@ -236,7 +245,7 @@ function buildMainMenu(rptSubMenu) {
           type: 'checkbox',
           checked: currentUserConfig.showUGFields,
           click (item, focusedWindow) {
-            if(focusedWindow) {
+            if(isMainWindow(focusedWindow)) {
               focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
               updateUserConfig(item.id, item.checked);
             }
@@ -248,7 +257,7 @@ function buildMainMenu(rptSubMenu) {
           type: 'checkbox',
           checked: currentUserConfig.showD2Fields,
           click (item, focusedWindow) {
-            if(focusedWindow) {
+            if(isMainWindow(focusedWindow)) {
               focusedWindow.webContents.send('toggleFormField', item.id, item.checked);
               updateUserConfig(item.id, item.checked);
             }
@@ -261,7 +270,7 @@ function buildMainMenu(rptSubMenu) {
           type: 'checkbox',
           checked: currentUserConfig.autoSave,
           click(item, focusedWindow) {
-            if(focusedWindow) {
+            if(isMainWindow(focusedWindow)) {
               toggleAutoSave(item.checked, focusedWindow);
               updateUserConfig(item.id, item.checked);
             }
@@ -339,6 +348,7 @@ A small modal that loads one of the pages launched from
 the Help menu
 ---------------------------------------------------------*/
 function showHelpWindow(focusedWindow, fileName, width, height) {
+  if(!focusedWindow) { return; }
   helpWindow = new BrowserWindow({
     width: width == null ? 550 : width,
     height: height == null ? 350 : height,
@@ -360,7 +370,7 @@ user can select any page of the existing report in order
 to replace all seven pages with new versions.
 ---------------------------------------------------------*/
 function exportHtmlReport(focusedWindow) {
-  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
+  if(!isMainWindow(focusedWindow)) { return; }
   dialog.showSaveDialog(focusedWindow,
     {filters: [{name: 'HTML Webpages', extensions: ['html']}]},
     (fileName) => {
@@ -377,7 +387,7 @@ Attempt to export the data in SQBS format. The user may
 then get a warning about losing some of their data.
 ---------------------------------------------------------*/
 function trySqbsExport(focusedWindow) {
-  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
+  if(!isMainWindow(focusedWindow)) { return; }
   focusedWindow.webContents.send('trySqbsExport');
 }
 
@@ -400,7 +410,7 @@ Prompt the user to select a file name for the data
 (YellowFruit, not SQBS format)
 ---------------------------------------------------------*/
 function saveTournamentAs(focusedWindow) {
-  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
+  if(!isMainWindow(focusedWindow)) { return; }
   dialog.showSaveDialog(focusedWindow,
     {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
     (fileName) => {
@@ -417,7 +427,7 @@ Save the tournament. If we don't have a file to save to,
 redirect to Save As.
 ---------------------------------------------------------*/
 function saveExistingTournament(focusedWindow, fromAutoSave) {
-  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
+  if(!isMainWindow(focusedWindow)) { return; }
   if(currentFile != '') {
     focusedWindow.webContents.send('saveExistingTournament', currentFile);
   }
@@ -430,7 +440,7 @@ function saveExistingTournament(focusedWindow, fromAutoSave) {
 Load a tournament from a file.
 ---------------------------------------------------------*/
 function openTournament(focusedWindow) {
-  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
+  if(!isMainWindow(focusedWindow)) { return; }
   var willContinue = true, needToSave = false;
   if(unsavedData) {
     [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Open Tournament');
@@ -458,7 +468,7 @@ save the tournament if there's unsaved data. If it would be
 a Save As situation, force to user to go back.
 ---------------------------------------------------------*/
 function newTournament(focusedWindow) {
-  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
+  if(!isMainWindow(focusedWindow)) { return; }
   var willContinue = true, needToSave = false;
   if(unsavedData) {
     [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Create New Tournament');
@@ -479,7 +489,7 @@ Prompt the user to select an SQBS file from which to
 import rosters.
 ---------------------------------------------------------*/
 function importRosters(focusedWindow) {
-  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
+  if(!isMainWindow(focusedWindow)) { return; }
   dialog.showOpenDialog(focusedWindow,
     {filters: [{name: 'SQBS Tournament', extensions: ['sqbs']}]},
     (fileNameAry) => {
@@ -495,7 +505,7 @@ Prompt the user to select a YellowFruit tournament to
 merge into the current file.
 ---------------------------------------------------------*/
 function mergeTournament(focusedWindow) {
-  if(!focusedWindow || focusedWindow.id != mainWindowId) { return; }
+  if(!isMainWindow(focusedWindow)) { return; }
   dialog.showOpenDialog(focusedWindow,
     {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
     (fileNameAry) => {
