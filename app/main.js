@@ -603,7 +603,7 @@ app.on('ready', function() {
   splashWindow.once('ready-to-show', () => {
     splashWindow.show();
   });
-  
+
   var icon = process.platform === 'darwin' ?
     Path.resolve(__dirname, '..', 'icons', 'banana.icns') :
     Path.resolve(__dirname, '..', 'icons', 'banana.ico');
@@ -1022,7 +1022,6 @@ function handleSquirrelEvent(application) {
 
     const ChildProcess = require('child_process');
     const path = require('path');
-    const fs = require('fs');
 
     const appFolder = path.resolve(process.execPath, '..');
     const rootAtomFolder = path.resolve(appFolder, '..');
