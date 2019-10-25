@@ -567,7 +567,7 @@ Set which report configuration is currently being used
 ---------------------------------------------------------*/
 function setActiveRptConfig(item, focusedWindow) {
   var mainWin = BrowserWindow.fromId(mainWindowId);
-  if(mainWin) { focusedWindow.webContents.send('setActiveRptConfig', item.id); }
+  if(mainWin) { mainWin.webContents.send('setActiveRptConfig', item.id); }
 }
 
 /*---------------------------------------------------------
