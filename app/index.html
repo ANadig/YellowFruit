@@ -30,10 +30,13 @@
     </div>
   </div><!-- Main -->
   <script type="text/javascript">
-    var eRequire = require;
-    var Path = require('path');
+    const fs = require('fs');
+    const Path = require('path');
+    const electron = require('electron');
+    const eRequire = require;
+    const {app} = electron.remote;
     const RELEASED_RPT_CONFIG_FILE = Path.resolve(__dirname, '..', 'data', 'ReleasedRptConfig.json');
-    const USER_CONFIG_FOLDER_PROD = Path.resolve(__dirname,  '..', '..', '..', '..', '..', 'YellowFruitUserData');
+    const USER_CONFIG_FOLDER_PROD = Path.resolve(app.getPath('appData'), 'YellowFruit');
     const CUSTOM_RPT_CONFIG_FILE_PROD = Path.resolve(USER_CONFIG_FOLDER_PROD, 'CustomRptConfig.json');
     const CUSTOM_RPT_CONFIG_FILE_DEV = Path.resolve(__dirname, '..', 'data', 'CustomRptConfig.json');
     var defaultStandingsLocation = Path.resolve(__dirname, 'standings.html');

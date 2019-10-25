@@ -10,10 +10,6 @@ const $ = jQuery = require('jquery');
 const _ = require('lodash');
 const M = require('materialize-css');
 const Mousetrap = require('mousetrap');
-// eRequire is defined in index.html
-// I took these two lines from a tutorial and don't remember why it's necessary
-const fs = eRequire('fs');
-const electron = eRequire('electron');
 
 const ipc = electron.ipcRenderer;
 const {app} = electron.remote;

@@ -18,8 +18,10 @@ require('dotenv').config(); //set NODE_ENV via the .env file in the root directo
 var Path = require('path');
 var fs = require('fs');
 var _ = require('lodash');
-const USER_CONFIG_FOLDER_PROD = Path.resolve(__dirname,  '..', '..', '..', '..', '..', 'YellowFruitUserData');
+const USER_CONFIG_FOLDER_PROD = Path.resolve(app.getPath('appData'), 'YellowFruit');
 const USER_CONFIG_FILE_PROD = Path.resolve(USER_CONFIG_FOLDER_PROD, 'UserConfig.json');
+const OLD_USER_CONFIG_FOLDER_PROD = Path.resolve(__dirname,  '..', '..', '..', '..', '..', 'YellowFruitUserData');
+const OLD_USER_CONFIG_FILE_PROD = Path.resolve(OLD_USER_CONFIG_FOLDER_PROD, 'UserConfig.json');
 const USER_CONFIG_FILE_DEV = Path.resolve(__dirname, '..', 'data', 'UserConfig.json');
 const DEFAULT_USER_CONFIG = {
   autoSave: true,
@@ -30,6 +32,9 @@ const DEFAULT_USER_CONFIG = {
   showD2Fields: true
 };
 var currentUserConfig;
+const OLD_CUSTOM_RPT_CONFIG_FILE_PROD = Path.resolve(OLD_USER_CONFIG_FOLDER_PROD, 'CustomRptConfig.json');
+const CUSTOM_RPT_CONFIG_FILE_PROD = Path.resolve(USER_CONFIG_FOLDER_PROD, 'CustomRptConfig.json');
+
 var autoSaveIntervalId = null; // store the interval ID from setInterval here
 const AUTO_SAVE_TIME_MS = 300000; //number of milliseconds between auto-saves. 300000=5min
 var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate, helpMenu, helpMenuTemplate;
@@ -47,6 +52,21 @@ didn't write it.
 if (handleSquirrelEvent(app)) {
     // squirrel event handled and app will exit in 1000ms, so don't do anything else
     return;
+}
+
+// copy user config over to new location
+if(process.env.NODE_ENV != 'development') {
+  if(!fs.existsSync(USER_CONFIG_FOLDER_PROD)) {
+    fs.mkdirSync(USER_CONFIG_FOLDER_PROD);
+  }
+  if(fs.existsSync(OLD_USER_CONFIG_FILE_PROD)) {
+    fs.copyFileSync(OLD_USER_CONFIG_FILE_PROD, USER_CONFIG_FILE_PROD);
+    fs.unlinkSync(OLD_USER_CONFIG_FILE_PROD);
+  }
+  if(fs.existsSync(OLD_CUSTOM_RPT_CONFIG_FILE_PROD)) {
+    fs.copyFileSync(OLD_CUSTOM_RPT_CONFIG_FILE_PROD, CUSTOM_RPT_CONFIG_FILE_PROD);
+    fs.unlinkSync(OLD_CUSTOM_RPT_CONFIG_FILE_PROD);
+  }
 }
 
 // load user configuration
@@ -1007,8 +1027,6 @@ function handleSquirrelEvent(application) {
     const updateDotExe = path.resolve(path.join(rootAtomFolder, 'Update.exe'));
     const exeName = path.basename(process.execPath);
 
-    const userConfigFolder = path.resolve(rootAtomFolder, '..', 'YellowFruitUserData');
-
     const spawn = function(command, args) {
         let spawnedProcess, error;
 
@@ -1037,11 +1055,6 @@ function handleSquirrelEvent(application) {
             // Install desktop and start menu shortcuts
             spawnUpdate(['--createShortcut', exeName]);
 
-            // awn 6/19 add user config folder
-            if(!fs.existsSync(userConfigFolder)) {
-              fs.mkdirSync(userConfigFolder);
-            }
-
             setTimeout(application.quit, 1000);
             return true;
 
@@ -1051,9 +1064,6 @@ function handleSquirrelEvent(application) {
 
             // Remove desktop and start menu shortcuts
             spawnUpdate(['--removeShortcut', exeName]);
-            // awn 6/19 remove user config folder
-            fs.unlinkSync(path.resolve(userConfigFolder, 'CustomRptConfig.json'));
-            fs.rmdirSync(userConfigFolder);
 
             setTimeout(application.quit, 1000);
             return true;
