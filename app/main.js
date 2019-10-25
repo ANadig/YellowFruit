@@ -584,12 +584,15 @@ app.on('ready', function() {
   });
 
   var appWindow;
+  var icon = process.platform === 'darwin' ?
+    Path.resolve(__dirname, '..', 'icons', 'banana.icns') :
+    Path.resolve(__dirname, '..', 'icons', 'banana.ico')
   appWindow = new BrowserWindow({
     width: 1250,
     height: 710,
     show: false,
     title: 'YellowFruit - New Tournament',
-    icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
+    icon: icon
   }); //appWindow
 
   mainWindowId = appWindow.id;

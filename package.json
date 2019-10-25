@@ -6,7 +6,9 @@
     "name": "Andrew Nadig"
   },
   "scripts": {
-    "pack-win": "electron-packager . YellowFruit --platform=win32 --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig"
+    "pack-win": "electron-packager . YellowFruit --platform=win32 --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig",
+    "pack-darwin": "electron-packager . YellowFruit --platform=darwin --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig"
+    "pack-mas": "electron-packager . YellowFruit --platform=mas --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig"
   },
   "main": "app/main.js",
   "devDependencies": {
