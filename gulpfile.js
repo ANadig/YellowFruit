@@ -36,7 +36,7 @@ gulp.task('fonts', function() {
 });
 
 gulp.task('serve', gulp.series('html', 'js', 'css', (cb) => {
-  run('electron app/main.js').exec();
+  run('electron .').exec();
   cb();
 }));
 

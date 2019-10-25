@@ -6,39 +6,41 @@ Entry point for the Electron renderer process. Defines the
 MainInterface compenent that contains the entire UI of the
 main window
 ***********************************************************/
-var $ = jQuery = require('jquery');
-var _ = require('lodash');
-var M = require('materialize-css');
-var Mousetrap = require('mousetrap');
+const $ = jQuery = require('jquery');
+const _ = require('lodash');
+const M = require('materialize-css');
+const Mousetrap = require('mousetrap');
 // eRequire is defined in index.html
 // I took these two lines from a tutorial and don't remember why it's necessary
-var fs = eRequire('fs');
-var electron = eRequire('electron');
-var ipc = electron.ipcRenderer;
+const fs = eRequire('fs');
+const electron = eRequire('electron');
 
-var React = require('react');
-var ReactDOM = require('react-dom');
-var SqbsUtils = require('./SqbsUtils');
-var StatUtils = require('./StatUtils');
-var StatUtils2 = require('./StatUtils2');
+const ipc = electron.ipcRenderer;
+const {app} = electron.remote;
+
+const React = require('react');
+const ReactDOM = require('react-dom');
+const SqbsUtils = require('./SqbsUtils');
+const StatUtils = require('./StatUtils');
+const StatUtils2 = require('./StatUtils2');
 // Bring in all the other React components
-var TeamListEntry = require('./TeamListEntry');
-var GameListEntry = require('./GameListEntry');
-var HeaderNav = require('./HeaderNav');
-var AddTeamModal = require('./AddTeamModal');
-var AddGameModal = require('./AddGameModal');
-var DivisionEditModal = require('./DivisionEditModal');
-var RptConfigModal = require('./RptConfigModal');
-var DivAssignModal = require('./DivAssignModal');
-var PhaseAssignModal = require('./PhaseAssignModal');
-var SettingsForm = require('./SettingsForm');
-var TeamList = require('./TeamList');
-var GameList = require('./GameList');
-var StatSidebar = require('./StatSidebar');
-var SidebarToggleButton = require('./SidebarToggleButton');
+const TeamListEntry = require('./TeamListEntry');
+const GameListEntry = require('./GameListEntry');
+const HeaderNav = require('./HeaderNav');
+const AddTeamModal = require('./AddTeamModal');
+const AddGameModal = require('./AddGameModal');
+const DivisionEditModal = require('./DivisionEditModal');
+const RptConfigModal = require('./RptConfigModal');
+const DivAssignModal = require('./DivAssignModal');
+const PhaseAssignModal = require('./PhaseAssignModal');
+const SettingsForm = require('./SettingsForm');
+const TeamList = require('./TeamList');
+const GameList = require('./GameList');
+const StatSidebar = require('./StatSidebar');
+const SidebarToggleButton = require('./SidebarToggleButton');
 
 const MAX_PLAYERS_PER_TEAM = 50;
-const METADATA = {version:'2.3.2'};
+const METADATA = {version:app.getVersion()}; // take version straight from package.json
 const DEFAULT_SETTINGS = {
   powers: '15pts',
   negs: 'yes',
