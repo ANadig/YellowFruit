@@ -566,7 +566,8 @@ function unsavedDataDialog(focusedWindow, caption) {
 Set which report configuration is currently being used
 ---------------------------------------------------------*/
 function setActiveRptConfig(item, focusedWindow) {
-  focusedWindow.webContents.send('setActiveRptConfig', item.id);
+  var mainWin = BrowserWindow.fromId(mainWindowId);
+  if(mainWin) { focusedWindow.webContents.send('setActiveRptConfig', item.id); }
 }
 
 /*---------------------------------------------------------
