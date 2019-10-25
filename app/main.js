@@ -596,17 +596,19 @@ app.on('ready', function() {
     height: 149,
     frame: false,
     show: false,
-    transparent: true
+    transparent: true,
+    skipTaskbar: true,
   });
   splashWindow.loadURL('file://' + __dirname + '/splash.html');
   splashWindow.once('ready-to-show', () => {
     splashWindow.show();
   });
-
-  var appWindow;
+  
   var icon = process.platform === 'darwin' ?
     Path.resolve(__dirname, '..', 'icons', 'banana.icns') :
-    Path.resolve(__dirname, '..', 'icons', 'banana.ico')
+    Path.resolve(__dirname, '..', 'icons', 'banana.ico');
+
+  var appWindow;
   appWindow = new BrowserWindow({
     width: 1250,
     height: 710,
