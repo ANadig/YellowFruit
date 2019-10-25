@@ -1,8 +1,11 @@
-var createDMG = require('electron-installer-dmg');
+const createDMG = require('electron-installer-dmg');
+const Path = require('path')
 
 createDMG({
-    appPath: 'C:/YellowFruit packages/Darwin/YellowFruit-darwin-x64',
-    out: 'C:/Users/awnad/Desktop',
+    appPath: Path.resolve(__dirname, '..', '..', 'dist', 'pkg', 'YellowFruit-darwin-x64'),
+    title: 'YellowFruit-installer',
+    out: Path.resolve(__dirname, '..', '..', 'dist', 'pkg'),
+    icon: Path.resolve(__dirname, 'banana.icns'),
     name: 'YellowFruit',
     overwrite: true
   },

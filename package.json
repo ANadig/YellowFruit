@@ -14,6 +14,7 @@
   "devDependencies": {
     "browserify": "^16.5.0",
     "electron": "^2.0.18",
+    "electron-installer-dmg": "^3.0.0",
     "electron-packager": "^12.1.0",
     "electron-winstaller": "^2.6.4",
     "gulp": "^4.0.2",
