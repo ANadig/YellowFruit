@@ -7,14 +7,16 @@
   },
   "scripts": {
     "pack-win": "electron-packager . YellowFruit --platform=win32 --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig",
-    "pack-darwin": "electron-packager . YellowFruit --platform=darwin --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig",
-    "pack-mas": "electron-packager . YellowFruit --platform=mas --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig"
+    "pack-darwin": "electron-packager . YellowFruit --platform=darwin --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig --app-version=\"2.3.3\" --app-bundle-id=\"com.AndrewNadig.YellowFruit\"",
+    "sign-darwin": "electron-osx-sign dist/pkg/YellowFruit-darwin-x64/YellowFruit.app --hardenedRuntime",
+    "pack-mas": "electron-packager . YellowFruit --platform=mas --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig --app-version=\"2.3.3\" --app-bundle-id=\"com.AndrewNadig.YellowFruit\"  --osx-sign"
   },
   "main": "app/main.js",
   "devDependencies": {
     "browserify": "^16.5.0",
     "electron": "^2.0.18",
     "electron-installer-dmg": "^3.0.0",
+    "electron-notarize": "^0.1.1",
     "electron-packager": "^12.1.0",
     "electron-winstaller": "^2.6.4",
     "gulp": "^4.0.2",
