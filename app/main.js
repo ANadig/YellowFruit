@@ -873,6 +873,44 @@ app.on('ready', function() {
   });
 
   /*---------------------------------------------------------
+  Show a message when QBJ import failed
+  ---------------------------------------------------------*/
+  ipc.on('qbjImportError', (event, errorString) => {
+    event.returnValue = '';
+    dialog.showMessageBox(
+      appWindow,
+      {
+        type: 'error',
+        buttons: ['&OK'],
+        defaultId: 0,
+        cancelId: 0,
+        title: 'QBJ Import',
+        message: 'QBJ Import failed: \n\n' + errorString,
+        normalizeAccessKeys: true
+      }
+    );
+  });
+
+  /*---------------------------------------------------------
+  Show a message when QBJ import failed
+  ---------------------------------------------------------*/
+  ipc.on('qbjImportSuccess', (event, message) => {
+    event.returnValue = '';
+    dialog.showMessageBox(
+      appWindow,
+      {
+        type: 'info',
+        buttons: ['&OK'],
+        defaultId: 0,
+        cancelId: 0,
+        title: 'QBJ Import',
+        message: message,
+        normalizeAccessKeys: true
+      }
+    );
+  });
+
+  /*---------------------------------------------------------
   Show a message explaining why the merge failed.
   ---------------------------------------------------------*/
   ipc.on('mergeError', (event, errorString) => {

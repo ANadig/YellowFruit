@@ -609,9 +609,10 @@ class MainInterface extends React.Component {
       var qbj = JSON.parse(fileString);
     }
     if(qbj.version != 1.2) {
-      console.log('incorrect version');
+      ipc.sendSync('qbjImportError', 'Only tournament schema version 1.2 is supported');
     }
     var tournament, registrations = [], matches = [];
+    let badObject = '';
     for(var i in qbj.objects) {
       let obj = qbj.objects[i];
       switch (obj.type) {
@@ -625,28 +626,29 @@ class MainInterface extends React.Component {
           matches.push(obj);
           break;
         default:
-          console.log('unrecognized object of type ' + obj.type);
+          badObject = obj.type;
+      }
+      if(badObject != '') {
+        ipc.sendSync('Unrecognized object of type ' + badObject);
+        break;
       }
     }
     var [yfRules, ruleErrors] = QbjUtils.parseQbjRules(tournament.scoring_rules);
     if(ruleErrors.length > 0) {
-      console.log('Error parsing rules');
-      console.log(ruleErrors);
+      ipc.sendSync(ruleErrors.join('\n'));
     }
     yfRules.defaultPhase = DEFAULT_SETTINGS.defaultPhase;
     yfRules.rptConfig = DEFAULT_SETTINGS.rptConfig;
 
     var [yfTeams, teamIds, teamErrors] = QbjUtils.parseQbjTeams(tournament, registrations);
     if(teamErrors.length > 0) {
-      console.log('Error parsing teams');
-      console.log(teamErrors);
+      ipc.sendSync(teamErrors.join('\n'));
     }
 
     var rounds = tournament.phases[0].rounds;
     var [yfGames, gameErrors] = QbjUtils.parseQbjMatches(rounds, matches, teamIds);
     if(gameErrors.length > 0) {
-      console.log('Error parsing games');
-      console.log(gameErrors);
+      ipc.sendSync(gameErrors.join('\n'));
     }
 
     this.setState({
@@ -662,6 +664,7 @@ class MainInterface extends React.Component {
 
     this.loadGameIndex(yfGames, true);
     this.loadPlayerIndex(yfTeams, yfGames, true);
+    ipc.sendSync('qbjImportSuccess', 'Imported ' + yfTeams.length + ' teams and ' + yfGames.length + ' games.');
     ipc.sendSync('unsavedData');
   }
 
