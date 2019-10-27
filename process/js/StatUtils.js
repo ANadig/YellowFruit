@@ -1223,7 +1223,7 @@ The totals row of a games table on the team detail page.
 ---------------------------------------------------------*/
 function teamDetailTeamSummaryRow(teamSummary, packetsExist, settings, rptConfig) {
   var html = '<tr class="pseudo-tfoot">' + '\n';
-  html += tdTag('', null, false, null, 'border-top:1px solid white');
+  html += tdTag('', null, false);
   html += tdTag('Total', 'left', true);
   html += tdTag('');
   html += tdTag(teamSummary.points, 'right', true);
@@ -1478,7 +1478,7 @@ results of compileIndividuals
 ---------------------------------------------------------*/
 function playerDetailTotalRow(player, settings, rptConfig) {
   var html = '<tr class="pseudo-tfoot">' + '\n';
-  html += tdTag('', null, false, null, 'border-top:1px solid white');
+  html += tdTag('', null, false);
   html += tdTag('Total', 'left', true);
   html += tdTag('');
   html += tdTag(player.gamesPlayed, 'right', true);
