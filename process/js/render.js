@@ -19,6 +19,7 @@ const ReactDOM = require('react-dom');
 const SqbsUtils = require('./SqbsUtils');
 const StatUtils = require('./StatUtils');
 const StatUtils2 = require('./StatUtils2');
+const QbjUtils = require('./QbjUtils');
 // Bring in all the other React components
 const TeamListEntry = require('./TeamListEntry');
 const GameListEntry = require('./GameListEntry');
@@ -233,6 +234,9 @@ class MainInterface extends React.Component {
     ipc.on('importRosters', (event, fileName) =>  {
       this.importRosters(fileName);
     });
+    ipc.on('importQbj', (event, fileName) => {
+      this.importQbj(fileName);
+    });
     ipc.on('mergeTournament', (event, fileName) => {
       this.mergeTournament(fileName);
     });
@@ -301,6 +305,7 @@ class MainInterface extends React.Component {
     ipc.removeAllListeners('saveTournamentAs');
     ipc.removeAllListeners('openTournament');
     ipc.removeAllListeners('importRosters');
+    ipc.removeAllListeners('importQbj');
     ipc.removeAllListeners('mergeTournament');
     ipc.removeAllListeners('saveExistingTournament');
     ipc.removeAllListeners('newTournament');
@@ -594,6 +599,71 @@ class MainInterface extends React.Component {
       ipc.sendSync('allDupsFromSQBS');
     }
   } // importRosters
+
+  /*---------------------------------------------------------
+  Validate and load a QBJ file
+  ---------------------------------------------------------*/
+  importQbj(fileName) {
+    var fileString = fs.readFileSync(fileName, 'utf8');
+    if(fileString != '') {
+      var qbj = JSON.parse(fileString);
+    }
+    if(qbj.version != 1.2) {
+      console.log('incorrect version');
+    }
+    var tournament, registrations = [], matches = [];
+    for(var i in qbj.objects) {
+      let obj = qbj.objects[i];
+      switch (obj.type) {
+        case 'Tournament':
+          tournament = obj;
+          break;
+        case 'Registration':
+          registrations.push(obj);
+          break;
+        case 'Match':
+          matches.push(obj);
+          break;
+        default:
+          console.log('unrecognized object of type ' + obj.type);
+      }
+    }
+    var [yfRules, ruleErrors] = QbjUtils.parseQbjRules(tournament.scoring_rules);
+    if(ruleErrors.length > 0) {
+      console.log('Error parsing rules');
+      console.log(ruleErrors);
+    }
+    yfRules.defaultPhase = DEFAULT_SETTINGS.defaultPhase;
+    yfRules.rptConfig = DEFAULT_SETTINGS.rptConfig;
+
+    var [yfTeams, teamIds, teamErrors] = QbjUtils.parseQbjTeams(tournament, registrations);
+    if(teamErrors.length > 0) {
+      console.log('Error parsing teams');
+      console.log(teamErrors);
+    }
+
+    var rounds = tournament.phases[0].rounds;
+    var [yfGames, gameErrors] = QbjUtils.parseQbjMatches(rounds, matches, teamIds);
+    if(gameErrors.length > 0) {
+      console.log('Error parsing games');
+      console.log(gameErrors);
+    }
+
+    this.setState({
+      settings: yfRules,
+      packets: [],
+      divisions: {},
+      myTeams: yfTeams,
+      myGames: yfGames,
+      settingsLoadToggle: !this.state.settingsLoadToggle,
+      viewingPhase: 'all',
+      activePane: 'settingsPane',
+    });
+
+    this.loadGameIndex(yfGames, true);
+    this.loadPlayerIndex(yfTeams, yfGames, true);
+    ipc.sendSync('unsavedData');
+  }
 
   /*---------------------------------------------------------
   Merge the tournament in fileName into this one.

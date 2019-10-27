@@ -112,6 +112,10 @@ const YF_MENU = {
       click(item, focusedWindow) { newTournament(focusedWindow); }
     },
     {
+      label: 'Import QBJ',
+      click(item, focusedWindow) { importQbj(focusedWindow); }
+    },
+    {
       label: 'Import Rosters from SQBS',
       click(item, focusedWindow) { importRosters(focusedWindow); }
     },
@@ -486,6 +490,30 @@ function newTournament(focusedWindow) {
     currentFile = '';
     focusedWindow.setTitle('New Tournament');
     unsavedData = false;
+  }
+}
+
+/*---------------------------------------------------------
+Prompt the user to select a QBJ file to import
+---------------------------------------------------------*/
+function importQbj(focusedWindow) {
+  if(!isMainWindow(focusedWindow)) { return; }
+  var willContinue = true, needToSave = false;
+  if(unsavedData) {
+    [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Import QBJ');
+    if(needToSave) {
+      saveExistingTournament(focusedWindow);
+    }
+  }
+  if(willContinue) {
+    dialog.showOpenDialog(focusedWindow,
+      {filters: [{name: 'Tournament Schema', extensions: ['qbj']}]},
+      (fileNameAry) => {
+        if(fileNameAry != undefined) {
+          focusedWindow.webContents.send('importQbj', fileNameAry[0]);
+        }
+      }
+    );
   }
 }
 
