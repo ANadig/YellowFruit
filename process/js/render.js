@@ -610,6 +610,7 @@ class MainInterface extends React.Component {
     }
     if(qbj.version != 1.2) {
       ipc.sendSync('qbjImportError', 'Only tournament schema version 1.2 is supported');
+      return;
     }
     var tournament, registrations = [], matches = [];
     let badObject = '';
@@ -629,26 +630,29 @@ class MainInterface extends React.Component {
           badObject = obj.type;
       }
       if(badObject != '') {
-        ipc.sendSync('Unrecognized object of type ' + badObject);
-        break;
+        ipc.sendSync('qbjImportError', 'Unrecognized object of type ' + badObject);
+        return;
       }
     }
     var [yfRules, ruleErrors] = QbjUtils.parseQbjRules(tournament.scoring_rules);
     if(ruleErrors.length > 0) {
-      ipc.sendSync(ruleErrors.join('\n'));
+      ipc.sendSync('qbjImportError', ruleErrors.join('\n'));
+      return;
     }
     yfRules.defaultPhase = DEFAULT_SETTINGS.defaultPhase;
     yfRules.rptConfig = DEFAULT_SETTINGS.rptConfig;
 
     var [yfTeams, teamIds, teamErrors] = QbjUtils.parseQbjTeams(tournament, registrations);
     if(teamErrors.length > 0) {
-      ipc.sendSync(teamErrors.join('\n'));
+      ipc.sendSync('qbjImportError', teamErrors.join('\n'));
+      return;
     }
 
     var rounds = tournament.phases[0].rounds;
     var [yfGames, gameErrors] = QbjUtils.parseQbjMatches(rounds, matches, teamIds);
     if(gameErrors.length > 0) {
-      ipc.sendSync(gameErrors.join('\n'));
+      ipc.sendSync('qbjImportError', gameErrors.join('\n'));
+      return;
     }
 
     this.setState({

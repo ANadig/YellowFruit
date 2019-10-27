@@ -28,13 +28,13 @@ module.exports.parseQbjRules = function(rules) {
     errors.push(rules.teams_per_match + ' teams per match');
   }
   if(rules.maximum_players_per_team > MAX_PLAYERS_PER_TEAM) {
-    errors.push('Maximum of ' + rules.maximum_players_per_team + ' players per team');
+    errors.push('Maximum of ' + rules.maximum_players_per_team + ' players per team is not supported');
   }
   if(rules.maximum_bonus_score != 30) {
-    errors.push('Maximum bonus score of ' + rules.maximum_bonus_score);
+    errors.push('Maximum bonus score of ' + rules.maximum_bonus_score + ' is not supported');
   }
   if(rules.bonus_divisor != 10) {
-    errors.push('Bonus divisor of ' + rules.bonus_divisor);
+    errors.push('Bonus divisor of ' + rules.bonus_divisor + ' is not supported');
   }
   // tournament must have 10 points tossups, plus at most one of 15- or 20-point powers,
   // optional -5 negs, and no other point values
