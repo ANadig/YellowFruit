@@ -506,6 +506,8 @@ function importQbj(focusedWindow) {
     }
   }
   if(willContinue) {
+    focusedWindow.setTitle('New Tournament');
+    unsavedData = false;
     dialog.showOpenDialog(focusedWindow,
       {filters: [{name: 'Tournament Schema', extensions: ['qbj']}]},
       (fileNameAry) => {
@@ -873,7 +875,7 @@ app.on('ready', function() {
   });
 
   /*---------------------------------------------------------
-  Show a message when QBJ import failed
+  Show a message when QBJ import failed or has warnings
   ---------------------------------------------------------*/
   ipc.on('qbjImportError', (event, errorString, isWarning) => {
     event.returnValue = '';
