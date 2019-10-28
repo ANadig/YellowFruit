@@ -237,7 +237,7 @@ module.exports.validateMatches = function(games, settings) {
     if(matchups[round][team1] == undefined) {
       matchups[round][team1] = [team2];
     }
-    else if(matchups[round][team1].includes[team2]) {
+    else if(matchups[round][team1].includes(team2)) {
       errors.push(gameString + ' - These teams have already played each other in this round');
       continue;
     }
@@ -247,13 +247,14 @@ module.exports.validateMatches = function(games, settings) {
     if(matchups[round][team2] == undefined) {
       matchups[round][team2] = [team1];
     }
-    else if(matchups[round][team2].includes[team1]) {
+    else if(matchups[round][team2].includes(team1)) {
       errors.push(gameString + ' - These teams have already played each other in this round');
       continue;
     }
     else {
       matchups[round][team2].push(team1);
     }
+    console.log(matchups);
     //scores are required
     if(g.score1 == undefined || g.score1 == '' || g.score1 < 0) {
       errors.push(gameString + ' - Score is invalid');
