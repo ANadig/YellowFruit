@@ -188,7 +188,7 @@ class MainInterface extends React.Component {
       if(event.keyCode == 27) { $('.modal.open').modal('close'); }
     });
 
-    Mousetrap.bind(['command+f', 'ctrl+k'], () => {
+    Mousetrap.bind(['command+f', 'ctrl+f'], () => {
       if(!this.anyModalOpen()) {
         $('#search').focus();
         $('#search').select();
