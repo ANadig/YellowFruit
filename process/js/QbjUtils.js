@@ -99,18 +99,30 @@ module.exports.parseQbjTeams = function(tournament, registrations) {
         break;
       }
       let teamObj = regObj.teams[j];
-      let roster = {}, rosterWithIds = {};
+      let teamName = teamObj.name;
+      if(teamName.length > 100) {
+        errors.push('Team name is too long: ' + teamName);
+        continue;
+      }
+      let roster = {}, rosterWithIds = {}, rosterError = false;
       for(var k in teamObj.players) {
         let p = teamObj.players[k];
         if(k > MAX_PLAYERS_PER_TEAM) {
-          errors.push(teamObj.name + ' has more than' + MAX_PLAYERS_PER_TEAM + 'players');
+          errors.push(teamName + ' has more than' + MAX_PLAYERS_PER_TEAM + 'players');
+          rosterError = true;
+          break;
+        }
+        if(p.name.length > 100) {
+          errors.push(teamName + ': Player name is too long (' + p.name + ')');
+          rosterError = true;
           break;
         }
         roster[p.name] = { year: '', div2: false, undergrad: false };
         rosterWithIds[p.id] = p.name;
       }
+      if(rosterError) { continue; }
       yfTeams.push({
-        teamName: teamObj.name,
+        teamName: teamName,
         roster: roster,
         divisions: {},
         teamUGStatus: false,
