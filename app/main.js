@@ -875,17 +875,18 @@ app.on('ready', function() {
   /*---------------------------------------------------------
   Show a message when QBJ import failed
   ---------------------------------------------------------*/
-  ipc.on('qbjImportError', (event, errorString) => {
+  ipc.on('qbjImportError', (event, errorString, isWarning) => {
     event.returnValue = '';
+    var messageStart = isWarning ? 'You may want to correct the following issues:' : 'QBJ Import failed:';
     dialog.showMessageBox(
       appWindow,
       {
-        type: 'error',
+        type: isWarning ? 'warning' : 'error',
         buttons: ['&OK'],
         defaultId: 0,
         cancelId: 0,
         title: 'QBJ Import',
-        message: 'QBJ Import failed: \n\n' + errorString,
+        message: messageStart + '\n\n' + errorString,
         normalizeAccessKeys: true
       }
     );

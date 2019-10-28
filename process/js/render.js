@@ -654,6 +654,14 @@ class MainInterface extends React.Component {
       ipc.sendSync('qbjImportError', gameErrors.join('\n'));
       return;
     }
+    var [gameErrors, gameWarnings] = QbjUtils.validateMatches(yfGames, yfRules);
+    if(gameErrors.length > 0) {
+      ipc.sendSync('qbjImportError', gameErrors.join('\n'));
+      return;
+    }
+    if(gameWarnings.length > 0) {
+      ipc.sendSync('qbjImportError', gameWarnings.join('\n'), true);
+    }
 
     this.setState({
       settings: yfRules,

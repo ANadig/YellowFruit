@@ -6,6 +6,7 @@ Functions for parsing QBJ files
 ***********************************************************/
 
 module.exports = {};
+const StatUtils = require('./StatUtils');
 const MAX_PLAYERS_PER_TEAM = 50;
 const MAX_ALLOWED_TEAMS = 200;
 
@@ -150,7 +151,7 @@ module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
           else { errors.push('Unsupported answer type'); }
         }
         yfPlayers1[teamIds[team1Id].roster[p.player.$ref]] = {
-          tuh: p.tossups_heard != undefined ? p.tossups_heard : '',
+          tuh: p.tossups_heard != undefined ? p.tossups_heard : 20, //assume 20 if not specified
           powers: powers,
           tens: tens,
           negs: negs
@@ -208,4 +209,121 @@ Check whether the $ref pointer in ref points to obj
 ---------------------------------------------------------*/
 function refCheck(ref, obj) {
   return ref.$ref == obj.id;
+}
+
+/*---------------------------------------------------------
+Validate games imported from a QBJ file
+---------------------------------------------------------*/
+module.exports.validateMatches = function(games, settings) {
+  var errors = [], warnings = [];
+  var matchups = [];
+  for(var i in games) {
+    let g = games[i];
+    let round = g.round, team1 = g.team1, team2 = g.team2;
+    let gameString = 'Round ' + round + ': ' + team1 + ' vs. ' + team2;
+    /******************** ERRORS ******************************/
+    if(team1 == team2) {
+      errors.push(gameString + ' - A team cannot play itself');
+      continue;
+    }
+    //teams can't play each other twice in the same round
+    if(matchups[round] == undefined) { matchups[round] = {}; }
+    if(matchups[round][team1] == undefined) {
+      matchups[round][team1] = [team2];
+    }
+    else if(matchups[round][team1].includes[team2]) {
+      errors.push(gameString + ' - These teams have already played each other in this round');
+      continue;
+    }
+    else {
+      matchups[round][team1].push(team2);
+    }
+    if(matchups[round][team2] == undefined) {
+      matchups[round][team2] = [team1];
+    }
+    else if(matchups[round][team2].includes[team1]) {
+      errors.push(gameString + ' - These teams have already played each other in this round');
+      continue;
+    }
+    else {
+      matchups[round][team2].push(team1);
+    }
+    //scores are required
+    if(g.score1 == undefined || g.score1 == '' || g.score1 < 0) {
+      errors.push(gameString + ' - Score is invalid');
+      continue;
+    }
+    if(g.score2 == undefined || g.score2 == '' || g.score2 < 0) {
+      errors.push(gameString + ' - Score is invalid');
+      continue;
+    }
+    // validate tossups heard
+    let tuhtot = g.tuhtot, tuhError = false, team1Tuh = 0, team2Tuh = 0;
+    for(var p in g.players1) {
+      let tuh = StatUtils.toNum(g.players1[p].tuh);
+      team1Tuh += tuh;
+      if(tuh > tuhtot) {
+        errors.push(gameString + ' - One or more players have heard more tossups than were read');
+        tuhError = true;
+      }
+    }
+    if(tuhError) { continue; }
+    for(var p in g.players2) {
+      let tuh = StatUtils.toNum(g.players2[p].tuh);
+      team2Tuh += tuh;
+      if(tuh > tuhtot) {
+        errors.push(gameString + ' - One or more players have heard more tossups than were read');
+        tuhError = true;
+      }
+    }
+    if(tuhError) { continue; }
+    if(team1Tuh > tuhtot * settings.playersPerTeam || team2Tuh > tuhtot * settings.playersPerTeam) {
+      errors.push(gameString + ' - Players have combined to hear more tossups than are allowed');
+      continue;
+    }
+    // all points must be accounted for if it's tossup-only
+    if(settings.bonuses == 'none' &&
+      (StatUtils.bonusPoints(g, 1, settings) > 0 ||
+      StatUtils.bonusPoints(g, 2, settings) > 0)) {
+        errors.push(gameString + ' - Tossup points and total score do not match');
+    }
+    // validate ppb
+    let bHeard1 = StatUtils.bonusesHeard(g, 1), bHeard2 = StatUtils.bonusesHeard(g, 2);
+    let bPts1 = StatUtils.bonusPoints(g, 1, settings), bPts2 = StatUtils.bonusPoints(g, 2, settings);
+    if(bPts1 < 0 || bPts2 < 0) {
+      errors.push(gameString + ' - Bonus points are negative');
+      continue;
+    }
+    if((bHeard1 > 0 && (bPts1 / bHeard1 > 30)) || (bHeard2 > 0 && (bPts2 / bHeard2 > 30))) {
+      errors.push(gameString + ' - PPB is greater than 30');
+      continue;
+    }
+    // can't hear more bonuses than there are tossups
+    if(bHeard1 + bHeard2 > tuhtot) {
+      errors.push(gameString + ' - Total tossups converted by both teams exceeds total tossups heard for the game');
+      continue;
+    }
+    // validate ppBb
+    if(settings.bonuses = 'yesBb') {
+      let bbHeard1 = StatUtils.bbHeard(g, 1, settings), bbHeard2 = StatUtils.bbHeard(g, 1, settings);
+      bbHeard1 = StatUtils.bbHrdToFloat(bbHeard1), bbHeard2 = StatUtils.bbHrdToFloat(bbHeard2);
+      if(g.bbPts1 / bbHeard1 > 30 || (g.bbPts1 > 0 && bbHeard1 == 0)) {
+        errors.push(gameString + ' - Points per bounceback is greater than 30');
+        continue;
+      }
+      if(g.bbPts2 / bbHeard2 > 30 || (g.bbPts2 > 0 && bbHeard2 == 0)) {
+        errors.push(gameString + ' - Points per bounceback is greater than 30');
+        continue;
+      }
+    }
+    /*********************** WARNINGS ***********************/
+    if(bPts1 % 10 != 0 || bPts2 % 10 != 0) {
+      warnings.push(gameString + ' - PPB is not divisible by 10');
+    }
+    var divisor = settings.powers == '15pts' || settings.negs == 'yes' ? 5 : 10;
+    if(g.score1 % divisor != 0 || g.score2 % divisor != 0) {
+      warnings.push(gameString + ' - Score is not divisible by ' + divisor);
+    }
+  }
+  return [errors, warnings];
 }
