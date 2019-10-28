@@ -254,7 +254,6 @@ module.exports.validateMatches = function(games, settings) {
     else {
       matchups[round][team2].push(team1);
     }
-    console.log(matchups);
     //scores are required
     if(g.score1 == undefined || g.score1 == '' || g.score1 < 0) {
       errors.push(gameString + ' - Score is invalid');
