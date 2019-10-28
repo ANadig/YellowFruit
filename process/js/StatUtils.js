@@ -1589,9 +1589,10 @@ function roundReportTableHeader(packetsExist, settings, rptConfig) {
 /*---------------------------------------------------------
 A row of data in the round report.
 ---------------------------------------------------------*/
-function roundReportRow(smry, roundNo, packetsExist, packets, settings, rptConfig) {
+function roundReportRow(smry, roundNo, packetsExist, packets, settings, rptConfig, fileStart) {
+  var link = '<a HREF=' + fileStart + 'games.html#round-' + roundNo + '>' + roundNo + '</a>';
   var html = '<tr>' + '\n' +
-    tdTag(roundNo, 'left');
+    tdTag(link, 'left');
   if(packetsExist) {
     var packetName = packets[roundNo] == undefined ? '' : packets[roundNo];
     html += tdTag(packetName, 'left');
@@ -1904,7 +1905,7 @@ function getRoundReportHtml(teams, games, fileStart, phase, packets, settings, r
   html += '<table width=100%>' + '\n';
   html += roundReportTableHeader(packetsExist, settings, rptConfig);
   for(var i in roundSummaries) {
-    html += roundReportRow(roundSummaries[i], i, packetsExist, packets, settings, rptConfig);
+    html += roundReportRow(roundSummaries[i], i, packetsExist, packets, settings, rptConfig, fileStart);
   }
   html += '</table>' + '\n';
   return html + getStatReportBottom();
