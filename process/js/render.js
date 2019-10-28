@@ -530,7 +530,11 @@ class MainInterface extends React.Component {
       settingsLoadToggle: !this.state.settingsLoadToggle,
       viewingPhase: 'all',
       activePane: 'settingsPane',
-      activeRpt: assocRpt
+      activeRpt: assocRpt,
+      teamOrder: 'alpha',
+      queryText: '',
+      selectedTeams: [],
+      selectedGames: [],
     });
     //the value of settingsLoadToggle doesn't matter; it just needs to change
     //in order to make the settings form load
@@ -672,6 +676,11 @@ class MainInterface extends React.Component {
       settingsLoadToggle: !this.state.settingsLoadToggle,
       viewingPhase: 'all',
       activePane: 'settingsPane',
+      teamOrder: 'alpha',
+      queryText: '',
+      selectedTeams: [],
+      selectedGames: [],
+      activeRpt: this.state.defaultRpt
     });
 
     this.loadGameIndex(yfGames, true);
