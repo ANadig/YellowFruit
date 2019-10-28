@@ -9,6 +9,7 @@ module.exports = {};
 const StatUtils = require('./StatUtils');
 const MAX_PLAYERS_PER_TEAM = 50;
 const MAX_ALLOWED_TEAMS = 200;
+const MAX_ALLOWED_GAMES = 900;
 
 
 /*---------------------------------------------------------
@@ -128,12 +129,17 @@ Load games from a QBJ file
 ---------------------------------------------------------*/
 module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
   var yfGames = [], errors = [];
+  var gameCount = 0;
   for(var i in rounds) {
     let roundNo = rounds[i].name.replace('Round ', '');
     let oneRoundsMatches = rounds[i].matches;
     for(var j in oneRoundsMatches) {
       let matchObj = matches.find((m) => { return refCheck(oneRoundsMatches[j], m); });
       if(matchObj == undefined) { continue; }
+      if(gameCount++ > MAX_ALLOWED_GAMES) {
+        errors.push('You may not load more than ' + MAX_ALLOWED_GAMES + ' games');
+        break;
+      }
       let team1Obj = matchObj.match_teams[0], team2Obj = matchObj.match_teams[1];
       let team1Id = team1Obj.team.$ref, team2Id = team2Obj.team.$ref;
       let players1Obj = team1Obj.match_players, players2Obj = team2Obj.match_players;
