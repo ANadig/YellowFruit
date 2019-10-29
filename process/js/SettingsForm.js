@@ -526,7 +526,7 @@ class SettingsForm extends React.Component{
         return (
           <li key={idx}>
             <div className="input-field tight-input">
-              <input id={'phase'+idx} type="text" name={'phase'+idx} maxLength="30"
+              <input id={'phase'+idx} type="text" name={'phase'+idx} maxLength="50"
               placeholder="Add a phase" value={tempPhases[idx]} onChange={this.handlePhaseChange}/>
             </div>
           </li>
