@@ -80,6 +80,14 @@ class HeaderNav extends React.Component{
   }
 
   /*---------------------------------------------------------
+  Truncate phase at 15 characters
+  ---------------------------------------------------------*/
+  truncate(phase) {
+    if(phase.length <= 15) { return phase; }
+    return phase.substr(0,15) + '...';
+  }
+
+  /*---------------------------------------------------------
   A button to open the division or phase assignment modal,
   or no button, depending on which pane is visible.
   ---------------------------------------------------------*/
@@ -117,8 +125,8 @@ class HeaderNav extends React.Component{
     for(var phase in this.props.divisions) {
       if(phase != 'noPhase') {
         var oneTab = (
-          <li key={phase} className={'tab ' + this.isViewingPhase(phase)}>
-            <a id={phase} onClick={this.setPhase}>{phase}</a>
+          <li key={phase} className={'tab ' + this.isViewingPhase(phase)} title={phase}>
+            <a id={phase} onClick={this.setPhase}>{this.truncate(phase)}</a>
           </li>
         );
         tabList.push(oneTab);

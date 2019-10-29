@@ -196,6 +196,10 @@ nav .nav-content .tabs .tab .active{
   background-color: rgba(0, 0, 0, 0.1);
 }
 
+nav .nav-content .tabs a {
+  padding: 0 12px;
+}
+
 nav .btn-flat {
   color: white;
   margin-left: 10px;
