@@ -25,7 +25,7 @@
     "gulp-react": "^3.1.0",
     "gulp-run": "^1.7.1",
     "react": "^16.4.1",
-    "react-dom": "^16.4.1",
+    "react-dom": "^16.4.2",
     "reactify": "^1.1.1"
   },
   "dependencies": {
