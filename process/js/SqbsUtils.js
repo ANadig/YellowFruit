@@ -281,7 +281,7 @@ function divisionList(divisions) {
 The number of teams, then the 0-indexed number of the
 division each team is assigned to.
 ---------------------------------------------------------*/
-function divisionAssignments(phase, divisions, teams) {
+function divisionAssignments(groupingPhases, divisions, teams) {
   var output = '';
   output += teams.length + '\n';
   if(divisions == undefined || divisions.length == 0) {
@@ -291,9 +291,11 @@ function divisionAssignments(phase, divisions, teams) {
     return output;
   }
   for(var i in teams) {
-    var t = teams[i];
-    var div = t.divisions[phase];
-    var index = divisions.indexOf(div);
+    let div = undefined, j = 0;
+    while(div == undefined && j < groupingPhases.length) {
+      div = teams[i].divisions[groupingPhases[j++]];
+    }
+    let index = divisions.indexOf(div);
     output += index + '\n'; //use the -1 if not found because that's how SQBS does it
   }
   return output;
@@ -366,8 +368,8 @@ function exhibitionStatuses(teams) {
 /*---------------------------------------------------------
 Generate the SQBS file contents.
 ---------------------------------------------------------*/
-function getSqbsFile(settings, viewingPhase, groupingPhase, divisions, teams, games, packets, gameIndex) {
-  if(groupingPhase == undefined || groupingPhase == null) { groupingPhase = 'noPhase'; }
+function getSqbsFile(settings, viewingPhase, groupingPhases, divisions, teams, games, packets, gameIndex) {
+  if(groupingPhases.length == 0) { groupingPhases = ['noPhase']; }
   var output = teamList(teams);
   output += gameList(settings, teams, games, viewingPhase);
   output += miscSettings(settings, divisions);
@@ -376,7 +378,7 @@ function getSqbsFile(settings, viewingPhase, groupingPhase, divisions, teams, ga
   output += fileSuffixes();
   output += blankLines(1);
   output += divisionList(divisions);
-  output += divisionAssignments(groupingPhase, divisions, teams);
+  output += divisionAssignments(groupingPhases, divisions, teams);
   output += pointValueList(settings);
   output += packetNamesSqbs(packets, gameIndex);
   output += exhibitionStatuses(teams);

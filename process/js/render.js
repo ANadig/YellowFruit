@@ -808,14 +808,7 @@ class MainInterface extends React.Component {
       var statKeyLocation = fileStart + 'statKey.html';
     }
     var phase = this.state.viewingPhase;
-    var usingPhases = this.usingPhases();
-    var phasesToGroupBy = [];
-    if(!usingPhases && this.usingDivisions()) { phasesToGroupBy = ['noPhase']; }
-    else if(phase != 'all') {
-      phasesToGroupBy = [phase];
-    }
-    else if(usingPhases) { phasesToGroupBy = this.state.settings.defaultPhases; }
-
+    var phasesToGroupBy = this.phasesToGroupBy();
     var divsInPhase = [], phaseSizes = [0];
     for(var i in phasesToGroupBy) {
       var oneDivList = this.state.divisions[phasesToGroupBy[i]];
@@ -868,10 +861,13 @@ class MainInterface extends React.Component {
   Export the data in SQBS format
   ---------------------------------------------------------*/
   writeSqbsFile(fileName) {
-    var phaseToGroupBy = this.state.viewingPhase == 'all' ?
-      this.state.settings.defaultPhases[0] : this.state.viewingPhase;
+    var phasesToGroupBy = this.phasesToGroupBy();
+    var divsInPhase = [];
+    for(var i in phasesToGroupBy) {
+      divsInPhase = divsInPhase.concat(this.state.divisions[phasesToGroupBy[i]]);
+    }
     var sqbsData = SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
-      phaseToGroupBy, this.state.divisions[phaseToGroupBy], this.state.myTeams,
+      phasesToGroupBy, divsInPhase, this.state.myTeams,
       this.state.myGames, this.state.packets, this.state.gameIndex);
     new Promise(function(resolve, reject) {
       resolve(fs.writeFileSync(fileName, sqbsData, 'utf8', StatUtils2.printError));
@@ -2001,6 +1997,17 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Get the list of phases (if any) by which to group teams
+  ---------------------------------------------------------*/
+  phasesToGroupBy() {
+    var usingPhases = this.usingPhases();
+    if(!usingPhases && this.usingDivisions()) { return ['noPhase']; }
+    else if(this.state.viewingPhase != 'all') { return [this.state.viewingPhase]; }
+    else if(usingPhases) { return this.state.settings.defaultPhases; }
+    return [];
+  }
+
+  /*---------------------------------------------------------
   Save the tournament format settings (powers, negs, bonuses,
   players per team. Merges these settings into the others
   contained in the settings object.
@@ -2270,12 +2277,7 @@ class MainInterface extends React.Component {
     var numberOfPhases = Object.keys(this.state.divisions).length;
     var usingPhases = this.usingPhases();
     var usingDivisions = this.usingDivisions();
-    var phasesToGroupBy = [];
-    if(!usingPhases && usingDivisions) { phasesToGroupBy = ['noPhase']; }
-    else if(this.state.viewingPhase != 'all') {
-      phasesToGroupBy = [this.state.viewingPhase];
-    }
-    else if(usingPhases) { phasesToGroupBy = this.state.settings.defaultPhases; }
+    var phasesToGroupBy = this.phasesToGroupBy();
     var divsInPhase = [];
     for(var i in phasesToGroupBy) {
       divsInPhase = divsInPhase.concat(this.state.divisions[phasesToGroupBy[i]]);
