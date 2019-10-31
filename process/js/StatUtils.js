@@ -313,8 +313,8 @@ function tdTag(text, align, bold, title, style) {
 /*---------------------------------------------------------
 Header row for the team standings.
 ---------------------------------------------------------*/
-function standingsHeader(settings, tiesExist, rptConfig, groupingPhase) {
-  if(groupingPhase == 'noPhase') { groupingPhase = 'All Games'; }
+function standingsHeader(settings, tiesExist, rptConfig, curGrpPhase) {
+  if(curGrpPhase == null) { curGrpPhase = 'All Games'; }
   var html = '<tr>' + '\n' +
     tdTag('Rank', 'left', true) +
     tdTag('Team', 'left', true);
@@ -340,7 +340,7 @@ function standingsHeader(settings, tiesExist, rptConfig, groupingPhase) {
   }
   html += tdTag('Pct','right',true);
   if(showPhaseRecord(rptConfig)) {
-    html += tdTag('Stage', 'right', true, TOOLTIPS.phaseRecord[0] + groupingPhase + TOOLTIPS.phaseRecord[1]);
+    html += tdTag('Stage', 'right', true, TOOLTIPS.phaseRecord[0] + curGrpPhase + TOOLTIPS.phaseRecord[1]);
   }
   if(showPpg(rptConfig)) {
     html +=  tdTag('PPG','right',true, TOOLTIPS.ppg);
@@ -471,13 +471,19 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
 /*---------------------------------------------------------
 Gather data for the team standings
 ---------------------------------------------------------*/
-function compileStandings(myTeams, myGames, phase, groupingPhase, settings, rptConfig) {
+function compileStandings(myTeams, myGames, filterPhase, groupingPhases, settings, rptConfig) {
   var standings = myTeams.map(function(item, index) {
+    var division = undefined, i = 0, teamsGrpPhase = undefined;
+    while(division == undefined && i < groupingPhases.length) {
+      teamsGrpPhase = groupingPhases[i++];
+      division = item.divisions[teamsGrpPhase];
+    }
     var obj =
       { teamName: item.teamName,
         smallSchool: item.smallSchool, jrVarsity: item.jrVarsity,
         teamUGStatus: item.teamUGStatus, teamD2Status: item.teamD2Status,
-        division: groupingPhase != null ? item.divisions[groupingPhase] : null,
+        division: division != undefined ? division : null,
+        groupingPhase: teamsGrpPhase,
         wins: 0, losses: 0, ties: 0, winPct: 0,
         phaseWins: 0, phaseLosses: 0, phaseTies: 0, phaseWinPct: 0,
         ppg: 0, papg: 0, margin: 0,
@@ -500,8 +506,12 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings, rptC
 
   for(var i in myGames) {
     var g = myGames[i];
-    var gameInGroupingPhase = g.phases.includes(groupingPhase);
-    if(phase == 'all' || g.phases.includes(phase)) {
+    var team1Line = _.find(standings, function (o) { return o.teamName == g.team1; });
+    var team2Line = _.find(standings, function (o) { return o.teamName == g.team2; });
+    //tens digit - whether to count for team 1. ones digit - whether to count for team 2
+    var inTeamOneGrpPhase = g.phases.includes(team1Line.groupingPhase);
+    var inTeamTwoGrpPhase = g.phases.includes(team2Line.groupingPhase);
+    if(filterPhase == 'all' || g.phases.includes(filterPhase)) {
       var team1Line = _.find(standings, function (o) {
         return o.teamName == g.team1;
       });
@@ -513,35 +523,27 @@ function compileStandings(myTeams, myGames, phase, groupingPhase, settings, rptC
         team2Line.losses += 1;
         team1Line.forfeits += 1;
         team2Line.forfeits += 1;
-        if(gameInGroupingPhase) {
-          team1Line.phaseWins += 1;
-          team2Line.phaseLosses += 1;
-        }
+        if(inTeamOneGrpPhase) { team1Line.phaseWins += 1; }
+        if(inTeamTwoGrpPhase) { team2Line.phaseLosses += 1; }
       }
       else { //not a forfeit
         if(+g.score1 > +g.score2) {
           team1Line.wins += 1;
           team2Line.losses += 1;
-          if(gameInGroupingPhase) {
-            team1Line.phaseWins += 1;
-            team2Line.phaseLosses += 1;
-          }
+          if(inTeamOneGrpPhase) { team1Line.phaseWins += 1; }
+          if(inTeamTwoGrpPhase) { team2Line.phaseLosses += 1; }
         }
         else if(+g.score2 > +g.score1) {
           team1Line.losses += 1;
           team2Line.wins += 1;
-          if(gameInGroupingPhase) {
-            team1Line.phaseLosses += 1;
-            team2Line.phaseWins += 1;
-          }
+          if(inTeamOneGrpPhase) { team1Line.phaseLosses += 1; }
+          if(inTeamTwoGrpPhase) { team2Line.phaseWins += 1; }
         }
         else { //it's a tie
           team1Line.ties += 1;
           team2Line.ties += 1;
-          if(gameInGroupingPhase) {
-            team1Line.phaseTies += 1;
-            team2Line.phaseTies += 1;
-          }
+          if(inTeamOneGrpPhase) { team1Line.phaseTies += 1; }
+          if(inTeamTwoGrpPhase) { team2Line.phaseTies += 1; }
         }
         team1Line.points += +g.score1;
         team2Line.points += +g.score2;
@@ -735,10 +737,14 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings, 
 /*---------------------------------------------------------
 Tabulate data for the individual standings page.
 ---------------------------------------------------------*/
-function compileIndividuals(myTeams, myGames, phase, groupingPhase, settings) {
+function compileIndividuals(myTeams, myGames, phase, groupingPhases, settings) {
   var individuals = [];
   for(var i in myTeams) {
     var t = myTeams[i];
+    var division = undefined, i = 0;
+    while(division == undefined && i < groupingPhases.length) {
+      division = t.divisions[groupingPhases[i++]];
+    }
     for(var p in t.roster) {
       var obj = {
         playerName: p,
@@ -746,7 +752,7 @@ function compileIndividuals(myTeams, myGames, phase, groupingPhase, settings) {
         undergrad: t.roster[p].undergrad,
         div2: t.roster[p].div2,
         teamName: t.teamName,
-        division: groupingPhase != null ? t.divisions[groupingPhase] : null,
+        division: division != undefined ? division : null,
         gamesPlayed: 0,
         powers: 0,
         tens: 0,
@@ -1670,18 +1676,21 @@ function tableStyle() {
 /*---------------------------------------------------------
 Generate the team standings page.
 ---------------------------------------------------------*/
-function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInPhase, settings, rptConfig) {
-  if(groupingPhase == undefined || groupingPhase == null) { groupingPhase = 'noPhase'; }
-  var standings = compileStandings(teams, games, phase, groupingPhase, settings, rptConfig);
+function getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsInPhase, phaseSizes, settings, rptConfig) {
+  var standings = compileStandings(teams, games, phase, groupingPhases, settings, rptConfig);
   var tiesExist = anyTiesExist(standings);
   var html = getStatReportTop('TeamStandings', fileStart, 'Team Standings') +
     '<h1> Team Standings</h1>' + '\n';
   html += tableStyle();
   if(divsInPhase != undefined && divsInPhase.length > 0) {
     var teamsInPriorDivisions = 0;
+    var phaseSizeIdx = 0, curGrpPhase = groupingPhases[0]; // track which phase to put in the phase record tooltip
     for(var i in divsInPhase) {
+      if(i >= phaseSizes[phaseSizeIdx+1]) {
+        curGrpPhase = groupingPhases[++phaseSizeIdx];
+      }
       html += '<h2>' + divsInPhase[i] + '</h2>' + '\n';
-      html += '<table width=100%>' + '\n' + standingsHeader(settings, tiesExist, rptConfig, groupingPhase);
+      html += '<table width=100%>' + '\n' + standingsHeader(settings, tiesExist, rptConfig, curGrpPhase);
       var teamsInDiv = _.filter(standings, (t) => { return t.division == divsInPhase[i] });
       var curRank = 0, prevPhaseRecord = null, curTeam;
       for(var j in teamsInDiv) {
@@ -1709,8 +1718,8 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInP
 /*---------------------------------------------------------
 Generate the individual standings page.
 ---------------------------------------------------------*/
-function getIndividualsHtml(teams, games, fileStart, phase, groupingPhase, usingDivisions, settings, rptConfig) {
-  var individuals = compileIndividuals(teams, games, phase, groupingPhase, settings);
+function getIndividualsHtml(teams, games, fileStart, phase, groupingPhases, usingDivisions, settings, rptConfig) {
+  var individuals = compileIndividuals(teams, games, phase, groupingPhases, settings);
   var html = getStatReportTop('IndividualStandings', fileStart, 'Individual Standings') +
     '<h1> Individual Statistics</h1>' + '\n';
   html += tableStyle();
@@ -1749,8 +1758,8 @@ Generate the team detail page.
 function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, phaseColors, rptConfig) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return toNum(item.round); }, 'asc');
-  var standings = compileStandings(teams, games, phase, null, settings, rptConfig);
-  var individuals = compileIndividuals(teams, games, phase, null, settings);
+  var standings = compileStandings(teams, games, phase, [], settings, rptConfig);
+  var individuals = compileIndividuals(teams, games, phase, [], settings);
   var packetsExist = packetNamesExist(packets);
 
   var html = getStatReportTop('TeamDetail', fileStart, 'Team Detail') + '\n' +
@@ -1818,7 +1827,7 @@ Generate the player detail page.
 function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColors, rptConfig) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
-  var playerTotals = compileIndividuals(teams, games, phase, null, settings);
+  var playerTotals = compileIndividuals(teams, games, phase, [], settings);
   playerTotals = _.orderBy(playerTotals,
     [function(item) { return item.teamName.toLowerCase(); },
     function(item) { return item.playerName.toLowerCase(); }],
@@ -1925,15 +1934,17 @@ function getStatKeyHtml(fileStart) {
 /*---------------------------------------------------------
 Stat report generation APIs
 ---------------------------------------------------------*/
-function getStandingsPage(teams, games, fileStart, phase, groupingPhase, divsInPhase, settings, rptConfig) {
+function getStandingsPage(teams, games, fileStart, phase, groupingPhases, divsInPhase,
+  phaseSizes, settings, rptConfig) {
   return new Promise(function(resolve, reject) {
-    resolve(getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInPhase, settings, rptConfig));
+    resolve(getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsInPhase,
+      phaseSizes, settings, rptConfig));
   });
 }
 
-function getIndividualsPage(teams, games, fileStart, phase, groupingPhase, usingDivisions, settings, rptConfig) {
+function getIndividualsPage(teams, games, fileStart, phase, groupingPhases, usingDivisions, settings, rptConfig) {
   return new Promise(function(resolve, reject) {
-    resolve(getIndividualsHtml(teams, games, fileStart, phase, groupingPhase, usingDivisions, settings, rptConfig));
+    resolve(getIndividualsHtml(teams, games, fileStart, phase, groupingPhases, usingDivisions, settings, rptConfig));
   });
 }
 

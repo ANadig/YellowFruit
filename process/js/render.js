@@ -808,10 +808,22 @@ class MainInterface extends React.Component {
       var statKeyLocation = fileStart + 'statKey.html';
     }
     var phase = this.state.viewingPhase;
-    var phaseToGroupBy = this.state.viewingPhase == 'all' ?
-      this.state.settings.defaultPhases[0] : this.state.viewingPhase;
-    var divsInPhase = this.state.divisions[phaseToGroupBy];
-    var usingDivisions = divsInPhase != undefined && divsInPhase.length > 0;
+    var usingPhases = this.usingPhases();
+    var phasesToGroupBy = [];
+    if(!usingPhases && this.usingDivisions()) { phasesToGroupBy = ['noPhase']; }
+    else if(phase != 'all') {
+      phasesToGroupBy = [phase];
+    }
+    else if(usingPhases) { phasesToGroupBy = this.state.settings.defaultPhases; }
+
+    var divsInPhase = [], phaseSizes = [0];
+    for(var i in phasesToGroupBy) {
+      var oneDivList = this.state.divisions[phasesToGroupBy[i]];
+      divsInPhase = divsInPhase.concat(oneDivList);
+      //keep track of which divisions came from which phases (for the phase record column tooltip)
+      phaseSizes[+i+1] = phaseSizes[i] + oneDivList.length;
+    }
+    var usingDivisions = divsInPhase.length > 0;
     //we only want the last segment of the file path to use for links
     var filePathSegments = fileStart.split(/[\\\/]/);
     var endFileStart = filePathSegments.pop();
@@ -824,9 +836,9 @@ class MainInterface extends React.Component {
 
     Promise.all([
       StatUtils.getStandingsPage(this.state.myTeams, this.state.myGames, endFileStart,
-        phase, phaseToGroupBy, divsInPhase, this.state.settings, activeRpt),
+        phase, phasesToGroupBy, divsInPhase, phaseSizes, this.state.settings, activeRpt),
       StatUtils.getIndividualsPage(this.state.myTeams, this.state.myGames, endFileStart,
-        phase, phaseToGroupBy, usingDivisions, this.state.settings, activeRpt),
+        phase, phasesToGroupBy, usingDivisions, this.state.settings, activeRpt),
       StatUtils.getScoreboardPage(this.state.myTeams, this.state.myGames, endFileStart,
         phase, this.state.settings, this.state.packets, phaseColors),
       StatUtils.getTeamDetailPage(this.state.myTeams, this.state.myGames, endFileStart,
@@ -2258,12 +2270,17 @@ class MainInterface extends React.Component {
     var numberOfPhases = Object.keys(this.state.divisions).length;
     var usingPhases = this.usingPhases();
     var usingDivisions = this.usingDivisions();
-    var phasesToGroupBy = this.state.viewingPhase == 'all' ?
-      this.state.settings.defaultPhases : [this.state.viewingPhase];
+    var phasesToGroupBy = [];
+    if(!usingPhases && usingDivisions) { phasesToGroupBy = ['noPhase']; }
+    else if(this.state.viewingPhase != 'all') {
+      phasesToGroupBy = [this.state.viewingPhase];
+    }
+    else if(usingPhases) { phasesToGroupBy = this.state.settings.defaultPhases; }
     var divsInPhase = [];
     for(var i in phasesToGroupBy) {
       divsInPhase = divsInPhase.concat(this.state.divisions[phasesToGroupBy[i]]);
     }
+
     var rptObj = this.state.releasedRptList[this.state.activeRpt];
     if(rptObj == undefined) { rptObj = this.state.customRptList[this.state.activeRpt]; }
 
