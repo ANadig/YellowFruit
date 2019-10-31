@@ -43,7 +43,7 @@ const DEFAULT_SETTINGS = {
   negs: 'yes',
   bonuses: 'noBb',
   playersPerTeam: '4',
-  defaultPhase: 'noPhase', // Used to group teams when viewing all games
+  defaultPhases: [], // Used to group teams when viewing all games
   rptConfig: 'SQBS Defaults'
 };
 //Materialize accent-1 colors: yellow, light-green, orange, light-blue, red, purple, teal, deep-purple, pink, green
@@ -491,13 +491,14 @@ class MainInterface extends React.Component {
     loadGames = JSON.parse(loadGames);
     var assocRpt = loadSettings.rptConfig;
 
-    //if coming from 2.0.4 or earlier, arbitrarily pick the first phase as default
-    if(loadSettings.defaultPhase == undefined) {
-      var numberOfPhases = Object.keys(loadDivisions).length;
-      if (numberOfPhases > 1 ||  (numberOfPhases == 1 && loadDivisions['noPhase'] == undefined)) {
-        loadSettings.defaultPhase = Object.keys(loadDivisions)[0];
-      }
+    //if coming from 2.0.4 or earlier, there's no default phase
+    if(loadSettings.defaultPhase == undefined && loadSettings. defaultPhases == undefined) {
+      loadSettings.defaultPhases = [];
     }
+    else if(StatUtils2.versionLt(loadMetadata.version, '2.4.0')) {
+      StatUtils2.settingsConversion2x4x0(loadSettings);
+    }
+
     //if coming from 2.1.0 or earlier, assign the SQBS default report
     if(assocRpt == undefined) {
       assocRpt = ORIG_DEFAULT_RPT_NAME;
@@ -643,7 +644,7 @@ class MainInterface extends React.Component {
       ipc.sendSync('qbjImportError', ruleErrors.join('\n'));
       return;
     }
-    yfRules.defaultPhase = DEFAULT_SETTINGS.defaultPhase;
+    yfRules.defaultPhases = DEFAULT_SETTINGS.defaultPhases;
     yfRules.rptConfig = DEFAULT_SETTINGS.rptConfig;
 
     var [yfTeams, teamIds, teamErrors] = QbjUtils.parseQbjTeams(tournament, registrations);
@@ -807,7 +808,7 @@ class MainInterface extends React.Component {
       var statKeyLocation = fileStart + 'statKey.html';
     }
     var phase = this.state.viewingPhase;
-    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhase : this.state.viewingPhase;
+    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhases[0] : this.state.viewingPhase;
     var divsInPhase = this.state.divisions[phaseToGroupBy];
     var usingDivisions = divsInPhase != undefined && divsInPhase.length > 0;
     //we only want the last segment of the file path to use for links
@@ -854,7 +855,7 @@ class MainInterface extends React.Component {
   Export the data in SQBS format
   ---------------------------------------------------------*/
   writeSqbsFile(fileName) {
-    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhase : this.state.viewingPhase;
+    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhases[0] : this.state.viewingPhase;
     var sqbsData = SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
       phaseToGroupBy, this.state.divisions[phaseToGroupBy], this.state.myTeams,
       this.state.myGames, this.state.packets, this.state.gameIndex);
@@ -1548,9 +1549,27 @@ class MainInterface extends React.Component {
       tempDivisions.noPhase = [];
     }
     tempDivisions[phase].push(divName);
+    //select a new default grouping phase if there wasn't one before
+    var newDefaultPhases = this.state.settings.defaultPhases;
+    if(newDefaultPhases.length == 0) {
+      var phaseList = Object.keys(this.state.divisions);
+      var numPhases = phaseList.length
+      if(numPhases > 0) {
+        var lastPhase = phaseList[numPhases - 1];
+        if(lastPhase = 'noPhase' && numPhases > 1) {
+          lastPhase = phaseList[numPhases - 2];
+        }
+        if(lastPhase != 'noPhase') {
+          newDefaultPhases = [lastPhase];
+        }
+      }
+    }
+    var newSettings = this.state.settings;
+    newSettings.defaultPhases = newDefaultPhases;
     this.setState({
      divisions: tempDivisions,
      divEditWindowVisible: acceptAndStay,
+     settings: newSettings,
      settingsLoadToggle: !this.state.settingsLoadToggle
     });
     ipc.sendSync('unsavedData');
@@ -1642,9 +1661,16 @@ class MainInterface extends React.Component {
     if(phase == 'noPhase' && tempDivisions.noPhase.length == 0) {
       delete tempDivisions.noPhase;
     }
+    // delete default grouping phase if there are no more divisions
+    var divsExist = false, newSettings = this.state.settings;
+    for(var p in tempDivisions) {
+      if(tempDivisions[p].length > 0) { divsExist = true; }
+    }
+    if(!divsExist) { newSettings.defaultPhases = []; }
     this.setState({
       divisions: tempDivisions,
       teams: tempTeams,
+      settings: newSettings,
       settingsLoadToggle: !this.state.settingsLoadToggle,
       divToBeDeleted: null
     });
@@ -1756,15 +1782,28 @@ class MainInterface extends React.Component {
     //can't be viewing a phase that doesn't exist
     var newViewingPhase = this.state.viewingPhase;
     if(!newPhases.includes(newViewingPhase)) { newViewingPhase = 'all'; }
-    //also can't have a default grouping phase that doesn't exist
-    var newDefaultPhase = this.state.settings.defaultPhase;
-    if(!newPhases.includes(newDefaultPhase)) { // incl if 'noPhase'
-      if(newPhases.length > 0 && newDivAry.length > 0) { newDefaultPhase = newPhases[0]; }
-      else { newDefaultPhase = 'noPhase'; }
+    //modify default grouping phases if necessary
+    var oldDefaultPhases = this.state.settings.defaultPhases;
+    var newDefaultPhases = this.state.settings.defaultPhases.slice();
+    if(Object.keys(this.state.divisions).length == 1 && this.usingDivisions()) {
+      // assign a new default if there weren't any phases at all before
+      newDefaultPhases = [newPhases[newPhases.length - 1]];
+    }
+    else {
+      for(var i in oldDefaultPhases) {
+        //can't have default grouping phases that don't exist
+        if(!newPhases.includes(oldDefaultPhases[i])) {
+          _.pull(newDefaultPhases, oldDefaultPhases[i]);
+        }
+      }
+      if(newDefaultPhases.length == 0) {
+        newDefaultPhases.push(newPhases[newPhases.length - 1]);
+      }
     }
 
+
     var newSettings = this.state.settings;
-    newSettings.defaultPhase = newDefaultPhase;
+    newSettings.defaultPhases = newDefaultPhases;
 
     this.setState({
       divisions: tempDivisions,
@@ -1920,9 +1959,9 @@ class MainInterface extends React.Component {
   Set which phase's divisions will be used when viewing all
   games
   ---------------------------------------------------------*/
-  setDefaultGrouping(phase) {
+  setDefaultGrouping(phases) {
     var newSettings = this.state.settings;
-    newSettings.defaultPhase = phase;
+    newSettings.defaultPhases = phases;
     this.setState({
       settings: newSettings
     });
@@ -2217,7 +2256,7 @@ class MainInterface extends React.Component {
     var numberOfPhases = Object.keys(this.state.divisions).length;
     var usingPhases = this.usingPhases();
     var usingDivisions = this.usingDivisions();
-    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhase : this.state.viewingPhase;
+    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhases[0] : this.state.viewingPhase;
     var divsInPhase = this.state.divisions[phaseToGroupBy];
     var rptObj = this.state.releasedRptList[this.state.activeRpt];
     if(rptObj == undefined) { rptObj = this.state.customRptList[this.state.activeRpt]; }
@@ -2430,7 +2469,7 @@ class MainInterface extends React.Component {
                 editDivision = {this.openDivForEdit}
                 deleteDivision = {this.deleteDivision}
                 reorderDivisions = {this.reorderDivisions}
-                defaultPhase = {this.state.settings.defaultPhase}
+                defaultPhases = {this.state.settings.defaultPhases}
                 setDefaultGrouping = {this.setDefaultGrouping}
                 saveSettings = {this.saveSettings}
                 savePackets = {this.savePackets}

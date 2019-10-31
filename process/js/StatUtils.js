@@ -314,6 +314,7 @@ function tdTag(text, align, bold, title, style) {
 Header row for the team standings.
 ---------------------------------------------------------*/
 function standingsHeader(settings, tiesExist, rptConfig, groupingPhase) {
+  if(groupingPhase == 'noPhase') { groupingPhase = 'All Games'; }
   var html = '<tr>' + '\n' +
     tdTag('Rank', 'left', true) +
     tdTag('Team', 'left', true);
@@ -1670,6 +1671,7 @@ function tableStyle() {
 Generate the team standings page.
 ---------------------------------------------------------*/
 function getStandingsHtml(teams, games, fileStart, phase, groupingPhase, divsInPhase, settings, rptConfig) {
+  if(groupingPhase == undefined || groupingPhase == null) { groupingPhase = 'noPhase'; }
   var standings = compileStandings(teams, games, phase, groupingPhase, settings, rptConfig);
   var tiesExist = anyTiesExist(standings);
   var html = getStatReportTop('TeamStandings', fileStart, 'Team Standings') +

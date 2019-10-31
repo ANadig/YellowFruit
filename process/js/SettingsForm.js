@@ -12,7 +12,8 @@ var $ = require('jquery');
 var StatUtils = require('./StatUtils');
 var SqbsUtils = require('./SqbsUtils');
 var DivisionListEntry = require('./DivisionListEntry');
-const DEF_PHASE_TOOLTIP = 'Team standings are grouped by this phase\'s divisions when all games are shown';
+const DEF_PHASE_ICONS = ['looks_one', 'looks_two', 'looks_3'];
+const DEF_PHASE_TOOLTIP = 'When viewing all games, team standings are grouped by these phases\' divisions according to the priority shown';
 const DEF_PHASE_LINK_TOOLTIP = 'Click to change how teams are grouped when viewing all games';
 
 class SettingsForm extends React.Component{
@@ -37,7 +38,7 @@ class SettingsForm extends React.Component{
       phases: _.without(allPhases, 'noPhase'),
       divisions: divList,
       phaseAssignments: phaseAssnList,
-      defaultPhase: props.settings.defaultPhase,
+      defaultPhases: props.settings.defaultPhases,
       numberOfSavedPhases: _.without(allPhases, 'noPhase').length,
       editingSettings: false,
       editingPackets: false,
@@ -421,11 +422,20 @@ class SettingsForm extends React.Component{
   setDefaultGrouping(e) {
     const target = e.target;
     const name = target.name;
-    var newDefault = name == this.state.defaultPhase ? 'noPhase' : name;
+    var newDefaults = this.state.defaultPhases.slice();
+    if(newDefaults.includes(name)) {
+      _.pull(newDefaults, name);
+    }
+    else {
+      if(newDefaults.length == 3) {
+        newDefaults.pop();
+      }
+      newDefaults.push(name);
+    }
     this.setState({
-      defaultPhase: newDefault
+      defaultPhases: newDefaults
     });
-    this.props.setDefaultGrouping(newDefault);
+    this.props.setDefaultGrouping(newDefaults);
   }
 
   /*---------------------------------------------------------
@@ -505,8 +515,10 @@ class SettingsForm extends React.Component{
     if(!this.state.editingPhases) {
       var phaseList = this.state.phases.map((phaseName, idx) => {
         if(this.state.divisions.length > 0) {
-          var icon = this.state.defaultPhase == phaseName ?
-            ( <i className="material-icons default-phase" title={DEF_PHASE_TOOLTIP}>playlist_add_check</i> ) : null;
+          var icon = null, priority = this.state.defaultPhases.indexOf(phaseName);
+          if(priority >= 0) {
+            icon = ( <i className="material-icons default-phase" title={DEF_PHASE_TOOLTIP}>{DEF_PHASE_ICONS[priority]}</i> );
+          }
           return (
             <li key={idx}>
               <a onClick={this.setDefaultGrouping} name={phaseName}

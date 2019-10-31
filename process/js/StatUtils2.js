@@ -95,6 +95,20 @@ module.exports.teamConversion2x3x0 = function(loadTeams) {
 }
 
 /*---------------------------------------------------------
+conversion on settings data structure (version 2.4.0)
+Convert default phase to an array of phases
+---------------------------------------------------------*/
+module.exports.settingsConversion2x4x0 = function(settings) {
+  if(settings.defaultPhase == 'noPhase') {
+    settings.defaultPhases = [];
+  }
+  else {
+    settings.defaultPhases = [settings.defaultPhase];
+  }
+  delete settings.defaultPhase;
+}
+
+/*---------------------------------------------------------
 For each player in this game, increment that player's
 count in the index. Assumes that teams and players are
 already defined.
@@ -162,6 +176,7 @@ Generate the data necessary for showing the abbreviated
 standings table in the sidebar
 ---------------------------------------------------------*/
 module.exports.getSmallStandings = function(myTeams, myGames, gamesPhase, groupingPhase, settings) {
+  if(groupingPhase == undefined || groupingPhase == null) { groupingPhase = 'noPhase'; }
   var summary = myTeams.map(function(item, index) {
     var obj =
       { teamName: item.teamName,

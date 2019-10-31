@@ -367,6 +367,7 @@ function exhibitionStatuses(teams) {
 Generate the SQBS file contents.
 ---------------------------------------------------------*/
 function getSqbsFile(settings, viewingPhase, groupingPhase, divisions, teams, games, packets, gameIndex) {
+  if(groupingPhase == undefined || groupingPhase == null) { groupingPhase = 'noPhase'; }
   var output = teamList(teams);
   output += gameList(settings, teams, games, viewingPhase);
   output += miscSettings(settings, divisions);
