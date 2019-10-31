@@ -175,12 +175,16 @@ module.exports.modifyTeamInPlayerIndex = function(oldTeam, newTeam, index) {
 Generate the data necessary for showing the abbreviated
 standings table in the sidebar
 ---------------------------------------------------------*/
-module.exports.getSmallStandings = function(myTeams, myGames, gamesPhase, groupingPhase, settings) {
-  if(groupingPhase == undefined || groupingPhase == null) { groupingPhase = 'noPhase'; }
+module.exports.getSmallStandings = function(myTeams, myGames, gamesPhase, groupingPhases, settings) {
+  if(groupingPhases.length == 0) { groupingPhases = ['noPhase']; }
   var summary = myTeams.map(function(item, index) {
+    var division = undefined, i = 0;
+    while(division == undefined && i < groupingPhases.length) {
+      division = item.divisions[groupingPhases[i++]];
+    }
     var obj =
       { teamName: item.teamName,
-        division: item.divisions[groupingPhase], //could be 'noPhase'
+        division: division,
         wins: 0,
         losses: 0,
         ties: 0,

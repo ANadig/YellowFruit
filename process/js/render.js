@@ -808,7 +808,8 @@ class MainInterface extends React.Component {
       var statKeyLocation = fileStart + 'statKey.html';
     }
     var phase = this.state.viewingPhase;
-    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhases[0] : this.state.viewingPhase;
+    var phaseToGroupBy = this.state.viewingPhase == 'all' ?
+      this.state.settings.defaultPhases[0] : this.state.viewingPhase;
     var divsInPhase = this.state.divisions[phaseToGroupBy];
     var usingDivisions = divsInPhase != undefined && divsInPhase.length > 0;
     //we only want the last segment of the file path to use for links
@@ -855,7 +856,8 @@ class MainInterface extends React.Component {
   Export the data in SQBS format
   ---------------------------------------------------------*/
   writeSqbsFile(fileName) {
-    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhases[0] : this.state.viewingPhase;
+    var phaseToGroupBy = this.state.viewingPhase == 'all' ?
+      this.state.settings.defaultPhases[0] : this.state.viewingPhase;
     var sqbsData = SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
       phaseToGroupBy, this.state.divisions[phaseToGroupBy], this.state.myTeams,
       this.state.myGames, this.state.packets, this.state.gameIndex);
@@ -2256,8 +2258,12 @@ class MainInterface extends React.Component {
     var numberOfPhases = Object.keys(this.state.divisions).length;
     var usingPhases = this.usingPhases();
     var usingDivisions = this.usingDivisions();
-    var phaseToGroupBy = this.state.viewingPhase == 'all' ? this.state.settings.defaultPhases[0] : this.state.viewingPhase;
-    var divsInPhase = this.state.divisions[phaseToGroupBy];
+    var phasesToGroupBy = this.state.viewingPhase == 'all' ?
+      this.state.settings.defaultPhases : [this.state.viewingPhase];
+    var divsInPhase = [];
+    for(var i in phasesToGroupBy) {
+      divsInPhase = divsInPhase.concat(this.state.divisions[phasesToGroupBy[i]]);
+    }
     var rptObj = this.state.releasedRptList[this.state.activeRpt];
     if(rptObj == undefined) { rptObj = this.state.customRptList[this.state.activeRpt]; }
 
@@ -2294,7 +2300,7 @@ class MainInterface extends React.Component {
       if(this.state.teamOrder == 'division') {
         filteredTeams = _.orderBy(filteredTeams, function(item) {
           var div;
-          if(usingPhases) { div = item.divisions[phaseToGroupBy]; }
+          if(usingPhases) { div = item.divisions[phasesToGroupBy[0]]; }
           else { div = item.divisions.noPhase; }
           if(div == undefined) { div = 'zzzzzzzzzzzzzzzzzzz'; } //teams with no division go (hopefully) at the end
           return div.toLowerCase();
@@ -2363,7 +2369,7 @@ class MainInterface extends React.Component {
         <div id="stat-sidebar" className="col xl4 s0">
           <StatSidebar
             visible = {this.state.sidebarOpen}
-            standings = {StatUtils2.getSmallStandings(myTeams, myGames, this.state.viewingPhase, phaseToGroupBy, this.state.settings)}
+            standings = {StatUtils2.getSmallStandings(myTeams, myGames, this.state.viewingPhase, phasesToGroupBy, this.state.settings)}
             divisions = {divsInPhase}
             settings = {this.state.settings}
             activeRpt = {rptObj}
