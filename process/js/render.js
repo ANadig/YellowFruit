@@ -503,7 +503,7 @@ class MainInterface extends React.Component {
     if(assocRpt == undefined) {
       assocRpt = ORIG_DEFAULT_RPT_NAME;
     }
-    //convert teams to new data structure
+    //convert teams and games to new data structures
     if(StatUtils2.versionLt(loadMetadata.version, '2.1.0')) {
       StatUtils2.teamConversion2x1x0(loadTeams);
     }
@@ -512,6 +512,9 @@ class MainInterface extends React.Component {
     }
     if(StatUtils2.versionLt(loadMetadata.version, '2.3.0')) {
       StatUtils2.teamConversion2x3x0(loadTeams);
+    }
+    if(StatUtils2.versionLt(loadMetadata.version, '2.4.0')) {
+      StatUtils2.gameConversion2x4x0(loadGames);
     }
     //revert to SQBS defaults if we can't find this file's report configuration
     if(this.state.releasedRptList[assocRpt] == undefined && this.state.customRptList[assocRpt] == undefined) {
@@ -720,7 +723,7 @@ class MainInterface extends React.Component {
         }
       }
     }
-    //convert team data structures if necessary
+    //convert team and game data structures if necessary
     if(StatUtils2.versionLt(loadMetadata.version, '2.1.0')) {
       StatUtils2.teamConversion2x1x0(loadTeams);
     }
@@ -729,6 +732,9 @@ class MainInterface extends React.Component {
     }
     if(StatUtils2.versionLt(loadMetadata.version, '2.3.0')) {
       StatUtils2.teamConversion2x3x0(loadTeams);
+    }
+    if(StatUtils2.versionLt(loadMetadata.version, '2.4.0')) {
+      StatUtils2.gameConversion2x4x0(loadGames);
     }
     // merge teams
     var teamsCopy = this.state.myTeams.slice();

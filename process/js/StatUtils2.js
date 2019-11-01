@@ -109,6 +109,14 @@ module.exports.settingsConversion2x4x0 = function(settings) {
 }
 
 /*---------------------------------------------------------
+conversion on games data structure (version 2.4.0)
+Add tiebreaker attribute
+---------------------------------------------------------*/
+module.exports.gameConversion2x4x0 = function(games) {
+  for(var i in games) { games[i].tiebreaker = false; }
+}
+
+/*---------------------------------------------------------
 For each player in this game, increment that player's
 count in the index. Assumes that teams and players are
 already defined.

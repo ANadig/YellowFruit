@@ -25,6 +25,7 @@ class AddGameModal extends React.Component{
       tuhtot: '', // total tossups heard for the game
       ottu: '',  // (total) overtime tossups
       forfeit: false,
+      tiebreaker: false,
       team1: 'nullTeam',
       team2: 'nullTeam',
       score1: '', // team 1's total score
@@ -89,6 +90,14 @@ class AddGameModal extends React.Component{
     const name = target.name;
     var partialState = {};
     partialState[name] = value;
+    //get rid of or put back phases if tiebreaker status is changing
+    if(name == 'tiebreaker') {
+      if(value) { partialState.phases = []; }
+      else if(this.props.addOrEdit == 'edit') {
+        partialState.phases = this.state.originalGameLoaded.phases;
+      }
+      else { partialState.phases = [this.props.currentPhase]; }
+    }
     this.setState(partialState);
   } //handleChange
 
@@ -169,6 +178,7 @@ class AddGameModal extends React.Component{
       tuhtot: '',
       ottu: '',
       forfeit: false,
+      tiebreaker: false,
       team1: 'nullTeam',
       team2: 'nullTeam',
       score1: '',
@@ -191,13 +201,13 @@ class AddGameModal extends React.Component{
   ---------------------------------------------------------*/
   loadGame() {
     //why do I have to list these out like this? Because it crashes if I do otherwise.
-    //why does it crash? I have no idea.
     this.setState({
       round: this.props.gameToLoad.round,
       phases: this.props.gameToLoad.phases,
       tuhtot: this.props.gameToLoad.tuhtot,
       ottu: this.props.gameToLoad.ottu,
       forfeit: this.props.gameToLoad.forfeit,
+      tiebreaker: this.props.gameToLoad.tiebreaker,
       team1: this.props.gameToLoad.team1,
       team2: this.props.gameToLoad.team2,
       score1: this.props.gameToLoad.score1,
@@ -230,10 +240,11 @@ class AddGameModal extends React.Component{
     var autoAssignPhase = this.props.addOrEdit == 'add' && this.props.currentPhase != 'all';
     var tempItem = {
       round: this.state.round,
-      phases: autoAssignPhase ? [this.props.currentPhase] : this.state.phases,
+      phases: autoAssignPhase && !this.state.tiebreaker ? [this.props.currentPhase] : this.state.phases,
       tuhtot: forf ? '' : this.state.tuhtot,
       ottu: forf ? '' : this.state.ottu,
       forfeit: this.state.forfeit,
+      tiebreaker: this.state.tiebreaker,
       team1: this.state.team1,
       team2: this.state.team2,
       score1: forf ? '' : this.state.score1,
@@ -655,10 +666,12 @@ class AddGameModal extends React.Component{
 
   /*---------------------------------------------------------
   Chip containing the label for one of the game's phases.
+  Pass colorNo -1 for a gray chip
   ---------------------------------------------------------*/
   phaseChip(colorNo, phase) {
+    var colorName = colorNo >=0 ? CHIP_COLORS[colorNo % CHIP_COLORS.length] : '';
     return (
-      <div key={phase} className={'chip accent-1 ' + CHIP_COLORS[colorNo % CHIP_COLORS.length]}>
+      <div key={phase} className={'chip accent-1 ' + colorName}>
         {phase}
       </div>
     );
@@ -675,10 +688,15 @@ class AddGameModal extends React.Component{
 
     //labels for every phase the game is part of
     var phaseChips = [];
-    for(var i in this.props.allPhases) {
-      if((this.props.addOrEdit == 'add' && this.props.currentPhase == this.props.allPhases[i]) ||
-        (this.props.addOrEdit == 'edit' && this.state.phases.includes(this.props.allPhases[i]))) {
-        phaseChips.push(this.phaseChip(i, this.props.allPhases[i]));
+    if(this.state.tiebreaker) {
+      phaseChips = [this.phaseChip(-1, 'Tiebreaker')];
+    }
+    else {
+      for(var i in this.props.allPhases) {
+        if((this.props.addOrEdit == 'add' && this.props.currentPhase == this.props.allPhases[i]) ||
+          (this.props.addOrEdit == 'edit' && this.state.phases.includes(this.props.allPhases[i]))) {
+          phaseChips.push(this.phaseChip(i, this.props.allPhases[i]));
+        }
       }
     }
     // multi-select dropdown to pick phases
@@ -691,7 +709,8 @@ class AddGameModal extends React.Component{
       });
       phaseSelect = (
         <div className="input-field col s3">
-          <select multiple id="phases" name="phases" value={this.state.phases} onChange={this.handlePhaseChange}>
+          <select multiple id="phases" name="phases" value={this.state.phases}
+          disabled={this.state.tiebreaker ? 'disabled' : ''} onChange={this.handlePhaseChange}>
             <option value="" disabled>Phase...</option>
             {phaseOptions}
           </select>
@@ -905,7 +924,8 @@ class AddGameModal extends React.Component{
               <label htmlFor="round">Round No.</label>
             </div>
             <div className="input-field col s3">
-              <input id="tuhtot" className={this.validateField("tuhtot",false)} disabled={this.state.forfeit ? 'disabled' : ''}
+              <input id="tuhtot" className={this.validateField("tuhtot",false)}
+                disabled={this.state.forfeit ? 'disabled' : ''}
                 type="number" name="tuhtot" min="0"
                 value={this.state.forfeit ? '' : this.state.tuhtot} onChange={this.handleChange}/>
               <label htmlFor="tuhtot">Toss-ups (incl. OT)</label>
@@ -967,20 +987,27 @@ class AddGameModal extends React.Component{
           {bouncebackRow}
 
           <div className="row game-entry-bottom-row">
-            <div className="input-field col s6 m8">
+            <div className="input-field col s12 m6">
               <textarea className="materialize-textarea" id="gameNotes" name="notes"
                 maxLength="500" onChange={this.handleChange} value={this.state.notes} />
               <label htmlFor="gameNotes">Notes about this game</label>
             </div>
-            <div className="input-field col s3 m2">
+            <div className="input-field col s4 m2">
               <input id="ottu" disabled={this.state.forfeit ? 'disabled' : ''} type="number" name="ottu" min="0"
               value={this.state.forfeit ? '' : this.state.ottu} onChange={this.handleChange}/>
               <label htmlFor="ottu">Overtime TU</label>
             </div>
-            <div className="col s3 m2 forfeit-ctrl">
+            <div className="col s4 m2 forfeit-ctrl">
               <label>
                 <input type="checkbox" name="forfeit" checked={this.state.forfeit} onChange={this.handleChange}/>
                 <span>Forfeit?</span>
+              </label>
+            </div>
+            <div className="col s4 m2 forfeit-ctrl">
+              <label>
+                <input type="checkbox" name="tiebreaker" checked={this.state.tiebreaker}
+                onChange={this.handleChange}/>
+                <span>Tiebreaker?</span>
               </label>
             </div>
           </div>
