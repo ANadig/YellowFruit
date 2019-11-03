@@ -183,9 +183,9 @@ module.exports.modifyTeamInPlayerIndex = function(oldTeam, newTeam, index) {
 Generate the data necessary for showing the abbreviated
 standings table in the sidebar
 ---------------------------------------------------------*/
-module.exports.getSmallStandings = function(myTeams, myGames, gamesPhase, groupingPhases, settings, showTbs) {
+module.exports.getSmallStandings = function(teams, games, gamesPhase, groupingPhases, settings, showTbs) {
   if(groupingPhases.length == 0) { groupingPhases = ['noPhase']; }
-  var summary = myTeams.map(function(item, index) {
+  var summary = teams.map(function(item, index) {
     var division = undefined, i = 0;
     while(division == undefined && i < groupingPhases.length) {
       division = item.divisions[groupingPhases[i++]];
@@ -204,8 +204,8 @@ module.exports.getSmallStandings = function(myTeams, myGames, gamesPhase, groupi
       };
     return obj;
   }); //map
-  for(var i in myGames) {
-    var g = myGames[i];
+  for(var i in games) {
+    var g = games[i];
     if(StatUtils.matchFilterPhase(g, gamesPhase, showTbs)) {
       var idx1 = _.findIndex(summary, function (o) {
         return o.teamName == g.team1;

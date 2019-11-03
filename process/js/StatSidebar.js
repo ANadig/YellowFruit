@@ -149,6 +149,9 @@ class StatSidebar extends React.Component{
     if(this.props.activeRpt == undefined) { return ( <span>Report configuration error</span> ); }
 
     var sortedSummary = this.standingsSort(this.props.standings.slice());
+    if(this.props.phase == 'Tiebreakers') {
+      sortedSummary = sortedSummary.filter((t) => { return t.wins + t.losses + t.ties > 0; });
+    }
     var tables = [];
     if(this.props.divisions != undefined && this.props.divisions.length > 0) {
       for(var i in this.props.divisions) {

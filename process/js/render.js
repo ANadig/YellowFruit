@@ -2444,6 +2444,7 @@ class MainInterface extends React.Component {
           <StatSidebar
             visible = {this.state.sidebarOpen}
             standings = {StatUtils2.getSmallStandings(myTeams, myGames, this.state.viewingPhase, phasesToGroupBy, this.state.settings, this.state.allGamesShowTbs)}
+            phase = {this.state.viewingPhase}
             divisions = {divsInPhase}
             settings = {this.state.settings}
             activeRpt = {rptObj}
