@@ -1792,21 +1792,25 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
   html += tableStyle();
 
   for(var i in teams) {
-    var teamName = teams[i].teamName;
-    var linkId = teamName.replace(/\W/g, '');
+    let oneTeam = teams[i];
+    let teamName = oneTeam.teamName;
+    let teamSummary = _.find(standings, (o) => { return o.teamName == teamName; });
+    if(teamSummary.wins + teamSummary.losses + teamSummary.ties == 0) { continue; }
+
+    let linkId = teamName.replace(/\W/g, '');
     html += '<h2 style="display:inline-block" id=' + linkId + '>' + teamName + '</h2>' + '\n';
     //display UG, D2 status
     var attributes = [];
-    if(showSS(rptConfig) && teams[i].smallSchool) {
+    if(showSS(rptConfig) && oneTeam.smallSchool) {
       attributes.push('SS');
     }
-    if(showJV(rptConfig) && teams[i].jrVarsity) {
+    if(showJV(rptConfig) && oneTeam.jrVarsity) {
       attributes.push('JV');
     }
-    if((showTeamUG(rptConfig) || showTeamCombined(rptConfig)) && teams[i].teamUGStatus) {
+    if((showTeamUG(rptConfig) || showTeamCombined(rptConfig)) && oneTeam.teamUGStatus) {
       attributes.push('UG');
     }
-    if((showTeamD2(rptConfig) || showTeamCombined(rptConfig)) && teams[i].teamD2Status) {
+    if((showTeamD2(rptConfig) || showTeamCombined(rptConfig)) && oneTeam.teamD2Status) {
       attributes.push('D2');
     }
     var statusDisp = '';
@@ -1832,7 +1836,6 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
           phaseColors, formatRdCol, fileStart, rptConfig);
       }
     }
-    var teamSummary = _.find(standings, (o) => { return o.teamName == teamName; });
     html += teamDetailTeamSummaryRow(teamSummary, packetsExist, settings, rptConfig);
     html += '</table>' + '<br>' + '\n';
     html += '<table width=100%>' + '\n';
