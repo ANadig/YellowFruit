@@ -481,8 +481,8 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
 /*---------------------------------------------------------
 Gather data for the team standings
 ---------------------------------------------------------*/
-function compileStandings(myTeams, myGames, filterPhase, groupingPhases, settings, rptConfig, showTbs) {
-  var standings = myTeams.map(function(item, index) {
+function compileStandings(teams, games, filterPhase, groupingPhases, settings, rptConfig, showTbs) {
+  var standings = teams.map(function(item, index) {
     var division = undefined, i = 0, teamsGrpPhase = undefined;
     while(division == undefined && i < groupingPhases.length) {
       teamsGrpPhase = groupingPhases[i++];
@@ -514,8 +514,8 @@ function compileStandings(myTeams, myGames, filterPhase, groupingPhases, setting
     return obj;
   }); //map
 
-  for(var i in myGames) {
-    var g = myGames[i];
+  for(var i in games) {
+    var g = games[i];
     var team1Line = _.find(standings, function (o) { return o.teamName == g.team1; });
     var team2Line = _.find(standings, function (o) { return o.teamName == g.team2; });
     //tens digit - whether to count for team 1. ones digit - whether to count for team 2
@@ -747,10 +747,10 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings, 
 /*---------------------------------------------------------
 Tabulate data for the individual standings page.
 ---------------------------------------------------------*/
-function compileIndividuals(myTeams, myGames, phase, groupingPhases, settings, showTbs) {
+function compileIndividuals(teams, games, phase, groupingPhases, settings, showTbs) {
   var individuals = [];
-  for(var i in myTeams) {
-    var t = myTeams[i];
+  for(var i in teams) {
+    var t = teams[i];
     var division = undefined, i = 0;
     while(division == undefined && i < groupingPhases.length) {
       division = t.divisions[groupingPhases[i++]];
@@ -778,9 +778,9 @@ function compileIndividuals(myTeams, myGames, phase, groupingPhases, settings, s
       individuals.push(obj);
     }
   }
-  for(var i in myGames) {
+  for(var i in games) {
     var pEntry, tuh;
-    var g = myGames[i];
+    var g = games[i];
     if(matchFilterPhase(g, phase, showTbs)) {
       var players1 = g.players1, players2 = g.players2;
       for(var p in players1) {
@@ -907,10 +907,10 @@ function scoreboardLinkID(game) {
 HTML for all the game summaries for a single round on the
 scoreboard page.
 ---------------------------------------------------------*/
-function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors, showTbs) {
+function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, showTbs) {
   var html = '';
-  for(var i in myGames) {
-    var g = myGames[i];
+  for(var i in games) {
+    var g = games[i];
     if(matchFilterPhase(g, phase, showTbs) && g.round == roundNo) {
       var linkId = 'R' + roundNo + '-' + g.team1.replace(/\W/g, '') + '-' +
         g.team2.replace(/\W/g, '');
@@ -1725,7 +1725,10 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsIn
   else { //not using divisions
     html += '<table width=100%>' + '\n' + standingsHeader(settings, tiesExist, rptConfig);
     for(var i in standings) {
-      html += standingsRow(standings[i], parseFloat(i)+1, fileStart, settings, tiesExist, rptConfig);
+      let teamEntry = standings[i];
+      if(phase != 'Tiebreakers' || teamEntry.wins + teamEntry.losses + teamEntry.ties > 0) {
+        html += standingsRow(teamEntry, parseFloat(i)+1, fileStart, settings, tiesExist, rptConfig);
+      }
     }
     html += '\n' + '</table>' + '\n';
   }
