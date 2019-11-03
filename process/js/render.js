@@ -92,6 +92,8 @@ class MainInterface extends React.Component {
       myGames: [], // the list of games
       gameIndex: {}, // the list of rounds, and how many games exist for that round
       playerIndex: {}, // the list of teams with their players, and how many games each player has played
+      tbCount: 0, // number of tiebreaker games in the current tournament
+      allGamesShowTbs: false, // whether to include tiebreakers when showing all games
       selectedTeams: [], // teams with checkbox checked on the teams pane
       selectedGames: [], // games with checkbox checked on the games pane
       checkTeamToggle: false, // used in the key of TeamListEntry components in order to
@@ -101,7 +103,7 @@ class MainInterface extends React.Component {
                                  // when divisions or phases are changed
       navbarLoadToggle: false, //used to force the navbar to redraw
       activePane: 'settingsPane',  // settings, teams, or games
-      viewingPhase: 'all', // 'all' or the name of a user-defined phase
+      viewingPhase: 'all', // 'all' or the name of a user-defined phase, or 'Tiebreakers'
       forceResetForms: false, // used to force an additional render in the team and game
                               // modals in order to clear form data
       editWhichDivision: null, // which division to load in the division edit modal
@@ -159,6 +161,7 @@ class MainInterface extends React.Component {
     this.removeDivisionFromTeam = this.removeDivisionFromTeam.bind(this);
     this.removePhaseFromGame = this.removePhaseFromGame.bind(this);
     this.setDefaultGrouping = this.setDefaultGrouping.bind(this);
+    this.toggleTiebreakers = this.toggleTiebreakers.bind(this);
     this.saveSettings = this.saveSettings.bind(this);
     this.editingSettings = this.editingSettings.bind(this);
     this.teamHasPlayedGames = this.teamHasPlayedGames.bind(this);
@@ -521,6 +524,9 @@ class MainInterface extends React.Component {
       assocRpt = ORIG_DEFAULT_RPT_NAME;
     }
 
+    var tbCount = 0;
+    for(var i in loadGames) { tbCount += loadGames[i].tiebreaker; }
+
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
     ipc.sendSync('rebuildMenus', this.state.releasedRptList, this.state.customRptList, assocRpt);
@@ -531,6 +537,8 @@ class MainInterface extends React.Component {
       divisions: loadDivisions,
       myTeams: loadTeams,
       myGames: loadGames,
+      tbCount: tbCount,
+      allGamesShowTbs: false,
       settingsLoadToggle: !this.state.settingsLoadToggle,
       viewingPhase: 'all',
       activePane: 'settingsPane',
@@ -677,6 +685,7 @@ class MainInterface extends React.Component {
       divisions: {},
       myTeams: yfTeams,
       myGames: yfGames,
+      allGamesShowTbs: false,
       settingsLoadToggle: !this.state.settingsLoadToggle,
       viewingPhase: 'all',
       activePane: 'settingsPane',
@@ -763,7 +772,7 @@ class MainInterface extends React.Component {
     }
     // merge games
     var gamesCopy = this.state.myGames.slice();
-    var newGameCount = 0;
+    var newGameCount = 0, tbCount = this.state.tbCount;
     var conflictGames = [];
     for(var i in loadGames) {
       var newGame = loadGames[i];
@@ -771,6 +780,7 @@ class MainInterface extends React.Component {
       if(oldGame == undefined) {
         gamesCopy.push(newGame);
         newGameCount++;
+        tbCount += newGame.tiebreaker;
       }
       else { conflictGames.push(newGame); }
     }
@@ -778,6 +788,7 @@ class MainInterface extends React.Component {
       divisions: divisionsCopy,
       myTeams: teamsCopy,
       myGames: gamesCopy,
+      tbCount: tbCount,
       settingsLoadToggle: !this.state.settingsLoadToggle
     });
     this.loadGameIndex(gamesCopy, false);
@@ -813,7 +824,7 @@ class MainInterface extends React.Component {
       var roundReportLocation = fileStart + 'rounds.html';
       var statKeyLocation = fileStart + 'statKey.html';
     }
-    var phase = this.state.viewingPhase;
+    var filterPhase = this.state.viewingPhase;
     var phasesToGroupBy = this.phasesToGroupBy();
     var divsInPhase = [], phaseSizes = [0];
     for(var i in phasesToGroupBy) {
@@ -826,26 +837,35 @@ class MainInterface extends React.Component {
     //we only want the last segment of the file path to use for links
     var filePathSegments = fileStart.split(/[\\\/]/);
     var endFileStart = filePathSegments.pop();
+
+    var showTbs = this.state.allGamesShowTbs;
     var phaseColors = {}, phaseCnt = 0;
     for(var p in this.state.divisions) {
       if(p != "noPhase") { phaseColors[p] = PHASE_COLORS[phaseCnt++]; }
     }
+    if(this.state.tbCount > 0 && showTbs) {
+      phaseColors["Tiebreakers"] = '#9e9e9e'; // for phase legends
+    }
+
     var activeRpt = this.state.releasedRptList[this.state.activeRpt];
     if(activeRpt == undefined) { activeRpt = this.state.customRptList[this.state.activeRpt]; }
 
+    var teams = this.state.myTeams, games = this.state.myGames,
+      settings = this.state.settings, packets = this.state.packets;
+
     Promise.all([
-      StatUtils.getStandingsPage(this.state.myTeams, this.state.myGames, endFileStart,
-        phase, phasesToGroupBy, divsInPhase, phaseSizes, this.state.settings, activeRpt),
-      StatUtils.getIndividualsPage(this.state.myTeams, this.state.myGames, endFileStart,
-        phase, phasesToGroupBy, usingDivisions, this.state.settings, activeRpt),
-      StatUtils.getScoreboardPage(this.state.myTeams, this.state.myGames, endFileStart,
-        phase, this.state.settings, this.state.packets, phaseColors),
-      StatUtils.getTeamDetailPage(this.state.myTeams, this.state.myGames, endFileStart,
-        phase, this.state.packets, this.state.settings, phaseColors, activeRpt),
-      StatUtils.getPlayerDetailPage(this.state.myTeams, this.state.myGames, endFileStart,
-        phase, this.state.settings, phaseColors, activeRpt),
-      StatUtils.getRoundReportPage(this.state.myTeams, this.state.myGames, endFileStart,
-        phase, this.state.packets, this.state.settings, activeRpt),
+      StatUtils.getStandingsPage(teams, games, endFileStart, filterPhase,
+        phasesToGroupBy, divsInPhase, phaseSizes, settings, activeRpt, showTbs),
+      StatUtils.getIndividualsPage(teams, games, endFileStart, filterPhase,
+        phasesToGroupBy, usingDivisions, settings, activeRpt, showTbs),
+      StatUtils.getScoreboardPage(teams, games, endFileStart, filterPhase, settings,
+        packets, phaseColors, showTbs),
+      StatUtils.getTeamDetailPage(teams, games, endFileStart, filterPhase, packets,
+        settings, phaseColors, activeRpt, showTbs),
+      StatUtils.getPlayerDetailPage(teams, games, endFileStart, filterPhase, settings,
+        phaseColors, activeRpt, showTbs),
+      StatUtils.getRoundReportPage(teams, games, endFileStart, filterPhase, packets,
+        settings, activeRpt, showTbs),
       StatUtils.getStatKeyPage(endFileStart),
     ]).then(([standings, individuals, scoreboard, teamDet, playerDet, roundRep, statKey]) => {
       fs.writeFileSync(standingsLocation, standings, 'utf8', StatUtils2.printError);
@@ -933,6 +953,8 @@ class MainInterface extends React.Component {
       myGames: [],
       gameIndex: {},
       playerIndex: {},
+      tbCount: 0,
+      allGamesShowTbs: false,
       selectedTeams: [],
       selectedGames: [],
       checkTeamToggle: false,
@@ -997,16 +1019,17 @@ class MainInterface extends React.Component {
 
   /*---------------------------------------------------------
   cycle backwards through phases (user defined phases plus
-  "all games")
+  "all games" and "tiebreakers")
   ---------------------------------------------------------*/
   previousPhase() {
-    var newPhase = 'all';
+    var newPhase = 'all', oldPhase = this.state.viewingPhase;
     var phaseList = Object.keys(this.state.divisions);
     phaseList = _.without(phaseList, 'noPhase');
     if(phaseList.length == 0) { return; }
-    if(this.state.viewingPhase == 'all') {
-      newPhase = phaseList[phaseList.length-1];
+    if(oldPhase == 'all') {
+      newPhase = this.state.tbCount > 0 ? 'Tiebreakers' : phaseList[phaseList.length-1];
     }
+    else if(oldPhase == 'Tiebreakers') { newPhase = phaseList[phaseList.length-1]; }
     else {
       var curPhaseNo = phaseList.indexOf(this.state.viewingPhase);
       if(curPhaseNo <= 0) { newPhase = 'all'; }
@@ -1022,16 +1045,17 @@ class MainInterface extends React.Component {
   "all games")
   ---------------------------------------------------------*/
   nextPhase() {
-    var newPhase = 'all';
+    var newPhase = 'all', oldPhase = this.state.viewingPhase;
     var phaseList = Object.keys(this.state.divisions);
     phaseList = _.without(phaseList, 'noPhase');
     if(phaseList.length == 0) { return; }
-    if(this.state.viewingPhase == 'all') {
-      newPhase = phaseList[0];
-    }
+    if(oldPhase == 'all') { newPhase = phaseList[0]; }
+    else if(oldPhase == 'Tiebreakers') { newPhase = 'all'; }
     else {
-      var curPhaseNo = phaseList.indexOf(this.state.viewingPhase);
-      if(curPhaseNo == phaseList.length-1) { newPhase = 'all'; }
+      var curPhaseNo = phaseList.indexOf(oldPhase);
+      if(curPhaseNo == phaseList.length-1) {
+        newPhase = this.state.tbCount > 0 ? 'Tiebreakers' : 'all';
+      }
       else { newPhase = phaseList[curPhaseNo+1]; }
     }
     this.setState({
@@ -1135,6 +1159,7 @@ class MainInterface extends React.Component {
       myGames: tempGms,
       gameIndex: tempGameIndex,
       playerIndex: tempPlayerIndex,
+      tbCount : this.state.tbCount + tempItem.tiebreaker,
       gmWindowVisible: acceptAndStay
     }) //setState
     if(acceptAndStay) {
@@ -1269,6 +1294,7 @@ class MainInterface extends React.Component {
       myGames: tempGameAry,
       gameIndex: tempGameIndex,
       playerIndex: tempPlayerIndex,
+      tbCount: this.state.tbCount - oldGame.tiebreaker + newGame.tiebreaker,
       gmWindowVisible: acceptAndStay,
       gmAddOrEdit: 'add' // needed in case of acceptAndStay
     });
@@ -1322,6 +1348,7 @@ class MainInterface extends React.Component {
       myGames: newGames,
       gameIndex: tempGameIndex,
       playerIndex: tempPlayerIndex,
+      tbCount: this.state.tbCount - this.state.gameToBeDeleted.tiebreaker,
       gameToBeDeleted: null
     });
     ipc.sendSync('unsavedData');
@@ -1797,7 +1824,9 @@ class MainInterface extends React.Component {
 
     //can't be viewing a phase that doesn't exist
     var newViewingPhase = this.state.viewingPhase;
-    if(!newPhases.includes(newViewingPhase)) { newViewingPhase = 'all'; }
+    if(newViewingPhase != 'Tiebreakers' && !newPhases.includes(newViewingPhase)) {
+      newViewingPhase = 'all';
+    }
     //modify default grouping phases if necessary
     var oldDefaultPhases = this.state.settings.defaultPhases;
     var newDefaultPhases = this.state.settings.defaultPhases.slice();
@@ -1958,7 +1987,9 @@ class MainInterface extends React.Component {
   viewing?
   ---------------------------------------------------------*/
   teamBelongsToCurrentPhase(team) {
-    if(this.state.viewingPhase == 'all') { return true; }
+    var viewingPhase = this.state.viewingPhase;
+    if(viewingPhase == 'all') { return true; }
+    if(viewingPhase == 'Tiebreakers') { return true; } // Tiebreakers isn't a real phase
     return team.divisions[this.state.viewingPhase] != undefined;
   }
 
@@ -1967,7 +1998,9 @@ class MainInterface extends React.Component {
   viewing?
   ---------------------------------------------------------*/
   gameBelongsToCurrentPhase(game) {
-    if(this.state.viewingPhase == 'all') { return true; }
+    var viewingPhase = this.state.viewingPhase;
+    if(viewingPhase == 'all') { return true; }
+    if(viewingPhase == 'Tiebreakers') { return game.tiebreaker; }
     return game.phases.includes(this.state.viewingPhase);
   }
 
@@ -1982,6 +2015,15 @@ class MainInterface extends React.Component {
       settings: newSettings
     });
     ipc.sendSync('unsavedData');
+  }
+
+  /*---------------------------------------------------------
+  Show/hide tiebreakers when viewing all games
+  ---------------------------------------------------------*/
+  toggleTiebreakers(show) {
+    this.setState({
+      allGamesShowTbs: show
+    });
   }
 
   /*---------------------------------------------------------
@@ -2006,9 +2048,10 @@ class MainInterface extends React.Component {
   Get the list of phases (if any) by which to group teams
   ---------------------------------------------------------*/
   phasesToGroupBy() {
-    var usingPhases = this.usingPhases();
+    var usingPhases = this.usingPhases(), viewingPhase = this.state.viewingPhase;
     if(!usingPhases && this.usingDivisions()) { return ['noPhase']; }
-    else if(this.state.viewingPhase != 'all') { return [this.state.viewingPhase]; }
+    else if(viewingPhase == 'Tiebreakers') { return []; }
+    else if(viewingPhase != 'all') { return [viewingPhase]; }
     else if(usingPhases) { return this.state.settings.defaultPhases; }
     return [];
   }
@@ -2394,7 +2437,7 @@ class MainInterface extends React.Component {
         <div id="stat-sidebar" className="col xl4 s0">
           <StatSidebar
             visible = {this.state.sidebarOpen}
-            standings = {StatUtils2.getSmallStandings(myTeams, myGames, this.state.viewingPhase, phasesToGroupBy, this.state.settings)}
+            standings = {StatUtils2.getSmallStandings(myTeams, myGames, this.state.viewingPhase, phasesToGroupBy, this.state.settings, this.state.allGamesShowTbs)}
             divisions = {divsInPhase}
             settings = {this.state.settings}
             activeRpt = {rptObj}
@@ -2433,7 +2476,7 @@ class MainInterface extends React.Component {
             teamData = {myTeams.slice()}
             haveTeamsPlayedInRound = {this.haveTeamsPlayedInRound}
             allPhases = {Object.keys(this.state.divisions)}
-            currentPhase = {this.state.viewingPhase}
+            currentPhase = {this.state.viewingPhase != 'Tiebreakers' ? this.state.viewingPhase : 'all'}
             settings = {this.state.settings}
           />
          <RptConfigModal
@@ -2484,6 +2527,7 @@ class MainInterface extends React.Component {
                 whichPaneActive = {activePane}
                 viewingPhase = {this.state.viewingPhase}
                 divisions = {this.state.divisions}
+                tbsExist = {this.state.tbCount > 0}
                 usingPhases = {usingPhases}
                 usingDivisions = {usingDivisions}
                 openDivModal = {this.openDivModal}
@@ -2505,6 +2549,8 @@ class MainInterface extends React.Component {
                 saveSettings = {this.saveSettings}
                 savePackets = {this.savePackets}
                 gameIndex = {this.state.gameIndex}
+                tbsExist = {this.state.tbCount > 0}
+                toggleTbs = {this.toggleTiebreakers}
                 editingSettings = {this.editingSettings}
                 haveGamesBeenEntered = {this.state.myGames.length > 0}
               />

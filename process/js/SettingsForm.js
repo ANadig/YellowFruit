@@ -36,6 +36,7 @@ class SettingsForm extends React.Component{
       playersPerTeam: props.settings.playersPerTeam,
       packets: props.packets,
       phases: _.without(allPhases, 'noPhase'),
+      allGamesShowTbs: false,
       divisions: divList,
       phaseAssignments: phaseAssnList,
       defaultPhases: props.settings.defaultPhases,
@@ -62,6 +63,7 @@ class SettingsForm extends React.Component{
     this.deleteDivision = this.deleteDivision.bind(this);
     this.reorderDivisions = this.reorderDivisions.bind(this);
     this.setDragPhase = this.setDragPhase.bind(this);
+    this.toggleTbs = this.toggleTbs.bind(this);
   }
 
   /*---------------------------------------------------------
@@ -439,6 +441,16 @@ class SettingsForm extends React.Component{
   }
 
   /*---------------------------------------------------------
+  Show/hide tiebreakers when viewing all games
+  ---------------------------------------------------------*/
+  toggleTbs(e) {
+    this.props.toggleTbs(!this.state.allGamesShowTbs);
+    this.setState({
+      allGamesShowTbs: !this.state.allGamesShowTbs
+    });
+  }
+
+  /*---------------------------------------------------------
   For display when the settings card is read-only.
   ---------------------------------------------------------*/
   powerString() {
@@ -515,9 +527,10 @@ class SettingsForm extends React.Component{
     if(!this.state.editingPhases) {
       var phaseList = this.state.phases.map((phaseName, idx) => {
         if(this.state.divisions.length > 0) {
-          var icon = null, priority = this.state.defaultPhases.indexOf(phaseName);
+          let icon = null, priority = this.state.defaultPhases.indexOf(phaseName);
           if(priority >= 0) {
-            icon = ( <i className="material-icons default-phase" title={DEF_PHASE_TOOLTIP}>{DEF_PHASE_ICONS[priority]}</i> );
+            icon = ( <i className="material-icons default-phase"
+              title={DEF_PHASE_TOOLTIP}>{DEF_PHASE_ICONS[priority]}</i> );
           }
           return (
             <li key={idx}>
@@ -528,6 +541,30 @@ class SettingsForm extends React.Component{
         }
         return ( <li key={idx}>{phaseName} </li> );
       });//phases.map
+      //add the dummy tiebreaker phase
+      if(this.props.tbsExist) {
+        let linkTooltip, iconTooltip, iconType, iconColor;
+        if(this.state.allGamesShowTbs) {
+          linkTooltip = 'Click to exclude tiebreakers when showing all games';
+          iconTooltip = 'Tiebreakers are included when showing all games';
+          iconType = 'check';
+          iconColor = 'green-text text-darken-4';
+        }
+        else {
+          linkTooltip = 'Click to include tiebreakers when showing all games';
+          iconTooltip = 'Tiebreakers are excluded when showing all games';
+          iconType = 'block';
+          iconColor = 'grey-text';
+        }
+        let icon = (
+          <i className={'material-icons default-phase ' + iconColor} title={iconTooltip}>{iconType}</i>
+        )
+        phaseList.push(
+          <li key="tb">
+            <a onClick={this.toggleTbs} title={linkTooltip}>Tiebreakers</a>&nbsp;{icon}
+          </li>
+        );
+      }
       phaseCard = (<ul>{phaseList}</ul>);
     }
     // editable list of phases

@@ -132,6 +132,13 @@ class HeaderNav extends React.Component{
         tabList.push(oneTab);
       }
     }
+    if(this.props.tbsExist) {
+      tabList.push((
+        <li key={'Tiebreakers'} className={'tab ' + this.isViewingPhase('Tiebreakers')}>
+          <a id={'Tiebreakers'} onClick={this.setPhase}>Tiebreakers</a>
+        </li>
+      ));
+    }
     var skinny = this.state.overflowTabs ? '' : ' skinny-tabs';
     return (
       <div className="nav-content">

@@ -52,6 +52,16 @@ function formatRate(r, precision) {
   return isNaN(r) ? '&mdash;&ensp;' : r.toFixed(precision);
 }
 
+/*---------------------------------------------------------
+Determine whether a game is part of a phase
+---------------------------------------------------------*/
+function matchFilterPhase(game, phase, showTbs) {
+  if(game.tiebreaker) {
+    return phase == 'Tiebreakers' || (phase == 'all' && showTbs);
+  }
+  return phase == 'all' || game.phases.includes(phase);
+}
+
 // include column for small school status?
 function showSS(rptConfig) { return rptConfig.smallSchool != null && rptConfig.smallSchool }
 
@@ -471,7 +481,7 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
 /*---------------------------------------------------------
 Gather data for the team standings
 ---------------------------------------------------------*/
-function compileStandings(myTeams, myGames, filterPhase, groupingPhases, settings, rptConfig) {
+function compileStandings(myTeams, myGames, filterPhase, groupingPhases, settings, rptConfig, showTbs) {
   var standings = myTeams.map(function(item, index) {
     var division = undefined, i = 0, teamsGrpPhase = undefined;
     while(division == undefined && i < groupingPhases.length) {
@@ -511,7 +521,7 @@ function compileStandings(myTeams, myGames, filterPhase, groupingPhases, setting
     //tens digit - whether to count for team 1. ones digit - whether to count for team 2
     var inTeamOneGrpPhase = g.phases.includes(team1Line.groupingPhase);
     var inTeamTwoGrpPhase = g.phases.includes(team2Line.groupingPhase);
-    if(filterPhase == 'all' || g.phases.includes(filterPhase)) {
+    if(matchFilterPhase(g, filterPhase, showTbs)) {
       var team1Line = _.find(standings, function (o) {
         return o.teamName == g.team1;
       });
@@ -737,7 +747,7 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings, 
 /*---------------------------------------------------------
 Tabulate data for the individual standings page.
 ---------------------------------------------------------*/
-function compileIndividuals(myTeams, myGames, phase, groupingPhases, settings) {
+function compileIndividuals(myTeams, myGames, phase, groupingPhases, settings, showTbs) {
   var individuals = [];
   for(var i in myTeams) {
     var t = myTeams[i];
@@ -771,7 +781,7 @@ function compileIndividuals(myTeams, myGames, phase, groupingPhases, settings) {
   for(var i in myGames) {
     var pEntry, tuh;
     var g = myGames[i];
-    if(phase == 'all' || g.phases.includes(phase)) {
+    if(matchFilterPhase(g, phase, showTbs)) {
       var players1 = g.players1, players2 = g.players2;
       for(var p in players1) {
         pEntry = _.find(individuals, function (o) {
@@ -833,11 +843,11 @@ function compileIndividuals(myTeams, myGames, phase, groupingPhases, settings) {
 A list of the rounds for which there are games, so as to
 know how to organize the scorboard page.
 ---------------------------------------------------------*/
-function getRoundsForScoreboard(myGames, phase) {
+function getRoundsForScoreboard(games, phase, showTbs) {
   var rounds = [];
-  for(var i in myGames) {
-    var roundNo = toNum(myGames[i].round);
-    if((phase == 'all' || myGames[i].phases.includes(phase)) && !rounds.includes(roundNo)) {
+  for(var i in games) {
+    var roundNo = toNum(games[i].round);
+    if(matchFilterPhase(games[i], phase, showTbs) && !rounds.includes(roundNo)) {
       rounds.push(roundNo);
     }
   }
@@ -897,11 +907,11 @@ function scoreboardLinkID(game) {
 HTML for all the game summaries for a single round on the
 scoreboard page.
 ---------------------------------------------------------*/
-function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors) {
+function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors, showTbs) {
   var html = '';
   for(var i in myGames) {
     var g = myGames[i];
-    if((phase == 'all' || g.phases.includes(phase)) && g.round == roundNo) {
+    if(matchFilterPhase(g, phase, showTbs) && g.round == roundNo) {
       var linkId = 'R' + roundNo + '-' + g.team1.replace(/\W/g, '') + '-' +
         g.team2.replace(/\W/g, '');
       if(g.forfeit) {
@@ -912,9 +922,9 @@ function scoreboardGameSummaries(myGames, roundNo, phase, settings, phaseColors)
         // game title
         html += '<div id=' + linkId + ' style="margin:-2.3em;position:absolute"></div>'
         html += '<h3>' + '\n';
-        if(phase == 'all' && g.phases.length != 0) {
-          html += '<span style="' + getRoundStyle(g.phases, phaseColors) + '">' +
-            '&nbsp;&nbsp;&nbsp;&nbsp;</span>' + '\n';
+        if(phase == 'all' && (g.phases.length != 0 || g.tiebreaker)) {
+          html += '<span style="' + getRoundStyle(g.phases, phaseColors, g.tiebreaker) +
+            '">' + '&nbsp;&nbsp;&nbsp;&nbsp;</span>' + '\n';
         }
         if(toNum(g.score1) >= toNum(g.score2)) {
           html += g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
@@ -1094,15 +1104,18 @@ function forfeitRow(opponent, round, result, roundStyle, emptyCols) {
 Get the background inline CSS for the round column.
 Color-coded to match phase colors in the application
 ---------------------------------------------------------*/
-function getRoundStyle(gamePhases, phaseColors) {
+function getRoundStyle(gamePhases, phaseColors, tiebreaker) {
+  if(tiebreaker) {
+    return 'background-color: #9e9e9e';
+  }
   if(gamePhases.length == 1) {
     return 'background-color: ' + phaseColors[gamePhases[0]];
   }
-  else if(gamePhases.length == 2) {
+  if(gamePhases.length == 2) {
     return 'background-image: linear-gradient(to bottom right, ' +
       phaseColors[gamePhases[0]] + ' 50%, ' + phaseColors[gamePhases[1]] + ' 51%)';
   }
-  else if(gamePhases.length > 2) {
+  if(gamePhases.length > 2) {
     return 'background-image: linear-gradient(to bottom right, ' +
       phaseColors[gamePhases[0]] + ' 33%, ' + phaseColors[gamePhases[1]] + ' 34%, ' +
       phaseColors[gamePhases[1]] + ' 66%, ' + phaseColors[gamePhases[2]] + ' 67%)';
@@ -1135,7 +1148,7 @@ page.
 ---------------------------------------------------------*/
 function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, phaseColors, formatRdCol, fileStart, rptConfig) {
   var opponent, opponentScore, result, score, players;
-  var roundStyle = formatRdCol ? getRoundStyle(game.phases, phaseColors) : null;
+  var roundStyle = formatRdCol ? getRoundStyle(game.phases, phaseColors, game.tiebreaker) : null;
 
   if(whichTeam == 1) {
     opponent = game.team2;
@@ -1435,7 +1448,9 @@ function playerDetailGameLink(game, whichTeam, fileStart) {
 /*---------------------------------------------------------
 Row for one game for one player on the player detail page.
 ---------------------------------------------------------*/
-function playerDetailGameRow(player, tuhtot, opponent, round, link, settings, gamePhases, phaseColors, formatRdCol, rptConfig) {
+function playerDetailGameRow(player, tuhtot, opponent, round, link, settings, gamePhases,
+  phaseColors, formatRdCol, rptConfig, tiebreaker) {
+
   var [tuh, powers, tens, negs] = playerSlashLine(player);
   if(tuh <= 0) {
     return '';
@@ -1447,7 +1462,7 @@ function playerDetailGameRow(player, tuhtot, opponent, round, link, settings, ga
   var pPerN = negs == 0 ? 'inf' : powers / negs;
   var gPerN = negs == 0 ? 'inf' : (powers + tens) / negs;
 
-  var roundStyle = formatRdCol ? getRoundStyle(gamePhases, phaseColors) : null;
+  var roundStyle = formatRdCol ? getRoundStyle(gamePhases, phaseColors, tiebreaker) : null;
 
   var html = '<tr>' + '\n';
   html += tdTag(round, 'center', false, null, roundStyle);
@@ -1517,12 +1532,12 @@ function playerDetailTotalRow(player, settings, rptConfig) {
 /*---------------------------------------------------------
 Aggregate round data for the round report.
 ---------------------------------------------------------*/
-function compileRoundSummaries(games, phase, settings) {
+function compileRoundSummaries(games, phase, settings, showTbs) {
   var summaries = [];
   for(var i in games) {
     var game = games[i];
     var round = game.round;
-    if((phase == 'all' || game.phases.includes(phase)) && !game.forfeit) {
+    if(matchFilterPhase(game, phase, showTbs) && !game.forfeit) {
       if(summaries[round] == undefined) {
         summaries[round] = {
           numberOfGames: 0,
@@ -1676,8 +1691,10 @@ function tableStyle() {
 /*---------------------------------------------------------
 Generate the team standings page.
 ---------------------------------------------------------*/
-function getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsInPhase, phaseSizes, settings, rptConfig) {
-  var standings = compileStandings(teams, games, phase, groupingPhases, settings, rptConfig);
+function getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsInPhase,
+  phaseSizes, settings, rptConfig, showTbs) {
+
+  var standings = compileStandings(teams, games, phase, groupingPhases, settings, rptConfig, showTbs);
   var tiesExist = anyTiesExist(standings);
   var html = getStatReportTop('TeamStandings', fileStart, 'Team Standings') +
     '<h1> Team Standings</h1>' + '\n';
@@ -1718,8 +1735,10 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsIn
 /*---------------------------------------------------------
 Generate the individual standings page.
 ---------------------------------------------------------*/
-function getIndividualsHtml(teams, games, fileStart, phase, groupingPhases, usingDivisions, settings, rptConfig) {
-  var individuals = compileIndividuals(teams, games, phase, groupingPhases, settings);
+function getIndividualsHtml(teams, games, fileStart, phase, groupingPhases,
+  usingDivisions, settings, rptConfig, showTbs) {
+
+  var individuals = compileIndividuals(teams, games, phase, groupingPhases, settings, showTbs);
   var html = getStatReportTop('IndividualStandings', fileStart, 'Individual Standings') +
     '<h1> Individual Statistics</h1>' + '\n';
   html += tableStyle();
@@ -1735,19 +1754,19 @@ function getIndividualsHtml(teams, games, fileStart, phase, groupingPhases, usin
 /*---------------------------------------------------------
 Generate the scoreboard page.
 ---------------------------------------------------------*/
-function getScoreboardHtml(teams, games, fileStart, phase, settings, packets, phaseColors) {
-  var roundList = getRoundsForScoreboard(games, phase);
+function getScoreboardHtml(teams, games, fileStart, phase, settings, packets, phaseColors, showTbs) {
+  var roundList = getRoundsForScoreboard(games, phase, showTbs);
   var html = getStatReportTop('Scoreboard', fileStart, 'Scoreboard') + '\n';
   html += scoreboardRoundLinks(roundList, fileStart) + '<br>' + '\n';
   html += '<h1> Scoreboard</h1>' + '\n';
   if(phase == 'all') {
-    html += phaseLegend(phaseColors, true) + '\n';
+    html += phaseLegend(phaseColors) + '\n';
   }
   var roundNo;
   for(var r in roundList) {
     roundNo = roundList[r];
     html += scoreboardRoundHeader(roundNo, packets[roundNo]);
-    html += scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors);
+    html += scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, showTbs);
   }
   return html + '\n' + getStatReportBottom();
 }
@@ -1755,11 +1774,13 @@ function getScoreboardHtml(teams, games, fileStart, phase, settings, packets, ph
 /*---------------------------------------------------------
 Generate the team detail page.
 ---------------------------------------------------------*/
-function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, phaseColors, rptConfig) {
+function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
+  phaseColors, rptConfig, showTbs) {
+
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return toNum(item.round); }, 'asc');
-  var standings = compileStandings(teams, games, phase, [], settings, rptConfig);
-  var individuals = compileIndividuals(teams, games, phase, [], settings);
+  var standings = compileStandings(teams, games, phase, [], settings, rptConfig, showTbs);
+  var individuals = compileIndividuals(teams, games, phase, [], settings, showTbs);
   var packetsExist = packetNamesExist(packets);
 
   var html = getStatReportTop('TeamDetail', fileStart, 'Team Detail') + '\n' +
@@ -1796,13 +1817,16 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, ph
     html += '<table width=100%>' + '\n';
     html += teamDetailGameTableHeader(packetsExist, settings, rptConfig) + '\n';
     for(var j in games) {
-      let gameInPhase = phase == 'all' || games[j].phases.includes(phase);
-      var formatRdCol = phase == 'all' && games[j].phases.length > 0;
-      if(gameInPhase && games[j].team1 == teamName) {
-        html += teamDetailGameRow(games[j], 1, packetsExist, packets, settings, phaseColors, formatRdCol, fileStart, rptConfig);
+      let oneGame = games[j];
+      let gameInPhase = matchFilterPhase(oneGame, phase, showTbs);
+      var formatRdCol = phase == 'all' && (oneGame.phases.length > 0 || oneGame.tiebreaker);
+      if(gameInPhase && oneGame.team1 == teamName) {
+        html += teamDetailGameRow(oneGame, 1, packetsExist, packets, settings,
+          phaseColors, formatRdCol, fileStart, rptConfig);
       }
-      else if(gameInPhase && games[j].team2 == teamName) {
-        html += teamDetailGameRow(games[j], 2, packetsExist, packets, settings, phaseColors, formatRdCol, fileStart, rptConfig);
+      else if(gameInPhase && oneGame.team2 == teamName) {
+        html += teamDetailGameRow(oneGame, 2, packetsExist, packets, settings,
+          phaseColors, formatRdCol, fileStart, rptConfig);
       }
     }
     var teamSummary = _.find(standings, (o) => { return o.teamName == teamName; });
@@ -1824,10 +1848,10 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, ph
 /*---------------------------------------------------------
 Generate the player detail page.
 ---------------------------------------------------------*/
-function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColors, rptConfig) {
+function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColors, rptConfig, showTbs) {
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
-  var playerTotals = compileIndividuals(teams, games, phase, [], settings);
+  var playerTotals = compileIndividuals(teams, games, phase, [], settings, showTbs);
   playerTotals = _.orderBy(playerTotals,
     [function(item) { return item.teamName.toLowerCase(); },
     function(item) { return item.playerName.toLowerCase(); }],
@@ -1874,15 +1898,15 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
     html += '<table width=100%>' + '\n';
     html += playerDetailTableHeader(settings, rptConfig);
     for(var j in games) {
-      var game = games[j];
-      let gameInPhase = phase == 'all' || game.phases.includes(phase);
-      var formatRdCol = phase == 'all' && game.phases.length > 0;
+      let game = games[j];
+      let gameInPhase = matchFilterPhase(game, phase, showTbs);
+      let formatRdCol = phase == 'all' && (game.phases.length > 0 || game.tiebreaker);
       if (gameInPhase && game.team1 == indvTot.teamName) {
         for(var p in game.players1) {
           if(p == indvTot.playerName) {
             var link = playerDetailGameLink(game, 1, fileStart);
-            html += playerDetailGameRow(game.players1[p], game.tuhtot, game.team2,
-              game.round, link, settings, game.phases, phaseColors, formatRdCol, rptConfig);
+            html += playerDetailGameRow(game.players1[p], game.tuhtot, game.team2, game.round,
+              link, settings, game.phases, phaseColors, formatRdCol, rptConfig, game.tiebreaker);
           }
         }
       }
@@ -1890,8 +1914,8 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
         var link = playerDetailGameLink(game, 2, fileStart);
         for(var p in game.players2) {
           if(p == indvTot.playerName) {
-            html += playerDetailGameRow(game.players2[p], game.tuhtot, game.team1,
-              game.round, link, settings, game.phases, phaseColors, formatRdCol, rptConfig);
+            html += playerDetailGameRow(game.players2[p], game.tuhtot, game.team1, game.round,
+              link, settings, game.phases, phaseColors, formatRdCol, rptConfig, game.tiebreaker);
           }
         }
       }
@@ -1906,9 +1930,9 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
 /*---------------------------------------------------------
 Generate the team round report page.
 ---------------------------------------------------------*/
-function getRoundReportHtml(teams, games, fileStart, phase, packets, settings, rptConfig) {
+function getRoundReportHtml(teams, games, fileStart, phase, packets, settings, rptConfig, showTbs) {
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
-  var roundSummaries = compileRoundSummaries(games, phase, settings);
+  var roundSummaries = compileRoundSummaries(games, phase, settings, showTbs);
   var packetsExist = packetNamesExist(packets);
   var html = getStatReportTop('RoundReport', fileStart, 'Round Report') +
     '<h1> Round Report</h1>' + '\n';
@@ -1935,40 +1959,44 @@ function getStatKeyHtml(fileStart) {
 Stat report generation APIs
 ---------------------------------------------------------*/
 function getStandingsPage(teams, games, fileStart, phase, groupingPhases, divsInPhase,
-  phaseSizes, settings, rptConfig) {
+  phaseSizes, settings, rptConfig, showTbs) {
   return new Promise(function(resolve, reject) {
     resolve(getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsInPhase,
-      phaseSizes, settings, rptConfig));
+      phaseSizes, settings, rptConfig, showTbs));
   });
 }
 
-function getIndividualsPage(teams, games, fileStart, phase, groupingPhases, usingDivisions, settings, rptConfig) {
+function getIndividualsPage(teams, games, fileStart, phase, groupingPhases,
+  usingDivisions, settings, rptConfig, showTbs) {
   return new Promise(function(resolve, reject) {
-    resolve(getIndividualsHtml(teams, games, fileStart, phase, groupingPhases, usingDivisions, settings, rptConfig));
+    resolve(getIndividualsHtml(teams, games, fileStart, phase, groupingPhases,
+      usingDivisions, settings, rptConfig, showTbs));
   });
 }
 
-function getScoreboardPage(teams, games, fileStart, phase, settings, packets, phaseColors) {
+function getScoreboardPage(teams, games, fileStart, phase, settings, packets, phaseColors, showTbs) {
   return new Promise(function(resolve, reject) {
-    resolve(getScoreboardHtml(teams, games, fileStart, phase, settings, packets, phaseColors));
+    resolve(getScoreboardHtml(teams, games, fileStart, phase, settings, packets, phaseColors, showTbs));
   });
 }
 
-function getTeamDetailPage(teams, games, fileStart, phase, packets, settings, phaseColors, rptConfig) {
+function getTeamDetailPage(teams, games, fileStart, phase, packets, settings,
+  phaseColors, rptConfig, showTbs) {
   return new Promise(function(resolve, reject) {
-    resolve(getTeamDetailHtml(teams, games, fileStart, phase, packets, settings, phaseColors, rptConfig));
+    resolve(getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
+      phaseColors, rptConfig, showTbs));
   });
 }
 
-function getPlayerDetailPage(teams, games, fileStart, phase, settings, phaseColors, rptConfig) {
+function getPlayerDetailPage(teams, games, fileStart, phase, settings, phaseColors, rptConfig, showTbs) {
   return new Promise(function(resolve, reject) {
-    resolve(getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColors, rptConfig));
+    resolve(getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColors, rptConfig, showTbs));
   });
 }
 
-function getRoundReportPage(teams, games, fileStart, phase, packets, settings, rptConfig) {
+function getRoundReportPage(teams, games, fileStart, phase, packets, settings, rptConfig, showTbs) {
   return new Promise(function(resolve, reject) {
-    resolve(getRoundReportHtml(teams, games, fileStart, phase, packets, settings, rptConfig));
+    resolve(getRoundReportHtml(teams, games, fileStart, phase, packets, settings, rptConfig, showTbs));
   });
 }
 
@@ -1978,7 +2006,7 @@ function getStatKeyPage(fileStart) {
   });
 }
 
-module.exports = {toNum, gamesPlayed, powerValue, negValue, bonusesHeard, bonusPoints,
-  bbHeard, bbHrdToFloat, otPoints, playerSlashLine, packetNamesExist,
-  getStandingsPage, getIndividualsPage, getScoreboardPage, getTeamDetailPage,
-  getPlayerDetailPage, getRoundReportPage, getStatKeyPage}
+module.exports = {toNum, matchFilterPhase, gamesPlayed, powerValue, negValue,
+  bonusesHeard, bonusPoints, bbHeard, bbHrdToFloat, otPoints, playerSlashLine,
+  packetNamesExist, getStandingsPage, getIndividualsPage, getScoreboardPage,
+  getTeamDetailPage, getPlayerDetailPage, getRoundReportPage, getStatKeyPage}
