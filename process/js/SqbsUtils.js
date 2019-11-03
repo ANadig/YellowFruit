@@ -111,11 +111,11 @@ function dummyPlayer() {
 The list of games, including totals and individual stat
 lines.
 ---------------------------------------------------------*/
-function gameList(settings, teams, games, phase) {
+function gameList(settings, teams, games, phase, showTbs) {
   var output = '', gameCount = 0;
   for(var i in games) {
     var g = games[i];
-    if(phase != 'all' && !g.phases.includes(phase)) { continue; }
+    if(!StatUtils.matchFilterPhase(g, phase, showTbs)) { continue; }
     gameCount++;
     output += gameID(g) + '\n';
     output += teams.findIndex((t) => { return t.teamName==g.team1; }) + '\n';
@@ -368,10 +368,11 @@ function exhibitionStatuses(teams) {
 /*---------------------------------------------------------
 Generate the SQBS file contents.
 ---------------------------------------------------------*/
-function getSqbsFile(settings, viewingPhase, groupingPhases, divisions, teams, games, packets, gameIndex) {
-  if(groupingPhases.length == 0) { groupingPhases = ['noPhase']; }
+function getSqbsFile(settings, viewingPhase, groupingPhases, divisions, teams, games,
+  packets, gameIndex, showTbs) {
+
   var output = teamList(teams);
-  output += gameList(settings, teams, games, viewingPhase);
+  output += gameList(settings, teams, games, viewingPhase, showTbs);
   output += miscSettings(settings, divisions);
   output += blankLines(5); // tournament name + FTP settings. Leave blank
   output += '1\n'; // weird FTP setting. This is the default

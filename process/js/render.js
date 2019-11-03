@@ -893,8 +893,8 @@ class MainInterface extends React.Component {
       divsInPhase = divsInPhase.concat(this.state.divisions[phasesToGroupBy[i]]);
     }
     var sqbsData = SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
-      phasesToGroupBy, divsInPhase, this.state.myTeams,
-      this.state.myGames, this.state.packets, this.state.gameIndex);
+      phasesToGroupBy, divsInPhase, this.state.myTeams, this.state.myGames,
+      this.state.packets, this.state.gameIndex, this.state.allGamesShowTbs);
     new Promise(function(resolve, reject) {
       resolve(fs.writeFileSync(fileName, sqbsData, 'utf8', StatUtils2.printError));
     }).then(() => {
