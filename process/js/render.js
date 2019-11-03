@@ -1344,11 +1344,17 @@ class MainInterface extends React.Component {
     if(--tempGameIndex[round] == 0) { delete tempGameIndex[round]; }
     var tempPlayerIndex = this.state.playerIndex;
     StatUtils2.modifyGameInPlayerIndex(this.state.gameToBeDeleted, null, tempPlayerIndex);
+    var newTbCount = this.state.tbCount - this.state.gameToBeDeleted.tiebreaker;
+    var newViewingPhase = this.state.viewingPhase;
+    if(newTbCount == 0 && newViewingPhase == 'Tiebreakers') {
+      newViewingPhase = 'all';
+    }
     this.setState({
       myGames: newGames,
       gameIndex: tempGameIndex,
       playerIndex: tempPlayerIndex,
-      tbCount: this.state.tbCount - this.state.gameToBeDeleted.tiebreaker,
+      tbCount: newTbCount,
+      viewingPhase: newViewingPhase,
       gameToBeDeleted: null
     });
     ipc.sendSync('unsavedData');
