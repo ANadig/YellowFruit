@@ -313,47 +313,41 @@ class SettingsForm extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Are there two phases with the same name?
+  Illegal phases: duplicate names, or one with the reserved
+  name 'Tiebreakers'
   ---------------------------------------------------------*/
-  phasesHasDups() {
+  validatePhases() {
     var phases = this.state.phases.map(function(item, idx) {
       return item.toLowerCase().trim();
     });
     phases = _.without(phases, '');
     phases = _.orderBy(phases);
-    for(var i=0; i < (phases.length - 1); i++) {
-      if (phases[i] == phases[i+1]) { return true; }
+    if(phases.indexOf('tiebreakers') >= 0) {
+      return [true, 'You may not have a phase called Tiebreakers'];
     }
-    return false;
-  }
-
-  /*---------------------------------------------------------
-  Add the disabed class the save button
-  ---------------------------------------------------------*/
-  phaseSaveDisabled() {
-    return this.state.editingPhases && this.phasesHasDups() ? 'disabled' : '';
+    for(var i=0; i < (phases.length - 1); i++) {
+      if(phases[i] == phases[i+1]) {
+        return [true, 'Duplicate phases'];
+      }
+    }
+    return [false, ''];
   }
 
   /*---------------------------------------------------------
   JSX element to display duplicate phase error.
   ---------------------------------------------------------*/
   phaseSaveError() {
-    if(this.state.editingPhases && this.phasesHasDups()) {
+    if(!this.state.editingPhases) { return null; }
+    var [phaseError, errorString] = this.validatePhases();
+    if(phaseError) {
       return (
         <div>
           <i className="material-icons red-text text-darken-4 qb-modal-error">error</i>
-          &nbsp;Duplicate phases
+          &nbsp;{errorString}
         </div>
       );
     }
     return null;
-  }
-
-  /*---------------------------------------------------------
-  Are there errors anywhere in the settings pane?
-  ---------------------------------------------------------*/
-  togglesDisabled() {
-    return (this.state.editingPhases && this.phasesHasDups());
   }
 
   /*---------------------------------------------------------
@@ -496,8 +490,8 @@ class SettingsForm extends React.Component{
 
     var packetCard, phaseCard, divisionCard, playersPerTeamDisplay;
     var phaseError = this.phaseSaveError();
-    var phaseSaveDisabled = this.phaseSaveDisabled();
-    var togglesDisabled = this.togglesDisabled() ? ' disabled' : '';
+    var phaseSaveDisabled = phaseError ? ' disabled' : '';
+    var togglesDisabled = phaseError ? ' disabled' : '';
     var settingsHotKey = this.state.editingSettings ? 'a' : '';
     var packetsHotkey = this.state.editingPackets ? 'a' : '';
     var phaseHotKey = phaseError == null && this.state.editingPhases ? 'a' : '';
