@@ -141,9 +141,11 @@ Load games from a QBJ file
 ---------------------------------------------------------*/
 module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
   var yfGames = [], errors = [];
+  var tmRdIdx = {}; // keep track of how many matches each team played in each round
   var gameCount = 0;
   for(var i in rounds) {
     let roundNo = rounds[i].name.replace('Round ', '');
+    tmRdIdx[roundNo] = {};
     let oneRoundsMatches = rounds[i].matches;
     for(var j in oneRoundsMatches) {
       let matchObj = matches.find((m) => { return refCheck(oneRoundsMatches[j], m); });
@@ -194,6 +196,15 @@ module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
           negs: negs
         };
       }
+      let team1Name = teamIds[team1Id].teamName, team2Name = teamIds[team2Id].teamName;
+      if(tmRdIdx[roundNo][team1Name] == undefined) {
+        tmRdIdx[roundNo][team1Name] = 0;
+      }
+      if(tmRdIdx[roundNo][team2Name] == undefined) {
+        tmRdIdx[roundNo][team2Name] = 0;
+      }
+      tmRdIdx[roundNo][team1Name]++;
+      tmRdIdx[roundNo][team2Name]++;
 
       yfGames.push({
         round: roundNo,
@@ -201,6 +212,7 @@ module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
         tuhtot: matchObj.tossups_read,
         ottu: matchObj.overtime_tossups_read != undefined ? matchObj.overtime_tossups_read : '' ,
         forfeit: false, // apparently you can't enter forfeits in Neg5?
+        tiebreaker: false, // will be handled in addTiebreakers
         team1: teamIds[team1Id].teamName,
         team2: teamIds[team2Id].teamName,
         score1: team1Obj.points,
@@ -208,7 +220,7 @@ module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
         players1: yfPlayers1,
         players2: yfPlayers2,
         otPwr1: '',
-        otTen1: '', // Neg5 doesn't seem to export info about which team go OT tossups
+        otTen1: '', // Neg5 doesn't seem to export info about which team got OT tossups
         otNeg1: '',
         otPwr2: '',
         otTen2: '',
@@ -219,6 +231,7 @@ module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
       });
     }
   }
+  addTiebreakers(yfGames, tmRdIdx);
   return [yfGames, errors];
 }
 
@@ -342,6 +355,29 @@ module.exports.validateMatches = function(games, settings) {
     if(g.score1 % divisor != 0 || g.score2 % divisor != 0) {
       warnings.push(gameString + ' - Score is not divisible by ' + divisor);
     }
-  }
+    if(g.tiebreaker) {
+      warnings.push(gameString + ' - This game was assumed to be a tiebreaker');
+    }
+  }// loop over all games
   return [errors, warnings];
+}
+
+/*---------------------------------------------------------
+Any time a team plays two games in the same round, assume
+that they're tiebreakers
+---------------------------------------------------------*/
+function addTiebreakers(yfGames, tmRdIdx) {
+  for(var round in tmRdIdx) {
+    let oneRound = tmRdIdx[round];
+    for(var t in oneRound) {
+      if(oneRound[t] > 1) {
+        for(var i in yfGames) {
+          let g = yfGames[i];
+          if(g.round == round && (g.team1 == t || g.team2 == t)) {
+            g.tiebreaker = true;
+          }
+        }
+      }
+    }
+  }
 }
