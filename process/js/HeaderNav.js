@@ -186,7 +186,7 @@ class HeaderNav extends React.Component{
   render() {
     var phaseTabs = null;
     var numberOfPhases = Object.keys(this.props.divisions).length;
-    if(this.props.usingPhases) {
+    if(this.props.usingPhases || this.props.tbsExist) {
       phaseTabs = this.phaseTabs()
     }
 

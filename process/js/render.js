@@ -1025,15 +1025,20 @@ class MainInterface extends React.Component {
     var newPhase = 'all', oldPhase = this.state.viewingPhase;
     var phaseList = Object.keys(this.state.divisions);
     phaseList = _.without(phaseList, 'noPhase');
-    if(phaseList.length == 0) { return; }
-    if(oldPhase == 'all') {
-      newPhase = this.state.tbCount > 0 ? 'Tiebreakers' : phaseList[phaseList.length-1];
+    if(phaseList.length == 0 && this.state.tbCount > 0) {
+      newPhase = oldPhase == 'all' ? 'Tiebreakers' : 'all';
     }
-    else if(oldPhase == 'Tiebreakers') { newPhase = phaseList[phaseList.length-1]; }
     else {
-      var curPhaseNo = phaseList.indexOf(this.state.viewingPhase);
-      if(curPhaseNo <= 0) { newPhase = 'all'; }
-      else { newPhase = phaseList[curPhaseNo-1]; }
+      if(phaseList.length == 0) { return; }
+      if(oldPhase == 'all') {
+        newPhase = this.state.tbCount > 0 ? 'Tiebreakers' : phaseList[phaseList.length-1];
+      }
+      else if(oldPhase == 'Tiebreakers') { newPhase = phaseList[phaseList.length-1]; }
+      else {
+        var curPhaseNo = phaseList.indexOf(this.state.viewingPhase);
+        if(curPhaseNo <= 0) { newPhase = 'all'; }
+        else { newPhase = phaseList[curPhaseNo-1]; }
+      }
     }
     this.setState({
       viewingPhase: newPhase
@@ -1048,15 +1053,19 @@ class MainInterface extends React.Component {
     var newPhase = 'all', oldPhase = this.state.viewingPhase;
     var phaseList = Object.keys(this.state.divisions);
     phaseList = _.without(phaseList, 'noPhase');
-    if(phaseList.length == 0) { return; }
-    if(oldPhase == 'all') { newPhase = phaseList[0]; }
-    else if(oldPhase == 'Tiebreakers') { newPhase = 'all'; }
+    if(phaseList.length == 0 && this.state.tbCount > 0) {
+      newPhase = oldPhase == 'all' ? 'Tiebreakers' : 'all';
+    }
     else {
-      var curPhaseNo = phaseList.indexOf(oldPhase);
-      if(curPhaseNo == phaseList.length-1) {
-        newPhase = this.state.tbCount > 0 ? 'Tiebreakers' : 'all';
+      if(oldPhase == 'all') { newPhase = phaseList[0]; }
+      else if(oldPhase == 'Tiebreakers') { newPhase = 'all'; }
+      else {
+        var curPhaseNo = phaseList.indexOf(oldPhase);
+        if(curPhaseNo == phaseList.length-1) {
+          newPhase = this.state.tbCount > 0 ? 'Tiebreakers' : 'all';
+        }
+        else { newPhase = phaseList[curPhaseNo+1]; }
       }
-      else { newPhase = phaseList[curPhaseNo+1]; }
     }
     this.setState({
       viewingPhase: newPhase
