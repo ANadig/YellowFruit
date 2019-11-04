@@ -717,7 +717,7 @@ class AddGameModal extends React.Component{
         return ( <option key={phase} value={phase}>{phase}</option> );
       });
       phaseSelect = (
-        <div className="input-field col s3">
+        <div className="input-field col s4">
           <select multiple id="phases" name="phases" value={this.state.phases}
           disabled={this.state.tiebreaker ? 'disabled' : ''} onChange={this.handlePhaseChange}>
             <option value="" disabled>Phase...</option>
@@ -921,23 +921,23 @@ class AddGameModal extends React.Component{
       <div className="modal modal-fixed-footer" id="addGame">
         <div className="modal-content">
           <div className="row game-entry-top-row">
-            <div className={'col ' + (canEditPhase ? 's3' : 's6')}>
+            <div className={'col ' + (canEditPhase ? 's4' : 's8')}>
               <h4>{this.getModalHeader()}</h4>
               {phaseChips}
             </div>
 
             {phaseSelect}
 
-            <div className="input-field col s3">
+            <div className="input-field col s2">
               <input id="round" className={this.validateField("round",true)} type="number" name="round" min="0" value={this.state.round} onChange={this.handleChange}/>
               <label htmlFor="round">Round No.</label>
             </div>
-            <div className="input-field col s3">
+            <div className="input-field col s2">
               <input id="tuhtot" className={this.validateField("tuhtot",false)}
                 disabled={this.state.forfeit ? 'disabled' : ''}
                 type="number" name="tuhtot" min="0"
                 value={this.state.forfeit ? '' : this.state.tuhtot} onChange={this.handleChange}/>
-              <label htmlFor="tuhtot">Toss-ups (incl. OT)</label>
+              <label htmlFor="tuhtot" className="truncate">Toss-ups (incl. OT)</label>
             </div>
           </div>
 
