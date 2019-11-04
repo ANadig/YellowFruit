@@ -449,7 +449,6 @@ class AddGameModal extends React.Component{
     }
     //two teams cah't play each other twice in the same round
     var [teamAPlayed, teamBPlayed] = this.props.haveTeamsPlayedInRound(team1, team2, round, this.state.originalGameLoaded);
-    console.log(teamAPlayed + ', ' + teamBPlayed);
     if(teamAPlayed == 3) {
       return [false, 'error', 'These teams already played each other in round ' + round];
     }
@@ -659,11 +658,27 @@ class AddGameModal extends React.Component{
   }
 
   /*---------------------------------------------------------
+  The field to select phases will appear if:
+  1. Adding a game while not viewing a phase, or
+  2. Editing a game that doesn't have any phases
+  ---------------------------------------------------------*/
+  canEditPhase() {
+    if(this.props.allPhases.length == 0) { return false; }
+    if(this.state.tiebreaker) { return false; }
+    var addOrEdit = this.props.addOrEdit, viewingPhase = this.props.currentPhase;
+    if(addOrEdit == 'add' && (viewingPhase == 'all' || viewingPhase == 'Tiebreakers')) {
+      return true;
+    }
+    if(this.state.originalGameLoaded == null) { return false; }
+    return addOrEdit == 'edit' && this.state.originalGameLoaded.phases.length == 0;
+  }
+
+  /*---------------------------------------------------------
   Chip containing the label for one of the game's phases.
   Pass colorNo -1 for a gray chip
   ---------------------------------------------------------*/
   phaseChip(colorNo, phase) {
-    var colorName = colorNo >=0 ? CHIP_COLORS[colorNo % CHIP_COLORS.length] : '';
+    var colorName = colorNo >=0 ? CHIP_COLORS[colorNo % CHIP_COLORS.length] : 'grey';
     return (
       <div key={phase} className={'chip accent-1 ' + colorName}>
         {phase}
@@ -695,8 +710,8 @@ class AddGameModal extends React.Component{
     }
     // multi-select dropdown to pick phases
     var phaseSelect = null;
-    var canEditPhase = this.props.addOrEdit == 'add' && this.props.currentPhase == 'all' &&
-      this.props.allPhases.length > 0;
+    var canEditPhase = this.canEditPhase();
+
     if(canEditPhase) {
       var phaseOptions = this.props.allPhases.map((phase)=>{
         return ( <option key={phase} value={phase}>{phase}</option> );
