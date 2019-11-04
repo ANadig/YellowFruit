@@ -1493,30 +1493,31 @@ class MainInterface extends React.Component {
   /*---------------------------------------------------------
   Whether the given teams have already played in this round.
   originalGameLoaded: the game currently open for editing
-  Returns: 0 if neither team has
-  1 if teamA has
-  2 if teamB has
-  3 if both teams have
-  4 if both teams have already played each other in this round
+  Returns an array with two values, one for each team:
+  0: has not played a game
+  1: has played a tiebreaker
+  2: has played a non-tiebreaker
+  3: both teams have already played each other in this round
   ---------------------------------------------------------*/
   haveTeamsPlayedInRound(teamA, teamB, roundNo, originalGameLoaded) {
-    var teamAPlayed = false, teamBPlayed = false;
+    var teamAPlayed = 0, teamBPlayed = 0;
     for(var i in this.state.myGames) {
       var g = this.state.myGames[i];
-      if(!StatUtils2.gameEqual(g, originalGameLoaded) && g.round == roundNo) {
+      if(g.round == roundNo && !StatUtils2.gameEqual(g, originalGameLoaded)) {
         if((g.team1 == teamA && g.team2 == teamB) || (g.team2 == teamA && g.team1 == teamB)) {
-          return 4;
+          return [3, 3];
         }
-        var teamAPlayed = teamAPlayed || (g.team1 == teamA || g.team2 == teamA);
-        var teamBPlayed = teamBPlayed || (g.team1 == teamB || g.team2 == teamB);
+        if(g.team1 == teamA || g.team2 == teamA) {
+          if(g.tiebreaker && teamAPlayed <= 1) { teamAPlayed = 1; }
+          else { teamAPlayed = 2; }
+        }
+        if(g.team1 == teamB || g.team2 == teamB) {
+          if(g.tiebreaker && teamBPlayed <= 1) { teamBPlayed = 1; }
+          else { teamBPlayed = 2; }
+        }
       }
     }
-    if(teamAPlayed) {
-      if(teamBPlayed) { return 3; }
-      return 1;
-    }
-    if(teamBPlayed) { return 2; }
-    return 0;
+    return [teamAPlayed, teamBPlayed];
   }
 
   /*---------------------------------------------------------

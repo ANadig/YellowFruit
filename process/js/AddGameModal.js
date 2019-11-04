@@ -448,10 +448,19 @@ class AddGameModal extends React.Component{
       return [false, '', ''];
     }
     //two teams cah't play each other twice in the same round
-    var haveTeamsPlayedInRound = this.props.haveTeamsPlayedInRound(team1, team2, round, this.state.originalGameLoaded);
-    if(haveTeamsPlayedInRound == 4) {
+    var [teamAPlayed, teamBPlayed] = this.props.haveTeamsPlayedInRound(team1, team2, round, this.state.originalGameLoaded);
+    console.log(teamAPlayed + ', ' + teamBPlayed);
+    if(teamAPlayed == 3) {
       return [false, 'error', 'These teams already played each other in round ' + round];
     }
+    //teams can only play multiple games in the same round if they're tiebreakers
+    if(teamAPlayed == 2 || (teamAPlayed && !this.state.tiebreaker)) {
+      return [false, 'error', team1 + ' has already played a game in round ' + round];
+    }
+    if(teamBPlayed == 2 || (teamBPlayed && !this.state.tiebreaker)) {
+      return [false, 'error', team2 + ' has already played a game in round ' + round];
+    }
+
     //team names and round are the only required info for a forfeit
     if(this.state.forfeit) {
       return [true, 'info', team1 + ' defeats ' + team2 + ' by forfeit'];
@@ -589,21 +598,6 @@ class AddGameModal extends React.Component{
       warningsExist = true;
       warningList += team2 + '\'s players have heard fewer than ' +
         idealCollectiveTuh + ' tossups. ';
-    }
-
-    //warn if the team already has a game in this round, but make it legal to allow for
-    //partial-packet tiebreakers
-    if(haveTeamsPlayedInRound == 1) {
-      warningsExist = true;
-      warningList += team1 + ' has already played a game in round ' + round + '. ';
-    }
-    else if(haveTeamsPlayedInRound == 2) {
-      warningsExist = true;
-      warningList += team2 + ' has already played a game in round ' + round + '. ';
-    }
-    else if(haveTeamsPlayedInRound == 3) {
-      warningsExist = true;
-      warningList += 'Both teams have already played a game in round ' + round + '. ';
     }
 
     //Warn if the score is a tie. Ties are bad. You shouldn't have ties.
