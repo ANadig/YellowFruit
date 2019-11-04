@@ -34,12 +34,14 @@ class ColorChip extends React.Component{
     else {
       noDelete = 'no-delete ';
     }
+    var colorName = this.props.colorNo >=0 ?
+      CHIP_COLORS[this.props.colorNo % CHIP_COLORS.length] : 'grey';
 
     // Need to wrap it in another div so that Materialize's code deleting the chip
     // doesn't delete the entire React element; app will crash otherwise
     return (
       <div className="chip-wrapper">
-        <div className={'chip ' + noDelete + 'accent-1 ' + CHIP_COLORS[this.props.colorNo % CHIP_COLORS.length]}>
+        <div className={'chip ' + noDelete + 'accent-1 ' + colorName}>
           {this.props.displayTitle}
           {removeIcon}
         </div>

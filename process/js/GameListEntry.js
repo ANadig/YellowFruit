@@ -108,7 +108,7 @@ class GameListEntry extends React.Component{
         phase = {phase}
         displayTitle = {phase}
         colorNo = {colorNo}
-        removeMe = {this.removePhase}
+        removeMe = {phase != 'Tiebreaker' ? this.removePhase : null}
       />
     );
   }
@@ -120,12 +120,15 @@ class GameListEntry extends React.Component{
     var phaseChips = [];
     var colorNo = 0;
     // phase chips
-    for (var i in this.props.allPhases) {
+    for(var i in this.props.allPhases) {
       var phase = this.props.allPhases[i];
       if(this.props.singleItem.phases.includes(phase)) {
         phaseChips.push(this.getPhaseChip(phase, colorNo));
       }
       colorNo += 1;
+    }
+    if(this.props.singleItem.tiebreaker) {
+      phaseChips.push(this.getPhaseChip('Tiebreaker', -1));
     }
     //checkbox to select this game
     var checkbox = null;
