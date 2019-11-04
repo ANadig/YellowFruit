@@ -2152,8 +2152,9 @@ class MainInterface extends React.Component {
   find games with no assigned phase.
   ---------------------------------------------------------*/
   noPhaseQuery(queryText, game) {
+    if(game.phases.length > 0 || game.tiebreaker) { return false; }
     queryText = queryText.trim();
-    return queryText.search(/^(no\W*phase)/i) == 0 && game.phases.length == 0;
+    return queryText.search(/^(no\W*phase)/i) == 0;
   }
 
   /*---------------------------------------------------------
