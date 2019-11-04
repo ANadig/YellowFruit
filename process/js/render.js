@@ -678,11 +678,14 @@ class MainInterface extends React.Component {
     if(gameWarnings.length > 0) {
       ipc.sendSync('qbjImportError', gameWarnings.join('\n'), true);
     }
+    var tbCount = 0;
+    for(var i in yfGames) { tbCount += yfGames[i].tiebreaker; }
 
     this.setState({
       settings: yfRules,
       packets: [],
       divisions: {},
+      tbCount: tbCount,
       myTeams: yfTeams,
       myGames: yfGames,
       allGamesShowTbs: false,
