@@ -1346,7 +1346,7 @@ function teamDetailPlayerRow(player, fileStart, settings, rptConfig) {
     html += tdTag(player.year, 'left');
   }
   if(showPlayerUG(rptConfig)) {
-    html += tdTag(player.undergrad ? 'D2' : '', 'left');
+    html += tdTag(player.undergrad ? 'UG' : '', 'left');
   }
   if(showPlayerD2(rptConfig)) {
     html += tdTag(player.div2 ? 'D2' : '', 'left');
