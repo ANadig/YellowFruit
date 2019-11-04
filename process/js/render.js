@@ -1070,7 +1070,7 @@ class MainInterface extends React.Component {
     this.setState({
       tmWindowVisible: true
     });
-    $('#teamName').focus();
+    setTimeout(function() { $('#teamName').focus() }, 50);
   }
 
   /*---------------------------------------------------------
@@ -1081,7 +1081,7 @@ class MainInterface extends React.Component {
     this.setState({
       gmWindowVisible: true
     });
-    $('#round').focus();
+    setTimeout(function() { $('#round').focus() }, 50);
   }
 
   /*---------------------------------------------------------
