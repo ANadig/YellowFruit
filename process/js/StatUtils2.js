@@ -39,6 +39,24 @@ module.exports.gameEqual = function(g1, g2) {
 }
 
 /*---------------------------------------------------------
+Check whether newGame is allowed to be merged into curGames
+(a team can only play twice in the same round if both games
+are tiebreakers)
+---------------------------------------------------------*/
+module.exports.mergeConflictGame = function(newGame, curGames) {
+  let dupBoth = curGames.find((g) => {
+    return g.team1 == newGame.team1 && g.team2 == newGame.team2 &&  g.round == newGame.round; });
+  let dupOne = curGames.find((g) => {
+    return (g.team1 == newGame.team1 || g.team2 == newGame.team1) && g.round == newGame.round});
+  let dupTwo = curGames.find((g) => {
+    return (g.team1 == newGame.team2 || g.team2 == newGame.team2) && g.round == newGame.round});
+
+  if(dupBoth) { return true; }
+  if(dupOne && !(dupOne.tiebreaker && newGame.tiebreaker)) { return true; }
+  return dupTwo && !(dupTwo.tiebreaker && newGame.tiebreaker);
+}
+
+/*---------------------------------------------------------
 Is version a less than version b? Versions are 3-piece
 dot-delimited, e.g. '1.2.3'
 ---------------------------------------------------------*/

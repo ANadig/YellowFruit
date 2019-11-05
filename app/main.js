@@ -811,156 +811,6 @@ app.on('ready', function() {
   });//on confirmLossySQBS
 
   /*---------------------------------------------------------
-  If the import failed, help the user troubleshoot.
-  ---------------------------------------------------------*/
-  ipc.on('sqbsImportError', (event, lineNo) => {
-    event.returnValue = '';
-    dialog.showMessageBox(
-      appWindow,
-      {
-        type: 'error',
-        buttons: ['&OK'],
-        defaultId: 0,
-        cancelId: 0,
-        title: 'Import error',
-        message: 'Import failed. Encountered an error on line ' + lineNo +
-          ' of the SQBS file.',
-        normalizeAccessKeys: true
-      }
-    );
-  });
-
-  /*---------------------------------------------------------
-  Conform that rosters were imported successfully.
-  ---------------------------------------------------------*/
-  ipc.on('rosterImportSuccess', (event, numImported, dupTeams) => {
-    event.returnValue = '';
-    var message = 'Imported ' + numImported + ' teams.\n\n';
-    if(dupTeams.length > 0) {
-      message += 'The following teams already exist and were not imported:\n\n' +
-        dupTeams.join('\n');
-    }
-    dialog.showMessageBox(
-      appWindow,
-      {
-        type: 'info',
-        buttons: ['&OK'],
-        defaultId: 0,
-        cancelId: 0,
-        title: 'Successful import',
-        message: message,
-        normalizeAccessKeys: true
-      }
-    );
-  });
-
-  /*---------------------------------------------------------
-  Tell the user that there's nothing to import because all
-  of the teams in the sqbs file are already here.
-  ---------------------------------------------------------*/
-  ipc.on('allDupsFromSQBS', (event) => {
-    event.returnValue = '';
-    dialog.showMessageBox(
-      appWindow,
-      {
-        type: 'warning',
-        buttons: ['&OK'],
-        defaultId: 0,
-        cancelId: 0,
-        title: 'YellowFruit',
-        message: 'No teams were imported because all teams in the file already exist.',
-        normalizeAccessKeys: true
-      }
-    );
-  });
-
-  /*---------------------------------------------------------
-  Show a message when QBJ import failed or has warnings
-  ---------------------------------------------------------*/
-  ipc.on('qbjImportError', (event, errorString, isWarning) => {
-    event.returnValue = '';
-    var messageStart = isWarning ? 'You may want to correct the following issues:' : 'QBJ Import failed:';
-    dialog.showMessageBox(
-      appWindow,
-      {
-        type: isWarning ? 'warning' : 'error',
-        buttons: ['&OK'],
-        defaultId: 0,
-        cancelId: 0,
-        title: 'QBJ Import',
-        message: messageStart + '\n\n' + errorString,
-        normalizeAccessKeys: true
-      }
-    );
-  });
-
-  /*---------------------------------------------------------
-  Show a message when QBJ import failed
-  ---------------------------------------------------------*/
-  ipc.on('qbjImportSuccess', (event, message) => {
-    event.returnValue = '';
-    dialog.showMessageBox(
-      appWindow,
-      {
-        type: 'info',
-        buttons: ['&OK'],
-        defaultId: 0,
-        cancelId: 0,
-        title: 'QBJ Import',
-        message: message,
-        normalizeAccessKeys: true
-      }
-    );
-  });
-
-  /*---------------------------------------------------------
-  Show a message explaining why the merge failed.
-  ---------------------------------------------------------*/
-  ipc.on('mergeError', (event, errorString) => {
-    event.returnValue = '';
-    dialog.showMessageBox(
-      appWindow,
-      {
-        type: 'error',
-        buttons: ['&OK'],
-        defaultId: 0,
-        cancelId: 0,
-        title: 'Merge error',
-        message: 'Tournaments were not merged:\n\n' + errorString,
-        normalizeAccessKeys: true
-      }
-    );
-  });
-
-  /*---------------------------------------------------------
-  Show a summary of the merge.
-  ---------------------------------------------------------*/
-  ipc.on('successfulMerge', (event, newTeamCount, newGameCount, conflictGames) => {
-    event.returnValue = '';
-    var mergeSummary = 'Added ' + newTeamCount + ' new teams and ' + newGameCount +
-      ' new games.';
-    if(conflictGames.length > 0) {
-      mergeSummary += '\n\nThe following games already exist and were not added:\n\n';
-      for(var i in conflictGames) {
-        var g = conflictGames[i];
-        mergeSummary += 'Round ' + g.round + ': ' + g.team1 + ' vs. ' + g.team2 + '\n';
-      }
-    }
-    dialog.showMessageBox(
-      appWindow,
-      {
-        type: 'info',
-        buttons: ['&OK'],
-        defaultId: 0,
-        cancelId: 0,
-        title: 'Successful merge',
-        message: mergeSummary,
-        normalizeAccessKeys: true
-      }
-    );
-  });
-
-  /*---------------------------------------------------------
   Prompt the user to confirm that they want to delete this
   report configuration
   ---------------------------------------------------------*/
@@ -984,20 +834,20 @@ app.on('ready', function() {
   /*---------------------------------------------------------
   Show errors that the render process catches
   ---------------------------------------------------------*/
-  ipc.on('genericError', (event, header, stack) => {
+  ipc.on('genericModal', (event, type, title, message, isFatal) => {
     event.returnValue = '';
-    if(reportWindow != undefined) {
+    if(isFatal && reportWindow != undefined) {
       reportWindow.close();
     }
     dialog.showMessageBox(
       appWindow,
       {
-        type: 'error',
+        type: type,
         buttons: ['&OK'],
         defaultID: 0,
         cancelId: 0,
-        title: 'Error',
-        message: header + '\n\n' + stack,
+        title: title,
+        message: message,
         normalizeAccessKeys: true
       }
     );

@@ -401,7 +401,9 @@ class MainInterface extends React.Component {
     }).then(() => {
       ipc.sendSync('setWindowTitle', fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
       return 1;
-    }).catch((err) => { ipc.sendSync('genericError', 'Error saving file:', err.stack); });
+    }).catch((err) => {
+      ipc.sendSync('genericModal', 'error', 'Error', 'Error saving file:\n\n' + err.stack, true);
+    });
     this.setState({
       settings: tempSettings
     });
@@ -494,6 +496,12 @@ class MainInterface extends React.Component {
     loadGames = JSON.parse(loadGames);
     var assocRpt = loadSettings.rptConfig;
 
+    if(StatUtils2.versionLt(METADATA.version, loadMetadata.version)) {
+      ipc.sendSync('genericModal', 'error', 'Cannot load tournament',
+        'Upgrade to version ' + loadMetadata.version + ' or higher to load this tournament');
+      return;
+    }
+
     //if coming from 2.0.4 or earlier, there's no default phase
     if(loadSettings.defaultPhase == undefined && loadSettings. defaultPhases == undefined) {
       loadSettings.defaultPhases = [];
@@ -568,13 +576,15 @@ class MainInterface extends React.Component {
     var curLine = 0;
     var numTeams = sqbsAry[curLine++]; // first line is number of teams
     if(isNaN(numTeams)) {
-      ipc.sendSync('sqbsImportError', curLine);
+      ipc.sendSync('genericModal', 'error', 'Import error',
+        'Import failed. Encountered an error on line ' + curLine + ' of the SQBS file.');
       return;
     }
     for(var i=0; i<numTeams; i++) {
       var rosterSize = sqbsAry[curLine++] - 1; // first line of team is number of players + 1
       if(isNaN(rosterSize)) {
-        ipc.sendSync('sqbsImportError', curLine);
+        ipc.sendSync('genericModal', 'error', 'Import error',
+          'Import failed. Encountered an error on line ' + curLine + ' of the SQBS file.');
         return;
       }
       var teamName = sqbsAry[curLine++].trim(); // second line of team is team name
@@ -608,11 +618,17 @@ class MainInterface extends React.Component {
       this.setState({
         myTeams: myTeams
       });
-      ipc.sendSync('rosterImportSuccess', numImported, dupTeams);
+      let message = 'Imported ' + numImported + ' teams.\n\n';
+      if(dupTeams.length > 0) {
+        message += 'The following teams already exist and were not imported:\n\n' +
+          dupTeams.join('\n');
+      }
+      ipc.sendSync('genericModal', 'info', 'Successful import', message);
       ipc.sendSync('unsavedData');
     }
     else if(dupTeams.length > 0) {
-      ipc.sendSync('allDupsFromSQBS');
+      ipc.sendSync('genericModal', 'warning', 'YellowFruit',
+        'No teams were imported because all teams in the file already exist.');
     }
   } // importRosters
 
@@ -625,7 +641,8 @@ class MainInterface extends React.Component {
       var qbj = JSON.parse(fileString);
     }
     if(qbj.version != 1.2) {
-      ipc.sendSync('qbjImportError', 'Only tournament schema version 1.2 is supported');
+      ipc.sendSync('genericModal', 'error', 'Import QBJ',
+        'QBJ import failed:\n\nOnly tournament schema version 1.2 is supported');
       return;
     }
     var tournament, registrations = [], matches = [];
@@ -646,13 +663,15 @@ class MainInterface extends React.Component {
           badObject = obj.type;
       }
       if(badObject != '') {
-        ipc.sendSync('qbjImportError', 'Unrecognized object of type ' + badObject);
+        ipc.sendSync('genericModal', 'error', 'Import QBJ',
+          'QBJ import failed:\n\nUnrecognized object of type ' + badObject);
         return;
       }
     }
     var [yfRules, ruleErrors] = QbjUtils.parseQbjRules(tournament.scoring_rules);
     if(ruleErrors.length > 0) {
-      ipc.sendSync('qbjImportError', ruleErrors.join('\n'));
+      ipc.sendSync('genericModal', 'error', 'Import QBJ',
+        'QBJ import failed:\n\n' + ruleErrors.join('\n'));
       return;
     }
     yfRules.defaultPhases = DEFAULT_SETTINGS.defaultPhases;
@@ -660,23 +679,27 @@ class MainInterface extends React.Component {
 
     var [yfTeams, teamIds, teamErrors] = QbjUtils.parseQbjTeams(tournament, registrations);
     if(teamErrors.length > 0) {
-      ipc.sendSync('qbjImportError', teamErrors.join('\n'));
+      ipc.sendSync('genericModal', 'error', 'Import QBJ',
+        'QBJ import failed:\n\n' + teamErrors.join('\n'));
       return;
     }
 
     var rounds = tournament.phases[0].rounds;
     var [yfGames, gameErrors] = QbjUtils.parseQbjMatches(rounds, matches, teamIds);
     if(gameErrors.length > 0) {
-      ipc.sendSync('qbjImportError', gameErrors.join('\n'));
+      ipc.sendSync('genericModal', 'error', 'Import QBJ',
+        'QBJ import failed:\n\n' + gameErrors.join('\n'));
       return;
     }
     var [gameErrors, gameWarnings] = QbjUtils.validateMatches(yfGames, yfRules);
     if(gameErrors.length > 0) {
-      ipc.sendSync('qbjImportError', gameErrors.join('\n'));
+      ipc.sendSync('genericModal', 'error', 'Import QBJ',
+        'QBJ import failed:\n\n' + gameErrors.join('\n'));
       return;
     }
     if(gameWarnings.length > 0) {
-      ipc.sendSync('qbjImportError', gameWarnings.join('\n'), true);
+      ipc.sendSync('genericModal', 'warning', 'Import QBJ',
+        'You may want to correct the following issues:\n\n' + gameWarnings.join('\n'));
     }
     var tbCount = 0;
     for(var i in yfGames) { tbCount += yfGames[i].tiebreaker; }
@@ -701,7 +724,8 @@ class MainInterface extends React.Component {
 
     this.loadGameIndex(yfGames, true);
     this.loadPlayerIndex(yfTeams, yfGames, true);
-    ipc.sendSync('qbjImportSuccess', 'Imported ' + yfTeams.length + ' teams and ' + yfGames.length + ' games.');
+    ipc.sendSync('genericModal', 'info', 'Import QBJ',
+      'Imported ' + yfTeams.length + ' teams and ' + yfGames.length + ' games.');
     ipc.sendSync('unsavedData');
   }
 
@@ -718,7 +742,7 @@ class MainInterface extends React.Component {
     loadGames = JSON.parse(loadGames);
     // check settings
     if(!StatUtils2.settingsEqual(loadSettings, this.state.settings)) {
-      ipc.sendSync('mergeError', 'Tournaments with different settings cannot be merged');
+      ipc.sendSync('genericModal', 'error', 'Merge failed', 'Tournaments with different settings cannot be merged');
       return;
     }
     // merge divisions
@@ -778,9 +802,8 @@ class MainInterface extends React.Component {
     var newGameCount = 0, tbCount = this.state.tbCount;
     var conflictGames = [];
     for(var i in loadGames) {
-      var newGame = loadGames[i];
-      var oldGame = gamesCopy.find((g) => { return g.team1==newGame.team1 && g.team2==newGame.team2 && g.round==newGame.round; });
-      if(oldGame == undefined) {
+      let newGame = loadGames[i];
+      if(!StatUtils2.mergeConflictGame(newGame, gamesCopy)) {
         gamesCopy.push(newGame);
         newGameCount++;
         tbCount += newGame.tiebreaker;
@@ -797,7 +820,19 @@ class MainInterface extends React.Component {
     this.loadGameIndex(gamesCopy, false);
     this.loadPlayerIndex(teamsCopy, gamesCopy, false);
     ipc.sendSync('unsavedData');
-    ipc.sendSync('successfulMerge', newTeamCount, newGameCount, conflictGames);
+
+    var mergeSummary = 'Added ' + newTeamCount + ' new teams and ' + newGameCount +
+      ' new games.';
+    if(conflictGames.length > 0) {
+      mergeSummary += '\n\nThe following games were not added because teams cannot' +
+        'play multiple non-tiebreaker games in the same round:\n\n';
+      for(var i in conflictGames) {
+        let g = conflictGames[i];
+        mergeSummary += 'Round ' + g.round + ': ' + g.team1 + ' vs. ' + g.team2 + '\n';
+      }
+    }
+
+    ipc.sendSync('genericModal', 'info', 'Successful merge', mergeSummary);
   } // mergeTournament
 
   /*---------------------------------------------------------
@@ -882,7 +917,9 @@ class MainInterface extends React.Component {
     }).then(() => {
       if(fileStart == '') { ipc.sendSync('statReportReady'); }
       else { this.toast('Stat report generated'); }
-    }).catch((err) => { ipc.sendSync('genericError', 'Error generating stat report:', err.stack); });
+    }).catch((err) => {
+      ipc.sendSync('genericModal', 'error', 'Error', 'Error generating stat report:\n\n' + err.stack, true);
+    });
 
   } //writeStatReport
 
@@ -902,7 +939,9 @@ class MainInterface extends React.Component {
       resolve(fs.writeFileSync(fileName, sqbsData, 'utf8', StatUtils2.printError));
     }).then(() => {
       this.toast('SQBS file generated');
-    }).catch((err) => { ipc.sendSync('genericError', 'Error saving file:', err.stack); });
+    }).catch((err) => {
+      ipc.sendSync('genericModal', 'error', 'Error', 'Error saving file:\n\n' + err.stack, true);
+    });
   } //writeSqbsFile
 
   /*---------------------------------------------------------
@@ -2227,7 +2266,9 @@ class MainInterface extends React.Component {
       if(acceptAndStay) { this.toast('Saved ' + newName); }
       ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
       return 1;
-    }).catch((err) => { ipc.sendSync('genericError', 'Error saving settings:', err.stack); });
+    }).catch((err) => {
+      ipc.sendSync('genericModal', 'error', 'Error', 'Error saving settings:\n\n' + err.stack, true);
+    });
   }
 
   /*---------------------------------------------------------
@@ -2247,7 +2288,9 @@ class MainInterface extends React.Component {
     }).then(() => {
       this.toast('Set ' + rptName + ' as the default for new tournaments');
       return 1;
-    }).catch((err) => { ipc.sendSync('genericError', 'Error saving settings:', err.stack); });
+    }).catch((err) => {
+      ipc.sendSync('genericModal', 'error', 'Error', 'Error saving settings:\n\n' + err.stack, true);
+    });
   }
 
   /*---------------------------------------------------------
@@ -2269,7 +2312,9 @@ class MainInterface extends React.Component {
     }).then(() => {
       this.toast('Removed default status');
       return 1;
-    }).catch((err) => { ipc.sendSync('genericError', 'Error saving settings:', err.stack); });
+    }).catch((err) => {
+      ipc.sendSync('genericModal', 'error', 'Error', 'Error saving settings:\n\n' + err.stack, true);
+    });
   }
 
   /*---------------------------------------------------------
@@ -2307,7 +2352,9 @@ class MainInterface extends React.Component {
     }).then(() => {
       ipc.sendSync('rebuildMenus', this.state.releasedRptList, tempRpts, activeRpt);
       return 1;
-    }).catch((err) => { ipc.sendSync('genericError', 'Error saving settings:', err.stack); });
+    }).catch((err) => {
+      ipc.sendSync('genericModal', 'error', 'Error', 'Error saving settings:\n\n' + err.stack, true);
+    });
   }
 
   /*---------------------------------------------------------
