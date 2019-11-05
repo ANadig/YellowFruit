@@ -12,7 +12,6 @@ const M = require('materialize-css');
 const Mousetrap = require('mousetrap');
 
 const ipc = electron.ipcRenderer;
-const {app} = electron.remote;
 
 const React = require('react');
 const ReactDOM = require('react-dom');

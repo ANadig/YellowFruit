@@ -5,7 +5,6 @@ Andrew Nadig
 code for generating the HTML stats report.
 ***********************************************************/
 var _ = require('lodash');
-var fs = eRequire('fs');
 const TOOLTIPS = {
   smallSchool: 'Small School',
   jrVarsity: 'Junior Varsity',
