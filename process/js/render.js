@@ -741,6 +741,15 @@ class MainInterface extends React.Component {
     loadDivisions = JSON.parse(loadDivisions);
     loadTeams = JSON.parse(loadTeams);
     loadGames = JSON.parse(loadGames);
+    //reject files from a higher version than this one
+    if(StatUtils2.versionLt(METADATA.version, loadMetadata.version, 'minor')) {
+      let verAry = loadMetadata.version.split('.');
+      verAry[2] = '0';
+      ipc.sendSync('genericModal', 'error', 'Cannot load tournament',
+        'Upgrade to version ' + verAry.join('.') + ' or higher to load this tournament');
+      return;
+    }
+
     // check settings
     if(!StatUtils2.settingsEqual(loadSettings, this.state.settings)) {
       ipc.sendSync('genericModal', 'error', 'Merge failed', 'Tournaments with different settings cannot be merged');
