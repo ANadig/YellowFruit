@@ -59,11 +59,15 @@ module.exports.mergeConflictGame = function(newGame, curGames) {
 /*---------------------------------------------------------
 Is version a less than version b? Versions are 3-piece
 dot-delimited, e.g. '1.2.3'
+type: 'major', 'minor', 'patch'
+  if null, 'patch' is assumed
 ---------------------------------------------------------*/
-module.exports.versionLt = function(a, b) {
+module.exports.versionLt = function(a, b, type) {
   var aSplit = a.split('.'), bSplit = b.split('.');
   if(aSplit[0] != bSplit[0]) { return aSplit[0] < bSplit[0]; }
+  if(type == 'major') { return false; }
   if(aSplit[1] != bSplit[1]) { return aSplit[1] < bSplit[1]; }
+  if(type == 'minor') { return false; }
   return aSplit[2] < bSplit[2];
 }
 

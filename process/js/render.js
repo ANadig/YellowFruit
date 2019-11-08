@@ -495,9 +495,11 @@ class MainInterface extends React.Component {
     loadGames = JSON.parse(loadGames);
     var assocRpt = loadSettings.rptConfig;
 
-    if(StatUtils2.versionLt(METADATA.version, loadMetadata.version)) {
+    if(StatUtils2.versionLt(METADATA.version, loadMetadata.version, 'minor')) {
+      let verAry = loadMetadata.version.split('.');
+      verAry[2] = '0';
       ipc.sendSync('genericModal', 'error', 'Cannot load tournament',
-        'Upgrade to version ' + loadMetadata.version + ' or higher to load this tournament');
+        'Upgrade to version ' + verAry.join('.') + ' or higher to load this tournament');
       return;
     }
 
