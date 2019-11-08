@@ -309,7 +309,7 @@ module.exports.validateMatches = function(games, settings) {
     }
     if(tuhError) { continue; }
     if(team1Tuh > tuhtot * settings.playersPerTeam || team2Tuh > tuhtot * settings.playersPerTeam) {
-      errors.push(gameString + ' - Players have combined to hear more tossups than are allowed');
+      errors.push(gameString + ' - Players have combined to hear more tossups than is allowed');
       continue;
     }
     // all points must be accounted for if it's tossup-only
