@@ -280,11 +280,11 @@ module.exports.validateMatches = function(games, settings) {
       matchups[round][team2].push(team1);
     }
     //scores are required
-    if(g.score1 == undefined || g.score1 == '' || g.score1 < 0) {
+    if(g.score1 == undefined || g.score1 == '') {
       errors.push(gameString + ' - Score is invalid');
       continue;
     }
-    if(g.score2 == undefined || g.score2 == '' || g.score2 < 0) {
+    if(g.score2 == undefined || g.score2 == '') {
       errors.push(gameString + ' - Score is invalid');
       continue;
     }
