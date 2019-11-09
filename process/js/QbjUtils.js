@@ -312,6 +312,10 @@ module.exports.validateMatches = function(games, settings) {
       errors.push(gameString + ' - Players have combined to hear more tossups than is allowed');
       continue;
     }
+    if(team1Tuh == 0 || team2Tuh == 0) {
+      errors.push(gameString + ' - Players on one team have not heard any tossups');
+      continue;
+    }
     // all points must be accounted for if it's tossup-only
     if(settings.bonuses == 'none' &&
       (StatUtils.bonusPoints(g, 1, settings) > 0 ||
