@@ -2,9 +2,25 @@
 <html lang="en">
 <head>
   <style>
-    body { background-image: url("splash_image.png"); }
+    body {
+      background-image: url("splash_image.png");
+      font-family: "Segoe UI";
+      color: white;
+      margin-left: 14px;
+      margin-top: 22px;
+    }
+    span {
+      line-height: 23px;
+    }
   </style>
 </head>
 <body>
+  <br><br><br><span>By Andrew Nadig</span><br><span id="version">unknown version</span>
+  <script type="text/javascript">
+    var electron = require('electron');
+    var ipc = electron.ipcRenderer;
+    const {app} = electron.remote;
+    document.getElementById("version").innerHTML = app.getVersion();
+  </script>
 </body>
 </html>
