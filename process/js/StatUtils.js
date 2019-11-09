@@ -403,7 +403,10 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
   var linkId = teamEntry.teamName.replace(/\W/g, '');
   var rowHtml = '<tr>';
   rowHtml += tdTag(rank,'left');
-  rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + linkId + '>' + teamEntry.teamName + '</a>','left');
+  if(teamEntry.wins + teamEntry.losses + teamEntry.ties > 0) {
+    rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + linkId + '>' + teamEntry.teamName + '</a>','left');
+  }
+  else { rowHtml += tdTag(teamEntry.teamName, 'left'); }
   if(showSS(rptConfig)) {
     rowHtml += tdTag(teamEntry.smallSchool ? 'SS' : '', 'left');
   }
