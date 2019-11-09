@@ -21,9 +21,8 @@
     </div>
   </div><!-- Main -->
   <script type="text/javascript">
-    var electron = require('electron');
-    var shell = electron.shell;
-    var ipc = electron.ipcRenderer;
+    const electron = require('electron');
+    const ipc = electron.ipcRenderer;
     const {app} = electron.remote;
     document.getElementById("version").innerHTML = app.getVersion();
   </script>

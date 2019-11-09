@@ -17,9 +17,7 @@
 <body>
   <br><br><br><span>By Andrew Nadig</span><br><span id="version">unknown version</span>
   <script type="text/javascript">
-    var electron = require('electron');
-    var ipc = electron.ipcRenderer;
-    const {app} = electron.remote;
+    const {app} = require('electron').remote;
     document.getElementById("version").innerHTML = app.getVersion();
   </script>
 </body>
