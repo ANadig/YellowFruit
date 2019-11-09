@@ -505,6 +505,14 @@ class AddGameModal extends React.Component{
       return [false, 'error', team2 + '\'s players have heard more than ' + idealCollectiveTuh + ' tossups'];
     }
 
+    // make sure there are tossups heard even if team scored zero points
+    if(playerTuhSums[0] == 0) {
+      return [false, 'error', team1 + ' has not heard any tossups'];
+    }
+    if(playerTuhSums[1] == 0) {
+      return [false, 'error', team2 + ' has not heard any tossups'];
+    }
+
     //if it's a tossup only format, sum of tossup points must equal total score
     if(this.props.settings.bonuses == 'none') {
       if(this.bPts(1) != 0) {
