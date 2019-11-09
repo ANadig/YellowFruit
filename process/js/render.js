@@ -619,6 +619,8 @@ class MainInterface extends React.Component {
       this.setState({
         myTeams: myTeams
       });
+      this.loadPlayerIndex(myTeams, this.state.myGames, true);
+
       let message = 'Imported ' + numImported + ' teams.\n\n';
       if(dupTeams.length > 0) {
         message += 'The following teams already exist and were not imported:\n\n' +
