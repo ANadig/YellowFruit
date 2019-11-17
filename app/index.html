@@ -46,6 +46,15 @@
     var defaultRoundReportLocation = Path.resolve(__dirname, 'rounds.html');
     var defaultStatKeyLocation = Path.resolve(__dirname, 'statKey.html');
     var statKeyBodyLocation = Path.resolve(__dirname, 'statKeyBody.html');
+
+    document.addEventListener('dragover', function (event) {
+      event.preventDefault();
+      return false;
+    }, false);
+    document.addEventListener('drop', function (event) {
+      event.preventDefault();
+      return false;
+    }, false);
   </script>
   <script src="js/render.js"></script>
 </body>
