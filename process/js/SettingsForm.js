@@ -32,7 +32,7 @@ class SettingsForm extends React.Component{
     this.state = {
       powers: props.settings.powers, // '20pts', '15pts', or 'none'
       negs: props.settings.negs, // whether there are negs
-      bonuses: props.settings.bonuses, // 'yesBb', 'noBb', or 'none'
+      bonusOption: this.bonusOptionFromProps(), // 'yesBb', 'noBb', or 'none'
       playersPerTeam: props.settings.playersPerTeam,
       packets: props.packets,
       phases: _.without(allPhases, 'noPhase'),
@@ -136,7 +136,8 @@ class SettingsForm extends React.Component{
       var settingsObj = {
         powers: this.state.powers,
         negs: this.state.negs,
-        bonuses: this.state.bonuses,
+        bonuses: this.state.bonusOption != 'none',
+        bonusesBounce: this.state.bonusOption == 'yesBb',
         playersPerTeam: this.state.playersPerTeam
       };
       this.props.saveSettings(settingsObj);
@@ -210,7 +211,7 @@ class SettingsForm extends React.Component{
       this.setState({
         powers: this.props.settings.powers,
         negs: this.props.settings.negs,
-        bonuses: this.props.settings.bonuses,
+        bonusOption: this.bonusOptionFromProps(),
         playersPerTeam: this.props.settings.playersPerTeam,
         editingSettings: false
       });
@@ -465,9 +466,21 @@ class SettingsForm extends React.Component{
   For display when the settings card is read-only.
   ---------------------------------------------------------*/
   bonusString() {
-    if(this.props.settings.bonuses == 'none') { return 'No bonuses'; }
-    if(this.props.settings.bonuses == 'yesBb') { return 'Bonuses with bouncebacks'; }
+    var option = this.bonusOptionFromProps();
+    if(option == 'none') { return 'No bonuses'; }
+    if(option == 'yesBb') { return 'Bonuses with bouncebacks'; }
     return 'Bonuses without bouncebacks';
+  }
+
+  /*---------------------------------------------------------
+  Translate setting in file to radio-button options in the
+  form.
+  ---------------------------------------------------------*/
+  bonusOptionFromProps() {
+    if(this.props.settings.bonuses) {
+      return this.props.settings.bonusesBounce ? 'yesBb' : 'noBb';
+    }
+    return 'none';
   }
 
   /*---------------------------------------------------------
@@ -639,22 +652,22 @@ class SettingsForm extends React.Component{
           <h6>Bonuses</h6>
           <p>
             <label>
-              <input name="bonuses" type="radio" value="noBb"
-              checked={this.state.bonuses=='noBb'} onChange={this.handleChange} />
+              <input name="bonusOption" type="radio" value="noBb"
+              checked={this.state.bonusOption=='noBb'} onChange={this.handleChange} />
               <span>Without bouncebacks</span>
             </label>
           </p>
           <p>
             <label>
-              <input name="bonuses" type="radio" value="yesBb"
-              checked={this.state.bonuses=='yesBb'} onChange={this.handleChange} />
+              <input name="bonusOption" type="radio" value="yesBb"
+              checked={this.state.bonusOption=='yesBb'} onChange={this.handleChange} />
               <span>With bouncebacks</span>
             </label>
           </p>
           <p>
             <label>
-              <input name="bonuses" type="radio" value="none"
-              checked={this.state.bonuses=='none'} onChange={this.handleChange} />
+              <input name="bonusOption" type="radio" value="none"
+              checked={this.state.bonusOption=='none'} onChange={this.handleChange} />
               <span>No bonuses</span>
             </label>
           </p>

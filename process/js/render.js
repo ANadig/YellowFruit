@@ -40,7 +40,8 @@ const METADATA = {version:app.getVersion()}; // take version straight from packa
 const DEFAULT_SETTINGS = {
   powers: '15pts',
   negs: 'yes',
-  bonuses: 'noBb',
+  bonuses: true,
+  bonusesBounce: false,
   playersPerTeam: '4',
   defaultPhases: [], // Used to group teams when viewing all games
   rptConfig: 'SQBS Defaults'
@@ -507,9 +508,15 @@ class MainInterface extends React.Component {
     if(loadSettings.defaultPhase == undefined && loadSettings. defaultPhases == undefined) {
       loadSettings.defaultPhases = [];
     }
-    else if(StatUtils2.versionLt(loadMetadata.version, '2.4.0')) {
-      StatUtils2.settingsConversion2x4x0(loadSettings);
+    else {
+      if(StatUtils2.versionLt(loadMetadata.version, '2.4.0')) {
+        StatUtils2.settingsConversion2x4x0(loadSettings);
+      }
+      if(StatUtils2.versionLt(loadMetadata.version, '2.5.0')) {
+        StatUtils2.settingsConversion2x5x0(loadSettings);
+      }
     }
+    console.log(loadSettings);
 
     //if coming from 2.1.0 or earlier, assign the SQBS default report
     if(assocRpt == undefined) {

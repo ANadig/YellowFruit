@@ -514,7 +514,7 @@ class AddGameModal extends React.Component{
     }
 
     //if it's a tossup only format, sum of tossup points must equal total score
-    if(this.props.settings.bonuses == 'none') {
+    if(!this.props.settings.bonuses) {
       if(this.bPts(1) != 0) {
         return [false, 'error', team1 + '\'s tossup points and total score do not match'];
       }
@@ -543,10 +543,10 @@ class AddGameModal extends React.Component{
     }
 
     //can't have over 30 ppbb
-    if(this.props.settings.bonuses == 'yesBb' && this.invalidPpbb(1)) {
+    if(this.props.settings.bonusesBounce && this.invalidPpbb(1)) {
       return [false, 'error', team1 + ' has over 30 ppbb'];
     }
-    if(this.props.settings.bonuses == 'yesBb' && this.invalidPpbb(2)) {
+    if(this.props.settings.bonusesBounce && this.invalidPpbb(2)) {
       return [false, 'error', team2 + ' has over 30 ppbb'];
     }
 
@@ -879,9 +879,9 @@ class AddGameModal extends React.Component{
       ); //overtimeRow
     } // if overtime
 
-    // display (automatically calulcated) bonus stats (when no bouncebacks)
+    // display (automatically calulcated) bonus stats
     var bonusCalcRow = null;
-    if(this.props.settings.bonuses != 'none') {
+    if(this.props.settings.bonuses) {
       bonusCalcRow = (
         <div className="row">
           <div className="col s6">
@@ -896,7 +896,7 @@ class AddGameModal extends React.Component{
 
     // bounceback points field, and automatically calculated bouncback conversion
     var bouncebackRow = null;
-    if(this.props.settings.bonuses == 'yesBb') {
+    if(this.props.settings.bonusesBounce) {
       bouncebackRow = (
         <div className="row">
           <div className="col s6">

@@ -554,12 +554,12 @@ class RptConfigModal extends React.Component {
     var tdPperN = this.state.pPerN && this.props.tournamentSettings.powers != 'none' &&
       this.props.tournamentSettings.negs == 'yes' ? ( <td>Pwr/N</td> ) : null;
     var tdGperN = this.state.gPerN && this.props.tournamentSettings.negs == 'yes' ? ( <td>G/N</td> ) : null;
-    var tdBPts = this.props.tournamentSettings.bonuses != 'none' ? ( <td>BPts</td> ) : null;
-    var tdBHrd = this.props.tournamentSettings.bonuses != 'none' ? ( <td>BHrd</td> ) : null;
-    var tdPpb = this.props.tournamentSettings.bonuses != 'none' ? ( <td>PPB</td> ) : null;
-    var tdBBHrd = this.props.tournamentSettings.bonuses == 'yesBb' ? ( <td>BBHrd</td> ) : null;
-    var tdBbpts = this.props.tournamentSettings.bonuses == 'yesBb' ? ( <td>BBPts</td> ) : null;
-    var tdPpbb = this.props.tournamentSettings.bonuses == 'yesBb' ? ( <td>PPBB</td> ) : null;
+    var tdBPts = this.props.tournamentSettings.bonuses ? ( <td>BPts</td> ) : null;
+    var tdBHrd = this.props.tournamentSettings.bonuses ? ( <td>BHrd</td> ) : null;
+    var tdPpb = this.props.tournamentSettings.bonuses ? ( <td>PPB</td> ) : null;
+    var tdBBHrd = this.props.tournamentSettings.bonusesBounce ? ( <td>BBHrd</td> ) : null;
+    var tdBbpts = this.props.tournamentSettings.bonusesBounce ? ( <td>BBPts</td> ) : null;
+    var tdPpbb = this.props.tournamentSettings.bonusesBounce ? ( <td>PPBB</td> ) : null;
 
     //additional table cells for the individual standings preview
     var tdPlayer = ( <td>Player</td> );

@@ -134,13 +134,13 @@ function gameList(settings, teams, games, phase, showTbs) {
     else { output += g.tuhtot + '\n'; }
     output += g.round + '\n';
     //bonuses
-    if(settings.bonuses == 'noBb') {
+    if(settings.bonuses && !settings.bonusesBounce) {
       output += StatUtils.bonusesHeard(g, 1) + '\n';
       output += StatUtils.bonusPoints(g, 1, settings) + '\n';
       output += StatUtils.bonusesHeard(g, 2) + '\n';
       output += StatUtils.bonusPoints(g, 2, settings) + '\n';
     }
-    else if(settings.bonuses == 'yesBb') {
+    else if(settings.bonusesBounce) {
       // track bouncebacks heard in units of bonus parts, not bonuses
       var bbHrd1 = (3*StatUtils.bbHrdToFloat(StatUtils.bbHeard(g, 1, settings))).toFixed(0);
       output += 10000*bbHrd1 + StatUtils.bonusesHeard(g, 1) + '\n';
@@ -200,13 +200,13 @@ Other SQBS settings.
 ---------------------------------------------------------*/
 function miscSettings(settings, divisions) {
   var output = '';
-  if(settings.bonuses == 'none') {
+  if(!settings.bonuses) {
     output += '0\n'; // turn off bonus conversion tracking
   }
   else {
     output += '1\n'; //turn on bonus conversion tracking
   }
-  if(settings.bonuses == 'yesBb') {
+  if(settings.bonusesBounce) {
     output += '3\n'; // Bonus conversion tracking: "manual with bouncebacks"
   }
   else {

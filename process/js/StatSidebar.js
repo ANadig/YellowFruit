@@ -102,7 +102,7 @@ class StatSidebar extends React.Component{
     var rows = teams.map((item, index) => {
       var ppg = this.getPpg(item);
       var ppb = this.getPpb(item);
-      var ppbCell = this.props.settings.bonuses == 'none' ? null : ( <td>{ppb.toFixed(2)}</td> );
+      var ppbCell = this.props.settings.bonuses ? ( <td>{ppb.toFixed(2)}</td> ) : null;
       var tiesCell = tiesExist ? ( <td>{item.ties}</td> ) : null;
       return (
         <tr key={item.teamName}>
@@ -119,7 +119,7 @@ class StatSidebar extends React.Component{
       )
     });
     var header = division == 'noDiv' ? null : ( <h5>{division}</h5> );
-    var ppbThCell = this.props.settings.bonuses == 'none' ? null : ( <th>PPB</th> );
+    var ppbThCell = this.props.settings.bonuses ? ( <th>PPB</th> ) : null;
     var tiesThCell = tiesExist ? ( <th>T</th> ) : null;
     return (
       <div key={division}>

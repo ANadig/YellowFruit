@@ -109,10 +109,10 @@ function showPPerN(settings, rptConfig) {
 function showGPerN(settings, rptConfig) { return showNegs(settings) && rptConfig.gPerN; }
 
 // include columns for bonus points and PPB?
-function showBonus(settings) { return settings.bonuses != 'none'; }
+function showBonus(settings) { return settings.bonuses; }
 
 // include columns for bounceback points and PPBB?
-function showBb(settings) { return settings.bonuses == 'yesBb'; }
+function showBb(settings) { return settings.bonusesBounce; }
 
 // show players' year/grade?
 function showPlayerYear(rptConfig) { return rptConfig.playerYear; }

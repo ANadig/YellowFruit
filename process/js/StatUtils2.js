@@ -22,7 +22,8 @@ Equality test for settings objects
 ---------------------------------------------------------*/
 module.exports.settingsEqual = function(s1, s2) {
   return s1.powers == s2.powers && s1.negs == s2.negs &&
-    s1.bonuses == s2.bonuses && s1.playersPerTeam == s2.playersPerTeam;
+    s1.bonuses == s2.bonuses && s1.bonusesBounce == s2.bonusesBounce &&
+    s1.playersPerTeam == s2.playersPerTeam;
 }
 
 /*---------------------------------------------------------
@@ -136,6 +137,15 @@ Add tiebreaker attribute
 ---------------------------------------------------------*/
 module.exports.gameConversion2x4x0 = function(games) {
   for(var i in games) { games[i].tiebreaker = false; }
+}
+
+/*---------------------------------------------------------
+conversion on settings data structure (version 2.5.0)
+Split bonus setting into two booleans
+---------------------------------------------------------*/
+module.exports.settingsConversion2x5x0 = function(settings) {
+  settings.bonusesBounce = settings.bonuses == 'yesBb';
+  settings.bonuses = settings.bonuses != 'none';
 }
 
 /*---------------------------------------------------------
@@ -325,7 +335,7 @@ function oldScoreboardGameSummaries(myGames, roundNo, phase, settings) {
         }
         html = html.substr(0, html.length - 2); //remove the last comma+space
         html += '<br>' + '\n';
-        if(settings.bonuses != 'none') {
+        if(settings.bonuses) {
           var bHeard = bonusesHeard(g, 1), bPts = bonusPoints(g, 1, settings);
           var ppb = bHeard == 0 ? 0 : bPts / bHeard;
           html += 'Bonuses: ' + g.team1 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + ', ';
@@ -333,7 +343,7 @@ function oldScoreboardGameSummaries(myGames, roundNo, phase, settings) {
           ppb = bHeard == 0 ? 0 : bPts / bHeard;
           html += g.team2 + ' ' + bHeard + ' ' + bPts + ' ' + ppb.toFixed(2) + '<br>' + '\n';
         }
-        if(settings.bonuses == 'yesBb') {
+        if(settings.bonusesBounce) {
           var bbHrd = bbHeard(g, 1, settings);
           var ppbb = bbHrd.toString()=='0,0' ? 0 : g.bbPts1 / bbHrdToFloat(bbHrd);
           html += 'Bonus Bouncebacks: ' + g.team1 + ' ' +

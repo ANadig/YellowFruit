@@ -20,7 +20,8 @@ module.exports.parseQbjRules = function(rules) {
   var yfRules = {
     powers: 'none',
     negs: 'no',
-    bonuses: 'none',
+    bonuses: false,
+    bonusesBounce: false,
     playersPerTeam: 4,
   }
   yfRules.playersPerTeam = rules.maximum_players_per_team;
@@ -79,8 +80,8 @@ module.exports.parseQbjRules = function(rules) {
   if(yfRules.powers != 'none' && (tensBonus ^ powersBonus)) {
     errors.push('Both or neither of tens and powers must have bonuses');
   }
-  if(tensBonus) { yfRules.bonuses = 'noBb'; }
-  if(yfRules.bonuses == 'noBb' && rules.bonuses_bounce_back) { yfRules.bonuses = 'yesBb'; }
+  if(tensBonus) { yfRules.bonuses = true; }
+  if(yfRules.bonuses && rules.bonuses_bounce_back) { yfRules.bonusesBounce = true; }
   return [yfRules, errors];
 }
 
@@ -317,7 +318,7 @@ module.exports.validateMatches = function(games, settings) {
       continue;
     }
     // all points must be accounted for if it's tossup-only
-    if(settings.bonuses == 'none' &&
+    if(!settings.bonuses &&
       (StatUtils.bonusPoints(g, 1, settings) > 0 ||
       StatUtils.bonusPoints(g, 2, settings) > 0)) {
         errors.push(gameString + ' - Tossup points and total score do not match');
@@ -339,7 +340,7 @@ module.exports.validateMatches = function(games, settings) {
       continue;
     }
     // validate ppBb
-    if(settings.bonuses = 'yesBb') {
+    if(settings.bonusesBounce) {
       let bbHeard1 = StatUtils.bbHeard(g, 1, settings), bbHeard2 = StatUtils.bbHeard(g, 1, settings);
       bbHeard1 = StatUtils.bbHrdToFloat(bbHeard1), bbHeard2 = StatUtils.bbHrdToFloat(bbHeard2);
       if(g.bbPts1 / bbHeard1 > 30 || (g.bbPts1 > 0 && bbHeard1 == 0)) {
