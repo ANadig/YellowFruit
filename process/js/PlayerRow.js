@@ -79,7 +79,7 @@ class PlayerRow extends React.Component{
       );
     }
     //negs
-    if(this.props.settings.negs == 'yes') {
+    if(this.props.settings.negs) {
       negCell = (
         <td>
           <input type="number" id={'negs'+this.props.playerName+'-'+this.props.whichTeam}

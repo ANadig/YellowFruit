@@ -312,7 +312,7 @@ class RptConfigModal extends React.Component {
   tournament's settings make it irrelevant
   ---------------------------------------------------------*/
   formatPperN() {
-    if(this.props.tournamentSettings.powers == 'none' || this.props.tournamentSettings.negs == 'no') {
+    if(this.props.tournamentSettings.powers == 'none' || !this.props.tournamentSettings.negs) {
       return ( <s>Powers per neg</s> );
     }
     return 'Powers per neg';
@@ -323,7 +323,7 @@ class RptConfigModal extends React.Component {
   tournament's settings make it irrelevant
   ---------------------------------------------------------*/
   formatGperN() {
-    if(this.props.tournamentSettings.negs == 'no') {
+    if(!this.props.tournamentSettings.negs) {
       return ( <s>Gets per neg</s> );
     }
     return 'Gets per neg';
@@ -548,12 +548,12 @@ class RptConfigModal extends React.Component {
     var tdPwr = this.props.tournamentSettings.powers != 'none' ? ( <td>15</td> ) : null;
     if(this.props.tournamentSettings.powers == '20pts') { tdPwr = ( <td>20</td> ) }
     var tdTen = ( <td>10</td> );
-    var tdNeg = this.props.tournamentSettings.negs == 'yes' ? ( <td>-5</td> ) : null;
+    var tdNeg = this.props.tournamentSettings.negs ? ( <td>-5</td> ) : null;
     var tdTuh = ( <td>TUH</td> );
     var tdPptuh = this.state.pptuh ? ( <td>PPTUH</td> ) : null;
     var tdPperN = this.state.pPerN && this.props.tournamentSettings.powers != 'none' &&
-      this.props.tournamentSettings.negs == 'yes' ? ( <td>Pwr/N</td> ) : null;
-    var tdGperN = this.state.gPerN && this.props.tournamentSettings.negs == 'yes' ? ( <td>G/N</td> ) : null;
+      this.props.tournamentSettings.negs ? ( <td>Pwr/N</td> ) : null;
+    var tdGperN = this.state.gPerN && this.props.tournamentSettings.negs ? ( <td>G/N</td> ) : null;
     var tdBPts = this.props.tournamentSettings.bonuses ? ( <td>BPts</td> ) : null;
     var tdBHrd = this.props.tournamentSettings.bonuses ? ( <td>BHrd</td> ) : null;
     var tdPpb = this.props.tournamentSettings.bonuses ? ( <td>PPB</td> ) : null;

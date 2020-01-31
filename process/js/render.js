@@ -39,7 +39,7 @@ const MAX_PLAYERS_PER_TEAM = 50;
 const METADATA = {version:app.getVersion()}; // take version straight from package.json
 const DEFAULT_SETTINGS = {
   powers: '15pts',
-  negs: 'yes',
+  negs: true,
   bonuses: true,
   bonusesBounce: false,
   playersPerTeam: '4',

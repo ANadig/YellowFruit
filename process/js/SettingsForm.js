@@ -31,7 +31,7 @@ class SettingsForm extends React.Component{
 
     this.state = {
       powers: props.settings.powers, // '20pts', '15pts', or 'none'
-      negs: props.settings.negs, // whether there are negs
+      negsOption: props.settings.negs ? 'yes' : 'no', // whether there are negs
       bonusOption: this.bonusOptionFromProps(), // 'yesBb', 'noBb', or 'none'
       playersPerTeam: props.settings.playersPerTeam,
       packets: props.packets,
@@ -135,7 +135,7 @@ class SettingsForm extends React.Component{
       this.props.editingSettings(false);
       var settingsObj = {
         powers: this.state.powers,
-        negs: this.state.negs,
+        negs: this.state.negsOption == 'yes',
         bonuses: this.state.bonusOption != 'none',
         bonusesBounce: this.state.bonusOption == 'yesBb',
         playersPerTeam: this.state.playersPerTeam
@@ -210,7 +210,7 @@ class SettingsForm extends React.Component{
     if(this.state.editingSettings) {
       this.setState({
         powers: this.props.settings.powers,
-        negs: this.props.settings.negs,
+        negs: this.props.settings.negs ? 'yes' : 'no',
         bonusOption: this.bonusOptionFromProps(),
         playersPerTeam: this.props.settings.playersPerTeam,
         editingSettings: false
@@ -458,7 +458,7 @@ class SettingsForm extends React.Component{
   For display when the settings card is read-only.
   ---------------------------------------------------------*/
   negString() {
-    if(this.props.settings.negs == 'yes') { return 'Interrupt penalties: -5 points'; }
+    if(this.props.settings.negs) { return 'Interrupt penalties: -5 points'; }
     return 'No interrupt penalties';
   }
 
@@ -633,15 +633,15 @@ class SettingsForm extends React.Component{
           <h6>Interrupt Penalties</h6>
           <p>
             <label>
-              <input name="negs" type="radio" value="yes"
-              checked={this.state.negs=='yes'} onChange={this.handleChange} />
+              <input name="negsOption" type="radio" value="yes"
+              checked={this.state.negsOption=='yes'} onChange={this.handleChange} />
               <span>-5 points</span>
             </label>
           </p>
           <p>
             <label>
-              <input name="negs" type="radio" value="no"
-              checked={this.state.negs=='no'} onChange={this.handleChange} />
+              <input name="negsOption" type="radio" value="no"
+              checked={this.state.negsOption=='no'} onChange={this.handleChange} />
               <span>No penalties</span>
             </label>
           </p>

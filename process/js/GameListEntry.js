@@ -92,7 +92,7 @@ class GameListEntry extends React.Component{
         lineScore += ' ' + p + ' ';
         if(this.props.settings.powers != 'none') { lineScore += powers + '/'; }
         lineScore += tens;
-        if(this.props.settings.negs == 'yes') { lineScore += '/' + negs; }
+        if(this.props.settings.negs) { lineScore += '/' + negs; }
         lineScore += ',';
       }
     }

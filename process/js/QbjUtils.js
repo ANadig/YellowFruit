@@ -19,7 +19,7 @@ the rules in YF format, plus any errors
 module.exports.parseQbjRules = function(rules) {
   var yfRules = {
     powers: 'none',
-    negs: 'no',
+    negs: false,
     bonuses: false,
     bonusesBounce: false,
     playersPerTeam: 4,
@@ -70,7 +70,7 @@ module.exports.parseQbjRules = function(rules) {
         break;
       case -5:
         if(a.awards_bonus) { errors.push('Negs with bonuses are not supported'); }
-        yfRules.negs = 'yes';
+        yfRules.negs = true;
         break;
       default:
         errors.push(a.value + ' point questions are not supported');
@@ -356,7 +356,7 @@ module.exports.validateMatches = function(games, settings) {
     if(bPts1 % 10 != 0 || bPts2 % 10 != 0) {
       warnings.push(gameString + ' - PPB is not divisible by 10');
     }
-    var divisor = settings.powers == '15pts' || settings.negs == 'yes' ? 5 : 10;
+    var divisor = settings.powers == '15pts' || settings.negs ? 5 : 10;
     if(g.score1 % divisor != 0 || g.score2 % divisor != 0) {
       warnings.push(gameString + ' - Score is not divisible by ' + divisor);
     }

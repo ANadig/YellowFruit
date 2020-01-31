@@ -95,7 +95,7 @@ function showMargin(rptConfig) { return rptConfig.margin; }
 function showPowers(settings) { return settings.powers != 'none'; }
 
 // include column for negs?
-function showNegs(settings) { return settings.negs == 'yes'; }
+function showNegs(settings) { return settings.negs; }
 
 // include column pts per tuh?
 function showPptuh(rptConfig) { return rptConfig.pptuh; }
@@ -152,7 +152,7 @@ function powerValue(settings) {
 Point value of a neg
 ---------------------------------------------------------*/
 function negValue(settings) {
-  return settings.negs == 'yes' ? -5 : 0;
+  return settings.negs ? -5 : 0;
 }
 
 /*---------------------------------------------------------
@@ -998,7 +998,7 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
         }
 
         //pad the short side of the table with blank lines
-        var columnsPerTeam = 4 + (settings.powers != 'none') + (settings.negs == 'yes');
+        var columnsPerTeam = 4 + showPowers(settings) + showNegs(settings);
         while (playersLeft.length > playersRight.length) {
           playersRight.push(blankPlayerLineScore(columnsPerTeam) + '\n' + '</tr>' + '\n');
         }

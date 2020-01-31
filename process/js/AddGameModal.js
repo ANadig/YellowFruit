@@ -278,7 +278,7 @@ class AddGameModal extends React.Component{
   evenly.
   ---------------------------------------------------------*/
   scoreDivisor() {
-    if(this.props.settings.powers == '15pts' || this.props.settings.negs == 'yes') {
+    if(this.props.settings.powers == '15pts' || this.props.settings.negs) {
       return 5;
     }
     return 10;
@@ -796,7 +796,7 @@ class AddGameModal extends React.Component{
       powerCell = ( <th>{this.powerValue()}</th> );
     }
     else { powerCell = null; }
-    if(this.props.settings.negs == 'yes') { negCell = ( <th>-5</th> ); }
+    if(this.props.settings.negs) { negCell = ( <th>-5</th> ); }
     else { negCell = null; }
     tableHeader = (
       <thead>
@@ -833,7 +833,7 @@ class AddGameModal extends React.Component{
           </div>
         );
       }
-      if(this.props.settings.negs == 'yes') {
+      if(this.props.settings.negs) {
         negField1 = (
           <div className="input-field col s2 m1">
             <input id="otNeg1" type="number" name="otNeg1" min="0"

@@ -85,7 +85,7 @@ function addOnePlayer(settings, teams, game, whichTeam, playerName) {
   }
   output += tens + '\n';
   pointCatCounter++;
-  if(settings.negs == 'yes') {
+  if(settings.negs) {
     output += negs + '\n';
     pointCatCounter++;
   }
@@ -212,7 +212,7 @@ function miscSettings(settings, divisions) {
   else {
     output += '1\n'; // Bonus conversion tracking: "automatic"
   }
-  if(settings.powers == 'none' && settings.negs == 'no') {
+  if(settings.powers == 'none' && !settings.negs) {
     output += '2\n'; //don't track power and neg stats if there are neither powers nor negs
   }
   else {
@@ -318,7 +318,7 @@ function pointValueList(settings) {
   }
   output += '10\n';
   pointCatCounter++;
-  if(settings.negs == 'yes') {
+  if(settings.negs) {
     output += '-5\n';
     pointCatCounter++;
   }
