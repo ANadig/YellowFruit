@@ -38,14 +38,14 @@
     const USER_CONFIG_FOLDER_PROD = Path.resolve(app.getPath('appData'), 'YellowFruit');
     const CUSTOM_RPT_CONFIG_FILE_PROD = Path.resolve(USER_CONFIG_FOLDER_PROD, 'CustomRptConfig.json');
     const CUSTOM_RPT_CONFIG_FILE_DEV = Path.resolve(__dirname, '..', 'data', 'CustomRptConfig.json');
-    var defaultStandingsLocation = Path.resolve(__dirname, 'standings.html');
-    var defaultIndividualsLocation = Path.resolve(__dirname, 'individuals.html');
-    var defaultScoreboardLocation = Path.resolve(__dirname, 'games.html');
-    var defaultTeamDetailLocation = Path.resolve(__dirname, 'teamdetail.html');
-    var defaultPlayerDetailLocation = Path.resolve(__dirname, 'playerdetail.html');
-    var defaultRoundReportLocation = Path.resolve(__dirname, 'rounds.html');
-    var defaultStatKeyLocation = Path.resolve(__dirname, 'statKey.html');
-    var statKeyBodyLocation = Path.resolve(__dirname, 'statKeyBody.html');
+    const defaultStandingsLocation = Path.resolve(__dirname, 'standings.html');
+    const defaultIndividualsLocation = Path.resolve(__dirname, 'individuals.html');
+    const defaultScoreboardLocation = Path.resolve(__dirname, 'games.html');
+    const defaultTeamDetailLocation = Path.resolve(__dirname, 'teamdetail.html');
+    const defaultPlayerDetailLocation = Path.resolve(__dirname, 'playerdetail.html');
+    const defaultRoundReportLocation = Path.resolve(__dirname, 'rounds.html');
+    const defaultStatKeyLocation = Path.resolve(__dirname, 'statKey.html');
+    const statKeyBodyLocation = Path.resolve(__dirname, 'statKeyBody.html');
 
     document.addEventListener('dragover', function (event) {
       event.preventDefault();
