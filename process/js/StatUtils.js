@@ -1536,50 +1536,75 @@ Aggregate round data for the round report.
 ---------------------------------------------------------*/
 function compileRoundSummaries(games, phase, settings, showTbs) {
   var summaries = [];
+  var tournTotals = {
+    numberOfGames: 0, totalPoints: 0,
+    tuPts: 0, tuh: 0,
+    bPts: 0, bHeard: 0,
+    bbPts: 0, bbHeard: [0,0],
+    ppg: 0, tuPtsPTu: 0, ppb: 0, ppbb: 0
+  };
+
   for(var i in games) {
     var game = games[i];
     var round = game.round;
     if(matchFilterPhase(game, phase, showTbs) && !game.forfeit) {
       if(summaries[round] == undefined) {
         summaries[round] = {
-          numberOfGames: 0,
-          totalPoints: 0,
-          tuPts: 0,
-          tuh: 0,
-          bPts: 0,
-          bHeard: 0,
-          bbPts: 0,
-          bbHeard: [0,0],
-          ppg: 0,
-          tuPtsPTu: 0,
-          ppb: 0,
-          ppbb: 0,
+          numberOfGames: 0, totalPoints: 0,
+          tuPts: 0, tuh: 0,
+          bPts: 0, bHeard: 0,
+          bbPts: 0, bbHeard: [0,0],
+          ppg: 0, tuPtsPTu: 0, ppb: 0, ppbb: 0
         }
       }
-      var smry = summaries[round];
-      smry.numberOfGames += 1;
-      smry.totalPoints += (+game.score1) +
-        (+game.score2) - otPoints(game, 1, settings) - otPoints(game, 2, settings);
-      smry.tuPts += powerValue(settings)*teamPowers(game, 1) +
+
+      let smry = summaries[round];
+      let gamePoints = (+game.score1) + (+game.score2) -
+        otPoints(game, 1, settings) - otPoints(game, 2, settings);
+      let gameTuPts = powerValue(settings)*teamPowers(game, 1) +
         powerValue(settings)*teamPowers(game, 2) +
         10*teamTens(game, 1) + 10*teamTens(game, 2) +
         negValue(settings)*teamNegs(game, 1) + negValue(settings)*teamNegs(game, 2);
+      let gameBonusPts = bonusPoints(game, 1, settings) + bonusPoints(game, 2, settings);
+      let gameBHeard = bonusesHeard(game, 1) + bonusesHeard(game, 2);
+      let gameBbPts = (+game.bbPts1) + (+game.bbPts2);
+      let gameBbHrd = bbHrdAdd(bbHeard(game, 1 ,settings), bbHeard(game, 2, settings));
+
+      smry.numberOfGames += 1;
+      smry.totalPoints += gamePoints;
+      smry.tuPts += gameTuPts;
       smry.tuh += +game.tuhtot;
-      smry.bPts += bonusPoints(game, 1, settings) + bonusPoints(game, 2, settings);
-      smry.bHeard += bonusesHeard(game, 1) + bonusesHeard(game, 2);
-      smry.bbPts += (+game.bbPts1) + (+game.bbPts2);
-      smry.bbHeard = bbHrdAdd(smry.bbHeard, bbHrdAdd(bbHeard(game, 1 ,settings), bbHeard(game, 2, settings)));
+      smry.bPts += gameBonusPts;
+      smry.bHeard += gameBHeard;
+      smry.bbPts += gameBbPts;
+      smry.bbHeard = bbHrdAdd(smry.bbHeard, gameBbHrd);
+
+      tournTotals.numberOfGames += 1;
+      tournTotals.totalPoints += gamePoints;
+      tournTotals.tuPts += gameTuPts;
+      tournTotals.tuh += +game.tuhtot;
+      tournTotals.bPts += gameBonusPts;
+      tournTotals.bHeard += gameBHeard;
+      tournTotals.bbPts += gameBbPts;
+      tournTotals.bbHeard = bbHrdAdd(tournTotals.bbHeard, gameBbHrd);
     }
   }
+
   for(var i in summaries) {
-    var smry = summaries[i];
+    let smry = summaries[i];
     smry.ppg = smry.totalPoints / (2 * smry.numberOfGames);
     smry.pp20 = 20 * smry.totalPoints / (2 * smry.tuh);
     smry.tuPtsPTu = smry.tuPts / smry.tuh;
     smry.ppb = smry.bHeard == 0 ? 0 : smry.bPts / smry.bHeard;
     smry.ppbb = smry.bbPts / bbHrdToFloat(smry.bbHeard);
   }
-  return summaries;
+  tournTotals.ppg = tournTotals.totalPoints / (2 * tournTotals.numberOfGames);
+  tournTotals.pp20 = 20 * tournTotals.totalPoints / (2 * tournTotals.tuh);
+  tournTotals.tuPtsPTu = tournTotals.tuPts / tournTotals.tuh;
+  tournTotals.ppb = tournTotals.bHeard == 0 ? 0 : tournTotals.bPts / tournTotals.bHeard;
+  tournTotals.ppbb = tournTotals.bbPts / bbHrdToFloat(tournTotals.bbHeard);
+
+  return [summaries,tournTotals];
 }
 
 /*---------------------------------------------------------
@@ -1612,28 +1637,36 @@ function roundReportTableHeader(packetsExist, settings, rptConfig) {
 
 /*---------------------------------------------------------
 A row of data in the round report.
+If roundNo is "Total", format as the aggregate row
 ---------------------------------------------------------*/
 function roundReportRow(smry, roundNo, packetsExist, packets, settings, rptConfig, fileStart) {
-  var link = '<a HREF=' + fileStart + 'games.html#round-' + roundNo + '>' + roundNo + '</a>';
-  var html = '<tr>' + '\n' +
-    tdTag(link, 'left');
+  var totalRow = roundNo == 'Total';
+  var rowLabel;
+  if(totalRow) { rowLabel = roundNo; }
+  else {
+    rowLabel = '<a HREF=' + fileStart + 'games.html#round-' + roundNo + '>' + roundNo + '</a>';
+  }
+  var html = '<tr';
+  if(totalRow) { html += ' class="pseudo-tfoot"'; }
+  html += '>' + '\n';
+  html += tdTag(rowLabel, 'left', totalRow);
   if(packetsExist) {
     var packetName = packets[roundNo] == undefined ? '' : packets[roundNo];
     html += tdTag(packetName, 'left');
   }
-  html += tdTag(smry.numberOfGames, 'right');
+  html += tdTag(smry.numberOfGames, 'right', totalRow);
   if(showPpg(rptConfig)) {
-    html += tdTag(smry.ppg.toFixed(1), 'right');
+    html += tdTag(smry.ppg.toFixed(1), 'right', totalRow);
   }
   else { //pp20
-    html += tdTag(smry.pp20.toFixed(1), 'right');
+    html += tdTag(smry.pp20.toFixed(1), 'right', totalRow);
   }
-  html += tdTag(smry.tuPtsPTu.toFixed(2), 'right');
+  html += tdTag(smry.tuPtsPTu.toFixed(2), 'right', totalRow);
   if(showBonus(settings)) {
-    html += tdTag(smry.ppb.toFixed(2), 'right');
+    html += tdTag(smry.ppb.toFixed(2), 'right', totalRow);
   }
   if(showBb(settings)) {
-    html += tdTag(smry.ppbb.toFixed(2), 'right');
+    html += tdTag(smry.ppbb.toFixed(2), 'right', totalRow);
   }
   html += '</tr>' + '\n';
   return html;
@@ -1940,7 +1973,7 @@ Generate the team round report page.
 ---------------------------------------------------------*/
 function getRoundReportHtml(teams, games, fileStart, phase, packets, settings, rptConfig, showTbs) {
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
-  var roundSummaries = compileRoundSummaries(games, phase, settings, showTbs);
+  var [roundSummaries, aggregate] = compileRoundSummaries(games, phase, settings, showTbs);
   var packetsExist = packetNamesExist(packets);
   var html = getStatReportTop('RoundReport', fileStart, 'Round Report') +
     '<h1> Round Report</h1>' + '\n';
@@ -1950,6 +1983,7 @@ function getRoundReportHtml(teams, games, fileStart, phase, packets, settings, r
   for(var i in roundSummaries) {
     html += roundReportRow(roundSummaries[i], i, packetsExist, packets, settings, rptConfig, fileStart);
   }
+  html += roundReportRow(aggregate, 'Total', packetsExist, packets, settings, rptConfig, fileStart);
   html += '</table>' + '\n';
   return html + getStatReportBottom();
 }

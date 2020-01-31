@@ -516,7 +516,6 @@ class MainInterface extends React.Component {
         StatUtils2.settingsConversion2x5x0(loadSettings);
       }
     }
-    console.log(loadSettings);
 
     //if coming from 2.1.0 or earlier, assign the system default report
     if(assocRpt == undefined) {
