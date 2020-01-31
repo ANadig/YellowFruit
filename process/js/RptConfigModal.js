@@ -301,7 +301,7 @@ class RptConfigModal extends React.Component {
   ---------------------------------------------------------*/
   disableDefaultCheckBox() {
     if(this.state.selectedRptType == 'addNew') { return 'disabled'; }
-    if(this.state.selectedRpt == this.props.originalDefault && this.state.currentRptIsDefault) {
+    if(this.state.selectedRpt == this.props.systemDefault && this.state.currentRptIsDefault) {
       return 'disabled';
     }
     return '';
@@ -341,7 +341,7 @@ class RptConfigModal extends React.Component {
       this.state.selectedRptType != 'addNew') {
       var sortedRpts = _.orderBy(Object.keys(this.props.customRptList), [(r) => { return r.toLowerCase(); }]);
       var rptCount = sortedRpts.length;
-      if(rptCount == 0) { this.selectRpt(this.props.originalDefault, 'released'); }
+      if(rptCount == 0) { this.selectRpt(this.props.systemDefault, 'released'); }
       else {
         var nextIdx = 0;
         while(sortedRpts[nextIdx] < this.state.selectedRpt) { nextIdx++; }

@@ -44,7 +44,7 @@ const DEFAULT_SETTINGS = {
   bonusesBounce: false,
   playersPerTeam: '4',
   defaultPhases: [], // Used to group teams when viewing all games
-  rptConfig: 'SQBS Defaults'
+  rptConfig: 'YF Defaults'
 };
 //Materialize accent-1 colors: yellow, light-green, orange, light-blue, red, purple, teal, deep-purple, pink, green
 const PHASE_COLORS = ['#ffff8d', '#ccff90', '#ffd180', '#80d8ff',
@@ -53,7 +53,7 @@ const EMPTY_CUSTOM_RPT_CONFIG = {
     defaultRpt: null,
     rptConfigList: {}
 }
-const ORIG_DEFAULT_RPT_NAME = 'SQBS Defaults';
+const SYS_DEFAULT_RPT_NAME = 'YF Defaults';
 const MAX_CUSTOM_RPT_CONFIGS = 25;
 const DEFAULT_FORM_SETTINGS = {
   showYearField: true,
@@ -118,8 +118,8 @@ class MainInterface extends React.Component {
       releasedRptList: releasedRptList, // list of uneditable report configurations
       customRptList: {}, // list of user-created report configurations
       customRptFile: null, // file path to score user configuration
-      defaultRpt: ORIG_DEFAULT_RPT_NAME, // which report configuration is default for new tournaments
-      activeRpt: ORIG_DEFAULT_RPT_NAME, // which report configuration is currently being used
+      defaultRpt: SYS_DEFAULT_RPT_NAME, // which report configuration is default for new tournaments
+      activeRpt: SYS_DEFAULT_RPT_NAME, // which report configuration is currently being used
       formSettings: defFormSettingsCopy, // which optional entry fields to turn on or off
       sidebarOpen: true // whether the sidebar is visible
     };
@@ -346,7 +346,7 @@ class MainInterface extends React.Component {
     //load report configurations from files. Paths are defined in index.html
     var loadRpts = fs.readFileSync(RELEASED_RPT_CONFIG_FILE, 'utf8');
     var releasedRptList = JSON.parse(loadRpts).rptConfigList;
-    var defaultRpt = ORIG_DEFAULT_RPT_NAME;
+    var defaultRpt = SYS_DEFAULT_RPT_NAME;
 
     var customRptFile = env != 'development' ? CUSTOM_RPT_CONFIG_FILE_PROD : CUSTOM_RPT_CONFIG_FILE_DEV;
 
@@ -518,9 +518,9 @@ class MainInterface extends React.Component {
     }
     console.log(loadSettings);
 
-    //if coming from 2.1.0 or earlier, assign the SQBS default report
+    //if coming from 2.1.0 or earlier, assign the system default report
     if(assocRpt == undefined) {
-      assocRpt = ORIG_DEFAULT_RPT_NAME;
+      assocRpt = SYS_DEFAULT_RPT_NAME;
     }
     //convert teams and games to new data structures
     if(StatUtils2.versionLt(loadMetadata.version, '2.1.0')) {
@@ -535,9 +535,9 @@ class MainInterface extends React.Component {
     if(StatUtils2.versionLt(loadMetadata.version, '2.4.0')) {
       StatUtils2.gameConversion2x4x0(loadGames);
     }
-    //revert to SQBS defaults if we can't find this file's report configuration
+    //revert to system defaults if we can't find this file's report configuration
     if(this.state.releasedRptList[assocRpt] == undefined && this.state.customRptList[assocRpt] == undefined) {
-      assocRpt = ORIG_DEFAULT_RPT_NAME;
+      assocRpt = SYS_DEFAULT_RPT_NAME;
     }
 
     var tbCount = 0;
@@ -2322,7 +2322,7 @@ class MainInterface extends React.Component {
       rptConfigList: this.state.customRptList
     }
     this.setState({
-      defaultRpt: ORIG_DEFAULT_RPT_NAME,
+      defaultRpt: SYS_DEFAULT_RPT_NAME,
     });
 
     var state = this.state;
@@ -2353,15 +2353,15 @@ class MainInterface extends React.Component {
     var newDefault = this.state.defaultRpt;
     var activeRpt = this.state.activeRpt;
     delete tempRpts[rptName];
-    if(this.state.defaultRpt == rptName) { newDefault = ORIG_DEFAULT_RPT_NAME; }
-    if(this.state.activeRpt == rptName) { activeRpt = ORIG_DEFAULT_RPT_NAME; }
+    if(this.state.defaultRpt == rptName) { newDefault = SYS_DEFAULT_RPT_NAME; }
+    if(this.state.activeRpt == rptName) { activeRpt = SYS_DEFAULT_RPT_NAME; }
     this.setState({
       customRptList: tempRpts,
       defaultRpt: newDefault,
       activeRpt: activeRpt
     });
     var newCustomRpts = {
-      defaultRpt: newDefault == ORIG_DEFAULT_RPT_NAME ? null : newDefault,
+      defaultRpt: newDefault == SYS_DEFAULT_RPT_NAME ? null : newDefault,
       rptConfigList: tempRpts
     }
 
@@ -2576,7 +2576,7 @@ class MainInterface extends React.Component {
             setDefaultRpt = {this.setDefaultRpt}
             clearDefaultRpt = {this.clearDefaultRpt}
             attemptDeletion = {this.rptDeletionPrompt}
-            originalDefault = {ORIG_DEFAULT_RPT_NAME}
+            systemDefault = {SYS_DEFAULT_RPT_NAME}
             usingDivisions = {usingDivisions}
          />
          <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkTeamToggle}
