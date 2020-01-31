@@ -159,7 +159,7 @@ const HELP_MENU = {
     {
       label: 'Search Tips',
       click (item, focusedWindow) {
-        showHelpWindow(focusedWindow, 'searchtips.html', 550, 350);
+        showHelpWindow(focusedWindow, 'searchtips.html', 550, 380);
       }
     },
     {
