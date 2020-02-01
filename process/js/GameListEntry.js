@@ -4,8 +4,9 @@ Andrew Nadig
 
 React component representing one game on the games pane.
 ***********************************************************/
-var React = require('react');
-var ColorChip = require('./ColorChip');
+const React = require('react');
+const ColorChip = require('./ColorChip');
+const StatUtils = require('./StatUtils');
 
 class GameListEntry extends React.Component{
 
@@ -83,20 +84,23 @@ class GameListEntry extends React.Component{
   getTeamLineScore(whichTeam) {
     var teamName = whichTeam == 1 ? this.props.singleItem.team1 : this.props.singleItem.team2;
     var players = whichTeam == 1 ? this.props.singleItem.players1 : this.props.singleItem.players2;
-    var lineScore = teamName + ':';
-    for(var p in players) {
-      var powers = players[p].powers == '' ? 0 : players[p].powers;
-      var tens = players[p].tens == '' ? 0 : players[p].tens;
-      var negs = players[p].negs == '' ? 0 : players[p].negs;
-      if(players[p].tuh > 0) {
-        lineScore += ' ' + p + ' ';
-        if(this.props.settings.powers != 'none') { lineScore += powers + '/'; }
-        lineScore += tens;
-        if(this.props.settings.negs) { lineScore += '/' + negs; }
-        lineScore += ',';
+    var game = this.props.singleItem;
+    var lineScore = teamName + ': ';
+    if(this.props.settings.powers != 'none') {
+      lineScore += StatUtils.teamPowers(game, whichTeam) + '/';
+    }
+    lineScore += StatUtils.teamTens(game, whichTeam);
+    if(this.props.settings.negs) {
+      lineScore += '/' + StatUtils.teamNegs(game, whichTeam);
+    }
+    if(this.props.settings.bonuses) {
+      let bHrd = StatUtils.bonusesHeard(game, whichTeam);
+      if(bHrd > 0) {
+        let bPts = StatUtils.bonusPoints(game, whichTeam, this.props.settings);
+        lineScore += ', ' + (bPts/bHrd).toFixed(2) + ' PPB';
       }
     }
-    return lineScore.substr(0, lineScore.length - 1); //remove the comma at the end
+    return lineScore;
   }
 
   /*---------------------------------------------------------
@@ -112,7 +116,6 @@ class GameListEntry extends React.Component{
       />
     );
   }
-
 
 
   render() {
@@ -142,6 +145,11 @@ class GameListEntry extends React.Component{
       );
     }
 
+    var lineScore = '';
+    if(!this.props.singleItem.forfeit) {
+      lineScore = this.getTeamLineScore(1) + '; ' + this.getTeamLineScore(2);
+    }
+
     return(
       <a className="collection-item" onDoubleClick={this.editGame}>
         <div>
@@ -154,8 +162,7 @@ class GameListEntry extends React.Component{
           <i className="material-icons">edit</i></button>
           <button className="secondary-content btn-flat item-delete" title="Delete this game" onClick={this.handleDelete}>
           <i className="material-icons">delete</i></button>
-          <br/><span className="game-line-score">{this.props.singleItem.forfeit ? '' : this.getTeamLineScore(1)}</span>
-          <br/><span className="game-line-score">{this.props.singleItem.forfeit ? '' : this.getTeamLineScore(2)}</span>
+          <br/><span className="game-line-score">{lineScore}</span>
           <br/><span className="game-comment"><em>{this.props.singleItem.notes}</em></span>
         </div>
       </a>

@@ -2082,7 +2082,7 @@ function getStatKeyPage(fileStart) {
 }
 
 module.exports = {toNum, matchFilterPhase, gamesPlayed, powerValue, negValue,
-  bonusesHeard, bonusPoints, bbHeard, bbHrdToFloat, otPoints, playerSlashLine,
-  packetNamesExist, compileStandings, arrangeStandingsLines, getStandingsPage,
-  getIndividualsPage, getScoreboardPage, getTeamDetailPage, getPlayerDetailPage,
-  getRoundReportPage, getStatKeyPage}
+  teamPowers, teamTens, teamNegs, bonusesHeard, bonusPoints, bbHeard,
+  bbHrdToFloat, otPoints, playerSlashLine, packetNamesExist, compileStandings,
+  arrangeStandingsLines, getStandingsPage, getIndividualsPage, getScoreboardPage,
+  getTeamDetailPage, getPlayerDetailPage, getRoundReportPage, getStatKeyPage}
