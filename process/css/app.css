@@ -81,7 +81,7 @@ h1, h2, h3, h4, h5, h6 {
   bottom: 0;
 }
 
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 992px) {
   #stat-sidebar {
     display: none;
   }
@@ -115,7 +115,7 @@ h1, h2, h3, h4, h5, h6 {
   text-decoration-style: dotted;
 }
 
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 992px) {
   .sidebar-toggle {
     display: none;
   }
@@ -128,7 +128,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .sidebar-toggle.right-arrow {
-  right: 32.4%;
+  right: 32.2%;
+}
+
+@media screen and (min-width: 1201px) {
+  .sidebar-toggle.right-arrow {
+    right: 32.3%;
+  }
 }
 
 .sidebar-toggle.left-arrow {
@@ -160,12 +166,18 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* keep things out of the sidebar */
-@media screen and (min-width: 1201px) {
+@media screen and (min-width: 993px) {
 
-  .xl8 .btn-floating-div {
+  .l8 .btn-floating-div {
       right: 37%;
   }
-  .xl8 nav {
+  .l8 nav {
+    width: 65.0%;
+  }
+}
+
+@media screen and (min-width: 1201px) {
+  .l8 nav {
     width: 65.3%;
   }
 }
@@ -579,7 +591,7 @@ nav .btn-flat {
 
 /* only move the counter when the screen is wide AND the sidebar is set to show */
 @media screen and (min-width: 1201px) {
-  .xl8 .selected-counter {
+  .l8 .selected-counter {
     right: 35%;
   }
 }

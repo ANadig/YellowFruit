@@ -2513,14 +2513,14 @@ class MainInterface extends React.Component {
     // to prevent player stats from updating before I tell them to
     var gameToLoadCopy = this.state.editWhichGame == null ? null : $.extend(true, {}, this.state.editWhichGame);
 
-    var mainWindowClass = this.state.sidebarOpen ? 'col s12 xl8' : 'col s12';
+    var mainWindowClass = this.state.sidebarOpen ? 'col s12 l8' : 'col s12';
 
     var sidebar = null;
     if(this.state.sidebarOpen) {
       let standings = StatUtils.compileStandings(myTeams, myGames, this.state.viewingPhase,
         phasesToGroupBy, this.state.settings, rptObj, this.state.allGamesShowTbs)
       sidebar = (
-        <div id="stat-sidebar" className="col xl4 s0">
+        <div id="stat-sidebar" className="col l4 s0">
           <StatSidebar
             visible = {this.state.sidebarOpen}
             standings = {standings}
