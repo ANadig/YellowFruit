@@ -109,6 +109,12 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer;
 }
 
+#stat-sidebar th[title]:not([title=""]) {
+  cursor: help;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
 @media screen and (max-width: 1200px) {
   .sidebar-toggle {
     display: none;

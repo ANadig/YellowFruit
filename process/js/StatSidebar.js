@@ -5,19 +5,9 @@ Andrew Nadig
 React component representing the abbreviated version of the
 stats report that appears on the side.
 ***********************************************************/
-var React = require('react');
-var _ = require('lodash');
-
-/* summary data structure:
- { teamName: item.teamName,
-   wins: 0,
-   losses: 0,
-   ties: 0,
-   points: 0,
-   bHeard: 0,
-   bPts: 0,
-   forfeits: 0
- } */
+const React = require('react');
+const _ = require('lodash');
+const StatUtils = require('./StatUtils');
 
 class StatSidebar extends React.Component{
 
@@ -35,52 +25,6 @@ class StatSidebar extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Sort by winning percentage, then by ppg
-  ---------------------------------------------------------*/
-  standingsSort(summary) {
-    return _.orderBy(summary,
-      [this.getWinPct.bind(this), this.getPpg.bind(this)], ['desc', 'desc']);
-  }
-
-  /*---------------------------------------------------------
-  Games played, not counting forfeits.
-  ---------------------------------------------------------*/
-  getGamesPlayed(t) {
-    return t.wins + t.losses + t.ties - t.forfeits;
-  }
-
-  /*---------------------------------------------------------
-  Games, played, including forfeits.
-  ---------------------------------------------------------*/
-  getGamesPlayedWithForfeits(t) {
-    return t.wins + t.losses + t.ties;
-  }
-
-  /*---------------------------------------------------------
-  Win percentage, including forfeits.
-  ---------------------------------------------------------*/
-  getWinPct(t) {
-    if(this.getGamesPlayedWithForfeits(t) == 0) return 0;
-    return (t.wins + t.ties/2) / this.getGamesPlayedWithForfeits(t);
-  }
-
-  /*---------------------------------------------------------
-  Points, per game or 20 TUH. Zero if no games played.
-  ---------------------------------------------------------*/
-  getPpg(t) {
-    if(this.getGamesPlayed(t) == 0) { return 0; }
-    if(this.props.activeRpt.ppgOrPp20 == 'pp20') { return 20 * t.points / t.tuh; }
-    return t.points / this.getGamesPlayed(t);
-  }
-
-  /*---------------------------------------------------------
-  Points per bonus. Zero if no bonuses heard.
-  ---------------------------------------------------------*/
-  getPpb(t) {
-    return t.bHeard == 0 ? 0 : (t.bPts / t.bHeard);
-  }
-
-  /*---------------------------------------------------------
   Does this tournament have at least one tie?
   ---------------------------------------------------------*/
   tiesExist() {
@@ -92,45 +36,68 @@ class StatSidebar extends React.Component{
 
   /*---------------------------------------------------------
   Standings table (JSX) for the teams in a single division.
-  teams: the sorted summarized stats object.
+  teams: 'row'-type lines from arrangeStandingsLines
   division: can be 'noDiv' if this tournament does not have
     divisions
+  tiesExist: whether at least one game in the tournament
+    is a tie
   ---------------------------------------------------------*/
-  getTable(teams, division) {
-    var tiesExist = this.tiesExist();
-    var usePp20 = this.props.activeRpt.ppgOrPp20 == 'pp20';
+  getTable(teams, division, tiesExist) {
+    var usePp20 = this.props.rptConfig.ppgOrPp20 == 'pp20';
+    var showPhaseRecord = this.props.rptConfig.phaseRecord && this.props.phase == 'all' &&
+      this.props.phasesToGroupBy.length > 0 && this.props.phasesToGroupBy[0] != 'noPhase';
     var rows = teams.map((item, index) => {
-      var ppg = this.getPpg(item);
-      var ppb = this.getPpb(item);
-      var ppbCell = this.props.settings.bonuses ? ( <td>{ppb.toFixed(2)}</td> ) : null;
-      var tiesCell = tiesExist ? ( <td>{item.ties}</td> ) : null;
+      let ppg = item.team.ppg, ppb = item.team.ppb;
+      if(isNaN(ppg)) { ppg = ''; }
+      if(isNaN(ppb)) { ppb = ''; }
+      let rankCell = this.props.phase == 'all' ? ( <td className="text-cell">{item.rank}</td> ) : null;
+      let ppbCell = this.props.settings.bonuses ? ( <td>{ppb}</td> ) : null;
+      let tiesCell = tiesExist ? ( <td>{item.team.ties}</td> ) : null;
+      let phaseRecCell = showPhaseRecord ? ( <td>{item.team.phaseRecord}</td> ) : null;
+
       return (
-        <tr key={item.teamName}>
+        <tr key={item.team.teamName}>
+          {rankCell}
           <td className="text-cell">
-            <a onClick={this.filterByTeam} name={item.teamName}
-            title="Find this team's games">{item.teamName}</a>
+            <a onClick={this.filterByTeam} name={item.team.teamName}
+            title="Find this team's games">{item.team.teamName}</a>
           </td>
-          <td>{item.wins}</td>
-          <td>{item.losses}</td>
+          <td>{item.team.wins}</td>
+          <td>{item.team.losses}</td>
           {tiesCell}
-          <td>{ppg.toFixed(1)}</td>
+          {phaseRecCell}
+          <td>{ppg}</td>
           {ppbCell}
         </tr>
-      )
+      );
     });
-    var header = division == 'noDiv' ? null : ( <h5>{division}</h5> );
+
+    var header = division == null ? null : ( <h5>{division}</h5> );
+    var rankThCell = this.props.phase == 'all' ? ( <th className="text-cell">Rk</th> ) : null;
     var ppbThCell = this.props.settings.bonuses ? ( <th>PPB</th> ) : null;
     var tiesThCell = tiesExist ? ( <th>T</th> ) : null;
+    let phaseRecThCell = null;
+    if(showPhaseRecord) {
+      let tooltip = '';
+      if(teams.length > 0) {
+        //arbitrarily use the first team since they should all be the same
+        tooltip = 'Record in the ' + teams[0].team.groupingPhase + ' phase';
+      }
+      phaseRecThCell = ( <th title={tooltip}>Ph.</th> );
+    }
+
     return (
       <div key={division}>
         {header}
         <table className="striped">
           <thead>
             <tr>
+              {rankThCell}
               <th className="text-cell">Team</th>
               <th>W</th>
               <th>L</th>
               {tiesThCell}
+              {phaseRecThCell}
               <th>{usePp20 ? 'PP20' : 'PPG'}</th>
               {ppbThCell}
             </tr>
@@ -146,22 +113,31 @@ class StatSidebar extends React.Component{
 
   render(){
     if(!this.props.visible) { return null; }
-    if(this.props.activeRpt == undefined) { return ( <span>Report configuration error</span> ); }
+    if(this.props.rptConfig == undefined) { return ( <span>Report configuration error</span> ); }
 
-    var sortedSummary = this.standingsSort(this.props.standings.slice());
-    if(this.props.phase == 'Tiebreakers') {
-      sortedSummary = sortedSummary.filter((t) => { return t.wins + t.losses + t.ties > 0; });
-    }
+    var linesToPrint = StatUtils.arrangeStandingsLines(this.props.standings, this.props.phase,
+      this.props.divisions, this.props.phasesToGroupBy, this.props.phaseSizes, this.props.rptConfig);
+
+    var tiesExist = this.tiesExist();
     var tables = [];
-    if(this.props.divisions != undefined && this.props.divisions.length > 0) {
-      for(var i in this.props.divisions) {
-        var teamsInDiv = _.filter(sortedSummary,
-          (t) => { return t.division == this.props.divisions[i] });
-        tables.push(this.getTable(teamsInDiv, this.props.divisions[i]));
+
+    let curDivName = null, curDivTeams = [];
+    for(var i in linesToPrint) {
+      let curLine = linesToPrint[i];
+      switch (curLine.type) {
+        case 'divLabel':
+          curDivName = curLine.divName;
+          break;
+        case 'tableHeader':
+          curDivTeams = [];
+          break;
+        case 'row':
+          curDivTeams.push(curLine);
+          break;
+        case 'tableEnd':
+          tables.push(this.getTable(curDivTeams, curDivName, tiesExist));
+          break;
       }
-    }
-    else {
-      tables.push(this.getTable(sortedSummary, 'noDiv'));
     }
 
     return(

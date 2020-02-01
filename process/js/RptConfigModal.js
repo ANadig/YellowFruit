@@ -539,7 +539,7 @@ class RptConfigModal extends React.Component {
     var tdL = ( <td>L</td> );
     var tdT = ( <td>T</td> );
     var tdPct = ( <td>Pct.</td> );
-    var tdPhaseRecord = this.state.phaseRecord ? ( <td>Stage</td> ) : null;
+    var tdPhaseRecord = this.state.phaseRecord ? ( <td>[Stage]</td> ) : null;
     var tdPPG = this.state.ppgOrPp20 == 'ppg' ? ( <td>PPG</td> ) : null;
     var tdPP20 = this.state.ppgOrPp20 == 'pp20' ? ( <td>PP20</td> ) : null;
     var tdPapg = this.state.ppgOrPp20 == 'ppg' && this.state.papg ? ( <td>PAPG</td> ) : null;

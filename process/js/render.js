@@ -882,13 +882,7 @@ class MainInterface extends React.Component {
     }
     var filterPhase = this.state.viewingPhase;
     var phasesToGroupBy = this.phasesToGroupBy();
-    var divsInPhase = [], phaseSizes = [0];
-    for(var i in phasesToGroupBy) {
-      var oneDivList = this.state.divisions[phasesToGroupBy[i]];
-      divsInPhase = divsInPhase.concat(oneDivList);
-      //keep track of which divisions came from which phases (for the phase record column tooltip)
-      phaseSizes[+i+1] = phaseSizes[i] + oneDivList.length;
-    }
+    var [divsInPhase, phaseSizes] = this.cumulativeRankSetup(phasesToGroupBy);
     var usingDivisions = divsInPhase.length > 0;
     //we only want the last segment of the file path to use for links
     var filePathSegments = fileStart.split(/[\\\/]/);
@@ -946,10 +940,8 @@ class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   writeSqbsFile(fileName) {
     var phasesToGroupBy = this.phasesToGroupBy();
-    var divsInPhase = [];
-    for(var i in phasesToGroupBy) {
-      divsInPhase = divsInPhase.concat(this.state.divisions[phasesToGroupBy[i]]);
-    }
+    var [divsInPhase, phaseSizes] = this.cumulativeRankSetup(phasesToGroupBy);
+
     var sqbsData = SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
       phasesToGroupBy, divsInPhase, this.state.myTeams, this.state.myGames,
       this.state.packets, this.state.gameIndex, this.state.allGamesShowTbs);
@@ -1672,10 +1664,10 @@ class MainInterface extends React.Component {
     var newDefaultPhases = this.state.settings.defaultPhases;
     if(newDefaultPhases.length == 0) {
       var phaseList = Object.keys(this.state.divisions);
-      var numPhases = phaseList.length
+      var numPhases = phaseList.length;
       if(numPhases > 0) {
         var lastPhase = phaseList[numPhases - 1];
-        if(lastPhase = 'noPhase' && numPhases > 1) {
+        if(lastPhase == 'noPhase' && numPhases > 1) {
           lastPhase = phaseList[numPhases - 2];
         }
         if(lastPhase != 'noPhase') {
@@ -1906,22 +1898,16 @@ class MainInterface extends React.Component {
     //modify default grouping phases if necessary
     var oldDefaultPhases = this.state.settings.defaultPhases;
     var newDefaultPhases = this.state.settings.defaultPhases.slice();
-    if(Object.keys(this.state.divisions).length == 1 && this.usingDivisions()) {
-      // assign a new default if there weren't any phases at all before
-      newDefaultPhases = [newPhases[newPhases.length - 1]];
-    }
-    else {
-      for(var i in oldDefaultPhases) {
-        //can't have default grouping phases that don't exist
-        if(!newPhases.includes(oldDefaultPhases[i])) {
-          _.pull(newDefaultPhases, oldDefaultPhases[i]);
-        }
-      }
-      if(newDefaultPhases.length == 0) {
-        newDefaultPhases.push(newPhases[newPhases.length - 1]);
+    for(var i in oldDefaultPhases) {
+      //can't have default grouping phases that don't exist
+      if(!newPhases.includes(oldDefaultPhases[i])) {
+        _.pull(newDefaultPhases, oldDefaultPhases[i]);
       }
     }
-
+    // add a default phase if there isn't one yet
+    if(newDefaultPhases.length == 0 && newPhases.length > 0 && this.usingDivisions()) {
+      newDefaultPhases.push(newPhases[newPhases.length - 1]);
+    }
 
     var newSettings = this.state.settings;
     newSettings.defaultPhases = newDefaultPhases;
@@ -2130,6 +2116,22 @@ class MainInterface extends React.Component {
     else if(viewingPhase != 'all') { return [viewingPhase]; }
     else if(usingPhases) { return this.state.settings.defaultPhases; }
     return [];
+  }
+
+  /*---------------------------------------------------------
+  Compute the list of divisions to group teams by (could be
+  from multiple phases), and the number of divisions in
+  each grouping phase
+  ---------------------------------------------------------*/
+  cumulativeRankSetup(phasesToGroupBy) {
+    var divsInPhase = [], phaseSizes = [0];
+    for(var i in phasesToGroupBy) {
+      let oneDivList = this.state.divisions[phasesToGroupBy[i]];
+      divsInPhase = divsInPhase.concat(oneDivList);
+      //keep track of which divisions came from which phases (for the phase record column tooltip)
+      phaseSizes[+i+1] = phaseSizes[i] + oneDivList.length;
+    }
+    return [divsInPhase, phaseSizes];
   }
 
   /*---------------------------------------------------------
@@ -2412,10 +2414,7 @@ class MainInterface extends React.Component {
     var usingPhases = this.usingPhases();
     var usingDivisions = this.usingDivisions();
     var phasesToGroupBy = this.phasesToGroupBy();
-    var divsInPhase = [];
-    for(var i in phasesToGroupBy) {
-      divsInPhase = divsInPhase.concat(this.state.divisions[phasesToGroupBy[i]]);
-    }
+    var [divsInPhase, phaseSizes] = this.cumulativeRankSetup(phasesToGroupBy);
 
     var rptObj = this.state.releasedRptList[this.state.activeRpt];
     if(rptObj == undefined) { rptObj = this.state.customRptList[this.state.activeRpt]; }
@@ -2518,15 +2517,19 @@ class MainInterface extends React.Component {
 
     var sidebar = null;
     if(this.state.sidebarOpen) {
+      let standings = StatUtils.compileStandings(myTeams, myGames, this.state.viewingPhase,
+        phasesToGroupBy, this.state.settings, rptObj, this.state.allGamesShowTbs)
       sidebar = (
         <div id="stat-sidebar" className="col xl4 s0">
           <StatSidebar
             visible = {this.state.sidebarOpen}
-            standings = {StatUtils2.getSmallStandings(myTeams, myGames, this.state.viewingPhase, phasesToGroupBy, this.state.settings, this.state.allGamesShowTbs)}
+            standings = {standings}
             phase = {this.state.viewingPhase}
             divisions = {divsInPhase}
+            phasesToGroupBy = {phasesToGroupBy}
+            phaseSizes = {phaseSizes}
             settings = {this.state.settings}
-            activeRpt = {rptObj}
+            rptConfig = {rptObj}
             filterByTeam = {this.filterByTeam}
           />
         </div>

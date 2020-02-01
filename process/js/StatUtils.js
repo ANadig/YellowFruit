@@ -77,7 +77,10 @@ function showTeamD2(rptConfig) { return rptConfig.teamD2; }
 function showTeamCombined(rptConfig) { return rptConfig.teamCombinedStatus; }
 
 // include the column for W-L record in the grouping phase?
-function showPhaseRecord(rptConfig) { return rptConfig.phaseRecord; }
+function showPhaseRecord(rptConfig, phase, groupingPhases) {
+  return rptConfig.phaseRecord && phase == 'all' &&
+    groupingPhases.length > 0 && groupingPhases[0] != 'noPhase';
+}
 
 // track ppg (rather than pp20TUH)?
 function showPpg(rptConfig) { return rptConfig.ppgOrPp20 == 'ppg'; }
@@ -322,7 +325,7 @@ function tdTag(text, align, bold, title, style) {
 /*---------------------------------------------------------
 Header row for the team standings.
 ---------------------------------------------------------*/
-function standingsHeader(settings, tiesExist, rptConfig, curGrpPhase) {
+function standingsHeader(settings, tiesExist, rptConfig, filterPhase, curGrpPhase) {
   if(curGrpPhase == null) { curGrpPhase = 'All Games'; }
   var html = '<tr>' + '\n' +
     tdTag('Rank', 'left', true) +
@@ -348,8 +351,8 @@ function standingsHeader(settings, tiesExist, rptConfig, curGrpPhase) {
     html += tdTag('T','right',true);
   }
   html += tdTag('Pct','right',true);
-  if(showPhaseRecord(rptConfig)) {
-    html += tdTag('Stage', 'right', true, TOOLTIPS.phaseRecord[0] + curGrpPhase + TOOLTIPS.phaseRecord[1]);
+  if(showPhaseRecord(rptConfig, filterPhase, [curGrpPhase])) {
+    html += tdTag(curGrpPhase, 'right', true, TOOLTIPS.phaseRecord[0] + curGrpPhase + TOOLTIPS.phaseRecord[1]);
   }
   if(showPpg(rptConfig)) {
     html +=  tdTag('PPG','right',true, TOOLTIPS.ppg);
@@ -399,7 +402,7 @@ function standingsHeader(settings, tiesExist, rptConfig, curGrpPhase) {
 /*---------------------------------------------------------
 One row in the team standings
 ---------------------------------------------------------*/
-function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig) {
+function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig, showPhaseRecord) {
   var linkId = teamEntry.teamName.replace(/\W/g, '');
   var rowHtml = '<tr>';
   rowHtml += tdTag(rank,'left');
@@ -431,10 +434,8 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
     rowHtml += tdTag(teamEntry.ties,'right');
   }
   rowHtml += tdTag(teamEntry.winPct,'right');
-  if(showPhaseRecord(rptConfig)) {
-    var phaseRecord = teamEntry.phaseWins + '-' + teamEntry.phaseLosses;
-    if(teamEntry.phaseTies > 0) { phaseRecord += teamEntry.phaseTies; }
-    rowHtml += tdTag(phaseRecord, 'right');
+  if(showPhaseRecord) {
+    rowHtml += tdTag(teamEntry.phaseRecord, 'right');
   }
   if(showPpg(rptConfig)) {
     rowHtml += tdTag(teamEntry.ppg,'right');
@@ -497,7 +498,7 @@ function compileStandings(teams, games, filterPhase, groupingPhases, settings, r
         division: division != undefined ? division : null,
         groupingPhase: teamsGrpPhase,
         wins: 0, losses: 0, ties: 0, winPct: 0,
-        phaseWins: 0, phaseLosses: 0, phaseTies: 0, phaseWinPct: 0,
+        phaseWins: 0, phaseLosses: 0, phaseTies: 0, phaseWinPct: 0, phaseRecord: '',
         ppg: 0, papg: 0, margin: 0,
         pp20: 0, pap20: 0, mrg20: 0,
         powers: 0, tens: 0, negs: 0,
@@ -614,6 +615,8 @@ function compileStandings(teams, games, filterPhase, groupingPhases, settings, r
     if(winPct == 1) { t.winPct = '1.000'; }
     else{ t.winPct = winPct.toFixed(3).substr(1); } //remove leading zero
     t.phaseWinPct = phaseGames == 0 ? 0 : (t.phaseWins + t.phaseTies/2) / phaseGames;
+    t.phaseRecord = t.phaseWins + '-' + t.phaseLosses;
+    if(t.phaseTies > 0) { t.phaseRecord += '-' + t.phaseTies; }
     t.ppg = formatRate(ppg, 1);
     t.papg = formatRate(papg, 1);
     t.margin = margin.toFixed(1);
@@ -627,7 +630,7 @@ function compileStandings(teams, games, filterPhase, groupingPhases, settings, r
     t.ppbb = formatRate(ppbb, 2);
   }
 
-  if(showPhaseRecord(rptConfig)) {
+  if(showPhaseRecord(rptConfig, filterPhase, groupingPhases)) {
     return _.orderBy(standings, ['phaseWinPct', 'winPct', (t)=>{return toNum(t.ppg)}], ['desc', 'desc', 'desc']);
   }
   return _.orderBy(standings, ['winPct', (t)=>{return toNum(t.ppg)}], ['desc', 'desc']);
@@ -1731,44 +1734,74 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsIn
 
   var standings = compileStandings(teams, games, phase, groupingPhases, settings, rptConfig, showTbs);
   var tiesExist = anyTiesExist(standings);
+  var showPhaseRec = showPhaseRecord(rptConfig, phase, groupingPhases);
+
   var html = getStatReportTop('TeamStandings', fileStart, 'Team Standings') +
     '<h1> Team Standings</h1>' + '\n';
   html += tableStyle();
+  var linesToPrint = arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, phaseSizes, rptConfig);
+  for(var i in linesToPrint) {
+    let curLine = linesToPrint[i];
+    switch (curLine.type) {
+      case 'divLabel':
+        html += '<h2>' + curLine.divName + '</h2>' + '\n';
+        break;
+      case 'tableHeader':
+        html += '<table width=100%>' + '\n' +
+          standingsHeader(settings, tiesExist, rptConfig, phase, curLine.curGrpPhase);
+        break;
+      case 'row':
+        html += standingsRow(curLine.team, curLine.rank, fileStart, settings, tiesExist, rptConfig, showPhaseRec);
+        break;
+      case 'tableEnd':
+        html += '</table>' + '\n';
+        break;
+    }
+  }
+  return html + getStatReportBottom();
+}//getStandingsHtml
+
+/*---------------------------------------------------------
+Generate a list of components of the team standings
+---------------------------------------------------------*/
+function arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, phaseSizes, rptConfig) {
+  var linesToPrint = [];
+  var showPhaseRec = showPhaseRecord(rptConfig, phase, groupingPhases);
   if(divsInPhase != undefined && divsInPhase.length > 0) {
-    var teamsInPriorDivisions = 0;
-    var phaseSizeIdx = 0, curGrpPhase = groupingPhases[0]; // track which phase to put in the phase record tooltip
+    let teamsInPriorDivisions = 0;
+    let phaseSizeIdx = 0, curGrpPhase = groupingPhases[0]; // track which phase to put in the phase record tooltip
     for(var i in divsInPhase) {
       if(i >= phaseSizes[phaseSizeIdx+1]) {
         curGrpPhase = groupingPhases[++phaseSizeIdx];
       }
-      html += '<h2>' + divsInPhase[i] + '</h2>' + '\n';
-      html += '<table width=100%>' + '\n' + standingsHeader(settings, tiesExist, rptConfig, curGrpPhase);
-      var teamsInDiv = _.filter(standings, (t) => { return t.division == divsInPhase[i] });
-      var curRank = 0, prevPhaseRecord = null, curTeam;
+      linesToPrint.push({type: 'divLabel', divName: divsInPhase[i]});
+      linesToPrint.push({type: 'tableHeader', curGrpPhase: curGrpPhase});
+      let teamsInDiv = _.filter(standings, (t) => { return t.division == divsInPhase[i] });
+      let curRank = 0, prevPhaseRecord = null, curTeam;
       for(var j in teamsInDiv) {
         curTeam = teamsInDiv[j];
-        if(!showPhaseRecord(rptConfig) || (prevPhaseRecord == null || curTeam.phaseWinPct != prevPhaseRecord)) {
+        if(!showPhaseRec || (prevPhaseRecord == null || curTeam.phaseWinPct != prevPhaseRecord)) {
           curRank = teamsInPriorDivisions + (+j) + 1;
         }
-        html += standingsRow(curTeam, curRank, fileStart, settings, tiesExist, rptConfig);
+        linesToPrint.push({type: 'row', team: curTeam, rank: curRank});
         prevPhaseRecord = curTeam.phaseWinPct;
       }
-      if(showPhaseRecord(rptConfig)) { teamsInPriorDivisions += +j+1; }
-      html += '</table>' + '\n';
+      if(showPhaseRec) { teamsInPriorDivisions += +j+1; }
+      linesToPrint.push({type: 'tableEnd'});
     }
   }
   else { //not using divisions
-    html += '<table width=100%>' + '\n' + standingsHeader(settings, tiesExist, rptConfig);
+    linesToPrint.push({type: 'tableHeader', curGrpPhase: null});
     for(var i in standings) {
       let teamEntry = standings[i];
       if(phase != 'Tiebreakers' || teamEntry.wins + teamEntry.losses + teamEntry.ties > 0) {
-        html += standingsRow(teamEntry, parseFloat(i)+1, fileStart, settings, tiesExist, rptConfig);
+        linesToPrint.push({type: 'row', team: teamEntry, rank: parseFloat(i)+1});
       }
     }
-    html += '\n' + '</table>' + '\n';
+    linesToPrint.push({type: 'tableEnd'});
   }
-  return html + getStatReportBottom();
-}//getStandingsHtml
+  return linesToPrint;
+}
 
 /*---------------------------------------------------------
 Generate the individual standings page.
@@ -2050,5 +2083,6 @@ function getStatKeyPage(fileStart) {
 
 module.exports = {toNum, matchFilterPhase, gamesPlayed, powerValue, negValue,
   bonusesHeard, bonusPoints, bbHeard, bbHrdToFloat, otPoints, playerSlashLine,
-  packetNamesExist, getStandingsPage, getIndividualsPage, getScoreboardPage,
-  getTeamDetailPage, getPlayerDetailPage, getRoundReportPage, getStatKeyPage}
+  packetNamesExist, compileStandings, arrangeStandingsLines, getStandingsPage,
+  getIndividualsPage, getScoreboardPage, getTeamDetailPage, getPlayerDetailPage,
+  getRoundReportPage, getStatKeyPage}
