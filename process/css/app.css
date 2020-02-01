@@ -590,7 +590,7 @@ nav .btn-flat {
 }
 
 /* only move the counter when the screen is wide AND the sidebar is set to show */
-@media screen and (min-width: 1201px) {
+@media screen and (min-width: 993px) {
   .l8 .selected-counter {
     right: 35%;
   }
