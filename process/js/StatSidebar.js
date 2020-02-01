@@ -13,12 +13,33 @@ class StatSidebar extends React.Component{
 
   constructor(props) {
     super(props);
+    var rankings = {};
+    for(var i in props.standings) {
+      rankings[props.standings[i].teamName] = '';
+    }
     this.state = {
-      ranksEditable: false
+      ranksEditable: false,
+      rankOverrides: rankings
     };
+    this.handleRankChange = this.handleRankChange.bind(this);
     this.filterByTeam = this.filterByTeam.bind(this);
     this.enableRankEdit = this.enableRankEdit.bind(this);
     this.saveRankOverrides = this.saveRankOverrides.bind(this);
+  }
+
+  /*---------------------------------------------------------
+  Update state when on of the rank fields changes value
+  ---------------------------------------------------------*/
+  handleRankChange(e) {
+    const target = e.target;
+    const value = target.value;
+    const name = target.name;
+    const whichTeam = name.replace('_rank_', '');
+    var tempRanks = this.state.rankOverrides;
+    tempRanks[whichTeam] = value;
+    this.setState({
+      rankOverrides: tempRanks
+    });
   }
 
   /*---------------------------------------------------------
@@ -52,6 +73,7 @@ class StatSidebar extends React.Component{
     var showPhaseRecord = this.props.rptConfig.phaseRecord && this.props.phase == 'all' &&
       this.props.phasesToGroupBy.length > 0 && this.props.phasesToGroupBy[0] != 'noPhase';
     var rows = teams.map((item, index) => {
+      let teamName = item.team.teamName;
       let ppg = item.team.ppg, ppb = item.team.ppb;
       if(isNaN(ppg)) { ppg = ''; }
       if(isNaN(ppb)) { ppb = ''; }
@@ -59,8 +81,9 @@ class StatSidebar extends React.Component{
       if(this.props.phase == 'all') {
         if(this.state.ranksEditable) {
           rankCell = (
-            <td><input type="number" id={'rank'+item.team.teamName} size="2"
-            placeholder={item.rank} name={'rank'+item.team.teamName} min="1"
+            <td><input type="number" id={'_rank_'+teamName} size="2"
+            placeholder={item.rank} name={'_rank_'+teamName} min="1"
+            value={this.state.rankOverrides[teamName]} onChange={this.handleRankChange}
             /></td>
           );
         }
@@ -74,11 +97,11 @@ class StatSidebar extends React.Component{
       let phaseRecCell = showPhaseRecord ? ( <td>{item.team.phaseRecord}</td> ) : null;
 
       return (
-        <tr key={item.team.teamName}>
+        <tr key={teamName}>
           {rankCell}
           <td className="text-cell">
-            <a onClick={this.filterByTeam} name={item.team.teamName}
-            title="Find this team's games">{item.team.teamName}</a>
+            <a onClick={this.filterByTeam} name={teamName}
+            title="Find this team's games">{teamName}</a>
           </td>
           <td>{item.team.wins}</td>
           <td>{item.team.losses}</td>
@@ -148,6 +171,8 @@ class StatSidebar extends React.Component{
 
 
   render(){
+    console.log(this.state.rankOverrides);
+
     if(!this.props.visible) { return null; }
     if(this.props.rptConfig == undefined) { return ( <span>Report configuration error</span> ); }
 

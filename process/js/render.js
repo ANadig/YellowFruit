@@ -121,7 +121,8 @@ class MainInterface extends React.Component {
       defaultRpt: SYS_DEFAULT_RPT_NAME, // which report configuration is default for new tournaments
       activeRpt: SYS_DEFAULT_RPT_NAME, // which report configuration is currently being used
       formSettings: defFormSettingsCopy, // which optional entry fields to turn on or off
-      sidebarOpen: true // whether the sidebar is visible
+      sidebarOpen: true, // whether the sidebar is visible
+      reconstructSidebar: false // used to force the sidebar to reload when any teams are modified
     };
     this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
     this.openGameAddWindow = this.openGameAddWindow.bind(this);
@@ -562,6 +563,7 @@ class MainInterface extends React.Component {
       queryText: '',
       selectedTeams: [],
       selectedGames: [],
+      reconstructSidebar: !this.state.reconstructSidebar
     });
     //the value of settingsLoadToggle doesn't matter; it just needs to change
     //in order to make the settings form load
@@ -617,13 +619,14 @@ class MainInterface extends React.Component {
         teamUGStatus: false,
         teamD2Status: false,
         roster: roster,
-        divisions: {}
+        divisions: {},
       });
     }
     var numImported = myTeams.length - this.state.myTeams.length;
     if(numImported > 0) {
       this.setState({
-        myTeams: myTeams
+        myTeams: myTeams,
+        reconstructSidebar: !this.state.reconstructSidebar
       });
       this.loadPlayerIndex(myTeams, this.state.myGames, true);
 
@@ -728,7 +731,8 @@ class MainInterface extends React.Component {
       queryText: '',
       selectedTeams: [],
       selectedGames: [],
-      activeRpt: this.state.defaultRpt
+      activeRpt: this.state.defaultRpt,
+      reconstructSidebar: !this.state.reconstructSidebar
     });
 
     this.loadGameIndex(yfGames, true);
@@ -749,6 +753,10 @@ class MainInterface extends React.Component {
     loadDivisions = JSON.parse(loadDivisions);
     loadTeams = JSON.parse(loadTeams);
     loadGames = JSON.parse(loadGames);
+    //need to do this conversion before we can compare settings
+    if(StatUtils2.versionLt(loadMetadata.version, '2.5.0')) {
+      StatUtils2.settingsConversion2x5x0(loadSettings);
+    }
     //reject files from a higher version than this one
     if(StatUtils2.versionLt(METADATA.version, loadMetadata.version, 'minor')) {
       let verAry = loadMetadata.version.split('.');
@@ -833,7 +841,8 @@ class MainInterface extends React.Component {
       myTeams: teamsCopy,
       myGames: gamesCopy,
       tbCount: tbCount,
-      settingsLoadToggle: !this.state.settingsLoadToggle
+      settingsLoadToggle: !this.state.settingsLoadToggle,
+      reconstructSidebar: !this.state.reconstructSidebar
     });
     this.loadGameIndex(gamesCopy, false);
     this.loadPlayerIndex(teamsCopy, gamesCopy, false);
@@ -1024,7 +1033,8 @@ class MainInterface extends React.Component {
       editingSettings: false,
       gameToBeDeleted: null,
       divToBeDeleted: null,
-      activeRpt: this.state.defaultRpt
+      activeRpt: this.state.defaultRpt,
+      reconstructSidebar: !this.state.reconstructSidebar
       // DO NOT reset these! These should persist throughout the session
       // releasedRptList: ,
       // customRptList: ,
@@ -1195,7 +1205,8 @@ class MainInterface extends React.Component {
       myTeams: tempTms,
       tmWindowVisible: acceptAndStay,
       settings: settings,
-      playerIndex: tempIndex
+      playerIndex: tempIndex,
+      reconstructSidebar: !this.state.reconstructSidebar
     }) //setState
     if(acceptAndStay) {
       $('#teamName').focus();
@@ -1278,7 +1289,8 @@ class MainInterface extends React.Component {
       myGames: tempGames,
       tmWindowVisible: acceptAndStay,
       playerIndex: tempPlayerIndex,
-      tmAddOrEdit: 'add' // need to set here in case of acceptAndStay
+      tmAddOrEdit: 'add', // need to set here in case of acceptAndStay
+      reconstructSidebar: !this.state.reconstructSidebar
     });
     if(acceptAndStay) {
       $('#teamName').focus();
@@ -1379,7 +1391,8 @@ class MainInterface extends React.Component {
     this.setState({
       myTeams: newTeams,
       selectedTeams: newSelected,
-      playerIndex: tempPlayerIndex
+      playerIndex: tempPlayerIndex,
+      reconstructSidebar: !this.state.reconstructSidebar
     });
     ipc.sendSync('unsavedData');
   } //deleteTeam
@@ -2521,7 +2534,7 @@ class MainInterface extends React.Component {
         phasesToGroupBy, this.state.settings, rptObj, this.state.allGamesShowTbs)
       sidebar = (
         <div id="stat-sidebar" className="col l4 s0">
-          <StatSidebar
+          <StatSidebar key={this.state.reconstructSidebar}
             visible = {this.state.sidebarOpen}
             standings = {standings}
             phase = {this.state.viewingPhase}
