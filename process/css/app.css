@@ -115,6 +115,16 @@ h1, h2, h3, h4, h5, h6 {
   text-decoration-style: dotted;
 }
 
+#stat-sidebar button {
+  float: right;
+}
+
+#stat-sidebar input {
+  width: 35px;
+  margin-left: 0;
+  margin-bottom: 0;
+}
+
 @media screen and (max-width: 992px) {
   .sidebar-toggle {
     display: none;
@@ -600,7 +610,6 @@ nav .btn-flat {
   padding: 0;
   height: 20px;
 }
-
 
 .collection-item .item-delete {
   right: 0px;

@@ -13,7 +13,12 @@ class StatSidebar extends React.Component{
 
   constructor(props) {
     super(props);
+    this.state = {
+      ranksEditable: false
+    };
     this.filterByTeam = this.filterByTeam.bind(this);
+    this.enableRankEdit = this.enableRankEdit.bind(this);
+    this.saveRankOverrides = this.saveRankOverrides.bind(this);
   }
 
   /*---------------------------------------------------------
@@ -50,7 +55,20 @@ class StatSidebar extends React.Component{
       let ppg = item.team.ppg, ppb = item.team.ppb;
       if(isNaN(ppg)) { ppg = ''; }
       if(isNaN(ppb)) { ppb = ''; }
-      let rankCell = this.props.phase == 'all' ? ( <td className="text-cell">{item.rank}</td> ) : null;
+      let rankCell = null;
+      if(this.props.phase == 'all') {
+        if(this.state.ranksEditable) {
+          rankCell = (
+            <td><input type="number" id={'rank'+item.team.teamName} size="2"
+            placeholder={item.rank} name={'rank'+item.team.teamName} min="1"
+            /></td>
+          );
+        }
+        else {
+          rankCell = ( <td className="text-cell">{item.rank}</td> );
+        }
+
+      }
       let ppbCell = this.props.settings.bonuses ? ( <td>{ppb}</td> ) : null;
       let tiesCell = tiesExist ? ( <td>{item.team.ties}</td> ) : null;
       let phaseRecCell = showPhaseRecord ? ( <td>{item.team.phaseRecord}</td> ) : null;
@@ -110,6 +128,24 @@ class StatSidebar extends React.Component{
     );
   } //getTable
 
+  /*---------------------------------------------------------
+  Make ranks editable to be overridden
+  ---------------------------------------------------------*/
+  enableRankEdit() {
+    this.setState({
+      ranksEditable: true
+    });
+  }
+
+  /*---------------------------------------------------------
+  Save rankings and exit edit mode
+  ---------------------------------------------------------*/
+  saveRankOverrides() {
+    this.setState({
+      ranksEditable: false
+    });
+  }
+
 
   render(){
     if(!this.props.visible) { return null; }
@@ -140,8 +176,27 @@ class StatSidebar extends React.Component{
       }
     }
 
+    var rankButton = null;
+    if(this.state.ranksEditable) {
+      rankButton = (
+        <button className="btn-flat waves-effect tooltipped"
+        data-tooltip="Save Ranking Overrides" onClick={this.saveRankOverrides}>
+          <i className="material-icons left">save</i>Rankings
+        </button>
+      );
+    }
+    else if(this.props.phase == 'all') {
+      rankButton = (
+        <button className="btn-flat waves-effect tooltipped"
+        data-tooltip="Override Final Rankings" onClick={this.enableRankEdit}>
+          <i className="material-icons left">edit</i>Rankings
+        </button>
+      );
+    }
+
     return(
       <div>
+        {rankButton}
         {tables}
       </div>
     )
