@@ -115,6 +115,10 @@ h1, h2, h3, h4, h5, h6 {
   text-decoration-style: dotted;
 }
 
+#stat-sidebar td.rank[title]:not([title=""]) {
+  cursor: help;
+}
+
 #stat-sidebar button {
   float: right;
   margin-top: 5px;

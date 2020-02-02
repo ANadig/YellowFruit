@@ -1796,8 +1796,10 @@ function arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, ph
       let countSinceLastOverride = 0; // number of teams we've gone through since th last rank override
       for(var j in teamsInDiv) {
         curTeam = teamsInDiv[j];
+        let isOverride = false;
         //if rank was manually overridden, use that
         if(phase == 'all' && curTeam.rank) {
+          isOverride = true;
           baselineRank = +curTeam.rank;
           curRank = +curTeam.rank;
         }
@@ -1816,7 +1818,7 @@ function arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, ph
         else {
           countSinceLastOverride++;
         }
-        linesToPrint.push({type: 'row', team: curTeam, rank: curRank});
+        linesToPrint.push({type: 'row', team: curTeam, rank: curRank, isOverride: isOverride});
         prevPhaseRecord = curTeam.phaseWinPct;
       }
       if(showPhaseRec) { baselineRank = baselineRank + countSinceLastOverride; }
@@ -1829,10 +1831,14 @@ function arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, ph
     let curRank = 0;
     for(var i in standings) {
       let curTeam = standings[i];
+      let isOverride = false;
       if(phase != 'Tiebreakers' || curTeam.wins + curTeam.losses + curTeam.ties > 0) {
-        if(curTeam.rank) { curRank = +curTeam.rank; }
+        if(curTeam.rank) {
+          curRank = +curTeam.rank;
+          isOverride = true;
+        }
         else { curRank += 1; }
-        linesToPrint.push({type: 'row', team: curTeam, rank: curRank});
+        linesToPrint.push({type: 'row', team: curTeam, rank: curRank, isOverride: isOverride});
       }
     }
     linesToPrint.push({type: 'tableEnd'});

@@ -91,7 +91,9 @@ class StatSidebar extends React.Component{
           );
         }
         else {
-          rankCell = ( <td className="text-cell">{item.rank}</td> );
+          let tooltip = item.isOverride ? 'Rank manually overridden' : '';
+          let dispVal = item.isOverride ? item.rank + '*' : item.rank;
+          rankCell = ( <td className="text-cell rank" title={tooltip}>{dispVal}</td> );
         }
       }
       let ppbCell = this.props.settings.bonuses ? ( <td>{ppb}</td> ) : null;
