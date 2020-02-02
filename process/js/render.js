@@ -174,6 +174,7 @@ class MainInterface extends React.Component {
     this.rptDeletionPrompt = this.rptDeletionPrompt.bind(this);
     this.filterByTeam = this.filterByTeam.bind(this);
     this.toggleSidebar = this.toggleSidebar.bind(this);
+    this.saveRankOverrides = this.saveRankOverrides.bind(this);
   }
 
   /*---------------------------------------------------------
@@ -2404,6 +2405,26 @@ class MainInterface extends React.Component {
   }
 
   /*---------------------------------------------------------
+  Save rank overrides entered in the sidebar. Throw out
+  values that don't make sense.
+  ---------------------------------------------------------*/
+  saveRankOverrides(rankOverrides) {
+    var tempTeams = this.state.myTeams;
+    for(var i in tempTeams) {
+      let rank = Math.round(rankOverrides[tempTeams[i].teamName]);
+      if(!isNaN(rank) && rank >= 1) {
+        tempTeams[i].rank = rank;
+      }
+      else { tempTeams[i].rank = ''; }
+    }
+    this.setState({
+      myTeams: tempTeams,
+      reconstructSidebar: !this.state.reconstructSidebar
+    });
+    ipc.sendSync('unsavedData');
+  }
+
+  /*---------------------------------------------------------
   Wrapper for materialize toast messages
   ---------------------------------------------------------*/
   toast(text) {
@@ -2544,6 +2565,7 @@ class MainInterface extends React.Component {
             settings = {this.state.settings}
             rptConfig = {rptObj}
             filterByTeam = {this.filterByTeam}
+            saveRankOverrides = {this.saveRankOverrides}
           />
         </div>
       );

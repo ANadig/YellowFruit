@@ -326,7 +326,6 @@ function tdTag(text, align, bold, title, style) {
 Header row for the team standings.
 ---------------------------------------------------------*/
 function standingsHeader(settings, tiesExist, rptConfig, filterPhase, curGrpPhase) {
-  if(curGrpPhase == null) { curGrpPhase = 'All Games'; }
   var html = '<tr>' + '\n' +
     tdTag('Rank', 'left', true) +
     tdTag('Team', 'left', true);
@@ -351,7 +350,7 @@ function standingsHeader(settings, tiesExist, rptConfig, filterPhase, curGrpPhas
     html += tdTag('T','right',true);
   }
   html += tdTag('Pct','right',true);
-  if(showPhaseRecord(rptConfig, filterPhase, [curGrpPhase])) {
+  if(curGrpPhase != null && showPhaseRecord(rptConfig, filterPhase, [curGrpPhase])) {
     html += tdTag(curGrpPhase, 'right', true, TOOLTIPS.phaseRecord[0] + curGrpPhase + TOOLTIPS.phaseRecord[1]);
   }
   if(showPpg(rptConfig)) {
@@ -492,7 +491,7 @@ function compileStandings(teams, games, filterPhase, groupingPhases, settings, r
       division = item.divisions[teamsGrpPhase];
     }
     var obj =
-      { teamName: item.teamName,
+      { teamName: item.teamName, rank: item.rank,
         smallSchool: item.smallSchool, jrVarsity: item.jrVarsity,
         teamUGStatus: item.teamUGStatus, teamD2Status: item.teamD2Status,
         division: division != undefined ? division : null,
@@ -630,8 +629,20 @@ function compileStandings(teams, games, filterPhase, groupingPhases, settings, r
     t.ppbb = formatRate(ppbb, 2);
   }
 
+  //if showing all games, order by rank override first.
+  //if showing phase record, order by that as well
   if(showPhaseRecord(rptConfig, filterPhase, groupingPhases)) {
+    if(filterPhase == 'all') {
+      return _.orderBy(standings,
+        [(t)=>{return !t.rank ? 99999 : t.rank;}, 'phaseWinPct', 'winPct', (t)=>{return toNum(t.ppg)}],
+        ['asc', 'desc', 'desc', 'desc']);
+    }
     return _.orderBy(standings, ['phaseWinPct', 'winPct', (t)=>{return toNum(t.ppg)}], ['desc', 'desc', 'desc']);
+  }
+  if(filterPhase == 'all') {
+    return _.orderBy(standings,
+      [(t)=>{return !t.rank ? 99999 : t.rank;}, 'winPct', (t)=>{return toNum(t.ppg)}],
+      ['asc', 'desc', 'desc']);
   }
   return _.orderBy(standings, ['winPct', (t)=>{return toNum(t.ppg)}], ['desc', 'desc']);
 } //compileStandings
@@ -1769,8 +1780,12 @@ function arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, ph
   var showPhaseRec = showPhaseRecord(rptConfig, phase, groupingPhases);
   if(divsInPhase != undefined && divsInPhase.length > 0) {
     let teamsInPriorDivisions = 0;
+    // intitial rank from which to start incrementing. is either the number of teams in
+    // divisions we've already gone through; or the most recent rank override
+    let baselineRank = 0;
     let phaseSizeIdx = 0, curGrpPhase = groupingPhases[0]; // track which phase to put in the phase record tooltip
     for(var i in divsInPhase) {
+      //if we're out of divisions in this grouping phase, move on to the next one
       if(i >= phaseSizes[phaseSizeIdx+1]) {
         curGrpPhase = groupingPhases[++phaseSizeIdx];
       }
@@ -1778,24 +1793,46 @@ function arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, ph
       linesToPrint.push({type: 'tableHeader', curGrpPhase: curGrpPhase});
       let teamsInDiv = _.filter(standings, (t) => { return t.division == divsInPhase[i] });
       let curRank = 0, prevPhaseRecord = null, curTeam;
+      let countSinceLastOverride = 0; // number of teams we've gone through since th last rank override
       for(var j in teamsInDiv) {
         curTeam = teamsInDiv[j];
-        if(!showPhaseRec || (prevPhaseRecord == null || curTeam.phaseWinPct != prevPhaseRecord)) {
-          curRank = teamsInPriorDivisions + (+j) + 1;
+        //if rank was manually overridden, use that
+        if(phase == 'all' && curTeam.rank) {
+          baselineRank = +curTeam.rank;
+          curRank = +curTeam.rank;
+        }
+        //if not overridden, but the previous one was, always increment from the previous rank
+        //...also covers the first team in a division, which is fine
+        else if(phase == 'all' && countSinceLastOverride == 0) {
+          curRank = baselineRank + 1;
+          countSinceLastOverride++;
+        }
+        //increment the rank, unless we're showing phase records and
+        else if(!showPhaseRec || prevPhaseRecord == null || curTeam.phaseWinPct != prevPhaseRecord) {
+          curRank = baselineRank + countSinceLastOverride + 1;
+          countSinceLastOverride++;
+        }
+        //don't change the rank if there's a tie in phase record
+        else {
+          countSinceLastOverride++;
         }
         linesToPrint.push({type: 'row', team: curTeam, rank: curRank});
         prevPhaseRecord = curTeam.phaseWinPct;
       }
-      if(showPhaseRec) { teamsInPriorDivisions += +j+1; }
+      if(showPhaseRec) { baselineRank = baselineRank + countSinceLastOverride; }
+      else { baselineRank = 0; } // don't carry over rank to next division - start over at 1
       linesToPrint.push({type: 'tableEnd'});
     }
   }
   else { //not using divisions
     linesToPrint.push({type: 'tableHeader', curGrpPhase: null});
+    let curRank = 0;
     for(var i in standings) {
-      let teamEntry = standings[i];
-      if(phase != 'Tiebreakers' || teamEntry.wins + teamEntry.losses + teamEntry.ties > 0) {
-        linesToPrint.push({type: 'row', team: teamEntry, rank: parseFloat(i)+1});
+      let curTeam = standings[i];
+      if(phase != 'Tiebreakers' || curTeam.wins + curTeam.losses + curTeam.ties > 0) {
+        if(curTeam.rank) { curRank = +curTeam.rank; }
+        else { curRank += 1; }
+        linesToPrint.push({type: 'row', team: curTeam, rank: curRank});
       }
     }
     linesToPrint.push({type: 'tableEnd'});

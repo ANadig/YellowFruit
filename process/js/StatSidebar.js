@@ -15,7 +15,10 @@ class StatSidebar extends React.Component{
     super(props);
     var rankings = {};
     for(var i in props.standings) {
-      rankings[props.standings[i].teamName] = '';
+      let tm = props.standings[i]
+      let rank = tm.rank;
+      if(rank == undefined) { rankings[tm.teamName] = ''; }
+      else { rankings[tm.teamName] = rank; }
     }
     this.state = {
       ranksEditable: false,
@@ -90,7 +93,6 @@ class StatSidebar extends React.Component{
         else {
           rankCell = ( <td className="text-cell">{item.rank}</td> );
         }
-
       }
       let ppbCell = this.props.settings.bonuses ? ( <td>{ppb}</td> ) : null;
       let tiesCell = tiesExist ? ( <td>{item.team.ties}</td> ) : null;
@@ -164,6 +166,7 @@ class StatSidebar extends React.Component{
   Save rankings and exit edit mode
   ---------------------------------------------------------*/
   saveRankOverrides() {
+    this.props.saveRankOverrides(this.state.rankOverrides);
     this.setState({
       ranksEditable: false
     });
@@ -171,8 +174,7 @@ class StatSidebar extends React.Component{
 
 
   render(){
-    console.log(this.state.rankOverrides);
-
+    // console.log(this.state.rankOverrides);
     if(!this.props.visible) { return null; }
     if(this.props.rptConfig == undefined) { return ( <span>Report configuration error</span> ); }
 
