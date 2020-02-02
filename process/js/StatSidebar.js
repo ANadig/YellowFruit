@@ -174,7 +174,6 @@ class StatSidebar extends React.Component{
 
 
   render(){
-    // console.log(this.state.rankOverrides);
     if(!this.props.visible) { return null; }
     if(this.props.rptConfig == undefined) { return ( <span>Report configuration error</span> ); }
 
@@ -206,7 +205,7 @@ class StatSidebar extends React.Component{
     var rankButton = null;
     if(this.state.ranksEditable) {
       rankButton = (
-        <button className="btn-flat waves-effect tooltipped"
+        <button className="btn-flat grey lighten-3 waves-effect tooltipped"
         data-tooltip="Save Ranking Overrides" onClick={this.saveRankOverrides}>
           <i className="material-icons left">save</i>Rankings
         </button>
@@ -214,7 +213,7 @@ class StatSidebar extends React.Component{
     }
     else if(this.props.phase == 'all') {
       rankButton = (
-        <button className="btn-flat waves-effect tooltipped"
+        <button className="btn-flat grey lighten-3 waves-effect tooltipped"
         data-tooltip="Override Final Rankings" onClick={this.enableRankEdit}>
           <i className="material-icons left">edit</i>Rankings
         </button>
