@@ -19,6 +19,7 @@ const SqbsUtils = require('./SqbsUtils');
 const StatUtils = require('./StatUtils');
 const StatUtils2 = require('./StatUtils2');
 const QbjUtils = require('./QbjUtils');
+const QbjUtils2 = require('./QbjUtils2');
 // Bring in all the other React components
 const TeamListEntry = require('./TeamListEntry');
 const GameListEntry = require('./GameListEntry');
@@ -264,6 +265,9 @@ class MainInterface extends React.Component {
     ipc.on('exportSqbsFile', (event, fileName) => {
       if(!this.anyModalOpen()) { this.writeSqbsFile(fileName); }
     });
+    ipc.on('exportQbj', (event, fileName) => {
+      if(!this.anyModalOpen()) { this.writeQbjFile(fileName); }
+    });
     ipc.on('confirmGameDeletion', (event) => {
       this.deleteGame();
     });
@@ -316,6 +320,7 @@ class MainInterface extends React.Component {
     ipc.removeAllListeners('newTournament');
     ipc.removeAllListeners('exportHtmlReport');
     ipc.removeAllListeners('exportSqbsFile');
+    ipc.removeAllListeners('exportQbj');
     ipc.removeAllListeners('prevPage');
     ipc.removeAllListeners('nextPage');
     ipc.removeAllListeners('prevPhase');
@@ -963,6 +968,22 @@ class MainInterface extends React.Component {
       ipc.sendSync('genericModal', 'error', 'Error', 'Error saving file:\n\n' + err.stack, true);
     });
   } //writeSqbsFile
+
+  /*---------------------------------------------------------
+  Export the data in tournament schema format
+  ---------------------------------------------------------*/
+  writeQbjFile(fileName) {
+    if(!fileName) { return; }
+    var schemaObj = QbjUtils2.getQbjFile(this.state.settings, this.state.divisions,
+      this.state.myTeams, this.state.myGames, this.state.packets);
+    new Promise(function(resolve, reject) {
+      resolve(fs.writeFileSync(fileName, JSON.stringify(schemaObj), 'utf8', StatUtils2.printError));
+    }).then(() => {
+      this.toast('QBJ file generated');
+    }).catch((err) => {
+      ipc.sendSync('genericModal', 'error', 'Error', 'Error saving file:\n\n' + err.stack, true);
+    });
+  }
 
   /*---------------------------------------------------------
   Returns a list of games in which at least one team had

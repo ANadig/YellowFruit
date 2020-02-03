@@ -105,6 +105,10 @@ const YF_MENU = {
       label: 'Export as SQBS',
       click(item, focusedWindow) { trySqbsExport(focusedWindow); }
     },
+    {
+      label: 'Export as QBJ',
+      click(item, focusedWindow) { exportQbj(focusedWindow); }
+    },
     {type: 'separator'},
     {
       label: 'New Tournament',
@@ -410,6 +414,20 @@ function sqbsSaveDialog(focusedWindow) {
     (fileName) => {
       if(fileName == undefined) { return; }
       focusedWindow.webContents.send('exportSqbsFile', fileName);
+    }
+  );
+}
+
+/*---------------------------------------------------------
+Export tournament in the tournament schema format
+---------------------------------------------------------*/
+function exportQbj(focusedWindow) {
+  if(!isMainWindow(focusedWindow)) { return; }
+  dialog.showSaveDialog(focusedWindow,
+    {filters: [{name: 'Tournament Schema', extensions: ['qbj']}]},
+    (fileName) => {
+      if(fileName == undefined) { return; }
+      focusedWindow.webContents.send('exportQbj', fileName);
     }
   );
 }
