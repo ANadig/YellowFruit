@@ -11,19 +11,24 @@ module.exports = {};
 /*---------------------------------------------------------
 Generate an object conforming to the tournament schemo
 ---------------------------------------------------------*/
-module.exports.getQbjFile = function(settings, divisions, teams, games, packets) {
+module.exports.getQbjFile = function(settings, divisions, teams, games, packets, tbsExist) {
   var  topLevel = {
     version: '2.0',
     objects: []
   };
   var objList = [];
 
-  var playersQbj = getPlayers(teams);
+  var answerTypesQbj = getAnswerTypes(settings);
+  var rankingsQbj = getRankings();
+  var [teamsQbj, playersQbj] = getTeamsAndPlayers(teams);
   var roundPhases = assignRoundsToPhases(divisions, games);
   var [matchesQbj, matchIdsByRound] = getMatches(divisions, games, roundPhases, settings);
   var roundsQbj = getRounds(roundPhases, packets, matchIdsByRound);
-  var phasesQbj = getPhases(divisions, roundPhases, teams);
+  var phasesQbj = getPhases(divisions, roundPhases, teams, tbsExist);
+  objList = objList.concat(answerTypesQbj);
+  objList = objList.concat(rankingsQbj);
   objList = objList.concat(phasesQbj);
+  objList = objList.concat(teamsQbj);
   objList = objList.concat(playersQbj);
   objList = objList.concat(roundsQbj);
   objList = objList.concat(matchesQbj);
@@ -32,18 +37,77 @@ module.exports.getQbjFile = function(settings, divisions, teams, games, packets)
 }
 
 /*---------------------------------------------------------
-Assemble Player objects
+Assemble AnswerType objects.
 ---------------------------------------------------------*/
-function getPlayers(teams) {
+function getAnswerTypes(settings) {
+  var types = [];
+  if(settings.powers != 'none') {
+    let power = {
+      type: 'AnswerType',
+      id: 'AnswerType_power',
+      value: settings.powers == '20pts' ? 20 : 15
+    };
+    types.push(power);
+  }
+  let ten = {
+    type: 'AnswerType',
+    id: 'AnswerType_ten',
+    value: 10
+  };
+  types.push(ten);
+  if(settings.negs) {
+    let neg = {
+      type: 'AnswerType',
+      id: 'AnswerType_neg',
+      value: -5
+    };
+    types.push(neg);
+  }
+  return types;
+}
+
+/*---------------------------------------------------------
+Assemble Ranking objects. currently there is only one
+ranking "All games" which can hold the manual rank override
+---------------------------------------------------------*/
+function getRankings() {
+  var overall = {
+    type: 'Ranking',
+    id: 'Ranking_AllGames',
+    description: 'Overall placement in the tournament, if specified by the user'
+  };
+  return [overall];
+}
+
+/*---------------------------------------------------------
+Assemble Team and Player objects
+---------------------------------------------------------*/
+function getTeamsAndPlayers(teams) {
+  var teamObjs = [];
   var playerObjs = [];
   for(var i in teams) {
     let t = teams[i];
+    let teamName = t.teamName;
+    let team = {
+      type: 'Team',
+      id: 'Team_' + teamName,
+      name: teamName,
+      players: []
+    };
+    if(t.rank) {
+      team.ranks = [{
+        ranking: {$ref: 'Ranking_AllGames'},
+        position: t.rank
+      }];
+    }
     for(var p in t.roster) {
+      let playerId = 'Player_' + teamName + '_' + p;
       let player = {
         type: 'Player',
-        id: 'Player_' + t.teamName + '_' + p,
+        id: playerId,
         name: p
-      }
+      };
+      team.players.push({$ref: playerId});
       // if a number from 0 to 18 appears in the Year field, use it.
       let numAry = t.roster[p].year.match(/\d{1,2}/);
       if(numAry != null) {
@@ -54,8 +118,9 @@ function getPlayers(teams) {
       }
       playerObjs.push(player);
     }
-  }
-  return playerObjs;
+    teamObjs.push(team);
+  } //loop over teams
+  return [teamObjs, playerObjs];
 }
 
 /*---------------------------------------------------------
@@ -74,6 +139,13 @@ function assignRoundsToPhases(divisions, games) {
         roundGameCounts[round][phase] = 1;
       }
       else { roundGameCounts[round][phase] += 1; }
+    }
+    //treat 'tiebreakers' as a normal phase here
+    if(g.tiebreaker) {
+      if(roundGameCounts[round]['Tiebreakers'] == undefined) {
+        roundGameCounts[round]['Tiebreakers'] = 1;
+      }
+      else { roundGameCounts[round]['Tiebreakers'] +=1; }
     }
   }
   for(var r in roundGameCounts) {
@@ -218,8 +290,9 @@ Assemble Phase objects
 roundPhases: from assignRoundsToPhases
 divisions: YF internal phase/division object
 teams: YF internal teams list
+tbsExist: whether to create a "tiebreakers" phase
 ---------------------------------------------------------*/
-function getPhases(divisions, roundPhases, teams) {
+function getPhases(divisions, roundPhases, teams, tbsExist) {
   var phaseObjs = [];
   for(var p in divisions) {
     let phase = {
@@ -240,6 +313,21 @@ function getPhases(divisions, roundPhases, teams) {
       }
     }
     phaseObjs.push(phase);
+  }
+  if(tbsExist) {
+    let tbPhase = {
+      type: 'Phase',
+      id: 'Phase_Tiebreakers',
+      name: 'Tiebreakers',
+      pools: [],
+      rounds: []
+    };
+    for(var r in roundPhases) {
+      if(roundPhases[r] == 'Tiebreakers') {
+        tbPhase.rounds.push({$ref: 'Round_' + r});
+      }
+    }
+    phaseObjs.push(tbPhase);
   }
   return phaseObjs;
 }

@@ -974,8 +974,9 @@ class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   writeQbjFile(fileName) {
     if(!fileName) { return; }
+    var tbsExist = this.state.tbCount > 0;
     var schemaObj = QbjUtils2.getQbjFile(this.state.settings, this.state.divisions,
-      this.state.myTeams, this.state.myGames, this.state.packets);
+      this.state.myTeams, this.state.myGames, this.state.packets, tbsExist);
     new Promise(function(resolve, reject) {
       resolve(fs.writeFileSync(fileName, JSON.stringify(schemaObj), 'utf8', StatUtils2.printError));
     }).then(() => {
