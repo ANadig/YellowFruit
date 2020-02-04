@@ -981,12 +981,17 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
         html += team1Header + tdTag('') + team2Header; // add an empty column as a buffer between the two teams
         html += '</tr>' + '\n';
 
-        var playersLeft = [];
-        var playersRight = [];
+        let playersLeft = [], leftTeamPwrs = 0, leftTeamTens = 0,
+          leftTeamNegs = 0, leftTeamPts = 0;
+        let playersRight = [], rightTeamPwrs = 0, rightTeamTens = 0,
+          rightTeamNegs= 0, rightTeamPts = 0;
         //the left side of the table
         for(var p in g.players1) {
-          var playerLine = '<tr>' + '\n' + tdTag(p);
-          var [tuh, pwr, tn, ng] = playerSlashLine(g.players1[p]);
+          let playerLine = '<tr>' + '\n' + tdTag(p);
+          let [tuh, pwr, tn, ng] = playerSlashLine(g.players1[p]);
+          leftTeamPwrs += pwr;
+          leftTeamTens += tn;
+          leftTeamNegs += ng;
           if(tuh <= 0) { continue; }
           playerLine += tdTag(tuh,'right');
           if(showPowers(settings)) {
@@ -996,13 +1001,18 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
           if(showNegs(settings)) {
             playerLine += tdTag(ng,'right');
           }
-          playerLine += tdTag(powerValue(settings)*pwr + 10*tn + negValue(settings)*ng,'right');
+          let totPts = powerValue(settings)*pwr + 10*tn + negValue(settings)*ng;
+          leftTeamPts += totPts;
+          playerLine += tdTag(totPts,'right');
           playersLeft.push(playerLine);
         }
         // the right side of the table
         for(var p in g.players2) {
-          var playerLine = tdTag(p);
-          var [tuh, pwr, tn, ng] = playerSlashLine(g.players2[p]);
+          let playerLine = tdTag(p);
+          let [tuh, pwr, tn, ng] = playerSlashLine(g.players2[p]);
+          rightTeamPwrs += pwr;
+          rightTeamTens += tn;
+          rightTeamNegs += ng;
           if(tuh <= 0) { continue; }
           playerLine += tdTag(tuh,'right');
           if(showPowers(settings)) {
@@ -1012,13 +1022,34 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
           if(showNegs(settings)) {
             playerLine += tdTag(ng,'right');
           }
-          playerLine += tdTag(powerValue(settings)*pwr + 10*tn + negValue(settings)*ng,'right');
+          let totPts = powerValue(settings)*pwr + 10*tn + negValue(settings)*ng;
+          rightTeamPts += totPts;
+          playerLine += tdTag(totPts,'right');
           playerLine += '</tr>' + '\n';
           playersRight.push(playerLine);
         }
 
+        // team total rows
+        let leftTotalRow = '<tr>\n' + tdTag('Total', 'left', true) + '<td/>\n';
+        let rightTotalRow = tdTag('Total', 'left', true) + '<td/>\n';
+        if(showPowers(settings)) {
+          leftTotalRow += tdTag(leftTeamPwrs, 'right', true);
+          rightTotalRow += tdTag(rightTeamPwrs, 'right', true);
+        }
+        leftTotalRow += tdTag(leftTeamTens, 'right', true);
+        rightTotalRow += tdTag(rightTeamTens, 'right', true);
+        if(showNegs(settings)) {
+          leftTotalRow += tdTag(leftTeamNegs, 'right', true);
+          rightTotalRow += tdTag(rightTeamNegs, 'right', true);
+        }
+        leftTotalRow += tdTag(leftTeamPts, 'right', true);
+        rightTotalRow += tdTag(rightTeamPts, 'right', true);
+        rightTotalRow += '</tr>' + '\n';
+        playersLeft.push(leftTotalRow);
+        playersRight.push(rightTotalRow);
+
         //pad the short side of the table with blank lines
-        var columnsPerTeam = 4 + showPowers(settings) + showNegs(settings);
+        let columnsPerTeam = 4 + showPowers(settings) + showNegs(settings);
         while (playersLeft.length > playersRight.length) {
           playersRight.push(blankPlayerLineScore(columnsPerTeam) + '\n' + '</tr>' + '\n');
         }
@@ -1026,16 +1057,19 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
           playersLeft.push('<tr>' + '\n' + blankPlayerLineScore(columnsPerTeam) + '\n');
         }
 
+        //interleave left and right rows
         for(var i in playersLeft) {
           html += playersLeft[i] + tdTag('&nbsp;') + playersRight[i]; // add an empty column as a buffer between the two teams
         }
+
+        //end player tables
         html += '</table>' + '\n';
         html += '<br>' + '\n';
 
         // bonus conversion
         if(showBonus(settings)) {
-          var bHeard = bonusesHeard(g, 1), bPts = bonusPoints(g, 1, settings);
-          var ppb = bHeard == 0 ? 0 : bPts / bHeard;
+          let bHeard = bonusesHeard(g, 1), bPts = bonusPoints(g, 1, settings);
+          let ppb = bHeard == 0 ? 0 : bPts / bHeard;
           html += 'Bonuses: ' + g.team1 + ' ' + bHeard + ' heard, ' + bPts + ' pts, ' + ppb.toFixed(2) + ' PPB; ';
           bHeard = bonusesHeard(g, 2), bPts = bonusPoints(g, 2, settings);
           ppb = bHeard == 0 ? 0 : bPts / bHeard;
