@@ -930,8 +930,15 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
     if(matchFilterPhase(g, phase, showTbs) && g.round == roundNo) {
       var linkId = 'R' + roundNo + '-' + g.team1.replace(/\W/g, '') + '-' +
         g.team2.replace(/\W/g, '');
+      var colorBlock = '<span style="' + getRoundStyle(g.phases, phaseColors, g.tiebreaker) +
+        '">' + '&nbsp;&nbsp;&nbsp;&nbsp;</span>' + '\n';
       if(g.forfeit) {
-        html += '<br><span id=' + linkId + '><h3>' + g.team1 +
+        html += '<div id=' + linkId + ' style="margin:-2.3em;position:absolute"></div>'
+        html += '<h3>' + '\n';
+        if(phase == 'all' && (g.phases.length != 0 || g.tiebreaker)) {
+          html += colorBlock;
+        }
+        html += '<span id=' + linkId + '>' + g.team1 +
         ' defeats ' + g.team2 + ' by forfeit' + '</h3></span><br>';
       }
       else {
@@ -939,8 +946,7 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
         html += '<div id=' + linkId + ' style="margin:-2.3em;position:absolute"></div>'
         html += '<h3>' + '\n';
         if(phase == 'all' && (g.phases.length != 0 || g.tiebreaker)) {
-          html += '<span style="' + getRoundStyle(g.phases, phaseColors, g.tiebreaker) +
-            '">' + '&nbsp;&nbsp;&nbsp;&nbsp;</span>' + '\n';
+          html += colorBlock;
         }
         if(toNum(g.score1) >= toNum(g.score2)) {
           html += g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
