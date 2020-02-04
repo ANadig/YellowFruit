@@ -208,6 +208,7 @@ class SettingsForm extends React.Component{
   ---------------------------------------------------------*/
   cancelSettings() {
     if(this.state.editingSettings) {
+      this.props.editingSettings(false);
       this.setState({
         powers: this.props.settings.powers,
         negs: this.props.settings.negs ? 'yes' : 'no',
