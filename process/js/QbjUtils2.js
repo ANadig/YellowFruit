@@ -11,13 +11,14 @@ module.exports = {};
 /*---------------------------------------------------------
 Generate an object conforming to the tournament schemo
 ---------------------------------------------------------*/
-module.exports.getQbjFile = function(settings, divisions, teams, games, packets, tbsExist) {
+module.exports.getQbjFile = function(settings, divisions, teams, games, packets, tbsExist, fileName) {
   var  topLevel = {
     version: '2.0',
     objects: []
   };
   var objList = [];
 
+  var scoringRulesQbj = getScoringRules(settings);
   var answerTypesQbj = getAnswerTypes(settings);
   var rankingsQbj = getRankings();
   var [teamsQbj, playersQbj] = getTeamsAndPlayers(teams);
@@ -25,6 +26,9 @@ module.exports.getQbjFile = function(settings, divisions, teams, games, packets,
   var [matchesQbj, matchIdsByRound] = getMatches(divisions, games, roundPhases, settings);
   var roundsQbj = getRounds(roundPhases, packets, matchIdsByRound);
   var phasesQbj = getPhases(divisions, roundPhases, teams, tbsExist);
+  var tournamentQbj = getTournament(fileName, phasesQbj);
+  objList.push(tournamentQbj);
+  objList.push(scoringRulesQbj);
   objList = objList.concat(answerTypesQbj);
   objList = objList.concat(rankingsQbj);
   objList = objList.concat(phasesQbj);
@@ -34,6 +38,48 @@ module.exports.getQbjFile = function(settings, divisions, teams, games, packets,
   objList = objList.concat(matchesQbj);
   topLevel.objects = objList;
   return topLevel;
+}
+
+/*---------------------------------------------------------
+Assemble Tournament object.
+---------------------------------------------------------*/
+function getTournament(fileName, phasesQbj) {
+  var tournament = {
+    type: 'Tournament',
+    name: fileName,
+    scoring_rules: {$ref: 'ScoringRules'},
+    rankings: [{$ref: 'Ranking_AllGames'}],
+    phases: []
+  };
+  for(var i in phasesQbj) {
+    tournament.phases.push({$ref: phasesQbj[i].id});
+  }
+  return tournament;
+}
+
+/*---------------------------------------------------------
+Assemble ScoringRules object.
+---------------------------------------------------------*/
+function getScoringRules(settings) {
+  var scoringRules = {
+    type: 'ScoringRules',
+    id: 'ScoringRules',
+    teams_per_match: 2,
+    maximum_players_per_team: settings.playersPerTeam,
+    overtime_includes_bonuses: false,
+    total_divisor: settings.negs || settings.powers == '15pts' ? 5 : 10,
+    maximum_bonus_score: 30,
+    bonuses_bounce_back: settings.bonusesBounce,
+    answer_types: []
+  }
+  if(settings.powers != 'none') {
+    scoringRules.answer_types.push({$ref: 'AnswerType_power'});
+  }
+  scoringRules.answer_types.push({$ref: 'AnswerType_ten'});
+  if(settings.negs) {
+    scoringRules.answer_types.push({$ref: 'AnswerType_neg'});
+  }
+  return scoringRules;
 }
 
 /*---------------------------------------------------------
