@@ -102,11 +102,11 @@ const YF_MENU = {
       click(item, focusedWindow) { exportHtmlReport(focusedWindow); }
     },
     {
-      label: 'Export as SQBS',
+      label: 'Export SQBS',
       click(item, focusedWindow) { trySqbsExport(focusedWindow); }
     },
     {
-      label: 'Export as QBJ',
+      label: 'Export QBJ 2.0',
       click(item, focusedWindow) { exportQbj(focusedWindow); }
     },
     {type: 'separator'},
@@ -116,7 +116,7 @@ const YF_MENU = {
       click(item, focusedWindow) { newTournament(focusedWindow); }
     },
     {
-      label: 'Import QBJ',
+      label: 'Import Neg5 (QBJ 1.2)',
       click(item, focusedWindow) { importQbj(focusedWindow); }
     },
     {
