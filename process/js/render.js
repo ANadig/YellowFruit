@@ -596,26 +596,31 @@ class MainInterface extends React.Component {
       return;
     }
     for(var i=0; i<numTeams; i++) {
-      var rosterSize = sqbsAry[curLine++] - 1; // first line of team is number of players + 1
+      let rosterSize = sqbsAry[curLine++] - 1; // first line of team is number of players + 1
       if(isNaN(rosterSize)) {
         ipc.sendSync('genericModal', 'error', 'Import error',
           'Import failed. Encountered an error on line ' + curLine + ' of the SQBS file.');
         return;
       }
-      var teamName = sqbsAry[curLine++].trim(); // second line of team is team name
+      let teamName = sqbsAry[curLine++].trim(); // second line of team is team name
       if(teamName == '') { continue; }
       if(!this.validateTeamName(teamName, null)) {
         curLine += rosterSize;
         dupTeams.push(teamName);
         continue;
       }
-      var roster = {};
-      var lowercaseRoster = [];
+      let roster = {};
+      let lowercaseRoster = [];
       for(var j=0; j<rosterSize && j<MAX_PLAYERS_PER_TEAM; j++) {
-        var nextPlayer = sqbsAry[curLine++].trim();
-        if(!lowercaseRoster.includes(nextPlayer.toLowerCase())) {
-          roster[nextPlayer] = {year: '', div2: false, undergrad: false};
-          lowercaseRoster.push(nextPlayer.toLowerCase());
+        let nextPlayer = sqbsAry[curLine++].trim();
+        // assume year is within parentheses and at the end of the player name
+        let yearAry = nextPlayer.match(/\(.*\)$/);
+        let nextPlayerYear = yearAry != null ? yearAry[0] : '';
+        nextPlayerYear = nextPlayerYear.replace(/[\(\)]/g, '');
+        let nextPlayerName = nextPlayer.replace(/\(.*\)$/, '');
+        if(!lowercaseRoster.includes(nextPlayerName.toLowerCase())) {
+          roster[nextPlayerName] = {year: nextPlayerYear, div2: false, undergrad: false};
+          lowercaseRoster.push(nextPlayerName.toLowerCase());
         }
       }
       myTeams.push({
