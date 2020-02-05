@@ -587,6 +587,7 @@ class MainInterface extends React.Component {
     }
     var myTeams = this.state.myTeams.slice();
     var existingTeams = myTeams.map((o) => { return o.teamName; });
+    var teamsAdded = [], renamedTeams = '';
     var dupTeams = [];
     var curLine = 0;
     var numTeams = sqbsAry[curLine++]; // first line is number of teams
@@ -604,11 +605,23 @@ class MainInterface extends React.Component {
       }
       let teamName = sqbsAry[curLine++].trim(); // second line of team is team name
       if(teamName == '') { continue; }
+      //throw out teams that are already in YF
       if(!this.validateTeamName(teamName, null)) {
         curLine += rosterSize;
         dupTeams.push(teamName);
         continue;
       }
+      // if a team appearas twice in the SQBS file, append a number at the end of its name
+      let dupNo = 2;
+      let origName = teamName;
+      while(teamsAdded.includes(teamName)) {
+        teamName = origName + dupNo;
+        dupNo++;
+      }
+      if(origName != teamName) {
+        renamedTeams += '\n' + origName + ' to ' + teamName;
+      }
+
       let roster = {};
       let lowercaseRoster = [];
       for(var j=0; j<rosterSize && j<MAX_PLAYERS_PER_TEAM; j++) {
@@ -623,6 +636,7 @@ class MainInterface extends React.Component {
           lowercaseRoster.push(nextPlayerName.toLowerCase());
         }
       }
+      teamsAdded.push(teamName);
       myTeams.push({
         teamName: teamName,
         smallSchool: false,
@@ -633,7 +647,7 @@ class MainInterface extends React.Component {
         divisions: {},
       });
     }
-    var numImported = myTeams.length - this.state.myTeams.length;
+    var numImported = teamsAdded.length;
     if(numImported > 0) {
       this.setState({
         myTeams: myTeams,
@@ -648,6 +662,10 @@ class MainInterface extends React.Component {
       }
       ipc.sendSync('genericModal', 'info', 'Successful import', message);
       ipc.sendSync('unsavedData');
+      if(renamedTeams.length > 3) {
+        ipc.sendSync('genericModal', 'warning', 'Duplicate teams',
+          'Some teams were renamed because they appeared multiple times in the SQBS file:\n\n' + renamedTeams);
+      }
     }
     else if(dupTeams.length > 0) {
       ipc.sendSync('genericModal', 'warning', 'YellowFruit',
