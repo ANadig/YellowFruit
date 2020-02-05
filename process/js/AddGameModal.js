@@ -671,7 +671,9 @@ class AddGameModal extends React.Component{
   2. Editing a game that doesn't have any phases
   ---------------------------------------------------------*/
   canEditPhase() {
-    if(this.props.allPhases.length == 0) { return false; }
+    var allPhases = this.props.allPhases;
+    if(allPhases.length == 0) { return false; }
+    if(allPhases.length == 1 && allPhases[0] == 'noPhase') { return false; }
     if(this.state.tiebreaker) { return false; }
     var addOrEdit = this.props.addOrEdit, viewingPhase = this.props.currentPhase;
     if(addOrEdit == 'add' && (viewingPhase == 'all' || viewingPhase == 'Tiebreakers')) {
