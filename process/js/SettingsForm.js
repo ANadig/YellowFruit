@@ -33,6 +33,7 @@ class SettingsForm extends React.Component{
       powers: props.settings.powers, // '20pts', '15pts', or 'none'
       negsOption: props.settings.negs ? 'yes' : 'no', // whether there are negs
       bonusOption: this.bonusOptionFromProps(), // 'yesBb', 'noBb', or 'none'
+      lightning: props.settings.lightning,
       playersPerTeam: props.settings.playersPerTeam,
       packets: props.packets,
       phases: _.without(allPhases, 'noPhase'),
@@ -73,7 +74,7 @@ class SettingsForm extends React.Component{
   ---------------------------------------------------------*/
   handleChange(e) {
     const target = e.target;
-    const value = target.value;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
     var partialState = {};
     partialState[name] = value;
@@ -138,6 +139,7 @@ class SettingsForm extends React.Component{
         negs: this.state.negsOption == 'yes',
         bonuses: this.state.bonusOption != 'none',
         bonusesBounce: this.state.bonusOption == 'yesBb',
+        lightning: this.state.lightning,
         playersPerTeam: this.state.playersPerTeam
       };
       this.props.saveSettings(settingsObj);
@@ -214,6 +216,7 @@ class SettingsForm extends React.Component{
         negs: this.props.settings.negs ? 'yes' : 'no',
         bonusOption: this.bonusOptionFromProps(),
         playersPerTeam: this.props.settings.playersPerTeam,
+        lightning: this.props.settings.lightning,
         editingSettings: false
       });
     }
@@ -592,14 +595,19 @@ class SettingsForm extends React.Component{
       phaseCard = ( <ul>{phaseFields}</ul> );
     } //else editing phases
 
-    var powersDisplay, negsDisplay, bonusDisplay, playersPerTeamDisplay, settingsList;
+    var powersDisplay, negsDisplay, bonusDisplay, lightningDisplay,
+      playersPerTeamDisplay, settingsList;
     // read-only list of settings
     if(!this.state.editingSettings) {
       powersDisplay = ( <li>{this.powerString()}</li> );
       negsDisplay = ( <li>{this.negString()}</li> );
       bonusDisplay = ( <li>{this.bonusString()}</li> );
-      playersPerTeamDisplay = (<li>Players per team: {this.state.playersPerTeam}</li>);
-      settingsList = ( <ul>{powersDisplay}{negsDisplay}{bonusDisplay}{playersPerTeamDisplay}</ul> );
+      lightningDisplay = this.state.lightning ? ( <li>Lightning round</li> ) : null;
+      playersPerTeamDisplay = ( <li>Players per team: {this.state.playersPerTeam}</li> );
+      settingsList = (
+        <ul>{powersDisplay}{negsDisplay}{bonusDisplay}
+        {lightningDisplay}{playersPerTeamDisplay}</ul>
+      );
     }
     // editable settings controls
     else {
@@ -674,6 +682,20 @@ class SettingsForm extends React.Component{
           </p>
         </div>
       );//bonusDisplay
+      lightningDisplay = (
+        <div>
+          <h6>Lightning Round</h6>
+          <div className="switch">
+            <label>
+              Off
+              <input name="lightning" type="checkbox" checked={this.state.lightning}
+                onChange={this.handleChange}/>
+              <span className="lever"></span>
+              On
+            </label>
+          </div>
+        </div>
+      );
       playersPerTeamDisplay = (
         <span className="players-per-team">
           <h6>Players per team:</h6>
@@ -684,7 +706,10 @@ class SettingsForm extends React.Component{
           </div>
         </span>
       );
-      settingsList = ( <div>{powersDisplay}{negsDisplay}{bonusDisplay}{playersPerTeamDisplay}</div> );
+      settingsList = (
+        <div>{powersDisplay}{negsDisplay}{bonusDisplay}
+        {lightningDisplay}{playersPerTeamDisplay}</div>
+      );
     }//else editing settings
 
 

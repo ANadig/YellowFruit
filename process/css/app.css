@@ -269,7 +269,8 @@ nav .btn-flat {
   }
 
 .players-per-team .input-field {
-  width: 60px;
+  width: 40px;
+  margin: 0;
 }
 
 .settings-edit-disabled {

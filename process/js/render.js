@@ -43,6 +43,7 @@ const DEFAULT_SETTINGS = {
   negs: true,
   bonuses: true,
   bonusesBounce: false,
+  lightning: false,
   playersPerTeam: '4',
   defaultPhases: [], // Used to group teams when viewing all games
   rptConfig: 'YF Defaults'

@@ -143,11 +143,13 @@ module.exports.gameConversion2x4x0 = function(games) {
 conversion on settings data structure (version 2.5.0)
 Split bonus setting into two booleans
 convert negs setting from string to boolean
+Set lightning round setting
 ---------------------------------------------------------*/
 module.exports.settingsConversion2x5x0 = function(settings) {
   settings.bonusesBounce = settings.bonuses == 'yesBb';
   settings.bonuses = settings.bonuses != 'none';
   settings.negs = settings.negs == 'yes';
+  settings.lightning = false;
 }
 
 /*---------------------------------------------------------
