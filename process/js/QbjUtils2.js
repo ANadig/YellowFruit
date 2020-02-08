@@ -70,6 +70,8 @@ function getScoringRules(settings) {
     total_divisor: settings.negs || settings.powers == '15pts' ? 5 : 10,
     maximum_bonus_score: 30,
     bonuses_bounce_back: settings.bonusesBounce,
+    lightning_count_per_team: settings.lightning ? 1 : 0, // don't support multiple discrete ltng rounds
+    lightnings_bounce_back: false, // don't support lightning bouncebacks yet
     answer_types: []
   }
   if(settings.powers != 'none') {
@@ -260,6 +262,7 @@ function getMatchTeam(game, whichTeam, settings) {
     team: {$ref: 'Team_' + teamName},
     forfeit_loss: whichTeam == 2 && game.forfeit,
     correct_tossups_without_bonuses: otPwr + otTen,
+    lightning_points: whichTeam == 1 ? +game.lightningPts1 : +game.lightningPts2,
     match_players: []
   };
   if(settings.bonuses) {
