@@ -20,6 +20,7 @@ const TOOLTIPS = {
   pptuh: 'Points per tossup heard',
   pPerN: 'Powers per neg',
   gPerN: 'Gets (powers + tens) per neg',
+  lightning: 'Lightning round points',
   bHeard: 'Bonuses heard',
   bPts: 'Bonus points',
   ppb: 'Points per bonus',
@@ -33,6 +34,7 @@ const TOOLTIPS = {
   ppgPerTeam: 'Points per game, per team',
   pp20PerTeam: 'Points per 20 tossups heard, per team',
   tuPtsPTu: 'Average number of points scored on each tossup heard',
+  ppLtng: 'Points per lightning round per team',
   phaseRecord: ['Record in the ', ' stage of the tournament. Teams are ranked by this record.']
 }
 
@@ -110,6 +112,9 @@ function showPPerN(settings, rptConfig) {
 
 // include column for gets per neg?
 function showGPerN(settings, rptConfig) { return showNegs(settings) && rptConfig.gPerN; }
+
+// include column for lightning round points?
+function showLtng(settings, rptConfig) { return settings.lightning && rptConfig.lightning; }
 
 // include columns for bonus points and PPB?
 function showBonus(settings) { return settings.bonuses; }
@@ -385,6 +390,9 @@ function standingsHeader(settings, tiesExist, rptConfig, filterPhase, curGrpPhas
   if(showGPerN(settings, rptConfig)) {
     html += tdTag('G/N','right',true, TOOLTIPS.gPerN);
   }
+  if(showLtng(settings, rptConfig)) {
+    html += tdTag('Ltng', 'right', true, TOOLTIPS.lightning);
+  }
   if(showBonus(settings)) {
     html += tdTag('BHrd','right',true, TOOLTIPS.bHeard) +
       tdTag('BPts','right',true, TOOLTIPS.bPts) +
@@ -468,6 +476,9 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
   if(showGPerN(settings, rptConfig)) {
     rowHtml += tdTag(teamEntry.gPerN,'right');
   }
+  if(showLtng(settings, rptConfig)) {
+    rowHtml += tdTag(teamEntry.lightning, 'right');
+  }
   if(showBonus(settings)) {
     rowHtml += tdTag(teamEntry.bHeard,'right');
     rowHtml += tdTag(teamEntry.bPts,'right');
@@ -507,7 +518,7 @@ function compileStandings(teams, games, filterPhase, groupingPhases, settings, r
         pPerN: 0, gPerN: 0,
         bHeard: 0, bPts: 0, ppb: 0,
         bbHeard: [0,0], bbPts: 0, ppbb: 0,
-        lightningPts: 0,
+        lightning: 0,
         points: 0,
         ptsAgainst: 0,
         forfeits: 0,
@@ -584,8 +595,8 @@ function compileStandings(teams, games, filterPhase, groupingPhases, settings, r
         team1Line.bbPts += +g.bbPts1;
         team2Line.bbPts += +g.bbPts2;
 
-        team1Line.lightningPts += +g.lightningPts1;
-        team2Line.lightningPts += +g.lightningPts2;
+        team1Line.lightning += +g.lightningPts1;
+        team2Line.lightning += +g.lightningPts2;
 
         team1Line.otPts += otPoints(g, 1, settings);
         team2Line.otPts += otPoints(g, 2, settings);
@@ -1071,6 +1082,12 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
         html += '</table>' + '\n';
         html += '<br>' + '\n';
 
+        //lightning rounds
+        if(settings.lightning) {
+          html += 'Lightning rounds: ' + g.team1 + ' ' + +g.lightningPts1 +
+            '; ' + g.team2 + ' ' + +g.lightningPts2 + '\n<br>\n';
+        }
+
         // bonus conversion
         if(showBonus(settings)) {
           let bHeard = bonusesHeard(g, 1), bPts = bonusPoints(g, 1, settings);
@@ -1128,6 +1145,9 @@ function teamDetailGameTableHeader(packetsExist, settings, rptConfig) {
   }
   if(showGPerN(settings, rptConfig)) {
     html += tdTag('G/N', 'right', true, TOOLTIPS.gPerN);
+  }
+  if(showLtng(settings, rptConfig)) {
+    html += tdTag('Ltng', 'right', true, TOOLTIPS.lightning);
   }
   if(showBonus(settings)) {
     html += tdTag('BHrd', 'right', true, TOOLTIPS.bHeard) +
@@ -1247,6 +1267,7 @@ function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, pha
   var pp20 = 20*ppth;
   var pPerN = negs == 0 ? 'inf' : powers / negs;
   var gPerN = negs == 0 ? 'inf' : (powers + tens) / negs;
+  var lightning = whichTeam == 1 ? +game.lightningPts1 : +game.lightningPts2;
   var bHeard = bonusesHeard(game, whichTeam);
   var bPts = bonusPoints(game, whichTeam, settings);
   var ppb = bHeard == 0 ? 'inf' : bPts / bHeard;
@@ -1280,6 +1301,9 @@ function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, pha
   }
   if(showGPerN(settings, rptConfig)) {
     html += tdTag(formatRate(gPerN, 2), 'right');
+  }
+  if(showLtng(settings, rptConfig)) {
+    html += tdTag(lightning, 'right');
   }
   if(showBonus(settings)) {
     html += tdTag(bHeard, 'right');
@@ -1328,6 +1352,9 @@ function teamDetailTeamSummaryRow(teamSummary, packetsExist, settings, rptConfig
   }
   if(showGPerN(settings, rptConfig)) {
     html += tdTag(teamSummary.gPerN, 'right', true);
+  }
+  if(showLtng(settings, rptConfig)) {
+    html += tdTag(teamSummary.lightning, 'right', true);
   }
   if(showBonus(settings)) {
     html += tdTag(teamSummary.bHeard, 'right', true);
@@ -1600,7 +1627,8 @@ function compileRoundSummaries(games, phase, settings, showTbs) {
     tuPts: 0, tuh: 0,
     bPts: 0, bHeard: 0,
     bbPts: 0, bbHeard: [0,0],
-    ppg: 0, tuPtsPTu: 0, ppb: 0, ppbb: 0
+    ppg: 0, tuPtsPTu: 0, ppb: 0, ppbb: 0,
+    ltngPts: 0, ppLtng: 0
   };
 
   for(var i in games) {
@@ -1613,7 +1641,8 @@ function compileRoundSummaries(games, phase, settings, showTbs) {
           tuPts: 0, tuh: 0,
           bPts: 0, bHeard: 0,
           bbPts: 0, bbHeard: [0,0],
-          ppg: 0, tuPtsPTu: 0, ppb: 0, ppbb: 0
+          ppg: 0, tuPtsPTu: 0, ppb: 0, ppbb: 0,
+          ltngPts: 0, ppLtng: 0
         }
       }
 
@@ -1628,6 +1657,7 @@ function compileRoundSummaries(games, phase, settings, showTbs) {
       let gameBHeard = bonusesHeard(game, 1) + bonusesHeard(game, 2);
       let gameBbPts = (+game.bbPts1) + (+game.bbPts2);
       let gameBbHrd = bbHrdAdd(bbHeard(game, 1 ,settings), bbHeard(game, 2, settings));
+      let gameLtngPts = +game.lightningPts1 + +game.lightningPts2;
 
       smry.numberOfGames += 1;
       smry.totalPoints += gamePoints;
@@ -1637,6 +1667,7 @@ function compileRoundSummaries(games, phase, settings, showTbs) {
       smry.bHeard += gameBHeard;
       smry.bbPts += gameBbPts;
       smry.bbHeard = bbHrdAdd(smry.bbHeard, gameBbHrd);
+      smry.ltngPts += gameLtngPts;
 
       tournTotals.numberOfGames += 1;
       tournTotals.totalPoints += gamePoints;
@@ -1646,6 +1677,7 @@ function compileRoundSummaries(games, phase, settings, showTbs) {
       tournTotals.bHeard += gameBHeard;
       tournTotals.bbPts += gameBbPts;
       tournTotals.bbHeard = bbHrdAdd(tournTotals.bbHeard, gameBbHrd);
+      tournTotals.ltngPts += gameLtngPts;
     }
   }
 
@@ -1656,12 +1688,14 @@ function compileRoundSummaries(games, phase, settings, showTbs) {
     smry.tuPtsPTu = smry.tuPts / smry.tuh;
     smry.ppb = smry.bHeard == 0 ? 0 : smry.bPts / smry.bHeard;
     smry.ppbb = smry.bbPts / bbHrdToFloat(smry.bbHeard);
+    smry.ppLtng = smry.ltngPts / (2 * smry.numberOfGames);
   }
   tournTotals.ppg = tournTotals.totalPoints / (2 * tournTotals.numberOfGames);
   tournTotals.pp20 = 20 * tournTotals.totalPoints / (2 * tournTotals.tuh);
   tournTotals.tuPtsPTu = tournTotals.tuPts / tournTotals.tuh;
   tournTotals.ppb = tournTotals.bHeard == 0 ? 0 : tournTotals.bPts / tournTotals.bHeard;
   tournTotals.ppbb = tournTotals.bbPts / bbHrdToFloat(tournTotals.bbHeard);
+  tournTotals.ppLtng = tournTotals.ltngPts / (2 * tournTotals.numberOfGames);
 
   return [summaries,tournTotals];
 }
@@ -1684,6 +1718,11 @@ function roundReportTableHeader(packetsExist, settings, rptConfig) {
   }
   if(showBonus(settings)) {
     html += tdTag('TUPts/TUH', 'right', true, TOOLTIPS.tuPtsPTu);
+  }
+  if(showLtng(settings, rptConfig)) {
+    html += tdTag('PPLtng', 'right', true, TOOLTIPS.ppLtng)
+  }
+  if(showBonus(settings)) {
     html += tdTag('PPB', 'right', true, TOOLTIPS.ppb);
   }
   else { html += tdTag('Pts/TUH', 'right', true, TOOLTIPS.tuPtsPTu); }
@@ -1721,6 +1760,9 @@ function roundReportRow(smry, roundNo, packetsExist, packets, settings, rptConfi
     html += tdTag(smry.pp20.toFixed(1), 'right', totalRow);
   }
   html += tdTag(smry.tuPtsPTu.toFixed(2), 'right', totalRow);
+  if(showLtng(settings, rptConfig)) {
+    html += tdTag(smry.ppLtng, 'right', totalRow);
+  }
   if(showBonus(settings)) {
     html += tdTag(smry.ppb.toFixed(2), 'right', totalRow);
   }
