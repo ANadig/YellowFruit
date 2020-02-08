@@ -158,9 +158,9 @@ function gameList(settings, teams, games, phase, showTbs) {
     output += (StatUtils.toNum(g.otPwr2) + StatUtils.toNum(g.otTen2)) + '\n';
     // forfeit?
     output += g.forfeit ? '1\n' : '0\n';
-    // lightning rounds. Don't exist here, so just add zeroes
-    output += '0\n';
-    output += '0\n';
+    // lightning rounds (if tournament doesn't use them, adds 0s, which is correct)
+    output += +g.lightningPts1 + '\n';
+    output += +g.lightningPts2 + '\n';
     // eight lines of player stats; further lines will be ignored
     // but skip players with 0 TUH
     var gamePlayers1 = g.forfeit ? [] : Object.keys(g.players1);
@@ -218,7 +218,12 @@ function miscSettings(settings, divisions) {
   else {
     output += '3\n'; //track power and neg stats
   }
-  output += '0\n'; // no lightning rounds
+  if(settings.lightning) {
+    output += '1\n'; // no lightning rounds
+  }
+  else {
+    output += '0\n'; // no lightning rounds
+  }
   output += '1\n'; //track tossups heard
   output += '3\n'; //needs to be 3 to allow packet names, apparently? This differs from QBWiki
   output += '254\n'; //turn on all validation warnings
