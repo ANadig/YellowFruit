@@ -1084,7 +1084,7 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
 
         //lightning rounds
         if(settings.lightning) {
-          html += 'Lightning rounds: ' + g.team1 + ' ' + +g.lightningPts1 +
+          html += 'Lightning Rounds: ' + g.team1 + ' ' + +g.lightningPts1 +
             '; ' + g.team2 + ' ' + +g.lightningPts2 + '\n<br>\n';
         }
 
@@ -1761,7 +1761,7 @@ function roundReportRow(smry, roundNo, packetsExist, packets, settings, rptConfi
   }
   html += tdTag(smry.tuPtsPTu.toFixed(2), 'right', totalRow);
   if(showLtng(settings, rptConfig)) {
-    html += tdTag(smry.ppLtng, 'right', totalRow);
+    html += tdTag(smry.ppLtng.toFixed(2), 'right', totalRow);
   }
   if(showBonus(settings)) {
     html += tdTag(smry.ppb.toFixed(2), 'right', totalRow);
