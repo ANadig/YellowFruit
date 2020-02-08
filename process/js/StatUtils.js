@@ -182,11 +182,12 @@ function bonusPoints(game, whichTeam, settings) {
   var players = whichTeam == 1 ? game.players1 : game.players2;
   var totalPoints = whichTeam == 1 ? game.score1 : game.score2;
   var bbPts = whichTeam == 1 ? game.bbPts1 : game.bbPts2;
+  var lghtPts = whichTeam == 1 ? game.lightningPts1 : game.lightningPts2;
   for(var p in players) {
     tuPts += powerValue(settings)*toNum(players[p].powers) +
       10*toNum(players[p].tens) + negValue(settings)*toNum(players[p].negs);
   }
-  return toNum(totalPoints) - tuPts - bbPts;
+  return toNum(totalPoints) - tuPts - bbPts - lghtPts;
 }
 
 /*---------------------------------------------------------
@@ -506,6 +507,7 @@ function compileStandings(teams, games, filterPhase, groupingPhases, settings, r
         pPerN: 0, gPerN: 0,
         bHeard: 0, bPts: 0, ppb: 0,
         bbHeard: [0,0], bbPts: 0, ppbb: 0,
+        lightningPts: 0,
         points: 0,
         ptsAgainst: 0,
         forfeits: 0,
@@ -581,6 +583,9 @@ function compileStandings(teams, games, filterPhase, groupingPhases, settings, r
         team2Line.bbHeard = bbHrdAdd(team2Line.bbHeard, bbHeard(g,2,settings));
         team1Line.bbPts += +g.bbPts1;
         team2Line.bbPts += +g.bbPts2;
+
+        team1Line.lightningPts += +g.lightningPts1;
+        team2Line.lightningPts += +g.lightningPts2;
 
         team1Line.otPts += otPoints(g, 1, settings);
         team2Line.otPts += otPoints(g, 2, settings);

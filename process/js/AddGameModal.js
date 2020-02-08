@@ -37,6 +37,8 @@ class AddGameModal extends React.Component{
       otPwr2: '', otTen2: '', otNeg2: '', // overtime buzzes for team 2
       bbPts1: '', // bouncebacks
       bbPts2: '',
+      lightningPts1: '',
+      lightningPts2: '',
       originalGameLoaded: null
     };
     this.resetState = this.resetState.bind(this);
@@ -190,6 +192,8 @@ class AddGameModal extends React.Component{
       otPwr2: '', otTen2: '', otNeg2: '',
       bbPts1: '',
       bbPts2: '',
+      lightningPts1: '',
+      lightningPts2: '',
       originalGameLoaded: null
     });
   }
@@ -223,6 +227,8 @@ class AddGameModal extends React.Component{
       otNeg2: this.props.gameToLoad.otNeg2,
       bbPts1: this.props.gameToLoad.bbPts1,
       bbPts2: this.props.gameToLoad.bbPts2,
+      lightningPts1: this.props.gameToLoad.lightningPts1,
+      lightningPts2: this.props.gameToLoad.lightningPts2,
       originalGameLoaded: this.props.gameToLoad
     });
   }
@@ -259,6 +265,8 @@ class AddGameModal extends React.Component{
       otNeg2: forf || !ot ? '' : this.state.otNeg2,
       bbPts1: forf ? '' : this.state.bbPts1,
       bbPts2: forf ? '' : this.state.bbPts2,
+      lightningPts1: forf ? '' : this.state.lightningPts1,
+      lightningPts2: forf ? '' : this.state.lightningPts2,
       notes: this.state.notes
     } //tempitems
 
@@ -320,11 +328,12 @@ class AddGameModal extends React.Component{
     var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
     var totScore = whichTeam == 1 ? this.state.score1 : this.state.score2;
     var bbPts = whichTeam == 1 ? this.state.bbPts1 : this.state.bbPts2;
+    var lghtPts = whichTeam == 1 ? this.state.lightningPts1 : this.state.lightningPts2;
     for(var p in players) {
       tuPts += this.powerValue()*StatUtils.toNum(players[p].powers) +
         10*StatUtils.toNum(players[p].tens) - 5*StatUtils.toNum(players[p].negs);
     }
-    return totScore - tuPts - bbPts;
+    return totScore - tuPts - bbPts - lghtPts;
   }
 
   /*---------------------------------------------------------
@@ -567,7 +576,11 @@ class AddGameModal extends React.Component{
 
     //both teams can't have converted more overtime tossups than were read
     if(otPwr1 + otTen1 + otPwr2 + otTen2 > ottu) {
-        return [false, 'error', 'More overtime tossups were converted than the total number of overtime tossups heard']
+      return [false, 'error', 'More overtime tossups were converted than the total number of overtime tossups heard']
+    }
+
+    if(+this.state.lightningPts1 < 0 || +this.state.lightningPts2 < 0) {
+      return [false, 'error', 'Lightning round points cannot be negative'];
     }
 
     //If there are no errors, compile all overrideable warnings, and display them all
@@ -927,6 +940,33 @@ class AddGameModal extends React.Component{
       );
     }
 
+    // lightning round point entry
+    var lightningRow = null;
+    if(this.props.settings.lightning) {
+      lightningRow = (
+        <div className="row">
+          <div className="col s6">
+            Lightning Round:&emsp;
+            <div className="input-field bounceback-entry">
+              <input id="lightningPts1" type="number" name="lightningPts1" step="10" min="0"
+              disabled={this.state.forfeit ? 'disabled' : ''}
+              value={this.state.forfeit ? '' : this.state.lightningPts1} onChange={this.handleChange}/>
+            </div>
+            pts
+          </div>
+          <div className="col s6">
+            Lightning Round:&emsp;
+            <div className="input-field bounceback-entry">
+              <input id="lightningPts2" type="number" name="lightningPts2" step="10" min="0"
+              disabled={this.state.forfeit ? 'disabled' : ''}
+              value={this.state.forfeit ? '' : this.state.lightningPts2} onChange={this.handleChange}/>
+            </div>
+            pts
+          </div>
+        </div>
+      );
+    }
+
     return(
       <div className="modal modal-fixed-footer" id="addGame">
         <div className="modal-content">
@@ -1004,6 +1044,8 @@ class AddGameModal extends React.Component{
           {bonusCalcRow}
 
           {bouncebackRow}
+
+          {lightningRow}
 
           <div className="row game-entry-bottom-row">
             <div className="input-field col s12 m6">
