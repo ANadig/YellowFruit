@@ -17,8 +17,7 @@
         "phaseRecord": true,
         "pptuh": true,
         "pPerN": false,
-        "gPerN": false,
-        "lightning": true
+        "gPerN": false
       },
     "SQBS Defaults":
       {
@@ -37,8 +36,7 @@
         "phaseRecord": true,
         "pptuh": true,
         "pPerN": true,
-        "gPerN": true,
-        "lightning": true
+        "gPerN": true
       }
     }
 }

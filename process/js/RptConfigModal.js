@@ -28,8 +28,7 @@ const EMPTY_RPT_SETTINGS = {
   phaseRecord: false,
   pptuh: false,
   pPerN: false,
-  gPerN: false,
-  lightning: false
+  gPerN: false
 }
 
 class RptConfigModal extends React.Component {
@@ -59,7 +58,6 @@ class RptConfigModal extends React.Component {
       pptuh: startRpt.pptuh,
       pPerN: startRpt.pPerN,
       gPerN: startRpt.gPerN,
-      lightning: startRpt.lightning,
       selectedPreview: 'teamStandings',
       unsavedDataExists: false
     }
@@ -145,7 +143,6 @@ class RptConfigModal extends React.Component {
       pptuh: this.state.pptuh,
       pPerN: this.state.pPerN,
       gPerN: this.state.gPerN,
-      lightning: this.state.lightning
     }
     var trimmedName = this.state.rptName.trim();
     var rptToReplace = this.state.selectedRptType == 'custom' ? this.state.selectedRpt : null;
@@ -171,7 +168,6 @@ class RptConfigModal extends React.Component {
 
     var smallSchool = selectedSettings.smallSchool;
     var jrVarsity = selectedSettings.jrVarsity;
-    var lightning = selectedSettings.lightning;
     this.setState({
       selectedRpt: title,
       selectedRptType: type,
@@ -192,8 +188,7 @@ class RptConfigModal extends React.Component {
       phaseRecord: selectedSettings.phaseRecord,
       pptuh: selectedSettings.pptuh,
       pPerN: selectedSettings.pPerN,
-      gPerN: selectedSettings.gPerN,
-      lightning: lightning != undefined ? lightning : false
+      gPerN: selectedSettings.gPerN
     });
   }
 
@@ -226,8 +221,7 @@ class RptConfigModal extends React.Component {
       phaseRecord: this.state.phaseRecord,
       pptuh: this.state.pptuh,
       pPerN: this.state.pPerN,
-      gPerN: this.state.gPerN,
-      lightning: this.state.lightning
+      gPerN: this.state.gPerN
     }
     var copyNameStub = 'Copy of ' + this.state.selectedRpt;
     var uniqueName = copyNameStub;
@@ -333,17 +327,6 @@ class RptConfigModal extends React.Component {
       return ( <s>Gets per neg</s> );
     }
     return 'Gets per neg';
-  }
-
-  /*---------------------------------------------------------
-  Format lightning option with strikethrough if the current
-  tournament's settings make it irrelevant
-  ---------------------------------------------------------*/
-  formatLightning() {
-    if(!this.props.tournamentSettings.lightning) {
-      return ( <s>Lightning</s> );
-    }
-    return 'Lightning';
   }
 
   /*---------------------------------------------------------
@@ -540,11 +523,6 @@ class RptConfigModal extends React.Component {
               checked={this.state.gPerN} onChange={this.handleChange}/>
             <span>{this.formatGperN()}&emsp;&emsp;</span>
           </label>
-          <label>
-            <input type="checkbox" name="lightning" disabled={disableFields}
-              checked={this.state.lightning} onChange={this.handleChange}/>
-            <span>{this.formatLightning()}&emsp;&emsp;</span>
-          </label>
         </div>
       </div>
     );
@@ -576,7 +554,7 @@ class RptConfigModal extends React.Component {
     var tdPperN = this.state.pPerN && this.props.tournamentSettings.powers != 'none' &&
       this.props.tournamentSettings.negs ? ( <td>Pwr/N</td> ) : null;
     var tdGperN = this.state.gPerN && this.props.tournamentSettings.negs ? ( <td>G/N</td> ) : null;
-    var tdLtng = this.state.lightning && this.props.tournamentSettings.lightning ? ( <td>Ltng</td> ) : null;
+    var tdLtng = this.props.tournamentSettings.lightning ? ( <td>Ltng</td> ) : null;
     var tdBPts = this.props.tournamentSettings.bonuses ? ( <td>BPts</td> ) : null;
     var tdBHrd = this.props.tournamentSettings.bonuses ? ( <td>BHrd</td> ) : null;
     var tdPpb = this.props.tournamentSettings.bonuses ? ( <td>PPB</td> ) : null;

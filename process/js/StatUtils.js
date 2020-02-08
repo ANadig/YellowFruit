@@ -114,7 +114,7 @@ function showPPerN(settings, rptConfig) {
 function showGPerN(settings, rptConfig) { return showNegs(settings) && rptConfig.gPerN; }
 
 // include column for lightning round points?
-function showLtng(settings, rptConfig) { return settings.lightning && rptConfig.lightning; }
+function showLtng(settings) { return settings.lightning; }
 
 // include columns for bonus points and PPB?
 function showBonus(settings) { return settings.bonuses; }
@@ -390,7 +390,7 @@ function standingsHeader(settings, tiesExist, rptConfig, filterPhase, curGrpPhas
   if(showGPerN(settings, rptConfig)) {
     html += tdTag('G/N','right',true, TOOLTIPS.gPerN);
   }
-  if(showLtng(settings, rptConfig)) {
+  if(showLtng(settings)) {
     html += tdTag('Ltng', 'right', true, TOOLTIPS.lightning);
   }
   if(showBonus(settings)) {
@@ -476,7 +476,7 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
   if(showGPerN(settings, rptConfig)) {
     rowHtml += tdTag(teamEntry.gPerN,'right');
   }
-  if(showLtng(settings, rptConfig)) {
+  if(showLtng(settings)) {
     rowHtml += tdTag(teamEntry.lightning, 'right');
   }
   if(showBonus(settings)) {
@@ -1146,7 +1146,7 @@ function teamDetailGameTableHeader(packetsExist, settings, rptConfig) {
   if(showGPerN(settings, rptConfig)) {
     html += tdTag('G/N', 'right', true, TOOLTIPS.gPerN);
   }
-  if(showLtng(settings, rptConfig)) {
+  if(showLtng(settings)) {
     html += tdTag('Ltng', 'right', true, TOOLTIPS.lightning);
   }
   if(showBonus(settings)) {
@@ -1302,7 +1302,7 @@ function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, pha
   if(showGPerN(settings, rptConfig)) {
     html += tdTag(formatRate(gPerN, 2), 'right');
   }
-  if(showLtng(settings, rptConfig)) {
+  if(showLtng(settings)) {
     html += tdTag(lightning, 'right');
   }
   if(showBonus(settings)) {
@@ -1353,7 +1353,7 @@ function teamDetailTeamSummaryRow(teamSummary, packetsExist, settings, rptConfig
   if(showGPerN(settings, rptConfig)) {
     html += tdTag(teamSummary.gPerN, 'right', true);
   }
-  if(showLtng(settings, rptConfig)) {
+  if(showLtng(settings)) {
     html += tdTag(teamSummary.lightning, 'right', true);
   }
   if(showBonus(settings)) {
@@ -1719,7 +1719,7 @@ function roundReportTableHeader(packetsExist, settings, rptConfig) {
   if(showBonus(settings)) {
     html += tdTag('TUPts/TUH', 'right', true, TOOLTIPS.tuPtsPTu);
   }
-  if(showLtng(settings, rptConfig)) {
+  if(showLtng(settings)) {
     html += tdTag('PPLtng', 'right', true, TOOLTIPS.ppLtng)
   }
   if(showBonus(settings)) {
@@ -1760,7 +1760,7 @@ function roundReportRow(smry, roundNo, packetsExist, packets, settings, rptConfi
     html += tdTag(smry.pp20.toFixed(1), 'right', totalRow);
   }
   html += tdTag(smry.tuPtsPTu.toFixed(2), 'right', totalRow);
-  if(showLtng(settings, rptConfig)) {
+  if(showLtng(settings)) {
     html += tdTag(smry.ppLtng.toFixed(2), 'right', totalRow);
   }
   if(showBonus(settings)) {
