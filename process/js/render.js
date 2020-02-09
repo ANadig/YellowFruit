@@ -969,7 +969,12 @@ class MainInterface extends React.Component {
       if(fileStart == '') { ipc.sendSync('statReportReady'); }
       else { this.toast('Stat report generated'); }
     }).catch((err) => {
-      ipc.sendSync('genericModal', 'error', 'Error', 'Error generating stat report:\n\n' + err.stack, true);
+      let message = 'Error generating stat report:\n\n';
+      if(err.stack.includes('EROFS: read-only file system')) {
+        message += 'If you are running this application from your downloads folder, you ' +
+          'may need to move it to another directory.\n\n';
+      }
+      ipc.sendSync('genericModal', 'error', 'Error', message + err.stack, true);
     });
 
   } //writeStatReport
