@@ -542,6 +542,9 @@ class MainInterface extends React.Component {
     if(StatUtils2.versionLt(loadMetadata.version, '2.4.0')) {
       StatUtils2.gameConversion2x4x0(loadGames);
     }
+    if(StatUtils2.versionLt(loadMetadata.version, '2.6.0')) {
+      StatUtils2.gameConversion2x5x0(loadGames);
+    }
     //revert to system defaults if we can't find this file's report configuration
     if(this.state.releasedRptList[assocRpt] == undefined && this.state.customRptList[assocRpt] == undefined) {
       assocRpt = SYS_DEFAULT_RPT_NAME;

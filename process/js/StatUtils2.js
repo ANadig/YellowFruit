@@ -153,6 +153,17 @@ module.exports.settingsConversion2x5x0 = function(settings) {
 }
 
 /*---------------------------------------------------------
+conversion on games data structure (version 2.5.0)
+Add lightning round attributes
+---------------------------------------------------------*/
+module.exports.gameConversion2x5x0 = function(games) {
+  for(var i in games) {
+    games[i].lightningPts1 = '';
+    games[i].lightningPts2 = ''; 
+  }
+}
+
+/*---------------------------------------------------------
 For each player in this game, increment that player's
 count in the index. Assumes that teams and players are
 already defined.
