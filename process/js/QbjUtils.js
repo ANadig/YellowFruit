@@ -23,6 +23,7 @@ module.exports.parseQbjRules = function(rules) {
     bonuses: false,
     bonusesBounce: false,
     playersPerTeam: 4,
+    lightning: false
   }
   yfRules.playersPerTeam = rules.maximum_players_per_team;
   var errors = [];
@@ -228,6 +229,7 @@ module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
         otNeg2: '',
         bbPts1: team1Obj.bonus_bounceback_points != undefined ? team1Obj.bonus_bounceback_points : '',
         bbPts2: team2Obj.bonus_bounceback_points != undefined ? team2Obj.bonus_bounceback_points : '',
+        lightningPts1: '', lightningPts2: '',
         notes: matchObj.notes != undefined ? matchObj.notes : ''
       });
     }
