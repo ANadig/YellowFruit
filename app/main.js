@@ -8,16 +8,17 @@
   The Electron main process.
 
 ************************************************************************/
-var electron = require('electron');
-var dialog = electron.dialog;
-var BrowserWindow = electron.BrowserWindow;
-var Menu = electron.Menu;
-var app = electron.app;
-var ipc = electron.ipcMain;
+const electron = require('electron');
+const dialog = electron.dialog;
+const BrowserWindow = electron.BrowserWindow;
+const Menu = electron.Menu;
+const app = electron.app;
+const ipc = electron.ipcMain;
+const shell = electron.shell;
 require('dotenv').config(); //set NODE_ENV via the .env file in the root directory
-var Path = require('path');
-var fs = require('fs');
-var _ = require('lodash');
+const Path = require('path');
+const fs = require('fs');
+const _ = require('lodash');
 const USER_CONFIG_FOLDER_PROD = Path.resolve(app.getPath('appData'), 'YellowFruit');
 const USER_CONFIG_FILE_PROD = Path.resolve(USER_CONFIG_FOLDER_PROD, 'UserConfig.json');
 const OLD_USER_CONFIG_FOLDER_PROD = Path.resolve(__dirname,  '..', '..', '..', '..', '..', 'YellowFruitUserData');
@@ -172,6 +173,19 @@ const HELP_MENU = {
         showHelpWindow(focusedWindow, 'keyboardshortcuts.html', 700, 400);
       }
     },
+    {
+      label: 'More Tips',
+      click (item, focusedWindow) {
+          shell.openExternal('https://yellowfruit.app');
+      }
+    },
+    {
+      label: 'Get Help',
+      click (item, focusedWindow) {
+        shell.openExternal('https://hsquizbowl.org/forums/viewtopic.php?f=123&t=22932');
+      }
+    },
+    {type: 'separator'},
     {
       label: 'About YellowFruit',
       click (item, focusedWindow) {
