@@ -22,11 +22,12 @@ module.exports.getQbjFile = function(settings, divisions, teams, games, packets,
   var answerTypesQbj = getAnswerTypes(settings);
   var rankingsQbj = getRankings();
   var [teamsQbj, playersQbj] = getTeamsAndPlayers(teams);
+  var registrationsQbj = getRegistrations(teamsQbj);
   var roundPhases = assignRoundsToPhases(divisions, games);
   var [matchesQbj, matchIdsByRound] = getMatches(divisions, games, roundPhases, settings);
   var roundsQbj = getRounds(roundPhases, packets, matchIdsByRound);
   var phasesQbj = getPhases(divisions, roundPhases, teams, tbsExist);
-  var tournamentQbj = getTournament(fileName, phasesQbj);
+  var tournamentQbj = getTournament(fileName, phasesQbj, registrationsQbj);
   objList.push(tournamentQbj);
   objList.push(scoringRulesQbj);
   objList = objList.concat(answerTypesQbj);
@@ -43,13 +44,14 @@ module.exports.getQbjFile = function(settings, divisions, teams, games, packets,
 /*---------------------------------------------------------
 Assemble Tournament object.
 ---------------------------------------------------------*/
-function getTournament(fileName, phasesQbj) {
+function getTournament(fileName, phasesQbj, registrationsQbj) {
   var tournament = {
     type: 'Tournament',
     name: fileName,
     scoring_rules: {$ref: 'ScoringRules'},
     rankings: [{$ref: 'Ranking_AllGames'}],
-    phases: []
+    phases: [],
+    registrations: registrationsQbj
   };
   for(var i in phasesQbj) {
     tournament.phases.push({$ref: phasesQbj[i].id});
@@ -65,7 +67,7 @@ function getScoringRules(settings) {
     type: 'ScoringRules',
     id: 'ScoringRules',
     teams_per_match: 2,
-    maximum_players_per_team: settings.playersPerTeam,
+    maximum_players_per_team: +settings.playersPerTeam,
     overtime_includes_bonuses: false,
     total_divisor: settings.negs || settings.powers == '15pts' ? 5 : 10,
     maximum_bonus_score: 30,
@@ -145,7 +147,7 @@ function getTeamsAndPlayers(teams) {
     if(t.rank) {
       team.ranks = [{
         ranking: {$ref: 'Ranking_AllGames'},
-        position: t.rank
+        position: +t.rank
       }];
     }
     for(var p in t.roster) {
@@ -159,7 +161,7 @@ function getTeamsAndPlayers(teams) {
       // if a number from 0 to 18 appears in the Year field, use it.
       let numAry = t.roster[p].year.match(/\d{1,2}/);
       if(numAry != null) {
-        gradeNo = numAry[0];
+        gradeNo = +(numAry[0]);
         if(0 <= gradeNo && gradeNo <= 18) {
           player.year = gradeNo;
         }
@@ -169,6 +171,24 @@ function getTeamsAndPlayers(teams) {
     teamObjs.push(team);
   } //loop over teams
   return [teamObjs, playerObjs];
+}
+
+/*---------------------------------------------------------
+Create registration objects. YF doesn't actually support
+the 'registration' concept, so each team gets its own
+registration
+---------------------------------------------------------*/
+function getRegistrations(teamsQbj) {
+  var regs = [];
+  for(var i in teamsQbj) {
+    let oneTeam = teamsQbj[i];
+    let oneReg = {
+      name: oneTeam.name,
+      teams: [{$ref: oneTeam.id}]
+    }
+    regs.push(oneReg);
+  }
+  return regs;
 }
 
 /*---------------------------------------------------------
@@ -229,8 +249,8 @@ function getMatches(divisions, games, roundPhases, settings) {
     let match = {
       id: id,
       type: 'Match',
-      tossups_read: g.tuhtot,
-      overtime_tossups_read: g.ottu,
+      tossups_read: +g.tuhtot,
+      overtime_tossups_read: +g.ottu,
       tiebreaker: g.tiebreaker,
       notes: g.notes,
       match_teams: [],
@@ -284,25 +304,25 @@ Generate a MatchPlayer object for the given game
 function getMatchPlayer(ref, player, settings) {
   var matchPlayer = {
     player: {$ref: ref},
-    tossups_heard: player.tuh,
+    tossups_heard: +player.tuh,
     answer_counts: []
   };
   //make PlayerAnswerCount objects
   var tens = {
-    number: player.tens,
+    number: +player.tens,
     answer_type: {$ref: 'AnswerType_ten'}
   };
   matchPlayer.answer_counts.push(tens);
   if(settings.powers != 'none') {
     var powers = {
-      number: player.powers,
+      number: +player.powers,
       answer_type: {$ref: 'AnswerType_power'}
     };
     matchPlayer.answer_counts.push(powers);
   }
   if(settings.negs) {
     var negs = {
-      number: player.negs,
+      number: +player.negs,
       answer_type: {$ref: 'AnswerType_neg'}
     };
     matchPlayer.answer_counts.push(negs);
@@ -344,6 +364,7 @@ tbsExist: whether to create a "tiebreakers" phase
 function getPhases(divisions, roundPhases, teams, tbsExist) {
   var phaseObjs = [];
   for(var p in divisions) {
+    if(p == 'noPhase') { continue; }
     let phase = {
       type: 'Phase',
       id: 'Phase_' + p,
@@ -363,6 +384,36 @@ function getPhases(divisions, roundPhases, teams, tbsExist) {
     }
     phaseObjs.push(phase);
   }
+  //create a dummy 'all games' phase if there are no phases or if there are rounds that
+  // contain only games that weren't assigned a phase
+  var allGames = {
+    type: 'Phase',
+    id: 'Phase_All Games',
+    name: 'All Games',
+    pools: [],
+    rounds: []
+  };
+  if(!phaseObjs.length) {
+    for(var r in roundPhases) {
+      if(roundPhases[r] != 'Tiebreakers') {
+        allGames.rounds.push({$ref: 'Round_' + r});
+      }
+    }
+    phaseObjs.push(allGames);
+  }
+  else {
+    var allGamesRounds = [];
+    for(var r in roundPhases) {
+      if(roundPhases[r] == 'All Games') {
+        allGamesRounds.push({$ref: 'Round_' + r});
+      }
+    }
+    if(allGamesRounds.length) {
+      allGames.rounds = allGamesRounds;
+      phaseObjs.push(allGames);
+    }
+  }
+  // add the Tiebreaker phase if necessary
   if(tbsExist) {
     let tbPhase = {
       type: 'Phase',
