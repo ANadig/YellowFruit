@@ -93,8 +93,8 @@ const YF_MENU = {
       click(item, focusedWindow) {
         if(isMainWindow(focusedWindow)) {
           focusedWindow.webContents.send('compileStatReport');
+          showReportWindow();
         }
-        showReportWindow();
       }
     },
     {
