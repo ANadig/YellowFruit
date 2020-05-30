@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "outDir": "./process/js/",
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "target": "es6",
+    "jsx": "react"
+  }
+}
