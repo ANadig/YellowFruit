@@ -41,7 +41,7 @@ class DivisionEditModal extends React.Component {
     //needed so that labels aren't on top of data when the edit form opens
     M.updateTextFields();
     //needed so that dropdown shows its value
-    $('select#phase').formSelect();
+    M.FormSelect.init(document.querySelectorAll('select#phase'));
     if(this.props.forceReset) {
       this.resetState();
       //setting mainInterface's forceReset to false will avoid infinite loop

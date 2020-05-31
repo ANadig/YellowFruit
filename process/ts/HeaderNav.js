@@ -5,7 +5,7 @@ Andrew Nadig
 React component representing the navigation bar at the top.
 ***********************************************************/
 var React = require('react');
-var $ = jQuery = require('jquery');
+var $ = require('jquery');
 
 class HeaderNav extends React.Component{
 

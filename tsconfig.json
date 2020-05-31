@@ -1,10 +1,9 @@
 {
+  "include": ["process/ts/*"],
   "compilerOptions": {
-    "outDir": "./process/js/",
-    "sourceMap": true,
-    "noImplicitAny": true,
-    "module": "commonjs",
     "target": "es6",
-    "jsx": "react"
+    "jsx": "react",
+    "allowJs": true,
+    "moduleResolution": "node"
   }
 }

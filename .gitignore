@@ -1,6 +1,7 @@
 .env
 /node_modules
 /dist
+/process/js
 /installers/Darwin/notarize.js
 /data/CustomRptConfig.json
 /data/UserConfig.json

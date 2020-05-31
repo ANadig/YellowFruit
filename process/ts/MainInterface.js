@@ -6,14 +6,14 @@ Entry point for the Electron renderer process. Defines the
 MainInterface compenent that contains the entire UI of the
 main window
 ***********************************************************/
-const $ = jQuery = require('jquery');
+const $ = require('jquery');
 const _ = require('lodash');
 const M = require('materialize-css');
 const Mousetrap = require('mousetrap');
 
 const ipc = electron.ipcRenderer;
 
-const React = require('react');
+import * as React from "react";
 const ReactDOM = require('react-dom');
 const SqbsUtils = require('./SqbsUtils');
 const StatUtils = require('./StatUtils');
@@ -66,7 +66,7 @@ const DEFAULT_FORM_SETTINGS = {
 };
 
 
-class MainInterface extends React.Component {
+export class MainInterface extends React.Component {
 
   constructor(props) {
     super(props);
@@ -185,14 +185,16 @@ class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   componentDidMount() {
     //initialize modals
-    $('#addTeam, #addGame, #editDivision, #rptConfig, #assignDivisions, #assignPhases').modal({
-      onCloseEnd: this.onModalClose,
-      dismissible: false
-    });
+    M.Modal.init(document.querySelectorAll(
+      '#addTeam, #addGame, #editDivision, #rptConfig, #assignDivisions, #assignPhases'),
+      {onCloseEnd: this.onModalClose, dismissible: false}
+    );
     //listen for escape key to close modals, since we made them non-dismissible so that
     // clicking outside them doesn't close them
     $(document).on("keydown", (event) => {
-      if(event.keyCode == 27) { $('.modal.open').modal('close'); }
+      if(event.keyCode == 27) {
+        M.Modal.getInstance(document.querySelector('.modal.open')).close();
+      }
     });
 
     Mousetrap.bind(['command+f', 'ctrl+f'], () => {
@@ -1210,6 +1212,13 @@ class MainInterface extends React.Component {
       gmWindowVisible: true
     });
     setTimeout(function() { $('#round').focus() }, 50);
+  }
+
+  /*---------------------------------------------------------
+  Open a Materialize modal
+  ---------------------------------------------------------*/
+  openModal(descriptor) {
+    M.Modal.getInstance(document.querySelector(descriptor)).open();
   }
 
   /*---------------------------------------------------------
@@ -2510,22 +2519,23 @@ class MainInterface extends React.Component {
     if(rptObj == undefined) { rptObj = this.state.customRptList[this.state.activeRpt]; }
 
     // Get Materialize features to show up correctly
-    $(document).ready(function() { $('.tooltipped').tooltip(); });//initialize tooltips
-    $('select').formSelect(); //initialize all dropdowns
-    $('.fixed-action-btn').floatingActionButton(); //initialize floating buttons
+    $(document).ready(function() {
+      M.Tooltip.init(document.querySelectorAll('.tooltipped'));//initialize tooltips
+    });
+    M.FormSelect.init(document.querySelectorAll('select'));//initialize all dropdowns
+    M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn')); //initialize floating buttons
     //for some reason, Materialize code will crash if I only initialize these once
     //perhaps one day I will figure out why
-    $('#assignDivisions, #assignPhases').modal({
-      onCloseEnd: this.onModalClose,
-      dismissible: false
-    });
+    M.Modal.init(document.querySelectorAll('#assignDivisions, #assignPhases'),
+      {onCloseEnd: this.onModalClose, dismissible: false}
+    );
     //open modals if appropriate
-    if(this.state.tmWindowVisible === true) { $('#addTeam').modal('open'); }
-    if(this.state.gmWindowVisible === true) { $('#addGame').modal('open'); }
-    if(this.state.divEditWindowVisible === true) { $('#editDivision').modal('open'); }
-    if(this.state.divWindowVisible === true) { $('#assignDivisions').modal('open'); }
-    if(this.state.phaseWindowVisible === true) { $('#assignPhases').modal('open'); }
-    if(this.state.rptConfigWindowVisible === true) { $('#rptConfig').modal('open'); }
+    if(this.state.tmWindowVisible === true) { this.openModal('#addTeam'); }
+    if(this.state.gmWindowVisible === true) { this.openModal('#addGame'); }
+    if(this.state.divEditWindowVisible === true) { this.openModal('#editDivision'); }
+    if(this.state.divWindowVisible === true) { this.openModal('#assignDivisions'); }
+    if(this.state.phaseWindowVisible === true) { this.openModal('#assignPhases'); }
+    if(this.state.rptConfigWindowVisible === true) { this.openModal('#rptConfig'); }
 
     //sort and filter teams
     if (activePane == 'teamsPane') {
@@ -2764,10 +2774,3 @@ class MainInterface extends React.Component {
     );
   } //render
 };//MainInterface
-
-// Since all the UI is child components of MainInterface, this takes care of everything
-// at once.
-ReactDOM.render(
-  <MainInterface />,
-  document.getElementById('statsInterface')
-);

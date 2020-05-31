@@ -67,7 +67,7 @@ class AddGameModal extends React.Component{
     //needed so that labels aren't on top of data when the edit form opens
     M.updateTextFields();
     //needed so that dropdowns show their value
-    $('#addGame select').formSelect();
+    M.FormSelect.init(document.querySelectorAll('#addGame select'));
     if(this.props.forceReset) {
       this.resetState();
       //setting mainInterface's forceReset to false will avoid infinite loop

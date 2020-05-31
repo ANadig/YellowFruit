@@ -765,7 +765,7 @@ class SettingsForm extends React.Component{
       );
     } //else editing phases
 
-    $('select').formSelect(); //initialize all dropdowns
+    M.FormSelect.init(document.querySelectorAll('select'));//initialize all dropdowns
 
     return(
       <div className="container">

@@ -1,15 +1,25 @@
 var gulp = require('gulp'),
     bro = require('gulp-bro'),
+    babelify = require('babelify');
     concatCss = require('gulp-concat-css'),
-    run = require('gulp-run');
+    run = require('gulp-run'),
+    ts = require("gulp-typescript");
+    tsProject = ts.createProject("tsconfig.json");
 
 var src = './process',
     app = './app';
 
+gulp.task("ts", function() {
+  return tsProject
+    .src()
+    .pipe(tsProject())
+    .js.pipe(gulp.dest(src + '/js'));
+});
+
 gulp.task('js', function() {
   return gulp.src( src + '/js/render.js' )
     .pipe(bro({
-      transform: 'reactify',
+      transform: [babelify.configure({presets: ["@babel/preset-env", "@babel/preset-react"]})],
       extensions: 'browserify-css',
       debug: true
     }))
@@ -35,12 +45,13 @@ gulp.task('fonts', function() {
     .pipe(gulp.dest(app + '/fonts'));
 });
 
-gulp.task('serve', gulp.series('html', 'js', 'css', (cb) => {
+gulp.task('serve', gulp.series('html', 'ts', 'js', 'css', (cb) => {
   run('electron .').exec();
   cb();
 }));
 
 gulp.task('watch', gulp.series('serve', (cb) => {
+  gulp.watch( src + '/ts/**/*', gulp.series('ts'));
   gulp.watch( src + '/js/**/*', gulp.series('js'));
   gulp.watch( src + '/css/**/*.css', gulp.series('css'));
   gulp.watch([ app + '/**/*.html'], gulp.series('html'));
