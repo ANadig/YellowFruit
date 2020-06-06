@@ -19,7 +19,7 @@ gulp.task("ts", function() {
 gulp.task('js', function() {
   return gulp.src( src + '/js/render.js' )
     .pipe(bro({
-      transform: [babelify.configure({presets: ["@babel/preset-env", "@babel/preset-react"]})],
+      transform: [babelify.configure({presets: ["@babel/preset-env"]})],
       extensions: 'browserify-css',
       debug: true
     }))
