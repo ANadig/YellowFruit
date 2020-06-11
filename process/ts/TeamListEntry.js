@@ -5,7 +5,7 @@ Andrew Nadig
 React component representing one team on the teams pane.
 ***********************************************************/
 var React = require('react');
-var ColorChip = require('./ColorChip');
+import { ColorChip } from './ColorChip';
 
 class TeamListEntry extends React.Component{
 

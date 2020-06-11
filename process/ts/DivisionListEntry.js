@@ -5,7 +5,7 @@ Andrew Nadig
 React component representing one division on the settings pane.
 ***********************************************************/
 var React = require('react');
-var ColorChip = require('./ColorChip');
+import { ColorChip } from './ColorChip';
 
 class DivisionListEntry extends React.Component{
 

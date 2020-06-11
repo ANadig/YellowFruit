@@ -1,18 +1,26 @@
 /***********************************************************
-ColorChip.js
+ColorChip.tsx
 Andrew Nadig
 
 React component representing a chip color-coded to a
 particular phase. Used for both phases (games) and
 divisions (teams).
 ***********************************************************/
-var React = require('react');
-const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
-  'red', 'purple', 'teal', 'deep-purple', 'pink', 'green'];
+import * as React from "react";
 
-class ColorChip extends React.Component{
+interface ColorChipProps {
+  displayTitle: string;
+  colorNo: number;
+  phase?: string;
+  removeMe?: (phase: string) => void;
+}
 
-  constructor(props) {
+export class ColorChip extends React.Component<ColorChipProps, {}> {
+
+  readonly CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
+    'red', 'purple', 'teal', 'deep-purple', 'pink', 'green'];
+
+  constructor(props: ColorChipProps) {
     super(props);
     this.removeMe = this.removeMe.bind(this);
   }
@@ -22,20 +30,20 @@ class ColorChip extends React.Component{
   TeamListEntry) to delete the phase or division from the
   game or team.
   ---------------------------------------------------------*/
-  removeMe() {
+  removeMe(): void {
     this.props.removeMe(this.props.phase);
   }
 
   render() {
-    var removeIcon = null, noDelete = '';
-    if(this.props.removeMe != null) {
+    let removeIcon = null, noDelete = '';
+    if(this.props.removeMe) {
       removeIcon = ( <i className="close material-icons" onClick={this.removeMe}>close</i> );
     }
     else {
       noDelete = 'no-delete ';
     }
-    var colorName = this.props.colorNo >=0 ?
-      CHIP_COLORS[this.props.colorNo % CHIP_COLORS.length] : 'grey';
+    let colorName = this.props.colorNo >=0 ?
+      this.CHIP_COLORS[this.props.colorNo %this.CHIP_COLORS.length] : 'grey';
 
     // Need to wrap it in another div so that Materialize's code deleting the chip
     // doesn't delete the entire React element; app will crash otherwise
@@ -50,5 +58,3 @@ class ColorChip extends React.Component{
   }
 
 }
-
-module.exports = ColorChip;

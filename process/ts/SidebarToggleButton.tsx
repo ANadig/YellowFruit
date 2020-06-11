@@ -14,12 +14,12 @@ interface ToggleButtonProps {
 
 export class SidebarToggleButton extends React.Component<ToggleButtonProps, {}> {
 
-  constructor(props) {
+  constructor(props: ToggleButtonProps) {
     super(props);
     this.toggleMe = this.toggleMe.bind(this);
   }
 
-  toggleMe() {
+  toggleMe(): void {
     this.props.toggle();
   }
 

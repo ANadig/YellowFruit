@@ -5,7 +5,7 @@ Andrew Nadig
 React component representing one game on the games pane.
 ***********************************************************/
 const React = require('react');
-const ColorChip = require('./ColorChip');
+import { ColorChip } from './ColorChip';
 const StatUtils = require('./StatUtils');
 
 class GameListEntry extends React.Component{
