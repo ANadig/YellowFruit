@@ -34,7 +34,7 @@ const SettingsForm = require('./SettingsForm');
 const TeamList = require('./TeamList');
 const GameList = require('./GameList');
 const StatSidebar = require('./StatSidebar');
-const SidebarToggleButton = require('./SidebarToggleButton');
+import { SidebarToggleButton } from './SidebarToggleButton';
 
 const MAX_PLAYERS_PER_TEAM = 50;
 const METADATA = {version:app.getVersion()}; // take version straight from package.json

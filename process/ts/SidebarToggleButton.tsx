@@ -1,14 +1,18 @@
 /***********************************************************
-SidebarToggleButton.js
+SidebarToggleButton.tsx
 Andrew Nadig
 
 React component representing the button that shows/hides
 the sidebar
 ***********************************************************/
-var React = require('react');
+import * as React from "react";
 
+interface ToggleButtonProps {
+  sidebarOpen: boolean;
+  toggle: () => void;
+}
 
-class SidebarToggleButton extends React.Component{
+export class SidebarToggleButton extends React.Component<ToggleButtonProps, {}> {
 
   constructor(props) {
     super(props);
@@ -20,9 +24,9 @@ class SidebarToggleButton extends React.Component{
   }
 
   render() {
-    var leftOrRight = this.props.sidebarOpen ? 'right-arrow' : 'left-arrow';
-    var chevron = this.props.sidebarOpen ? 'chevron_right' : 'chevron_left';
-    var tooltip = this.props.sidebarOpen ? 'Close the sidebar (Alt+Shift+Right)' : 'Open the sidebar (Alt+Shift+Left)';
+    const leftOrRight = this.props.sidebarOpen ? 'right-arrow' : 'left-arrow';
+    const chevron = this.props.sidebarOpen ? 'chevron_right' : 'chevron_left';
+    const tooltip = this.props.sidebarOpen ? 'Close the sidebar (Alt+Shift+Right)' : 'Open the sidebar (Alt+Shift+Left)';
 
     return (
       <div className={'sidebar-toggle ' + leftOrRight}>
@@ -34,5 +38,3 @@ class SidebarToggleButton extends React.Component{
   }
 
 }
-
-module.exports = SidebarToggleButton;
