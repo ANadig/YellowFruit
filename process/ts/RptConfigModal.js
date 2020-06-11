@@ -8,7 +8,7 @@ report configurations
 var React = require('react');
 var _ = require('lodash');
 var M = require('materialize-css');
-var RptConfigListEntry = require('./RptConfigListEntry');
+import { RptConfigListEntry } from './RptConfigListEntry';
 
 const MAX_CUSTOM_RPT_CONFIGS = 25;
 const NEW_RPT_DUMMY_KEY = 'WAo2WKjY6Jx8QDnufmjz'; //aribitrary string that hopefully no one will use for an rpt name

@@ -42,7 +42,7 @@ export class ColorChip extends React.Component<ColorChipProps, {}> {
       noDelete = 'no-delete ';
     }
     let colorName = this.props.colorNo >=0 ?
-      this.CHIP_COLORS[this.props.colorNo %this.CHIP_COLORS.length] : 'grey';
+      this.CHIP_COLORS[this.props.colorNo % this.CHIP_COLORS.length] : 'grey';
 
     // Need to wrap it in another div so that Materialize's code deleting the chip
     // doesn't delete the entire React element; app will crash otherwise
