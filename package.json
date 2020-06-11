@@ -13,12 +13,10 @@
   "main": "app/main.js",
   "devDependencies": {
     "@babel/core": "^7.10.2",
-    "@babel/preset-env": "^7.10.2",
     "@types/jquery": "^3.3.38",
     "@types/materialize-css": "^1.0.7",
     "@types/react": "^16.9.35",
     "@types/react-dom": "^16.9.8",
-    "babelify": "^10.0.0",
     "browserify": "^16.5.0",
     "electron": "^2.0.18",
     "electron-installer-dmg": "^3.0.0",
