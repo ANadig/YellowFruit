@@ -3,8 +3,8 @@ ColorChip.tsx
 Andrew Nadig
 
 React component representing a chip color-coded to a
-particular phase. Used for both phases (games) and
-divisions (teams).
+particular phase. Used for teams' divisions, games' phases,
+and divisions' phases
 ***********************************************************/
 import * as React from "react";
 
@@ -25,11 +25,10 @@ export class ColorChip extends React.Component<ColorChipProps, {}> {
     this.removeMe = this.removeMe.bind(this);
   }
 
-  /*---------------------------------------------------------
-  Tell the MainInterface (via the GameListEntry or
-  TeamListEntry) to delete the phase or division from the
-  game or team.
-  ---------------------------------------------------------*/
+  /**
+   * Tell the MainInterface (via the GameListEntry or TeamListEntry) to delete
+   * the phase or divisions from the game or team.
+   */
   removeMe(): void {
     this.props.removeMe(this.props.phase);
   }

@@ -19,6 +19,9 @@ export class SidebarToggleButton extends React.Component<ToggleButtonProps, {}> 
     this.toggleMe = this.toggleMe.bind(this);
   }
 
+  /**
+   * Toggle the button to open or close the sidebar
+   */
   toggleMe(): void {
     this.props.toggle();
   }
