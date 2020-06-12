@@ -9,10 +9,10 @@ and divisions' phases
 import * as React from "react";
 
 interface ColorChipProps {
-  displayTitle: string;
-  colorNo: number;
-  phase?: string;
-  removeMe?: (phase: string) => void;
+  displayTitle: string;                   // name of phase, etc. to show in the chip
+  colorNo: number;                        // index in list of chip colors
+  phase?: string;                         // which phase a division chip corresponds to
+  removeMe?: (phase: string) => void;     // how to handle a chip being removed
 }
 
 export class ColorChip extends React.Component<ColorChipProps, {}> {
@@ -48,7 +48,7 @@ export class ColorChip extends React.Component<ColorChipProps, {}> {
     // doesn't delete the entire React element; app will crash otherwise
     return (
       <div className="chip-wrapper">
-        <div className={'chip ' + noDelete + 'accent-1 ' + colorName}>
+        <div className={`chip ${noDelete} accent-1 ${colorName}`}>
           {this.props.displayTitle}
           {removeIcon}
         </div>

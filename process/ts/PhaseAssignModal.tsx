@@ -1,30 +1,41 @@
 /***********************************************************
-PhaseAssignModal.js
+PhaseAssignModal.tsx
 Andrew Nadig
 
 React component representing modal window for assigning
 phases to games.
 ***********************************************************/
-var React = require('react');
-var _ = require('lodash');
+import * as React from "react";
+import * as _ from 'lodash';
+import { PhaseList } from "./qbtypes";
 
-class PhaseAssignModal extends React.Component {
+interface PhaseAssignModalProps {
+  isOpen: boolean;           // whether the modal is open
+  divisions: PhaseList;       // entire divisions structure for the tournment
+  handleSubmit: (phaseSelections: string[]) => void;
+}
 
-  constructor(props) {
+interface PhaseAssignModalState {
+  phaseSelections: string[];  // list of phases the user has selected to add to this game
+}
+
+export class PhaseAssignModal extends React.Component<PhaseAssignModalProps, PhaseAssignModalState> {
+
+  constructor(props: PhaseAssignModalProps) {
     super(props);
     this.state = {
       phaseSelections: []
-    }
+    };
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChange = this.handleChange.bind(this);
   }
 
-  /*---------------------------------------------------------
-  Called any time a value in the form changes.
-  This is a controlled component, so the state is the single
-  source of truth.
-  ---------------------------------------------------------*/
-  handleChange(e) {
+  /**
+   * Called anytime a value in the form changes.
+   * This is a controlled component, so the state is the single source of truth.
+   * @param  e  event
+   */
+  handleChange(e: any): void {
     const target = e.target;
     const checked = target.checked;
     const name = target.name;
@@ -34,7 +45,7 @@ class PhaseAssignModal extends React.Component {
       });
       return;
     }
-    var tempPhSel = this.state.phaseSelections;
+    let tempPhSel = this.state.phaseSelections;
     if(checked && !tempPhSel.includes(name)) {
       tempPhSel.push(name);
       _.pull(tempPhSel, 'delete');
@@ -51,7 +62,11 @@ class PhaseAssignModal extends React.Component {
   Tell the MainInterface to update data when the form is
   submitted.
   ---------------------------------------------------------*/
-  handleSubmit(e) {
+  /**
+   * Tell the MainInterface to update data when the form is submitted
+   * @param e event
+   */
+  handleSubmit(e: any): void {
     e.preventDefault();
     this.props.handleSubmit(this.state.phaseSelections);
   }
@@ -60,8 +75,12 @@ class PhaseAssignModal extends React.Component {
   A list of checkboxes, one for each phase, plus one to
   delete phases.
   ---------------------------------------------------------*/
-  getPhaseOptions() {
-    var deleteBox = (
+  /**
+   * A list of checkboxes, one for each phase, plus one to delete phases
+   * @return      List of checkbox elements
+   */
+  getPhaseOptions(): JSX.Element[] {
+    const deleteBox = (
       <p key={'delete'}>
         <label>
           <input name="delete" type="checkbox"
@@ -70,9 +89,9 @@ class PhaseAssignModal extends React.Component {
         </label>
       </p>
     );
-    var checkboxes = [deleteBox];
-    for(var phase in this.props.divisions) {
-      var box = (
+    let checkboxes = [deleteBox];
+    for(let phase in this.props.divisions) {
+      let box = (
         <p key={phase}>
           <label>
             <input name={phase} type="checkbox"
@@ -87,7 +106,7 @@ class PhaseAssignModal extends React.Component {
   }//getPhaseOptions
 
   render() {
-    var phaseOptions = this.getPhaseOptions();
+    const phaseOptions = this.getPhaseOptions();
 
     return (
       <div className="modal modal-fixed-footer" id="assignPhases">
@@ -100,7 +119,7 @@ class PhaseAssignModal extends React.Component {
             <button type="button" accessKey={this.props.isOpen ? 'c' : ''} className="modal-close btn grey">
               <span className="hotkey-underline">C</span>ancel
             </button>&nbsp;
-            <button type="submit" accessKey={this.props.isOpen ? 'a' : ''} className={'modal-close btn green '}>
+            <button type="submit" accessKey={this.props.isOpen ? 'a' : ''} className="modal-close btn green">
               <span className="hotkey-underline">A</span>ccept
             </button>
           </div>
@@ -110,5 +129,3 @@ class PhaseAssignModal extends React.Component {
   }
 
 }
-
-module.exports=PhaseAssignModal

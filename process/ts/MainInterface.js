@@ -29,7 +29,7 @@ const AddGameModal = require('./AddGameModal');
 const DivisionEditModal = require('./DivisionEditModal');
 const RptConfigModal = require('./RptConfigModal');
 const DivAssignModal = require('./DivAssignModal');
-const PhaseAssignModal = require('./PhaseAssignModal');
+import { PhaseAssignModal } from './PhaseAssignModal';
 const SettingsForm = require('./SettingsForm');
 const TeamList = require('./TeamList');
 const GameList = require('./GameList');
@@ -2691,7 +2691,6 @@ export class MainInterface extends React.Component {
           />
           <PhaseAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkGameToggle + 'games'}
             isOpen = {this.state.phaseWindowVisible}
-            gamesToAssign = {this.state.selectedGames}
             divisions = {this.state.divisions}
             handleSubmit = {this.submitPhaseAssignments}
           />

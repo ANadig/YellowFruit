@@ -14,11 +14,11 @@ enum RptConfigTypes {
 }
 
 interface RptConfigListEntryProps {
-  title: string;
+  title: string;              // name of the configuration
   type: RptConfigTypes;
-  disabled: boolean;
-  selected: boolean;
-  onSelected: (title: string, type: RptConfigTypes) => void;
+  disabled: boolean;          // use to prevent creating new configurations
+  selected: boolean;          // whether this is the configuration being viewed right now
+  onSelected: (title: string, type: RptConfigTypes) => void;  // what happens when the user clicks on it
 }
 
 export class RptConfigListEntry extends React.Component<RptConfigListEntryProps, {}> {
@@ -61,7 +61,7 @@ export class RptConfigListEntry extends React.Component<RptConfigListEntryProps,
 
     const disabledClass = this.props.disabled ? 'new-rpt-disabled' : '';
     return (
-      <a href="#!" className={'collection-item truncate ' + this.activeClass() + ' ' + disabledClass} onClick={this.selectSelf}>
+      <a href="#!" className={`collection-item truncate ${this.activeClass()} ${disabledClass}`} onClick={this.selectSelf}>
         {this.props.title}
         {rightIcon}
       </a>
