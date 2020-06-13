@@ -10,7 +10,7 @@ var $ = require('jquery');
 var _ = require('lodash');
 var M = require('materialize-css');
 var StatUtils = require('./StatUtils');
-var PlayerRow = require('./PlayerRow');
+import { PlayerRow } from './PlayerRow';
 
 const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
   'red', 'purple', 'teal', 'deep-purple', 'pink', 'green'];

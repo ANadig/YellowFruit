@@ -6,11 +6,39 @@
  */
 
 /**
+ * How powers are socred
+ */
+export enum PowerRule {
+  Twenty = '20pts',
+  Fifteen = '15pts',
+  None = 'none'
+}
+
+/**
+ * Rules and settings for the tournament
+ */
+export interface TournamentSettings {
+    powers: PowerRule;          // powers setting
+    negs: boolean;              // whether to user negs
+    bonuses: boolean;           // whether there are bonuses
+    bonusesBounce: boolean;     // whether bonuses have bouncebacks
+    lightning: boolean;         // whether there are lightning rounds
+    playersPerTeam: string;     // how many players per team play at one time
+    defaultPhases: string[];    // Used to group teams when viewing all games
+    rptConfig: string;          // report configuration to use for the stat report
+}
+
+/**
  * The phase/divisions structure of a tournament
  */
 export interface PhaseList {
   [phaseName: string]: string[];    // index the list of divisions in a phase by that phase's name
 }
+
+/**
+ * Team1 (left side of the game modal) or Team2 (right side)
+ */
+export type WhichTeam = 1 | 2;
 
 /**
  * One player's stats for one game
@@ -55,4 +83,6 @@ export interface QbGame {
   tiebreaker: boolean;      // whether the game was a tiebreaker
   lightningPts1: string;    // lightning round points for team1
   lightningPts2: string;    // lightning round points for team2
+  players1: TeamGameLine;   // team1's players' stats
+  players2: TeamGameLine;   // team2's players' stats
 }
