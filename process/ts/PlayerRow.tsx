@@ -68,12 +68,8 @@ export class PlayerRow extends React.Component<PlayerRowProps, PlayerRowState>{
     this.props.updatePlayer(this.props.whichTeam, name, value, this.props.playerName);
   }
 
-  /*---------------------------------------------------------
-  The total number of points scored by this player in this
-  game.
-  ---------------------------------------------------------*/
   /**
-   * @return The total points scored by the player
+   * @return The total points scored by the player in this game
    */
   getTotalPts(): number {
     let powers = +this.state.powers, tens = +this.state.tens, negs = +this.state.negs;
@@ -82,6 +78,7 @@ export class PlayerRow extends React.Component<PlayerRowProps, PlayerRowState>{
     else if(this.props.settings.powers == PowerRule.Twenty) { powersTot = 20*powers; }
     return powersTot + 10*tens - 5*negs;
   }
+
 
   render(){
     let powerCell = null, negCell = null;
