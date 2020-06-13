@@ -72,6 +72,9 @@ export class PlayerRow extends React.Component<PlayerRowProps, PlayerRowState>{
   The total number of points scored by this player in this
   game.
   ---------------------------------------------------------*/
+  /**
+   * @return The total points scored by the player
+   */
   getTotalPts(): number {
     let powers = +this.state.powers, tens = +this.state.tens, negs = +this.state.negs;
     let powersTot = 0;
@@ -81,9 +84,9 @@ export class PlayerRow extends React.Component<PlayerRowProps, PlayerRowState>{
   }
 
   render(){
-    var powerCell = null, negCell = null;
+    let powerCell = null, negCell = null;
     //powers
-    if(this.props.settings.powers != 'none') {
+    if(this.props.settings.powers != PowerRule.None) {
       powerCell = (
         <td>
           <input type="number" id={'powers'+this.props.playerName+'-'+this.props.whichTeam}
