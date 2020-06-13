@@ -11,7 +11,7 @@ var _ = require('lodash');
 var $ = require('jquery');
 var StatUtils = require('./StatUtils');
 var SqbsUtils = require('./SqbsUtils');
-var DivisionListEntry = require('./DivisionListEntry');
+import { DivisionListEntry } from './DivisionListEntry';
 const DEF_PHASE_ICONS = ['looks_one', 'looks_two', 'looks_3'];
 const DEF_PHASE_TOOLTIP = 'When viewing all games, team standings are grouped by these phases\' divisions according to the priority shown';
 const DEF_PHASE_LINK_TOOLTIP = 'Click to change how teams are grouped when viewing all games';
