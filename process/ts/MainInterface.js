@@ -28,7 +28,7 @@ const AddTeamModal = require('./AddTeamModal');
 const AddGameModal = require('./AddGameModal');
 const DivisionEditModal = require('./DivisionEditModal');
 const RptConfigModal = require('./RptConfigModal');
-const DivAssignModal = require('./DivAssignModal');
+import { DivAssignModal } from './DivAssignModal';
 import { PhaseAssignModal } from './PhaseAssignModal';
 const SettingsForm = require('./SettingsForm');
 const TeamList = require('./TeamList');
@@ -2684,7 +2684,6 @@ export class MainInterface extends React.Component {
          />
          <DivAssignModal key={JSON.stringify(this.state.divisions) + this.state.checkTeamToggle}
             isOpen = {this.state.divWindowVisible}
-            teamsToAssign = {this.state.selectedTeams}
             divisions = {this.state.divisions}
             handleSubmit = {this.submitDivAssignments}
             usingPhases = {usingPhases}

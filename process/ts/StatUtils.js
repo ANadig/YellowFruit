@@ -1989,7 +1989,7 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
   if(phase == 'all') { html += phaseLegend(phaseColors) + '\n'; }
   html += tableStyle();
 
-  for(var i in teams) {
+  for(let i in teams) {
     let oneTeam = teams[i];
     let teamName = oneTeam.teamName;
     let teamSummary = _.find(standings, (o) => { return o.teamName == teamName; });

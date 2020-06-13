@@ -5,14 +5,30 @@ Andrew Nadig
 React component representing modal window for assigning
 divisions to teams.
 ***********************************************************/
-var React = require('react');
+import * as React from "react";
+import { PhaseList } from "./qbtypes";
 
-class DivAssignModal extends React.Component{
+interface DivAssignModalProps {
+  isOpen: boolean;
+  divisions: PhaseList;
+  handleSubmit: (divSelections: DivSelectionList) => void;
+  usingPhases: boolean;
+}
 
-  constructor(props) {
+interface DivSelectionList {
+  [phaseName: string]: string;  // index divisions to assign by each division's phase
+}
+
+interface DivAssignModalState {
+  divSelections: DivSelectionList;
+}
+
+export class DivAssignModal extends React.Component<DivAssignModalProps, DivAssignModalState>{
+
+  constructor(props: DivAssignModalProps) {
     super(props);
-    var divs = {};
-    for(var p in props.divisions) {
+    let divs: DivSelectionList = {};
+    for(let p in props.divisions) {
       divs[p] = 'ignore';
     }
     this.state = {
@@ -22,43 +38,39 @@ class DivAssignModal extends React.Component{
     this.handleChange = this.handleChange.bind(this);
   }
 
-  /*---------------------------------------------------------
-  Called any time a value in the form changes.
-  This is a controlled component, so the state is the single
-  source of truth.
-  ---------------------------------------------------------*/
-  handleChange(e) {
+  /**
+   * Called any time a value in the form changes. This is a controlled component, so
+   * the state is the single source of truth.
+   */
+  handleChange(e: any): void {
     const target = e.target;
     const value = target.value; //division name
     const name = target.name; //phase number
-    var tempSelections = this.state.divSelections;
+    let tempSelections = this.state.divSelections;
     tempSelections[name] = value;
     this.setState({
       divSelections: tempSelections
     });
   }
 
-  /*---------------------------------------------------------
-  Tell the MainInterface to update data when the form is
-  submitted.
-  ---------------------------------------------------------*/
-  handleSubmit(e) {
+  /**
+   * Tell the MainInterface to update data when the form is submitted
+   */
+  handleSubmit(e: any): void {
     e.preventDefault();
     this.props.handleSubmit(this.state.divSelections);
   }
 
-  /*---------------------------------------------------------
-  A set of radio buttons for selecting the divisions for a
-  given phase. An option for each division, plus an option
-  not to change the division for that phase, and an option
-  to remove divisions for that phase.
-  If there are divisions but no phases, call this with
-  'noPhase' in order to get all divisions with no "ignore"
-  option.
-  ---------------------------------------------------------*/
-  getPhaseSection(phase) {
-    var divsInPhase = this.props.divisions[phase];
-    var ignoreOption = null;
+  /**
+   * A set of radio buttons for selecting the divisions for a given phase. An option for
+   * each division, plus an option not to change the division for that phase, and an
+   * option to remove divisions for that phase.
+   * If there are divisions but no phases, call this with 'noPhase' in order to get all
+   * divisions with no "ignore" option.
+   */
+  getPhaseSection(phase: string): JSX.Element {
+    const divsInPhase = this.props.divisions[phase];
+    let ignoreOption = null;
     if(phase != 'noPhase') {
       ignoreOption = (
         <p key={'ignore'}>
@@ -70,7 +82,7 @@ class DivAssignModal extends React.Component{
         </p>
       );
     }
-    var removeOption = (
+    const removeOption = (
       <p key={'remove'}>
         <label>
           <input name={phase} type="radio" value="remove"
@@ -80,7 +92,7 @@ class DivAssignModal extends React.Component{
       </p>
     );
 
-    var divRadios = divsInPhase.map(function(div, idx) {
+    let divRadios = divsInPhase.map(function(div: string) {
       return (
         <p key={div}>
           <label>
@@ -93,7 +105,7 @@ class DivAssignModal extends React.Component{
     }.bind(this));
     divRadios = [ignoreOption, removeOption].concat(divRadios);
 
-    var header = phase == 'noPhase' ? null : ( <h6>{phase}</h6> );
+    const header = phase == 'noPhase' ? null : ( <h6>{phase}</h6> );
     return (
       <div key={phase} className="row">
         {header}
@@ -105,15 +117,16 @@ class DivAssignModal extends React.Component{
 
 
   render() {
-    var phaseSections = [];
-    for(var p in this.props.divisions) {
+    let phaseSections = [];
+    for(let p in this.props.divisions) {
       //ignore divisions with no phase, unless the tournament has no phases at all
       if((!this.props.usingPhases || p != 'noPhase') && this.props.divisions[p].length > 0) {
         phaseSections.push(this.getPhaseSection(p));
       }
     }
+
     if(phaseSections.length == 0) {
-      phaseSections = ( <span>No available divisions to assign</span> );
+      phaseSections = [( <span key={0}>No available divisions to assign</span> )];
     }
 
     return (
@@ -137,5 +150,3 @@ class DivAssignModal extends React.Component{
   }
 
 }
-
-module.exports=DivAssignModal
