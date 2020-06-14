@@ -22,7 +22,7 @@ const QbjUtils = require('./QbjUtils');
 const QbjUtils2 = require('./QbjUtils2');
 // Bring in all the other React components
 import { TeamListEntry } from './TeamListEntry';
-const GameListEntry = require('./GameListEntry');
+import { GameListEntry } from './GameListEntry';
 const HeaderNav = require('./HeaderNav');
 const AddTeamModal = require('./AddTeamModal');
 const AddGameModal = require('./AddGameModal');
@@ -2594,8 +2594,7 @@ export class MainInterface extends React.Component {
     filteredGames=filteredGames.map(function(item, index) {
       return(
         <GameListEntry key = {item.team1 + item.team2 + item.round + this.state.checkGameToggle}
-          singleItem = {item}
-          whichItem =  {item}
+          game = {item}
           onDelete = {this.deleteGame}
           onOpenGame = {this.openGameForEdit}
           onSelectGame = {this.onSelectGame}

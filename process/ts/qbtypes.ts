@@ -88,8 +88,7 @@ export interface TeamGameLine {
 }
 
 /**
- * Information for a single match. Most of these are strings because that's how they
- * come in the from the html fields themselves
+ * Information for a single match.
  */
 export interface QbGame {
   round: string;            // the round number

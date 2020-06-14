@@ -10,7 +10,7 @@ import * as React from "react";
 
 interface ColorChipProps {
   displayTitle: string;                   // name of phase, etc. to show in the chip
-  colorNo: number;                        // index in list of chip colors
+  colorNo: number;                        // index in list of chip colors. Pass -1 for gray (tiebreaker)
   phase?: string;                         // which phase a division chip corresponds to
   removeMe?: (phase: string) => void;     // how to handle a chip being removed
 }
@@ -42,7 +42,8 @@ export class ColorChip extends React.Component<ColorChipProps, {}> {
       noDelete = 'no-delete ';
     }
     let colorName = this.props.colorNo >=0 ?
-      this.CHIP_COLORS[this.props.colorNo % this.CHIP_COLORS.length] : 'grey';
+      this.CHIP_COLORS[this.props.colorNo % this.CHIP_COLORS.length] :
+      'grey';
 
     // Need to wrap it in another div so that Materialize's code deleting the chip
     // doesn't delete the entire React element; app will crash otherwise
