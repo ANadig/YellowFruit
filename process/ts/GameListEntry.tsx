@@ -7,7 +7,7 @@ React component representing one game on the games pane.
 import * as React from "react";
 import { ColorChip } from './ColorChip';
 import StatUtils = require('./StatUtils');
-import { QbGame, TournamentSettings, WhichTeam, PowerRule } from "./qbtypes";
+import { QbGame, TournamentSettings, WhichTeam, PowerRule } from "./YfTypes";
 
 interface GameListEntryProps {
   game: QbGame;

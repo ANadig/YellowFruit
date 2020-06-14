@@ -6,7 +6,7 @@ React component representing modal window for assigning
 divisions to teams.
 ***********************************************************/
 import * as React from "react";
-import { PhaseList } from "./qbtypes";
+import { PhaseList } from "./YfTypes";
 
 interface DivAssignModalProps {
   isOpen: boolean;

@@ -103,10 +103,11 @@ class AddGameModal extends React.Component{
     this.setState(partialState);
   } //handleChange
 
-  /*---------------------------------------------------------
-  When a team is selected in one of the dropdowns, we need
-  to reset the player stats table
-  ---------------------------------------------------------*/
+  /**
+   * When a team is selected in one of the dropdowns, we need to reset the player
+   * stats table
+   * @param  {[type]} e event
+   */
   handleTeamChange(e) {
     const target = e.target;
     const value = target.value;
@@ -115,10 +116,10 @@ class AddGameModal extends React.Component{
     var newTeamObj = this.props.teamData.find((item) => { return item.teamName == value; });
     var roster = Object.keys(newTeamObj.roster);
     //if there can't be any substitutions, autopopulate the total tossups for the round
-    var defaultTuh = roster.length <= this.props.settings.playersPerTeam ? this.state.tuhtot : '';
+    var defaultTuh = roster.length <= this.props.settings.playersPerTeam ? this.state.tuhtot : 0;
     var newPlayers = {};
     for(var i in roster) {
-      newPlayers[roster[i]] = {tuh: defaultTuh, powers: '', tens: '', negs: ''};
+      newPlayers[roster[i]] = {tuh: defaultTuh, powers: 0, tens: 0, negs: 0};
     }
     if(name == 'team1') { partialState.players1 = newPlayers; }
     else if(name == 'team2') { partialState.players2 = newPlayers; }
@@ -140,17 +141,21 @@ class AddGameModal extends React.Component{
     });
   }
 
-  /*---------------------------------------------------------
-  Called when a PlayerRow updates its state, so that this
-  component updates its state at the same time.
-  ---------------------------------------------------------*/
+  /**
+   * Called when a PlayerRow updates its state, so that this component updates its
+   * state at the same time.
+   * @param  whichTeam  1 or 2
+   * @param  whichStat  stat to update
+   * @param  value      value for that stat
+   * @param  playerName player's name
+   */
   updatePlayer(whichTeam, whichStat, value, playerName){
     if(whichTeam == 1) {
       //deep copy of team data to avoid spurious state updates. Maybe unnecessary?
       var tempTeam1 = $.extend(true, {}, this.state.players1);
       if(tempTeam1[playerName] == undefined) {
         //for if a player is added to a team and then that team's game is edited
-        tempTeam1[playerName] = {tuh: '', powers: '', tens: '', negs: ''};
+        tempTeam1[playerName] = {tuh: 0, powers: 0, tens: 0, negs: 0};
       }
       tempTeam1[playerName][whichStat] = value;
       this.setState({
@@ -161,7 +166,7 @@ class AddGameModal extends React.Component{
       //deep copy of team data to avoid spurious state updates
       var tempTeam2 = $.extend(true, {}, this.state.players2);
       if(tempTeam2[playerName] == undefined) {
-        tempTeam2[playerName] = {tuh: '', powers: '', tens: '', negs: ''};
+        tempTeam2[playerName] = {tuh: 0, powers: 0, tens: 0, negs: 0};
       }
       tempTeam2[playerName][whichStat] = value;
       this.setState({
@@ -198,46 +203,54 @@ class AddGameModal extends React.Component{
     });
   }
 
-  /*---------------------------------------------------------
-  Populate form with the data of the game to be edited.
-  Also keep a pointer to this game so the MainInterface
-  knows which game to modify when the form is submitted.
-  ---------------------------------------------------------*/
+  /**
+   * Convert a non-zero number to a string. Convert 0 to ''
+   * @param  num Number to convert
+   * @return     string representation of the number
+   */
+  loadNumericField(num) {
+    if(num === 0) { return ''; }
+    return num.toString();
+  }
+
+  /**
+   * Populate form with the data of the game to be edited. Also keep a pointer to this
+   * game so the MainInterface knows which game to modify when the form is submitted.
+   */
   loadGame() {
-    //why do I have to list these out like this? Because it crashes if I do otherwise.
     this.setState({
-      round: this.props.gameToLoad.round,
+      round: this.props.gameToLoad.round.toString(),    // 0 should be a legal round number
       phases: this.props.gameToLoad.phases,
-      tuhtot: this.props.gameToLoad.tuhtot,
-      ottu: this.props.gameToLoad.ottu,
+      tuhtot: this.loadNumericField(this.props.gameToLoad.tuhtot),
+      ottu: this.loadNumericField(this.props.gameToLoad.ottu),
       forfeit: this.props.gameToLoad.forfeit,
       tiebreaker: this.props.gameToLoad.tiebreaker,
       team1: this.props.gameToLoad.team1,
       team2: this.props.gameToLoad.team2,
-      score1: this.props.gameToLoad.score1,
-      score2: this.props.gameToLoad.score2,
+      score1: this.props.gameToLoad.score1.toString(),  // team scores of 0 should stay
+      score2: this.props.gameToLoad.score2.toString(),
       players1: this.props.gameToLoad.players1,
       players2: this.props.gameToLoad.players2,
       notes: this.props.gameToLoad.notes,
-      otPwr1: this.props.gameToLoad.otPwr1,
-      otTen1: this.props.gameToLoad.otTen1,
-      otNeg1: this.props.gameToLoad.otNeg1,
-      otPwr2: this.props.gameToLoad.otPwr2,
-      otTen2: this.props.gameToLoad.otTen2,
-      otNeg2: this.props.gameToLoad.otNeg2,
-      bbPts1: this.props.gameToLoad.bbPts1,
-      bbPts2: this.props.gameToLoad.bbPts2,
-      lightningPts1: this.props.gameToLoad.lightningPts1,
-      lightningPts2: this.props.gameToLoad.lightningPts2,
+      otPwr1: this.loadNumericField(this.props.gameToLoad.otPwr1),
+      otTen1: this.loadNumericField(this.props.gameToLoad.otTen1),
+      otNeg1: this.loadNumericField(this.props.gameToLoad.otNeg1),
+      otPwr2: this.loadNumericField(this.props.gameToLoad.otPwr2),
+      otTen2: this.loadNumericField(this.props.gameToLoad.otTen2),
+      otNeg2: this.loadNumericField(this.props.gameToLoad.otNeg2),
+      bbPts1: this.loadNumericField(this.props.gameToLoad.bbPts1),
+      bbPts2: this.loadNumericField(this.props.gameToLoad.bbPts2),
+      lightningPts1: this.loadNumericField(this.props.gameToLoad.lightningPts1),
+      lightningPts2: this.loadNumericField(this.props.gameToLoad.lightningPts2),
       originalGameLoaded: this.props.gameToLoad
     });
   }
 
-  /*---------------------------------------------------------
-  Called when the form is submitted (accept button). Tell
-  the MainInterface to create a new game or modify an
-  existing one as appropriate.
-  ---------------------------------------------------------*/
+  /**
+   * Called when the form is submitted (accept button). Tell the MainInterface to create
+   * a new game or modify an existing one as appropriate.
+   * @param  e event
+   */
   handleAdd(e) {
     e.preventDefault();
     if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
@@ -245,28 +258,28 @@ class AddGameModal extends React.Component{
     var ot = this.state.ottu > 0; //clear OT data if no OT
     var autoAssignPhase = this.props.addOrEdit == 'add' && this.props.currentPhase != 'all';
     var tempItem = {
-      round: this.state.round,
+      round: +this.state.round,
       phases: autoAssignPhase && !this.state.tiebreaker ? [this.props.currentPhase] : this.state.phases,
-      tuhtot: forf ? '' : this.state.tuhtot,
-      ottu: forf ? '' : this.state.ottu,
+      tuhtot: forf ? 0 : +this.state.tuhtot,
+      ottu: forf ? 0 : +this.state.ottu,
       forfeit: this.state.forfeit,
       tiebreaker: this.state.tiebreaker,
       team1: this.state.team1,
       team2: this.state.team2,
-      score1: forf ? '' : this.state.score1,
-      score2: forf ? '' : this.state.score2,
+      score1: forf ? 0 : +this.state.score1,
+      score2: forf ? 0 : +this.state.score2,
       players1: forf ? null : this.state.players1,
       players2: forf ? null : this.state.players2,
-      otPwr1: forf || !ot ? '' : this.state.otPwr1,
-      otTen1: forf || !ot ? '' : this.state.otTen1,
-      otNeg1: forf || !ot ? '' : this.state.otNeg1,
-      otPwr2: forf || !ot ? '' : this.state.otPwr2,
-      otTen2: forf || !ot ? '' : this.state.otTen2,
-      otNeg2: forf || !ot ? '' : this.state.otNeg2,
-      bbPts1: forf ? '' : this.state.bbPts1,
-      bbPts2: forf ? '' : this.state.bbPts2,
-      lightningPts1: forf ? '' : this.state.lightningPts1,
-      lightningPts2: forf ? '' : this.state.lightningPts2,
+      otPwr1: forf || !ot ? 0 : +this.state.otPwr1,
+      otTen1: forf || !ot ? 0 : +this.state.otTen1,
+      otNeg1: forf || !ot ? 0 : +this.state.otNeg1,
+      otPwr2: forf || !ot ? 0 : +this.state.otPwr2,
+      otTen2: forf || !ot ? 0 : +this.state.otTen2,
+      otNeg2: forf || !ot ? 0 : +this.state.otNeg2,
+      bbPts1: forf ? 0 : +this.state.bbPts1,
+      bbPts2: forf ? 0 : +this.state.bbPts2,
+      lightningPts1: forf ? 0 : +this.state.lightningPts1,
+      lightningPts2: forf ? 0 : +this.state.lightningPts2,
       notes: this.state.notes
     } //tempitems
 

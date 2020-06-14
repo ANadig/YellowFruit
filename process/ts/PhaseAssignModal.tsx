@@ -7,7 +7,7 @@ phases to games.
 ***********************************************************/
 import * as React from "react";
 import * as _ from 'lodash';
-import { PhaseList } from "./qbtypes";
+import { PhaseList } from "./YfTypes";
 
 interface PhaseAssignModalProps {
   isOpen: boolean;           // whether the modal is open

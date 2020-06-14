@@ -6,7 +6,7 @@ React component representing one team on the teams pane.
 ***********************************************************/
 import * as React from "react";
 import { ColorChip } from './ColorChip';
-import { QbTeam } from "./qbtypes";
+import { QbTeam } from "./YfTypes";
 
 interface TeamListEntryProps {
   team: QbTeam;

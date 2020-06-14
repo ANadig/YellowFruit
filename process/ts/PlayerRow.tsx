@@ -6,7 +6,7 @@ React component representing the fields for entering a
 single player's stats in the game entry form.
 ***********************************************************/
 import * as React from "react";
-import { TournamentSettings, PlayerLine, WhichTeam, PowerRule } from "./qbtypes";
+import { TournamentSettings, PlayerLine, WhichTeam, PowerRule } from "./YfTypes";
 
 type PlayerLineStat = 'tuh' | 'powers' | 'tens' | 'negs';
 
@@ -14,11 +14,17 @@ interface PlayerRowProps {
   playerName: string;
   whichTeam: WhichTeam;
   initialData: PlayerLine;
-  updatePlayer: (whichTeam: WhichTeam, whichStat: PlayerLineStat, value: string, playerName: string) => void;
+  updatePlayer: (whichTeam: WhichTeam, whichStat: PlayerLineStat, value: number, playerName: string) => void;
   settings: TournamentSettings;
 }
 
-type PlayerRowState = PlayerLine;
+// same as PlayerLine but with strings because they're coming directly from the html fields
+interface PlayerRowState {
+    tuh: string;
+    powers: string;
+    tens: string;
+    negs: string;
+  }
 
 export class PlayerRow extends React.Component<PlayerRowProps, PlayerRowState>{
 
@@ -32,10 +38,10 @@ export class PlayerRow extends React.Component<PlayerRowProps, PlayerRowState>{
     let init = props.initialData;
     if(init != null){
       this.state = {
-        tuh: init.tuh,
-        powers: init.powers,
-        tens: init.tens,
-        negs: init.negs
+        tuh: this.loadNumericField(init.tuh),
+        powers: this.loadNumericField(init.powers),
+        tens: this.loadNumericField(init.tens),
+        negs: this.loadNumericField(init.negs)
       };
     }
     else {
@@ -52,6 +58,16 @@ export class PlayerRow extends React.Component<PlayerRowProps, PlayerRowState>{
   }
 
   /**
+   * Convert a non-zero number to a string. Convert 0 to ''
+   * @param  num Number to convert
+   * @return     string representation of the number
+   */
+  loadNumericField(num: number): string {
+    if(num === 0) { return ''; }
+    return num.toString();
+  }
+
+  /**
    * Called when the value in the form changes. This is a controlled component, so the
    * state is the single source of truth.
    * Also tell AddGameModal to update its state, since it must keep track of stats for
@@ -65,7 +81,7 @@ export class PlayerRow extends React.Component<PlayerRowProps, PlayerRowState>{
     let partialState = {};
     partialState[name] = value;
     this.setState(partialState);
-    this.props.updatePlayer(this.props.whichTeam, name, value, this.props.playerName);
+    this.props.updatePlayer(this.props.whichTeam, name, +value, this.props.playerName);
   }
 
   /**
