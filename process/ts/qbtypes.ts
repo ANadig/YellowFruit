@@ -36,6 +36,36 @@ export interface PhaseList {
 }
 
 /**
+ * Information about a single player
+ */
+export interface PlayerDemogs {
+  year: string;
+  undergrad: boolean;
+  div2: boolean;
+}
+
+/**
+ * The list of players on one team
+ */
+export interface TeamRoster {
+  [playerName: string]: PlayerDemogs;
+}
+
+/**
+ * Information for a single team
+ */
+export interface QbTeam {
+  teamName: string;
+  teamUGStatus: boolean;
+  teamD2Status: boolean;
+  smallSchool: boolean;
+  jrVarsity: boolean;
+  rank: number;           // the overall rank manually specified by the user
+  roster: TeamRoster;
+  divisions: { [phase: string]: string; }   // the divisions the team belongs to, indexed by phase
+}
+
+/**
  * Team1 (left side of the game modal) or Team2 (right side)
  */
 export type WhichTeam = 1 | 2;
