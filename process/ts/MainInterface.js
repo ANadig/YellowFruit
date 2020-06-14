@@ -179,10 +179,9 @@ export class MainInterface extends React.Component {
     this.saveRankOverrides = this.saveRankOverrides.bind(this);
   }
 
-  /*---------------------------------------------------------
-  Lifecyle method. Initialize listeners to ipcs from main
-  process.
-  ---------------------------------------------------------*/
+  /**
+   * Lifecyle method. Initialize listeners to ipcs from main process and other stuff
+   */
   componentDidMount() {
     //initialize modals
     M.Modal.init(document.querySelectorAll(
@@ -193,7 +192,8 @@ export class MainInterface extends React.Component {
     // clicking outside them doesn't close them
     $(document).on("keydown", (event) => {
       if(event.keyCode == 27) {
-        M.Modal.getInstance(document.querySelector('.modal.open')).close();
+        const openModal = document.querySelector('.modal.open');
+        if(openModal) { M.Modal.getInstance(openModal).close(); }
       }
     });
 
