@@ -7,17 +7,17 @@ React component representing one game on the games pane.
 import * as React from "react";
 import { ColorChip } from './ColorChip';
 import StatUtils = require('./StatUtils');
-import { QbGame, TournamentSettings, WhichTeam, PowerRule } from "./YfTypes";
+import { YfGame, TournamentSettings, WhichTeam, PowerRule } from "./YfTypes";
 
 interface GameListEntryProps {
-  game: QbGame;
-  onDelete: (whichGame: QbGame) => void;      // called when the user attempts to delete
-  onOpenGame: (whichGame: QbGame) => void;    // called when the user opens the game for editing
-  onSelectGame: (whichGame: QbGame) => void;  // called when the checkbox is toggled
+  game: YfGame;
+  onDelete: (whichGame: YfGame) => void;      // called when the user attempts to delete
+  onOpenGame: (whichGame: YfGame) => void;    // called when the user opens the game for editing
+  onSelectGame: (whichGame: YfGame) => void;  // called when the checkbox is toggled
   selected: boolean;                          // whether the checkbox is selected
   allPhases: string[];                        // list of the tournament's phases
   usingPhases: boolean;                       // whether this tournament has phases
-  removePhase: (whichGame: QbGame, phase: string) => void;  // remove a phase from a game
+  removePhase: (whichGame: YfGame, phase: string) => void;  // remove a phase from a game
   settings: TournamentSettings;
 }
 

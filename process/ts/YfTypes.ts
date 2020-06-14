@@ -1,5 +1,5 @@
 /**
- * qbtypes.ts
+ * YfTypes.ts
  * Andrew Nadig
  *
  * A file for widely-used type definitions
@@ -36,7 +36,7 @@ export interface PhaseList {
 }
 
 /**
- * Information about a single player
+ * Demographic information about a single player
  */
 export interface PlayerDemogs {
   year: string;
@@ -54,7 +54,7 @@ export interface TeamRoster {
 /**
  * Information for a single team
  */
-export interface QbTeam {
+export interface YfTeam {
   teamName: string;
   teamUGStatus: boolean;
   teamD2Status: boolean;
@@ -90,7 +90,7 @@ export interface TeamGameLine {
 /**
  * Information for a single match.
  */
-export interface QbGame {
+export interface YfGame {
   round: number;            // the round number
   phases: string[];         // list or phases this match belongs to
   tuhtot: number;           // total number of tossups read, including overtime

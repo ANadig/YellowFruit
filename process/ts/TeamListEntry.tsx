@@ -6,18 +6,18 @@ React component representing one team on the teams pane.
 ***********************************************************/
 import * as React from "react";
 import { ColorChip } from './ColorChip';
-import { QbTeam } from "./YfTypes";
+import { YfTeam } from "./YfTypes";
 
 interface TeamListEntryProps {
-  team: QbTeam;
-  onDelete: (whichTeam: QbTeam) => void;        // called when the user attempts to delete
-  onOpenTeam: (whichTeam: QbTeam) => void;      // called when the user opens the team for editing
-  onSelectTeam: (whichTeam: QbTeam) => void;    // called when the checkbox is toggled
+  team: YfTeam;
+  onDelete: (whichTeam: YfTeam) => void;        // called when the user attempts to delete
+  onOpenTeam: (whichTeam: YfTeam) => void;      // called when the user opens the team for editing
+  onSelectTeam: (whichTeam: YfTeam) => void;    // called when the checkbox is toggled
   selected: boolean;                            // whether the checkbox is selected
   numGamesPlayed: number;                       // how many games this team has played
   allPhases: string[];                          // list of the tournament's phases
   usingDivisions: boolean;                      // whether this tournament has divisions
-  removeDivision: (team: QbTeam, phase: string) => void;  // remove this team's divisions for this phase
+  removeDivision: (team: YfTeam, phase: string) => void;  // remove this team's divisions for this phase
   activeInPhase: boolean;                       // whether this team is participating in the phase the user is currently viewing
 }
 
