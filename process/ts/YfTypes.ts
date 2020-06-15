@@ -6,6 +6,15 @@
  */
 
 /**
+ * Panes in the UI, one of which the user is viewing at any time
+ */
+export enum YfPanes {
+  Settings = 'settingsPane',
+  Teams = 'teamsPane',
+  Games = 'gamesPane'
+}
+
+/**
  * How powers are socred
  */
 export enum PowerRule {
