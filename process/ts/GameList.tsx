@@ -9,12 +9,12 @@ import * as React from "react";
 import { YfPane } from "./YfTypes";
 
 interface GameListProps {
-  whichPaneActive: YfPane;
-  gameList: JSX.Element[];
-  openModal: () => void;
-  numberOfTeams: number;
-  totalGames: number;
-  numberSelected: number;
+  whichPaneActive: YfPane;      // which pane user is viewing. Render method short-circuits if not Games
+  gameList: JSX.Element[];      // List of GameListEntry s to show
+  openModal: () => void;        // tell MainInterface to open the game add modal
+  numberOfTeams: number;        // total number of teams in the file
+  totalGames: number;           // total number of games in the file
+  numberSelected: number;       // number of games currently selected
 }
 
 export class GameList extends React.Component<GameListProps, {}>{

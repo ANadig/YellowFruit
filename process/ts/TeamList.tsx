@@ -11,13 +11,13 @@ import { YfPane } from "./YfTypes";
 type TeamSortMode = 'division' | 'alpha';
 
 interface TeamListProps {
-  whichPaneActive: YfPane;
-  teamList: JSX.Element[];
-  openModal: () => void;
-  totalTeams: number;
-  sortTeamsBy: (mode: TeamSortMode) => void;
-  usingDivisions: boolean;
-  numberSelected: number;
+  whichPaneActive: YfPane;  // which pane user is viewing. Render method short-circuits if not Teams
+  teamList: JSX.Element[];  // list of TeamListEntry s to show
+  openModal: () => void;    // tell MainInterface to open the team add modal
+  totalTeams: number;       // total number of teams in the file
+  sortTeamsBy: (mode: TeamSortMode) => void;  // tell the mainInterface to sort teams a certain way
+  usingDivisions: boolean;  // whether the tournament uses divisions
+  numberSelected: number;   // number of teams currently selected
 }
 
 interface TeamListState {
@@ -110,7 +110,7 @@ export class TeamList extends React.Component<TeamListProps, TeamListState>{
 
 
   render () {
-    if (this.props.whichPaneActive != 'teamsPane') {
+    if (this.props.whichPaneActive != YfPane.Teams) {
       return null;
     }
 
