@@ -14,7 +14,6 @@ const Mousetrap = require('mousetrap');
 const ipc = electron.ipcRenderer;
 
 import * as React from "react";
-const ReactDOM = require('react-dom');
 const SqbsUtils = require('./SqbsUtils');
 const StatUtils = require('./StatUtils');
 const StatUtils2 = require('./StatUtils2');
@@ -23,7 +22,7 @@ const QbjUtils2 = require('./QbjUtils2');
 // Bring in all the other React components
 import { TeamListEntry } from './TeamListEntry';
 import { GameListEntry } from './GameListEntry';
-const HeaderNav = require('./HeaderNav');
+import { HeaderNav } from './HeaderNav';
 const AddTeamModal = require('./AddTeamModal');
 const AddGameModal = require('./AddGameModal');
 const DivisionEditModal = require('./DivisionEditModal');

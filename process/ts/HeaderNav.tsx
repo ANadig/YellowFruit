@@ -1,15 +1,36 @@
 /***********************************************************
-HeaderNav.js
+HeaderNav.tsx
 Andrew Nadig
 
 React component representing the navigation bar at the top.
 ***********************************************************/
-var React = require('react');
-var $ = require('jquery');
+import * as React from 'react';
+import * as $ from 'jquery';
+import { YfPane, PhaseList } from './YfTypes';
 
-class HeaderNav extends React.Component{
+interface HeaderNavProps {
+  onSearch: (text: string) => void;
+  setPane: (pane: YfPane) => void;
+  setPhase: (phase: string) => void;
+  whichPaneActive: YfPane;
+  viewingPhase: string;
+  divisions: PhaseList;
+  tbsExist: boolean;
+  usingPhases: boolean;
+  usingDivisions: boolean;
+  openDivModal: () => void;
+  openPhaseModal: () => void;
+  queryText: string;
+}
 
-  constructor(props) {
+interface HeaderNavState {
+  overflowTabs: boolean;
+  queryText: string;
+}
+
+export class HeaderNav extends React.Component<HeaderNavProps, HeaderNavState>{
+
+  constructor(props: HeaderNavProps) {
     super(props);
     this.state = {
       overflowTabs: false,
@@ -22,76 +43,82 @@ class HeaderNav extends React.Component{
     this.openPhaseModal = this.openPhaseModal.bind(this);
   }
 
-  /*---------------------------------------------------------
-  Tell the MainInterface to filter teams or games by what's
-  in the search bar.
-  ---------------------------------------------------------*/
-  handleSearch(e) {
-    var text = e.target.value;
+  /**
+   * Tell the MainInterface to filter teams or games by what's in the search bar
+   * @param  e event
+   */
+  handleSearch(e: any): void {
+    const text = e.target.value;
     this.props.onSearch(text);
     this.setState({
       queryText: text
     });
   }
 
-  /*---------------------------------------------------------
-  Set pane (settings/teams/games) to what the user has
-  clicked on.
-  ---------------------------------------------------------*/
-  setPane(e) {
+  /**
+   * Set pane (settings/teams/games) to what the user has clicked on
+   * @param  e event
+   */
+  setPane(e: any): void {
     this.props.setPane(e.target.id);
   }
 
-  /*---------------------------------------------------------
-  Tell the MainInterface to set the active phase. (Affects
-  what divisions are visible)
-  ---------------------------------------------------------*/
-  setPhase(e) {
+  /**
+   * Tell the MainInterface to set the active phase. (Affects what divisions are visible)
+   * @param  e event
+   */
+  setPhase(e: any): void {
     this.props.setPhase(e.target.id);
   }
 
-  /*---------------------------------------------------------
-  Whether the specified pane is currently visible.
-  ---------------------------------------------------------*/
-  isActive(pane) {
+  /**
+   * Add a className depending on if the specified pane is currently being viewed.
+   * @param   pane settings/teams/etc
+   * @return  'active' or ''
+   */
+  isActive(pane: YfPane): string {
     return this.props.whichPaneActive == pane ? 'active' : '';
   }
 
-  /*---------------------------------------------------------
-  Whether the specified phase is currently active.
-  ---------------------------------------------------------*/
-  isViewingPhase(phase) {
+  /**
+   * Add a className depending on Whether the specified phase is currently active.
+   * @param   phase name of the phase
+   * @return  'active' or ''
+   */
+  isViewingPhase(phase: string): string {
     return this.props.viewingPhase == phase ? 'active' : '';
   }
 
-  /*---------------------------------------------------------
-  Tell the MainInterface to open the division assignment
-  modal.
-  ---------------------------------------------------------*/
-  openDivModal() {
+  /**
+   * Tell the MainInterface to open the division assignment modal
+   */
+  openDivModal(): void {
     this.props.openDivModal();
   }
 
-  /*---------------------------------------------------------
-  Tell the MainInterface to open the phase assignment modal.
-  ---------------------------------------------------------*/
-  openPhaseModal() {
+  /**
+   * Tell the MainInterface to open the phase assignment modal.
+   */
+  openPhaseModal(): void {
     this.props.openPhaseModal();
   }
 
-  /*---------------------------------------------------------
-  Truncate phase at 15 characters
-  ---------------------------------------------------------*/
-  truncate(phase) {
+  /**
+   * Truncate phase at 15 characters
+   * @param  phase  name of phase
+   * @return  full name or first 15 characters + '...'
+   */
+  truncate(phase: string): string {
     if(phase.length <= 15) { return phase; }
     return phase.substr(0,15) + '...';
   }
 
-  /*---------------------------------------------------------
-  A button to open the division or phase assignment modal,
-  or no button, depending on which pane is visible.
-  ---------------------------------------------------------*/
-  getAssignmentButton() {
+  /**
+   * A button to open the division or phase assignment modal, or no button, depending
+   * on which pane is visible.
+   * @return  Button element, or null
+   */
+  getAssignmentButton(): JSX.Element {
     if(this.props.whichPaneActive == 'teamsPane' && this.props.usingDivisions) {
       var tooltip = 'Assign divisions to selected teams';
       return (
@@ -111,20 +138,20 @@ class HeaderNav extends React.Component{
     return null;
   }//getAssignmentButton
 
-  /*---------------------------------------------------------
-  Tabs on the bottom of the navbar for pickig which phase
-  is active.
-  ---------------------------------------------------------*/
-  phaseTabs() {
-    var allPhasesTab = (
+  /**
+   * Tabs on the bottom of the navbar for pickig which phase is active
+   * @return  div element containing the tabs
+   */
+  phaseTabs(): JSX.Element {
+    const allPhasesTab = (
       <li key={'all'} className={'tab ' + this.isViewingPhase('all')}>
         <a id={'all'} onClick={this.setPhase}>All Games</a>
       </li>
     );
-    var tabList = [allPhasesTab];
-    for(var phase in this.props.divisions) {
+    let tabList = [allPhasesTab];
+    for(let phase in this.props.divisions) {
       if(phase != 'noPhase') {
-        var oneTab = (
+        let oneTab = (
           <li key={phase} className={'tab ' + this.isViewingPhase(phase)} title={phase}>
             <a id={phase} onClick={this.setPhase}>{this.truncate(phase)}</a>
           </li>
@@ -139,7 +166,7 @@ class HeaderNav extends React.Component{
         </li>
       ));
     }
-    var skinny = this.state.overflowTabs ? '' : ' skinny-tabs';
+    const skinny = this.state.overflowTabs ? '' : ' skinny-tabs';
     return (
       <div className="nav-content">
         <ul className={'tabs tabs-transparent' + skinny} id="phase-tabs">
@@ -149,12 +176,11 @@ class HeaderNav extends React.Component{
     );
   }//phaseTabs
 
-  /*---------------------------------------------------------
-  re-render if the phase tabs have just started or stopped
-  overflowing
-  ---------------------------------------------------------*/
+  /**
+   * re-render if the phase tabs have just started or stopped overflowing
+   */
   adjustTabs() {
-    var tabs = $('#phase-tabs')[0];
+    const tabs = $('#phase-tabs')[0];
     if(tabs != undefined && tabs.scrollWidth > tabs.clientWidth && !this.state.overflowTabs) {
       this.setState({
         overflowTabs: true
@@ -167,25 +193,25 @@ class HeaderNav extends React.Component{
     }
   }
 
-  /*---------------------------------------------------------
-  Lifecyle method
-  ---------------------------------------------------------*/
-  componentDidUpdate(prevProps) {
+  /**
+   * Lifecycle method
+   * @param  _prevProps unused
+   */
+  componentDidUpdate(_prevProps: any): void {
     this.adjustTabs();
   }
 
-  /*---------------------------------------------------------
-  Lifecyle method
-  ---------------------------------------------------------*/
-  componentDidMount() {
+  /**
+   * Lifecycle method
+   */
+  componentDidMount(): void {
     this.adjustTabs();
   }
 
 
 
   render() {
-    var phaseTabs = null;
-    var numberOfPhases = Object.keys(this.props.divisions).length;
+    let phaseTabs = null;
     if(this.props.usingPhases || this.props.tbsExist) {
       phaseTabs = this.phaseTabs()
     }
@@ -200,14 +226,13 @@ class HeaderNav extends React.Component{
               </li>
             </ul>
             <ul id="nav-mobile" className="right">
-              <li className={this.isActive("settingsPane")}><a id="settingsPane" onClick={this.setPane}>Settings</a></li>
-              <li className={this.isActive("teamsPane")}><a id="teamsPane" onClick={this.setPane}>Teams</a></li>
-              <li className={this.isActive("gamesPane")}><a id="gamesPane" onClick={this.setPane}>Games</a></li>
+              <li className={this.isActive(YfPane.Settings)}><a id="settingsPane" onClick={this.setPane}>Settings</a></li>
+              <li className={this.isActive(YfPane.Teams)}><a id="teamsPane" onClick={this.setPane}>Teams</a></li>
+              <li className={this.isActive(YfPane.Games)}><a id="gamesPane" onClick={this.setPane}>Games</a></li>
               <li>
                 <div className="input-field qb-search">
-                  <input id="search" className="qb-search-input" type="search" value={this.state.queryText}
-                  onChange={this.handleSearch} placeholder="Search" autoFocus type="text"
-                  className="form-control" aria-label="Search Appointments" />
+                  <input id="search" className="qb-search-input form-control" type="text" value={this.state.queryText}
+                  onChange={this.handleSearch} placeholder="Search" aria-label="Search" />
                 </div>
               </li>
             </ul>
@@ -218,5 +243,3 @@ class HeaderNav extends React.Component{
     ) // return
   }//render
 }; //HeaderNav
-
-module.exports = HeaderNav;
