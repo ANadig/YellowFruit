@@ -31,7 +31,7 @@ const RptConfigModal = require('./RptConfigModal');
 import { DivAssignModal } from './DivAssignModal';
 import { PhaseAssignModal } from './PhaseAssignModal';
 const SettingsForm = require('./SettingsForm');
-const TeamList = require('./TeamList');
+import { TeamList } from './TeamList';
 import { GameList} from './GameList';
 const StatSidebar = require('./StatSidebar');
 import { SidebarToggleButton } from './SidebarToggleButton';

@@ -6,10 +6,10 @@ React component representing the list of games on the games
 pane.
 ***********************************************************/
 import * as React from "react";
-import { YfPanes } from "./YfTypes";
+import { YfPane } from "./YfTypes";
 
 interface GameListProps {
-  whichPaneActive: YfPanes;
+  whichPaneActive: YfPane;
   gameList: JSX.Element[];
   openModal: () => void;
   numberOfTeams: number;
@@ -73,7 +73,7 @@ export class GameList extends React.Component<GameListProps, {}>{
   }
 
   render () {
-    if (this.props.whichPaneActive != YfPanes.Games) {
+    if (this.props.whichPaneActive != YfPane.Games) {
       return null;
     }
     // zero-state display for when there are no games.

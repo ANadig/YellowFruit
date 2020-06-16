@@ -8,14 +8,14 @@
 /**
  * Panes in the UI, one of which the user is viewing at any time
  */
-export enum YfPanes {
+export enum YfPane {
   Settings = 'settingsPane',
   Teams = 'teamsPane',
   Games = 'gamesPane'
 }
 
 /**
- * How powers are socred
+ * How powers are scored
  */
 export enum PowerRule {
   Twenty = '20pts',
