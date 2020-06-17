@@ -1,22 +1,48 @@
 /***********************************************************
-StatSidebar.js
+StatSidebar.tsx
 Andrew Nadig
 
 React component representing the abbreviated version of the
 stats report that appears on the side.
 ***********************************************************/
-const React = require('react');
-const _ = require('lodash');
-const StatUtils = require('./StatUtils');
+import * as React from 'react';
+import * as _ from 'lodash';
+import StatUtils = require('./StatUtils');
+import { TournamentSettings } from './YfTypes';
 
-class StatSidebar extends React.Component{
+/**
+ * Teams' manually specified ranks. Strings because that's how the html fields send them
+ */
+interface RankingList {
+  [teamName: string]: string;   // index teams' ranks by their team name
+}
 
-  constructor(props) {
+interface StatSidebarProps {
+  visible: boolean;               // whether the sidebar is open
+  standings: any;                 // standings information from StatUtils
+  phase: string;                  // which phase to show standings for
+  divisions: string[];            // divisions to group teams by
+  phasesToGroupBy: string[];      // phases whose divisions we're grouping teams by
+  phaseSizes: number[];           // number of divisions in each phase of phasesToGroupBy
+  settings: TournamentSettings;   // tournament rules
+  rptConfig: any;                 // report configuration (so that sidebar mirrors the html report)
+  filterByTeam: (team: string) => void;               // find a team's games when its name is clicked
+  saveRankOverrides: (ranks:RankingList) => void;     // file the data in the rank fields
+}
+
+interface StatSidebarState {
+  rankOverrides: RankingList;   // list of teams' rank overrides
+  ranksEditable: boolean;       // whether ranking fields are available for editing
+}
+
+export class StatSidebar extends React.Component<StatSidebarProps, StatSidebarState>{
+
+  constructor(props: StatSidebarProps) {
     super(props);
-    var rankings = {};
+    let rankings = {};
     for(var i in props.standings) {
-      let tm = props.standings[i]
-      let rank = tm.rank;
+      const tm = props.standings[i]
+      const rank = tm.rank;
       if(rank == undefined) { rankings[tm.teamName] = ''; }
       else { rankings[tm.teamName] = rank; }
     }
@@ -30,35 +56,38 @@ class StatSidebar extends React.Component{
     this.saveRankOverrides = this.saveRankOverrides.bind(this);
   }
 
-  /*---------------------------------------------------------
-  Update state when on of the rank fields changes value
-  ---------------------------------------------------------*/
-  handleRankChange(e) {
+  /**
+   *  Update state when on of the rank fields changes value
+   * @param  e  event
+   */
+  handleRankChange(e: any): void {
     const target = e.target;
     const value = target.value;
     const name = target.name;
     const whichTeam = name.replace('_rank_', '');
-    var tempRanks = this.state.rankOverrides;
+    let tempRanks = this.state.rankOverrides;
     tempRanks[whichTeam] = value;
     this.setState({
       rankOverrides: tempRanks
     });
   }
 
-  /*---------------------------------------------------------
-  When a team's name is clicked on, filter the list of games
-  ---------------------------------------------------------*/
-  filterByTeam(e) {
-    var teamName = e.target.name;
+  /**
+   * When a team's name is clicked on, filter the list of games
+   * @param  e events
+   */
+  filterByTeam(e: any): void {
+    const teamName = e.target.innerText;
     this.props.filterByTeam(teamName);
   }
 
-  /*---------------------------------------------------------
-  Does this tournament have at least one tie?
-  ---------------------------------------------------------*/
-  tiesExist() {
-    for(var i in this.props.standings) {
-      if(this.props.standings[i].ties > 0) { return true; }
+  /**
+   *  Does this tournament have at least one tie?
+   * @return  true iff >=1 game is a tie
+   */
+  tiesExist(): boolean {
+    for(let g of this.props.standings) {
+      if(g.ties > 0) { return true; }
     }
     return false;
   }
@@ -84,7 +113,7 @@ class StatSidebar extends React.Component{
       if(this.props.phase == 'all') {
         if(this.state.ranksEditable) {
           rankCell = (
-            <td><input type="number" id={'_rank_'+teamName} size="2"
+            <td><input type="number" id={'_rank_'+teamName} size={2}
             placeholder={item.rank} name={'_rank_'+teamName} min="1"
             value={this.state.rankOverrides[teamName]} onChange={this.handleRankChange}
             /></td>
@@ -104,7 +133,7 @@ class StatSidebar extends React.Component{
         <tr key={teamName}>
           {rankCell}
           <td className="text-cell">
-            <a onClick={this.filterByTeam} name={teamName}
+            <a onClick={this.filterByTeam}
             title="Find this team's games">{teamName}</a>
           </td>
           <td>{item.team.wins}</td>
@@ -155,19 +184,19 @@ class StatSidebar extends React.Component{
     );
   } //getTable
 
-  /*---------------------------------------------------------
-  Make ranks editable to be overridden
-  ---------------------------------------------------------*/
-  enableRankEdit() {
+  /**
+   *  Make ranks editable to be overridden
+   */
+  enableRankEdit(): void {
     this.setState({
       ranksEditable: true
     });
   }
 
-  /*---------------------------------------------------------
-  Save rankings and exit edit mode
-  ---------------------------------------------------------*/
-  saveRankOverrides() {
+  /**
+   *  Save rankings and exit edit mode
+   */
+  saveRankOverrides(): void {
     this.props.saveRankOverrides(this.state.rankOverrides);
     this.setState({
       ranksEditable: false
@@ -179,15 +208,14 @@ class StatSidebar extends React.Component{
     if(!this.props.visible) { return null; }
     if(this.props.rptConfig == undefined) { return ( <span>Report configuration error</span> ); }
 
-    var linesToPrint = StatUtils.arrangeStandingsLines(this.props.standings, this.props.phase,
+    const linesToPrint = StatUtils.arrangeStandingsLines(this.props.standings, this.props.phase,
       this.props.divisions, this.props.phasesToGroupBy, this.props.phaseSizes, this.props.rptConfig);
 
-    var tiesExist = this.tiesExist();
-    var tables = [];
+    const tiesExist = this.tiesExist();
+    let tables = [];
 
     let curDivName = null, curDivTeams = [];
-    for(var i in linesToPrint) {
-      let curLine = linesToPrint[i];
+    for(let curLine of linesToPrint) {
       switch (curLine.type) {
         case 'divLabel':
           curDivName = curLine.divName;
@@ -204,7 +232,7 @@ class StatSidebar extends React.Component{
       }
     }
 
-    var rankButton = null;
+    let rankButton = null;
     if(this.state.ranksEditable) {
       rankButton = (
         <button className="btn-flat grey lighten-3 waves-effect tooltipped"
@@ -230,5 +258,3 @@ class StatSidebar extends React.Component{
     )
   }
 }
-
-module.exports=StatSidebar

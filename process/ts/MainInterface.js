@@ -32,7 +32,7 @@ import { PhaseAssignModal } from './PhaseAssignModal';
 const SettingsForm = require('./SettingsForm');
 import { TeamList } from './TeamList';
 import { GameList} from './GameList';
-const StatSidebar = require('./StatSidebar');
+import { StatSidebar } from './StatSidebar';
 import { SidebarToggleButton } from './SidebarToggleButton';
 
 const MAX_PLAYERS_PER_TEAM = 50;
