@@ -15,6 +15,14 @@ export enum YfPane {
 }
 
 /**
+ * Results of validating some data (team, game, etc):
+ * index 0: whether the data is valid (user is allowed to save);
+ * 1: type of message to show;
+ * 2: message text
+ */
+export type FormValidation = [boolean, 'error' | 'warning' | 'info', string]
+
+/**
  * How powers are scored
  */
 export enum PowerRule {

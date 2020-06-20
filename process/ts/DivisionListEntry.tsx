@@ -8,7 +8,9 @@ import * as React from "react";
 import { ColorChip } from './ColorChip';
 
 /**
- * Data associated with a drag event that identifies which division is being dragged
+ * Represents a single division in the UI that can be edited, deleted, or dragged.
+ * Is Used to communicate among components which division we're doing something with,
+ * since division names must only be unique within a phase, not across phases.
  */
 export interface DraggableDivision {
   divisionName: string;

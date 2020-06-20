@@ -1,18 +1,39 @@
 /***********************************************************
-DivisionEditModal.js
+DivisionEditModal.tsx
 Andrew Nadig
 
 React component comprising the Modal window containing the
 form for entering and editing teams.
 ***********************************************************/
-var React = require('react');
-var $ = require('jquery');
-var _ = require('lodash');
-var M = require('materialize-css');
+import * as React from 'react';
+import * as $ from 'jquery';
+import * as _ from 'lodash';
+import * as M from 'materialize-css';
+import { PhaseList, FormValidation } from './YfTypes';
+import { DraggableDivision } from './DivisionListEntry';
 
-class DivisionEditModal extends React.Component {
+interface DivisionEditModalProps {
+  isOpen: boolean;
+  addOrEdit: 'add' | 'edit';
+  divisionToLoad: DraggableDivision;
+  onLoadDivInModal: () => void;
+  divisions: PhaseList;
+  addDivision: (divName: string, phase: string, acceptAndStay: boolean) => void;
+  modifyDivision: (oldDivision: DraggableDivision, newDivName: string, newPhase: string, acceptAndStay: boolean) => void;
+  validateName: (newDivName: string, newPhase: string, savedDivision: DraggableDivision) => boolean;
+  forceReset: boolean;
+  onForceReset: () => void;
+}
 
-  constructor(props) {
+interface DivisionEdiModalState {
+  divisionName: string;
+  phase: string;
+  originalDivLoaded: DraggableDivision;
+}
+
+export class DivisionEditModal extends React.Component<DivisionEditModalProps, DivisionEdiModalState> {
+
+  constructor(props: DivisionEditModalProps) {
     super(props);
     this.state = {
       divisionName: '',
@@ -23,21 +44,22 @@ class DivisionEditModal extends React.Component {
     this.handleAdd = this.handleAdd.bind(this);
   }
 
-  /*---------------------------------------------------------
-  Lifecyle method.
-  ---------------------------------------------------------*/
-  componentDidMount() {
+  /**
+   * Lifecycle method
+   */
+  componentDidMount(): void {
     //Don't allow Enter key to submit form
     $(document).on("keydown", "#editDivision :input:not(textarea)", function(event) {
       return event.keyCode != 13;
     });
   }
 
-  /*---------------------------------------------------------
-  Lifecyle method. Need an extra render when opening or
-  closing in order for fields to populate and clear properly.
-  ---------------------------------------------------------*/
-  componentDidUpdate(prevProps) {
+  /**
+   * Lifecyle method. Need an extra render when opening or closing in order for fields
+   * to populate and clear properly.
+   * @param  _prevProps unused
+   */
+  componentDidUpdate(_prevProps: any) {
     //needed so that labels aren't on top of data when the edit form opens
     M.updateTextFields();
     //needed so that dropdown shows its value
@@ -54,26 +76,28 @@ class DivisionEditModal extends React.Component {
     }
   }
 
-  /*---------------------------------------------------------
-  Update state when a value in the form changes
-  ---------------------------------------------------------*/
-  handleChange(e) {
+  /**
+   * Update state when a value in the form changes
+   * @param  e event
+   */
+  handleChange(e: any): void {
     const target = e.target;
     const value = target.value;
     const name = target.name;
-    var partialState = {};
+    let partialState = {};
     partialState[name] = value;
     this.setState(partialState);
   }
 
-  /*---------------------------------------------------------
-  Send data to mainInterface when the form is submitted
-  ---------------------------------------------------------*/
-  handleAdd(e) {
+  /**
+   * Send data to mainInterface when the form is submitted
+   * @param  e event
+   */
+  handleAdd(e: any): void {
     e.preventDefault();
     if(!this.props.isOpen) { return; }
-    var acceptAndStay = e.target.name == 'acceptAndStay';
-    var newDivName = this.state.divisionName.trim();
+    const acceptAndStay = e.target.name == 'acceptAndStay';
+    const newDivName = this.state.divisionName.trim();
     if(this.props.addOrEdit == 'add') {
       this.props.addDivision(newDivName, this.state.phase, acceptAndStay);
     }
@@ -84,10 +108,10 @@ class DivisionEditModal extends React.Component {
     this.resetState();
   }
 
-  /*---------------------------------------------------------
-  Once we're done with the form, clear the data.
-  ---------------------------------------------------------*/
-  resetState() {
+  /**
+   * Once we're done with the form, clear the data.
+   */
+  resetState(): void {
     this.setState({
       divisionName: '',
       phase: 'noPhase',
@@ -95,12 +119,11 @@ class DivisionEditModal extends React.Component {
     });
   }
 
-  /*---------------------------------------------------------
-  Populate form with the existing team's data. Also keep a
-  pointer to this team so the MainInterface can remember
-  which team to modify.
-  ---------------------------------------------------------*/
-  loadDivision() {
+  /**
+   * Populate form with the existing team's data. Also keep a pointer to this team so
+   * the MainInterface can remember which team to modify.
+   */
+  loadDivision(): void {
     this.setState({
       divisionName: this.props.divisionToLoad.divisionName,
       phase: this.props.divisionToLoad.phase,
@@ -108,15 +131,12 @@ class DivisionEditModal extends React.Component {
     });
   }
 
-  /*---------------------------------------------------------
-  Whether there are any issues with the team. 3-element array:
-  - Are there errors, true/false
-  - Severity level (error: can't save team; warning: can
-    override)
-  - Error message
-  ---------------------------------------------------------*/
-  validateDivision() {
-    if(this.state.divisionName.trim() == '') { return [false, '', '']; } // name can't be just whitespace
+  /**
+   * Whether there are any issues with the team.
+   * @return FormValidation tuple
+   */
+  validateDivision(): FormValidation {
+    if(this.state.divisionName.trim() == '') { return [false, null, '']; } // name can't be just whitespace
     if(!this.props.validateName(this.state.divisionName.trim(), this.state.phase, this.state.originalDivLoaded)) {
       return [false, 'error', 'Duplicate division'];
     }
@@ -124,28 +144,32 @@ class DivisionEditModal extends React.Component {
       this.state.phase != this.state.originalDivLoaded.phase) {
         return [true, 'warning', 'This division will be removed from all teams'];
       }
-    return [true, '', ''];
+    return [true, null, ''];
   }
 
-  /*---------------------------------------------------------
-  Title at the top of the window
-  ---------------------------------------------------------*/
-  getModalHeader() {
+  /**
+   * Title at the top of the window
+   * @return  string to display
+   */
+  getModalHeader(): string {
     return this.props.addOrEdit == 'add' ? 'New division' : 'Edit division';
   }
 
-  /*---------------------------------------------------------
-  Add the disabled attribute to the submit button.
-  ---------------------------------------------------------*/
-  disabledButton(isValid) {
+  /**
+   * Disabled attribute to add to the the submit button.
+   * @param  isValid  whether the data can be saved
+   * @return 'disabled' or ''
+   */
+  disabledButton(isValid: boolean): string {
     return isValid ? '' : 'disabled';
   }
 
-  /*---------------------------------------------------------
-  Returns a JSX element containing the appropriate icon
-  (or null if no error)
-  ---------------------------------------------------------*/
-  getErrorIcon(errorLevel) {
+  /**
+   * Returns a JSX element containing the appropriate icon (or null if no error)
+   * @param  errorLevel type of message.
+   * @return icon element
+   */
+  getErrorIcon(errorLevel: 'error' | 'warning' | 'info'): JSX.Element {
     if(errorLevel == 'error') {
       return ( <i className="material-icons red-text text-darken-4 qb-modal-error">error</i> );
     }
@@ -158,13 +182,13 @@ class DivisionEditModal extends React.Component {
 
 
   render() {
-    var [isValid, errorLevel, errorMessage] = this.validateDivision();
-    var errorIcon = this.getErrorIcon(errorLevel);
-    var acceptHotKey = isValid ? 'a' : '';
-    var acceptStayHotKey = isValid ? 's' : '';
+    const [isValid, errorLevel, errorMessage] = this.validateDivision();
+    const errorIcon = this.getErrorIcon(errorLevel);
+    const acceptHotKey = isValid ? 'a' : '';
+    const acceptStayHotKey = isValid ? 's' : '';
 
-    var phaseList = _.without(Object.keys(this.props.divisions), 'noPhase');
-    var phaseOptionList = phaseList.map(function(phase, idx) {
+    const phaseList = _.without(Object.keys(this.props.divisions), 'noPhase');
+    let phaseOptionList = phaseList.map(function(phase, idx) {
       return ( <option key={idx} value={phase}>{phase}</option> );
     });
     var nullOption = (<option key={-1} value="noPhase">Phase...</option>);
@@ -177,7 +201,7 @@ class DivisionEditModal extends React.Component {
           <div className="row">
             <div className="col s7 l8">
               <div className="input-field">
-                <input type="text" id="divisionName" name="divisionName" maxLength="100"
+                <input type="text" id="divisionName" name="divisionName" maxLength={100}
                   onChange={this.handleChange} value={this.state.divisionName}/>
                 <label htmlFor="divisionName">Name</label>
               </div>
@@ -216,5 +240,3 @@ class DivisionEditModal extends React.Component {
   }
 
 }
-
-module.exports=DivisionEditModal;
