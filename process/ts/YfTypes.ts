@@ -46,6 +46,13 @@ export interface TournamentSettings {
 }
 
 /**
+ * A list of packets indexed by round number
+ */
+export interface PacketList {
+  [round: number]: string;
+}
+
+/**
  * The phase/divisions structure of a tournament
  */
 export interface PhaseList {
@@ -62,7 +69,7 @@ export interface PlayerDemogs {
 }
 
 /**
- * The list of players on one team
+ * The list of players on one team, indexed by player name
  */
 export interface TeamRoster {
   [playerName: string]: PlayerDemogs;
@@ -98,7 +105,7 @@ export interface PlayerLine {
 }
 
 /**
- * One team's tossup stats for one game
+ * One team's tossup stats for one game, indexed by player name
  */
 export interface TeamGameLine {
   [playerName: string]: PlayerLine;   // index each player's stats by their name
@@ -131,4 +138,11 @@ export interface YfGame {
   lightningPts2: number;    // lightning round points for team2
   players1: TeamGameLine;   // team1's players' stats
   players2: TeamGameLine;   // team2's players' stats
+}
+
+/**
+ * List the number of games in each round
+ */
+export interface GameIndex {
+  [round: number]: number;
 }
