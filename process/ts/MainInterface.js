@@ -1,10 +1,9 @@
 /***********************************************************
-render.js
+MainInterface.js
 Andrew Nadig
 
-Entry point for the Electron renderer process. Defines the
-MainInterface compenent that contains the entire UI of the
-main window
+Defines the MainInterface compenent that contains the
+entire UI of the main window
 ***********************************************************/
 const $ = require('jquery');
 const _ = require('lodash');
