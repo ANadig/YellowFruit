@@ -147,6 +147,7 @@ function getRankings(): QbjRanking[] {
   let overall: QbjRanking = {
     type: 'Ranking',
     id: 'Ranking_AllGames',
+    name: 'Final Rank',
     description: 'Overall placement in the tournament, if specified by the user'
   };
   return [overall];

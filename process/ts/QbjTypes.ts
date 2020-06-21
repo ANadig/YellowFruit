@@ -137,7 +137,6 @@ interface QbjRanking {
   type: 'Ranking';
   id?: string;
   name?: string;
-  // not implemented currently in YF
   description?: string;
 }
 
