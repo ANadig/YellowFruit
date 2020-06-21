@@ -24,7 +24,7 @@ export function getQbjFile(settings: TournamentSettings, divisions: PhaseList,
   fileName: string): QbjFile {
 
   let topLevel: QbjFile = {
-    version: '2.0',
+    version: '2.1',
     objects: []
   };
   let objList = [];

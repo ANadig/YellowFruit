@@ -107,7 +107,7 @@ const YF_MENU = {
       click(item, focusedWindow) { trySqbsExport(focusedWindow); }
     },
     {
-      label: 'Export QBJ 2.0',
+      label: 'Export QBJ 2.1',
       click(item, focusedWindow) { exportQbj(focusedWindow); }
     },
     {type: 'separator'},
