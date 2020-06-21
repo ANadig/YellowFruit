@@ -18,7 +18,7 @@ const SqbsUtils = require('./SqbsUtils');
 const StatUtils = require('./StatUtils');
 const StatUtils2 = require('./StatUtils2');
 const QbjUtils = require('./QbjUtils');
-const QbjUtils2 = require('./QbjUtils2');
+import * as QbjUtils2 from './QbjUtils2';
 // Bring in all the other React components
 import { TeamListEntry } from './TeamListEntry';
 import { GameListEntry } from './GameListEntry';
