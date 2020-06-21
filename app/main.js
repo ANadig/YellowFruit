@@ -677,7 +677,8 @@ app.on('ready', function() {
     height: 710,
     show: false,
     title: 'YellowFruit - New Tournament',
-    icon: icon
+    icon: icon,
+    webPreferences: { nodeIntegration: true }
   }); //appWindow
 
   mainWindowId = appWindow.id;
