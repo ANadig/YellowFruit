@@ -383,7 +383,8 @@ function showHelpWindow(focusedWindow, fileName, width, height) {
     parent: focusedWindow,
     modal: true,
     autoHideMenuBar: true,
-    icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
+    icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico'),
+    webPreferences: { nodeIntegration: true }
   });
   helpWindow.loadURL('file://' + __dirname + '/' + fileName);
   helpWindow.setMenu(helpMenu);
@@ -661,6 +662,7 @@ app.on('ready', function() {
     show: false,
     transparent: true,
     skipTaskbar: true,
+    webPreferences: { nodeIntegration: true }
   });
   splashWindow.loadURL('file://' + __dirname + '/splash.html');
   splashWindow.once('ready-to-show', () => {
