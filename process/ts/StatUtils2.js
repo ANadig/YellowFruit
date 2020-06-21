@@ -159,7 +159,46 @@ Add lightning round attributes
 module.exports.gameConversion2x5x0 = function(games) {
   for(var i in games) {
     games[i].lightningPts1 = '';
-    games[i].lightningPts2 = ''; 
+    games[i].lightningPts2 = '';
+  }
+}
+
+/**
+ * Change numeric fields to be numbers
+ * @param  {YFGame[]} games list of games
+ */
+module.exports.gameConversion2x5x2 = function(games) {
+  for(let g of games) {
+    g.round = +g.round;
+    g.tuhtot = +g.tuhtot;
+    g.ottu = +g.ottu;
+    g.score1 = +g.score1;
+    g.score2 = +g.score2;
+    g.otPwr1 = +g.otPwr1;
+    g.otPwr2 = +g.otPwr2;
+    g.otTen1 = +g.otTen1;
+    g.OtTen2 = +g.otTen2;
+    g.otNeg1 = +g.otNeg1;
+    g.otNeg2 = +g.otNeg2;
+    g.bbPts1 = +g.bbPts1;
+    g.bbPts2 = +g.bbPts2;
+    g.lightningPts1 = +g.lightningPts1;
+    g.lightningPts2 = +g.lightningPts2;
+
+    for(let p in g.players1) {
+      let line = g.players1[p];
+      line.tuh = +line.tuh;
+      line.powers = +line.powers;
+      line.tens = +line.tens;
+      line.negs = +line.negs;
+    }
+    for(let p in g.players2) {
+      let line = g.players2[p];
+      line.tuh = +line.tuh;
+      line.powers = +line.powers;
+      line.tens = +line.tens;
+      line.negs = +line.negs;
+    }
   }
 }
 
