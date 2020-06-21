@@ -14,7 +14,7 @@ const Mousetrap = require('mousetrap');
 const ipc = electron.ipcRenderer;
 
 import * as React from "react";
-const SqbsUtils = require('./SqbsUtils');
+import * as SqbsUtils from './SqbsUtils';
 const StatUtils = require('./StatUtils');
 const StatUtils2 = require('./StatUtils2');
 const QbjUtils = require('./QbjUtils');
