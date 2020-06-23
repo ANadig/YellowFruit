@@ -2038,7 +2038,7 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
     html += '</table>' + '<br>' + '\n';
     html += '<table width=100%>' + '\n';
     html += teamDetailPlayerTableHeader(settings, rptConfig) + '\n';
-    for(var i in individuals) {
+    for(let i in individuals) {
       var player = individuals[i]
       if(player.teamName == teamName && player.gamesPlayed > 0) {
         html += teamDetailPlayerRow(individuals[i], fileStart, settings, rptConfig);

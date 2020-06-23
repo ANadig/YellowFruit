@@ -392,22 +392,19 @@ function showHelpWindow(focusedWindow, fileName, width, height) {
   helpWindow.once('close', () => { focusedWindow.focus(); }); //prevent flickering
 }
 
-/*---------------------------------------------------------
-Save the html stat reports to their respective files. The
-user can select any page of the existing report in order
-to replace all seven pages with new versions.
----------------------------------------------------------*/
+/**
+ * Save the html stat reports to their respective files. The use can select any page of
+ * the existing report in order to replace all pages with new verions.
+ * @param  {BrowserWindow} focusedWindow window to attach modals to
+ */
 function exportHtmlReport(focusedWindow) {
   if(!isMainWindow(focusedWindow)) { return; }
-  dialog.showSaveDialog(focusedWindow,
-    {filters: [{name: 'HTML Webpages', extensions: ['html']}]},
-    (fileName) => {
-      if(fileName == undefined) { return; }
-      var fileStart = fileName.replace(/.html/i, '');
-      fileStart = fileStart.replace(/_(standings|individuals|games|teamdetail|playerdetail|rounds|statkey)/i, '');
-      focusedWindow.webContents.send('exportHtmlReport', fileStart);
-    }
-  );
+  let fileName = dialog.showSaveDialogSync(focusedWindow,
+    { filters: [{ name: 'HTML Webpages', extensions: ['html'] }] });
+  if(fileName == undefined) { return; }
+  let fileStart = fileName.replace(/.html/i, '');
+  fileStart = fileStart.replace(/_(standings|individuals|games|teamdetail|playerdetail|rounds|statkey)/i, '');
+  focusedWindow.webContents.send('exportHtmlReport', fileStart);
 }
 
 /*---------------------------------------------------------
@@ -419,49 +416,41 @@ function trySqbsExport(focusedWindow) {
   focusedWindow.webContents.send('trySqbsExport');
 }
 
-/*---------------------------------------------------------
-Prompt the user to select a file name for the SQBS file
-export.
----------------------------------------------------------*/
+/**
+ * Prompt the user to select a file name for the SQBS file export
+ * @param  {BrowserWindow} focusedWindow window to attach modals to
+ */
 function sqbsSaveDialog(focusedWindow) {
-  dialog.showSaveDialog(focusedWindow,
-    {filters: [{name: 'SQBS tournament', extensions: ['sqbs']}]},
-    (fileName) => {
-      if(fileName == undefined) { return; }
-      focusedWindow.webContents.send('exportSqbsFile', fileName);
-    }
-  );
+  let fileName = dialog.showSaveDialogSync(focusedWindow,
+    { filters: [{ name: 'SQBS tournament', extensions: ['sqbs'] }] });
+  if(fileName === undefined) { return; }
+  focusedWindow.webContents.send('exportSqbsFile', fileName);
 }
 
-/*---------------------------------------------------------
-Export tournament in the tournament schema format
----------------------------------------------------------*/
+/**
+ * Export tournament in the tournament schema format
+ * @param  {BrowserWindow} focusedWindow window to attach modals to
+ */
 function exportQbj(focusedWindow) {
   if(!isMainWindow(focusedWindow)) { return; }
-  dialog.showSaveDialog(focusedWindow,
-    {filters: [{name: 'Tournament Schema', extensions: ['qbj']}]},
-    (fileName) => {
-      if(fileName == undefined) { return; }
-      focusedWindow.webContents.send('exportQbj', fileName);
-    }
-  );
+  let fileName = dialog.showSaveDialogSync(focusedWindow,
+    { filters: [{ name: 'Tournament Schema', extensions: ['qbj'] }] });
+  if(fileName === undefined) { return; }
+  focusedWindow.webContents.send('exportQbj', fileName);
 }
 
-/*---------------------------------------------------------
-Prompt the user to select a file name for the data
-(YellowFruit, not SQBS format)
----------------------------------------------------------*/
+/**
+ * Prompt the user to select a file name for the data
+ * @param  {BrowserWindow} focusedWindow window to attach modals to
+ */
 function saveTournamentAs(focusedWindow) {
   if(!isMainWindow(focusedWindow)) { return; }
-  dialog.showSaveDialog(focusedWindow,
-    {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
-    (fileName) => {
-      if(fileName != undefined) {
-        currentFile = fileName;
-        focusedWindow.webContents.send('saveTournamentAs', fileName);
-      }
-    }
-  );
+  let fileName = dialog.showSaveDialogSync(focusedWindow,
+    { filters: [{ name: 'YellowFruit Tournament', extensions: ['yft'] }] });
+  if(fileName !== undefined) {
+    currentFile = fileName;
+    focusedWindow.webContents.send('saveTournamentAs', fileName);
+  }
 }
 
 /*---------------------------------------------------------
@@ -478,12 +467,14 @@ function saveExistingTournament(focusedWindow, fromAutoSave) {
   }
 }
 
-/*---------------------------------------------------------
-Load a tournament from a file.
----------------------------------------------------------*/
+/**
+ * Load a tournament from a file.
+ * @param  {BrowserWindow} focusedWindow window to attach modals to
+ */
 function openTournament(focusedWindow) {
   if(!isMainWindow(focusedWindow)) { return; }
-  var willContinue = true, needToSave = false;
+
+  let willContinue = true, needToSave = false;
   if(unsavedData) {
     [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Open Tournament');
     if(needToSave) {
@@ -491,47 +482,47 @@ function openTournament(focusedWindow) {
     }
   }
   if(willContinue) {
-    dialog.showOpenDialog(focusedWindow,
-      {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
-      (fileNameAry) => {
-        if(fileNameAry != undefined) {
-          currentFile = fileNameAry[0]; //open dialog doesn't allow selecting multiple files
-          focusedWindow.webContents.send('openTournament', currentFile);
-          unsavedData = false;
-        }
-      }
-    );
-  }
-}
-
-/*---------------------------------------------------------
-Close the current tournament and start a new one. Prompt to
-save the tournament if there's unsaved data. If it would be
-a Save As situation, force to user to go back.
----------------------------------------------------------*/
-function newTournament(focusedWindow) {
-  if(!isMainWindow(focusedWindow)) { return; }
-  var willContinue = true, needToSave = false;
-  if(unsavedData) {
-    [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Create New Tournament');
-    if(needToSave) {
-      saveExistingTournament(focusedWindow);
+    let fileNameAry = dialog.showOpenDialogSync(focusedWindow,
+      {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]});
+    if(fileNameAry !== undefined) {
+      currentFile = fileNameAry[0]; //open dialog doesn't allow selecting multiple files
+      focusedWindow.webContents.send('openTournament', currentFile);
+      unsavedData = false;
     }
   }
-  if(willContinue) {
-    focusedWindow.webContents.send('newTournament');
-    currentFile = '';
-    focusedWindow.setTitle('New Tournament');
-    unsavedData = false;
-  }
 }
 
-/*---------------------------------------------------------
-Prompt the user to select a QBJ file to import
----------------------------------------------------------*/
+/**
+ * Close the current tournament and start a new one. Prompt to save the tournament if
+ * there's unsaved data. If it would be a Save As situation, force to user to go back.
+ * @param  {BrowserWindow} focusedWindow window to attach modals to
+ */
+function newTournament(focusedWindow) {
+  if(!isMainWindow(focusedWindow)) { return; }
+
+  let willContinue = true, needToSave = false;
+    if(unsavedData) {
+      [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Create New Tournament');
+      if(needToSave) {
+        saveExistingTournament(focusedWindow);
+      }
+    }
+    if(willContinue) {
+      focusedWindow.webContents.send('newTournament');
+      currentFile = '';
+      focusedWindow.setTitle('YellowFruit - New Tournament');
+      unsavedData = false;
+    }
+}
+
+/**
+ * Prompt the user to select a QBJ file to import
+ * @param  {BrowserWindow} focusedWindow window to attach modals to
+ */
 function importQbj(focusedWindow) {
   if(!isMainWindow(focusedWindow)) { return; }
-  var willContinue = true, needToSave = false;
+
+  let willContinue = true, needToSave = false;
   if(unsavedData) {
     [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Import QBJ');
     if(needToSave) {
@@ -539,91 +530,88 @@ function importQbj(focusedWindow) {
     }
   }
   if(willContinue) {
-    focusedWindow.setTitle('New Tournament');
-    unsavedData = false;
-    dialog.showOpenDialog(focusedWindow,
-      {filters: [{name: 'Tournament Schema', extensions: ['qbj']}]},
-      (fileNameAry) => {
-        if(fileNameAry != undefined) {
-          focusedWindow.webContents.send('importQbj', fileNameAry[0]);
-        }
-      }
-    );
+    let fileNameAry = dialog.showOpenDialogSync(focusedWindow,
+      { filters: [{ name: 'Tournament Schema', extensions: ['qbj'] }] });
+    if(fileNameAry !== undefined) {
+      focusedWindow.setTitle('YellowFruit - New Tournament');
+      unsavedData = false;
+      focusedWindow.webContents.send('importQbj', fileNameAry[0]);
+    }
   }
 }
 
-/*---------------------------------------------------------
-Prompt the user to select an SQBS file from which to
-import rosters.
----------------------------------------------------------*/
+/**
+ * Prompt the user to select an SQBS file from which to import rosters
+ * @param  {BrowserWindow} focusedWindow parent window to attach modals to
+ */
 function importRosters(focusedWindow) {
   if(!isMainWindow(focusedWindow)) { return; }
-  dialog.showOpenDialog(focusedWindow,
-    {filters: [{name: 'SQBS Tournament', extensions: ['sqbs']}]},
-    (fileNameAry) => {
-      if(fileNameAry != undefined) {
-        focusedWindow.webContents.send('importRosters', fileNameAry[0]);
-      }
-    }
-  );
+  let fileNameAry = dialog.showOpenDialogSync(focusedWindow,
+    { filters: [{ name: 'SQBS Tournament', extensions: ['sqbs'] }] });
+  if(fileNameAry !== undefined) {
+    focusedWindow.webContents.send('importRosters', fileNameAry[0]);
+  }
 }
 
-/*---------------------------------------------------------
-Prompt the user to select a YellowFruit tournament to
-merge into the current file.
----------------------------------------------------------*/
+/**
+ * Prompt the user to select a YellowFruit tournament to merge into the current file
+ * @param  {BrowserWindow} focusedWindow parent window to attach modals to
+ */
 function mergeTournament(focusedWindow) {
   if(!isMainWindow(focusedWindow)) { return; }
-  dialog.showOpenDialog(focusedWindow,
-    {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]},
-    (fileNameAry) => {
-      if(fileNameAry != undefined) {
-        focusedWindow.webContents.send('mergeTournament', fileNameAry[0]);
-      }
-    }
-  );
+
+  let fileNameAry = dialog.showOpenDialogSync(focusedWindow,
+    { filters: [{ name: 'YellowFruit Tournament', extensions: ['yft'] }] });
+  if(fileNameAry !== undefined) {
+    focusedWindow.webContents.send('mergeTournament', fileNameAry[0]);
+  }
 }
 
-/*---------------------------------------------------------
-Generic dialog modal for warning the user there is
-unsaved data.
----------------------------------------------------------*/
-function unsavedDataDialog(focusedWindow, caption) {
-  var choice, willContinue, needToSave;
-  if(currentFile != '') {
-    choice = dialog.showMessageBox(
-      focusedWindow,
-      {
-        type: 'warning',
-        buttons: ['&Save and continue', 'Continue without s&aving', 'Go ba&ck'],
-        defaultId: 2,
-        cancelId: 2,
-        title: 'YellowFruit - ' + caption,
-        message: 'You have unsaved data.',
-        normalizeAccessKeys: true
-      }
-    );
-    willContinue = choice != 2;
-    needToSave = choice == 0;
-  }
-  else { //no current file
-    choice = dialog.showMessageBox(
-      focusedWindow,
-      {
-        type: 'warning',
-        buttons: ['Continue without s&aving', 'Go ba&ck'],
-        defaultId: 1,
-        cancelId: 1,
-        title: 'YellowFruit',
-        message: 'You have unsaved data.',
-        normalizeAccessKeys: true
-      }
-    );
-    willContinue = choice == 0;
-    needToSave = false;
-  }
-  return [willContinue, needToSave];
-}
+/**
+ * Generic dialog modal for warning the user there is unsaved data.
+ * @param  {BrowserWindow} focusedWindow parent window of the modal dialog
+ * @param  {string} caption              caption for the window title
+ * @return {string[]}                    [willContinue, needToSave]: whether we're going
+ *                                       to keep going with whatever the user tried to
+ *                                       do, and whether we need to save the file before
+ *                                       continuing
+ */
+ function unsavedDataDialog(focusedWindow, caption) {
+   let choice, willContinue, needToSave;
+   if(currentFile != '') {
+     choice = dialog.showMessageBoxSync(
+       focusedWindow,
+       {
+         type: 'warning',
+         buttons: ['&Save and continue', 'Continue without s&aving', 'Go ba&ck'],
+         defaultId: 2,
+         cancelId: 2,
+         title: 'YellowFruit - ' + caption,
+         message: 'You have unsaved data.',
+         normalizeAccessKeys: true
+       }
+     );
+     willContinue = choice != 2;
+     needToSave = choice == 0;
+   }
+   else { //no current file
+     choice = dialog.showMessageBoxSync(
+       focusedWindow,
+       {
+         type: 'warning',
+         buttons: ['Continue without s&aving', 'Go ba&ck'],
+         defaultId: 1,
+         cancelId: 1,
+         title: 'YellowFruit',
+         message: 'You have unsaved data.',
+         normalizeAccessKeys: true
+       }
+     );
+     willContinue = choice == 0;
+     needToSave = false;
+   }
+   return [willContinue, needToSave];
+ }
 
 /*---------------------------------------------------------
 Set which report configuration is currently being used
@@ -708,9 +696,9 @@ app.on('ready', function() {
   Warn user if exiting with unsaved data.
   ---------------------------------------------------------*/
   appWindow.on('close', function(e) {
-    var willClose = true;
+    let willClose = true;
     if(unsavedData) {
-      var choice = dialog.showMessageBox(
+      let choice = dialog.showMessageBoxSync(
         appWindow,
         {
           type: 'warning',
@@ -774,9 +762,12 @@ app.on('ready', function() {
     }
   });
 
+  /*---------------------------------------------------------
+  Make the user confirm that they want to delete a division
+  ---------------------------------------------------------*/
   ipc.on('tryDivDelete', (event, message) => {
     event.returnValue = '';
-    var choice = dialog.showMessageBox(
+    let choice = dialog.showMessageBoxSync(
       appWindow,
       {
         type: 'warning',
@@ -798,7 +789,7 @@ app.on('ready', function() {
   ---------------------------------------------------------*/
   ipc.on('tryGameDelete', (event, message) => {
     event.returnValue = '';
-    var choice = dialog.showMessageBox(
+    let choice = dialog.showMessageBoxSync(
       appWindow,
       {
         type: 'warning',
@@ -828,7 +819,7 @@ app.on('ready', function() {
   ---------------------------------------------------------*/
   ipc.on('confirmLossySQBS', (event, badGameAry) => {
     event.returnValue = '';
-    var choice = dialog.showMessageBox(
+    let choice = dialog.showMessageBoxSync(
       appWindow,
       {
         type: 'warning',
@@ -851,7 +842,7 @@ app.on('ready', function() {
   ---------------------------------------------------------*/
   ipc.on('rptDeletionPrompt', (event, rptName) => {
     event.returnValue = '';
-    var choice = dialog.showMessageBox(
+    let choice = dialog.showMessageBoxSync(
       appWindow,
       {
         type: 'warning',
@@ -874,7 +865,7 @@ app.on('ready', function() {
     if(isFatal && reportWindow != undefined) {
       reportWindow.close();
     }
-    dialog.showMessageBox(
+    dialog.showMessageBoxSync(
       appWindow,
       {
         type: type,
