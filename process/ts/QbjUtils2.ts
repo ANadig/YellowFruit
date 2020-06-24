@@ -282,8 +282,8 @@ function getMatches(games: YfGame[], roundPhases: { [round: number]: string },
     let match: QbjMatch = {
       id: id,
       type: 'Match',
-      tossups_read: +g.tuhtot,
-      overtime_tossups_read: +g.ottu,
+      tossups_read: g.tuhtot,
+      overtime_tossups_read: g.ottu,
       tiebreaker: g.tiebreaker,
       notes: g.notes,
       match_teams: [],
@@ -312,21 +312,21 @@ function getMatches(games: YfGame[], roundPhases: { [round: number]: string },
 function getMatchTeam(game: YfGame, whichTeam: WhichTeam, settings: TournamentSettings): QbjMatchTeam {
   const teamName = whichTeam == 1 ? game.team1 : game.team2;
   const players = whichTeam == 1 ? game.players1 : game.players2;
-  const otPwr = whichTeam == 1 ? +game.otPwr1 : +game.otPwr2;
-  const otTen = whichTeam == 1 ? +game.otTen1 : +game.otTen2;
+  const otPwr = whichTeam == 1 ? game.otPwr1 : game.otPwr2;
+  const otTen = whichTeam == 1 ? game.otTen1 : game.otTen2;
   let matchTeam: QbjMatchTeam = {
     type: 'MatchTeam',
     team: {$ref: 'Team_' + teamName},
     forfeit_loss: whichTeam == 2 && game.forfeit,
     correct_tossups_without_bonuses: otPwr + otTen,
-    lightning_points: whichTeam == 1 ? +game.lightningPts1 : +game.lightningPts2,
+    lightning_points: whichTeam == 1 ? game.lightningPts1 : game.lightningPts2,
     match_players: []
   };
   if(settings.bonuses) {
     matchTeam.bonus_points = StatUtils.bonusPoints(game, whichTeam, settings);
   }
   if(settings.bonusesBounce) {
-    matchTeam.bonus_bounceback_points = whichTeam == 1 ? +game.bbPts1 : +game.bbPts2;
+    matchTeam.bonus_bounceback_points = whichTeam == 1 ? game.bbPts1 : game.bbPts2;
   }
   for(var p in players) {
     const ref = `Player_${teamName}_${p}`;
@@ -346,20 +346,20 @@ function getMatchPlayer(ref: string, player: PlayerLine, settings: TournamentSet
   let matchPlayer: QbjMatchPlayer = {
     type: 'MatchPlayer',
     player: {$ref: ref},
-    tossups_heard: +player.tuh,
+    tossups_heard: player.tuh,
     answer_counts: []
   };
   //make PlayerAnswerCount objects
   const tens: QbjPlayerAnswerCount = {
     type: 'PlayerAnswerCount',
-    number: +player.tens,
+    number: player.tens,
     answer_type: {$ref: 'AnswerType_ten'}
   };
   matchPlayer.answer_counts.push(tens);
   if(settings.powers != 'none') {
     const powers: QbjPlayerAnswerCount = {
       type: 'PlayerAnswerCount',
-      number: +player.powers,
+      number: player.powers,
       answer_type: {$ref: 'AnswerType_power'}
     };
     matchPlayer.answer_counts.push(powers);
@@ -367,7 +367,7 @@ function getMatchPlayer(ref: string, player: PlayerLine, settings: TournamentSet
   if(settings.negs) {
     const negs: QbjPlayerAnswerCount = {
       type: 'PlayerAnswerCount',
-      number: +player.negs,
+      number: player.negs,
       answer_type: {$ref: 'AnswerType_neg'}
     };
     matchPlayer.answer_counts.push(negs);
