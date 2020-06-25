@@ -140,7 +140,7 @@ class SettingsForm extends React.Component{
         bonuses: this.state.bonusOption != 'none',
         bonusesBounce: this.state.bonusOption == 'yesBb',
         lightning: this.state.lightning,
-        playersPerTeam: this.state.playersPerTeam
+        playersPerTeam: +this.state.playersPerTeam
       };
       this.props.saveSettings(settingsObj);
       this.setState({

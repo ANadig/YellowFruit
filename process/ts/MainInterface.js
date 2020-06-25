@@ -16,7 +16,7 @@ import * as React from "react";
 import * as SqbsUtils from './SqbsUtils';
 const StatUtils = require('./StatUtils');
 const StatUtils2 = require('./StatUtils2');
-const QbjUtils = require('./QbjUtils');
+import * as QbjUtils from './QbjUtils';
 import * as QbjUtils2 from './QbjUtils2';
 // Bring in all the other React components
 import { TeamListEntry } from './TeamListEntry';
@@ -42,7 +42,7 @@ const DEFAULT_SETTINGS = {
   bonuses: true,
   bonusesBounce: false,
   lightning: false,
-  playersPerTeam: '4',
+  playersPerTeam: 4,
   defaultPhases: [], // Used to group teams when viewing all games
   rptConfig: 'YF Defaults'
 };

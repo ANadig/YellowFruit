@@ -40,7 +40,7 @@ export interface TournamentSettings {
     bonuses: boolean;           // whether there are bonuses
     bonusesBounce: boolean;     // whether bonuses have bouncebacks
     lightning: boolean;         // whether there are lightning rounds
-    playersPerTeam: string;     // how many players per team play at one time
+    playersPerTeam: number;     // how many players per team play at one time
     defaultPhases: string[];    // Used to group teams when viewing all games
     rptConfig: string;          // report configuration to use for the stat report
 }

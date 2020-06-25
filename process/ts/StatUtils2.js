@@ -23,7 +23,7 @@ Equality test for settings objects
 module.exports.settingsEqual = function(s1, s2) {
   return s1.powers == s2.powers && s1.negs == s2.negs &&
     s1.bonuses == s2.bonuses && s1.bonusesBounce == s2.bonusesBounce &&
-    s1.playersPerTeam == s2.playersPerTeam;
+    +s1.playersPerTeam == +s2.playersPerTeam;
 }
 
 /*---------------------------------------------------------

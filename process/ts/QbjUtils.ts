@@ -1,32 +1,49 @@
 /***********************************************************
-QbjUtils.js
+QbjUtils.ts
 Andrew Nadig
 
 Functions for parsing QBJ files
 ***********************************************************/
 
-module.exports = {};
-const StatUtils = require('./StatUtils');
+import StatUtils = require('./StatUtils');
+import { TournamentSettings, PowerRule, YfTeam, YfGame } from './YfTypes';
 const MAX_PLAYERS_PER_TEAM = 50;
 const MAX_ALLOWED_TEAMS = 200;
 const MAX_ALLOWED_GAMES = 900;
 
+/**
+ * Neg5's implementation of the ScoringRules object
+ */
+interface N5QbjScoringRules {
+  id?: string;
+  name?: string;
+  teams_per_match?: number;
+  maximum_players_per_team?: number;
+  maximum_bonus_score?: number;
+  bonuses_bounce_back?: boolean;
+  answer_types?: QbjAnswerType[];
+  bonus_divisor?: number;
+}
 
-/*---------------------------------------------------------
-Parse the scoring_rules object from a qbj file. Returns
-the rules in YF format, plus any errors
----------------------------------------------------------*/
-module.exports.parseQbjRules = function(rules) {
-  var yfRules = {
-    powers: 'none',
+/**
+ * Parse the scoring_rules object from a qbj file. Returns the rules in YF format,
+ * plus any errors
+ * @param  rules Qbj ScoringRules object
+ * @return       tuple of YF tournament settings and list of errors
+ */
+export function parseQbjRules(rules: N5QbjScoringRules): [TournamentSettings, string[]] {
+  let yfRules: TournamentSettings = {
+    powers: PowerRule.None,
     negs: false,
     bonuses: false,
     bonusesBounce: false,
     playersPerTeam: 4,
-    lightning: false
+    lightning: false,
+    defaultPhases: [],
+    rptConfig: ''
   }
   yfRules.playersPerTeam = rules.maximum_players_per_team;
-  var errors = [];
+  let errors = [];
   // miscellaneous weird things that we don't support
   if(rules.teams_per_match != 2) {
     errors.push(rules.teams_per_match + ' teams per match');
@@ -42,21 +59,20 @@ module.exports.parseQbjRules = function(rules) {
   }
   // tournament must have 10 points tossups, plus at most one of 15- or 20-point powers,
   // optional -5 negs, and no other point values
-  var answerTypes = rules.answer_types;
-  var tensExist = false, tensBonus = false, powersBonus = false;
-  for(var i in answerTypes) {
-    let a = answerTypes[i];
+  const answerTypes = rules.answer_types;
+  let tensExist = false, tensBonus = false, powersBonus = false;
+  for(let a of answerTypes) {
     switch (a.value) {
       case 10:
         tensExist = true;
         if(a.awards_bonus) { tensBonus = true; }
         break;
       case 15:
-        if(yfRules.powers != 'none') {
+        if(yfRules.powers != PowerRule.None) {
           errors.push('Multiple point values greater than 10 are not supported');
         }
         else {
-          yfRules.powers = '15pts';
+          yfRules.powers = PowerRule.Fifteen;
           if(a.awards_bonus) { powersBonus = true; }
         }
         break;
@@ -65,7 +81,7 @@ module.exports.parseQbjRules = function(rules) {
           errors.push('Multiple point values greater than 10 are not supported');
         }
         else {
-          yfRules.powers = '20pts';
+          yfRules.powers = PowerRule.Twenty;
           if(a.awards_bonus) { powersBonus = true; }
         }
         break;
@@ -78,7 +94,7 @@ module.exports.parseQbjRules = function(rules) {
     }
   }
   if(!tensExist) { errors.push('10-point tossups are required'); }
-  if(yfRules.powers != 'none' && (tensBonus ^ powersBonus)) {
+  if(yfRules.powers != 'none' && (tensBonus !== powersBonus)) {
     errors.push('Both or neither of tens and powers must have bonuses');
   }
   if(tensBonus) { yfRules.bonuses = true; }
@@ -86,16 +102,20 @@ module.exports.parseQbjRules = function(rules) {
   return [yfRules, errors];
 }
 
-/*---------------------------------------------------------
-Load teams from a QBJ file
----------------------------------------------------------*/
-module.exports.parseQbjTeams = function(tournament, registrations) {
+/**
+ * Load teams from a QBJ file
+ * @param  tournament    QBJ tournament object from Neg5
+ * @param  registrations array of QBJ registration objects from Neg5
+ * @return               tuple: list of YF teams, a list of teams indexed by their ID in
+ *                       the QBJ file, and a list of errors
+ */
+export function parseQbjTeams(tournament: any, registrations: any): [YfTeam[], any, string[]] {
   var yfTeams = [], yfTeamIds = {}, errors = [];
   var teamCount = 0;
-  for(var i in tournament.registrations) {
-    let regObj = registrations.find((r) => { return refCheck(tournament.registrations[i], r); });
+  for(let i in tournament.registrations) {
+    let regObj = registrations.find((r :any) => { return refCheck(tournament.registrations[i], r); });
     if(regObj == undefined) { continue; }
-    for(var j in regObj.teams) {
+    for(let j in regObj.teams) {
       if(teamCount++ > MAX_ALLOWED_TEAMS) {
         errors.push('You may not load more than ' + MAX_ALLOWED_TEAMS + ' teams');
         break;
@@ -109,7 +129,7 @@ module.exports.parseQbjTeams = function(tournament, registrations) {
       let roster = {}, rosterWithIds = {}, rosterError = false;
       for(var k in teamObj.players) {
         let p = teamObj.players[k];
-        if(k > MAX_PLAYERS_PER_TEAM) {
+        if(+k > MAX_PLAYERS_PER_TEAM) {
           errors.push(teamName + ' has more than' + MAX_PLAYERS_PER_TEAM + 'players');
           rosterError = true;
           break;
@@ -138,19 +158,23 @@ module.exports.parseQbjTeams = function(tournament, registrations) {
   return [yfTeams, yfTeamIds, errors];
 }
 
-/*---------------------------------------------------------
-Load games from a QBJ file
----------------------------------------------------------*/
-module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
-  var yfGames = [], errors = [];
-  var tmRdIdx = {}; // keep track of how many matches each team played in each round
-  var gameCount = 0;
-  for(var i in rounds) {
-    let roundNo = rounds[i].name.replace('Round ', '');
+/**
+ * Load games from a QBJ file
+ * @param  rounds  list of Round objects from the Neg5 QBJ file
+ * @param  matches list of Match objects from the Neg5 QBJ fiile
+ * @param  teamIds teams indexed by their QBJ file team ID (returned by parseQbjTeams)
+ * @return         tuple: list of games, and list of errors
+ */
+export function parseQbjMatches(rounds: any, matches: any, teamIds: any): [YfGame[], string[]] {
+  let yfGames = [], errors = [];
+  let tmRdIdx = {}; // keep track of how many matches each team played in each round
+  let gameCount = 0;
+  for(let r of rounds) {
+    let roundNo = r.name.replace('Round ', '');
     tmRdIdx[roundNo] = {};
-    let oneRoundsMatches = rounds[i].matches;
+    let oneRoundsMatches = r.matches;
     for(var j in oneRoundsMatches) {
-      let matchObj = matches.find((m) => { return refCheck(oneRoundsMatches[j], m); });
+      let matchObj = matches.find((m:any) => { return refCheck(oneRoundsMatches[j], m); });
       if(matchObj == undefined) { continue; }
       if(gameCount++ > MAX_ALLOWED_GAMES) {
         errors.push('You may not load more than ' + MAX_ALLOWED_GAMES + ' games');
@@ -160,12 +184,10 @@ module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
       let team1Id = team1Obj.team.$ref, team2Id = team2Obj.team.$ref;
       let players1Obj = team1Obj.match_players, players2Obj = team2Obj.match_players;
       let yfPlayers1 = {}, yfPlayers2 = {};
-      for(var k in players1Obj) {
-        let p = players1Obj[k];
+      for(let p of players1Obj) {
         let answers = p.answer_counts;
         let powers = '', tens = '', negs = '';
-        for(var m in answers) {
-          let a = answers[m];
+        for(let a of answers) {
           if(a.answer_type == undefined) { continue; }
           if(a.answer_type.value == 15 && a.number != undefined) { powers = a.number; }
           else if(a.answer_type.value == 10 && a.number != undefined) { tens = a.number; }
@@ -179,12 +201,10 @@ module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
           negs: negs
         };
       }
-      for(var k in players2Obj) {
-        let p = players2Obj[k];
+      for(let p of players2Obj) {
         let answers = p.answer_counts;
         let powers = '', tens = '', negs = '';
-        for(var m in answers) {
-          let a = answers[m];
+        for(let a of answers) {
           if(a.answer_type == undefined) { continue; }
           if(a.answer_type.value == 15 && a.number != undefined) { powers = a.number; }
           else if(a.answer_type.value == 10 && a.number != undefined) { tens = a.number; }
@@ -212,7 +232,7 @@ module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
         round: roundNo,
         phases: [],
         tuhtot: matchObj.tossups_read,
-        ottu: matchObj.overtime_tossups_read != undefined ? matchObj.overtime_tossups_read : '' ,
+        ottu: matchObj.overtime_tossups_read != undefined ? matchObj.overtime_tossups_read : 0 ,
         forfeit: false, // apparently you can't enter forfeits in Neg5?
         tiebreaker: false, // will be handled in addTiebreakers
         team1: teamIds[team1Id].teamName,
@@ -221,15 +241,15 @@ module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
         score2: team2Obj.points,
         players1: yfPlayers1,
         players2: yfPlayers2,
-        otPwr1: '',
-        otTen1: '', // Neg5 doesn't seem to export info about which team got OT tossups
-        otNeg1: '',
-        otPwr2: '',
-        otTen2: '',
-        otNeg2: '',
-        bbPts1: team1Obj.bonus_bounceback_points != undefined ? team1Obj.bonus_bounceback_points : '',
-        bbPts2: team2Obj.bonus_bounceback_points != undefined ? team2Obj.bonus_bounceback_points : '',
-        lightningPts1: '', lightningPts2: '',
+        otPwr1: 0,
+        otTen1: 0, // Neg5 doesn't seem to export info about which team got OT tossups
+        otNeg1: 0,
+        otPwr2: 0,
+        otTen2: 0,
+        otNeg2: 0,
+        bbPts1: team1Obj.bonus_bounceback_points != undefined ? team1Obj.bonus_bounceback_points : 0,
+        bbPts2: team2Obj.bonus_bounceback_points != undefined ? team2Obj.bonus_bounceback_points : 0,
+        lightningPts1: 0, lightningPts2: 0,
         notes: matchObj.notes != undefined ? matchObj.notes : ''
       });
     }
@@ -238,23 +258,28 @@ module.exports.parseQbjMatches = function(rounds, matches, teamIds) {
   return [yfGames, errors];
 }
 
-/*---------------------------------------------------------
-Check whether the $ref pointer in ref points to obj
----------------------------------------------------------*/
-function refCheck(ref, obj) {
+/**
+ * Check whether the $ref pointer in ref points to obj
+ * @param  ref Reference we need to look up
+ * @param  obj Object that the $ref might point to
+ * @return     whether they match
+ */
+function refCheck(ref: QbjRef, obj: any) {
   return ref.$ref == obj.id;
 }
 
-/*---------------------------------------------------------
-Validate games imported from a QBJ file
----------------------------------------------------------*/
-module.exports.validateMatches = function(games, settings) {
-  var errors = [], warnings = [];
-  var matchups = [];
-  for(var i in games) {
-    let g = games[i];
+/**
+ * Validate games imported from a QBJ file
+ * @param  games    list of games
+ * @param  settings settings object
+ * @return          a list of errors and a list of warnings
+ */
+export function validateMatches(games: YfGame[], settings: TournamentSettings): [string[], string[]] {
+  let errors = [], warnings = [];
+  let matchups = [];
+  for(let g of games) {
     let round = g.round, team1 = g.team1, team2 = g.team2;
-    let gameString = 'Round ' + round + ': ' + team1 + ' vs. ' + team2;
+    let gameString = `Round ${round}: ${team1} vs. ${team2}`;
     /******************** ERRORS ******************************/
     if(team1 == team2) {
       errors.push(gameString + ' - A team cannot play itself');
@@ -283,11 +308,11 @@ module.exports.validateMatches = function(games, settings) {
       matchups[round][team2].push(team1);
     }
     //scores are required
-    if(g.score1 == undefined || g.score1 === '') {
+    if(isNaN(g.score1)) {
       errors.push(gameString + ' - Score is invalid');
       continue;
     }
-    if(g.score2 == undefined || g.score2 === '') {
+    if(isNaN(g.score2)) {
       errors.push(gameString + ' - Score is invalid');
       continue;
     }
@@ -344,12 +369,13 @@ module.exports.validateMatches = function(games, settings) {
     // validate ppBb
     if(settings.bonusesBounce) {
       let bbHeard1 = StatUtils.bbHeard(g, 1, settings), bbHeard2 = StatUtils.bbHeard(g, 1, settings);
-      bbHeard1 = StatUtils.bbHrdToFloat(bbHeard1), bbHeard2 = StatUtils.bbHrdToFloat(bbHeard2);
-      if(g.bbPts1 / bbHeard1 > 30 || (g.bbPts1 > 0 && bbHeard1 == 0)) {
+      let bbhfloat1 = StatUtils.bbHrdToFloat(bbHeard1)
+      let bbhfloat2 = StatUtils.bbHrdToFloat(bbHeard2);
+      if(g.bbPts1 / bbhfloat1 > 30 || (g.bbPts1 > 0 && bbhfloat1 == 0)) {
         errors.push(gameString + ' - Points per bounceback is greater than 30');
         continue;
       }
-      if(g.bbPts2 / bbHeard2 > 30 || (g.bbPts2 > 0 && bbHeard2 == 0)) {
+      if(g.bbPts2 / bbhfloat2 > 30 || (g.bbPts2 > 0 && bbhfloat2 == 0)) {
         errors.push(gameString + ' - Points per bounceback is greater than 30');
         continue;
       }
@@ -358,7 +384,7 @@ module.exports.validateMatches = function(games, settings) {
     if(bPts1 % 10 != 0 || bPts2 % 10 != 0) {
       warnings.push(gameString + ' - PPB is not divisible by 10');
     }
-    var divisor = settings.powers == '15pts' || settings.negs ? 5 : 10;
+    let divisor = settings.powers == PowerRule.Fifteen || settings.negs ? 5 : 10;
     if(g.score1 % divisor != 0 || g.score2 % divisor != 0) {
       warnings.push(gameString + ' - Score is not divisible by ' + divisor);
     }
@@ -369,18 +395,19 @@ module.exports.validateMatches = function(games, settings) {
   return [errors, warnings];
 }
 
-/*---------------------------------------------------------
-Any time a team plays two games in the same round, assume
-that they're tiebreakers
----------------------------------------------------------*/
-function addTiebreakers(yfGames, tmRdIdx) {
-  for(var round in tmRdIdx) {
+/**
+ * Any time a team plays two games in the same round, assume that they're tiebreakers
+ * @param yfGames list of games
+ * @param tmRdIdx list of round. Each round has key of team name and value of number of
+ *  games the team played in that round
+ */
+function addTiebreakers(yfGames: YfGame[], tmRdIdx: any): void {
+  for(let round in tmRdIdx) {
     let oneRound = tmRdIdx[round];
-    for(var t in oneRound) {
+    for(let t in oneRound) {
       if(oneRound[t] > 1) {
-        for(var i in yfGames) {
-          let g = yfGames[i];
-          if(g.round == round && (g.team1 == t || g.team2 == t)) {
+        for(let g of yfGames) {
+          if(g.round == +round && (g.team1 == t || g.team2 == t)) {
             g.tiebreaker = true;
           }
         }
