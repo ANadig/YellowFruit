@@ -660,9 +660,9 @@ class RptConfigModal extends React.Component {
         <div className="modal-footer">
           <div className="row">
             <div className="col s3">
-              <button type="button" accessKey={this.props.isOpen ? 'd' : ''}
+              <button type="button" accessKey={this.props.isOpen ? 'e' : ''}
                 className={'btn red accent-1 ' + disableDeleteButton} onClick={this.attemptDeletion}>
-                <span className="hotkey-underline">D</span>elete
+                D<span className="hotkey-underline">e</span>lete
               </button>&nbsp;
               <button type="button" accessKey={this.props.isOpen ? 'o' : ''}
                 className={'btn deep-purple accent-1 ' + disableCopyButton} onClick={this.copyRpt}>

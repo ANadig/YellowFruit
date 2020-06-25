@@ -2029,10 +2029,11 @@ export class MainInterface extends React.Component {
     });
   }
 
-  /*---------------------------------------------------------
-  Open the modal for editing divisions
-  ---------------------------------------------------------*/
+  /**
+   * Open the modal for editing divisions
+   */
   openDivEditModal() {
+    if(this.anyModalOpen()) { return; }
     this.setState({
       divEditWindowVisible: true
     });
