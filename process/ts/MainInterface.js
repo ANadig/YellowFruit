@@ -905,6 +905,12 @@ export class MainInterface extends React.Component {
   window. Otherwise it's the user-specified file to export
   to, to which we append the name of the page
   ---------------------------------------------------------*/
+  /**
+   * Compile and write data for the html stat report.
+   * @param  {string} fileStart User-specified directory plus beginning of the file name,
+   *                            to which we append the standard suffixes to. Pass null
+   *                            when generating the in-app stat report 
+   */
   writeStatReport(fileStart) {
     if(fileStart == '') {
       var standingsLocation = defaultStandingsLocation;
@@ -913,7 +919,6 @@ export class MainInterface extends React.Component {
       var teamDetailLocation = defaultTeamDetailLocation;
       var playerDetailLocation = defaultPlayerDetailLocation;
       var roundReportLocation = defaultRoundReportLocation;
-      var statKeyLocation = defaultStatKeyLocation;
     }
     else {
       fileStart = fileStart + '_';
@@ -923,7 +928,6 @@ export class MainInterface extends React.Component {
       var teamDetailLocation = fileStart + 'teamdetail.html';
       var playerDetailLocation = fileStart + 'playerdetail.html';
       var roundReportLocation = fileStart + 'rounds.html';
-      var statKeyLocation = fileStart + 'statKey.html';
     }
     var filterPhase = this.state.viewingPhase;
     var phasesToGroupBy = this.phasesToGroupBy();
@@ -961,15 +965,13 @@ export class MainInterface extends React.Component {
         phaseColors, activeRpt, showTbs),
       StatUtils.getRoundReportPage(teams, games, endFileStart, filterPhase, packets,
         settings, activeRpt, showTbs),
-      StatUtils.getStatKeyPage(endFileStart),
-    ]).then(([standings, individuals, scoreboard, teamDet, playerDet, roundRep, statKey]) => {
+    ]).then(([standings, individuals, scoreboard, teamDet, playerDet, roundRep]) => {
       fs.writeFileSync(standingsLocation, standings, 'utf8', StatUtils2.printError);
       fs.writeFileSync(individualsLocation, individuals, 'utf8', StatUtils2.printError);
       fs.writeFileSync(scoreboardLocation, scoreboard, 'utf8', StatUtils2.printError);
       fs.writeFileSync(teamDetailLocation, teamDet, 'utf8', StatUtils2.printError);
       fs.writeFileSync(playerDetailLocation, playerDet, 'utf8', StatUtils2.printError);
       fs.writeFileSync(roundReportLocation, roundRep, 'utf8', StatUtils2.printError);
-      fs.writeFileSync(statKeyLocation, statKey, 'utf8', StatUtils2.printError);
       return 1;
     }).then(() => {
       if(fileStart == '') { ipc.sendSync('statReportReady'); }

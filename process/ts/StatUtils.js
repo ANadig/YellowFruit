@@ -1773,10 +1773,13 @@ function roundReportRow(smry, roundNo, packetsExist, packets, settings, rptConfi
   return html;
 }
 
-/*---------------------------------------------------------
-The links at the top of every page of the report.
----------------------------------------------------------*/
-function getStatReportTop(statKeySection, fileStart, pageTitle) {
+/**
+ * The links at the top of every page of the report
+ * @param  {string} fileStart directory and beginning of the file name
+ * @param  {string} pageTitle title of the page
+ * @return {string}           the beginning of the html file
+ */
+function getStatReportTop(fileStart, pageTitle) {
   // some tags need to be in all caps in order for HSQuizbowl to recognize the
   // file as a valid stat report.
   return '<HTML>' + '\n' +
@@ -1793,7 +1796,6 @@ function getStatReportTop(statKeySection, fileStart, pageTitle) {
       '<td><a HREF=' + fileStart + 'teamdetail.html>Team Detail</a></td>' + '\n' +
       '<td><a HREF=' + fileStart + 'playerdetail.html>Individual Detail</a></td>' + '\n' +
       '<td><a HREF=' + fileStart + 'rounds.html>Round Report</a></td>' + '\n' +
-      '<td><a HREF=' + fileStart + 'statkey.html#' + statKeySection + '>Stat Key</a></td>' + '\n' +
     '</tr>' + '\n' +
     '</table>' + '\n';
 }
@@ -1834,7 +1836,7 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsIn
   var tiesExist = anyTiesExist(standings);
   var showPhaseRec = showPhaseRecord(rptConfig, phase, groupingPhases);
 
-  var html = getStatReportTop('TeamStandings', fileStart, 'Team Standings') +
+  var html = getStatReportTop(fileStart, 'Team Standings') +
     '<h1> Team Standings</h1>' + '\n';
   html += tableStyle();
   var linesToPrint = arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, phaseSizes, rptConfig);
@@ -1940,7 +1942,7 @@ function getIndividualsHtml(teams, games, fileStart, phase, groupingPhases,
   usingDivisions, settings, rptConfig, showTbs) {
 
   var individuals = compileIndividuals(teams, games, phase, groupingPhases, settings, showTbs);
-  var html = getStatReportTop('IndividualStandings', fileStart, 'Individual Standings') +
+  var html = getStatReportTop(fileStart, 'Individual Standings') +
     '<h1> Individual Statistics</h1>' + '\n';
   html += tableStyle();
   html += '<table width=100%>' + individualsHeader(usingDivisions, settings, rptConfig);
@@ -1957,7 +1959,7 @@ Generate the scoreboard page.
 ---------------------------------------------------------*/
 function getScoreboardHtml(teams, games, fileStart, phase, settings, packets, phaseColors, showTbs) {
   var roundList = getRoundsForScoreboard(games, phase, showTbs);
-  var html = getStatReportTop('Scoreboard', fileStart, 'Scoreboard') + '\n';
+  var html = getStatReportTop(fileStart, 'Scoreboard') + '\n';
   html += scoreboardRoundLinks(roundList, fileStart) + '<br>' + '\n';
   html += '<h1> Scoreboard</h1>' + '\n';
   if(phase == 'all') {
@@ -1984,7 +1986,7 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
   var individuals = compileIndividuals(teams, games, phase, [], settings, showTbs);
   var packetsExist = packetNamesExist(packets);
 
-  var html = getStatReportTop('TeamDetail', fileStart, 'Team Detail') + '\n' +
+  var html = getStatReportTop(fileStart, 'Team Detail') + '\n' +
     '<h1> Team Detail</h1>' + '\n';
   if(phase == 'all') { html += phaseLegend(phaseColors) + '\n'; }
   html += tableStyle();
@@ -2061,7 +2063,7 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
     function(item) { return item.playerName.toLowerCase(); }],
     ['asc', 'asc']);
 
-  var html = getStatReportTop('IndividualDetail', fileStart, 'Individual Detail') +
+  var html = getStatReportTop(fileStart, 'Individual Detail') +
     '<h1> Individual Detail</h1>' + '\n';
   if(phase == 'all') { html += phaseLegend(phaseColors) + '\n'; }
   html += tableStyle();
@@ -2138,7 +2140,7 @@ function getRoundReportHtml(teams, games, fileStart, phase, packets, settings, r
   games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
   var [roundSummaries, aggregate] = compileRoundSummaries(games, phase, settings, showTbs);
   var packetsExist = packetNamesExist(packets);
-  var html = getStatReportTop('RoundReport', fileStart, 'Round Report') +
+  var html = getStatReportTop(fileStart, 'Round Report') +
     '<h1> Round Report</h1>' + '\n';
   html += tableStyle();
   html += '<table width=100%>' + '\n';
@@ -2148,15 +2150,6 @@ function getRoundReportHtml(teams, games, fileStart, phase, packets, settings, r
   }
   html += roundReportRow(aggregate, 'Total', packetsExist, packets, settings, rptConfig, fileStart);
   html += '</table>' + '\n';
-  return html + getStatReportBottom();
-}
-
-/*---------------------------------------------------------
-Generate the stat key page.
----------------------------------------------------------*/
-function getStatKeyHtml(fileStart) {
-  var html = getStatReportTop('', fileStart, 'Stat Key');
-  html += fs.readFileSync(statKeyBodyLocation, 'utf8'); //filepath defined in index.html
   return html + getStatReportBottom();
 }
 
@@ -2205,14 +2198,8 @@ function getRoundReportPage(teams, games, fileStart, phase, packets, settings, r
   });
 }
 
-function getStatKeyPage(fileStart) {
-  return new Promise(function(resolve, reject) {
-    resolve(getStatKeyHtml(fileStart));
-  });
-}
-
 module.exports = {toNum, matchFilterPhase, gamesPlayed, powerValue, negValue,
   teamPowers, teamTens, teamNegs, bonusesHeard, bonusPoints, bbHeard,
   bbHrdToFloat, otPoints, playerSlashLine, packetNamesExist, compileStandings,
   arrangeStandingsLines, getStandingsPage, getIndividualsPage, getScoreboardPage,
-  getTeamDetailPage, getPlayerDetailPage, getRoundReportPage, getStatKeyPage}
+  getTeamDetailPage, getPlayerDetailPage, getRoundReportPage}
