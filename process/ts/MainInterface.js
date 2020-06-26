@@ -35,7 +35,7 @@ import { StatSidebar } from './StatSidebar';
 import { SidebarToggleButton } from './SidebarToggleButton';
 
 const MAX_PLAYERS_PER_TEAM = 50;
-const METADATA = {version:app.getVersion()}; // take version straight from package.json
+const METADATA = { version: app.getVersion() }; // take version straight from package.json
 const DEFAULT_SETTINGS = {
   powers: '15pts',
   negs: true,
@@ -898,18 +898,11 @@ export class MainInterface extends React.Component {
     ipc.sendSync('genericModal', 'info', 'Successful merge', mergeSummary);
   } // mergeTournament
 
-  /*---------------------------------------------------------
-  Compile data for the data report and write it to each html
-  file.
-  fileStart is null when generating the files for the report
-  window. Otherwise it's the user-specified file to export
-  to, to which we append the name of the page
-  ---------------------------------------------------------*/
   /**
    * Compile and write data for the html stat report.
    * @param  {string} fileStart User-specified directory plus beginning of the file name,
    *                            to which we append the standard suffixes to. Pass null
-   *                            when generating the in-app stat report 
+   *                            when generating the in-app stat report
    */
   writeStatReport(fileStart) {
     if(fileStart == '') {
@@ -954,7 +947,7 @@ export class MainInterface extends React.Component {
 
     Promise.all([
       StatUtils.getStandingsPage(teams, games, endFileStart, filterPhase,
-        phasesToGroupBy, divsInPhase, phaseSizes, settings, activeRpt, showTbs),
+        phasesToGroupBy, divsInPhase, phaseSizes, settings, activeRpt, showTbs, app.getVersion()),
       StatUtils.getIndividualsPage(teams, games, endFileStart, filterPhase,
         phasesToGroupBy, usingDivisions, settings, activeRpt, showTbs),
       StatUtils.getScoreboardPage(teams, games, endFileStart, filterPhase, settings,

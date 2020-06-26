@@ -1800,11 +1800,17 @@ function getStatReportTop(fileStart, pageTitle) {
     '</table>' + '\n';
 }
 
-/*---------------------------------------------------------
-Closing tags at the end of the page.
----------------------------------------------------------*/
-function getStatReportBottom() {
-  return '<h5>Made with YellowFruit &#x1F34C;</h5>' + '\n' + // banana emoji
+/**
+ * Closing tags at the end of the page.
+ * @param  {string} yfVersion version of this software that generated the report
+ * @return {string}           html
+ */
+function getStatReportBottom(yfVersion) {
+  let html = '<h5>Made with YellowFruit &#x1F34C;</h5>' + '\n'; // banana emoji
+  if(yfVersion) {
+    html += '<!-- Generated with YellowFruit version ' + yfVersion + ' -->' + '\n';
+  }
+  return html +
     '</BODY>' + '\n' +
     '</HTML>';
 }
@@ -1826,11 +1832,23 @@ function tableStyle() {
     '</style>\n';
 }
 
-/*---------------------------------------------------------
-Generate the team standings page.
----------------------------------------------------------*/
+/**
+ * Generate the team standings page
+ * @param  {YfTeam[]} teams          list of all teams
+ * @param  {YfGame[]} games          list of all games
+ * @param  {string} fileStart      directory + beginning of the filename
+ * @param  {string} phase          which phase we're including games from
+ * @param  {string[]} groupingPhases list of phases whose divisions we want to group teams by
+ * @param  {string[]} divsInPhase    lsit of divisions in the grouping phases
+ * @param  {number[]} phaseSizes     how many divisions are in each member of groupingPhases
+ * @param  {TournamentSettings} settings       settings object
+ * @param  {[type]} rptConfig      report configuration settings object
+ * @param  {boolean} showTbs        whether to include tiebreakers if we're showing all games
+ * @param  {string} yfVersion      version of the software that is generating this report
+ * @return {string}                the contents of the html file
+ */
 function getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsInPhase,
-  phaseSizes, settings, rptConfig, showTbs) {
+  phaseSizes, settings, rptConfig, showTbs, yfVersion) {
 
   var standings = compileStandings(teams, games, phase, groupingPhases, settings, rptConfig, showTbs);
   var tiesExist = anyTiesExist(standings);
@@ -1858,7 +1876,7 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsIn
         break;
     }
   }
-  return html + getStatReportBottom();
+  return html + getStatReportBottom(yfVersion);
 }//getStandingsHtml
 
 /*---------------------------------------------------------
@@ -2157,10 +2175,10 @@ function getRoundReportHtml(teams, games, fileStart, phase, packets, settings, r
 Stat report generation APIs
 ---------------------------------------------------------*/
 function getStandingsPage(teams, games, fileStart, phase, groupingPhases, divsInPhase,
-  phaseSizes, settings, rptConfig, showTbs) {
+  phaseSizes, settings, rptConfig, showTbs, yfVersion) {
   return new Promise(function(resolve, reject) {
     resolve(getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsInPhase,
-      phaseSizes, settings, rptConfig, showTbs));
+      phaseSizes, settings, rptConfig, showTbs, yfVersion));
   });
 }
 
