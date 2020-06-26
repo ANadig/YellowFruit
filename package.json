@@ -1,6 +1,6 @@
 {
   "name": "YellowFruit",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "description": "QB Stats Program",
   "author": {
     "name": "Andrew Nadig"
@@ -13,7 +13,7 @@
   "private": true,
   "scripts": {
     "pack-win": "electron-packager . YellowFruit --platform=win32 --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig",
-    "pack-darwin": "electron-packager . YellowFruit --platform=darwin --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig --app-version=\"2.5.1\" --app-bundle-id=\"com.AndrewNadig.YellowFruit\"",
+    "pack-darwin": "electron-packager . YellowFruit --platform=darwin --arch=all --out dist/pkg --overwrite --icon ./icons/banana --version-string.CompanyName=Andrew_Nadig --app-version=\"2.5.2\" --app-bundle-id=\"com.AndrewNadig.YellowFruit\"",
     "sign-darwin": "electron-osx-sign dist/pkg/YellowFruit-darwin-x64/YellowFruit.app --platform=darwin --hardened-runtime"
   },
   "main": "app/main.js",
