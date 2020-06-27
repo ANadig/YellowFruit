@@ -12,7 +12,7 @@ function getInstallerConfig () {
   console.log('creating windows installer')
 
   return Promise.resolve({
-    appDirectory: Path.resolve(__dirname, '..', '..', 'dist', 'pkg', 'YellowFruit-win32-x64'),
+    appDirectory: Path.resolve(__dirname, '..', 'dist', 'pkg', 'YellowFruit-win32-x64'),
     authors: 'Andrew Nadig',
     noMsi: true,
     iconUrl: Path.resolve(__dirname, 'banana.ico'),
