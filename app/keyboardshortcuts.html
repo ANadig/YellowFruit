@@ -7,9 +7,6 @@
   <style>
     body { overflow-y: scroll; } /* need to override Materialize here */
   </style>
-  <script type="text/javascript">
-    const ipc = require('electron').ipcRenderer;
-  </script>
 </head>
 <body>
   <div class="main">
@@ -46,9 +43,6 @@
             <td>Alt+Shift+Right</td>
           </tr>
         </table>
-      </div>
-      <div class="help-window-footer">
-        <a class="btn-small grey help-close" onclick="ipc.sendSync('closeHelpWindow')">Close</a>
       </div>
     </div>
   </div><!-- Main -->
