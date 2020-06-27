@@ -374,6 +374,7 @@ function showReportWindow() {
  * @param  {number} height        window height. Default: 350
  */
 function showHelpWindow(windowName, fileName, width, height) {
+  if(!mainWindow) { return; }
   // if this window is already open, don't open another one.
   if(helpWindows[windowName]) {
     helpWindows[windowName].focus();
@@ -384,7 +385,7 @@ function showHelpWindow(windowName, fileName, width, height) {
     height: height == null ? 350 : height,
     show: false,
     parent: mainWindow,
-    modal: !(process.platform === 'darwin'),
+    modal: false,
     autoHideMenuBar: true,
     icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico'),
     webPreferences: { nodeIntegration: true }
