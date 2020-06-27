@@ -6,9 +6,6 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>YellowFruit</title>
   <link rel="stylesheet" href="css/app.css">
-  <script type="text/javascript">
-    const ipc = require('electron').ipcRenderer;
-  </script>
 </head>
 <body>
   <div class="main">
@@ -20,9 +17,6 @@
         <p>Click on a team in the sidebar to find that team's games.
         <p>Use a "=" to force an exact match. For example, "=Kansas" will find Kansas but not Kansas State.</p>
         <p>Use "No phase" to find games that do not belong to any phase</p>
-      </div>
-      <div class="help-window-footer">
-        <a class="btn-small grey help-close" onclick="ipc.sendSync('closeHelpWindow')">Close</a>
       </div>
     </div>
   </div><!-- Main -->

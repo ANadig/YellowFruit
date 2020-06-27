@@ -40,8 +40,13 @@ var autoSaveIntervalId = null; // store the interval ID from setInterval here
 const AUTO_SAVE_TIME_MS = 300000; //number of milliseconds between auto-saves. 300000=5min
 var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate, helpMenu, helpMenuTemplate;
 var mainWindowId; // keep track of which window is the main app window
+var mainWindow; // keep track of which window is the main app window
 var reportWindow; //to show the html report
-var helpWindow; // one of several possible modals from the Help menu
+var helpWindows  = {
+  searchTips: null,
+  keyboardShortcuts: null,
+  aboutYF: null
+}; // list of windows opened from the help menu
 var currentFile = '';
 var unsavedData = false;
 
@@ -164,13 +169,13 @@ const HELP_MENU = {
     {
       label: 'Search Tips',
       click (item, focusedWindow) {
-        showHelpWindow(focusedWindow, 'searchtips.html', 550, 380);
+        showHelpWindow('searchTips', 'searchtips.html', 550, 350);
       }
     },
     {
       label: 'Keyboard Shortcuts',
       click (item, focusedWindow) {
-        showHelpWindow(focusedWindow, 'keyboardshortcuts.html', 700, 400);
+        showHelpWindow('keyboardShortcuts', 'keyboardshortcuts.html', 700, 400);
       }
     },
     {
@@ -189,7 +194,7 @@ const HELP_MENU = {
     {
       label: 'About YellowFruit',
       click (item, focusedWindow) {
-        showHelpWindow(focusedWindow, 'AboutYF.html', 375, 225);
+        showHelpWindow('aboutYF', 'AboutYF.html', 350, 200);
       }
     }
   ]
@@ -370,26 +375,37 @@ function showReportWindow() {
   }
 } //showReportWindow
 
-/*---------------------------------------------------------
-A small modal that loads one of the pages launched from
-the Help menu
----------------------------------------------------------*/
-function showHelpWindow(focusedWindow, fileName, width, height) {
-  if(!focusedWindow) { return; }
-  helpWindow = new BrowserWindow({
+/**
+ * A small child window that loads one of the pages launched from the help menus
+ * @param  {string} windowName    which window to load
+ * @param  {string} fileName      html page to load in the window
+ * @param  {number} width         window width. Default: 550
+ * @param  {number} height        window height. Default: 350
+ */
+function showHelpWindow(windowName, fileName, width, height) {
+  // if this window is already open, don't open another one.
+  if(helpWindows[windowName]) {
+    helpWindows[windowName].focus();
+    return;
+  }
+  let helpWindow = new BrowserWindow({
     width: width == null ? 550 : width,
     height: height == null ? 350 : height,
     show: false,
-    parent: focusedWindow,
-    modal: true,
+    parent: mainWindow,
+    modal: !(process.platform === 'darwin'),
     autoHideMenuBar: true,
     icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico'),
     webPreferences: { nodeIntegration: true }
   });
+  helpWindows[windowName] = helpWindow;
   helpWindow.loadURL('file://' + __dirname + '/' + fileName);
   helpWindow.setMenu(helpMenu);
   helpWindow.once('ready-to-show', ()=>{ helpWindow.show(); });
-  helpWindow.once('close', () => { focusedWindow.focus(); }); //prevent flickering
+  helpWindow.once('close', () => {
+    mainWindow.focus(); //prevent flickering
+    helpWindows[windowName] = null;
+  });
 }
 
 /**
@@ -672,6 +688,7 @@ app.on('ready', function() {
   }); //appWindow
 
   mainWindowId = appWindow.id;
+  mainWindow = appWindow;
   appWindow.loadURL('file://' + __dirname + '/index.html');
 
   appWindow.once('ready-to-show', function() {
