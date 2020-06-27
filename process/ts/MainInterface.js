@@ -15,7 +15,7 @@ const ipc = electron.ipcRenderer;
 import * as React from "react";
 import * as SqbsUtils from './SqbsUtils';
 const StatUtils = require('./StatUtils');
-const StatUtils2 = require('./StatUtils2');
+import * as StatUtils2 from './StatUtils2';
 import * as QbjUtils from './QbjUtils';
 import * as QbjUtils2 from './QbjUtils2';
 // Bring in all the other React components
@@ -214,10 +214,10 @@ export class MainInterface extends React.Component {
       if(!this.anyModalOpen()) { this.nextPage(); }
     });
     Mousetrap.bind('alt+left', () => {
-      if(!this.anyModalOpen()) { this.previousPhase(); }
+      if(!this.anyModalOpen()) { this.advancePhaseTab(-1); }
     });
     Mousetrap.bind('alt+right', () => {
-      if(!this.anyModalOpen()) { this.nextPhase(); }
+      if(!this.anyModalOpen()) { this.advancePhaseTab(1); }
     });
     Mousetrap.bind('alt+shift+left', () => {
       if(!this.anyModalOpen()) { this.setState({sidebarOpen: true}); }
@@ -322,11 +322,6 @@ export class MainInterface extends React.Component {
     ipc.removeAllListeners('exportHtmlReport');
     ipc.removeAllListeners('exportSqbsFile');
     ipc.removeAllListeners('exportQbj');
-    ipc.removeAllListeners('prevPage');
-    ipc.removeAllListeners('nextPage');
-    ipc.removeAllListeners('prevPhase');
-    ipc.removeAllListeners('nextPhase');
-    ipc.removeAllListeners('focusSearch');
     ipc.removeAllListeners('confirmGameDeletion');
     ipc.removeAllListeners('cancelGameDeletion');
     ipc.removeAllListeners('confirmDivDeletion');
@@ -1134,56 +1129,20 @@ export class MainInterface extends React.Component {
     });
   }//previousPage
 
-  /*---------------------------------------------------------
-  cycle backwards through phases (user defined phases plus
-  "all games" and "tiebreakers")
-  ---------------------------------------------------------*/
-  previousPhase() {
-    var newPhase = 'all', oldPhase = this.state.viewingPhase;
-    var phaseList = Object.keys(this.state.divisions);
+  /**
+   * Move the specified number of phase tabs from the current one.
+   * @param  {number} n number of tabs. Negative=left, positive=right
+   */
+  advancePhaseTab(n) {
+    let phaseList = Object.keys(this.state.divisions);
     phaseList = _.without(phaseList, 'noPhase');
-    if(phaseList.length == 0 && this.state.tbCount > 0) {
-      newPhase = oldPhase == 'all' ? 'Tiebreakers' : 'all';
-    }
-    else {
-      if(phaseList.length == 0) { return; }
-      if(oldPhase == 'all') {
-        newPhase = this.state.tbCount > 0 ? 'Tiebreakers' : phaseList[phaseList.length-1];
-      }
-      else if(oldPhase == 'Tiebreakers') { newPhase = phaseList[phaseList.length-1]; }
-      else {
-        var curPhaseNo = phaseList.indexOf(this.state.viewingPhase);
-        if(curPhaseNo <= 0) { newPhase = 'all'; }
-        else { newPhase = phaseList[curPhaseNo-1]; }
-      }
-    }
-    this.setState({
-      viewingPhase: newPhase
-    });
-  }
+    phaseList = ['all'].concat(phaseList);
+    if(this.state.tbCount > 0) { phaseList.push('Tiebreakers'); }
 
-  /*---------------------------------------------------------
-  Cycle forward through phases (user defined phases plus
-  "all games")
-  ---------------------------------------------------------*/
-  nextPhase() {
-    var newPhase = 'all', oldPhase = this.state.viewingPhase;
-    var phaseList = Object.keys(this.state.divisions);
-    phaseList = _.without(phaseList, 'noPhase');
-    if(phaseList.length == 0 && this.state.tbCount > 0) {
-      newPhase = oldPhase == 'all' ? 'Tiebreakers' : 'all';
-    }
-    else {
-      if(oldPhase == 'all') { newPhase = phaseList[0]; }
-      else if(oldPhase == 'Tiebreakers') { newPhase = 'all'; }
-      else {
-        var curPhaseNo = phaseList.indexOf(oldPhase);
-        if(curPhaseNo == phaseList.length-1) {
-          newPhase = this.state.tbCount > 0 ? 'Tiebreakers' : 'all';
-        }
-        else { newPhase = phaseList[curPhaseNo+1]; }
-      }
-    }
+    let oldPhaseNo = phaseList.indexOf(this.state.viewingPhase);
+    let numPhases = phaseList.length;
+    let newPhase = phaseList[(numPhases + oldPhaseNo + n) % numPhases];
+
     this.setState({
       viewingPhase: newPhase
     });
