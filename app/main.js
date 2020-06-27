@@ -39,7 +39,6 @@ const CUSTOM_RPT_CONFIG_FILE_PROD = Path.resolve(USER_CONFIG_FOLDER_PROD, 'Custo
 var autoSaveIntervalId = null; // store the interval ID from setInterval here
 const AUTO_SAVE_TIME_MS = 300000; //number of milliseconds between auto-saves. 300000=5min
 var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate, helpMenu, helpMenuTemplate;
-var mainWindowId; // keep track of which window is the main app window
 var mainWindow; // keep track of which window is the main app window
 var reportWindow; //to show the html report
 var helpWindows  = {
@@ -96,8 +95,8 @@ const YF_MENU = {
       label: 'View Full Report',
       accelerator: 'CmdOrCtrl+I',
       click(item, focusedWindow) {
-        if(isMainWindow(focusedWindow)) {
-          focusedWindow.webContents.send('compileStatReport');
+        if(mainWindow) {
+          mainWindow.webContents.send('compileStatReport');
           showReportWindow();
         }
       }
@@ -105,47 +104,47 @@ const YF_MENU = {
     {
       label: 'Export Full Report',
       accelerator: 'CmdOrCtrl+U',
-      click(item, focusedWindow) { exportHtmlReport(focusedWindow); }
+      click(item, focusedWindow) { exportHtmlReport(); }
     },
     {
       label: 'Export SQBS',
-      click(item, focusedWindow) { trySqbsExport(focusedWindow); }
+      click(item, focusedWindow) { trySqbsExport(); }
     },
     {
       label: 'Export QBJ 2.1',
-      click(item, focusedWindow) { exportQbj(focusedWindow); }
+      click(item, focusedWindow) { exportQbj(); }
     },
     {type: 'separator'},
     {
       label: 'New Tournament',
       accelerator: 'CmdOrCtrl+N',
-      click(item, focusedWindow) { newTournament(focusedWindow); }
+      click(item, focusedWindow) { newTournament(); }
     },
     {
       label: 'Import Neg5 (QBJ 1.2)',
-      click(item, focusedWindow) { importQbj(focusedWindow); }
+      click(item, focusedWindow) { importQbj(); }
     },
     {
       label: 'Import Rosters from SQBS',
-      click(item, focusedWindow) { importRosters(focusedWindow); }
+      click(item, focusedWindow) { importRosters(); }
     },
     {
       label: 'Merge Tournament',
-      click(item, focusedWindow) { mergeTournament(focusedWindow); }
+      click(item, focusedWindow) { mergeTournament(); }
     },
     {
       label: 'Open',
       accelerator: 'CmdOrCtrl+O',
-      click(item, focusedWindow) { openTournament(focusedWindow); }
+      click(item, focusedWindow) { openTournament(); }
     },
     {
       label: 'Save As',
-      click(item, focusedWindow) { saveTournamentAs(focusedWindow); }
+      click(item, focusedWindow) { saveTournamentAs(); }
     },
     {
       label: 'Save',
       accelerator: 'CmdOrCtrl+S',
-      click(item, focusedWindow) { saveExistingTournament(focusedWindow); }
+      click(item, focusedWindow) { saveExistingTournament(false); }
     },
     {type: 'separator'},
     {role: 'close'},
@@ -206,7 +205,7 @@ const DEV_TOOLS_MENU = {
       label: 'Reload',
       accelerator: 'CmdOrCtrl+R',
       click (item, focusedWindow) {
-        if (focusedWindow) focusedWindow.reload()
+        if (mainWindow) mainWindow.reload()
       }
     },
     {
@@ -222,7 +221,7 @@ const REPORT_SUBMENU_STUB = [
   {
     label: 'Report Settings...',
     click (item, focusedWindow) {
-      if(isMainWindow(focusedWindow)) { focusedWindow.webContents.send('openRptConfig'); }
+      if(mainWindow) { mainWindow.webContents.send('openRptConfig'); }
     }
   },
   {type: 'separator'}
@@ -285,8 +284,7 @@ function buildMainMenu(rptSubMenu) {
           checked: currentUserConfig.autoSave,
           click(item, focusedWindow) {
             updateUserConfig(item.id, item.checked);
-            var mainWin = BrowserWindow.fromId(mainWindowId);
-            if(mainWin) { toggleAutoSave(item.checked, mainWin); }
+            if(mainWindow) { toggleAutoSave(item.checked, mainWindow); }
           }
         }
       ]
@@ -301,44 +299,37 @@ function buildMainMenu(rptSubMenu) {
   return Menu.buildFromTemplate(mainMenuTemplate);
 }
 
-/*---------------------------------------------------------
-Whether this window is the main app window, not a help
-window, etc.
----------------------------------------------------------*/
-function isMainWindow(focusedWindow) {
-  return focusedWindow && focusedWindow.id == mainWindowId;
-}
-
-/*---------------------------------------------------------
-Toggle show year, show JV, etc.
----------------------------------------------------------*/
+/**
+ * Toggle show year, show JV, etc.
+ * @param  {MenuItem} item which menu item was selected
+ */
 function toggleFormSetting(item) {
   updateUserConfig(item.id, item.checked);
-  var mainWin = BrowserWindow.fromId(mainWindowId);
-  if(mainWin) {
-    mainWin.webContents.send('toggleFormField', item.id, item.checked);
+  if(mainWindow) {
+    mainWindow.webContents.send('toggleFormField', item.id, item.checked);
   }
 }
 
-/*---------------------------------------------------------
-Automatically save every 5 minutes.
----------------------------------------------------------*/
-function startAutoSaveTimer(focusedWindow) {
+/**
+ * Automatically save every 5 minutes.
+ */
+function startAutoSaveTimer() {
   autoSaveIntervalId = setInterval(() => {
-    saveExistingTournament(focusedWindow, true);
+    saveExistingTournament(true);
   }, AUTO_SAVE_TIME_MS);
 }
 
-/*---------------------------------------------------------
-turn auto-save on or off
----------------------------------------------------------*/
-function toggleAutoSave(autoSave, focusedWindow) {
+/**
+ * Turn auto-save on or off
+ * @param  {boolean} autoSave whether autosave is being turned on or off
+ */
+function toggleAutoSave(autoSave) {
   if(!autoSave && autoSaveIntervalId != null) {
     clearInterval(autoSaveIntervalId);
     autoSaveIntervalId = null;
   }
   else {
-    startAutoSaveTimer(focusedWindow);
+    startAutoSaveTimer();
   }
 }
 
@@ -411,98 +402,95 @@ function showHelpWindow(windowName, fileName, width, height) {
 /**
  * Save the html stat reports to their respective files. The use can select any page of
  * the existing report in order to replace all pages with new verions.
- * @param  {BrowserWindow} focusedWindow window to attach modals to
  */
-function exportHtmlReport(focusedWindow) {
-  if(!isMainWindow(focusedWindow)) { return; }
-  let fileName = dialog.showSaveDialogSync(focusedWindow,
+function exportHtmlReport() {
+  if(!mainWindow) { return; }
+  let fileName = dialog.showSaveDialogSync(mainWindow,
     { filters: [{ name: 'HTML Webpages', extensions: ['html'] }] });
   if(fileName == undefined) { return; }
   let fileStart = fileName.replace(/.html/i, '');
   fileStart = fileStart.replace(/_(standings|individuals|games|teamdetail|playerdetail|rounds|statkey)/i, '');
-  focusedWindow.webContents.send('exportHtmlReport', fileStart);
+  mainWindow.webContents.send('exportHtmlReport', fileStart);
 }
 
-/*---------------------------------------------------------
-Attempt to export the data in SQBS format. The user may
-then get a warning about losing some of their data.
----------------------------------------------------------*/
-function trySqbsExport(focusedWindow) {
-  if(!isMainWindow(focusedWindow)) { return; }
-  focusedWindow.webContents.send('trySqbsExport');
+/**
+ * Attempt to export the data in SQBS format. The user may then get a warning
+ * about losing some of their data
+ */
+function trySqbsExport() {
+  if(!mainWindow) { return; }
+  mainWindow.webContents.send('trySqbsExport');
 }
 
 /**
  * Prompt the user to select a file name for the SQBS file export
- * @param  {BrowserWindow} focusedWindow window to attach modals to
  */
-function sqbsSaveDialog(focusedWindow) {
-  let fileName = dialog.showSaveDialogSync(focusedWindow,
+function sqbsSaveDialog() {
+  if(!mainWindow) { return; }
+  let fileName = dialog.showSaveDialogSync(mainWindow,
     { filters: [{ name: 'SQBS tournament', extensions: ['sqbs'] }] });
   if(fileName === undefined) { return; }
-  focusedWindow.webContents.send('exportSqbsFile', fileName);
+  mainWindow.webContents.send('exportSqbsFile', fileName);
 }
 
 /**
  * Export tournament in the tournament schema format
- * @param  {BrowserWindow} focusedWindow window to attach modals to
  */
-function exportQbj(focusedWindow) {
-  if(!isMainWindow(focusedWindow)) { return; }
-  let fileName = dialog.showSaveDialogSync(focusedWindow,
+function exportQbj() {
+  if(!mainWindow) { return; }
+  let fileName = dialog.showSaveDialogSync(mainWindow,
     { filters: [{ name: 'Tournament Schema', extensions: ['qbj'] }] });
   if(fileName === undefined) { return; }
-  focusedWindow.webContents.send('exportQbj', fileName);
+  mainWindow.webContents.send('exportQbj', fileName);
 }
 
 /**
  * Prompt the user to select a file name for the data
- * @param  {BrowserWindow} focusedWindow window to attach modals to
  */
-function saveTournamentAs(focusedWindow) {
-  if(!isMainWindow(focusedWindow)) { return; }
-  let fileName = dialog.showSaveDialogSync(focusedWindow,
+function saveTournamentAs() {
+  if(!mainWindow) { return; }
+  let fileName = dialog.showSaveDialogSync(mainWindow,
     { filters: [{ name: 'YellowFruit Tournament', extensions: ['yft'] }] });
   if(fileName !== undefined) {
     currentFile = fileName;
-    focusedWindow.webContents.send('saveTournamentAs', fileName);
+    mainWindow.webContents.send('saveTournamentAs', fileName);
   }
 }
 
-/*---------------------------------------------------------
-Save the tournament. If we don't have a file to save to,
-redirect to Save As.
----------------------------------------------------------*/
-function saveExistingTournament(focusedWindow, fromAutoSave) {
+/**
+ * Save the tournament. If we don't have a file to save to, redirect to Save As
+ * @param  {boolean} fromAutoSave  whether the auto-save functionality is
+ *                                 calling this
+ */
+function saveExistingTournament(fromAutoSave) {
+  if(!mainWindow) { return; }
   if(currentFile != '') {
-    var mainWin = BrowserWindow.fromId(mainWindowId);
-    if(mainWin) { mainWin.webContents.send('saveExistingTournament', currentFile); }
+    mainWindow.webContents.send('saveExistingTournament', currentFile);
   }
-  else if(!fromAutoSave && isMainWindow(focusedWindow)) {
-    saveTournamentAs(focusedWindow);
+  else if(!fromAutoSave) {
+    saveTournamentAs(mainWindow);
   }
 }
 
 /**
  * Load a tournament from a file.
- * @param  {BrowserWindow} focusedWindow window to attach modals to
  */
-function openTournament(focusedWindow) {
-  if(!isMainWindow(focusedWindow)) { return; }
+function openTournament() {
+  if(!mainWindow) { return; }
 
   let willContinue = true, needToSave = false;
   if(unsavedData) {
-    [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Open Tournament');
+    [willContinue, needToSave] = unsavedDataDialog('Open Tournament');
     if(needToSave) {
-      saveExistingTournament(focusedWindow);
+      saveExistingTournament(false);
     }
   }
   if(willContinue) {
-    let fileNameAry = dialog.showOpenDialogSync(focusedWindow,
+    let fileNameAry = dialog.showOpenDialogSync(mainWindow,
       {filters: [{name: 'YellowFruit Tournament', extensions: ['yft']}]});
     if(fileNameAry !== undefined) {
       currentFile = fileNameAry[0]; //open dialog doesn't allow selecting multiple files
-      focusedWindow.webContents.send('openTournament', currentFile);
+      mainWindow.webContents.send('openTournament', currentFile);
       unsavedData = false;
     }
   }
@@ -511,92 +499,88 @@ function openTournament(focusedWindow) {
 /**
  * Close the current tournament and start a new one. Prompt to save the tournament if
  * there's unsaved data. If it would be a Save As situation, force to user to go back.
- * @param  {BrowserWindow} focusedWindow window to attach modals to
  */
-function newTournament(focusedWindow) {
-  if(!isMainWindow(focusedWindow)) { return; }
+function newTournament() {
+  if(!mainWindow) { return; }
 
   let willContinue = true, needToSave = false;
     if(unsavedData) {
-      [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Create New Tournament');
+      [willContinue, needToSave] = unsavedDataDialog('Create New Tournament');
       if(needToSave) {
-        saveExistingTournament(focusedWindow);
+        saveExistingTournament(false);
       }
     }
     if(willContinue) {
-      focusedWindow.webContents.send('newTournament');
+      mainWindow.webContents.send('newTournament');
       currentFile = '';
-      focusedWindow.setTitle('YellowFruit - New Tournament');
+      mainWindow.setTitle('YellowFruit - New Tournament');
       unsavedData = false;
     }
 }
 
 /**
  * Prompt the user to select a QBJ file to import
- * @param  {BrowserWindow} focusedWindow window to attach modals to
  */
-function importQbj(focusedWindow) {
-  if(!isMainWindow(focusedWindow)) { return; }
+function importQbj() {
+  if(!mainWindow) { return; }
 
   let willContinue = true, needToSave = false;
   if(unsavedData) {
-    [willContinue, needToSave] = unsavedDataDialog(focusedWindow, 'Import QBJ');
+    [willContinue, needToSave] = unsavedDataDialog('Import QBJ');
     if(needToSave) {
-      saveExistingTournament(focusedWindow);
+      saveExistingTournament(false);
     }
   }
   if(willContinue) {
-    let fileNameAry = dialog.showOpenDialogSync(focusedWindow,
+    let fileNameAry = dialog.showOpenDialogSync(mainWindow,
       { filters: [{ name: 'Tournament Schema', extensions: ['qbj'] }] });
     if(fileNameAry !== undefined) {
-      focusedWindow.setTitle('YellowFruit - New Tournament');
+      mainWindow.setTitle('YellowFruit - New Tournament');
       unsavedData = false;
-      focusedWindow.webContents.send('importQbj', fileNameAry[0]);
+      mainWindow.webContents.send('importQbj', fileNameAry[0]);
     }
   }
 }
 
 /**
  * Prompt the user to select an SQBS file from which to import rosters
- * @param  {BrowserWindow} focusedWindow parent window to attach modals to
  */
-function importRosters(focusedWindow) {
-  if(!isMainWindow(focusedWindow)) { return; }
-  let fileNameAry = dialog.showOpenDialogSync(focusedWindow,
+function importRosters() {
+  if(!mainWindow) { return; }
+  let fileNameAry = dialog.showOpenDialogSync(mainWindow,
     { filters: [{ name: 'SQBS Tournament', extensions: ['sqbs'] }] });
   if(fileNameAry !== undefined) {
-    focusedWindow.webContents.send('importRosters', fileNameAry[0]);
+    mainWindow.webContents.send('importRosters', fileNameAry[0]);
   }
 }
 
 /**
  * Prompt the user to select a YellowFruit tournament to merge into the current file
- * @param  {BrowserWindow} focusedWindow parent window to attach modals to
  */
-function mergeTournament(focusedWindow) {
-  if(!isMainWindow(focusedWindow)) { return; }
+function mergeTournament() {
+  if(!mainWindow) { return; }
 
-  let fileNameAry = dialog.showOpenDialogSync(focusedWindow,
+  let fileNameAry = dialog.showOpenDialogSync(mainWindow,
     { filters: [{ name: 'YellowFruit Tournament', extensions: ['yft'] }] });
   if(fileNameAry !== undefined) {
-    focusedWindow.webContents.send('mergeTournament', fileNameAry[0]);
+    mainWindow.webContents.send('mergeTournament', fileNameAry[0]);
   }
 }
 
 /**
  * Generic dialog modal for warning the user there is unsaved data.
- * @param  {BrowserWindow} focusedWindow parent window of the modal dialog
  * @param  {string} caption              caption for the window title
  * @return {string[]}                    [willContinue, needToSave]: whether we're going
  *                                       to keep going with whatever the user tried to
  *                                       do, and whether we need to save the file before
  *                                       continuing
  */
- function unsavedDataDialog(focusedWindow, caption) {
+ function unsavedDataDialog(caption) {
+   if(!mainWindow) { return; }
    let choice, willContinue, needToSave;
    if(currentFile != '') {
      choice = dialog.showMessageBoxSync(
-       focusedWindow,
+       mainWindow,
        {
          type: 'warning',
          buttons: ['&Save and continue', 'Continue without s&aving', 'Go ba&ck'],
@@ -612,7 +596,7 @@ function mergeTournament(focusedWindow) {
    }
    else { //no current file
      choice = dialog.showMessageBoxSync(
-       focusedWindow,
+       mainWindow,
        {
          type: 'warning',
          buttons: ['Continue without s&aving', 'Go ba&ck'],
@@ -629,12 +613,14 @@ function mergeTournament(focusedWindow) {
    return [willContinue, needToSave];
  }
 
-/*---------------------------------------------------------
-Set which report configuration is currently being used
----------------------------------------------------------*/
-function setActiveRptConfig(item, focusedWindow) {
-  var mainWin = BrowserWindow.fromId(mainWindowId);
-  if(mainWin) { mainWin.webContents.send('setActiveRptConfig', item.id); }
+/**
+ * Set which report configuration is currently being used
+ * @param {MenuItem} item          which configuration was selectd
+ */
+function setActiveRptConfig(item) {
+  if(mainWindow) {
+    mainWindow.webContents.send('setActiveRptConfig', item.id);
+  }
 }
 
 /*---------------------------------------------------------
@@ -659,7 +645,7 @@ app.on('web-contents-created', (event, contents) => {
 Initialize window and menubars, and set up ipc listeners
 ---------------------------------------------------------*/
 app.on('ready', function() {
-  var splashWindow = new BrowserWindow({
+  let splashWindow = new BrowserWindow({
     width: 346,
     height: 149,
     frame: false,
@@ -673,12 +659,11 @@ app.on('ready', function() {
     splashWindow.show();
   });
 
-  var icon = process.platform === 'darwin' ?
+  const icon = process.platform === 'darwin' ?
     Path.resolve(__dirname, '..', 'icons', 'banana.icns') :
     Path.resolve(__dirname, '..', 'icons', 'banana.ico');
 
-  var appWindow;
-  appWindow = new BrowserWindow({
+  let appWindow = new BrowserWindow({
     width: 1250,
     height: 710,
     show: false,
@@ -687,7 +672,6 @@ app.on('ready', function() {
     webPreferences: { nodeIntegration: true }
   }); //appWindow
 
-  mainWindowId = appWindow.id;
   mainWindow = appWindow;
   appWindow.loadURL('file://' + __dirname + '/index.html');
 
@@ -697,13 +681,13 @@ app.on('ready', function() {
 
     appWindow.webContents.send('loadReportConfig', process.env.NODE_ENV);
 
-    for(var conf in currentUserConfig) {
+    for(let conf in currentUserConfig) {
       appWindow.webContents.send('toggleFormField', conf, currentUserConfig[conf]);
     }
 
-    if(currentUserConfig.autoSave) { startAutoSaveTimer(appWindow); }
+    if(currentUserConfig.autoSave) { startAutoSaveTimer(); }
 
-    var argsLength = process.defaultApp ? 3 : 2;
+    const argsLength = process.defaultApp ? 3 : 2;
     if (process.argv.length >= argsLength) {
       appWindow.webContents.send('openTournament', process.argv[argsLength-1]);
     }
@@ -920,7 +904,7 @@ app.on('ready', function() {
         id: r,
         type: 'radio',
         checked: r == activeRpt,
-        click (item, focusedWindow) { setActiveRptConfig(item, focusedWindow); }
+        click (item, focusedWindow) { setActiveRptConfig(item); }
       });
     }
     var sortedRpts = _.orderBy(Object.keys(customRptList), [(r) => { return r.toLowerCase(); }]);
@@ -931,7 +915,7 @@ app.on('ready', function() {
         id: r,
         type: 'radio',
         checked: r == activeRpt,
-        click (item, focusedWindow) { setActiveRptConfig(item, focusedWindow); }
+        click (item, focusedWindow) { setActiveRptConfig(item); }
       });
     }
     var newMainMenu = buildMainMenu(rptSubMenu);
