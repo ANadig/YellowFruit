@@ -22,7 +22,7 @@ import * as QbjUtils2 from './QbjUtils2';
 import { TeamListEntry } from './TeamListEntry';
 import { GameListEntry } from './GameListEntry';
 import { HeaderNav } from './HeaderNav';
-const AddTeamModal = require('./AddTeamModal');
+import { AddTeamModal } from './AddTeamModal';
 const AddGameModal = require('./AddGameModal');
 import { DivisionEditModal } from './DivisionEditModal';
 const RptConfigModal = require('./RptConfigModal');
@@ -1210,18 +1210,23 @@ export class MainInterface extends React.Component {
     });
   }
 
-  /*---------------------------------------------------------
-  Add the new team, then close the form
-  ---------------------------------------------------------*/
+  /**
+   * Add the new team, then close the form
+   * @param {YFTeam} tempItem      team to add
+   * @param {boolean} acceptAndStay pass true if the Accept and Stay button was clicked
+   */
   addTeam(tempItem, acceptAndStay) {
-    var tempTms = this.state.myTeams.slice();
+    tempItem.divisions = {}; // fill in properties that aren't defined in the AddTeamModal
+    tempItem.rank = null;
+
+    let tempTms = this.state.myTeams.slice();
     tempTms.push(tempItem);
-    var settings = this.state.settings;
+    let settings = this.state.settings;
     ipc.sendSync('unsavedData');
     //update player index
-    var tempIndex = this.state.playerIndex, teamName = tempItem.teamName;
+    let tempIndex = this.state.playerIndex, teamName = tempItem.teamName;
     tempIndex[teamName] = {};
-    for(var p in tempItem.roster) { tempIndex[teamName][p] = 0; }
+    for(let p in tempItem.roster) { tempIndex[teamName][p] = 0; }
     this.setState({
       myTeams: tempTms,
       tmWindowVisible: acceptAndStay,
@@ -1263,16 +1268,18 @@ export class MainInterface extends React.Component {
     }
   } //addTeam
 
-  /*---------------------------------------------------------
-  Update the appropriate team, close the form, and update
-  team and player names in that team's games if necessary.
-  Assumes whitespace has alredy been removed from the form
-  data
-  ---------------------------------------------------------*/
+  /**
+   * Update the appropriate team, close the form, and update team and player names in
+   * that team's games if necessary. Assumes whitespace has already been removed from
+   * the form data
+   * @param  {YFTeam} oldTeam       team's previous data
+   * @param  {YfTeam} newTeam       new data for the team
+   * @param  {boolean} acceptAndStay true if Accept and Stay button was clicked
+   */
   modifyTeam(oldTeam, newTeam, acceptAndStay) {
-    var tempTeams = this.state.myTeams.slice();
-    var tempGames = this.state.myGames.slice();
-    var originalNames = Object.keys(oldTeam.roster), newNames = Object.keys(newTeam.roster);
+    let tempTeams = this.state.myTeams.slice();
+    let tempGames = this.state.myGames.slice();
+    const originalNames = Object.keys(oldTeam.roster), newNames = Object.keys(newTeam.roster);
 
     for(var i in originalNames) {
       let oldn = originalNames[i], newn = newNames[i];
@@ -1303,6 +1310,9 @@ export class MainInterface extends React.Component {
     }
     var oldTeamIdx = _.indexOf(tempTeams, oldTeam);
     tempTeams[oldTeamIdx] = newTeam;
+
+    newTeam.divisions = oldTeam.divisions;
+    newTeam.rank = oldTeam.rank;
 
     ipc.sendSync('unsavedData');
     this.setState({
@@ -2425,10 +2435,10 @@ export class MainInterface extends React.Component {
     });
   }
 
-  /*---------------------------------------------------------
-  Save rank overrides entered in the sidebar. Throw out
-  values that don't make sense.
-  ---------------------------------------------------------*/
+  /**
+   * Save rank overrides entered in the sidebar. Throw out values that aren't numbers
+   * @param  {RankingList} rankOverrides rankings from StatSidebar indexed by team name
+   */
   saveRankOverrides(rankOverrides) {
     var tempTeams = this.state.myTeams;
     for(var i in tempTeams) {
@@ -2436,7 +2446,7 @@ export class MainInterface extends React.Component {
       if(!isNaN(rank) && rank >= 1) {
         tempTeams[i].rank = rank;
       }
-      else { tempTeams[i].rank = ''; }
+      else { tempTeams[i].rank = null; }
     }
     this.setState({
       myTeams: tempTeams,
@@ -2604,7 +2614,6 @@ export class MainInterface extends React.Component {
             onForceReset = {this.onForceReset}
             isOpen = {this.state.tmWindowVisible}
             validateTeamName = {this.validateTeamName}
-            teamHasGames = {this.teamHasPlayedGames}
             playerIndex = {this.state.playerIndex}
             formSettings = {this.state.formSettings}
           />
