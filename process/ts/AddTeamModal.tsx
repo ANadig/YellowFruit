@@ -265,8 +265,8 @@ export class AddTeamModal extends React.Component<AddTeamModalProps, AddTeamModa
    * mainInterface can remember which team to modify
    */
   loadTeam(): void {
-    var years = [], ugStatuses = [], div2Statuses = [];
-    for(var p in this.props.teamToLoad.roster) {
+    let years = [], ugStatuses = [], div2Statuses = [];
+    for(let p in this.props.teamToLoad.roster) {
       years.push(this.props.teamToLoad.roster[p].year);
       div2Statuses.push(this.props.teamToLoad.roster[p].div2);
       ugStatuses.push(this.props.teamToLoad.roster[p].undergrad);

@@ -388,7 +388,7 @@ function showHelpWindow(windowName, fileName, width, height) {
     modal: false,
     autoHideMenuBar: true,
     icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico'),
-    webPreferences: { nodeIntegration: true }
+    webPreferences: { nodeIntegration: true, enableRemoteModule: true }
   });
   helpWindows[windowName] = helpWindow;
   helpWindow.loadURL('file://' + __dirname + '/' + fileName);
@@ -653,7 +653,7 @@ app.on('ready', function() {
     show: false,
     transparent: true,
     skipTaskbar: true,
-    webPreferences: { nodeIntegration: true }
+    webPreferences: { nodeIntegration: true, enableRemoteModule: true }
   });
   splashWindow.loadURL('file://' + __dirname + '/splash.html');
   splashWindow.once('ready-to-show', () => {
@@ -670,7 +670,7 @@ app.on('ready', function() {
     show: false,
     title: 'YellowFruit - New Tournament',
     icon: icon,
-    webPreferences: { nodeIntegration: true }
+    webPreferences: { nodeIntegration: true, enableRemoteModule: true }
   }); //appWindow
 
   mainWindow = appWindow;
