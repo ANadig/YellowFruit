@@ -15,6 +15,7 @@ const Menu = electron.Menu;
 const app = electron.app;
 const ipc = electron.ipcMain;
 const shell = electron.shell;
+const nativeImage = electron.nativeImage;
 require('dotenv').config(); //set NODE_ENV via the .env file in the root directory
 const Path = require('path');
 const fs = require('fs');
@@ -35,6 +36,10 @@ const DEFAULT_USER_CONFIG = {
 var currentUserConfig;
 const OLD_CUSTOM_RPT_CONFIG_FILE_PROD = Path.resolve(OLD_USER_CONFIG_FOLDER_PROD, 'CustomRptConfig.json');
 const CUSTOM_RPT_CONFIG_FILE_PROD = Path.resolve(USER_CONFIG_FOLDER_PROD, 'CustomRptConfig.json');
+
+const APP_ICON = process.platform === 'darwin' ?
+  nativeImage.createFromPath(Path.resolve(__dirname, '..', 'icons', 'banana.icns')) :
+  Path.resolve(__dirname, '..', 'icons', 'banana.ico');
 
 var autoSaveIntervalId = null; // store the interval ID from setInterval here
 const AUTO_SAVE_TIME_MS = 300000; //number of milliseconds between auto-saves. 300000=5min
@@ -357,7 +362,7 @@ function showReportWindow() {
       width: 1050,
       height: 550,
       show: false,
-      icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico')
+      icon: APP_ICON
     }); //reportWindow
 
     reportWindow.loadURL('file://' + __dirname + '/report_load_spinner.html');
@@ -387,7 +392,7 @@ function showHelpWindow(windowName, fileName, width, height) {
     parent: mainWindow,
     modal: false,
     autoHideMenuBar: true,
-    icon: Path.resolve(__dirname, '..', 'icons', 'banana.ico'),
+    icon: APP_ICON,
     webPreferences: { nodeIntegration: true, enableRemoteModule: true }
   });
   helpWindows[windowName] = helpWindow;
@@ -660,16 +665,12 @@ app.on('ready', function() {
     splashWindow.show();
   });
 
-  const icon = process.platform === 'darwin' ?
-    Path.resolve(__dirname, '..', 'icons', 'banana.icns') :
-    Path.resolve(__dirname, '..', 'icons', 'banana.ico');
-
   let appWindow = new BrowserWindow({
     width: 1250,
     height: 710,
     show: false,
     title: 'YellowFruit - New Tournament',
-    icon: icon,
+    icon: APP_ICON,
     webPreferences: { nodeIntegration: true, enableRemoteModule: true }
   }); //appWindow
 
