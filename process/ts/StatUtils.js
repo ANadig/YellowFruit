@@ -1806,7 +1806,7 @@ function getStatReportTop(fileStart, pageTitle) {
  * @return {string}           html
  */
 function getStatReportBottom(yfVersion) {
-  let html = '<span style="font-size:x-small">Made with YellowFruit &#x1F34C;</span>'; // banana emoji
+  let html = '<span style="font-size:x-small">Made with YellowFruit &#x1F34C;</span>' + '\n'; // banana emoji
   if(yfVersion) {
     html += '<span style="font-size:x-small; color:white">&nbsp;' + yfVersion + '</span>' + '\n';
   }
