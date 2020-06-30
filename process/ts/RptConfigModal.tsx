@@ -344,15 +344,11 @@ export class RptConfigModal extends React.Component<RptConfigModalProps, RptConf
 
   /**
    * Whether or not the default checkbox should be disabled
-   * @return 'disabled' attribute if this configuration's default status can't
-   *         be changed
+   * @return true  if this configuration's default status can't be changed
    */
-  disableDefaultCheckBox(): string {
-    if(this.state.selectedRptType == 'addNew') { return 'disabled'; }
-    if(this.state.selectedRpt == this.props.systemDefault && this.state.currentRptIsDefault) {
-      return 'disabled';
-    }
-    return '';
+  disableDefaultCheckBox(): boolean {
+    if(this.state.selectedRptType == 'addNew') { return true; }
+    return this.state.selectedRpt == this.props.systemDefault && this.state.currentRptIsDefault
   }
 
   /**
@@ -412,7 +408,7 @@ export class RptConfigModal extends React.Component<RptConfigModalProps, RptConf
 
   render() {
     const invalidName = this.nameisInvalid(this.state.rptName);
-    const disableFields = this.state.selectedRptType == 'released' ? 'disabled' : '';
+    const disableFields = this.state.selectedRptType == 'released';
     const disableDeleteButton = this.state.selectedRptType == 'released' || this.state.selectedRptType == 'addNew' ? 'disabled' : '';
     const disableAcceptButton = this.state.selectedRptType == 'released' || invalidName ? 'disabled' : '';
     const disableCopyButton = invalidName || Object.keys(this.props.customRptList).length >= MAX_CUSTOM_RPT_CONFIGS ||
