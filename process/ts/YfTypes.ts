@@ -146,3 +146,25 @@ export interface YfGame {
 export interface GameIndex {
   [round: number]: number;
 }
+
+/**
+ * Group of settings for the stat report 
+ */
+export interface RptConfig {
+  ppgOrPp20: 'ppg' | 'pp20';
+  smallSchool: boolean;
+  jrVarsity: boolean;
+  teamUG: boolean;
+  teamD2: boolean;
+  teamCombinedStatus: boolean;
+  playerYear: boolean;
+  playerUG: boolean;
+  playerD2: boolean;
+  playerCombinedStatus: boolean;
+  papg: boolean;
+  margin: boolean;
+  phaseRecord: boolean;
+  pptuh: boolean;
+  pPerN: boolean;
+  gPerN: boolean;
+}

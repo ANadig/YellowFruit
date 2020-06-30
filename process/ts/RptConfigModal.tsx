@@ -1,18 +1,19 @@
 /***********************************************************
-RptConfigModal.js
+RptConfigModal.tsx
 Andrew Nadig
 
 React component representing modal window for editing
 report configurations
 ***********************************************************/
-var React = require('react');
-var _ = require('lodash');
-var M = require('materialize-css');
-import { RptConfigListEntry } from './RptConfigListEntry';
+import * as React from "react";
+import * as _ from 'lodash';
+import * as M from 'materialize-css';
+import { RptConfigListEntry, RptConfigTypes } from './RptConfigListEntry';
+import { TournamentSettings, RptConfig } from "./YfTypes";
 
 const MAX_CUSTOM_RPT_CONFIGS = 25;
 const NEW_RPT_DUMMY_KEY = 'WAo2WKjY6Jx8QDnufmjz'; //aribitrary string that hopefully no one will use for an rpt name
-const EMPTY_RPT_SETTINGS = {
+const EMPTY_RPT_SETTINGS: RptConfig = {
   ppgOrPp20: 'ppg',
   smallSchool: false,
   jrVarsity: false,
@@ -31,15 +32,54 @@ const EMPTY_RPT_SETTINGS = {
   gPerN: false
 }
 
-class RptConfigModal extends React.Component {
+interface RptConfigModalProps {
+  isOpen: boolean;
+  tournamentSettings: TournamentSettings;
+  releasedRptList: RptConfig[];
+  customRptList: RptConfig[];
+  defaultRpt: string;
+  modifyRptConfig: (rptToReplace: string, rptObj: RptConfig, name: string, acceptAndStay: boolean) => void;
+  setDefaultRpt: (rptName: string) => void;
+  clearDefaultRpt: () => void;
+  attemptDeletion: (rptName: string) => void;
+  systemDefault: string;
+  usingDivisions: boolean;
+}
 
-  constructor(props) {
+interface RptConfigModalState {
+  selectedRpt: string;
+  selectedRptType: RptConfigTypes;
+  rptName: string;
+  currentRptIsDefault: boolean;
+  ppgOrPp20: 'ppg' | 'pp20';
+  smallSchool: boolean;
+  jrVarsity: boolean;
+  teamUG: boolean;
+  teamD2: boolean;
+  teamCombinedStatus: boolean;
+  playerYear: boolean;
+  playerUG: boolean;
+  playerD2: boolean;
+  playerCombinedStatus: boolean;
+  papg: boolean;
+  margin: boolean;
+  phaseRecord: boolean;
+  pptuh: boolean;
+  pPerN: boolean;
+  gPerN: boolean;
+  selectedPreview: 'teamStandings' | 'individuals' | 'teamDetail' | 'playerDetail';
+  unsavedDataExists: boolean;
+}
+
+export class RptConfigModal extends React.Component<RptConfigModalProps, RptConfigModalState> {
+
+  constructor(props: RptConfigModalProps) {
     super(props);
     var startRptName = Object.keys(this.props.releasedRptList)[0];
     var startRpt = this.props.releasedRptList[startRptName];
     this.state = {
       selectedRpt: startRptName,
-      selectedRptType: 'released',
+      selectedRptType: RptConfigTypes.Released,
       rptName: startRptName,
       currentRptIsDefault: this.props.defaultRpt == startRptName,
       ppgOrPp20: startRpt.ppgOrPp20,
@@ -70,16 +110,15 @@ class RptConfigModal extends React.Component {
     this.copyRpt = this.copyRpt.bind(this);
   }
 
-  /*---------------------------------------------------------
-  Called any time a value in the form changes.
-  This is a controlled component, so the state is the single
-  source of truth.
-  ---------------------------------------------------------*/
-  handleChange(e) {
+  /**
+   * Called any time a value in the form changes.
+   * @param  e event
+   */
+  handleChange(e: any): void {
     const target = e.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
-    var partialState = {};
+    let partialState: any = {};
     partialState[name] = value;
     // form scripting: you can't have combined and separate UG/D2 columns at the same time
     if(name == 'teamCombinedStatus' && value) {
@@ -100,10 +139,11 @@ class RptConfigModal extends React.Component {
     this.setState(partialState);
   } //handleChange
 
-  /*---------------------------------------------------------
-  Called when the default checkbox changes its value
-  ---------------------------------------------------------*/
-  handleDefaultChange(e) {
+  /**
+   * Called when the default checkbox changes its value
+   * @param  e event
+   */
+  handleDefaultChange(e: any): void {
     const target = e.target;
     if(target.name != 'currentRptIsDefault') { return; }
     if(target.checked) {
@@ -118,15 +158,15 @@ class RptConfigModal extends React.Component {
     });
   }
 
-  /*---------------------------------------------------------
-  Tell the MainInterface to update data when the form is
-  submitted.
-  ---------------------------------------------------------*/
-  handleSubmit(e) {
+  /**
+   * Tell the MainInterface to update data when the form is
+   * @param  e event
+   */
+  handleSubmit(e: any): void {
     e.preventDefault();
     if(this.state.selectedRptType == 'released') { return; } // sanity check, shouldn't happen
-    var acceptAndStay = e.target.name == 'acceptAndStay';
-    var rptObj = {
+    const acceptAndStay = e.target.name == 'acceptAndStay';
+    let rptObj = {
       ppgOrPp20: this.state.ppgOrPp20,
       smallSchool: this.state.smallSchool,
       jrVarsity: this.state.jrVarsity,
@@ -144,30 +184,32 @@ class RptConfigModal extends React.Component {
       pPerN: this.state.pPerN,
       gPerN: this.state.gPerN,
     }
-    var trimmedName = this.state.rptName.trim();
-    var rptToReplace = this.state.selectedRptType == 'custom' ? this.state.selectedRpt : null;
+    const trimmedName = this.state.rptName.trim();
+    const rptToReplace = this.state.selectedRptType == 'custom' ? this.state.selectedRpt : null;
     this.props.modifyRptConfig(rptToReplace, rptObj, trimmedName, acceptAndStay);
     if(this.state.selectedRpt != trimmedName) {
       this.setState({
         selectedRpt: trimmedName,
-        selectedRptType: 'custom'
+        selectedRptType: RptConfigTypes.Custom
       });
     }
   }
 
-  /*---------------------------------------------------------
-  Update the form with the settings for the configuration
-  that the user has just selected
-  ---------------------------------------------------------*/
-  selectRpt(title, type) {
+  /**
+   * Update the form with the settings for the configuration that the user has just
+   * selected
+   * @param  {[type]} title name of the coniguration
+   * @param  {[type]} type  type of configuration
+   */
+  selectRpt(title: string, type: RptConfigTypes): void {
     if(type == 'addNew') { title = NEW_RPT_DUMMY_KEY; }
-    var selectedSettings;
+    let selectedSettings: RptConfig;
     if(type == 'released') { selectedSettings = this.props.releasedRptList[title]; }
     else if(type == 'custom') { selectedSettings = this.props.customRptList[title]; }
     else { selectedSettings = EMPTY_RPT_SETTINGS; } // else new rpt, clear form
 
-    var smallSchool = selectedSettings.smallSchool;
-    var jrVarsity = selectedSettings.jrVarsity;
+    let smallSchool = selectedSettings.smallSchool;
+    let jrVarsity = selectedSettings.jrVarsity;
     this.setState({
       selectedRpt: title,
       selectedRptType: type,
@@ -192,20 +234,22 @@ class RptConfigModal extends React.Component {
     });
   }
 
-  /*---------------------------------------------------------
-  Tell the main process (via the MainInterface) to prompt
-  the user to confirm that they want to delete this rpt
-  ---------------------------------------------------------*/
-  attemptDeletion(e) {
+  /**
+   * Tell the main process (via the MainInterface) to prompt the user to confirm that
+   * they want to delete this configuration
+   * @param  _e event
+   */
+  attemptDeletion(_e: any): void {
     this.props.attemptDeletion(this.state.selectedRpt);
   }
 
-  /*---------------------------------------------------------
-  Make a copy of the selected configuration
-  ---------------------------------------------------------*/
-  copyRpt(e) {
+  /**
+   * Make a copy of the selected configuration
+   * @param   _e event
+   */
+  copyRpt(_e: any): void {
     if(Object.keys(this.props.customRptList).length >= MAX_CUSTOM_RPT_CONFIGS) { return; }
-    var rptObj = {
+    let rptObj = {
       ppgOrPp20: this.state.ppgOrPp20,
       smallSchool: this.state.smallSchool,
       jrVarsity: this.state.jrVarsity,
@@ -223,83 +267,87 @@ class RptConfigModal extends React.Component {
       pPerN: this.state.pPerN,
       gPerN: this.state.gPerN
     }
-    var copyNameStub = 'Copy of ' + this.state.selectedRpt;
-    var uniqueName = copyNameStub;
-    var counter = 2;
+    const copyNameStub = 'Copy of ' + this.state.selectedRpt;
+    let uniqueName = copyNameStub;
+    let counter = 2;
     while(this.nameisInvalid(uniqueName)) {
       uniqueName = copyNameStub + ' (' + counter++ + ')';
     }
     this.props.modifyRptConfig(null, rptObj, uniqueName, true);
-    this.selectRpt(uniqueName, 'custom');
+    this.selectRpt(uniqueName, RptConfigTypes.Custom);
   }
 
-  /*---------------------------------------------------------
-  The list of collection items representing the available
-  report configurations
-  ---------------------------------------------------------*/
-  getRptList() {
-    var rptList = [];
-    for(var r in this.props.releasedRptList) {
+  /**
+   * The list of collection items representing the available report configurations
+   * @return list of RptConfigListEntry elements
+   */
+  getRptList(): RptConfigListEntry[] {
+    let rptList = [];
+    for(let r in this.props.releasedRptList) {
       rptList.push(
-        <RptConfigListEntry key={r} title={r} type={'released'} disabled={false}
+        <RptConfigListEntry key={r} title={r} type={RptConfigTypes.Released} disabled={false}
           selected={this.state.selectedRpt==r} onSelected={this.selectRpt}/>
       );
     }
-    var sortedRpts = _.orderBy(Object.keys(this.props.customRptList), [(r) => { return r.toLowerCase(); }]);
-    for(var i in sortedRpts) {
-      var r = sortedRpts[i];
+    let sortedRpts = _.orderBy(Object.keys(this.props.customRptList), [(r) => { return r.toLowerCase(); }]);
+    for(let r of sortedRpts) {
       rptList.push(
-        <RptConfigListEntry key={r} title={r} type={'custom'} disabled={false}
+        <RptConfigListEntry key={r} title={r} type={RptConfigTypes.Custom} disabled={false}
           selected={this.state.selectedRpt==r} onSelected={this.selectRpt}/>
       );
     }
-    var preventNewRpts = sortedRpts.length >= MAX_CUSTOM_RPT_CONFIGS;
+    const preventNewRpts = sortedRpts.length >= MAX_CUSTOM_RPT_CONFIGS;
     rptList.push(
-      <RptConfigListEntry key={NEW_RPT_DUMMY_KEY} title={'(New)'} type={'addNew'} disabled={preventNewRpts}
+      <RptConfigListEntry key={NEW_RPT_DUMMY_KEY} title={'(New)'} type={RptConfigTypes.AddNew} disabled={preventNewRpts}
         selected={this.state.selectedRpt==NEW_RPT_DUMMY_KEY} onSelected={this.selectRpt}/>
     );
     return rptList;
   }
 
-  /*---------------------------------------------------------
-  Names cannot be just whitespace, or be the same as the name
-  of an existing report
-  ---------------------------------------------------------*/
-  nameisInvalid(name) {
-    var trimmedName = name.trim();
+  /**
+   * Names cannot be just whitespace, or be the same as the name of an existing report
+   * @param  {[type]}  name possible configuration name
+   * @return true if the name isn't allowed
+   */
+  nameisInvalid(name: string): boolean {
+    const trimmedName = name.trim();
     if(trimmedName == '') { return true; }
     if(trimmedName == this.state.selectedRpt) { return false; }
-    var lowerKeys = Object.keys(this.props.releasedRptList).map((k,idx) => { return k.toLowerCase(); });
+    let lowerKeys = Object.keys(this.props.releasedRptList).map((k,_idx) => { return k.toLowerCase(); });
     if(lowerKeys.includes(trimmedName.toLowerCase())) { return true; }
-    lowerKeys = Object.keys(this.props.customRptList).map((k,idx) => { return k.toLowerCase(); });
+    lowerKeys = Object.keys(this.props.customRptList).map((k,_idx) => { return k.toLowerCase(); });
     if(lowerKeys.includes(trimmedName.toLowerCase())) { return true; }
     return false;
   }
 
-  /*---------------------------------------------------------
-  Hightlight the button of whichever table layout is being
-  previewed
-  ---------------------------------------------------------*/
-  previewButtonToggled(whichButton) {
+  /**
+   * Hightlight the button of whichever table layout is being previewed
+   * @param   whichButton the button to color
+   * @return materialize color class for the button
+   */
+  previewButtonToggled(whichButton: string): string {
     if(whichButton == this.state.selectedPreview) {
       return 'teal lighten-1';
     }
     return 'grey lighten-5';
   }
 
-  /*---------------------------------------------------------
-  Set which table is being previewed
-  ---------------------------------------------------------*/
-  togglePreview(e) {
+  /**
+   * Set which table is being previewed
+   * @param  {[type]} e event
+   */
+  togglePreview(e: any): void {
     this.setState({
       selectedPreview: e.target.name
     });
   }
 
-  /*---------------------------------------------------------
-  Whether or not the default checkbox should be disabled
-  ---------------------------------------------------------*/
-  disableDefaultCheckBox() {
+  /**
+   * Whether or not the default checkbox should be disabled
+   * @return 'disabled' attribute if this configuration's default status can't
+   *         be changed
+   */
+  disableDefaultCheckBox(): string {
     if(this.state.selectedRptType == 'addNew') { return 'disabled'; }
     if(this.state.selectedRpt == this.props.systemDefault && this.state.currentRptIsDefault) {
       return 'disabled';
@@ -307,46 +355,49 @@ class RptConfigModal extends React.Component {
     return '';
   }
 
-  /*---------------------------------------------------------
-  Format Pwr/N option with strikethrough if the current
-  tournament's settings make it irrelevant
-  ---------------------------------------------------------*/
-  formatPperN() {
+  /**
+   * Format Pwr/N option with strikethrough if the current tournament's settings make
+   * it irrelevant
+   * @return  string or <s> element
+   */
+  formatPperN(): any {
     if(this.props.tournamentSettings.powers == 'none' || !this.props.tournamentSettings.negs) {
       return ( <s>Powers per neg</s> );
     }
     return 'Powers per neg';
   }
 
-  /*---------------------------------------------------------
-  Format G/N option with strikethrough if the current
-  tournament's settings make it irrelevant
-  ---------------------------------------------------------*/
-  formatGperN() {
+  /**
+   * Format G/N option with strikethrough if the current tournaments settings make it
+   * irrelevant
+   * @return {} string or <s> element
+   */
+  formatGperN(): any {
     if(!this.props.tournamentSettings.negs) {
       return ( <s>Gets per neg</s> );
     }
     return 'Gets per neg';
   }
 
-  /*---------------------------------------------------------
-  Lifecyle method.
-  ---------------------------------------------------------*/
-  componentDidUpdate(prevProps) {
+  /**
+   * Lifecyle method.
+   * @param  {[type]} _prevProps unused
+   */
+  componentDidUpdate(_prevProps: any) {
     //needed so that labels aren't on top of data when text fields auto-populate
     M.updateTextFields();
     //if the selected report was just deleted, load something else
     if(this.props.releasedRptList[this.state.selectedRpt] == undefined &&
       this.props.customRptList[this.state.selectedRpt] == undefined &&
       this.state.selectedRptType != 'addNew') {
-      var sortedRpts = _.orderBy(Object.keys(this.props.customRptList), [(r) => { return r.toLowerCase(); }]);
-      var rptCount = sortedRpts.length;
-      if(rptCount == 0) { this.selectRpt(this.props.systemDefault, 'released'); }
+      const sortedRpts = _.orderBy(Object.keys(this.props.customRptList), [(r) => { return r.toLowerCase(); }]);
+      let rptCount = sortedRpts.length;
+      if(rptCount == 0) { this.selectRpt(this.props.systemDefault, RptConfigTypes.Released); }
       else {
-        var nextIdx = 0;
+        let nextIdx = 0;
         while(sortedRpts[nextIdx] < this.state.selectedRpt) { nextIdx++; }
         if(nextIdx >= rptCount) { nextIdx = rptCount-1; }
-        this.selectRpt(sortedRpts[nextIdx], 'custom');
+        this.selectRpt(sortedRpts[nextIdx], RptConfigTypes.Custom);
       }
     }
     // discard unsaved data when the form closes
@@ -360,20 +411,20 @@ class RptConfigModal extends React.Component {
 
 
   render() {
-    var invalidName = this.nameisInvalid(this.state.rptName);
-    var disableFields = this.state.selectedRptType == 'released' ? 'disabled' : '';
-    var disableDeleteButton = this.state.selectedRptType == 'released' || this.state.selectedRptType == 'addNew' ? 'disabled' : '';
-    var disableAcceptButton = this.state.selectedRptType == 'released' || invalidName ? 'disabled' : '';
-    var disableCopyButton = invalidName || Object.keys(this.props.customRptList).length >= MAX_CUSTOM_RPT_CONFIGS ||
+    const invalidName = this.nameisInvalid(this.state.rptName);
+    const disableFields = this.state.selectedRptType == 'released' ? 'disabled' : '';
+    const disableDeleteButton = this.state.selectedRptType == 'released' || this.state.selectedRptType == 'addNew' ? 'disabled' : '';
+    const disableAcceptButton = this.state.selectedRptType == 'released' || invalidName ? 'disabled' : '';
+    const disableCopyButton = invalidName || Object.keys(this.props.customRptList).length >= MAX_CUSTOM_RPT_CONFIGS ||
       this.state.selectedRptType == 'addNew' ? 'disabled' : '';
 
-    var rptCollection = (
+    const rptCollection = (
       <div className="collection">
         {this.getRptList()}
       </div>
     );
 
-    var nameRow = (
+    const nameRow = (
       <div className="row">
         <div className="col s8">
           <div className="input-field">
@@ -392,7 +443,7 @@ class RptConfigModal extends React.Component {
       </div>
     );
 
-    var ppgRow = (
+    const ppgRow = (
       <div className="row">
         <div className="col s3">
           Track points...
@@ -412,7 +463,7 @@ class RptConfigModal extends React.Component {
       </div>
     );
 
-    var teamStatusRow = (
+    const teamStatusRow = (
       <div className="row">
         <div className="col s3">
           Team status
@@ -447,7 +498,7 @@ class RptConfigModal extends React.Component {
       </div>
     );
 
-    var playerStatusRow = (
+    const playerStatusRow = (
       <div className="row">
         <div className="col s3">
           Player status
@@ -477,7 +528,7 @@ class RptConfigModal extends React.Component {
       </div>
     );
 
-    var teamStandingsRow = (
+    const teamStandingsRow = (
       <div className="row">
         <div className="col s3">
           Team Standings
@@ -502,7 +553,7 @@ class RptConfigModal extends React.Component {
       </div>
     );
 
-    var otherRow = (
+    const otherRow = (
       <div className="row">
         <div className="col s3">
           Other
@@ -528,60 +579,60 @@ class RptConfigModal extends React.Component {
     );
 
     //table cells for the team standings preview
-    var tdRank = ( <td>Rank</td> );
-    var tdTeam = ( <td>Team</td> );
-    var tdSS = this.state.smallSchool ? ( <td>SS</td> ) : null;
-    var tdJV = this.state.jrVarsity ? ( <td>JV</td> ) : null;
-    var tdUG = this.state.teamUG ? ( <td>UG</td> ) : null;
-    var tdD2 = this.state.teamD2 ? ( <td>D2</td> ) : null;
-    var tdTmComb = this.state.teamCombinedStatus ? ( <td>UG/D2</td> ) : null;
-    var tdW = ( <td>W</td> );
-    var tdL = ( <td>L</td> );
-    var tdT = ( <td>T</td> );
-    var tdPct = ( <td>Pct.</td> );
-    var tdPhaseRecord = this.state.phaseRecord ? ( <td>[Stage]</td> ) : null;
-    var tdPPG = this.state.ppgOrPp20 == 'ppg' ? ( <td>PPG</td> ) : null;
-    var tdPP20 = this.state.ppgOrPp20 == 'pp20' ? ( <td>PP20</td> ) : null;
-    var tdPapg = this.state.ppgOrPp20 == 'ppg' && this.state.papg ? ( <td>PAPG</td> ) : null;
-    var tdPap20 = this.state.ppgOrPp20 == 'pp20' && this.state.papg ? ( <td>PAP20</td> ) : null;
-    var tdMrg = this.state.margin ? ( <td>Mrg.</td> ) : null;
-    var tdPwr = this.props.tournamentSettings.powers != 'none' ? ( <td>15</td> ) : null;
+    const tdRank = ( <td>Rank</td> );
+    const tdTeam = ( <td>Team</td> );
+    const tdSS = this.state.smallSchool ? ( <td>SS</td> ) : null;
+    const tdJV = this.state.jrVarsity ? ( <td>JV</td> ) : null;
+    const tdUG = this.state.teamUG ? ( <td>UG</td> ) : null;
+    const tdD2 = this.state.teamD2 ? ( <td>D2</td> ) : null;
+    const tdTmComb = this.state.teamCombinedStatus ? ( <td>UG/D2</td> ) : null;
+    const tdW = ( <td>W</td> );
+    const tdL = ( <td>L</td> );
+    const tdT = ( <td>T</td> );
+    const tdPct = ( <td>Pct.</td> );
+    const tdPhaseRecord = this.state.phaseRecord ? ( <td>[Stage]</td> ) : null;
+    const tdPPG = this.state.ppgOrPp20 == 'ppg' ? ( <td>PPG</td> ) : null;
+    const tdPP20 = this.state.ppgOrPp20 == 'pp20' ? ( <td>PP20</td> ) : null;
+    const tdPapg = this.state.ppgOrPp20 == 'ppg' && this.state.papg ? ( <td>PAPG</td> ) : null;
+    const tdPap20 = this.state.ppgOrPp20 == 'pp20' && this.state.papg ? ( <td>PAP20</td> ) : null;
+    const tdMrg = this.state.margin ? ( <td>Mrg.</td> ) : null;
+    let tdPwr = this.props.tournamentSettings.powers != 'none' ? ( <td>15</td> ) : null;
     if(this.props.tournamentSettings.powers == '20pts') { tdPwr = ( <td>20</td> ) }
-    var tdTen = ( <td>10</td> );
-    var tdNeg = this.props.tournamentSettings.negs ? ( <td>-5</td> ) : null;
-    var tdTuh = ( <td>TUH</td> );
-    var tdPptuh = this.state.pptuh ? ( <td>PPTUH</td> ) : null;
-    var tdPperN = this.state.pPerN && this.props.tournamentSettings.powers != 'none' &&
+    const tdTen = ( <td>10</td> );
+    const tdNeg = this.props.tournamentSettings.negs ? ( <td>-5</td> ) : null;
+    const tdTuh = ( <td>TUH</td> );
+    const tdPptuh = this.state.pptuh ? ( <td>PPTUH</td> ) : null;
+    const tdPperN = this.state.pPerN && this.props.tournamentSettings.powers != 'none' &&
       this.props.tournamentSettings.negs ? ( <td>Pwr/N</td> ) : null;
-    var tdGperN = this.state.gPerN && this.props.tournamentSettings.negs ? ( <td>G/N</td> ) : null;
-    var tdLtng = this.props.tournamentSettings.lightning ? ( <td>Ltng</td> ) : null;
-    var tdBPts = this.props.tournamentSettings.bonuses ? ( <td>BPts</td> ) : null;
-    var tdBHrd = this.props.tournamentSettings.bonuses ? ( <td>BHrd</td> ) : null;
-    var tdPpb = this.props.tournamentSettings.bonuses ? ( <td>PPB</td> ) : null;
-    var tdBBHrd = this.props.tournamentSettings.bonusesBounce ? ( <td>BBHrd</td> ) : null;
-    var tdBbpts = this.props.tournamentSettings.bonusesBounce ? ( <td>BBPts</td> ) : null;
-    var tdPpbb = this.props.tournamentSettings.bonusesBounce ? ( <td>PPBB</td> ) : null;
+    const tdGperN = this.state.gPerN && this.props.tournamentSettings.negs ? ( <td>G/N</td> ) : null;
+    const tdLtng = this.props.tournamentSettings.lightning ? ( <td>Ltng</td> ) : null;
+    const tdBPts = this.props.tournamentSettings.bonuses ? ( <td>BPts</td> ) : null;
+    const tdBHrd = this.props.tournamentSettings.bonuses ? ( <td>BHrd</td> ) : null;
+    const tdPpb = this.props.tournamentSettings.bonuses ? ( <td>PPB</td> ) : null;
+    const tdBBHrd = this.props.tournamentSettings.bonusesBounce ? ( <td>BBHrd</td> ) : null;
+    const tdBbpts = this.props.tournamentSettings.bonusesBounce ? ( <td>BBPts</td> ) : null;
+    const tdPpbb = this.props.tournamentSettings.bonusesBounce ? ( <td>PPBB</td> ) : null;
 
     //additional table cells for the individual standings preview
-    var tdPlayer = ( <td>Player</td> );
-    var tdYear = this.state.playerYear ? ( <td>Year</td> ) : null;
-    var tdPlayerUG = this.state.playerUG ? ( <td>UG</td> ) : null;
-    var tdPlayerD2 = this.state.playerD2 ? ( <td>D2</td> ) : null;
-    var tdPlComb = this.state.playerCombinedStatus ? ( <td>UG/D2</td> ) : null;
-    var tdDivision = this.props.usingDivisions ? ( <td>Division</td> ) : null;
-    var tdGP = ( <td>GP</td> );
+    const tdPlayer = ( <td>Player</td> );
+    const tdYear = this.state.playerYear ? ( <td>Year</td> ) : null;
+    const tdPlayerUG = this.state.playerUG ? ( <td>UG</td> ) : null;
+    const tdPlayerD2 = this.state.playerD2 ? ( <td>D2</td> ) : null;
+    const tdPlComb = this.state.playerCombinedStatus ? ( <td>UG/D2</td> ) : null;
+    const tdDivision = this.props.usingDivisions ? ( <td>Division</td> ) : null;
+    const tdGP = ( <td>GP</td> );
 
     //additional table cells for the team detail preview
-    var tdRd = ( <td>Rd.</td> );
-    var tdOpp = ( <td>Opponent</td> );
-    var tdResult = ( <td>Result</td> );
-    var tdPf = ( <td>PF</td> );
-    var tdPa = ( <td>PA</td> );
+    const tdRd = ( <td>Rd.</td> );
+    const tdOpp = ( <td>Opponent</td> );
+    const tdResult = ( <td>Result</td> );
+    const tdPf = ( <td>PF</td> );
+    const tdPa = ( <td>PA</td> );
 
     //additional table cells for the player detail preview
-    var tdPlayerPts = ( <td>Pts</td> );
+    const tdPlayerPts = ( <td>Pts</td> );
 
-    var previewTables = {};
+    let previewTables: any = {};
 
     previewTables.teamStandings = (
       <table>
@@ -689,5 +740,3 @@ class RptConfigModal extends React.Component {
   }
 
 }
-
-module.exports=RptConfigModal

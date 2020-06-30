@@ -7,7 +7,7 @@ of report configurations
 ***********************************************************/
 import * as React from "react";
 
-enum RptConfigTypes {
+export enum RptConfigTypes {
   Released = 'released', //TODO: remove the strings
   Custom = 'custom',
   AddNew = 'addNew',

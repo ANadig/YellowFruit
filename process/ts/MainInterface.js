@@ -25,7 +25,7 @@ import { HeaderNav } from './HeaderNav';
 import { AddTeamModal } from './AddTeamModal';
 const AddGameModal = require('./AddGameModal');
 import { DivisionEditModal } from './DivisionEditModal';
-const RptConfigModal = require('./RptConfigModal');
+import { RptConfigModal } from './RptConfigModal';
 import { DivAssignModal } from './DivAssignModal';
 import { PhaseAssignModal } from './PhaseAssignModal';
 const SettingsForm = require('./SettingsForm');
