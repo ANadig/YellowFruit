@@ -10,6 +10,7 @@ var $ = require('jquery');
 var _ = require('lodash');
 var M = require('materialize-css');
 var StatUtils = require('./StatUtils');
+import * as GameVal from './GameVal';
 import { PlayerRow } from './PlayerRow';
 
 const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
@@ -116,7 +117,7 @@ class AddGameModal extends React.Component{
     var newTeamObj = this.props.teamData.find((item) => { return item.teamName == value; });
     var roster = Object.keys(newTeamObj.roster);
     //if there can't be any substitutions, autopopulate the total tossups for the round
-    var defaultTuh = roster.length <= this.props.settings.playersPerTeam ? this.state.tuhtot : 0;
+    var defaultTuh = roster.length <= this.props.settings.playersPerTeam ? +this.state.tuhtot : 0;
     var newPlayers = {};
     for(var i in roster) {
       newPlayers[roster[i]] = {tuh: defaultTuh, powers: 0, tens: 0, negs: 0};
@@ -247,17 +248,14 @@ class AddGameModal extends React.Component{
   }
 
   /**
-   * Called when the form is submitted (accept button). Tell the MainInterface to create
-   * a new game or modify an existing one as appropriate.
-   * @param  e event
+   * Convert data in the form into a YfGame object
+   * @return {YfGame} game object
    */
-  handleAdd(e) {
-    e.preventDefault();
-    if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
-    var forf = this.state.forfeit; //clear irrelevant data if it's a forfeit
-    var ot = this.state.ottu > 0; //clear OT data if no OT
-    var autoAssignPhase = this.props.addOrEdit == 'add' && this.props.currentPhase != 'all';
-    var tempItem = {
+  createYfGame() {
+    const forf = this.state.forfeit; //clear irrelevant data if it's a forfeit
+    const ot = this.state.ottu > 0; //clear OT data if no OT
+    const autoAssignPhase = this.props.addOrEdit == 'add' && this.props.currentPhase != 'all';
+    const game = {
       round: +this.state.round,
       phases: autoAssignPhase && !this.state.tiebreaker ? [this.props.currentPhase] : this.state.phases,
       tuhtot: forf ? 0 : +this.state.tuhtot,
@@ -281,7 +279,19 @@ class AddGameModal extends React.Component{
       lightningPts1: forf ? 0 : +this.state.lightningPts1,
       lightningPts2: forf ? 0 : +this.state.lightningPts2,
       notes: this.state.notes
-    } //tempitems
+    }
+    return game;
+  }
+
+  /**
+   * Called when the form is submitted (accept button). Tell the MainInterface to create
+   * a new game or modify an existing one as appropriate.
+   * @param  e event
+   */
+  handleAdd(e) {
+    e.preventDefault();
+    if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
+    let tempItem = this.createYfGame();
 
     var acceptAndStay = e.target.name == 'acceptAndStay';
     if(this.props.addOrEdit == 'add') {
@@ -293,17 +303,6 @@ class AddGameModal extends React.Component{
 
     this.resetState();
   } //handleAdd
-
-  /*---------------------------------------------------------
-  The greatest integer guaranteed to divide a game score
-  evenly.
-  ---------------------------------------------------------*/
-  scoreDivisor() {
-    if(this.props.settings.powers == '15pts' || this.props.settings.negs) {
-      return 5;
-    }
-    return 10;
-  }
 
   /*---------------------------------------------------------
   The value of a power, or zero if the tournament doesn't
@@ -399,30 +398,6 @@ class AddGameModal extends React.Component{
   }
 
   /*---------------------------------------------------------
-  Whether points per bouceback is invalid:
-  - It's greater than 30
-  - There are bounceback points scored but 0 bouncebacks
-    heard
-  ---------------------------------------------------------*/
-  invalidPpbb(whichTeam) {
-    var ppbb = whichTeam == 1 ? this.ppBb(1) : this.ppBb(2);
-    if(ppbb > 30) { return true; }
-    var bbPts = whichTeam == 1 ? +this.state.bbPts1 : +this.state.bbPts2;
-    return isNaN(ppbb) && bbPts > 0;
-  }
-
-  /*---------------------------------------------------------
-  How many points the team scored on overtime tossups.
-  ---------------------------------------------------------*/
-  otPoints(whichTeam) {
-    if(StatUtils.toNum(this.state.ottu) <= 0) { return 0; }
-    var otPwr = whichTeam == 1 ? this.state.otPwr1 : this.state.otPwr2;
-    var otTen = whichTeam == 1 ? this.state.otTen1 : this.state.otTen2;
-    var otNeg = whichTeam == 1 ? this.state.otNeg1 : this.state.otNeg2;
-    return this.powerValue()*otPwr + 10*otTen - 5*otNeg;
-  }
-
-  /*---------------------------------------------------------
   Title at the top left
   ---------------------------------------------------------*/
   getModalHeader() {
@@ -444,33 +419,26 @@ class AddGameModal extends React.Component{
     return teamOptions;
   }
 
-  /*---------------------------------------------------------
-  Whether there are any issues with the game. 3-element array:
-  - Are there errors, true/false
-  - Severity level (error: can't save game; warning: can
-    override; info: used for forfeit, not technically an
-    error)
-  - Error message
-  ---------------------------------------------------------*/
+  /**
+   * Determines whether there are any issues with the game. Uses GameVal but there are
+   * some things we need to handle differently here.
+   * @return   FormValidation tuple
+   */
   validateGame() {
-    var team1 = this.state.team1, team2 = this.state.team2;
-    var round = this.state.round, tuhtot = StatUtils.toNum(this.state.tuhtot);
-    var score1 = this.state.score1, score2 = this.state.score2;
-    var players1 = this.state.players1, players2 = this.state.players2;
+    const team1 = this.state.team1, team2 = this.state.team2;
+    const round = this.state.round, tuhtot = +this.state.tuhtot;
+    const score1 = this.state.score1, score2 = this.state.score2;
+    const players1 = this.state.players1, players2 = this.state.players2;
     //teams are required
     if(team1 == 'nullTeam' || team2 == 'nullTeam' || team1 == '' || team2 == '' ) {
       return [false, '', ''];
-    }
-    // a team can't play itself
-    if(team1 == team2) {
-      return [false, 'error', team1 + ' cannot play themselves'];
     }
     //round is required
     if(round == '') {
       return [false, '', ''];
     }
-    //two teams cah't play each other twice in the same round
-    var [teamAPlayed, teamBPlayed] = this.props.haveTeamsPlayedInRound(team1, team2, round, this.state.originalGameLoaded);
+    //two teams can't play each other twice in the same round
+    const [teamAPlayed, teamBPlayed] = this.props.haveTeamsPlayedInRound(team1, team2, round, this.state.originalGameLoaded);
     if(teamAPlayed == 3) {
       return [false, 'error', 'These teams already played each other in round ' + round];
     }
@@ -493,155 +461,7 @@ class AddGameModal extends React.Component{
     //no error message yet if you haven't started entering data for both teams
     if(players1 == null || players2 == null) { return [false, '', '']; }
 
-    //no player can have more tossups heard than were read in the match,
-    //and no player can answer more tossups than he's heard
-    var playerTuhSums = [0,0];
-    for(var p in players1) {
-      if(StatUtils.toNum(players1[p].tuh) > tuhtot) {
-        return [false, 'error', p + ' has heard more than ' + tuhtot + ' tossups'];
-      }
-      var tuAnswered = StatUtils.toNum(players1[p].powers) + StatUtils.toNum(players1[p].tens) + StatUtils.toNum(players1[p].negs);
-      if(StatUtils.toNum(players1[p].tuh) < tuAnswered) {
-        return [false, 'error', p + ' has more tossups answered than tossups heard']
-      }
-      playerTuhSums[0] += StatUtils.toNum(players1[p].tuh);
-    }
-    //likewise for team 2
-    for(var p in players2) {
-      if(StatUtils.toNum(players2[p].tuh) > tuhtot) {
-        return [false, 'error', p + ' has heard more than ' + tuhtot + ' tossups'];
-      }
-      var tuAnswered = StatUtils.toNum(players2[p].powers) + StatUtils.toNum(players2[p].tens) + StatUtils.toNum(players2[p].negs);
-      if(StatUtils.toNum(players2[p].tuh) < tuAnswered) {
-        return [false, 'error', p + ' has more tossups answered than tossups heard']
-      }
-      playerTuhSums[1] += StatUtils.toNum(players2[p].tuh);
-    }
-    //A team's players cannot have heard more tossups collectively than the
-    //total tossups for the game, times the number of players per team
-    var idealCollectiveTuh = tuhtot * this.props.settings.playersPerTeam;
-    if(idealCollectiveTuh > 0 && playerTuhSums[0] > idealCollectiveTuh) {
-      return [false, 'error', team1 + '\'s players have heard more than ' + idealCollectiveTuh + ' tossups'];
-    }
-    if(idealCollectiveTuh > 0 && playerTuhSums[1] > idealCollectiveTuh) {
-      return [false, 'error', team2 + '\'s players have heard more than ' + idealCollectiveTuh + ' tossups'];
-    }
-
-    // make sure there are tossups heard even if team scored zero points
-    if(playerTuhSums[0] == 0) {
-      return [false, 'error', team1 + ' has not heard any tossups'];
-    }
-    if(playerTuhSums[1] == 0) {
-      return [false, 'error', team2 + ' has not heard any tossups'];
-    }
-
-    //if it's a tossup only format, sum of tossup points must equal total score
-    if(!this.props.settings.bonuses) {
-      if(this.bPts(1) != 0) {
-        return [false, 'error', team1 + '\'s tossup points and total score do not match'];
-      }
-      if(this.bPts(2) != 0) {
-        return [false, 'error', team2 + '\'s tossup points and total score do not match'];
-      }
-    }
-
-    //PPB can't be over 30 (includes having bonus points but no bonuses heawrd).
-    //exception is if there are no bonus points to account for
-    if((isNaN(this.ppb(1)) && this.bPts(1) > 0) || this.ppb(1) > 30) {
-      return [false, 'error', team1 + ' has over 30 ppb'];
-    }
-    if((isNaN(this.ppb(2)) && this.bPts(2) > 0) || this.ppb(2) > 30) {
-      return [false, 'error', team2 + ' has over 30 ppb'];
-    }
-
-    //both teams combined can't convert more tossups than have been read
-    if(this.bHeard(1) + this.bHeard(2) >  tuhtot) {
-      return [false, 'error', 'Total tossups converted by both teams exceeds total tossups heard for the game'];
-    }
-
-    //Bonus points can't be negative
-    if(this.bPts(1) < 0 || this.bPts(2) < 0) {
-      return [false, 'error', 'Bonus points cannot be negative'];
-    }
-
-    //can't have over 30 ppbb
-    if(this.props.settings.bonusesBounce && this.invalidPpbb(1)) {
-      return [false, 'error', team1 + ' has over 30 ppbb'];
-    }
-    if(this.props.settings.bonusesBounce && this.invalidPpbb(2)) {
-      return [false, 'error', team2 + ' has over 30 ppbb'];
-    }
-
-    // can't have more buzzes in overtime than tossups you actually heard
-    var otPwr1 =StatUtils.toNum(this.state.otPwr1);
-    var otPwr2 =StatUtils.toNum(this.state.otPwr2);
-    var otTen1 =StatUtils.toNum(this.state.otTen1);
-    var otTen2 =StatUtils.toNum(this.state.otTen2);
-    var otNeg1 =StatUtils.toNum(this.state.otNeg1);
-    var otNeg2 =StatUtils.toNum(this.state.otNeg2);
-    var ottu =StatUtils.toNum(this.state.ottu);
-    if(otPwr1 + otTen1 + otNeg1 > ottu) {
-      return [false, 'error', team1 + ' has more overtime buzzes than tossups heard'];
-    }
-    if(otPwr2 + otTen2 + otNeg2 > ottu) {
-      return [false, 'error', team2 + ' has more overtime buzzes than tossups heard'];
-    }
-
-    //both teams can't have converted more overtime tossups than were read
-    if(otPwr1 + otTen1 + otPwr2 + otTen2 > ottu) {
-      return [false, 'error', 'More overtime tossups were converted than the total number of overtime tossups heard']
-    }
-
-    if(+this.state.lightningPts1 < 0 || +this.state.lightningPts2 < 0) {
-      return [false, 'error', 'Lightning round points cannot be negative'];
-    }
-
-    //If there are no errors, compile all overrideable warnings, and display them all
-    var warningsExist = false, warningList = '';
-
-    //warn if score isn't divisible by 5
-    var divisor = this.scoreDivisor();
-    if(score1 % divisor != 0 || score2 % divisor != 0) {
-      warningsExist = true;
-      warningList += 'Score is not divisible by ' + divisor + '. ';
-    }
-
-    //bonus points shouldn't end in 5
-    if(this.bPts(1) % 10 != 0 || this.bPts(2) % 10 != 0) {
-      warningsExist = true;
-      warningList += 'Bonus points are not divisible by 10. ';
-    }
-
-    //Subtract overtime points from each team. You should get a tie game.
-    if(ottu > 0 && score1 - this.otPoints(1) != score2 - this.otPoints(2)) {
-      warningsExist = true;
-      warningList += 'Game went to overtime but score was not tied at the ' +
-        'end of regulation based on each team\'s points scored in overtime. ';
-    }
-
-    //there shouldn't be empty chairs if your team had enough players to fill them
-    if(playerTuhSums[0] < idealCollectiveTuh &&
-      Object.keys(players1).length >= this.props.settings.playersPerTeam) {
-      warningsExist = true;
-      warningList += team1 + '\'s players have heard fewer than ' +
-        idealCollectiveTuh + ' tossups. ';
-    }
-    if(playerTuhSums[1] < idealCollectiveTuh &&
-      Object.keys(players2).length >= this.props.settings.playersPerTeam) {
-      warningsExist = true;
-      warningList += team2 + '\'s players have heard fewer than ' +
-        idealCollectiveTuh + ' tossups. ';
-    }
-
-    //Warn if the score is a tie. Ties are bad. You shouldn't have ties.
-    if(score1 == score2) {
-      warningsExist = true;
-      warningList += 'This game is a tie.'
-    }
-
-    if(warningsExist) { return [true, 'warning', warningList]; }
-
-    return [true, '', ''];
+    return GameVal.validateGame(this.createYfGame(), this.props.settings);
   }//validateGame
 
   /*---------------------------------------------------------
@@ -674,12 +494,12 @@ class AddGameModal extends React.Component{
     return (tm == '' || tm == 'nullTeam') ? 'invalid-select-wrapper' : '';
   }
 
-  /*---------------------------------------------------------
-  Returns a JSX element containing the appropriate icon,
-  or null if not needed.
-  ---------------------------------------------------------*/
+  /**
+   * Returns a JSX element containing the appropriate icon, or null if not needed
+   * @param  errorLevel which icon to show
+   * @return            JSX icon element
+   */
   getErrorIcon(errorLevel) {
-    if(errorLevel == '') { return null; }
     if(errorLevel == 'error') {
       return ( <i className="material-icons red-text text-darken-4 qb-modal-error">error</i> );
     }
@@ -689,6 +509,7 @@ class AddGameModal extends React.Component{
     if(errorLevel == 'info') {
       return ( <i className="material-icons blue-text text-darken-4 qb-modal-error">info</i> );
     }
+    return null;
   }
 
   /*---------------------------------------------------------
@@ -723,13 +544,12 @@ class AddGameModal extends React.Component{
   }
 
 
-
-
   render() {
     var [gameIsValid, errorLevel, errorMessage] = this.validateGame();
     var errorIcon = this.getErrorIcon(errorLevel);
     var acceptHotKey = gameIsValid ? 'a' : '';
     var acceptStayHotKey = gameIsValid ? 's' : '';
+    const scoreDivisor = GameVal.scoreDivisor(this.props.settings);
 
     //labels for every phase the game is part of
     var phaseChips = [];
@@ -1012,7 +832,7 @@ class AddGameModal extends React.Component{
             </div>
             <div className="input-field col s4 m2 l1">
               <input className={this.validateField("score1",false)} disabled={this.state.forfeit ? 'disabled' : ''} type="number"
-              step={this.scoreDivisor()} id="tm1Score" name="score1"
+              step={scoreDivisor} id="tm1Score" name="score1"
               value={this.state.forfeit ? '' : this.state.score1} onChange={this.handleChange}/>
               <label htmlFor="tm1Score">Score</label>
             </div>
@@ -1023,7 +843,7 @@ class AddGameModal extends React.Component{
             </div>
             <div className="input-field col s4 m2 l1">
               <input className={this.validateField("score2",false)} disabled={this.state.forfeit ? 'disabled' : ''} type="number"
-              step={this.scoreDivisor()} id="tm2Score" name="score2"
+              step={scoreDivisor} id="tm2Score" name="score2"
               value={this.state.forfeit ? '' : this.state.score2} onChange={this.handleChange}/>
               <label htmlFor="tm2Score">Score</label>
             </div>
