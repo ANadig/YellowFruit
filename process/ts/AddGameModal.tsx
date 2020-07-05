@@ -1,24 +1,69 @@
 /***********************************************************
-AddGameModal.js
+AddGameModal.ts
 Andrew Nadig
 
 React component comprising the Modal window containing the
 form for entering and editing games.
 ***********************************************************/
-var React = require('react');
-var $ = require('jquery');
-var _ = require('lodash');
-var M = require('materialize-css');
-var StatUtils = require('./StatUtils');
+import * as React from 'react';
+import * as $ from 'jquery';
+import * as _ from 'lodash';
+import * as M from 'materialize-css';
+import StatUtils = require('./StatUtils');
 import * as GameVal from './GameVal';
 import { PlayerRow } from './PlayerRow';
+import { YfGame, YfTeam, TournamentSettings, TeamGameLine, WhichTeam, FormValidation } from './YfTypes';
 
 const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
   'red', 'purple', 'teal', 'deep-purple', 'pink', 'green'];
 
-class AddGameModal extends React.Component{
+interface AddGameModalProps {
+  gameToLoad: YfGame;
+  onLoadGameInModal: () => void;
+  addOrEdit: 'add' | 'edit';
+  addGame: (g: YfGame, acceptAndStay: boolean) => void;
+  modifyGame: (orig: YfGame, g: YfGame, acceptAndStay: boolean) => void;
+  forceReset: boolean;
+  onForceReset: () => void;
+  isOpen: boolean;
+  teamData: YfTeam[];
+  haveTeamsPlayedInRound: (team1: string, team2: string, round: number, orig: YfGame) => [number, number];
+  allPhases: string[];
+  currentPhase: string;
+  settings: TournamentSettings;
+}
 
-  constructor(props) {
+interface AddGameModalState {
+  round: string;
+  phases: string[];
+  tuhtot: string;
+  ottu: string;
+  forfeit: boolean;
+  tiebreaker: boolean;
+  team1: string;
+  team2: string;
+  score1: string;
+  score2: string;
+  players1: TeamGameLine;
+  players2: TeamGameLine;
+  otPwr1: string;
+  otTen1: string;
+  otNeg1: string;
+  otPwr2: string;
+  otTen2: string;
+  otNeg2: string;
+  bbPts1: string;
+  bbPts2: string;
+  lightningPts1: string;
+  lightningPts2: string;
+  notes: string;
+  originalGameLoaded: YfGame;
+}
+
+
+export class AddGameModal extends React.Component<AddGameModalProps, AddGameModalState>{
+
+  constructor(props: AddGameModalProps) {
     super(props);
     this.state = {
       round: '',
@@ -50,25 +95,35 @@ class AddGameModal extends React.Component{
     this.updatePlayer = this.updatePlayer.bind(this);
   } //constructor
 
-  /*---------------------------------------------------------
-  Lifecycle method
-  ---------------------------------------------------------*/
-  componentDidMount() {
+  /**
+   * Lifecycle method
+   */
+  componentDidMount(): void {
     //don't let the Enter key submit the form
     $(document).on("keydown", "#addGame :input:not(textarea)", function(event) {
       return event.keyCode != 13;
     });
   }
 
-  /*---------------------------------------------------------
-  Lifecyle method. Need an extra render when opening or
-  closing in order for fields to populate and clear properly.
-  ---------------------------------------------------------*/
-  componentDidUpdate(prevProps) {
+  /**
+   * Lifecyle method. Need an extra render when opening or closing for fields to
+   * populate and clear properly
+   * @param  _prevProps unused
+   */
+  componentDidUpdate(prevProps: AddGameModalProps): void {
     //needed so that labels aren't on top of data when the edit form opens
     M.updateTextFields();
     //needed so that dropdowns show their value
     M.FormSelect.init(document.querySelectorAll('#addGame select'));
+    //pre-populate the current phase if opening the blank form
+    if(this.props.addOrEdit == 'add' && this.props.isOpen && !prevProps.isOpen) {
+      const curPhase = this.props.currentPhase;
+      if(curPhase != 'all' && curPhase != 'Tiebreakers') {
+        this.setState({
+          phases: [curPhase]
+        });
+      }
+    }
     if(this.props.forceReset) {
       this.resetState();
       //setting mainInterface's forceReset to false will avoid infinite loop
@@ -81,17 +136,16 @@ class AddGameModal extends React.Component{
     }
   }
 
-  /*---------------------------------------------------------
-  Called any time a value in the form changes, other than
-  the Team or Phase selectors.
-  This is a controlled component, so the state is the single
-  source of truth.
-  ---------------------------------------------------------*/
-  handleChange(e) {
+  /**
+   * Called anytime a value in the form changes, other than the Team or Phase
+   * selectors.
+   * @param  e event
+   */
+  handleChange(e: any): void {
     const target = e.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
-    var partialState = {};
+    let partialState: any = {};
     partialState[name] = value;
     //get rid of or put back phases if tiebreaker status is changing
     if(name == 'tiebreaker') {
@@ -107,18 +161,18 @@ class AddGameModal extends React.Component{
   /**
    * When a team is selected in one of the dropdowns, we need to reset the player
    * stats table
-   * @param  {[type]} e event
+   * @param   e event
    */
-  handleTeamChange(e) {
+  handleTeamChange(e: any): void {
     const target = e.target;
     const value = target.value;
     const name = target.name;
-    var partialState = {};
-    var newTeamObj = this.props.teamData.find((item) => { return item.teamName == value; });
-    var roster = Object.keys(newTeamObj.roster);
+    let partialState: any = {};
+    const newTeamObj = this.props.teamData.find((item) => { return item.teamName == value; });
+    const roster = Object.keys(newTeamObj.roster);
     //if there can't be any substitutions, autopopulate the total tossups for the round
-    var defaultTuh = roster.length <= this.props.settings.playersPerTeam ? +this.state.tuhtot : 0;
-    var newPlayers = {};
+    const defaultTuh = roster.length <= this.props.settings.playersPerTeam ? +this.state.tuhtot : 0;
+    let newPlayers = {};
     for(var i in roster) {
       newPlayers[roster[i]] = {tuh: defaultTuh, powers: 0, tens: 0, negs: 0};
     }
@@ -128,12 +182,13 @@ class AddGameModal extends React.Component{
     this.setState(partialState);
   }
 
-  /*---------------------------------------------------------
-  Handle values in the phase select dropdown.
-  ---------------------------------------------------------*/
-  handlePhaseChange(e) {
-    var options = e.target.options;
-    var newPhases = [];
+  /**
+   * Handle values in the phase select dropdown.
+   * @param  e event
+   */
+  handlePhaseChange(e: any): void {
+    const options = e.target.options;
+    let newPhases = [];
     for(var i=0; i<options.length; i++) {
       if(options[i].selected) { newPhases.push(options[i].value); }
     }
@@ -150,10 +205,10 @@ class AddGameModal extends React.Component{
    * @param  value      value for that stat
    * @param  playerName player's name
    */
-  updatePlayer(whichTeam, whichStat, value, playerName){
+  updatePlayer(whichTeam: WhichTeam, whichStat: string, value: number, playerName: string): void {
     if(whichTeam == 1) {
       //deep copy of team data to avoid spurious state updates. Maybe unnecessary?
-      var tempTeam1 = $.extend(true, {}, this.state.players1);
+      let tempTeam1 = $.extend(true, {}, this.state.players1);
       if(tempTeam1[playerName] == undefined) {
         //for if a player is added to a team and then that team's game is edited
         tempTeam1[playerName] = {tuh: 0, powers: 0, tens: 0, negs: 0};
@@ -165,7 +220,7 @@ class AddGameModal extends React.Component{
     }
     else if(whichTeam == 2) {
       //deep copy of team data to avoid spurious state updates
-      var tempTeam2 = $.extend(true, {}, this.state.players2);
+      let tempTeam2 = $.extend(true, {}, this.state.players2);
       if(tempTeam2[playerName] == undefined) {
         tempTeam2[playerName] = {tuh: 0, powers: 0, tens: 0, negs: 0};
       }
@@ -176,10 +231,10 @@ class AddGameModal extends React.Component{
     }
   } // updatePlayer
 
-  /*---------------------------------------------------------
-  Once the modal has been closed, clear all the form data
-  ---------------------------------------------------------*/
-  resetState() {
+  /**
+   * Once the modal has been closed, clear all the form data
+   */
+  resetState(): void {
     this.setState({
       round: '',
       phases: [],
@@ -209,7 +264,7 @@ class AddGameModal extends React.Component{
    * @param  num Number to convert
    * @return     string representation of the number
    */
-  loadNumericField(num) {
+  loadNumericField(num: number): string {
     if(num === 0) { return ''; }
     return num.toString();
   }
@@ -218,7 +273,7 @@ class AddGameModal extends React.Component{
    * Populate form with the data of the game to be edited. Also keep a pointer to this
    * game so the MainInterface knows which game to modify when the form is submitted.
    */
-  loadGame() {
+  loadGame(): void {
     this.setState({
       round: this.props.gameToLoad.round.toString(),    // 0 should be a legal round number
       phases: this.props.gameToLoad.phases,
@@ -249,15 +304,14 @@ class AddGameModal extends React.Component{
 
   /**
    * Convert data in the form into a YfGame object
-   * @return {YfGame} game object
+   * @return  game object
    */
-  createYfGame() {
+  createYfGame(): YfGame {
     const forf = this.state.forfeit; //clear irrelevant data if it's a forfeit
-    const ot = this.state.ottu > 0; //clear OT data if no OT
-    const autoAssignPhase = this.props.addOrEdit == 'add' && this.props.currentPhase != 'all';
+    const ot = +this.state.ottu > 0; //clear OT data if no OT
     const game = {
       round: +this.state.round,
-      phases: autoAssignPhase && !this.state.tiebreaker ? [this.props.currentPhase] : this.state.phases,
+      phases: this.state.phases,
       tuhtot: forf ? 0 : +this.state.tuhtot,
       ottu: forf ? 0 : +this.state.ottu,
       forfeit: this.state.forfeit,
@@ -288,7 +342,7 @@ class AddGameModal extends React.Component{
    * a new game or modify an existing one as appropriate.
    * @param  e event
    */
-  handleAdd(e) {
+  handleAdd(e: any): void {
     e.preventDefault();
     if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
     let tempItem = this.createYfGame();
@@ -304,11 +358,11 @@ class AddGameModal extends React.Component{
     this.resetState();
   } //handleAdd
 
-  /*---------------------------------------------------------
-  The value of a power, or zero if the tournament doesn't
-  have powers.
-  ---------------------------------------------------------*/
-  powerValue() {
+  /**
+   * The value of a power, or zero if the tournament doesn't have powers
+   * @return {[type]} [description]
+   */
+  powerValue(): number {
     if(this.props.settings.powers == '15pts') { return 15; }
     if(this.props.settings.powers == '20pts') { return 20; }
     return 0;
@@ -338,9 +392,9 @@ class AddGameModal extends React.Component{
   bPts(whichTeam) {
     var tuPts=0;
     var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
-    var totScore = whichTeam == 1 ? this.state.score1 : this.state.score2;
-    var bbPts = whichTeam == 1 ? this.state.bbPts1 : this.state.bbPts2;
-    var lghtPts = whichTeam == 1 ? this.state.lightningPts1 : this.state.lightningPts2;
+    var totScore = whichTeam == 1 ? +this.state.score1 : +this.state.score2;
+    var bbPts = whichTeam == 1 ? +this.state.bbPts1 : +this.state.bbPts2;
+    var lghtPts = whichTeam == 1 ? +this.state.lightningPts1 : +this.state.lightningPts2;
     for(var p in players) {
       tuPts += this.powerValue()*StatUtils.toNum(players[p].powers) +
         10*StatUtils.toNum(players[p].tens) - 5*StatUtils.toNum(players[p].negs);
@@ -371,7 +425,7 @@ class AddGameModal extends React.Component{
   em-dash JSX element if no bouncebacks heard.
   ---------------------------------------------------------*/
   ppBb(whichTeam) {
-    var bbPts = whichTeam == 1 ? this.state.bbPts1 : this.state.bbPts2;
+    var bbPts = whichTeam == 1 ? +this.state.bbPts1 : +this.state.bbPts2;
     var bbHeard = this.bbHeard(whichTeam);
     return bbHeard <= 0 ? (<span>&mdash;</span>) : (bbPts / bbHeard).toFixed(2);
   }
@@ -397,24 +451,26 @@ class AddGameModal extends React.Component{
     return null;
   }
 
-  /*---------------------------------------------------------
-  Title at the top left
-  ---------------------------------------------------------*/
-  getModalHeader() {
+  /**
+   * Title at the top left
+   * @return 'New game' or 'Edit game'
+   */
+  getModalHeader(): string {
     return this.props.addOrEdit == 'add' ? 'New game' : 'Edit game';
   }
 
-  /*---------------------------------------------------------
-  Returns the list of dropdown options
-  ---------------------------------------------------------*/
-  getTeamOptions() {
-    var teamData = this.props.teamData;
+  /**
+   * Returns the list of dropdown options
+   * @return  array of option elements
+   */
+  getTeamOptions(): JSX.Element[] {
+    let teamData = this.props.teamData;
     //alphebetize
     teamData = _.orderBy(teamData, function(item) { return item.teamName.toLowerCase(); });
-    var teamOptions = teamData.map(function(item, index) {
+    let teamOptions = teamData.map(function(item, index) {
       return ( <option key={index} value={item.teamName}>{item.teamName}</option> );
     });
-    var nullOption = (<option key={-1} value="nullTeam" disabled>&nbsp;Select a team...</option>);
+    const nullOption = (<option key={-1} value="nullTeam" disabled>&nbsp;Select a team...</option>);
     teamOptions = [nullOption].concat(teamOptions);
     return teamOptions;
   }
@@ -424,21 +480,21 @@ class AddGameModal extends React.Component{
    * some things we need to handle differently here.
    * @return   FormValidation tuple
    */
-  validateGame() {
+  validateGame(): FormValidation {
     const team1 = this.state.team1, team2 = this.state.team2;
     const round = this.state.round, tuhtot = +this.state.tuhtot;
     const score1 = this.state.score1, score2 = this.state.score2;
     const players1 = this.state.players1, players2 = this.state.players2;
     //teams are required
     if(team1 == 'nullTeam' || team2 == 'nullTeam' || team1 == '' || team2 == '' ) {
-      return [false, '', ''];
+      return [false, null, ''];
     }
     //round is required
     if(round == '') {
-      return [false, '', ''];
+      return [false, null, ''];
     }
     //two teams can't play each other twice in the same round
-    const [teamAPlayed, teamBPlayed] = this.props.haveTeamsPlayedInRound(team1, team2, round, this.state.originalGameLoaded);
+    const [teamAPlayed, teamBPlayed] = this.props.haveTeamsPlayedInRound(team1, team2, +round, this.state.originalGameLoaded);
     if(teamAPlayed == 3) {
       return [false, 'error', 'These teams already played each other in round ' + round];
     }
@@ -456,27 +512,30 @@ class AddGameModal extends React.Component{
     }
     //total TUH and total scores are required.
     if(tuhtot <= 0 || score1 == '' || score2 == '') {
-      return [false, '', ''];
+      return [false, null, ''];
     }
     //no error message yet if you haven't started entering data for both teams
-    if(players1 == null || players2 == null) { return [false, '', '']; }
+    if(players1 == null || players2 == null) { return [false, null, '']; }
 
     return GameVal.validateGame(this.createYfGame(), this.props.settings);
   }//validateGame
 
-  /*---------------------------------------------------------
-  Add the disabled attribute to the submit button.
-  ---------------------------------------------------------*/
-  disabledButton(isGameValid) {
+  /**
+   * Add the disabled attribute to the submit button.
+   * @param  isGameValid  whether the form can be submitted
+   * @return 'disabled' or ''
+   */
+  disabledButton(isGameValid: boolean): string {
     return isGameValid ? '' : 'disabled';
   }
 
-  /*---------------------------------------------------------
-  Add the "invalid" class to a required field if it's empty.
-    item: state property corresponding to the field
-    includeForfeit: field is required even for forfeits?
-  ---------------------------------------------------------*/
-  validateField(item, includeForfeit) {
+  /**
+   * Add the "invalid" class to a required field if it's empty.
+   * @param   item           state property corresponding to the field
+   * @param  includeForfeit whether the field is required even if the game is a forfeit
+   * @return                'invalid' or ''
+   */
+  validateField(item: keyof AddGameModalState, includeForfeit: boolean) {
     if(!this.props.isOpen || this.props.gameToLoad != null) { return ''; }
     if(this.state[item] == '' && (!this.state.forfeit || includeForfeit)) {
       return 'invalid';
@@ -484,13 +543,14 @@ class AddGameModal extends React.Component{
     return '';
   }
 
-  /*---------------------------------------------------------
-  Mark the team select drop down as invalid if user hasn't
-  selected a team
-  ---------------------------------------------------------*/
-  validateTeamSelect(whichTeam) {
+  /**
+   * Mark the team select drop down as invalid if user hasn't
+   * @param   whichTeam team 1 or 2
+   * @return           class name or ''
+   */
+  validateTeamSelect(whichTeam: WhichTeam): string {
     if(!this.props.isOpen || this.props.gameToLoad != null) { return ''; }
-    var tm = this.state['team'+whichTeam]
+    const tm = this.state['team'+whichTeam]
     return (tm == '' || tm == 'nullTeam') ? 'invalid-select-wrapper' : '';
   }
 
@@ -499,7 +559,7 @@ class AddGameModal extends React.Component{
    * @param  errorLevel which icon to show
    * @return            JSX icon element
    */
-  getErrorIcon(errorLevel) {
+  getErrorIcon(errorLevel: 'error' | 'warning' | 'info'): JSX.Element {
     if(errorLevel == 'error') {
       return ( <i className="material-icons red-text text-darken-4 qb-modal-error">error</i> );
     }
@@ -517,25 +577,28 @@ class AddGameModal extends React.Component{
   1. Adding a game while not viewing a phase, or
   2. Editing a game that doesn't have any phases
   ---------------------------------------------------------*/
-  canEditPhase() {
-    var allPhases = this.props.allPhases;
+  canEditPhase(): boolean {
+    const allPhases = this.props.allPhases;
     if(allPhases.length == 0) { return false; }
     if(allPhases.length == 1 && allPhases[0] == 'noPhase') { return false; }
     if(this.state.tiebreaker) { return false; }
-    var addOrEdit = this.props.addOrEdit, viewingPhase = this.props.currentPhase;
-    if(addOrEdit == 'add' && (viewingPhase == 'all' || viewingPhase == 'Tiebreakers')) {
-      return true;
-    }
-    if(this.state.originalGameLoaded == null) { return false; }
-    return addOrEdit == 'edit' && this.state.originalGameLoaded.phases.length == 0;
+    // var addOrEdit = this.props.addOrEdit, viewingPhase = this.props.currentPhase;
+    // if(addOrEdit == 'add' && (viewingPhase == 'all' || viewingPhase == 'Tiebreakers')) {
+    //   return true;
+    // }
+    // if(this.state.originalGameLoaded == null) { return false; }
+    // return addOrEdit == 'edit' && this.state.originalGameLoaded.phases.length == 0;
+    return true;
   }
 
-  /*---------------------------------------------------------
-  Chip containing the label for one of the game's phases.
-  Pass colorNo -1 for a gray chip
-  ---------------------------------------------------------*/
-  phaseChip(colorNo, phase) {
-    var colorName = colorNo >=0 ? CHIP_COLORS[colorNo % CHIP_COLORS.length] : 'grey';
+  /**
+   * Chip containing the label for one of the game's phases.
+   * @param   colorNo index in the list of colors. Pass -1 for gray
+   * @param   phase   Name of the phase to show on the chip
+   * @return          chip div element
+   */
+  phaseChip(colorNo: number, phase: string): JSX.Element {
+    const colorName = colorNo >=0 ? CHIP_COLORS[colorNo % CHIP_COLORS.length] : 'grey';
     return (
       <div key={phase} className={'chip accent-1 ' + colorName}>
         {phase}
@@ -545,37 +608,30 @@ class AddGameModal extends React.Component{
 
 
   render() {
-    var [gameIsValid, errorLevel, errorMessage] = this.validateGame();
-    var errorIcon = this.getErrorIcon(errorLevel);
-    var acceptHotKey = gameIsValid ? 'a' : '';
-    var acceptStayHotKey = gameIsValid ? 's' : '';
+    const [gameIsValid, errorLevel, errorMessage] = this.validateGame();
+    const errorIcon = this.getErrorIcon(errorLevel);
+    const acceptHotKey = gameIsValid ? 'a' : '';
+    const acceptStayHotKey = gameIsValid ? 's' : '';
     const scoreDivisor = GameVal.scoreDivisor(this.props.settings);
 
     //labels for every phase the game is part of
-    var phaseChips = [];
+    let phaseChips = [];
     if(this.state.tiebreaker) {
       phaseChips = [this.phaseChip(-1, 'Tiebreaker')];
     }
-    else {
-      for(var i in this.props.allPhases) {
-        if((this.props.addOrEdit == 'add' && this.props.currentPhase == this.props.allPhases[i]) ||
-          (this.props.addOrEdit == 'edit' && this.state.phases.includes(this.props.allPhases[i]))) {
-          phaseChips.push(this.phaseChip(i, this.props.allPhases[i]));
-        }
-      }
-    }
+
     // multi-select dropdown to pick phases
-    var phaseSelect = null;
-    var canEditPhase = this.canEditPhase();
+    let phaseSelect = null;
+    const canEditPhase = this.canEditPhase();
 
     if(canEditPhase) {
-      var phaseOptions = this.props.allPhases.map((phase)=>{
+      const phaseOptions = this.props.allPhases.map((phase)=>{
         return ( <option key={phase} value={phase}>{phase}</option> );
       });
       phaseSelect = (
         <div className="input-field col s4">
           <select multiple id="phases" name="phases" value={this.state.phases}
-          disabled={this.state.tiebreaker ? 'disabled' : ''} onChange={this.handlePhaseChange}>
+          disabled={this.state.tiebreaker} onChange={this.handlePhaseChange}>
             <option value="" disabled>Phase...</option>
             {phaseOptions}
           </select>
@@ -583,19 +639,20 @@ class AddGameModal extends React.Component{
       );
     }
 
-    var teamData = this.props.teamData
-    var team1PlayerRows = null;
-    var team2PlayerRows = null;
-    var teamOptions = this.getTeamOptions();
+    const teamData = this.props.teamData
+    let team1PlayerRows = null;
+    let team2PlayerRows = null;
+    const teamOptions = this.getTeamOptions();
 
     // create team 1's player stats grid if it's not a forfeit
     if(!this.state.forfeit && this.state.team1 != 'nullTeam' && this.state.team1 != '') {
-      var team1Obj = teamData.find(function(item){
-        return item.teamName == this.state.team1
-      }.bind(this));
-      var roster = Object.keys(team1Obj.roster);
-      team1PlayerRows = roster.map(function(item, index){
-        var init = null;
+      const team1Obj = teamData.find((item) => {
+        return item.teamName == this.state.team1;
+      });
+      const roster = Object.keys(team1Obj.roster);
+
+      team1PlayerRows = roster.map((item, _index) => {
+        let init = null;
         if(this.state.players1 != null) { init = this.state.players1[item]; }
         else if(roster.length <= this.props.settings.playersPerTeam) {
           init = {tuh: this.state.tuhtot, powers: '', tens: '', negs: ''};
@@ -610,17 +667,17 @@ class AddGameModal extends React.Component{
             settings={this.props.settings}
           />
         )
-      }.bind(this)); //team1 roster.map
+      }); //team1 roster.map
     }
 
     //create team 2's player stats grid if it's not a forfeit
     if(!this.state.forfeit && this.state.team2 != 'nullTeam' && this.state.team2 != '') {
-      var team2Obj = teamData.find(function(item){
-        return item.teamName == this.state.team2
-      }.bind(this));
-      var roster = Object.keys(team2Obj.roster);
-      team2PlayerRows = roster.map(function(item, index){
-        var init = null;
+      const team2Obj = teamData.find((item) => {
+        return item.teamName == this.state.team2;
+      });
+      const roster = Object.keys(team2Obj.roster);
+      team2PlayerRows = roster.map((item, _index) => {
+        let init = null;
         if(this.state.players2 != null) { init = this.state.players2[item]; }
         else if(roster.length <= this.props.settings.playersPerTeam) {
           init = {tuh: this.state.tuhtot, powers: '', tens: '', negs: ''};
@@ -635,11 +692,11 @@ class AddGameModal extends React.Component{
             settings={this.props.settings}
           />
         )
-      }.bind(this)); //team2 roster.map
+      }); //team2 roster.map
     }
 
     // header for the player stats tables
-    var tableHeader, powerCell, negCell;
+    let tableHeader: JSX.Element, powerCell: JSX.Element, negCell: JSX.Element;
     if(this.props.settings.powers != 'none') {
       powerCell = ( <th>{this.powerValue()}</th> );
     }
@@ -660,8 +717,8 @@ class AddGameModal extends React.Component{
     );
 
     // fields for overtime scoring, if applicable
-    var overtimeRow = null;
-    if(this.state.ottu > 0 && !this.state.forfeit &&
+    let overtimeRow = null;
+    if(+this.state.ottu > 0 && !this.state.forfeit &&
       this.state.team1 != 'nullTeam' && this.state.team2 != 'nullTeam') {
       var powerField1 = null, powerField2 = null;
       var negField1 = null, negField2 = null;
@@ -728,7 +785,7 @@ class AddGameModal extends React.Component{
     } // if overtime
 
     // display (automatically calulcated) bonus stats
-    var bonusCalcRow = null;
+    let bonusCalcRow = null;
     if(this.props.settings.bonuses) {
       bonusCalcRow = (
         <div className="row">
@@ -743,7 +800,7 @@ class AddGameModal extends React.Component{
     }
 
     // bounceback points field, and automatically calculated bouncback conversion
-    var bouncebackRow = null;
+    let bouncebackRow = null;
     if(this.props.settings.bonusesBounce) {
       bouncebackRow = (
         <div className="row">
@@ -752,7 +809,7 @@ class AddGameModal extends React.Component{
             &emsp;
             <div className="input-field bounceback-entry">
               <input id="bbPts1" type="number" name="bbPts1" step="10" min="0"
-              disabled={this.state.forfeit ? 'disabled' : ''}
+              disabled={this.state.forfeit}
               value={this.state.forfeit ? '' : this.state.bbPts1} onChange={this.handleChange}/>
             </div>
             pts&emsp;|
@@ -763,7 +820,7 @@ class AddGameModal extends React.Component{
             &emsp;
             <div className="input-field bounceback-entry">
               <input id="bbPts2" type="number" name="bbPts2" step="10" min="0"
-              disabled={this.state.forfeit ? 'disabled' : ''}
+              disabled={this.state.forfeit}
               value={this.state.forfeit ? '' : this.state.bbPts2} onChange={this.handleChange}/>
             </div>
             pts&emsp;|
@@ -774,7 +831,7 @@ class AddGameModal extends React.Component{
     }
 
     // lightning round point entry
-    var lightningRow = null;
+    let lightningRow = null;
     if(this.props.settings.lightning) {
       lightningRow = (
         <div className="row">
@@ -782,7 +839,7 @@ class AddGameModal extends React.Component{
             Lightning Round:&emsp;
             <div className="input-field bounceback-entry">
               <input id="lightningPts1" type="number" name="lightningPts1" step="10" min="0"
-              disabled={this.state.forfeit ? 'disabled' : ''}
+              disabled={this.state.forfeit}
               value={this.state.forfeit ? '' : this.state.lightningPts1} onChange={this.handleChange}/>
             </div>
             pts
@@ -791,7 +848,7 @@ class AddGameModal extends React.Component{
             Lightning Round:&emsp;
             <div className="input-field bounceback-entry">
               <input id="lightningPts2" type="number" name="lightningPts2" step="10" min="0"
-              disabled={this.state.forfeit ? 'disabled' : ''}
+              disabled={this.state.forfeit}
               value={this.state.forfeit ? '' : this.state.lightningPts2} onChange={this.handleChange}/>
             </div>
             pts
@@ -817,7 +874,7 @@ class AddGameModal extends React.Component{
             </div>
             <div className="input-field col s2">
               <input id="tuhtot" className={this.validateField("tuhtot",false)}
-                disabled={this.state.forfeit ? 'disabled' : ''}
+                disabled={this.state.forfeit}
                 type="number" name="tuhtot" min="0"
                 value={this.state.forfeit ? '' : this.state.tuhtot} onChange={this.handleChange}/>
               <label htmlFor="tuhtot" className="truncate">Toss-ups (incl. OT)</label>
@@ -831,7 +888,7 @@ class AddGameModal extends React.Component{
               </select>
             </div>
             <div className="input-field col s4 m2 l1">
-              <input className={this.validateField("score1",false)} disabled={this.state.forfeit ? 'disabled' : ''} type="number"
+              <input className={this.validateField("score1",false)} disabled={this.state.forfeit} type="number"
               step={scoreDivisor} id="tm1Score" name="score1"
               value={this.state.forfeit ? '' : this.state.score1} onChange={this.handleChange}/>
               <label htmlFor="tm1Score">Score</label>
@@ -842,7 +899,7 @@ class AddGameModal extends React.Component{
               </div>
             </div>
             <div className="input-field col s4 m2 l1">
-              <input className={this.validateField("score2",false)} disabled={this.state.forfeit ? 'disabled' : ''} type="number"
+              <input className={this.validateField("score2",false)} disabled={this.state.forfeit} type="number"
               step={scoreDivisor} id="tm2Score" name="score2"
               value={this.state.forfeit ? '' : this.state.score2} onChange={this.handleChange}/>
               <label htmlFor="tm2Score">Score</label>
@@ -883,11 +940,11 @@ class AddGameModal extends React.Component{
           <div className="row game-entry-bottom-row">
             <div className="input-field col s12 m6">
               <textarea className="materialize-textarea" id="gameNotes" name="notes"
-                maxLength="500" onChange={this.handleChange} value={this.state.notes} />
+                maxLength={500} onChange={this.handleChange} value={this.state.notes} />
               <label htmlFor="gameNotes">Notes about this game</label>
             </div>
             <div className="input-field col s4 m2">
-              <input id="ottu" disabled={this.state.forfeit ? 'disabled' : ''} type="number" name="ottu" min="0"
+              <input id="ottu" disabled={this.state.forfeit} type="number" name="ottu" min="0"
               value={this.state.forfeit ? '' : this.state.ottu} onChange={this.handleChange}/>
               <label htmlFor="ottu">Overtime TU</label>
             </div>
@@ -933,5 +990,3 @@ class AddGameModal extends React.Component{
     ) //return
   } //render
 }; //AddGameModal
-
-module.exports=AddGameModal;

@@ -23,7 +23,7 @@ import { TeamListEntry } from './TeamListEntry';
 import { GameListEntry } from './GameListEntry';
 import { HeaderNav } from './HeaderNav';
 import { AddTeamModal } from './AddTeamModal';
-const AddGameModal = require('./AddGameModal');
+import { AddGameModal } from './AddGameModal';
 import { DivisionEditModal } from './DivisionEditModal';
 import { RptConfigModal } from './RptConfigModal';
 import { DivAssignModal } from './DivAssignModal';
