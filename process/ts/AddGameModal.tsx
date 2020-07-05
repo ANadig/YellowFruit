@@ -153,6 +153,14 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
       }
       else { partialState.phases = [this.props.currentPhase]; }
     }
+    // when adding overtime, automatically scroll the window so that the rest of the
+    // overtime fields are in view 
+    if(name == 'ottu' && +this.state.ottu === 0 && +value > 0) {
+      setTimeout(() => {
+        const modalContent = document.querySelector('.modal.open .modal-content');
+        modalContent.scrollTop = modalContent.scrollHeight - modalContent.clientHeight;
+      }, 100);
+    }
     this.setState(partialState);
   } //handleChange
 
