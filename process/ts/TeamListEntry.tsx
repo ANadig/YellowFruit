@@ -11,7 +11,7 @@ import { YfTeam } from "./YfTypes";
 interface TeamListEntryProps {
   team: YfTeam;
   onDelete: (whichTeam: YfTeam) => void;        // called when the user attempts to delete
-  onOpenTeam: (whichTeam: YfTeam) => void;      // called when the user opens the team for editing
+  openModal:(addOrEdit: 'add' | 'edit', teamToEdit: YfTeam) => void;      // called when the user opens the team for editing
   onSelectTeam: (whichTeam: YfTeam) => void;    // called when the checkbox is toggled
   selected: boolean;                            // whether the checkbox is selected
   numGamesPlayed: number;                       // how many games this team has played
@@ -50,7 +50,7 @@ export class TeamListEntry extends React.Component<TeamListEntryProps, TeamListE
    * Tell the MainInterface to open this team for editing.
    */
   editTeam(): void {
-    this.props.onOpenTeam(this.props.team);
+    this.props.openModal('edit', this.props.team);
   }
 
   /**

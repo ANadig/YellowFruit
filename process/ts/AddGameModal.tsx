@@ -19,12 +19,9 @@ const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
 
 interface AddGameModalProps {
   gameToLoad: YfGame;
-  onLoadGameInModal: () => void;
   addOrEdit: 'add' | 'edit';
   addGame: (g: YfGame, acceptAndStay: boolean) => void;
   modifyGame: (orig: YfGame, g: YfGame, acceptAndStay: boolean) => void;
-  forceReset: boolean;
-  onForceReset: () => void;
   isOpen: boolean;
   teamData: YfTeam[];
   haveTeamsPlayedInRound: (team1: string, team2: string, round: number, orig: YfGame) => [number, number];
@@ -108,31 +105,37 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
   /**
    * Lifecyle method. Need an extra render when opening or closing for fields to
    * populate and clear properly
-   * @param  _prevProps unused
+   * @param  prevProps props from previous render
    */
   componentDidUpdate(prevProps: AddGameModalProps): void {
-    //needed so that labels aren't on top of data when the edit form opens
-    M.updateTextFields();
-    //needed so that dropdowns show their value
-    M.FormSelect.init(document.querySelectorAll('#addGame select'));
-    //pre-populate the current phase if opening the blank form
-    if(this.props.addOrEdit == 'add' && this.props.isOpen && !prevProps.isOpen) {
+    // //needed so that labels aren't on top of data when the edit form opens
+    // M.updateTextFields();
+    // //needed so that dropdowns show their value
+    // M.FormSelect.init(document.querySelectorAll('#addGame select'));
+
+    //populate data if the modal is being opened
+    if(this.props.isOpen && !prevProps.isOpen) {
       const curPhase = this.props.currentPhase;
-      if(curPhase != 'all' && curPhase != 'Tiebreakers') {
+      // pre-populate current phase if creating a new game
+      if(this.props.addOrEdit == 'add' && curPhase != 'all' && curPhase != 'Tiebreakers') {
         this.setState({
           phases: [curPhase]
         });
       }
+      else if(this.props.addOrEdit == 'edit') {
+        this.loadGame();
+        // delay this to wait for the form to load... I don't feel like tracking the additional render
+        setTimeout(() => {
+          //needed so that labels aren't on top of data when the edit form opens
+          M.updateTextFields();
+          //needed so that dropdowns show their value
+          M.FormSelect.init(document.querySelectorAll('#addGame select'));
+        }, 25);
+      }
     }
-    if(this.props.forceReset) {
+    // clear the form if it's being closed
+    else if(!this.props.isOpen && prevProps.isOpen) {
       this.resetState();
-      //setting mainInterface's forceReset to false will avoid infinite loop
-      this.props.onForceReset();
-    }
-    if(this.props.gameToLoad != null) {
-      this.loadGame();
-      //setting mainInterface's editWhichGame to null will avoid infinite loop
-      this.props.onLoadGameInModal();
     }
   }
 
@@ -582,12 +585,6 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
     if(allPhases.length == 0) { return false; }
     if(allPhases.length == 1 && allPhases[0] == 'noPhase') { return false; }
     if(this.state.tiebreaker) { return false; }
-    // var addOrEdit = this.props.addOrEdit, viewingPhase = this.props.currentPhase;
-    // if(addOrEdit == 'add' && (viewingPhase == 'all' || viewingPhase == 'Tiebreakers')) {
-    //   return true;
-    // }
-    // if(this.state.originalGameLoaded == null) { return false; }
-    // return addOrEdit == 'edit' && this.state.originalGameLoaded.phases.length == 0;
     return true;
   }
 

@@ -247,18 +247,20 @@ class SettingsForm extends React.Component{
     }
   }
 
-  /*---------------------------------------------------------
-  Open the (blank) division edit modal
-  ---------------------------------------------------------*/
+  /**
+   * Open the (blank) division edit modal
+   */
   newDivision() {
-    this.props.newDivision();
+    this.props.openDivEditModal('add', null);
   }
 
-  /*---------------------------------------------------------
-  Open a division for editing
-  ---------------------------------------------------------*/
+  /**
+   * Open a division for editing
+   * @param  {string} division name of the divisions
+   * @param  {string} phase    name of the phase
+   */
   editDivision(division, phase) {
-    this.props.editDivision({divisionName: division, phase: phase});
+    this.props.openDivEditModal('edit', {divisionName: division, phase: phase});
   }
 
   /*---------------------------------------------------------

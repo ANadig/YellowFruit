@@ -6,14 +6,14 @@ React component representing the list of teams on the teams
 pane.
 ***********************************************************/
 import * as React from "react";
-import { YfPane } from "./YfTypes";
+import { YfPane, YfTeam } from "./YfTypes";
 
 type TeamSortMode = 'division' | 'alpha';
 
 interface TeamListProps {
   whichPaneActive: YfPane;  // which pane user is viewing. Render method short-circuits if not Teams
   teamList: JSX.Element[];  // list of TeamListEntry s to show
-  openModal: () => void;    // tell MainInterface to open the team add modal
+  openModal: (addOrEdit: 'add' | 'edit', teamToEdit: YfTeam) => void;    // tell MainInterface to open the team add modal
   totalTeams: number;       // total number of teams in the file
   sortTeamsBy: (mode: TeamSortMode) => void;  // tell the mainInterface to sort teams a certain way
   usingDivisions: boolean;  // whether the tournament uses divisions
@@ -40,7 +40,7 @@ export class TeamList extends React.Component<TeamListProps, TeamListState>{
    *   Tell the MainInterface to open the team modal to add a new team
    */
   addTeam(): void {
-    this.props.openModal();
+    this.props.openModal('add', null);
   }
 
   /**

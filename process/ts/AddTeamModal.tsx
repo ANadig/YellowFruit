@@ -8,19 +8,15 @@ form for entering and editing teams.
 import * as React from 'react';
 import * as $ from 'jquery';
 import * as _ from 'lodash';
-import * as M from 'materialize-css';
 import { YfTeam, FormValidation } from './YfTypes';
 
 const MAX_PLAYERS_PER_TEAM = 50;
 
 interface AddTeamModalProps {
   teamToLoad: YfTeam;
-  onLoadTeamInModal: () => void;
   addOrEdit: 'add' | 'edit';
   addTeam: (tempItem: YfTeam, acceptAndStay: boolean) => void;
   modifyTeam: (originalTeamLoaded: YfTeam, tempItem: YfTeam, acceptAndStay: boolean) => void;
-  forceReset: boolean;    // whether we need to clear data from the form right now
-  onForceReset: () => void;
   isOpen: boolean;
   validateTeamName: (name: string, originalTeamLoaded: YfTeam) => boolean;
   playerIndex: any;
@@ -81,20 +77,16 @@ export class AddTeamModal extends React.Component<AddTeamModalProps, AddTeamModa
   /**
    * Lifecyle method. Need an extra render when opening or closing in order for fields to
    * populate and clear properly.
-   * @param  _prevProps unused
+   * @param  prevProps properties from the previous render
    */
-  componentDidUpdate(_prevProps: any) {
-    //needed so that labels aren't on top of data when the edit form opens
-    M.updateTextFields();
-    if(this.props.forceReset) {
-      this.resetState();
-      //setting mainInterface's forceReset to false will avoid infinite loop
-      this.props.onForceReset();
-    }
-    if(this.props.teamToLoad != null) {
+  componentDidUpdate(prevProps: AddTeamModalProps) {
+    // populate data when the form is opened
+    if(this.props.isOpen && !prevProps.isOpen && this.props.addOrEdit == 'edit') {
       this.loadTeam();
-      //setting mainInterface's editWhichTeam to null will avoid infinite loop
-      this.props.onLoadTeamInModal();
+    }
+    // clear the form if it's being closed
+    else if(!this.props.isOpen && prevProps.isOpen) {
+      this.resetState();
     }
   }
 

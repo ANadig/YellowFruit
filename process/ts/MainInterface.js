@@ -104,8 +104,6 @@ export class MainInterface extends React.Component {
       navbarLoadToggle: false, //used to force the navbar to redraw
       activePane: 'settingsPane',  // settings, teams, or games
       viewingPhase: 'all', // 'all' or the name of a user-defined phase, or 'Tiebreakers'
-      forceResetForms: false, // used to force an additional render in the team and game
-                              // modals in order to clear form data
       editWhichDivision: null, // which division to load in the division edit modal
       divAddOrEdit: 'add', // either 'add' or 'edit'
       editWhichTeam: null,    // which team to load in the team modal
@@ -124,23 +122,16 @@ export class MainInterface extends React.Component {
       sidebarOpen: true, // whether the sidebar is visible
       reconstructSidebar: false // used to force the sidebar to reload when any teams are modified
     };
-    this.openTeamAddWindow = this.openTeamAddWindow.bind(this);
-    this.openGameAddWindow = this.openGameAddWindow.bind(this);
+    this.openTeamModal = this.openTeamModal.bind(this);
+    this.openGameModal = this.openGameModal.bind(this);
     this.openDivEditModal = this.openDivEditModal.bind(this);
     this.onModalClose = this.onModalClose.bind(this);
-    this.onForceReset = this.onForceReset.bind(this);
     this.addTeam = this.addTeam.bind(this);
     this.addGame = this.addGame.bind(this);
     this.modifyTeam = this.modifyTeam.bind(this);
     this.modifyGame = this.modifyGame.bind(this);
     this.deleteTeam = this.deleteTeam.bind(this);
     this.deleteGame = this.deleteGame.bind(this);
-    this.openDivForEdit = this.openDivForEdit.bind(this);
-    this.openTeamForEdit = this.openTeamForEdit.bind(this);
-    this.openGameForEdit = this.openGameForEdit.bind(this);
-    this.onLoadDivInModal = this.onLoadDivInModal.bind(this);
-    this.onLoadTeamInModal = this.onLoadTeamInModal.bind(this);
-    this.onLoadGameInModal = this.onLoadGameInModal.bind(this);
     this.validateDivisionName = this.validateDivisionName.bind(this);
     this.validateTeamName = this.validateTeamName.bind(this);
     this.haveTeamsPlayedInRound = this.haveTeamsPlayedInRound.bind(this);
@@ -202,10 +193,10 @@ export class MainInterface extends React.Component {
       }
     });
     Mousetrap.bind(['command+t', 'ctrl+t'], () => {
-      if(!this.anyModalOpen()) { this.openTeamAddWindow(); }
+      if(!this.anyModalOpen()) { this.openTeamModal('add', null); }
     });
     Mousetrap.bind(['command+g', 'ctrl+g'], () => {
-      if(!this.anyModalOpen()) { this.openGameAddWindow(); }
+      if(!this.anyModalOpen()) { this.openGameModal('add', null); }
     });
     Mousetrap.bind(['command+left', 'ctrl+left'], () => {
       if(!this.anyModalOpen()) { this.previousPage(); }
@@ -1042,12 +1033,11 @@ export class MainInterface extends React.Component {
     return badGameAry;
   }
 
-  /*---------------------------------------------------------
-  Clear data and go back to defaults. Called when the user
-  selects "new tournament".
-  ---------------------------------------------------------*/
+  /**
+   * Clear data and go back to defaults. Called when the user selects "new tournament".
+   */
   resetState() {
-    var defSettingsCopy = $.extend(true, {}, DEFAULT_SETTINGS);
+    const defSettingsCopy = $.extend(true, {}, DEFAULT_SETTINGS);
     this.setState({
       tmWindowVisible: false,
       gmWindowVisible: false,
@@ -1073,7 +1063,6 @@ export class MainInterface extends React.Component {
       settingsLoadToggle: !this.state.settingsLoadToggle,
       activePane: 'settingsPane',  //settings, teams, or games
       viewingPhase: 'all',
-      forceResetForms: false,
       editWhichDivision: null,
       divAddOrEdit: 'add',
       editWhichTeam: null,
@@ -1148,31 +1137,60 @@ export class MainInterface extends React.Component {
     });
   }
 
-  /*---------------------------------------------------------
-  Kick off opening the team modal
-  ---------------------------------------------------------*/
-  openTeamAddWindow() {
-    this.setState({
-      tmWindowVisible: true
-    });
-    setTimeout(function() { $('#teamName').focus() }, 50);
+  /**
+   * Open the modal for editing divisions
+   * @param  {'add' | 'edit'} addOrEdit whether we're adding a new division or editing an existing one
+   * @param {DraggableDivision} divToedit which division to load in the form
+   */
+  openDivEditModal(addOrEdit, divToedit) {
+    if(this.anyModalOpen()) { return; }
+    let partialState = {
+      divEditWindowVisible: true,
+      divAddOrEdit: addOrEdit
+    };
+    if(divToedit) { partialState.editWhichDivision = divToedit; }
+    this.setState(partialState);
+    // for some reason I can't call focus() normally for this field.
+    // fortunately this delay is not perceptible
+    setTimeout(function() { $('#divisionName').focus() }, 50);
   }
 
-  /*---------------------------------------------------------
-  Kick off opening the game modal
-  ---------------------------------------------------------*/
-  openGameAddWindow() {
+  /**
+   * Kick off opening the team modal
+   * @param  {'add' | 'edit'} addOrEdit whether we're adding a new team or editing an existing one
+   * @param {YfTeam} teamToEdit which team to load in the form
+   */
+  openTeamModal(addOrEdit, teamToEdit) {
+    let partialState = {
+      tmWindowVisible: true,
+      tmAddOrEdit: addOrEdit
+    };
+    if(teamToEdit) { partialState.editWhichTeam = teamToEdit; }
+    this.setState(partialState);
+    setTimeout(() => { $('#teamName').focus() }, 50);
+  }
+
+  /**
+   * Kick off opening the game modal
+   * @param  {'add' | 'edit'} addOrEdit whether we're adding a new game or editing an existing one
+   * @param {YfGame} gameToEdit which game to load in the form
+   */
+  openGameModal(addOrEdit, gameToEdit) {
     if(this.state.myTeams.length < 2 || this.state.editingSettings) { return; }
-    this.setState({
-      gmWindowVisible: true
-    });
+    let partialState = {
+      gmWindowVisible: true,
+      gmAddOrEdit: addOrEdit
+    };
+    if(gameToEdit) { partialState.editWhichGame = gameToEdit; }
+    this.setState(partialState);
     setTimeout(function() { $('#round').focus() }, 50);
   }
 
-  /*---------------------------------------------------------
-  Open a Materialize modal
-  ---------------------------------------------------------*/
-  openModal(descriptor) {
+  /**
+   * Open a Materialize modal
+   * @param  {string} descriptor id of the modal
+   */
+  materializeOpenModal(descriptor) {
     M.Modal.getInstance(document.querySelector(descriptor)).open();
   }
 
@@ -1183,8 +1201,11 @@ export class MainInterface extends React.Component {
   onModalClose() {
     this.setState({
       divEditWindowVisible: false,
+      editWhichDivision: null,
       tmWindowVisible: false,
+      editWhichTeam: null,
       gmWindowVisible: false,
+      editWhichGame: null,
       rptConfigWindowVisible: false,
       divWindowVisible: false,
       phaseWindowVisible: false,
@@ -1192,21 +1213,6 @@ export class MainInterface extends React.Component {
       selectedGames: [],
       checkTeamToggle: !this.state.checkTeamToggle,
       checkGameToggle: !this.state.checkGameToggle,
-      forceResetForms: true
-    });
-  }
-
-  /*---------------------------------------------------------
-  Called after modals have cleared their data so that they
-  don't enter in infinite render loop due to their
-  componentDidUpdate methods
-  ---------------------------------------------------------*/
-  onForceReset() {
-    this.setState({
-      forceResetForms: false,
-      divAddOrEdit: 'add',
-      tmAddOrEdit: 'add',
-      gmAddOrEdit: 'add'
     });
   }
 
@@ -1490,72 +1496,6 @@ export class MainInterface extends React.Component {
       myGames: tempGames
     });
     ipc.sendSync('unsavedData');
-  }
-
-  /*---------------------------------------------------------
-  Tell the division edit modal to load the given division
-  ---------------------------------------------------------*/
-  openDivForEdit(item) {
-    this.setState({
-      editWhichDivision: item,
-      divAddOrEdit: 'edit'
-    });
-    this.openDivEditModal()
-  }
-
-  /*---------------------------------------------------------
-  Tell the team modal to load the given team
-  ---------------------------------------------------------*/
-  openTeamForEdit(item) {
-    this.setState({
-      editWhichTeam: item,
-      tmAddOrEdit: 'edit'
-    });
-    this.openTeamAddWindow();
-  }
-
-  /*---------------------------------------------------------
-  Tell the game modal to load the given game
-  ---------------------------------------------------------*/
-  openGameForEdit(item) {
-    this.setState({
-      editWhichGame: item,
-      gmAddOrEdit: 'edit'
-    });
-    this.openGameAddWindow();
-  }
-
-  /*---------------------------------------------------------
-  Called by div edit modal once it's finished loading data.
-  Prevents an infinite render loop from the div edit modal's
-  componentDidUpdate method.
-  ---------------------------------------------------------*/
-  onLoadDivInModal() {
-    this.setState({
-      editWhichDivision: null
-    });
-  }
-
-  /*---------------------------------------------------------
-  Called by team modal once it's finished loading data.
-  Prevents an infinite render loop from the team modal's
-  componentDidUpdate method.
-  ---------------------------------------------------------*/
-  onLoadTeamInModal() {
-    this.setState({
-      editWhichTeam: null
-    });
-  }
-
-  /*---------------------------------------------------------
-  Called by game modal once it's finished loading data.
-  Prevents an infinite render loop from the game modal's
-  componentDidUpdate method.
-  ---------------------------------------------------------*/
-  onLoadGameInModal() {
-    this.setState({
-      editWhichGame: null
-    });
   }
 
   /*---------------------------------------------------------
@@ -1991,20 +1931,6 @@ export class MainInterface extends React.Component {
     this.setState({
       selectedGames: tempSelGames
     });
-  }
-
-  /**
-   * Open the modal for editing divisions
-   */
-  openDivEditModal() {
-    if(this.anyModalOpen()) { return; }
-    this.setState({
-      divEditWindowVisible: true
-    });
-    // for some reason I can't call focus() normally for this field.
-    // fortunately this delay is not perceptible
-    setTimeout(function() { $('#divisionName').focus() }, 50);
-    // $('#divisionName').focus();
   }
 
   /*---------------------------------------------------------
@@ -2496,12 +2422,12 @@ export class MainInterface extends React.Component {
       {onCloseEnd: this.onModalClose, dismissible: false}
     );
     //open modals if appropriate
-    if(this.state.tmWindowVisible === true) { this.openModal('#addTeam'); }
-    if(this.state.gmWindowVisible === true) { this.openModal('#addGame'); }
-    if(this.state.divEditWindowVisible === true) { this.openModal('#editDivision'); }
-    if(this.state.divWindowVisible === true) { this.openModal('#assignDivisions'); }
-    if(this.state.phaseWindowVisible === true) { this.openModal('#assignPhases'); }
-    if(this.state.rptConfigWindowVisible === true) { this.openModal('#rptConfig'); }
+    if(this.state.tmWindowVisible === true) { this.materializeOpenModal('#addTeam'); }
+    if(this.state.gmWindowVisible === true) { this.materializeOpenModal('#addGame'); }
+    if(this.state.divEditWindowVisible === true) { this.materializeOpenModal('#editDivision'); }
+    if(this.state.divWindowVisible === true) { this.materializeOpenModal('#assignDivisions'); }
+    if(this.state.phaseWindowVisible === true) { this.materializeOpenModal('#assignPhases'); }
+    if(this.state.rptConfigWindowVisible === true) { this.materializeOpenModal('#rptConfig'); }
 
     //sort and filter teams
     if (activePane == 'teamsPane') {
@@ -2546,7 +2472,7 @@ export class MainInterface extends React.Component {
         <TeamListEntry key = {item.teamName + this.state.checkTeamToggle}
           team = {item}
           onDelete = {this.deleteTeam}
-          onOpenTeam = {this.openTeamForEdit}
+          openModal = {this.openTeamModal}
           onSelectTeam = {this.onSelectTeam}
           selected = {this.state.selectedTeams.includes(item)}
           numGamesPlayed = {StatUtils.gamesPlayed(item, myGames)}
@@ -2562,7 +2488,7 @@ export class MainInterface extends React.Component {
         <GameListEntry key = {item.team1 + item.team2 + item.round + this.state.checkGameToggle}
           game = {item}
           onDelete = {this.deleteGame}
-          onOpenGame = {this.openGameForEdit}
+          openModal = {this.openGameModal}
           onSelectGame = {this.onSelectGame}
           selected = {this.state.selectedGames.includes(item)}
           allPhases = {Object.keys(this.state.divisions)}
@@ -2606,12 +2532,9 @@ export class MainInterface extends React.Component {
         <div className="interface">
           <AddTeamModal
             teamToLoad = {this.state.editWhichTeam}
-            onLoadTeamInModal = {this.onLoadTeamInModal}
             addOrEdit = {this.state.tmAddOrEdit}
             addTeam = {this.addTeam}
             modifyTeam = {this.modifyTeam}
-            forceReset = {this.state.forceResetForms}
-            onForceReset = {this.onForceReset}
             isOpen = {this.state.tmWindowVisible}
             validateTeamName = {this.validateTeamName}
             playerIndex = {this.state.playerIndex}
@@ -2619,12 +2542,9 @@ export class MainInterface extends React.Component {
           />
           <AddGameModal
             gameToLoad = {gameToLoadCopy}
-            onLoadGameInModal = {this.onLoadGameInModal}
             addOrEdit = {this.state.gmAddOrEdit}
             addGame = {this.addGame}
             modifyGame = {this.modifyGame}
-            forceReset = {this.state.forceResetForms}
-            onForceReset = {this.onForceReset}
             isOpen = {this.state.gmWindowVisible}
             teamData = {myTeams.slice()}
             haveTeamsPlayedInRound = {this.haveTeamsPlayedInRound}
@@ -2660,13 +2580,10 @@ export class MainInterface extends React.Component {
             isOpen = {this.state.divEditWindowVisible}
             addOrEdit = {this.state.divAddOrEdit}
             divisionToLoad = {this.state.editWhichDivision}
-            onLoadDivInModal = {this.onLoadDivInModal}
             divisions = {this.state.divisions}
             addDivision = {this.addDivision}
             modifyDivision = {this.modifyDivision}
             validateName = {this.validateDivisionName}
-            forceReset = {this.state.forceResetForms}
-            onForceReset = {this.onForceReset}
           />
 
           <div className="row">
@@ -2691,8 +2608,7 @@ export class MainInterface extends React.Component {
                 packets = {this.state.packets}
                 divisions = {this.state.divisions}
                 savePhases = {this.savePhases}
-                newDivision = {this.openDivEditModal}
-                editDivision = {this.openDivForEdit}
+                openDivEditModal = {this.openDivEditModal}
                 deleteDivision = {this.deleteDivision}
                 reorderDivisions = {this.reorderDivisions}
                 defaultPhases = {this.state.settings.defaultPhases}
@@ -2708,7 +2624,7 @@ export class MainInterface extends React.Component {
               <TeamList
                 whichPaneActive = {activePane}
                 teamList = {filteredTeams}
-                openModal = {this.openTeamAddWindow}
+                openModal = {this.openTeamModal}
                 totalTeams = {myTeams.length}
                 sortTeamsBy = {this.sortTeamsBy}
                 usingDivisions = {usingDivisions}
@@ -2717,7 +2633,7 @@ export class MainInterface extends React.Component {
               <GameList
                 whichPaneActive = {activePane}
                 gameList = {filteredGames}
-                openModal = {this.openGameAddWindow}
+                openModal = {this.openGameModal}
                 numberOfTeams = {myTeams.length}
                 totalGames = {myGames.length}
                 numberSelected = {this.state.selectedGames.length}

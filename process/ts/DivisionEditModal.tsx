@@ -16,13 +16,10 @@ interface DivisionEditModalProps {
   isOpen: boolean;
   addOrEdit: 'add' | 'edit';
   divisionToLoad: DraggableDivision;
-  onLoadDivInModal: () => void;
   divisions: PhaseList;
   addDivision: (divName: string, phase: string, acceptAndStay: boolean) => void;
   modifyDivision: (oldDivision: DraggableDivision, newDivName: string, newPhase: string, acceptAndStay: boolean) => void;
   validateName: (newDivName: string, newPhase: string, savedDivision: DraggableDivision) => boolean;
-  forceReset: boolean;
-  onForceReset: () => void;
 }
 
 interface DivisionEdiModalState {
@@ -57,22 +54,19 @@ export class DivisionEditModal extends React.Component<DivisionEditModalProps, D
   /**
    * Lifecyle method. Need an extra render when opening or closing in order for fields
    * to populate and clear properly.
-   * @param  _prevProps unused
+   * @param  prevProps unused
    */
-  componentDidUpdate(_prevProps: any) {
-    //needed so that labels aren't on top of data when the edit form opens
-    M.updateTextFields();
+  componentDidUpdate(prevProps: DivisionEditModalProps) {
     //needed so that dropdown shows its value
     M.FormSelect.init(document.querySelectorAll('select#phase'));
-    if(this.props.forceReset) {
-      this.resetState();
-      //setting mainInterface's forceReset to false will avoid infinite loop
-      this.props.onForceReset();
-    }
-    if(this.props.divisionToLoad != null) {
+
+    // populate data when the form is opened
+    if(this.props.isOpen && !prevProps.isOpen && this.props.addOrEdit == 'edit') {
       this.loadDivision();
-      //setting mainInterface's editWhichDivision to null will avoid infinite loop
-      this.props.onLoadDivInModal();
+    }
+    // clear the form if it's being closed
+    else if(!this.props.isOpen && prevProps.isOpen) {
+      this.resetState();
     }
   }
 
@@ -120,7 +114,7 @@ export class DivisionEditModal extends React.Component<DivisionEditModalProps, D
   }
 
   /**
-   * Populate form with the existing team's data. Also keep a pointer to this team so
+   * Populate form with the existing division's data. Also keep a pointer to this team so
    * the MainInterface can remember which team to modify.
    */
   loadDivision(): void {

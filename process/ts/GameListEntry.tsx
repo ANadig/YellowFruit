@@ -12,7 +12,7 @@ import { YfGame, TournamentSettings, WhichTeam, PowerRule } from "./YfTypes";
 interface GameListEntryProps {
   game: YfGame;
   onDelete: (whichGame: YfGame) => void;      // called when the user attempts to delete
-  onOpenGame: (whichGame: YfGame) => void;    // called when the user opens the game for editing
+  openModal: (addOrEdit: 'add' | 'edit', whichGame: YfGame) => void;    // called when the user opens the game for editing
   onSelectGame: (whichGame: YfGame) => void;  // called when the checkbox is toggled
   selected: boolean;                          // whether the checkbox is selected
   allPhases: string[];                        // list of the tournament's phases
@@ -60,7 +60,7 @@ export class GameListEntry extends React.Component<GameListEntryProps, GameListE
    *   Tell the MainInterface to open this game for editing.
    */
   editGame(): void {
-    this.props.onOpenGame(this.props.game);
+    this.props.openModal('edit', this.props.game);
   }
 
   /**
