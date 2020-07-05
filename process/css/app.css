@@ -480,6 +480,22 @@ nav .btn-flat {
   margin-top: 19px;
 }
 
+#addGame select.browser-default {
+  border: none;
+  border-bottom: 1px solid black;
+  background-color: #fafafa;
+}
+
+#addGame select.browser-default.invalid {
+  border: none;
+  border-bottom: 2px solid #f44336;
+  background-color: #fafafa;
+}
+
+#addGame .select-wrapper {
+  margin-top: 16px;
+}
+
 #addGame .dropdown-content {
   max-height: 450px;
 }
@@ -503,10 +519,6 @@ nav .btn-flat {
 
 .game-entry-2nd-row {
   margin-bottom: 0px;
-}
-
-.invalid-select-wrapper input {
-  border-bottom: 2px solid #F44336 !important;
 }
 
 .game-entry-bottom-row {

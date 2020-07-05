@@ -108,11 +108,6 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
    * @param  prevProps props from previous render
    */
   componentDidUpdate(prevProps: AddGameModalProps): void {
-    // //needed so that labels aren't on top of data when the edit form opens
-    // M.updateTextFields();
-    // //needed so that dropdowns show their value
-    // M.FormSelect.init(document.querySelectorAll('#addGame select'));
-
     //populate data if the modal is being opened
     if(this.props.isOpen && !prevProps.isOpen) {
       const curPhase = this.props.currentPhase;
@@ -554,7 +549,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
   validateTeamSelect(whichTeam: WhichTeam): string {
     if(!this.props.isOpen || this.props.gameToLoad != null) { return ''; }
     const tm = this.state['team'+whichTeam]
-    return (tm == '' || tm == 'nullTeam') ? 'invalid-select-wrapper' : '';
+    return (tm == '' || tm == 'nullTeam') ? 'invalid' : '';
   }
 
   /**
@@ -879,8 +874,9 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
           </div>
 
           <div className="row game-entry-2nd-row">
-            <div className={"input-field col s8 m3 l4 "+this.validateTeamSelect(1)}>
-              <select id="tm1Name"  name="team1" value={this.state.team1} onChange={this.handleTeamChange}>
+            <div className={"input-field col s8 m3 l4 select-wrapper"}>
+              <select className={'browser-default ' + this.validateTeamSelect(1)} id="tm1Name"
+                name="team1" value={this.state.team1} onChange={this.handleTeamChange}>
                 {teamOptions}
               </select>
             </div>
@@ -901,8 +897,9 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
               value={this.state.forfeit ? '' : this.state.score2} onChange={this.handleChange}/>
               <label htmlFor="tm2Score">Score</label>
             </div>
-            <div className={"input-field col s8 m3 l4 "+this.validateTeamSelect(2)}>
-              <select id="tm2Name" name="team2" value={this.state.team2} onChange={this.handleTeamChange}>
+            <div className={"input-field col s8 m3 l4 select-wrapper"}>
+              <select className={'browser-default ' + this.validateTeamSelect(2)} id="tm2Name"
+                name="team2" value={this.state.team2} onChange={this.handleTeamChange}>
                 {teamOptions}
               </select>
             </div>
