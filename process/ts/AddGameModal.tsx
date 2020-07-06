@@ -154,13 +154,15 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
       else { partialState.phases = [this.props.currentPhase]; }
     }
     // when adding overtime, automatically scroll the window so that the rest of the
-    // overtime fields are in view 
+    // overtime fields are in view
     if(name == 'ottu' && +this.state.ottu === 0 && +value > 0) {
+      // need a timer because the fields won't exist until the next render
       setTimeout(() => {
         const modalContent = document.querySelector('.modal.open .modal-content');
         modalContent.scrollTop = modalContent.scrollHeight - modalContent.clientHeight;
       }, 100);
     }
+
     this.setState(partialState);
   } //handleChange
 
@@ -374,87 +376,38 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
     return 0;
   }
 
-  /*---------------------------------------------------------
-  Calculate bonuses heard. Returns a number.
-  ---------------------------------------------------------*/
-  bHeard(whichTeam) {
-    var tot=0;
-    var players = this.state['players'+whichTeam]
-    for(var p in players) {
-      tot += StatUtils.toNum(players[p].powers) + StatUtils.toNum(players[p].tens);
-    }
-    if(StatUtils.toNum(this.state.ottu) > 0) {
-      var otPwr = this.state['otPwr'+whichTeam];
-      var otTen = this.state['otTen'+whichTeam];
-      tot -= StatUtils.toNum(otPwr); //subtract TUs converted in overtime
-      tot -= StatUtils.toNum(otTen);
-    }
-    return tot;
+  /**
+   * JSX element containing the points per bonus
+   * @param  {} bPts   bonuse points scored
+   * @param  {} bHeard bonuses heard
+   * @return {}        span containing a number or em dash
+   */
+  ppbDisplay(bPts: number, bHeard: number) : JSX.Element {
+    return bHeard == 0 ? ( <span>&mdash;</span> ) :
+      ( <span>{(bPts / bHeard).toFixed(2)} </span> );
   }
 
-  /*---------------------------------------------------------
-  Calculate total bonus points. Returns a number.
-  ---------------------------------------------------------*/
-  bPts(whichTeam) {
-    var tuPts=0;
-    var players = whichTeam == 1 ? this.state.players1 : this.state.players2;
-    var totScore = whichTeam == 1 ? +this.state.score1 : +this.state.score2;
-    var bbPts = whichTeam == 1 ? +this.state.bbPts1 : +this.state.bbPts2;
-    var lghtPts = whichTeam == 1 ? +this.state.lightningPts1 : +this.state.lightningPts2;
-    for(var p in players) {
-      tuPts += this.powerValue()*StatUtils.toNum(players[p].powers) +
-        10*StatUtils.toNum(players[p].tens) - 5*StatUtils.toNum(players[p].negs);
-    }
-    return totScore - tuPts - bbPts - lghtPts;
+  /**
+   * JSX element containing the points per bouncback
+   * @param   bbPts   team's bounceback points
+   * @param   bbHeard team's bouncebacks heard, in decimal form
+   * @return          span with a number or an em dash
+   */
+  ppBbDisplay(bbPts: number, bbHeard: number): JSX.Element {
+    return bbHeard <= 0 ? ( <span>&mdash;</span> ) :
+      ( <span>{(bbPts / bbHeard).toFixed(2)}</span> );
   }
 
-  /*---------------------------------------------------------
-  Returns ppb rounded to two decimal places, or an em-dash
-  JSX element if no bonuses heard.
-  ---------------------------------------------------------*/
-  ppb(whichTeam) {
-    var bHeard = this.bHeard(whichTeam);
-    return bHeard == 0 ? (<span>&mdash;</span>) : (this.bPts(whichTeam)/bHeard).toFixed(2);
-  }
-
-  /*---------------------------------------------------------
-  How many (30-point bonuses' worth of) bouncebacks a team
-  heard.
-  ---------------------------------------------------------*/
-  bbHeard(whichTeam) {
-    var otherTeam = whichTeam == 1 ? 2 : 1;
-    return (this.bHeard(otherTeam)*30 - this.bPts(otherTeam)) / 30;
-  }
-
-  /*---------------------------------------------------------
-  Points per every three bounceback parts heard, or an
-  em-dash JSX element if no bouncebacks heard.
-  ---------------------------------------------------------*/
-  ppBb(whichTeam) {
-    var bbPts = whichTeam == 1 ? +this.state.bbPts1 : +this.state.bbPts2;
-    var bbHeard = this.bbHeard(whichTeam);
-    return bbHeard <= 0 ? (<span>&mdash;</span>) : (bbPts / bbHeard).toFixed(2);
-  }
-
-  /*---------------------------------------------------------
-  The integer part of the number of bouncebacks heard.
-  ---------------------------------------------------------*/
-  bbHeardInteger(whichTeam) {
-    var raw = this.bbHeard(whichTeam);
-    return raw <= 0 ? 0 : Math.trunc(raw);
-  }
-
-  /*---------------------------------------------------------
-  Returns a JSX element representing the fraction 1/3/ or
-  2/3, or null, becuase bouncebacks heard come in
-  thirds-of-a-bonus.
-  ---------------------------------------------------------*/
-  bbHeardFraction(whichTeam) {
-    var otherTeam = whichTeam == 1 ? 2 : 1;
-    var remainder = ((this.bHeard(otherTeam)*30 - this.bPts(otherTeam))/10) % 3;
-    if(remainder == 1) { return ( <span>&#8531;</span> ); } // '1/3' character
-    if(remainder == 2) { return ( <span>&#8532;</span> ); } // '2/3' character
-    return null;
+  /**
+   * A JSX element containing the bouncebacks heard in fractional form, e.g. 4 1/3
+   * @param   bbHeard tuple: [integer part, remainder]
+   * @return         span element
+   */
+  bbHeardDisplay(bbHeard: number[]): JSX.Element {
+    if(bbHeard[0] < 0) { return ( <span>0</span> ); }
+    if(bbHeard[1] == 1) { return ( <span>{bbHeard[0]}&#8531;</span> ); } // '1/3' character
+    if(bbHeard[1] == 2) { return ( <span>{bbHeard[0]}&#8532;</span> ); } // '2/3' character
+    return ( <span>{bbHeard[0]}</span> );
   }
 
   /**
@@ -608,6 +561,13 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
 
 
   render() {
+    const gameObj = this.createYfGame();
+    const settings = this.props.settings;
+    const bHeard = [StatUtils.bonusesHeard(gameObj, 1), StatUtils.bonusesHeard(gameObj, 2)];
+    const bPts = [StatUtils.bonusPoints(gameObj, 1, settings), StatUtils.bonusPoints(gameObj, 2, settings)];
+    const bbHrd = [StatUtils.bbHeard(gameObj, 1, settings), StatUtils.bbHeard(gameObj, 2, settings)];
+    const bbHrdFloats = [StatUtils.bbHrdToFloat(bbHrd[0]), StatUtils.bbHrdToFloat(bbHrd[1])];
+
     const [gameIsValid, errorLevel, errorMessage] = this.validateGame();
     const errorIcon = this.getErrorIcon(errorLevel);
     const acceptHotKey = gameIsValid ? 'a' : '';
@@ -790,10 +750,16 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
       bonusCalcRow = (
         <div className="row">
           <div className="col s6">
-            Bonuses:&emsp;{this.bHeard(1)} heard&emsp;|&emsp;{this.bPts(1)} pts&emsp;|&emsp;{this.ppb(1)} ppb
+            Bonuses:&emsp;
+            {bHeard[0]} heard&emsp;|&emsp;
+            {bPts[0]} pts&emsp;|&emsp;
+            {this.ppbDisplay(bPts[0], bHeard[0])} ppb
           </div>
           <div className="col s6">
-            Bonuses:&emsp;{this.bHeard(2)} heard&emsp;|&emsp;{this.bPts(2)} pts&emsp;|&emsp;{this.ppb(2)} ppb
+            Bonuses:&emsp;
+            {bHeard[1]} heard&emsp;|&emsp;
+            {bPts[1]} pts&emsp;|&emsp;
+            {this.ppbDisplay(bPts[1], bHeard[1])} ppb
           </div>
         </div>
       );
@@ -805,7 +771,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
       bouncebackRow = (
         <div className="row">
           <div className="col s6">
-            Bouncebacks:&emsp;{this.bbHeardInteger(1)}{this.bbHeardFraction(1)} heard&emsp;|
+            Bouncebacks:&emsp;{this.bbHeardDisplay(bbHrd[0])} heard&emsp;|
             &emsp;
             <div className="input-field bounceback-entry">
               <input id="bbPts1" type="number" name="bbPts1" step="10" min="0"
@@ -813,10 +779,10 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
               value={this.state.forfeit ? '' : this.state.bbPts1} onChange={this.handleChange}/>
             </div>
             pts&emsp;|
-            &emsp;{this.ppBb(1)} ppbb
+            &emsp;{this.ppBbDisplay(+this.state.bbPts1, bbHrdFloats[0])} ppbb
           </div>
           <div className="col s6">
-            Bouncebacks:&emsp;{this.bbHeardInteger(2)}{this.bbHeardFraction(2)} heard&emsp;|
+            Bouncebacks:&emsp;{this.bbHeardDisplay(bbHrd[1])} heard&emsp;|
             &emsp;
             <div className="input-field bounceback-entry">
               <input id="bbPts2" type="number" name="bbPts2" step="10" min="0"
@@ -824,7 +790,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
               value={this.state.forfeit ? '' : this.state.bbPts2} onChange={this.handleChange}/>
             </div>
             pts&emsp;|
-            &emsp;{this.ppBb(2)} ppbb
+            &emsp;{this.ppBbDisplay(+this.state.bbPts2, bbHrdFloats[1])} ppbb
           </div>
         </div>
       );
@@ -882,7 +848,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
           </div>
 
           <div className="row game-entry-2nd-row">
-            <div className={"input-field col s8 m3 l4 select-wrapper"}>
+            <div className={"input-field col s8 m3 l4 teamsel-wrapper"}>
               <select className={'browser-default ' + this.validateTeamSelect(1)} id="tm1Name"
                 name="team1" value={this.state.team1} onChange={this.handleTeamChange}>
                 {teamOptions}
@@ -905,7 +871,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
               value={this.state.forfeit ? '' : this.state.score2} onChange={this.handleChange}/>
               <label htmlFor="tm2Score">Score</label>
             </div>
-            <div className={"input-field col s8 m3 l4 select-wrapper"}>
+            <div className={"input-field col s8 m3 l4 teamsel-wrapper"}>
               <select className={'browser-default ' + this.validateTeamSelect(2)} id="tm2Name"
                 name="team2" value={this.state.team2} onChange={this.handleTeamChange}>
                 {teamOptions}

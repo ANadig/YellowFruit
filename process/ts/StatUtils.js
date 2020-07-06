@@ -188,7 +188,7 @@ function bonusPoints(game, whichTeam, settings) {
   var totalPoints = whichTeam == 1 ? game.score1 : game.score2;
   var bbPts = whichTeam == 1 ? game.bbPts1 : game.bbPts2;
   var lghtPts = whichTeam == 1 ? game.lightningPts1 : game.lightningPts2;
-  for(var p in players) {
+  for(let p in players) {
     tuPts += powerValue(settings)*toNum(players[p].powers) +
       10*toNum(players[p].tens) + negValue(settings)*toNum(players[p].negs);
   }
