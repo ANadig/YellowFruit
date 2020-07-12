@@ -877,7 +877,7 @@ export function compileStandings(teams: YfTeam[], games: YfGame[], filterPhase: 
     t.ppbb = formatRate(ppbb, 2);
   }
 
-  let ppg2Num = (t: any) => { return isNaN(t.ppg) ? 0 : t.ppg; };
+  let ppg2Num = (t: TeamStandingsLine) => { return isNaN(+t.ppg) ? 0 : +t.ppg; };
 
   //if showing all games, order by rank override first.
   //if showing phase record, order by that as well
