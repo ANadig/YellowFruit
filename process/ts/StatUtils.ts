@@ -1,10 +1,11 @@
-/***********************************************************
-StatUtils.js
+  /***********************************************************
+StatUtils.ts
 Andrew Nadig
 
 code for generating the HTML stats report.
 ***********************************************************/
-var _ = require('lodash');
+import * as _ from 'lodash';
+import { YfGame, RptConfig, TournamentSettings, PowerRule, YfTeam, WhichTeam, PlayerLine, PacketList } from './YfTypes';
 const TOOLTIPS = {
   smallSchool: 'Small School',
   jrVarsity: 'Junior Varsity',
@@ -38,289 +39,498 @@ const TOOLTIPS = {
   phaseRecord: ['Record in the ', ' stage of the tournament. Teams are ranked by this record.']
 }
 
+interface TeamStandingsLine {
+  teamName:string; rank: number;
+  smallSchool: boolean; jrVarsity: boolean;
+  teamUGStatus: boolean; teamD2Status: boolean;
+  division: string; groupingPhase: string;
+  wins: number; losses: number; ties: number; winPct: string;
+  phaseWins: number; phaseLosses: number; phaseTies: number;
+  phaseWinPct: number; phaseRecord: string;
+  ppg: number | string; papg: number | string; margin: number | string;
+  pp20: number | string; pap20: number | string; mrg20: number | string;
+  powers: number; tens: number; negs: number;
+  tuh: number; ppth: number | string;
+  pPerN: number | string; gPerN: number | string;
+  bHeard: number; bPts: number; ppb: number | string;
+  bbHeard: [number, number], bbPts: number; ppbb: number | string;
+  lightning: number;
+  points: number; ptsAgainst: number;
+  forfeits: number;
+  otPts: number; otPtsAgainst: number; ottuh: number;
+}
+
+interface PlayerStandingsLine {
+  playerName: string;
+  year: string;
+  undergrad: boolean;
+  div2: boolean;
+  teamName: string;
+  division: string;
+  gamesPlayed: number | string;
+  powers: number;
+  tens: number;
+  negs: number;
+  tuh: number;
+  pptu: number | string;
+  pPerN: number | string;
+  gPerN: number | string;
+  points: number;
+  ppg: number | string;
+  pp20:number | string;
+}
+
+interface RoundSummary {
+  numberOfGames: number; totalPoints: number;
+  tuPts: number; tuh: number;
+  bPts: number; bHeard: number;
+  bbPts: number; bbHeard: [number, number];
+  ppg: number; pp20: number;
+  tuPtsPTu: number;
+  ppb: number; ppbb: number;
+  ltngPts: number; ppLtng: number;
+}
+
 /*---------------------------------------------------------
-Convert string to number, where '' is zero.
+Convert string to number, but using 0 instead of NaN
 ---------------------------------------------------------*/
-function toNum(str) {
+/**
+ * Convert string to number, but using 0 instead of NaN
+ * @param  str [description]
+ * @return     [description]
+ */
+export function toNum(str) {
   return isNaN(+str) ? 0 : +str;
 }
 
-/*---------------------------------------------------------
-Format numbers to the specified precision, and
-divide-by-zero calculations to an em-dash.
----------------------------------------------------------*/
-function formatRate(r, precision) {
-  return isNaN(r) ? '&mdash;&ensp;' : r.toFixed(precision);
+/**
+ * Format numbers to the specified precision, and divide-by-zero calculations to an em-dash
+ * @param  r         something to attempt to show as a number
+ * @param  precision number of decimal places
+ * @return           fomrmatted number, or string
+ */
+function formatRate(r: any, precision: number): number | string {
+  return isNaN(+r) || !isFinite(+r) ? '&mdash;&ensp;' : r.toFixed(precision);
 }
 
-/*---------------------------------------------------------
-Determine whether a game is part of a phase
----------------------------------------------------------*/
-function matchFilterPhase(game, phase, showTbs) {
+/**
+ * Determine whether we care about the game based on the phase we're showing
+ * @param  game    game object
+ * @param  phase   name of phase
+ * @param  showTbs whether to also show tiebreakers
+ * @return         whether to show the game in the stat report
+ */
+export function matchFilterPhase(game: YfGame, phase: string, showTbs: boolean): boolean {
   if(game.tiebreaker) {
     return phase == 'Tiebreakers' || (phase == 'all' && showTbs);
   }
   return phase == 'all' || game.phases.includes(phase);
 }
 
-// include column for small school status?
-function showSS(rptConfig) { return rptConfig.smallSchool != null && rptConfig.smallSchool }
+/**
+ * include column for small school status?
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the small school column
+ */
+function showSS(rptConfig: RptConfig): boolean {
+  return rptConfig.smallSchool !== null && rptConfig.smallSchool
+}
 
-// include column for JV status?
-function showJV(rptConfig) { return rptConfig.jrVarsity != null && rptConfig.jrVarsity }
+/**
+ * include column for JV status?
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the JV column
+ */
+function showJV(rptConfig: RptConfig): boolean {
+  return rptConfig.jrVarsity !== null && rptConfig.jrVarsity
+}
 
-// include column for team undergrad status?
-function showTeamUG(rptConfig) { return rptConfig.teamUG; }
+/**
+ * include column for team undergrad status?
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the team UG column
+ */
+function showTeamUG(rptConfig: RptConfig): boolean { return rptConfig.teamUG; }
 
-// include column for team div. 2 status?
-function showTeamD2(rptConfig) { return rptConfig.teamD2; }
+/**
+ * include column for team div. 2 status?
+ * @param  rptConfig report configuration obejct
+ * @return           true if we should show the team D2 column
+ */
+function showTeamD2(rptConfig: RptConfig): boolean { return rptConfig.teamD2; }
 
-// include the combined UG/D2 column?
-function showTeamCombined(rptConfig) { return rptConfig.teamCombinedStatus; }
+/**
+ * include the combined UG/D2 column?
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the team combined column
+ */
+function showTeamCombined(rptConfig: RptConfig): boolean {
+  return rptConfig.teamCombinedStatus;
+}
 
-// include the column for W-L record in the grouping phase?
-function showPhaseRecord(rptConfig, phase, groupingPhases) {
+/**
+ * include the column for W-L record in the grouping phase?
+ * @param  rptConfig      report configuration object
+ * @param  phase          name of the phase the report is showing
+ * @param  groupingPhases names of the phases by whose divisions the teams are being grouped
+ * @return                true if we should show the phase record column
+ */
+function showPhaseRecord(rptConfig: RptConfig, phase: string, groupingPhases: string[]): boolean {
   return rptConfig.phaseRecord && phase == 'all' &&
     groupingPhases.length > 0 && groupingPhases[0] != 'noPhase';
 }
 
-// track ppg (rather than pp20TUH)?
-function showPpg(rptConfig) { return rptConfig.ppgOrPp20 == 'ppg'; }
+/**
+ * track ppg (rather than pp20TUH)?
+ * @param  rptConfig report configuration object
+ * @return           true if using ppg, false if using pp20
+ */
+function showPpg(rptConfig: RptConfig): boolean { return rptConfig.ppgOrPp20 == 'ppg'; }
 
-// track pp20tuh
-function showPp20(rptConfig) { return rptConfig.ppgOrPp20 == 'pp20'; }
+/**
+ * track pp20tuh?
+ * @param  rptConfig report configuration object
+ * @return           true if using pp20, false if using ppg
+ */
+function showPp20(rptConfig: RptConfig): boolean { return rptConfig.ppgOrPp20 == 'pp20'; }
 
-// include column for pts against?
-function showPapg(rptConfig) { return rptConfig.papg; }
+/**
+ * include column for pts against?
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the PAPG column
+ */
+function showPapg(rptConfig: RptConfig): boolean { return rptConfig.papg; }
 
-// include column for average margin?
-function showMargin(rptConfig) { return rptConfig.margin; }
+/**
+ * include column for average margin?
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the margin column
+ */
+function showMargin(rptConfig: RptConfig): boolean { return rptConfig.margin; }
 
-// include column for powers?
-function showPowers(settings) { return settings.powers != 'none'; }
+/**
+ * include column for powers?
+ * @param  settings tournament settings object
+ * @return          true if we should show powers
+ */
+function showPowers(settings: TournamentSettings): boolean {
+  return settings.powers != PowerRule.None;
+}
 
-// include column for negs?
-function showNegs(settings) { return settings.negs; }
+/**
+ * include column for negs?
+ * @param  settings tournament settings object
+ * @return          true if we should show negs
+ */
+function showNegs(settings: TournamentSettings): boolean { return settings.negs; }
 
-// include column pts per tuh?
-function showPptuh(rptConfig) { return rptConfig.pptuh; }
+/**
+ * include column pts per tuh?
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the pptuh colummn
+ */
+function showPptuh(rptConfig: RptConfig): boolean { return rptConfig.pptuh; }
 
-// include column for powers per neg?
-function showPPerN(settings, rptConfig) {
+/**
+ * include column for powers per neg?
+ * @param  settings  settings object
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the Pwr/N column
+ */
+function showPPerN(settings: TournamentSettings, rptConfig: RptConfig): boolean {
   return showPowers(settings) && showNegs(settings) && rptConfig.pPerN;
 }
 
-// include column for gets per neg?
-function showGPerN(settings, rptConfig) { return showNegs(settings) && rptConfig.gPerN; }
+/**
+ * include column for gets per neg?
+ * @param  settings  tournament settings object
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the G/N column
+ */
+function showGPerN(settings: TournamentSettings, rptConfig: RptConfig): boolean {
+  return showNegs(settings) && rptConfig.gPerN;
+}
 
-// include column for lightning round points?
-function showLtng(settings) { return settings.lightning; }
+/**
+ * include column for lightning round points?
+ * @param  settings Tournament settings object
+ * @return          true if we should show the lightning points column
+ */
+function showLtng(settings: TournamentSettings): boolean { return settings.lightning; }
 
-// include columns for bonus points and PPB?
-function showBonus(settings) { return settings.bonuses; }
+/**
+ * include columns for bonus points and PPB?
+ * @param  settings tournament settings object
+ * @return          true if we should show bonus-related columns
+ */
+function showBonus(settings: TournamentSettings): boolean { return settings.bonuses; }
 
-// include columns for bounceback points and PPBB?
-function showBb(settings) { return settings.bonusesBounce; }
+/**
+ * include columns for bounceback points and PPBB?
+ * @param  settings tournamenet settings object
+ * @return          true if we should show bounceback-related columns
+ */
+function showBb(settings: TournamentSettings): boolean { return settings.bonusesBounce; }
 
-// show players' year/grade?
-function showPlayerYear(rptConfig) { return rptConfig.playerYear; }
+/**
+ * show players' year/grade?
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the Year column
+ */
+function showPlayerYear(rptConfig: RptConfig): boolean { return rptConfig.playerYear; }
 
-// show players' UG status?
-function showPlayerUG(rptConfig) { return rptConfig.playerUG; }
+/**
+ * show players' UG status?
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the UG column for players
+ */
+function showPlayerUG(rptConfig: RptConfig): boolean { return rptConfig.playerUG; }
 
-// show player D2 status?
-function showPlayerD2(rptConfig) { return rptConfig.playerD2; }
+/**
+ * show player D2 status?
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the D2 column for players
+ */
+function showPlayerD2(rptConfig: RptConfig): boolean { return rptConfig.playerD2; }
 
-// include the combined UG/D2 column?
-function showPlayerCombined(rptConfig) { return rptConfig.playerCombinedStatus; }
+/**
+ * include the combined UG/D2 column?
+ * @param  rptConfig report configuration object
+ * @return           true if we should show the combined UG/D2 column for players
+ */
+function showPlayerCombined(rptConfig: RptConfig): boolean {
+  return rptConfig.playerCombinedStatus;
+}
 
-/*---------------------------------------------------------
-Number of games played, including forfeits.
----------------------------------------------------------*/
-function gamesPlayed(team, games) {
-  var count = 0;
-  for(var i in games) {
-    if(games[i].team1 == team.teamName || games[i].team2 == team.teamName) {
+/**
+ * Number of games played, including forfeits.
+ * @param  team  team object
+ * @param  games list of games
+ * @return       how many games involved this team
+ */
+export function gamesPlayed(team: YfTeam, games: YfGame[]): number {
+  let count = 0;
+  for(let g of games) {
+    if(g.team1 == team.teamName || g.team2 == team.teamName) {
       count += 1;
     }
   }
   return count;
 }
 
-/*---------------------------------------------------------
-Point value of a power
----------------------------------------------------------*/
-function powerValue(settings) {
-  if(settings.powers == '15pts') { return 15; }
-  if(settings.powers == '20pts') { return 20; }
+/**
+ * Point value of a power
+ * @param  settings tournament settings object
+ * @return          number of points that a power is worth (0 is powers aren't used)
+ */
+export function powerValue(settings: TournamentSettings): number {
+  if(settings.powers == PowerRule.Fifteen) { return 15; }
+  if(settings.powers == PowerRule.Twenty) { return 20; }
   return 0;
 }
 
-/*---------------------------------------------------------
-Point value of a neg
----------------------------------------------------------*/
-function negValue(settings) {
+/**
+ * Point value of a neg
+ * @param  settings tournament settings object
+ * @return          number of points a neg is worth (0 if negs are not used)
+ */
+export function negValue(settings: TournamentSettings): number {
   return settings.negs ? -5 : 0;
 }
 
-/*---------------------------------------------------------
-Bonuses heard for a single game.
----------------------------------------------------------*/
-function bonusesHeard (game, whichTeam) {
-  var tot = 0;
-  var players = whichTeam == 1 ? game.players1 : game.players2;
-  var otPwr = whichTeam == 1 ? game.otPwr1 : game.otPwr2;
-  var otTen = whichTeam == 1 ? game.otTen1 : game.otTen2;
-  for(var p in players) {
-    tot += toNum(players[p].powers) + toNum(players[p].tens);
+/**
+ * Bonuses heard for a single game.
+ * @param  game      game object
+ * @param  whichTeam team 1 or 2
+ * @return           how many bonuses the team heard
+ */
+export function bonusesHeard (game: YfGame, whichTeam: WhichTeam): number {
+  let tot = 0;
+  const players = whichTeam == 1 ? game.players1 : game.players2;
+  const otPwr = whichTeam == 1 ? game.otPwr1 : game.otPwr2;
+  const otTen = whichTeam == 1 ? game.otTen1 : game.otTen2;
+  for(let p in players) {
+    tot += players[p].powers + players[p].tens;
   }
-  tot -= toNum(otPwr); //subtract TUs converted in overtime
-  tot -= toNum(otTen);
+  tot -= otPwr; //subtract TUs converted in overtime
+  tot -= otTen;
   return tot;
 }
 
-/*---------------------------------------------------------
-Bonus points for a single game.
----------------------------------------------------------*/
-function bonusPoints(game, whichTeam, settings) {
-  var tuPts = 0;
-  var players = whichTeam == 1 ? game.players1 : game.players2;
-  var totalPoints = whichTeam == 1 ? game.score1 : game.score2;
-  var bbPts = whichTeam == 1 ? game.bbPts1 : game.bbPts2;
-  var lghtPts = whichTeam == 1 ? game.lightningPts1 : game.lightningPts2;
+/**
+ * Bonus points for a single game.
+ * @param  game      game object
+ * @param  whichTeam team 1 or 2
+ * @param  settings  tournament settings object
+ * @return           how many bonus points the team scored
+ */
+export function bonusPoints(game: YfGame, whichTeam: WhichTeam, settings: TournamentSettings): number {
+  let tuPts = 0;
+  const players = whichTeam == 1 ? game.players1 : game.players2;
+  const totalPoints = whichTeam == 1 ? game.score1 : game.score2;
+  const bbPts = whichTeam == 1 ? game.bbPts1 : game.bbPts2;
+  const lghtPts = whichTeam == 1 ? game.lightningPts1 : game.lightningPts2;
   for(let p in players) {
-    tuPts += powerValue(settings)*toNum(players[p].powers) +
-      10*toNum(players[p].tens) + negValue(settings)*toNum(players[p].negs);
+    tuPts += powerValue(settings)*players[p].powers + 10*players[p].tens +
+      negValue(settings)*players[p].negs;
   }
-  return toNum(totalPoints) - tuPts - bbPts - lghtPts;
+  return totalPoints - tuPts - bbPts - lghtPts;
 }
 
-/*---------------------------------------------------------
-How many (30-point bonuses' worth of) bouncebacks a team
-heard. Returns [integer part, number of additional thirds]
-e.g. 3 and 2/3 is [3,2]
----------------------------------------------------------*/
-function bbHeard(game, whichTeam, settings) {
-  var otherTeam = whichTeam == 1 ? 2 : 1;
-  var raw = (bonusesHeard(game, otherTeam)*30 - bonusPoints(game, otherTeam, settings)) / 30;
-  var integer = Math.trunc(raw);
-  var remainder = (raw*3) % 3;
+/**
+ * How many (30-point bonuses' worth of) bouncebacks a team heard
+ * @param  game      game object
+ * @param  whichTeam team 1 or 2
+ * @param  settings  tournament settings object
+ * @return           tuple: [interger part, number of additional thirds].
+ *                   e.g. 3 and 2/3 is [3,2]
+ */
+export function bbHeard(game: YfGame, whichTeam: WhichTeam, settings: TournamentSettings): [number, number] {
+  const otherTeam: WhichTeam = whichTeam == 1 ? 2 : 1;
+  const raw = (bonusesHeard(game, otherTeam)*30 - bonusPoints(game, otherTeam, settings)) / 30;
+  const integer = Math.trunc(raw);
+  const remainder = (raw*3) % 3;
   return [integer, remainder];
 }
 
-/*---------------------------------------------------------
-Add two bounceback heard amounts together in the
-[integer part, fractional part] format.
----------------------------------------------------------*/
-function bbHrdAdd(x, y) {
-  return [x[0]+y[0] + (x[1]+y[1]>=3), (x[1]+y[1]) % 3];
+/**
+ * Add two bounceback heard amounts together in the tuple format
+ * @param  x value
+ * @param  y value
+ * @return   sum of x and y
+ */
+function bbHrdAdd(x: [number, number], y: [number, number]): [number, number] {
+  const carry = x[1]+y[1]>=3 ? 1 : 0;
+  return [x[0]+y[0] + carry, (x[1]+y[1]) % 3];
 }
 
-/*---------------------------------------------------------
-Convert the internal representation of bouncebacks heard
-to a decimal.
----------------------------------------------------------*/
-function bbHrdToFloat(x) {
+/**
+ * Convert the internal representation of bouncebacks heard to a decimal
+ * @param  x bouncebacks heard tuple
+ * @return   a number
+ */
+export function bbHrdToFloat(x: [number, number]): number {
   return x[0] + x[1]/3;
 }
 
-/*---------------------------------------------------------
-HTML code for printing bouncebacks heard.
----------------------------------------------------------*/
-function bbHrdDisplay(x) {
-  var fraction = '';
+/**
+ * HTML code for printing bouncebacks heard.
+ * @param  x bouncebacks heard tuple
+ * @return   html for interger + fracional part
+ */
+function bbHrdDisplay(x: [number, number]): string {
+  let fraction = '';
   if(x[1] == 1) { fraction = '&#8531;' } // '1/3'
   if(x[1] == 2) { fraction = '&#8532;' } // '2/3'
   return x[0] + fraction;
 }
 
-/*---------------------------------------------------------
-Total points from overtime tossups for a game.
----------------------------------------------------------*/
-function otPoints(game, whichTeam, settings) {
-  var otPwr = whichTeam == 1 ? game.otPwr1 : game.otPwr2;
-  var otTen = whichTeam == 1 ? game.otTen1 : game.otTen2;
-  var otNeg = whichTeam == 1 ? game.otNeg1 : game.otNeg2;
-  return powerValue(settings)*toNum(otPwr) + 10*toNum(otTen) + negValue(settings)*toNum(otNeg);
+/**
+ * Total points from overtime tossups for a game.
+ * @param  game      game object
+ * @param  whichTeam team 1 or 2
+ * @param  settings  tournament settings object
+ * @return           how many points the team scored in overtime
+ */
+export function otPoints(game: YfGame, whichTeam: WhichTeam, settings: TournamentSettings): number {
+  const otPwr = whichTeam == 1 ? game.otPwr1 : game.otPwr2;
+  const otTen = whichTeam == 1 ? game.otTen1 : game.otTen2;
+  const otNeg = whichTeam == 1 ? game.otNeg1 : game.otNeg2;
+  return powerValue(settings)*otPwr + 10*otTen + negValue(settings)*otNeg;
 }
 
-/*---------------------------------------------------------
-Number of powers for a single team in a single game
----------------------------------------------------------*/
-function teamPowers(game, whichTeam) {
-  var totPowers = 0, pwr;
-  var players = whichTeam == 1 ? game.players1 : game.players2;
-  for(var p in players) {
-    totPowers += toNum(players[p].powers);
+/**
+ * Number of powers for a single team in a single game
+ * @param  game      game object
+ * @param  whichTeam team 1 or 2
+ * @return           how many power the team got
+ */
+export function teamPowers(game: YfGame, whichTeam: WhichTeam): number {
+  let totPowers = 0;
+  const players = whichTeam == 1 ? game.players1 : game.players2;
+  for(let p in players) {
+    totPowers += players[p].powers;
   }
   return totPowers;
 }
 
-/*---------------------------------------------------------
-Number of tens for a single team in a single game
----------------------------------------------------------*/
-function teamTens(game, whichTeam) {
-  var totTens = 0, tn;
-  var players = whichTeam == 1 ? game.players1 : game.players2;
-  for(var p in players) {
-    totTens += toNum(players[p].tens);
+/**
+ * Number of tens for a single team in a single game
+ * @param  game      game object
+ * @param  whichTeam team 1 or 2
+ * @return           how many tens the team scored
+ */
+export function teamTens(game: YfGame, whichTeam: WhichTeam): number {
+  let totTens = 0;
+  const players = whichTeam == 1 ? game.players1 : game.players2;
+  for(let p in players) {
+    totTens += players[p].tens;
   }
   return totTens;
 }
 
-/*---------------------------------------------------------
-Number of negs for a single team in a single game
----------------------------------------------------------*/
-function teamNegs(game, whichTeam) {
-  var totNegs = 0, ng;
-  var players = whichTeam == 1 ? game.players1 : game.players2;
-  for(var p in players) {
-    totNegs += toNum(players[p].negs);
+/**
+ * Number of negs for a single team in a single game
+ * @param  game      game object
+ * @param  whichTeam team 1 or 2
+ * @return           how many negs the team got
+ */
+export function teamNegs(game: YfGame, whichTeam: WhichTeam): number {
+  let totNegs = 0;
+  const players = whichTeam == 1 ? game.players1 : game.players2;
+  for(let p in players) {
+    totNegs += players[p].negs;
   }
   return totNegs;
 }
 
-/*---------------------------------------------------------
-[TUH, powers, tens, negs] for a player, as numbers.
----------------------------------------------------------*/
-function playerSlashLine(player) {
-  return [toNum(player.tuh), toNum(player.powers),
-    toNum(player.tens), toNum(player.negs)];
+/**
+ * [TUH, powers, tens, negs] for a player, as numbers.
+ * @param  player Player line object
+ * @return        4-element array
+ */
+export function playerSlashLine(player: PlayerLine): [number, number, number, number] {
+  return [player.tuh, player.powers, player.tens, player.negs];
 }
 
-/*---------------------------------------------------------
-Does at least one round have a packet name?
----------------------------------------------------------*/
-function packetNamesExist(packets) {
-  for(var r in packets) {
+/**
+ * Does at least one round have a packet name?
+ * @param  packets packet names indexed by round
+ * @return         true if at least one round's packet has a name
+ */
+export function packetNamesExist(packets: PacketList): boolean {
+  for(let r in packets) {
     if(packets[r] != '') { return true; }
   }
   return false;
 }
 
-/*---------------------------------------------------------
-Is there at least one team with at least one tie?
----------------------------------------------------------*/
-function anyTiesExist(standings) {
-  for(var i in standings) {
+/**
+ * Is there at least one team with at least one tie?
+ * @param  standings list of team standings objects
+ * @return           true if there is at least one tie
+ */
+function anyTiesExist(standings: TeamStandingsLine[]) {
+  for(let i in standings) {
     if(standings[i].ties > 0) { return true; }
   }
   return false;
 }
 
-/*---------------------------------------------------------
-Generate table cell <td> tags (with newline at the end)
-  text: inner text
-  align: 'left', etc.
-  bold: boolean
-  title: hover text, to explain stat abbreviations
-  style: inline CSS. Don't include quotes around it
----------------------------------------------------------*/
-function tdTag(text, align, bold, title, style) {
-  var html = '<td';
-  if(align != null) { html += ' align=' + align; }
-  if(style != null) { html += ' style="' + style + '"'; }
-  if(title != null) { html += ' title="' + title + '"'; }
+/**
+ * Generate table cell <td> tags (with newline at the end)
+ * @param  text  inner text
+ * @param  align value for the align attribute
+ * @param  bold  whether the text is bold
+ * @param  title hover text content
+ * @param  style inline CSS, without quotes around it
+ * @return       a <td> element with the specified style and content
+ */
+function tdTag(text: string | number, align?: string, bold?: boolean, title?: string, style?: string): string {
+  let html = '<td';
+  if(align) { html += ' align=' + align; }
+  if(style) { html += ' style="' + style + '"'; }
+  if(title) { html += ' title="' + title + '"'; }
   html += '>';
   if(bold) { html += '<b>'; }
   html += text;
@@ -328,11 +538,19 @@ function tdTag(text, align, bold, title, style) {
   return html + '</td>\n';
 }
 
-/*---------------------------------------------------------
-Header row for the team standings.
----------------------------------------------------------*/
-function standingsHeader(settings, tiesExist, rptConfig, filterPhase, curGrpPhase) {
-  var html = '<tr>' + '\n' +
+/**
+ * Header row for the team standings.
+ * @param  settings    tournament settings object
+ * @param  tiesExist   whether we need a Ties column
+ * @param  rptConfig   report configuration object
+ * @param  filterPhase which phase's games we're showing
+ * @param  curGrpPhase which phases's divisions we're currently grouping teams by
+ * @return             <tr> element
+ */
+function standingsHeader(settings: TournamentSettings, tiesExist: boolean,
+  rptConfig: RptConfig, filterPhase: string, curGrpPhase: string) {
+
+  let html = '<tr>' + '\n' +
     tdTag('Rank', 'left', true) +
     tdTag('Team', 'left', true);
   if(showSS(rptConfig)) {
@@ -407,12 +625,22 @@ function standingsHeader(settings, tiesExist, rptConfig, filterPhase, curGrpPhas
   return html;
 }
 
-/*---------------------------------------------------------
-One row in the team standings
----------------------------------------------------------*/
-function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig, showPhaseRecord) {
-  var linkId = teamEntry.teamName.replace(/\W/g, '');
-  var rowHtml = '<tr>';
+/**
+ * One row in the team standings
+ * @param  teamEntry       stats and info for one team
+ * @param  rank            rank to show for this team
+ * @param  fileStart       start of the html file names to use for links
+ * @param  settings        tournament settings object
+ * @param  tiesExist       whether we need a Ties colulmn
+ * @param  rptConfig       report configuration object
+ * @param  showPhaseRecord whether we need a column for the grouping phase record
+ * @return                 a <tr> element
+ */
+function standingsRow(teamEntry: TeamStandingsLine, rank: number, fileStart: string, settings: TournamentSettings,
+  tiesExist: boolean, rptConfig: RptConfig, showPhaseRecord: boolean): string {
+
+  const linkId = teamEntry.teamName.replace(/\W/g, '');
+  let rowHtml = '<tr>';
   rowHtml += tdTag(rank,'left');
   if(teamEntry.wins + teamEntry.losses + teamEntry.ties > 0) {
     rowHtml += tdTag('<a HREF=' + fileStart + 'teamdetail.html#' + linkId + '>' + teamEntry.teamName + '</a>','left');
@@ -492,23 +720,34 @@ function standingsRow(teamEntry, rank, fileStart, settings, tiesExist, rptConfig
   return rowHtml + '</tr>' + '\n';
 }
 
-/*---------------------------------------------------------
-Gather data for the team standings
----------------------------------------------------------*/
-function compileStandings(teams, games, filterPhase, groupingPhases, settings, rptConfig, showTbs) {
-  var standings = teams.map(function(item, index) {
-    var division = undefined, i = 0, teamsGrpPhase = undefined;
+/**
+ * Gather data for the team standings
+ * @param  teams          list of team objects
+ * @param  games          list of game objects
+ * @param  filterPhase    which phase we're showing games for
+ * @param  groupingPhases phases whose divisions we're grouping teams by
+ * @param  settings       tournament settings object
+ * @param  rptConfig      report configuration object
+ * @param  showTbs        whether to show tiebreakers
+ * @return                [description]
+ */
+export function compileStandings(teams: YfTeam[], games: YfGame[], filterPhase: string,
+  groupingPhases: string[], settings: TournamentSettings, rptConfig: RptConfig,
+  showTbs: boolean) {
+
+  const standings = teams.map(function(item, _index) {
+    let division = undefined, i = 0, teamsGrpPhase = undefined;
     while(division == undefined && i < groupingPhases.length) {
       teamsGrpPhase = groupingPhases[i++];
       division = item.divisions[teamsGrpPhase];
     }
-    var obj =
+    let obj: TeamStandingsLine =
       { teamName: item.teamName, rank: item.rank,
         smallSchool: item.smallSchool, jrVarsity: item.jrVarsity,
         teamUGStatus: item.teamUGStatus, teamD2Status: item.teamD2Status,
         division: division != undefined ? division : null,
         groupingPhase: teamsGrpPhase,
-        wins: 0, losses: 0, ties: 0, winPct: 0,
+        wins: 0, losses: 0, ties: 0, winPct: '.000',
         phaseWins: 0, phaseLosses: 0, phaseTies: 0, phaseWinPct: 0, phaseRecord: '',
         ppg: 0, papg: 0, margin: 0,
         pp20: 0, pap20: 0, mrg20: 0,
@@ -529,20 +768,13 @@ function compileStandings(teams, games, filterPhase, groupingPhases, settings, r
     return obj;
   }); //map
 
-  for(var i in games) {
-    var g = games[i];
-    var team1Line = _.find(standings, function (o) { return o.teamName == g.team1; });
-    var team2Line = _.find(standings, function (o) { return o.teamName == g.team2; });
+  for(let g of games) {
+    const team1Line = _.find(standings, (o) => { return o.teamName == g.team1; });
+    const team2Line = _.find(standings, (o) => { return o.teamName == g.team2; });
     //tens digit - whether to count for team 1. ones digit - whether to count for team 2
-    var inTeamOneGrpPhase = g.phases.includes(team1Line.groupingPhase);
-    var inTeamTwoGrpPhase = g.phases.includes(team2Line.groupingPhase);
+    const inTeamOneGrpPhase = g.phases.includes(team1Line.groupingPhase);
+    const inTeamTwoGrpPhase = g.phases.includes(team2Line.groupingPhase);
     if(matchFilterPhase(g, filterPhase, showTbs)) {
-      var team1Line = _.find(standings, function (o) {
-        return o.teamName == g.team1;
-      });
-      var team2Line = _.find(standings, function (o) {
-        return o.teamName == g.team2;
-      });
       if(g.forfeit) { //team1 is by default the winner of a forfeit
         team1Line.wins += 1;
         team2Line.losses += 1;
@@ -608,24 +840,24 @@ function compileStandings(teams, games, filterPhase, groupingPhases, settings, r
     }//if game is in phase
   }//loop over all games
 
-  for(var i in standings) {
-    var t = standings[i];
-    var gamesPlayed = t.wins + t.losses + t.ties - t.forfeits;
-    var gamesPlayedWithForfeits = t.wins + t.losses + t.ties;
-    var winPct = gamesPlayedWithForfeits == 0 ?
+  for(let i in standings) {
+    let t = standings[i];
+    const gamesPlayed = t.wins + t.losses + t.ties - t.forfeits;
+    const gamesPlayedWithForfeits = t.wins + t.losses + t.ties;
+    const winPct = gamesPlayedWithForfeits == 0 ?
       0 : (t.wins + t.ties/2) / gamesPlayedWithForfeits;
-    var ppg = gamesPlayed == 0 ? 'inf' : (t.points - t.otPts) / gamesPlayed;
-    var papg = gamesPlayed == 0 ? 'inf' : (t.ptsAgainst - t.otPtsAgainst) / gamesPlayed;
-    var margin = toNum(ppg - papg);
-    var ppth = t.tuh == 0 ? 'inf' : (t.points - t.otPts) / (t.tuh - t.ottuh);
-    var pp20 = t.tuh == 0 ? 'inf' : 20*ppth;
-    var pap20 = t.tuh == 0 ? 'inf' : 20*(t.ptsAgainst - t.otPtsAgainst) / (t.tuh - t.ottuh);
-    var mrg20 = t.tuh == 0 ? 'inf' : toNum(pp20 - pap20);
-    var pPerN = t.negs == 0 ? 'inf' : t.powers / t.negs;
-    var gPerN = t.negs == 0 ? 'inf' : (t.powers + t.tens) / t.negs;
-    var ppb = t.bHeard == 0 ? 'inf' : t.bPts / t.bHeard;
-    var ppbb = t.bbHeard == 0 ? 'inf' : t.bbPts / bbHrdToFloat(t.bbHeard);
-    var phaseGames = t.phaseWins + t.phaseLosses + t.phaseTies;
+    const ppg = (t.points - t.otPts) / gamesPlayed;
+    const papg = (t.ptsAgainst - t.otPtsAgainst) / gamesPlayed;
+    const margin = ppg - papg;
+    const ppth = (t.points - t.otPts) / (t.tuh - t.ottuh);
+    const pp20 = 20*ppth;
+    const pap20 = 20*(t.ptsAgainst - t.otPtsAgainst) / (t.tuh - t.ottuh);
+    const mrg20 = pp20 - pap20;
+    const pPerN = t.negs == 0 ? 'inf' : t.powers / t.negs;
+    const gPerN = t.negs == 0 ? 'inf' : (t.powers + t.tens) / t.negs;
+    const ppb = t.bHeard == 0 ? 'inf' : t.bPts / t.bHeard;
+    const ppbb = t.bbPts / bbHrdToFloat(t.bbHeard);
+    const phaseGames = t.phaseWins + t.phaseLosses + t.phaseTies;
 
     if(winPct == 1) { t.winPct = '1.000'; }
     else{ t.winPct = winPct.toFixed(3).substr(1); } //remove leading zero
@@ -645,29 +877,37 @@ function compileStandings(teams, games, filterPhase, groupingPhases, settings, r
     t.ppbb = formatRate(ppbb, 2);
   }
 
+  let ppg2Num = (t: any) => { return isNaN(t.ppg) ? 0 : t.ppg; };
+
   //if showing all games, order by rank override first.
   //if showing phase record, order by that as well
   if(showPhaseRecord(rptConfig, filterPhase, groupingPhases)) {
     if(filterPhase == 'all') {
       return _.orderBy(standings,
-        [(t)=>{return !t.rank ? 99999 : t.rank;}, 'phaseWinPct', 'winPct', (t)=>{return toNum(t.ppg)}],
+        [(t)=>{return !t.rank ? 99999 : t.rank;}, 'phaseWinPct', 'winPct', ppg2Num],
         ['asc', 'desc', 'desc', 'desc']);
     }
-    return _.orderBy(standings, ['phaseWinPct', 'winPct', (t)=>{return toNum(t.ppg)}], ['desc', 'desc', 'desc']);
+    return _.orderBy(standings, ['phaseWinPct', 'winPct', ppg2Num], ['desc', 'desc', 'desc']);
   }
   if(filterPhase == 'all') {
     return _.orderBy(standings,
-      [(t)=>{return !t.rank ? 99999 : t.rank;}, 'winPct', (t)=>{return toNum(t.ppg)}],
+      [(t)=>{return !t.rank ? 99999 : t.rank;}, 'winPct', ppg2Num],
       ['asc', 'desc', 'desc']);
   }
-  return _.orderBy(standings, ['winPct', (t)=>{return toNum(t.ppg)}], ['desc', 'desc']);
+  return _.orderBy(standings, ['winPct', ppg2Num], ['desc', 'desc']);
 } //compileStandings
 
-/*---------------------------------------------------------
-The header for the table in the individual standings.
----------------------------------------------------------*/
-function individualsHeader(usingDivisions, settings, rptConfig) {
-  var html = '<tr>' + '\n' +
+/**
+ * The header for the table in the individual standings.
+ * @param  usingDivisions whether to show the Division column
+ * @param  settings       tournament settings object
+ * @param  rptConfig      report configuration object
+ * @return                <tr> element
+ */
+function individualsHeader(usingDivisions: boolean, settings: TournamentSettings,
+  rptConfig: RptConfig): string {
+
+  let html = '<tr>' + '\n' +
     tdTag('Rank', 'left', true) +
     tdTag('Player', 'left', true);
   if(showPlayerYear(rptConfig)) {
@@ -715,15 +955,24 @@ function individualsHeader(usingDivisions, settings, rptConfig) {
   return html;
 }
 
-/*---------------------------------------------------------
-A single row in the individual standings.
----------------------------------------------------------*/
-function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings, rptConfig) {
-  var playerLinkId = playerEntry.teamName.replace(/\W/g, '') + '-' +
-    playerEntry.playerName.replace(/\W/g, '');
-  var teamLinkId = playerEntry.teamName.replace(/\W/g, '');
+/**
+ * A single row in the individual standings.
+ * @param  playerEntry    info and stats for one player
+ * @param  rank           players rank in the individual scoring rankings
+ * @param  fileStart      file name start to use for links
+ * @param  usingDivisions whether to show the Division column
+ * @param  settings       tournament settings object
+ * @param  rptConfig      report configuration object
+ * @return                <tr> element
+ */
+function individualsRow(playerEntry: PlayerStandingsLine, rank: number, fileStart: string,
+  usingDivisions: boolean, settings: TournamentSettings, rptConfig: RptConfig): string {
 
-  var rowHtml = '<tr>' + '\n';
+  const playerLinkId = playerEntry.teamName.replace(/\W/g, '') + '-' +
+    playerEntry.playerName.replace(/\W/g, '');
+  const teamLinkId = playerEntry.teamName.replace(/\W/g, '');
+
+  let rowHtml = '<tr>' + '\n';
   rowHtml += tdTag(rank,'left');
   rowHtml += tdTag('<a HREF=' + fileStart + 'playerdetail.html#' + playerLinkId + '>' + playerEntry.playerName + '</a>', 'left');
   if(showPlayerYear(rptConfig)) {
@@ -776,19 +1025,27 @@ function individualsRow(playerEntry, rank, fileStart, usingDivisions, settings, 
   return rowHtml + '</tr>' + '\n';
 }
 
-/*---------------------------------------------------------
-Tabulate data for the individual standings page.
----------------------------------------------------------*/
-function compileIndividuals(teams, games, phase, groupingPhases, settings, showTbs) {
-  var individuals = [];
-  for(var i in teams) {
-    var t = teams[i];
-    var division = undefined, i = 0;
+/**
+ * Tabulate data for the individual standings page.
+ * @param  teams          list of team objects
+ * @param  games          list of game objects
+ * @param  phase          phase to include games for
+ * @param  groupingPhases list of phases whose divisions to group teams by
+ * @param  settings       tournament settings object
+ * @param  showTbs        whether to include tiebreakers
+ * @return                list of individual stat totals
+ */
+function compileIndividuals(teams: YfTeam[], games: YfGame[], phase: string,
+  groupingPhases: string[], settings: TournamentSettings, showTbs: boolean) {
+
+  let individuals: PlayerStandingsLine[] = [];
+  for(let t of teams) {
+    let division = undefined, i = 0;
     while(division == undefined && i < groupingPhases.length) {
       division = t.divisions[groupingPhases[i++]];
     }
-    for(var p in t.roster) {
-      var obj = {
+    for(let p in t.roster) {
+      const obj: PlayerStandingsLine = {
         playerName: p,
         year: t.roster[p].year,
         undergrad: t.roster[p].undergrad,
@@ -810,30 +1067,28 @@ function compileIndividuals(teams, games, phase, groupingPhases, settings, showT
       individuals.push(obj);
     }
   }
-  for(var i in games) {
-    var pEntry, tuh;
-    var g = games[i];
+  for(let g of games) {
     if(matchFilterPhase(g, phase, showTbs)) {
-      var players1 = g.players1, players2 = g.players2;
-      for(var p in players1) {
-        pEntry = _.find(individuals, function (o) {
+      const players1 = g.players1, players2 = g.players2;
+      for(let p in players1) {
+        let pEntry = _.find(individuals, function (o) {
           return o.teamName == g.team1 && o.playerName == p;
         });
         if(pEntry == undefined) { continue; }
-        var [tuh, powers, tens, negs] = playerSlashLine(players1[p]);
-        pEntry.gamesPlayed += tuh / (+g.tuhtot);
+        const [tuh, powers, tens, negs] = playerSlashLine(players1[p]);
+        pEntry.gamesPlayed = +pEntry.gamesPlayed + tuh / g.tuhtot;
         pEntry.powers += powers;
         pEntry.tens += tens;
         pEntry.negs += negs;
         pEntry.tuh += tuh;
       }
-      for(var p in players2) {
-        pEntry = _.find(individuals, function (o) {
+      for(let p in players2) {
+        let pEntry = _.find(individuals, function (o) {
           return o.teamName == g.team2 && o.playerName == p;
         });
         if(pEntry == undefined) { continue; }
-        var [tuh, powers, tens, negs] = playerSlashLine(players2[p]);
-        pEntry.gamesPlayed += tuh / (+g.tuhtot);
+        const [tuh, powers, tens, negs] = playerSlashLine(players2[p]);
+        pEntry.gamesPlayed = +pEntry.gamesPlayed + tuh / g.tuhtot;
         pEntry.powers += powers;
         pEntry.tens += tens;
         pEntry.negs += negs;
@@ -842,16 +1097,15 @@ function compileIndividuals(teams, games, phase, groupingPhases, settings, showT
     }
   } //for loop for each game
 
-  for(var i in individuals) {
-    var p = individuals[i];
-    var pPerN = p.negs == 0 ? 'inf' : p.powers / p.negs;
-    var gPerN = p.negs == 0 ? 'inf' : (p.powers + p.tens) / p.negs;
-    var totPoints = p.powers*powerValue(settings) + p.tens*10 + p.negs*negValue(settings);
-    var pptu = p.tuh == 0 ? 'inf' : totPoints / p.tuh;
-    var ppg = p.gamesPlayed == 0 ? 'inf' : totPoints / p.gamesPlayed;
-    var pp20 = p.tuh == 0 ? 'inf' : 20*totPoints / p.tuh;
+  for(let p of individuals) {
+    const pPerN = p.powers / p.negs;
+    const gPerN = (p.powers + p.tens) / p.negs;
+    const totPoints = p.powers*powerValue(settings) + p.tens*10 + p.negs*negValue(settings);
+    const pptu = totPoints / p.tuh;
+    const ppg = totPoints / +p.gamesPlayed;
+    const pp20 = 20*totPoints / p.tuh;
 
-    p.gamesPlayed = p.gamesPlayed.toFixed(1);
+    p.gamesPlayed = (+p.gamesPlayed).toFixed(1);
     p.pptu = formatRate(pptu, 2);
     p.pPerN = formatRate(pPerN, 2);
     p.gPerN = formatRate(gPerN, 2);
@@ -861,40 +1115,46 @@ function compileIndividuals(teams, games, phase, groupingPhases, settings, showT
   }
 
   return _.orderBy(individuals,
-    [function(item) {
-      if(isNaN(item.pptu)) return -999;
-      return toNum(item.pptu);
+    [(item) => {
+      if(isNaN(+item.pptu)) return -999;
+      return +item.pptu;
     },
-    function(item) {
-      return toNum(item.gamesPlayed);
+    (item) => {
+      return +item.gamesPlayed;
     }],
     ['desc', 'desc']);//orderBy
 } //compileIndividuals
 
-/*---------------------------------------------------------
-A list of the rounds for which there are games, so as to
-know how to organize the scorboard page.
----------------------------------------------------------*/
-function getRoundsForScoreboard(games, phase, showTbs) {
-  var rounds = [];
-  for(var i in games) {
-    var roundNo = toNum(games[i].round);
-    if(matchFilterPhase(games[i], phase, showTbs) && !rounds.includes(roundNo)) {
+/**
+ * A list of the rounds for which there are games, so as to know how to organize
+ * the scoreboard page
+ * @param  games   list of game objects
+ * @param  phase   phase to include games for
+ * @param  showTbs whether to include tiebreakers
+ * @return         list of rounds to include on the scoreboard page
+ */
+function getRoundsForScoreboard(games: YfGame[], phase: string, showTbs: boolean): number[] {
+  let rounds = [];
+  for(let g of games) {
+    let roundNo = g.round;
+    if(matchFilterPhase(g, phase, showTbs) && !rounds.includes(roundNo)) {
       rounds.push(roundNo);
     }
   }
-  return rounds.sort(function(a,b){ return a-b });
+  return rounds.sort((a,b) => { return a-b; });
 }
 
-/*---------------------------------------------------------
-A "table of contents" for the scoreboard page with links
-to each round.
----------------------------------------------------------*/
-function scoreboardRoundLinks(roundList, fileStart) {
-  var html = '<table border=0 width=70% ' +
+/**
+ * A "table of contents" for the scoreboard page with links to each round
+ * @param  roundList list of rounds numbers to include
+ * @param  fileStart start of file names to use for links
+ * @return           <table> element
+ */
+function scoreboardRoundLinks(roundList: number[], fileStart: string): string {
+  let html = '<table border=0 width=70% ' +
     'style="top:4px;position:sticky;table-layout:fixed;background-color:#cccccc;margin-top:5px;box-shadow: 4px 4px 7px #999999">' + '\n' +
     '<tr>' + '\n';
-  for(var i in roundList) {
+  for(let i in roundList) {
     html += tdTag('<a HREF=' + fileStart + 'games.html#round-' + roundList[i] + '>' + roundList[i] + '</a>', 'left');
   }
   html += '</tr>' + '\n' +
@@ -902,11 +1162,14 @@ function scoreboardRoundLinks(roundList, fileStart) {
   return html;
 }
 
-/*---------------------------------------------------------
-The title for each section of the scoreboard.
----------------------------------------------------------*/
-function scoreboardRoundHeader(roundNo,packetName) {
-  var html = '<div id=round-' + roundNo + ' style="margin:-3em;position:absolute"></div>' + '\n';
+/**
+ * The title for each section of the scoreboard.
+ * @param  roundNo    round number
+ * @param  packetName name of the packet used in this round
+ * @return            html
+ */
+function scoreboardRoundHeader(roundNo: number, packetName: string): string {
+  let html = '<div id=round-' + roundNo + ' style="margin:-3em;position:absolute"></div>' + '\n';
   html += '<h2 style="display:inline-block">Round ' + roundNo + '</h2>';
   if(packetName != undefined && packetName != '') {
     html += '<span style=" font-style: italic; color: gray">&ensp;Packet: ' + packetName + '</span>';
@@ -914,39 +1177,48 @@ function scoreboardRoundHeader(roundNo,packetName) {
   return html += '\n';
 }
 
-/*---------------------------------------------------------
-The specified number of empty table cells, used for
-padding box scores.
----------------------------------------------------------*/
-function blankPlayerLineScore(size) {
-  var output = [];
+/**
+ * The specified number of empty table cells, used for padding box scores
+ * @param  size number of cells
+ * @return      series of empty <td> elements
+ */
+function blankPlayerLineScore(size: number): string {
+  let output = [];
   while(output.length < size) {
     output.push(tdTag(''));
   }
   return output.join('');
 }
 
-/*---------------------------------------------------------
-Identifier for a specific game on the scorboard, so other
-pages can link to it.
----------------------------------------------------------*/
-function scoreboardLinkID(game) {
+/**
+ * Identifier for a specific game on the scorboard, so other pages can link to it
+ * @param  game game object
+ * @return      unique ID for this game
+ */
+function scoreboardLinkID(game: YfGame): string {
   return 'R' + game.round + '-' + game.team1.replace(/\W/g, '') + '-' +
     game.team2.replace(/\W/g, '');
 }
 
-/*---------------------------------------------------------
-HTML for all the game summaries for a single round on the
-scoreboard page.
----------------------------------------------------------*/
-function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, showTbs) {
-  var html = '';
-  for(var i in games) {
-    var g = games[i];
+/**
+ * HTML for all the game summaries for a single round on the scoreboard page
+ * @param  games       list of all game objects
+ * @param  roundNo     round number for which to show games
+ * @param  phase       phase to show games for
+ * @param  settings    tournament settings object
+ * @param  phaseColors list of colors to use for each pahse
+ * @param  showTbs     whether to include tiebreakers
+ * @return             html with game box scores
+ */
+function scoreboardGameSummaries(games: YfGame[], roundNo: number, phase: string, settings: TournamentSettings,
+  phaseColors: { [phase: string]: string }, showTbs: boolean): string {
+
+  let html = '';
+  for(let g of games) {
     if(matchFilterPhase(g, phase, showTbs) && g.round == roundNo) {
-      var linkId = 'R' + roundNo + '-' + g.team1.replace(/\W/g, '') + '-' +
+      const linkId = 'R' + roundNo + '-' + g.team1.replace(/\W/g, '') + '-' +
         g.team2.replace(/\W/g, '');
-      var colorBlock = '<span style="' + getRoundStyle(g.phases, phaseColors, g.tiebreaker) +
+      const colorBlock = '<span style="' + getRoundStyle(g.phases, phaseColors, g.tiebreaker) +
         '">' + '&nbsp;&nbsp;&nbsp;&nbsp;</span>' + '\n';
       if(g.forfeit) {
         html += '<div id=' + linkId + ' style="margin:-2.3em;position:absolute"></div>'
@@ -964,7 +1236,7 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
         if(phase == 'all' && (g.phases.length != 0 || g.tiebreaker)) {
           html += colorBlock;
         }
-        if(toNum(g.score1) >= toNum(g.score2)) {
+        if(g.score1 >= g.score2) {
           html += g.team1 + ' ' + g.score1 + ', ' + g.team2 + ' ' + g.score2;
         }
         else {
@@ -978,9 +1250,9 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
         // make a table for the player linescores
         html += '<table border=0 width=70%>' + '\n';
         html += '<tr>' + '\n';
-        var team1Header = tdTag(g.team1,'left',true) +
+        let team1Header = tdTag(g.team1,'left',true) +
           tdTag('TUH','right',true);
-        var team2Header = tdTag(g.team2,'left',true) +
+        let team2Header = tdTag(g.team2,'left',true) +
           tdTag('TUH','right',true);
         if(showPowers(settings)) {
           team1Header += tdTag(powerValue(settings),'right',true);
@@ -1065,7 +1337,7 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
         playersRight.push(rightTotalRow);
 
         //pad the short side of the table with blank lines
-        let columnsPerTeam = 4 + showPowers(settings) + showNegs(settings);
+        let columnsPerTeam = 4 + +showPowers(settings) + +showNegs(settings);
         while (playersLeft.length > playersRight.length) {
           playersRight.push(blankPlayerLineScore(columnsPerTeam) + '\n' + '</tr>' + '\n');
         }
@@ -1099,13 +1371,13 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
         }
         // bounceback conversion
         if(showBb(settings)) {
-          var bbHrd = bbHeard(g, 1, settings);
-          var ppbb = bbHrd.toString()=='0,0' ? 0 : g.bbPts1 / bbHrdToFloat(bbHrd);
+          let bbHrd = bbHeard(g, 1, settings);
+          let ppbb = bbHrd.toString()=='0,0' ? 0 : g.bbPts1 / bbHrdToFloat(bbHrd);
           html += 'Bouncebacks: ' + g.team1 + ' ' +
-            bbHrdDisplay(bbHrd) + ' heard, ' + toNum(g.bbPts1) + ' pts, ' + ppbb.toFixed(2) + ' PPBB; ';
+            bbHrdDisplay(bbHrd) + ' heard, ' + g.bbPts1 + ' pts, ' + ppbb.toFixed(2) + ' PPBB; ';
           bbHrd = bbHeard(g, 2, settings);
           ppbb = bbHrd.toString()=='0,0' ? 0 : g.bbPts2 / bbHrdToFloat(bbHrd);
-          html += g.team2 + ' ' + bbHrdDisplay(bbHrd) + ' heard, ' + toNum(g.bbPts2) + ' pts, ' +
+          html += g.team2 + ' ' + bbHrdDisplay(bbHrd) + ' heard, ' + g.bbPts2 + ' pts, ' +
             ppbb.toFixed(2)  + ' PPBB<br>' + '\n';
         }
         html += '<br><br>' + '\n'; // + '</p>' + '\n';
@@ -1115,12 +1387,17 @@ function scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, s
   return html + '<hr>' + '\n';
 }//scoreboardGameSummaries
 
-/*---------------------------------------------------------
-Header row for the table containing a team's games on the
-team detail page.
----------------------------------------------------------*/
-function teamDetailGameTableHeader(packetsExist, settings, rptConfig) {
-  var html = '<tr>' + '\n' +
+/**
+ * Header row for the table containing a team's games on the team detail page
+ * @param  packetsExist whether or not we need a column for packet names
+ * @param  settings     tournament settings object
+ * @param  rptConfig    report configuration object
+ * @return              <tr> element
+ */
+function teamDetailGameTableHeader(packetsExist: boolean, settings: TournamentSettings,
+  rptConfig: RptConfig): string {
+
+  let html = '<tr>' + '\n' +
     tdTag('Rd.', 'center', true, TOOLTIPS.round) +
     tdTag('Opponent', 'left', true) +
     tdTag('Result', 'left', true) +
@@ -1166,11 +1443,19 @@ function teamDetailGameTableHeader(packetsExist, settings, rptConfig) {
   return html;
 }
 
-/*---------------------------------------------------------
-A mostly-blank row in a team detail table for a forfeit.
----------------------------------------------------------*/
-function forfeitRow(opponent, round, result, roundStyle, emptyCols) {
-  var html = '<tr>' + '\n' +
+/**
+ * A mostly-blank row in a team detail table for a forfeit.
+ * @param  opponent   name of the other team
+ * @param  round      round number
+ * @param  result     W or L
+ * @param  roundStyle phase color for the round column
+ * @param  emptyCols  number of additional columns needed to fill out the row
+ * @return            <tr> element
+ */
+function forfeitRow(opponent: string, round: number, result: 'W' | 'L',
+  roundStyle: string, emptyCols: number) {
+
+  let html = '<tr>' + '\n' +
     tdTag(round, 'center', false, null, roundStyle) +
     tdTag(opponent, 'left') +
     tdTag(result, 'left') +
@@ -1181,11 +1466,17 @@ function forfeitRow(opponent, round, result, roundStyle, emptyCols) {
   return html + '</tr>' + '\n';
 }
 
-/*---------------------------------------------------------
-Get the background inline CSS for the round column.
-Color-coded to match phase colors in the application
----------------------------------------------------------*/
-function getRoundStyle(gamePhases, phaseColors, tiebreaker) {
+/**
+ * Get the background inline CSS for the round column. Color-coded to match phase
+ * colors in the application
+ * @param  gamePhases  list of phases the game belongs to
+ * @param  phaseColors list of colors indexed by phase name
+ * @param  tiebreaker  whether the game is a tiebreaker
+ * @return             css to add to the table cell
+ */
+function getRoundStyle(gamePhases: string[], phaseColors: { [phase: string]: string },
+  tiebreaker: boolean): string {
+
   if(tiebreaker) {
     return 'background-color: #9e9e9e';
   }
@@ -1204,16 +1495,17 @@ function getRoundStyle(gamePhases, phaseColors, tiebreaker) {
   return '';
 }
 
-/*---------------------------------------------------------
-Floating table to explain what the colors mean
-Some of the style here will be redundant on the team and
-player detail pages, but it's needed for the scoreboard
-page since it doesn't use tableStyle()
----------------------------------------------------------*/
-function phaseLegend(phaseColors) {
-  var html = '<table border=0 class="phaseLegend"' +
+/**
+ * Floating table to explain what the colors mean. Some of the style here will be
+ * redundant on the team and player detail pages, but it's needed for the scoreboard
+ * page since it doesn't use tableStyle
+ * @param  phaseColors list of colors indexed by phase name
+ * @return             <table> element
+ */
+function phaseLegend(phaseColors: { [phase: string]: string }): string {
+  let html = '<table border=0 class="phaseLegend"' +
     ' style="bottom:20px;right:35px;position:fixed;box-shadow: 4px 4px 7px #999999;border-spacing:0;border-collapse:separate;">' + '\n';
-  for(var p in phaseColors) {
+  for(let p in phaseColors) {
     html += '<tr>' + '\n';
     html += tdTag('&nbsp;&nbsp;&nbsp;&nbsp;', null, false, null, 'background-color:' + phaseColors[p] + ';padding:5px');
     html += tdTag(p, null, false, null, 'background-color:white;padding:5px');
@@ -1223,60 +1515,69 @@ function phaseLegend(phaseColors) {
   return html;
 }
 
-/*---------------------------------------------------------
-Row for a single game for a single team on the team detail
-page.
----------------------------------------------------------*/
-function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, phaseColors, formatRdCol, fileStart, rptConfig) {
-  var opponent, opponentScore, result, score, players;
-  var roundStyle = formatRdCol ? getRoundStyle(game.phases, phaseColors, game.tiebreaker) : null;
+/**
+ * Row for a single game for a single team on the team detail page
+ * @param  game         game object
+ * @param  whichTeam    team 1 or 2
+ * @param  packetsExist whether to add a column for the packet name
+ * @param  packets      list of packet names, indexed by round
+ * @param  settings     tournament settings object
+ * @param  phaseColors  [description]
+ * @param  formatRdCol  whether to color the background of the Round number column
+ * @param  fileStart    start of file name, used to make links
+ * @param  rptConfig    report configuration object
+ * @return              <tr> element
+ */
+function teamDetailGameRow(game: YfGame, whichTeam: WhichTeam, packetsExist: boolean,
+  packets: PacketList, settings: TournamentSettings, phaseColors: { [phase: string]: string },
+  formatRdCol: boolean, fileStart: string, rptConfig: RptConfig): string {
+
+  let opponent: string, opponentScore: number, result: string, score: number;
+  const roundStyle = formatRdCol ? getRoundStyle(game.phases, phaseColors, game.tiebreaker) : null;
+
+  let emptyCols = 4 + +showPowers(settings) + +showNegs(settings) + +showPPerN(settings, rptConfig) +
+    +showGPerN(settings, rptConfig) + 3*(+showBonus(settings)) + 3*(+showBb(settings)) + +packetsExist;
 
   if(whichTeam == 1) {
     opponent = game.team2;
     if(game.forfeit) { //team1 is arbitrarily the winner of a forfeit
-      var emptyCols = 4 + showPowers(settings) + showNegs(settings) + showPPerN(settings, rptConfig) +
-        showGPerN(settings, rptConfig) + 3*showBonus(settings) + 3*showBb(settings) + packetsExist;
       return forfeitRow(opponent, game.round, 'W', roundStyle, emptyCols);
     }
-    if(+game.score1 > +game.score2) { result = 'W'; }
-    else if(+game.score1 < +game.score2) { result = 'L'; }
+    if(game.score1 > game.score2) { result = 'W'; }
+    else if(game.score1 < game.score2) { result = 'L'; }
     else { result = 'T'; }
     score = game.score1;
     opponentScore = game.score2;
-    players = game.players1;
   }
   else {
     opponent = game.team1;
     if(game.forfeit) { //team2 is arbitrarily the loser of a forfeit
-      var emptyCols = 4 + showPowers(settings) + showNegs(settings) + showPPerN(settings, rptConfig) +
-        showGPerN(settings, rptConfig) + 3*showBonus(settings) + 3*showBb(settings) + packetsExist;
       return forfeitRow(opponent, game.round, 'L', roundStyle, emptyCols);
     }
-    if(+game.score2 > +game.score1) { result = 'W'; }
+    if(game.score2 > game.score1) { result = 'W'; }
     else if(+game.score2 < +game.score1) { result = 'L'; }
     else { result = 'T'; }
     score = game.score2;
     opponentScore = game.score1;
-    players = game.players2;
   }
   if(game.ottu > 0) { result += ' (OT)'; }
-  var powers = teamPowers(game, whichTeam);
-  var tens = teamTens(game, whichTeam);
-  var negs = teamNegs(game, whichTeam);
-  var ppth = (score - otPoints(game, whichTeam, settings)) / (game.tuhtot - game.ottu);
-  var pp20 = 20*ppth;
-  var pPerN = negs == 0 ? 'inf' : powers / negs;
-  var gPerN = negs == 0 ? 'inf' : (powers + tens) / negs;
-  var lightning = whichTeam == 1 ? +game.lightningPts1 : +game.lightningPts2;
-  var bHeard = bonusesHeard(game, whichTeam);
-  var bPts = bonusPoints(game, whichTeam, settings);
-  var ppb = bHeard == 0 ? 'inf' : bPts / bHeard;
-  var bbHrd = bbHeard(game, whichTeam, settings);
-  var bbPts = whichTeam == 1 ? +game.bbPts1 : +game.bbPts2;
-  var ppbb = bbPts / bbHrdToFloat(bbHrd);
+  const powers = teamPowers(game, whichTeam);
+  const tens = teamTens(game, whichTeam);
+  const negs = teamNegs(game, whichTeam);
+  const ppth = (score - otPoints(game, whichTeam, settings)) / (game.tuhtot - game.ottu);
+  const pp20 = 20*ppth;
+  const pPerN = powers / negs;
+  const gPerN = (powers + tens) / negs;
+  const lightning = whichTeam == 1 ? game.lightningPts1 : game.lightningPts2;
+  const bHeard = bonusesHeard(game, whichTeam);
+  const bPts = bonusPoints(game, whichTeam, settings);
+  const ppb = bPts / bHeard;
+  const bbHrd = bbHeard(game, whichTeam, settings);
+  const bbPts = whichTeam == 1 ? game.bbPts1 : game.bbPts2;
+  const ppbb = bbPts / bbHrdToFloat(bbHrd);
 
-  var linkId = scoreboardLinkID(game);
-  var html = '<tr>' + '\n';
+  const linkId = scoreboardLinkID(game);
+  let html = '<tr>' + '\n';
   html += tdTag(game.round, 'center', false, null, roundStyle);
   html += tdTag(opponent, 'left');
   html += tdTag('<a HREF=' + fileStart + 'games.html#' + linkId + '>' + result + '</a>', 'left');
@@ -1323,11 +1624,18 @@ function teamDetailGameRow(game, whichTeam, packetsExist, packets, settings, pha
   return html;
 }
 
-/*---------------------------------------------------------
-The totals row of a games table on the team detail page.
----------------------------------------------------------*/
-function teamDetailTeamSummaryRow(teamSummary, packetsExist, settings, rptConfig) {
-  var html = '<tr class="pseudo-tfoot">' + '\n';
+/**
+ * The totals row of a games table on the team detail page.
+ * @param  teamSummary  stats and info for one team
+ * @param  packetsExist whether to make a column for packet name (empty here)
+ * @param  settings     tournament settings object
+ * @param  rptConfig    report configuration object
+ * @return              <tr> element
+ */
+function teamDetailTeamSummaryRow(teamSummary: TeamStandingsLine, packetsExist: boolean,
+  settings: TournamentSettings, rptConfig: RptConfig): string {
+
+  let html = '<tr class="pseudo-tfoot">' + '\n';
   html += tdTag('', null, false);
   html += tdTag('Total', 'left', true);
   html += tdTag('');
@@ -1374,12 +1682,14 @@ function teamDetailTeamSummaryRow(teamSummary, packetsExist, settings, rptConfig
   return html;
 }
 
-/*---------------------------------------------------------
-Header row for the table of a teams's players on the team
-detail page.
----------------------------------------------------------*/
-function teamDetailPlayerTableHeader(settings, rptConfig) {
-  var html = '<tr>' + '\n' +
+/**
+ * Header row for the table of a teams's players on the team detail page
+ * @param  settings  tournament settings object
+ * @param  rptConfig report configuration object
+ * @return           <tr> element
+ */
+function teamDetailPlayerTableHeader(settings: TournamentSettings, rptConfig: RptConfig): string {
+  let html = '<tr>' + '\n' +
     tdTag('Player', 'left', true);
   if(showPlayerYear(rptConfig)) {
     html += tdTag('Year', 'left', true);
@@ -1422,13 +1732,20 @@ function teamDetailPlayerTableHeader(settings, rptConfig) {
   return html + '</tr>' + '\n';
 }
 
-/*---------------------------------------------------------
-Row for a single player on the team detail page.
----------------------------------------------------------*/
-function teamDetailPlayerRow(player, fileStart, settings, rptConfig) {
-  var linkId = player.teamName.replace(/\W/g, '') + '-' +
+/**
+ * Row for a single player on the team detail page.
+ * @param  player    stats and info for one player
+ * @param  fileStart start of the file name, for making links
+ * @param  settings  tournament settings object
+ * @param  rptConfig report configuration object
+ * @return           <tr> element
+ */
+function teamDetailPlayerRow(player: PlayerStandingsLine, fileStart: string,
+  settings: TournamentSettings, rptConfig: RptConfig): string {
+
+  const linkId = player.teamName.replace(/\W/g, '') + '-' +
     player.playerName.replace(/\W/g, '');
-  var html = '<tr>' + '\n';
+  let html = '<tr>' + '\n';
   html += tdTag('<a HREF=' + fileStart + 'playerdetail.html#' + linkId + '>' + player.playerName + '</a>', 'left');
   if(showPlayerYear(rptConfig)) {
     html += tdTag(player.year, 'left');
@@ -1440,7 +1757,7 @@ function teamDetailPlayerRow(player, fileStart, settings, rptConfig) {
     html += tdTag(player.div2 ? 'D2' : '', 'left');
   }
   if(showPlayerCombined(rptConfig)) {
-    var plComb = '';
+    let plComb = '';
     if(player.div2) { plComb = 'D2'; }
     else if(player.undergrad) { plComb = 'UG'; }
     html += tdTag(plComb, 'left');
@@ -1476,11 +1793,14 @@ function teamDetailPlayerRow(player, fileStart, settings, rptConfig) {
   return html;
 }
 
-/*---------------------------------------------------------
-Header row for a table on the player detail page.
----------------------------------------------------------*/
-function playerDetailTableHeader(settings, rptConfig) {
-  var html = '<tr>' + '\n' +
+/**
+ * Header row for a table on the player detail page.
+ * @param  settings  tournament settings object
+ * @param  rptConfig report configuration object
+ * @return           <tr> element
+ */
+function playerDetailTableHeader(settings: TournamentSettings, rptConfig: RptConfig): string {
+  let html = '<tr>' + '\n' +
     tdTag('Rd.', 'center', true, TOOLTIPS.round) +
     tdTag('Opponent', 'left', true) +
     tdTag('Result', 'left', true) +
@@ -1509,50 +1829,66 @@ function playerDetailTableHeader(settings, rptConfig) {
   return html;
 }
 
-/*---------------------------------------------------------
-Generate a link, showing the outcome of the game, to the
-specified game on the scoreboard page
----------------------------------------------------------*/
-function playerDetailGameLink(game, whichTeam, fileStart) {
-  var result;
+/**
+ * Generate a link, showing the outcome of the game, to the specified game on the
+ * scoreboard page
+ * @param  game      game object
+ * @param  whichTeam team 1 or 2
+ * @param  fileStart start of the filename, for making link
+ * @return           <a> element
+ */
+function playerDetailGameLink(game: YfGame, whichTeam: WhichTeam, fileStart: string): string {
+  let result: string;
   if(whichTeam == 1) {
-    if(+game.score1 > +game.score2) { result = 'W'; }
-    else if(+game.score1 < +game.score2) { result = 'L'; }
+    if(game.score1 > game.score2) { result = 'W'; }
+    else if(game.score1 < game.score2) { result = 'L'; }
     else { result = 'T'; }
     result += ' ' + game.score1 + '-' + game.score2;
   }
   else {
-    if(+game.score2 > +game.score1) { result = 'W'; }
-    else if(+game.score2 < +game.score1) { result = 'L'; }
+    if(game.score2 > game.score1) { result = 'W'; }
+    else if(game.score2 < game.score1) { result = 'L'; }
     else { result = 'T'; }
     result += ' ' + game.score2 + '-' + game.score1;
   }
   if(game.ottu > 0) { result += ' (OT)'; }
-  var linkId = scoreboardLinkID(game);
-  return '<a HREF=' + fileStart + 'games.html#' + linkId + '>' +
-    result + '</a>';
+  const linkId = scoreboardLinkID(game);
+  return `<a HREF=${fileStart}games.html#${linkId}>${result}</a>`;
 }
 
-/*---------------------------------------------------------
-Row for one game for one player on the player detail page.
----------------------------------------------------------*/
-function playerDetailGameRow(player, tuhtot, opponent, round, link, settings, gamePhases,
-  phaseColors, formatRdCol, rptConfig, tiebreaker) {
+/**
+ * Row for one game for one player on the player detail page.
+ * @param  player      player's stats for this game
+ * @param  tuhtot      total tossups in the game
+ * @param  opponent    other team's name
+ * @param  round       round number
+ * @param  link        <a> element with the outcome and score of the game
+ * @param  settings    tournament settings object
+ * @param  gamePhases  list of phases this game belongs to
+ * @param  phaseColors list of colors indexed by phase name
+ * @param  formatRdCol whether to color the background of the round number column
+ * @param  rptConfig   report configuration object
+ * @param  tiebreaker  whether this game is a tiebreaker
+ * @return             <tr> element
+ */
+function playerDetailGameRow(player: PlayerLine, tuhtot: number, opponent: string, round: number,
+  link: string, settings: TournamentSettings, gamePhases: string[], phaseColors: { [phase: string]: string },
+  formatRdCol: boolean, rptConfig: RptConfig, tiebreaker: boolean): string {
 
-  var [tuh, powers, tens, negs] = playerSlashLine(player);
+  const [tuh, powers, tens, negs] = playerSlashLine(player);
   if(tuh <= 0) {
     return '';
   }
-  var gp = tuh / tuhtot;
-  var points = powerValue(settings)*powers + 10*tens - 5*negs;
-  var pptu = points / tuh;
-  var pp20 = 20*pptu;
-  var pPerN = negs == 0 ? 'inf' : powers / negs;
-  var gPerN = negs == 0 ? 'inf' : (powers + tens) / negs;
+  const gp = tuh / tuhtot;
+  const points = powerValue(settings)*powers + 10*tens - 5*negs;
+  const pptu = points / tuh;
+  const pp20 = 20*pptu;
+  const pPerN = powers / negs;
+  const gPerN = (powers + tens) / negs;
 
-  var roundStyle = formatRdCol ? getRoundStyle(gamePhases, phaseColors, tiebreaker) : null;
+  const roundStyle = formatRdCol ? getRoundStyle(gamePhases, phaseColors, tiebreaker) : null;
 
-  var html = '<tr>' + '\n';
+  let html = '<tr>' + '\n';
   html += tdTag(round, 'center', false, null, roundStyle);
   html += tdTag(opponent, 'left');
   html += tdTag(link, 'left');
@@ -1582,12 +1918,15 @@ function playerDetailGameRow(player, tuhtot, opponent, round, link, settings, ga
   return html;
 }
 
-/*---------------------------------------------------------
-Total row for a table on the player detail page. Reuse
-results of compileIndividuals
----------------------------------------------------------*/
-function playerDetailTotalRow(player, settings, rptConfig) {
-  var html = '<tr class="pseudo-tfoot">' + '\n';
+/**
+ * Total row for a table on the player detail page. Reuse results of compileIndividuals
+ * @param  player    stats and info for one player
+ * @param  settings  tournament settings object
+ * @param  rptConfig report configuration object
+ * @return           <tr> element
+ */
+function playerDetailTotalRow(player: PlayerStandingsLine, settings: TournamentSettings, rptConfig: RptConfig): string {
+  let html = '<tr class="pseudo-tfoot">' + '\n';
   html += tdTag('', null, false);
   html += tdTag('Total', 'left', true);
   html += tdTag('');
@@ -1617,23 +1956,32 @@ function playerDetailTotalRow(player, settings, rptConfig) {
   return html;
 }
 
-/*---------------------------------------------------------
-Aggregate round data for the round report.
----------------------------------------------------------*/
-function compileRoundSummaries(games, phase, settings, showTbs) {
-  var summaries = [];
-  var tournTotals = {
+/**
+ * Aggregate round data for the round report.
+ * @param  games    list of game objects
+ * @param  phase    name of the phase we're showing
+ * @param  settings tournament settings object
+ * @param  showTbs  whether to include tiebreakers
+ * @return          tuple: first element is the list of summaries for each round;
+ *                  second element is the summary for the whole tournament
+ */
+function compileRoundSummaries(games: YfGame[], phase: string, settings: TournamentSettings,
+  showTbs: boolean): [RoundSummary[], RoundSummary] {
+
+  let summaries: RoundSummary[] = [];
+  let tournTotals: RoundSummary = {
     numberOfGames: 0, totalPoints: 0,
     tuPts: 0, tuh: 0,
     bPts: 0, bHeard: 0,
     bbPts: 0, bbHeard: [0,0],
-    ppg: 0, tuPtsPTu: 0, ppb: 0, ppbb: 0,
+    ppg: 0, pp20: 0,
+    tuPtsPTu: 0,
+    ppb: 0, ppbb: 0,
     ltngPts: 0, ppLtng: 0
   };
 
-  for(var i in games) {
-    var game = games[i];
-    var round = game.round;
+  for(let game of games) {
+    const round = game.round;
     if(matchFilterPhase(game, phase, showTbs) && !game.forfeit) {
       if(summaries[round] == undefined) {
         summaries[round] = {
@@ -1641,7 +1989,9 @@ function compileRoundSummaries(games, phase, settings, showTbs) {
           tuPts: 0, tuh: 0,
           bPts: 0, bHeard: 0,
           bbPts: 0, bbHeard: [0,0],
-          ppg: 0, tuPtsPTu: 0, ppb: 0, ppbb: 0,
+          ppg: 0, pp20: 0,
+          tuPtsPTu: 0,
+          ppb: 0, ppbb: 0,
           ltngPts: 0, ppLtng: 0
         }
       }
@@ -1681,8 +2031,8 @@ function compileRoundSummaries(games, phase, settings, showTbs) {
     }
   }
 
-  for(var i in summaries) {
-    let smry = summaries[i];
+  for(let r in summaries) {
+    let smry = summaries[r];
     smry.ppg = smry.totalPoints / (2 * smry.numberOfGames);
     smry.pp20 = 20 * smry.totalPoints / (2 * smry.tuh);
     smry.tuPtsPTu = smry.tuPts / smry.tuh;
@@ -1700,11 +2050,15 @@ function compileRoundSummaries(games, phase, settings, showTbs) {
   return [summaries,tournTotals];
 }
 
-/*---------------------------------------------------------
-Header row for the table in the round report.
----------------------------------------------------------*/
-function roundReportTableHeader(packetsExist, settings, rptConfig) {
-  var html = '<tr>' + '\n' +
+/**
+ * Header row for the table in the round report.
+ * @param  packetsExist whether to make a column for packet names
+ * @param  settings     tournament settings object
+ * @param  rptConfig    report configuration object
+ * @return              <tr> element
+ */
+function roundReportTableHeader(packetsExist: boolean, settings: TournamentSettings, rptConfig: RptConfig): string {
+  let html = '<tr>' + '\n' +
     tdTag('Round', 'left', true);
   if(packetsExist) {
     html += tdTag('Packet', 'left', true);
@@ -1733,23 +2087,32 @@ function roundReportTableHeader(packetsExist, settings, rptConfig) {
   return html;
 }
 
-/*---------------------------------------------------------
-A row of data in the round report.
-If roundNo is "Total", format as the aggregate row
----------------------------------------------------------*/
-function roundReportRow(smry, roundNo, packetsExist, packets, settings, rptConfig, fileStart) {
-  var totalRow = roundNo == 'Total';
-  var rowLabel;
+/**
+ * A row of data in the round report. If roundNo is "Total", format as the aggregate row
+ * @param  smry         round summary object
+ * @param  roundNo      round number
+ * @param  packetsExist whether to create a column for packet name
+ * @param  packets      packet names, indexed by their round numbers
+ * @param  settings     tournament settings object
+ * @param  rptConfig    report configuration object
+ * @param  fileStart    start of file name, for making links
+ * @return              <tr> element
+ */
+function roundReportRow(smry: RoundSummary, roundNo: number | 'Total', packetsExist: boolean,
+  packets: PacketList, settings: TournamentSettings, rptConfig: RptConfig, fileStart: string): string {
+
+  const totalRow = roundNo == 'Total';
+  let rowLabel: any;
   if(totalRow) { rowLabel = roundNo; }
   else {
     rowLabel = '<a HREF=' + fileStart + 'games.html#round-' + roundNo + '>' + roundNo + '</a>';
   }
-  var html = '<tr';
+  let html = '<tr';
   if(totalRow) { html += ' class="pseudo-tfoot"'; }
   html += '>' + '\n';
   html += tdTag(rowLabel, 'left', totalRow);
   if(packetsExist) {
-    var packetName = packets[roundNo] == undefined ? '' : packets[roundNo];
+    let packetName = packets[roundNo] == undefined ? '' : packets[roundNo];
     html += tdTag(packetName, 'left');
   }
   html += tdTag(smry.numberOfGames, 'right', totalRow);
@@ -1775,11 +2138,11 @@ function roundReportRow(smry, roundNo, packetsExist, packets, settings, rptConfi
 
 /**
  * The links at the top of every page of the report
- * @param  {string} fileStart directory and beginning of the file name
- * @param  {string} pageTitle title of the page
- * @return {string}           the beginning of the html file
+ * @param  fileStart directory and beginning of the file name
+ * @param  pageTitle title of the page
+ * @return           the beginning of the html file
  */
-function getStatReportTop(fileStart, pageTitle) {
+function getStatReportTop(fileStart: string, pageTitle: string): string {
   // some tags need to be in all caps in order for HSQuizbowl to recognize the
   // file as a valid stat report.
   return '<HTML>' + '\n' +
@@ -1802,10 +2165,10 @@ function getStatReportTop(fileStart, pageTitle) {
 
 /**
  * Closing tags at the end of the page.
- * @param  {string} yfVersion version of this software that generated the report
- * @return {string}           html
+ * @param  yfVersion version of this software that generated the report
+ * @return           html
  */
-function getStatReportBottom(yfVersion) {
+function getStatReportBottom(yfVersion?: string): string {
   let html = '<span style="font-size:x-small">Made with YellowFruit &#x1F34C;</span>' + '\n'; // banana emoji
   if(yfVersion) {
     html += '<span style="font-size:x-small; color:white">&nbsp;' + yfVersion + '</span>' + '\n';
@@ -1815,11 +2178,11 @@ function getStatReportBottom(yfVersion) {
     '</HTML>';
 }
 
-/*---------------------------------------------------------
-Stylesheet for table formatting. HTML5 supports putting
-this in the body.
----------------------------------------------------------*/
-function tableStyle() {
+/**
+ * Stylesheet for table formatting. HTML5 supports putting this in the body
+ * @return <style> element
+ */
+function tableStyle(): string {
   return '<style>\n' +
     'td {\n  padding: 5px;\n}\n' +
     'tfoot {\n  border-top: 1px solid #909090;\n}\n' + // unused currently
@@ -1832,34 +2195,43 @@ function tableStyle() {
     '</style>\n';
 }
 
+interface StandingsPageElement {
+  type: 'divLabel' | 'tableHeader' | 'row' | 'tableEnd';
+  team?: TeamStandingsLine;
+  rank?: number;
+  isOverride?: boolean;
+  curGrpPhase?: string;
+  divName?: string;
+}
+
 /**
  * Generate the team standings page
- * @param  {YfTeam[]} teams          list of all teams
- * @param  {YfGame[]} games          list of all games
- * @param  {string} fileStart      directory + beginning of the filename
- * @param  {string} phase          which phase we're including games from
- * @param  {string[]} groupingPhases list of phases whose divisions we want to group teams by
- * @param  {string[]} divsInPhase    lsit of divisions in the grouping phases
- * @param  {number[]} phaseSizes     how many divisions are in each member of groupingPhases
- * @param  {TournamentSettings} settings       settings object
- * @param  {[type]} rptConfig      report configuration settings object
- * @param  {boolean} showTbs        whether to include tiebreakers if we're showing all games
- * @param  {string} yfVersion      version of the software that is generating this report
- * @return {string}                the contents of the html file
+ * @param  teams          list of all teams
+ * @param  games          list of all games
+ * @param  fileStart      directory + beginning of the filename
+ * @param  phase          name of the phase we're including games from
+ * @param  groupingPhases list of phases whose divisions we want to group teams by
+ * @param  divsInPhase    lsit of divisions in the grouping phases
+ * @param  phaseSizes     how many divisions are in each member of groupingPhases
+ * @param  settings       settings object
+ * @param  rptConfig      report configuration settings object
+ * @param  showTbs        whether to include tiebreakers if we're showing all games
+ * @param  yfVersion      version of the software that is generating this report
+ * @return                the contents of the html file
  */
-function getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsInPhase,
-  phaseSizes, settings, rptConfig, showTbs, yfVersion) {
+function getStandingsHtml(teams: YfTeam[], games: YfGame[], fileStart: string, phase: string,
+  groupingPhases: string[], divsInPhase: string[], phaseSizes: { [phase: string]: number }, settings: TournamentSettings,
+  rptConfig: RptConfig, showTbs: boolean, yfVersion: string): string {
 
-  var standings = compileStandings(teams, games, phase, groupingPhases, settings, rptConfig, showTbs);
-  var tiesExist = anyTiesExist(standings);
-  var showPhaseRec = showPhaseRecord(rptConfig, phase, groupingPhases);
+  const standings = compileStandings(teams, games, phase, groupingPhases, settings, rptConfig, showTbs);
+  const tiesExist = anyTiesExist(standings);
+  const showPhaseRec = showPhaseRecord(rptConfig, phase, groupingPhases);
 
-  var html = getStatReportTop(fileStart, 'Team Standings') +
+  let html = getStatReportTop(fileStart, 'Team Standings') +
     '<h1> Team Standings</h1>' + '\n';
   html += tableStyle();
-  var linesToPrint = arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, phaseSizes, rptConfig);
-  for(var i in linesToPrint) {
-    let curLine = linesToPrint[i];
+  const linesToPrint = arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, phaseSizes, rptConfig);
+  for(let curLine of linesToPrint) {
     switch (curLine.type) {
       case 'divLabel':
         html += '<h2>' + curLine.divName + '</h2>' + '\n';
@@ -1879,30 +2251,42 @@ function getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsIn
   return html + getStatReportBottom(yfVersion);
 }//getStandingsHtml
 
-/*---------------------------------------------------------
-Generate a list of components of the team standings
----------------------------------------------------------*/
-function arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, phaseSizes, rptConfig) {
-  var linesToPrint = [];
-  var showPhaseRec = showPhaseRecord(rptConfig, phase, groupingPhases);
-  if(divsInPhase != undefined && divsInPhase.length > 0) {
-    let teamsInPriorDivisions = 0;
+/**
+ * Generate a list of components of the team standings
+ * @param  standings      stats and info for each team
+ * @param  phase          name of the phase we're showing games for
+ * @param  divsInPhase    list of divisions to group teams into
+ * @param  groupingPhases list of phases whose divisions we're grouping teams by
+ * @param  phaseSizes     how many divisions are in each phase of groupingPhases
+ * @param  rptConfig      report configuration object
+ * @return                list of elements on the standings page
+ */
+export function arrangeStandingsLines(standings: TeamStandingsLine[], phase: string, divsInPhase: string[],
+  groupingPhases: string[], phaseSizes: { [phase: string]: number }, rptConfig: RptConfig): StandingsPageElement[] {
+
+  let linesToPrint: StandingsPageElement[] = [];
+  const showPhaseRec = showPhaseRecord(rptConfig, phase, groupingPhases);
+  if(divsInPhase && divsInPhase.length > 0) {
     // intitial rank from which to start incrementing. is either the number of teams in
     // divisions we've already gone through; or the most recent rank override
     let baselineRank = 0;
-    let phaseSizeIdx = 0, curGrpPhase = groupingPhases[0]; // track which phase to put in the phase record tooltip
-    for(var i in divsInPhase) {
+    let divCount = 0, phaseSizeIdx = 0, curGrpPhase = groupingPhases[0]; // track which phase to put in the phase record tooltip
+    for(let curDiv of divsInPhase) {
       //if we're out of divisions in this grouping phase, move on to the next one
-      if(i >= phaseSizes[phaseSizeIdx+1]) {
+      divCount++;
+      if(divCount > phaseSizes[curGrpPhase]) {
         curGrpPhase = groupingPhases[++phaseSizeIdx];
+        divCount = 1;
       }
-      linesToPrint.push({type: 'divLabel', divName: divsInPhase[i]});
+      // if(+i >= phaseSizes[phaseSizeIdx+1]) {
+      //   curGrpPhase = groupingPhases[++phaseSizeIdx];
+      // }
+      linesToPrint.push({type: 'divLabel', divName: curDiv});
       linesToPrint.push({type: 'tableHeader', curGrpPhase: curGrpPhase});
-      let teamsInDiv = _.filter(standings, (t) => { return t.division == divsInPhase[i] });
-      let curRank = 0, prevPhaseRecord = null, curTeam;
+      let teamsInDiv = _.filter(standings, (t) => { return t.division == curDiv });
+      let curRank = 0, prevPhaseRecord = null;
       let countSinceLastOverride = 0; // number of teams we've gone through since th last rank override
-      for(var j in teamsInDiv) {
-        curTeam = teamsInDiv[j];
+      for(let curTeam of teamsInDiv) {
         let isOverride = false;
         //if rank was manually overridden, use that
         if(phase == 'all' && curTeam.rank) {
@@ -1936,8 +2320,7 @@ function arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, ph
   else { //not using divisions
     linesToPrint.push({type: 'tableHeader', curGrpPhase: null});
     let curRank = 0;
-    for(var i in standings) {
-      let curTeam = standings[i];
+    for(let curTeam of standings) {
       let isOverride = false;
       if(phase != 'Tiebreakers' || curTeam.wins + curTeam.losses + curTeam.ties > 0) {
         if(curTeam.rank) {
@@ -1953,18 +2336,29 @@ function arrangeStandingsLines(standings, phase, divsInPhase, groupingPhases, ph
   return linesToPrint;
 }
 
-/*---------------------------------------------------------
-Generate the individual standings page.
----------------------------------------------------------*/
-function getIndividualsHtml(teams, games, fileStart, phase, groupingPhases,
-  usingDivisions, settings, rptConfig, showTbs) {
+/**
+ * Generate the individual standings page.
+ * @param  teams          list of team objects
+ * @param  games          list of game objects
+ * @param  fileStart      start of file name, to use for links
+ * @param  phase          name of phase to show games for
+ * @param  groupingPhases list of phases whose divisions we're using to group teams
+ * @param  usingDivisions whether we need to group teams into divisions
+ * @param  settings       tournament settings object
+ * @param  rptConfig      report configuration object
+ * @param  showTbs        whether to include tiebreakers
+ * @return                html contents of the page
+ */
+function getIndividualsHtml(teams: YfTeam[], games: YfGame[], fileStart: string, phase: string,
+  groupingPhases: string[], usingDivisions: boolean, settings: TournamentSettings,
+  rptConfig: RptConfig, showTbs: boolean): string {
 
-  var individuals = compileIndividuals(teams, games, phase, groupingPhases, settings, showTbs);
-  var html = getStatReportTop(fileStart, 'Individual Standings') +
+  const individuals = compileIndividuals(teams, games, phase, groupingPhases, settings, showTbs);
+  let html = getStatReportTop(fileStart, 'Individual Standings') +
     '<h1> Individual Statistics</h1>' + '\n';
   html += tableStyle();
   html += '<table width=100%>' + individualsHeader(usingDivisions, settings, rptConfig);
-  for(var i in individuals) {
+  for(let i in individuals) {
     if(individuals[i].gamesPlayed > 0) {
       html += individualsRow(individuals[i], parseFloat(i)+1, fileStart, usingDivisions, settings, rptConfig);
     }
@@ -1972,45 +2366,65 @@ function getIndividualsHtml(teams, games, fileStart, phase, groupingPhases,
   return html + '\n' + '</table>' + '\n' +  getStatReportBottom();
 }
 
-/*---------------------------------------------------------
-Generate the scoreboard page.
----------------------------------------------------------*/
-function getScoreboardHtml(teams, games, fileStart, phase, settings, packets, phaseColors, showTbs) {
-  var roundList = getRoundsForScoreboard(games, phase, showTbs);
-  var html = getStatReportTop(fileStart, 'Scoreboard') + '\n';
+/**
+ * Generate the scoreboard page.
+ * @param  teams       list of team objects
+ * @param  games       list of game objects
+ * @param  fileStart   start of file name, to make links with
+ * @param  phase       name of phase to show games for
+ * @param  settings    tournament settings object
+ * @param  packets     list of packets, indexed by round number
+ * @param  phaseColors colors, indexed by phase name
+ * @param  showTbs     whether to include tiebreakers
+ * @return             html contents of the file
+ */
+function getScoreboardHtml(games: YfGame[], fileStart: string, phase: string,
+  settings: TournamentSettings, packets: PacketList, phaseColors: { [phase: string]: string },
+  showTbs: boolean): string {
+
+  const roundList = getRoundsForScoreboard(games, phase, showTbs);
+  let html = getStatReportTop(fileStart, 'Scoreboard') + '\n';
   html += scoreboardRoundLinks(roundList, fileStart) + '<br>' + '\n';
   html += '<h1> Scoreboard</h1>' + '\n';
   if(phase == 'all') {
     html += phaseLegend(phaseColors) + '\n';
   }
-  var roundNo;
-  for(var r in roundList) {
-    roundNo = roundList[r];
+  for(let roundNo of roundList) {
     html += scoreboardRoundHeader(roundNo, packets[roundNo]);
     html += scoreboardGameSummaries(games, roundNo, phase, settings, phaseColors, showTbs);
   }
   return html + '\n' + getStatReportBottom();
 }
 
-/*---------------------------------------------------------
-Generate the team detail page.
----------------------------------------------------------*/
-function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
-  phaseColors, rptConfig, showTbs) {
+/**
+ * Generate the team detail page.
+ * @param  teams       list of team objects
+ * @param  games       list of game objects
+ * @param  fileStart   start of file name, to use for links
+ * @param  phase       name of phase to show games for
+ * @param  packets     list of packet names, indexed by round number
+ * @param  settings    tournament settings object
+ * @param  phaseColors colors, indexed by phase name
+ * @param  rptConfig   report configuration object
+ * @param  showTbs     whether to include tiebreakers
+ * @return             html contents of the file
+ */
+function getTeamDetailHtml(teams: YfTeam[], games: YfGame[], fileStart: string, phase: string,
+  packets: PacketList, settings: TournamentSettings, phaseColors: { [phase: string]: string },
+  rptConfig: RptConfig, showTbs: boolean): string {
 
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
-  games = _.orderBy(games, function(item) { return toNum(item.round); }, 'asc');
-  var standings = compileStandings(teams, games, phase, [], settings, rptConfig, showTbs);
-  var individuals = compileIndividuals(teams, games, phase, [], settings, showTbs);
-  var packetsExist = packetNamesExist(packets);
+  games = _.orderBy(games, function(item) { return item.round; }, 'asc');
+  const standings = compileStandings(teams, games, phase, [], settings, rptConfig, showTbs);
+  const individuals = compileIndividuals(teams, games, phase, [], settings, showTbs);
+  const packetsExist = packetNamesExist(packets);
 
-  var html = getStatReportTop(fileStart, 'Team Detail') + '\n' +
+  let html = getStatReportTop(fileStart, 'Team Detail') + '\n' +
     '<h1> Team Detail</h1>' + '\n';
   if(phase == 'all') { html += phaseLegend(phaseColors) + '\n'; }
   html += tableStyle();
 
-  for(let i in teams) {
-    let oneTeam = teams[i];
+  for(let oneTeam of teams) {
     let teamName = oneTeam.teamName;
     let teamSummary = _.find(standings, (o) => { return o.teamName == teamName; });
     if(teamSummary.wins + teamSummary.losses + teamSummary.ties == 0) { continue; }
@@ -2018,7 +2432,7 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
     let linkId = teamName.replace(/\W/g, '');
     html += '<h2 style="display:inline-block" id=' + linkId + '>' + teamName + '</h2>' + '\n';
     //display UG, D2 status
-    var attributes = [];
+    let attributes = [];
     if(showSS(rptConfig) && oneTeam.smallSchool) {
       attributes.push('SS');
     }
@@ -2031,7 +2445,7 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
     if((showTeamD2(rptConfig) || showTeamCombined(rptConfig)) && oneTeam.teamD2Status) {
       attributes.push('D2');
     }
-    var statusDisp = '';
+    let statusDisp = '';
     if(attributes.length > 0) {
       statusDisp += '<span style=" font-style: italic; color: gray">';
       statusDisp += attributes.join(', ');
@@ -2041,8 +2455,7 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
     // list games
     html += '<table width=100%>' + '\n';
     html += teamDetailGameTableHeader(packetsExist, settings, rptConfig) + '\n';
-    for(var j in games) {
-      let oneGame = games[j];
+    for(let oneGame of games) {
       let gameInPhase = matchFilterPhase(oneGame, phase, showTbs);
       var formatRdCol = phase == 'all' && (oneGame.phases.length > 0 || oneGame.tiebreaker);
       if(gameInPhase && oneGame.team1 == teamName) {
@@ -2058,45 +2471,56 @@ function getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
     html += '</table>' + '<br>' + '\n';
     html += '<table width=100%>' + '\n';
     html += teamDetailPlayerTableHeader(settings, rptConfig) + '\n';
-    for(let i in individuals) {
-      var player = individuals[i]
+    for(let player of individuals) {
       if(player.teamName == teamName && player.gamesPlayed > 0) {
-        html += teamDetailPlayerRow(individuals[i], fileStart, settings, rptConfig);
+        html += teamDetailPlayerRow(player, fileStart, settings, rptConfig);
       }
     }
     html += '</table>' + '<br>' + '\n';
-  }
+  } // loop over teams
   return html + getStatReportBottom();
 }//getTeamDetailHtml
 
-/*---------------------------------------------------------
-Generate the player detail page.
----------------------------------------------------------*/
-function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColors, rptConfig, showTbs) {
+/**
+ * Generate the player detail page.
+ * @param  teams       list of team objects
+ * @param  games       list of game objects
+ * @param  fileStart   start of file name, to use for links
+ * @param  phase       name of phase to show games for
+ * @param  settings    tournament settings object
+ * @param  phaseColors colors, indexed by phase name
+ * @param  rptConfig   report configuration object
+ * @param  showTbs     whether to include tiebreakers
+ * @return             html contents of the file
+ */
+function getPlayerDetailHtml(teams: YfTeam[], games: YfGame[], fileStart: string, phase: string,
+  settings: TournamentSettings, phaseColors:  { [phase: string]: string }, rptConfig: RptConfig,
+  showTbs: boolean): string {
+
   teams = _.orderBy(teams, function(item) { return item.teamName.toLowerCase(); }, 'asc');
-  games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
-  var playerTotals = compileIndividuals(teams, games, phase, [], settings, showTbs);
+  games = _.orderBy(games, function(item) { return +item.round; }, 'asc');
+  let playerTotals = compileIndividuals(teams, games, phase, [], settings, showTbs);
   playerTotals = _.orderBy(playerTotals,
     [function(item) { return item.teamName.toLowerCase(); },
     function(item) { return item.playerName.toLowerCase(); }],
     ['asc', 'asc']);
 
-  var html = getStatReportTop(fileStart, 'Individual Detail') +
+  let html = getStatReportTop(fileStart, 'Individual Detail') +
     '<h1> Individual Detail</h1>' + '\n';
   if(phase == 'all') { html += phaseLegend(phaseColors) + '\n'; }
   html += tableStyle();
 
-  for(var i in playerTotals) {
+  for(let i in playerTotals) {
     if(playerTotals[i].gamesPlayed == 0) { continue; }
-    var indvTot = playerTotals[i];
-    var linkId = indvTot.teamName.replace(/\W/g, '') + '-' +
+    const indvTot = playerTotals[i];
+    const linkId = indvTot.teamName.replace(/\W/g, '') + '-' +
       indvTot.playerName.replace(/\W/g, '');
     html += '<h2 style="display:inline-block" id=' + linkId + '>' +
       indvTot.playerName + ', ' + indvTot.teamName + '</h2>' + '\n';
     //year, UG, and D2 status
-    var demogDisp = '';
+    let demogDisp = '';
     if(showPlayerYear(rptConfig)) {
-      var yearDisp = indvTot.year.split('.')[0]; //truncate decimals, if someone is being weird
+      let yearDisp = indvTot.year.split('.')[0]; //truncate decimals, if someone is being weird
       if(+yearDisp >= 4 && +yearDisp <= 12) { yearDisp += 'th grade'; }
       if(yearDisp.length > 0) {
         demogDisp = '<span style="font-style: italic; color: gray">' + yearDisp;
@@ -2121,21 +2545,20 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
 
     html += '<table width=100%>' + '\n';
     html += playerDetailTableHeader(settings, rptConfig);
-    for(var j in games) {
-      let game = games[j];
+    for(let game of games) {
       let gameInPhase = matchFilterPhase(game, phase, showTbs);
       let formatRdCol = phase == 'all' && (game.phases.length > 0 || game.tiebreaker);
       if (gameInPhase && game.team1 == indvTot.teamName) {
         for(var p in game.players1) {
           if(p == indvTot.playerName) {
-            var link = playerDetailGameLink(game, 1, fileStart);
+            const link = playerDetailGameLink(game, 1, fileStart);
             html += playerDetailGameRow(game.players1[p], game.tuhtot, game.team2, game.round,
               link, settings, game.phases, phaseColors, formatRdCol, rptConfig, game.tiebreaker);
           }
         }
       }
       else if (gameInPhase && game.team2 == indvTot.teamName) {
-        var link = playerDetailGameLink(game, 2, fileStart);
+        const link = playerDetailGameLink(game, 2, fileStart);
         for(var p in game.players2) {
           if(p == indvTot.playerName) {
             html += playerDetailGameRow(game.players2[p], game.tuhtot, game.team1, game.round,
@@ -2151,20 +2574,31 @@ function getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColo
   return html + getStatReportBottom();
 }//getPlayerDetailHtml
 
-/*---------------------------------------------------------
-Generate the team round report page.
----------------------------------------------------------*/
-function getRoundReportHtml(teams, games, fileStart, phase, packets, settings, rptConfig, showTbs) {
-  games = _.orderBy(games, function(item) { return parseFloat(item.round); }, 'asc');
-  var [roundSummaries, aggregate] = compileRoundSummaries(games, phase, settings, showTbs);
-  var packetsExist = packetNamesExist(packets);
-  var html = getStatReportTop(fileStart, 'Round Report') +
+/**
+ * Generate the team round report page.
+ * @param  teams     list of team objects
+ * @param  games     list of game objects
+ * @param  fileStart start of file name, to use for links
+ * @param  phase     name of phase to show games for
+ * @param  packets   packet names, indexed by round number
+ * @param  settings  tournament settings object
+ * @param  rptConfig report configuration object
+ * @param  showTbs   whether to include tiebreakers
+ * @return           html contents of the file
+ */
+function getRoundReportHtml(games: YfGame[], fileStart: string, phase: string,
+  packets: PacketList, settings: TournamentSettings, rptConfig: RptConfig, showTbs: boolean): string {
+
+  games = _.orderBy(games, function(item) { return +item.round; }, 'asc');
+  const [roundSummaries, aggregate] = compileRoundSummaries(games, phase, settings, showTbs);
+  const packetsExist = packetNamesExist(packets);
+  let html = getStatReportTop(fileStart, 'Round Report') +
     '<h1> Round Report</h1>' + '\n';
   html += tableStyle();
   html += '<table width=100%>' + '\n';
   html += roundReportTableHeader(packetsExist, settings, rptConfig);
-  for(var i in roundSummaries) {
-    html += roundReportRow(roundSummaries[i], i, packetsExist, packets, settings, rptConfig, fileStart);
+  for(let i in roundSummaries) {
+    html += roundReportRow(roundSummaries[i], +i, packetsExist, packets, settings, rptConfig, fileStart);
   }
   html += roundReportRow(aggregate, 'Total', packetsExist, packets, settings, rptConfig, fileStart);
   html += '</table>' + '\n';
@@ -2174,50 +2608,44 @@ function getRoundReportHtml(teams, games, fileStart, phase, packets, settings, r
 /*---------------------------------------------------------
 Stat report generation APIs
 ---------------------------------------------------------*/
-function getStandingsPage(teams, games, fileStart, phase, groupingPhases, divsInPhase,
+export function getStandingsPage(teams, games, fileStart, phase, groupingPhases, divsInPhase,
   phaseSizes, settings, rptConfig, showTbs, yfVersion) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve, _reject) {
     resolve(getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsInPhase,
       phaseSizes, settings, rptConfig, showTbs, yfVersion));
   });
 }
 
-function getIndividualsPage(teams, games, fileStart, phase, groupingPhases,
+export function getIndividualsPage(teams, games, fileStart, phase, groupingPhases,
   usingDivisions, settings, rptConfig, showTbs) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve, _reject) {
     resolve(getIndividualsHtml(teams, games, fileStart, phase, groupingPhases,
       usingDivisions, settings, rptConfig, showTbs));
   });
 }
 
-function getScoreboardPage(teams, games, fileStart, phase, settings, packets, phaseColors, showTbs) {
+export function getScoreboardPage(teams, games, fileStart, phase, settings, packets, phaseColors, showTbs) {
   return new Promise(function(resolve, reject) {
-    resolve(getScoreboardHtml(teams, games, fileStart, phase, settings, packets, phaseColors, showTbs));
+    resolve(getScoreboardHtml(games, fileStart, phase, settings, packets, phaseColors, showTbs));
   });
 }
 
-function getTeamDetailPage(teams, games, fileStart, phase, packets, settings,
+export function getTeamDetailPage(teams, games, fileStart, phase, packets, settings,
   phaseColors, rptConfig, showTbs) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve, _reject) {
     resolve(getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
       phaseColors, rptConfig, showTbs));
   });
 }
 
-function getPlayerDetailPage(teams, games, fileStart, phase, settings, phaseColors, rptConfig, showTbs) {
-  return new Promise(function(resolve, reject) {
+export function getPlayerDetailPage(teams, games, fileStart, phase, settings, phaseColors, rptConfig, showTbs) {
+  return new Promise(function(resolve, _reject) {
     resolve(getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColors, rptConfig, showTbs));
   });
 }
 
-function getRoundReportPage(teams, games, fileStart, phase, packets, settings, rptConfig, showTbs) {
-  return new Promise(function(resolve, reject) {
-    resolve(getRoundReportHtml(teams, games, fileStart, phase, packets, settings, rptConfig, showTbs));
+export function getRoundReportPage(teams, games, fileStart, phase, packets, settings, rptConfig, showTbs) {
+  return new Promise(function(resolve, _reject) {
+    resolve(getRoundReportHtml(games, fileStart, phase, packets, settings, rptConfig, showTbs));
   });
 }
-
-module.exports = {toNum, matchFilterPhase, gamesPlayed, powerValue, negValue,
-  teamPowers, teamTens, teamNegs, bonusesHeard, bonusPoints, bbHeard,
-  bbHrdToFloat, otPoints, playerSlashLine, packetNamesExist, compileStandings,
-  arrangeStandingsLines, getStandingsPage, getIndividualsPage, getScoreboardPage,
-  getTeamDetailPage, getPlayerDetailPage, getRoundReportPage}

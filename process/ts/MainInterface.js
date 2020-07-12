@@ -1004,19 +1004,19 @@ export class MainInterface extends React.Component {
     });
   }
 
-  /*---------------------------------------------------------
-  Returns a list of games in which at least one team had
-  more than eight players that heard at least one tossup.
-  SQBS only supports eight players per team per game, so
-  we need to warn the user before exporting the SQBS file.
-  ---------------------------------------------------------*/
+  /**
+   * Returns a list of games in which at least one team had more than eight players that heard at
+   * least one tossup. SQBS only supports eight players per team per game, so we need to warn the
+   * user before exporting the SQBS file.
+   * @return list game names (round no. + teams) to show to the user
+   */
   sqbsCompatErrors() {
     var badGameAry = [];
     for(var i in this.state.myGames) {
       var g = this.state.myGames[i];
       var playerCount = 0;
       for(var p in g.players1) {
-        if(StatUtils.toNum(g.players1[p].tuh) > 0) { playerCount++; }
+        if(g.players1[p].tuh > 0) { playerCount++; }
       }
       if(playerCount > 8) {
         badGameAry.push('Round ' + g.round + ': ' + g.team1 + " vs. " + g.team2);
@@ -1024,7 +1024,7 @@ export class MainInterface extends React.Component {
       }
       playerCount = 0;
       for(var p in g.players2) {
-        if(StatUtils.toNum(g.players2[p].tuh) > 0) { playerCount++; }
+        if(g.players2[p].tuh > 0) { playerCount++; }
       }
       if(playerCount > 8) {
         badGameAry.push('Round ' + g.round + ': ' + g.team1 + " vs. " + g.team2);
@@ -2089,18 +2089,22 @@ export class MainInterface extends React.Component {
     return [];
   }
 
-  /*---------------------------------------------------------
-  Compute the list of divisions to group teams by (could be
-  from multiple phases), and the number of divisions in
-  each grouping phase
-  ---------------------------------------------------------*/
+  /**
+   * Compute the list of divisions to group teams by (could be from multiple phases),
+   * and the number of divisions in each grouping phase
+   * @param  {string[]} phasesToGroupBy list of phases whose divisions we're grouping teams by
+   * @return {[string[], ([phase]: number)]}   tuple: first element is the ordered list of
+   *    divisions to use in the team standings; second element is how many divisions
+   *    belong to each phase
+   */
   cumulativeRankSetup(phasesToGroupBy) {
-    var divsInPhase = [], phaseSizes = [0];
-    for(var i in phasesToGroupBy) {
-      let oneDivList = this.state.divisions[phasesToGroupBy[i]];
+    var divsInPhase = [], phaseSizes = {};
+    for(let curPhase of phasesToGroupBy) {
+      let oneDivList = this.state.divisions[curPhase];
       divsInPhase = divsInPhase.concat(oneDivList);
       //keep track of which divisions came from which phases (for the phase record column tooltip)
-      phaseSizes[+i+1] = phaseSizes[i] + oneDivList.length;
+      //phaseSizes[+i+1] = phaseSizes[i] + oneDivList.length;
+      phaseSizes[curPhase] = oneDivList.length;
     }
     return [divsInPhase, phaseSizes];
   }

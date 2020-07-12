@@ -23,7 +23,7 @@ interface StatSidebarProps {
   phase: string;                  // which phase to show standings for
   divisions: string[];            // divisions to group teams by
   phasesToGroupBy: string[];      // phases whose divisions we're grouping teams by
-  phaseSizes: number[];           // number of divisions in each phase of phasesToGroupBy
+  phaseSizes: { [phase: string]: number };           // number of divisions in each phase of phasesToGroupBy
   settings: TournamentSettings;   // tournament rules
   rptConfig: any;                 // report configuration (so that sidebar mirrors the html report)
   filterByTeam: (team: string) => void;               // find a team's games when its name is clicked

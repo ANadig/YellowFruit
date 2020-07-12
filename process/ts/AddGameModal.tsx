@@ -378,9 +378,9 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
 
   /**
    * JSX element containing the points per bonus
-   * @param  {} bPts   bonuse points scored
-   * @param  {} bHeard bonuses heard
-   * @return {}        span containing a number or em dash
+   * @param   bPts   bonuse points scored
+   * @param   bHeard bonuses heard
+   * @return         span containing a number or em dash
    */
   ppbDisplay(bPts: number, bHeard: number) : JSX.Element {
     return bHeard == 0 ? ( <span>&mdash;</span> ) :
@@ -404,6 +404,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
    * @return         span element
    */
   bbHeardDisplay(bbHeard: number[]): JSX.Element {
+     // negative bouncebacks can happen if user hasn't filled in all the TU data yet
     if(bbHeard[0] < 0) { return ( <span>0</span> ); }
     if(bbHeard[1] == 1) { return ( <span>{bbHeard[0]}&#8531;</span> ); } // '1/3' character
     if(bbHeard[1] == 2) { return ( <span>{bbHeard[0]}&#8532;</span> ); } // '2/3' character
