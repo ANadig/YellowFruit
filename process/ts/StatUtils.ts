@@ -39,7 +39,7 @@ const TOOLTIPS = {
   phaseRecord: ['Record in the ', ' stage of the tournament. Teams are ranked by this record.']
 }
 
-interface TeamStandingsLine {
+export interface TeamStandingsLine {
   teamName:string; rank: number;
   smallSchool: boolean; jrVarsity: boolean;
   teamUGStatus: boolean; teamD2Status: boolean;
@@ -91,16 +91,13 @@ interface RoundSummary {
   ltngPts: number; ppLtng: number;
 }
 
-/*---------------------------------------------------------
-Convert string to number, but using 0 instead of NaN
----------------------------------------------------------*/
 /**
  * Convert string to number, but using 0 instead of NaN
- * @param  str [description]
- * @return     [description]
+ * @param  val something to convert to a number
+ * @return     number
  */
-export function toNum(str) {
-  return isNaN(+str) ? 0 : +str;
+export function toNum(val: any): number {
+  return isNaN(+val) ? 0 : +val;
 }
 
 /**
@@ -2195,7 +2192,7 @@ function tableStyle(): string {
     '</style>\n';
 }
 
-interface StandingsPageElement {
+export interface StandingsPageElement {
   type: 'divLabel' | 'tableHeader' | 'row' | 'tableEnd';
   team?: TeamStandingsLine;
   rank?: number;
@@ -2608,44 +2605,129 @@ function getRoundReportHtml(games: YfGame[], fileStart: string, phase: string,
 /*---------------------------------------------------------
 Stat report generation APIs
 ---------------------------------------------------------*/
-export function getStandingsPage(teams, games, fileStart, phase, groupingPhases, divsInPhase,
-  phaseSizes, settings, rptConfig, showTbs, yfVersion) {
-  return new Promise(function(resolve, _reject) {
+/**
+ * Generate the team standings page
+ * @param  teams          list of all teams
+ * @param  games          list of all games
+ * @param  fileStart      directory + beginning of the filename
+ * @param  phase          name of the phase we're including games from
+ * @param  groupingPhases list of phases whose divisions we want to group teams by
+ * @param  divsInPhase    lsit of divisions in the grouping phases
+ * @param  phaseSizes     how many divisions are in each member of groupingPhases
+ * @param  settings       settings object
+ * @param  rptConfig      report configuration settings object
+ * @param  showTbs        whether to include tiebreakers if we're showing all games
+ * @param  yfVersion      version of the software that is generating this report
+ * @return                promise that resolves to the contents of the html file
+ */
+export function getStandingsPage(teams: YfTeam[], games: YfGame[], fileStart: string, phase: string,
+  groupingPhases: string[], divsInPhase: string[], phaseSizes: { [phase: string]: number }, settings: TournamentSettings,
+  rptConfig: RptConfig, showTbs: boolean, yfVersion: string): Promise<string> {
+  return new Promise((resolve, _reject) => {
     resolve(getStandingsHtml(teams, games, fileStart, phase, groupingPhases, divsInPhase,
       phaseSizes, settings, rptConfig, showTbs, yfVersion));
   });
 }
 
-export function getIndividualsPage(teams, games, fileStart, phase, groupingPhases,
-  usingDivisions, settings, rptConfig, showTbs) {
-  return new Promise(function(resolve, _reject) {
-    resolve(getIndividualsHtml(teams, games, fileStart, phase, groupingPhases,
-      usingDivisions, settings, rptConfig, showTbs));
+/**
+ * Generate the individual standings page.
+ * @param  teams          list of team objects
+ * @param  games          list of game objects
+ * @param  fileStart      start of file name, to use for links
+ * @param  phase          name of phase to show games for
+ * @param  groupingPhases list of phases whose divisions we're using to group teams
+ * @param  usingDivisions whether we need to group teams into divisions
+ * @param  settings       tournament settings object
+ * @param  rptConfig      report configuration object
+ * @param  showTbs        whether to include tiebreakers
+ * @return                promise that resolves to the html contents of the page
+ */
+export function getIndividualsPage(teams: YfTeam[], games: YfGame[], fileStart: string, phase: string,
+  groupingPhases: string[], usingDivisions: boolean, settings: TournamentSettings,
+  rptConfig: RptConfig, showTbs: boolean): Promise<string> {
+  return new Promise((resolve, _reject) => {
+    resolve(getIndividualsHtml(teams, games, fileStart, phase, groupingPhases, usingDivisions,
+      settings, rptConfig, showTbs));
   });
 }
 
-export function getScoreboardPage(teams, games, fileStart, phase, settings, packets, phaseColors, showTbs) {
-  return new Promise(function(resolve, reject) {
+/**
+ * Generate the scoreboard page.
+ * @param  teams       list of team objects
+ * @param  games       list of game objects
+ * @param  fileStart   start of file name, to make links with
+ * @param  phase       name of phase to show games for
+ * @param  settings    tournament settings object
+ * @param  packets     list of packets, indexed by round number
+ * @param  phaseColors colors, indexed by phase name
+ * @param  showTbs     whether to include tiebreakers
+ * @return             promise that resolves to html contents of the file
+ */
+export function getScoreboardPage(games: YfGame[], fileStart: string, phase: string,
+  settings: TournamentSettings, packets: PacketList, phaseColors: { [phase: string]: string },
+  showTbs: boolean): Promise<string> {
+  return new Promise((resolve, _reject) => {
     resolve(getScoreboardHtml(games, fileStart, phase, settings, packets, phaseColors, showTbs));
   });
 }
 
-export function getTeamDetailPage(teams, games, fileStart, phase, packets, settings,
-  phaseColors, rptConfig, showTbs) {
+/**
+ * Generate the team detail page.
+ * @param  teams       list of team objects
+ * @param  games       list of game objects
+ * @param  fileStart   start of file name, to use for links
+ * @param  phase       name of phase to show games for
+ * @param  packets     list of packet names, indexed by round number
+ * @param  settings    tournament settings object
+ * @param  phaseColors colors, indexed by phase name
+ * @param  rptConfig   report configuration object
+ * @param  showTbs     whether to include tiebreakers
+ * @return             promise that resolves to the html contents of the file
+ */
+export function getTeamDetailPage(teams: YfTeam[], games: YfGame[], fileStart: string, phase: string,
+  packets: PacketList, settings: TournamentSettings, phaseColors: { [phase: string]: string },
+  rptConfig: RptConfig, showTbs: boolean): Promise<string> {
   return new Promise(function(resolve, _reject) {
     resolve(getTeamDetailHtml(teams, games, fileStart, phase, packets, settings,
       phaseColors, rptConfig, showTbs));
   });
 }
 
-export function getPlayerDetailPage(teams, games, fileStart, phase, settings, phaseColors, rptConfig, showTbs) {
-  return new Promise(function(resolve, _reject) {
+/**
+ * Generate the player detail page.
+ * @param  teams       list of team objects
+ * @param  games       list of game objects
+ * @param  fileStart   start of file name, to use for links
+ * @param  phase       name of phase to show games for
+ * @param  settings    tournament settings object
+ * @param  phaseColors colors, indexed by phase name
+ * @param  rptConfig   report configuration object
+ * @param  showTbs     whether to include tiebreakers
+ * @return             html contents of the file
+ */
+export function getPlayerDetailPage(teams: YfTeam[], games: YfGame[], fileStart: string, phase: string,
+  settings: TournamentSettings, phaseColors:  { [phase: string]: string }, rptConfig: RptConfig,
+  showTbs: boolean): Promise<string> {
+  return new Promise((resolve, _reject) => {
     resolve(getPlayerDetailHtml(teams, games, fileStart, phase, settings, phaseColors, rptConfig, showTbs));
   });
 }
 
-export function getRoundReportPage(teams, games, fileStart, phase, packets, settings, rptConfig, showTbs) {
-  return new Promise(function(resolve, _reject) {
+/**
+ * Generate the team round report page.
+ * @param  teams     list of team objects
+ * @param  games     list of game objects
+ * @param  fileStart start of file name, to use for links
+ * @param  phase     name of phase to show games for
+ * @param  packets   packet names, indexed by round number
+ * @param  settings  tournament settings object
+ * @param  rptConfig report configuration object
+ * @param  showTbs   whether to include tiebreakers
+ * @return           html contents of the file
+ */
+export function getRoundReportPage(games: YfGame[], fileStart: string, phase: string,
+  packets: PacketList, settings: TournamentSettings, rptConfig: RptConfig, showTbs: boolean): Promise<string> {
+  return new Promise((resolve, _reject) => {
     resolve(getRoundReportHtml(games, fileStart, phase, packets, settings, rptConfig, showTbs));
   });
 }

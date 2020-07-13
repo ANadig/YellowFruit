@@ -8,7 +8,8 @@ stats report that appears on the side.
 import * as React from 'react';
 import * as _ from 'lodash';
 import StatUtils = require('./StatUtils');
-import { TournamentSettings } from './YfTypes';
+import { TournamentSettings, RptConfig } from './YfTypes';
+import { StandingsPageElement, TeamStandingsLine } from './StatUtils';
 
 /**
  * Teams' manually specified ranks. Strings because that's how the html fields send them
@@ -19,13 +20,13 @@ interface RankingList {
 
 interface StatSidebarProps {
   visible: boolean;               // whether the sidebar is open
-  standings: any;                 // standings information from StatUtils
+  standings: TeamStandingsLine[];                 // standings information from StatUtils
   phase: string;                  // which phase to show standings for
   divisions: string[];            // divisions to group teams by
   phasesToGroupBy: string[];      // phases whose divisions we're grouping teams by
   phaseSizes: { [phase: string]: number };           // number of divisions in each phase of phasesToGroupBy
   settings: TournamentSettings;   // tournament rules
-  rptConfig: any;                 // report configuration (so that sidebar mirrors the html report)
+  rptConfig: RptConfig;                 // report configuration (so that sidebar mirrors the html report)
   filterByTeam: (team: string) => void;               // find a team's games when its name is clicked
   saveRankOverrides: (ranks:RankingList) => void;     // file the data in the rank fields
 }
@@ -92,29 +93,28 @@ export class StatSidebar extends React.Component<StatSidebarProps, StatSidebarSt
     return false;
   }
 
-  /*---------------------------------------------------------
-  Standings table (JSX) for the teams in a single division.
-  teams: 'row'-type lines from arrangeStandingsLines
-  division: can be 'noDiv' if this tournament does not have
-    divisions
-  tiesExist: whether at least one game in the tournament
-    is a tie
-  ---------------------------------------------------------*/
-  getTable(teams, division, tiesExist) {
-    var usePp20 = this.props.rptConfig.ppgOrPp20 == 'pp20';
-    var showPhaseRecord = this.props.rptConfig.phaseRecord && this.props.phase == 'all' &&
+  /**
+   * Standins table for the teams in a single division.
+   * @param   teams     'row'-type lines from arrangeStandingsLines
+   * @param   division  name of division. Pass null if there are no divisions
+   * @param   tiesExist whether we need a column for ties
+   * @return           JSX <div> element
+   */
+  getTable(teams: StandingsPageElement[], division: string, tiesExist: boolean): JSX.Element {
+    const usePp20 = this.props.rptConfig.ppgOrPp20 == 'pp20';
+    const showPhaseRecord = this.props.rptConfig.phaseRecord && this.props.phase == 'all' &&
       this.props.phasesToGroupBy.length > 0 && this.props.phasesToGroupBy[0] != 'noPhase';
-    var rows = teams.map((item, index) => {
+    const rows = teams.map((item, _index) => {
       let teamName = item.team.teamName;
       let ppg = item.team.ppg, ppb = item.team.ppb;
-      if(isNaN(ppg)) { ppg = ''; }
-      if(isNaN(ppb)) { ppb = ''; }
+      if(isNaN(+ppg)) { ppg = ''; }
+      if(isNaN(+ppb)) { ppb = ''; }
       let rankCell = null;
       if(this.props.phase == 'all') {
         if(this.state.ranksEditable) {
           rankCell = (
             <td><input type="number" id={'_rank_'+teamName} size={2}
-            placeholder={item.rank} name={'_rank_'+teamName} min="1"
+            placeholder={item.rank.toString()} name={'_rank_'+teamName} min="1"
             value={this.state.rankOverrides[teamName]} onChange={this.handleRankChange}
             /></td>
           );
@@ -144,12 +144,12 @@ export class StatSidebar extends React.Component<StatSidebarProps, StatSidebarSt
           {ppbCell}
         </tr>
       );
-    });
+    }); //teams.map
 
-    var header = division == null ? null : ( <h5>{division}</h5> );
-    var rankThCell = this.props.phase == 'all' ? ( <th className="text-cell">Rk</th> ) : null;
-    var ppbThCell = this.props.settings.bonuses ? ( <th>PPB</th> ) : null;
-    var tiesThCell = tiesExist ? ( <th>T</th> ) : null;
+    const header = division == null ? null : ( <h5>{division}</h5> );
+    const rankThCell = this.props.phase == 'all' ? ( <th className="text-cell">Rk</th> ) : null;
+    const ppbThCell = this.props.settings.bonuses ? ( <th>PPB</th> ) : null;
+    const tiesThCell = tiesExist ? ( <th>T</th> ) : null;
     let phaseRecThCell = null;
     if(showPhaseRecord) {
       let tooltip = '';

@@ -932,18 +932,18 @@ export class MainInterface extends React.Component {
       settings = this.state.settings, packets = this.state.packets;
 
     Promise.all([
-      StatUtils.getStandingsPage(teams, games, endFileStart, filterPhase,
-        phasesToGroupBy, divsInPhase, phaseSizes, settings, activeRpt, showTbs, app.getVersion()),
-      StatUtils.getIndividualsPage(teams, games, endFileStart, filterPhase,
-        phasesToGroupBy, usingDivisions, settings, activeRpt, showTbs),
-      StatUtils.getScoreboardPage(teams, games, endFileStart, filterPhase, settings,
-        packets, phaseColors, showTbs),
-      StatUtils.getTeamDetailPage(teams, games, endFileStart, filterPhase, packets,
-        settings, phaseColors, activeRpt, showTbs),
-      StatUtils.getPlayerDetailPage(teams, games, endFileStart, filterPhase, settings,
+      StatUtils.getStandingsPage(teams, games, endFileStart, filterPhase, phasesToGroupBy,
+        divsInPhase, phaseSizes, settings, activeRpt, showTbs, app.getVersion()),
+      StatUtils.getIndividualsPage(teams, games, endFileStart, filterPhase, phasesToGroupBy,
+        usingDivisions, settings, activeRpt, showTbs),
+      StatUtils.getScoreboardPage(games, endFileStart, filterPhase, settings, packets,
+        phaseColors, showTbs),
+      StatUtils.getTeamDetailPage(teams, games, endFileStart, filterPhase, packets, settings,
         phaseColors, activeRpt, showTbs),
-      StatUtils.getRoundReportPage(teams, games, endFileStart, filterPhase, packets,
-        settings, activeRpt, showTbs),
+      StatUtils.getPlayerDetailPage(teams, games, endFileStart, filterPhase, settings, phaseColors,
+        activeRpt, showTbs),
+      StatUtils.getRoundReportPage(games, endFileStart, filterPhase, packets, settings,
+        activeRpt, showTbs),
     ]).then(([standings, individuals, scoreboard, teamDet, playerDet, roundRep]) => {
       fs.writeFileSync(standingsLocation, standings, 'utf8', StatUtils2.printError);
       fs.writeFileSync(individualsLocation, individuals, 'utf8', StatUtils2.printError);
