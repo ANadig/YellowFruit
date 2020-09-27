@@ -2276,11 +2276,12 @@ export function arrangeStandingsLines(standings: TeamStandingsLine[], phase: str
         divCount = 1;
       }
 
+      let teamsInDiv = _.filter(standings, (t) => { return t.division == curDiv });
+      if(teamsInDiv.length < 1) { continue; } // don't print header for empty division 
       linesToPrint.push({type: 'divLabel', divName: curDiv});
       linesToPrint.push({type: 'tableHeader', curGrpPhase: curGrpPhase});
-      let teamsInDiv = _.filter(standings, (t) => { return t.division == curDiv });
       let curRank = 0, prevPhaseRecord = null;
-      let countSinceLastOverride = 0; // number of teams we've gone through since th last rank override
+      let countSinceLastOverride = 0; // number of teams we've gone through since the last rank override
       for(let curTeam of teamsInDiv) {
         let isOverride = false;
         //if rank was manually overridden, use that
