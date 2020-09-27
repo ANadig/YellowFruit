@@ -53,6 +53,8 @@ var helpWindows  = {
 }; // list of windows opened from the help menu
 var currentFile = '';
 var unsavedData = false;
+// error message to show on startup
+var startupMsg;
 
 /*---------------------------------------------------------
 This if statement is part of the app packaging code. I
@@ -82,14 +84,17 @@ if(process.env.NODE_ENV != 'development') {
 // load user configuration
 var userConfigFile = process.env.NODE_ENV != 'development' ? USER_CONFIG_FILE_PROD : USER_CONFIG_FILE_DEV;
 if(fs.existsSync(userConfigFile)) {
-  var loadConfig = fs.readFileSync(userConfigFile, 'utf8');
-  currentUserConfig = JSON.parse(loadConfig);
+  try {
+    let loadConfig = fs.readFileSync(userConfigFile, 'utf8');
+    currentUserConfig = JSON.parse(loadConfig);
+  }
+  catch (e){
+     setupUserConfig();
+     startupMsg = 'User configuration file was corrupted and has been reset to application defaults.'
+  }
 }
 else {
-  currentUserConfig = DEFAULT_USER_CONFIG;
-  fs.writeFile(userConfigFile, JSON.stringify(currentUserConfig), 'utf8', function(err) {
-    if (err) { console.log(err); }
-  });
+  setupUserConfig();
 }
 
 //Define parts of the menu that don't change dynamically here
@@ -336,6 +341,16 @@ function toggleAutoSave(autoSave) {
   else {
     startAutoSaveTimer();
   }
+}
+
+/**
+ * Set the user config file to the default values
+ */
+function setupUserConfig() {
+  currentUserConfig = DEFAULT_USER_CONFIG;
+  fs.writeFile(userConfigFile, JSON.stringify(currentUserConfig), 'utf8', function(err) {
+    if (err) { console.log(err); }
+  });
 }
 
 /*---------------------------------------------------------
@@ -629,6 +644,28 @@ function setActiveRptConfig(item) {
   }
 }
 
+/**
+ * Show a modal window with some message
+ * @param  {string} type    window type (error, warning, info)
+ * @param  {string} title   window title
+ * @param  {string} message message text
+ */
+function genericModal(type, title, message) {
+  dialog.showMessageBox(
+    mainWindow,
+    {
+      type: type,
+      buttons: ['&OK'],
+      defaultID: 0,
+      cancelId: 0,
+      title: title,
+      message: message,
+      normalizeAccessKeys: true
+    }
+  );
+}
+
+
 /*---------------------------------------------------------
 Once there are no windows open, close the app entirely.
 ---------------------------------------------------------*/
@@ -692,6 +729,10 @@ app.on('ready', function() {
     const argsLength = process.defaultApp ? 3 : 2;
     if (process.argv.length >= argsLength) {
       appWindow.webContents.send('openTournament', process.argv[argsLength-1]);
+    }
+
+    if(startupMsg) {
+      genericModal('info', 'YellowFruit', startupMsg);
     }
   }); //ready-to-show
 
@@ -868,18 +909,7 @@ app.on('ready', function() {
     if(isFatal && reportWindow != undefined) {
       reportWindow.close();
     }
-    dialog.showMessageBoxSync(
-      appWindow,
-      {
-        type: type,
-        buttons: ['&OK'],
-        defaultID: 0,
-        cancelId: 0,
-        title: title,
-        message: message,
-        normalizeAccessKeys: true
-      }
-    );
+    genericModal(type, title, message);
   });
 
   /*---------------------------------------------------------

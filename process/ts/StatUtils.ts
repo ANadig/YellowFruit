@@ -2275,9 +2275,7 @@ export function arrangeStandingsLines(standings: TeamStandingsLine[], phase: str
         curGrpPhase = groupingPhases[++phaseSizeIdx];
         divCount = 1;
       }
-      // if(+i >= phaseSizes[phaseSizeIdx+1]) {
-      //   curGrpPhase = groupingPhases[++phaseSizeIdx];
-      // }
+
       linesToPrint.push({type: 'divLabel', divName: curDiv});
       linesToPrint.push({type: 'tableHeader', curGrpPhase: curGrpPhase});
       let teamsInDiv = _.filter(standings, (t) => { return t.division == curDiv });

@@ -887,7 +887,7 @@ export class MainInterface extends React.Component {
   /**
    * Compile and write data for the html stat report.
    * @param  {string} fileStart User-specified directory plus beginning of the file name,
-   *                            to which we append the standard suffixes to. Pass null
+   *                            to which we append the standard suffixes. Pass null
    *                            when generating the in-app stat report
    */
   writeStatReport(fileStart) {
@@ -2102,8 +2102,7 @@ export class MainInterface extends React.Component {
     for(let curPhase of phasesToGroupBy) {
       let oneDivList = this.state.divisions[curPhase];
       divsInPhase = divsInPhase.concat(oneDivList);
-      //keep track of which divisions came from which phases (for the phase record column tooltip)
-      //phaseSizes[+i+1] = phaseSizes[i] + oneDivList.length;
+      //keep track of which divisions came from which phases (for the phase record column header)
       phaseSizes[curPhase] = oneDivList.length;
     }
     return [divsInPhase, phaseSizes];
@@ -2111,7 +2110,7 @@ export class MainInterface extends React.Component {
 
   /*---------------------------------------------------------
   Save the tournament format settings (powers, negs, bonuses,
-  players per team. Merges these settings into the others
+  players per team.) Merges these settings into the others
   contained in the settings object.
   ---------------------------------------------------------*/
   saveSettings(newSettings) {
