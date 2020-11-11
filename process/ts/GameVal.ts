@@ -18,7 +18,8 @@ import { YfGame, FormValidation, TournamentSettings, WhichTeam } from "./YfTypes
 function invalidPpbb(g: YfGame, whichTeam: WhichTeam, settings: TournamentSettings): boolean {
   const bbPts = whichTeam == 1 ? g.bbPts1 : g.bbPts2;
   const bbHrd = StatUtils.bbHrdToFloat(StatUtils.bbHeard(g, whichTeam, settings));
-  const ppbb = bbPts / bbHrd;
+  let ppbb = bbPts / bbHrd;
+  ppbb = Math.round(ppbb*10000) / 10000;
   if(ppbb > 30) { return true; }
   return isNaN(ppbb) && bbPts > 0;
 }
