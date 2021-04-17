@@ -9,6 +9,7 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]    
     steps:
@@ -41,7 +42,7 @@ jobs:
       if: runner.os == 'Windows'
     - run: |
         move dist\pkg\Install-YellowFruit.exe dist\pkg\Install-YellowFruit-${{ steps.tagName.outputs.tag }}-windows.exe
-        if: runner.os == 'Windows'
+      if: runner.os == 'Windows'
     - name: Upload Windows artifact
       uses: actions/upload-artifact@v2
       with: 
