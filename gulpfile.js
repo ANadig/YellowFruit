@@ -44,7 +44,7 @@ gulp.task('fonts', function() {
     .pipe(gulp.dest(app + '/fonts'));
 });
 
-gulp.task('build', gulp.parallel('html', 'ts', 'js', 'css', 'fonts'));
+gulp.task('build', gulp.parallel('html', gulp.series('ts', 'js'), 'css', 'fonts'));
 
 gulp.task('serve', gulp.series('build', (cb) => {
   run('electron .').exec();
