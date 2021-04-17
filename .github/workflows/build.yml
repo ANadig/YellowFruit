@@ -1,0 +1,51 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]    
+    steps:
+    - uses: olegtarasov/get-tag@v2.1
+      id: tagName
+    - uses: actions/checkout@v2
+    - name: Use Node.js LTS 14
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14.x
+    - run: npm ci
+    - run: npm run build
+
+    - run: npm run pack-linux
+      if: ${{ runner.os == 'Linux' && success() }}
+    - name: Create tarball
+      run: |
+        tar -czvf dist/pkg/YellowFruit-${{ steps.tagName.outputs.tag }}-linux-x64.tar.gz dist/pkg/YellowFruit-linux-x64
+      if: ${{ runner.os == 'Linux' && success() }}
+    - name: Upload tarball
+      uses: actions/upload-artifact@v2
+      with: 
+        name: artifacts
+        path: dist/pkg/YellowFruit-${{ steps.tagName.outputs.tag }}-linux-x64.tar.gz
+      if: ${{ runner.os == 'Linux' && success() }}
+  
+    - run: npm run pack-win
+      if: ${{ runner.os == 'Windows' && success() }}
+    - run: npm run make-winstaller
+      if: ${{ runner.os == 'Windows' && success() }}
+    - run: |
+        move dist\pkg\Install-YellowFruit.exe dist\pkg\Install-YellowFruit-${{ steps.tagName.outputs.tag }}-windows.exe
+        if: ${{ runner.os == 'Windows' && success() }}
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v2
+      with: 
+        name: artifacts
+        path: dist\pkg\Install-YellowFruit-${{ steps.tagName.outputs.tag }}-windows.exe
+      if: ${{ runner.os == 'Windows' && success() }}
+
