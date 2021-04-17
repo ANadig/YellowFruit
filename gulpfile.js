@@ -44,7 +44,9 @@ gulp.task('fonts', function() {
     .pipe(gulp.dest(app + '/fonts'));
 });
 
-gulp.task('serve', gulp.series('html', 'ts', 'js', 'css', (cb) => {
+gulp.task('build', gulp.parallel('html', 'ts', 'js', 'css', 'fonts'));
+
+gulp.task('serve', gulp.series('build', (cb) => {
   run('electron .').exec();
   cb();
 }));
@@ -57,4 +59,4 @@ gulp.task('watch', gulp.series('serve', (cb) => {
   cb();
 }));
 
-exports.default = gulp.series('watch', 'fonts');
+exports.default = gulp.series('watch');
