@@ -35,7 +35,7 @@ jobs:
     - name: Upload tarball
       uses: actions/upload-artifact@v2
       with: 
-        name: artifacts
+        name: Linux tarball
         path: dist/pkg/YellowFruit-linux-x64/YellowFruit-${{ steps.tagName.outputs.tag }}-linux-x64.tar.gz
       if: runner.os == 'Linux'
   
@@ -43,13 +43,14 @@ jobs:
       if: runner.os == 'Windows'
     - run: npm run make-winstaller
       if: runner.os == 'Windows'
-    - run: |
+    - name: Rename installer exe
+      run: |
         move dist\pkg\Install-YellowFruit.exe dist\pkg\Install-YellowFruit-${{ steps.tagName.outputs.tag }}-windows.exe
       if: runner.os == 'Windows'
     - name: Upload Windows artifact
       uses: actions/upload-artifact@v2
       with: 
-        name: artifacts
+        name: Windows installer
         path: dist\pkg\Install-YellowFruit-${{ steps.tagName.outputs.tag }}-windows.exe
       if: runner.os == 'Windows'
 
