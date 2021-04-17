@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     tags:
-      - '*'
+      - 'v*'
 
 jobs:
   build:
@@ -14,6 +14,8 @@ jobs:
         os: [windows-latest, ubuntu-latest]    
     steps:
     - uses: olegtarasov/get-tag@v2.1
+      with:
+        tagRegex: "v(.*)"
       id: tagName
     - uses: actions/checkout@v2
     - name: Use Node.js LTS 14
