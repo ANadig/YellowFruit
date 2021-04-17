@@ -28,14 +28,15 @@ jobs:
     - run: npm run pack-linux
       if: runner.os == 'Linux'
     - name: Create tarball
+      working-directory: dist/pkg/YellowFruit-linux-x64
       run: |
-        tar -czvf dist/pkg/YellowFruit-${{ steps.tagName.outputs.tag }}-linux-x64.tar.gz dist/pkg/YellowFruit-linux-x64
+        tar -czvf YellowFruit-${{ steps.tagName.outputs.tag }}-linux-x64.tar.gz *
       if: runner.os == 'Linux'
     - name: Upload tarball
       uses: actions/upload-artifact@v2
       with: 
         name: artifacts
-        path: dist/pkg/YellowFruit-${{ steps.tagName.outputs.tag }}-linux-x64.tar.gz
+        path: dist/pkg/YellowFruit-linux-x64/YellowFruit-${{ steps.tagName.outputs.tag }}-linux-x64.tar.gz
       if: runner.os == 'Linux'
   
     - run: npm run pack-win
