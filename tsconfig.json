@@ -4,6 +4,7 @@
     "target": "ES5",
     "jsx": "react",
     "allowJs": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "module": "CommonJS",
   }
 }

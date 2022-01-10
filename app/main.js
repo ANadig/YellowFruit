@@ -407,8 +407,7 @@ function showHelpWindow(windowName, fileName, width, height) {
     parent: mainWindow,
     modal: false,
     autoHideMenuBar: true,
-    icon: APP_ICON,
-    webPreferences: { nodeIntegration: true, enableRemoteModule: true }
+    icon: APP_ICON
   });
   helpWindows[windowName] = helpWindow;
   helpWindow.loadURL('file://' + __dirname + '/' + fileName);
@@ -418,6 +417,8 @@ function showHelpWindow(windowName, fileName, width, height) {
     mainWindow.focus(); //prevent flickering
     helpWindows[windowName] = null;
   });
+
+  helpWindow.webContents.openDevTools();
 }
 
 /**
@@ -694,8 +695,7 @@ app.on('ready', function() {
     frame: false,
     show: false,
     transparent: true,
-    skipTaskbar: true,
-    webPreferences: { nodeIntegration: true, enableRemoteModule: true }
+    skipTaskbar: true
   });
   splashWindow.loadURL('file://' + __dirname + '/splash.html');
   splashWindow.once('ready-to-show', () => {
@@ -708,11 +708,14 @@ app.on('ready', function() {
     show: false,
     title: 'YellowFruit - New Tournament',
     icon: APP_ICON,
-    webPreferences: { nodeIntegration: true, enableRemoteModule: true }
+    // TODO: Find godo way to do it, preload can't be a URL. See 
+    webPreferences: { preload: Path.join(__dirname, "js", "indexPreload.js") }
   }); //appWindow
 
   mainWindow = appWindow;
   appWindow.loadURL('file://' + __dirname + '/index.html');
+
+  appWindow.webContents.openDevTools();
 
   appWindow.once('ready-to-show', function() {
     splashWindow.close();
@@ -765,6 +768,20 @@ app.on('ready', function() {
       e.preventDefault();
     }
   });//appwindow.on close
+
+  /*---------------------------------------------------------
+  Gets the path to Application Data
+  ---------------------------------------------------------*/
+  ipc.on('getAppDataPath', (event) => {
+    event.returnValue = electron.app.getPath('appData');
+  });
+
+  /*---------------------------------------------------------
+  Gets the version of the application
+  ---------------------------------------------------------*/
+  ipc.on('getAppVersion', (event) => {
+    event.returnValue = electron.app.getVersion();
+  });
 
   /*---------------------------------------------------------
   Set the window title to the name of the file.

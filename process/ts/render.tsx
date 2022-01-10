@@ -10,6 +10,8 @@ which holds everything else within it
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
+// // import * as electron from "electron";
+
 import { MainInterface } from "./MainInterface";
 
 ReactDOM.render(

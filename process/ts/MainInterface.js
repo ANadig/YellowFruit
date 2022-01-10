@@ -10,7 +10,8 @@ const _ = require('lodash');
 const M = require('materialize-css');
 const Mousetrap = require('mousetrap');
 
-const ipc = electron.ipcRenderer;
+// const ipc = electron.ipcRenderer;
+const ipc = window.ipcRenderer;
 
 import * as React from "react";
 import * as SqbsUtils from './SqbsUtils';
@@ -35,7 +36,7 @@ import { StatSidebar } from './StatSidebar';
 import { SidebarToggleButton } from './SidebarToggleButton';
 
 const MAX_PLAYERS_PER_TEAM = 50;
-const METADATA = { version: app.getVersion() }; // take version straight from package.json
+const METADATA = { version: ipc.sendSync('getAppVersion') }; // take version straight from package.json
 const DEFAULT_SETTINGS = {
   powers: '15pts',
   negs: true,
@@ -933,7 +934,7 @@ export class MainInterface extends React.Component {
 
     Promise.all([
       StatUtils.getStandingsPage(teams, games, endFileStart, filterPhase, phasesToGroupBy,
-        divsInPhase, phaseSizes, settings, activeRpt, showTbs, app.getVersion()),
+        divsInPhase, phaseSizes, settings, activeRpt, showTbs, ipc.sendSync('getAppVersion')),
       StatUtils.getIndividualsPage(teams, games, endFileStart, filterPhase, phasesToGroupBy,
         usingDivisions, settings, activeRpt, showTbs),
       StatUtils.getScoreboardPage(games, endFileStart, filterPhase, settings, packets,
