@@ -1,13 +1,8 @@
-console.log('In preload!');
-
-const { contextBridge } = require('electron')
+const { contextBridge, ipcRenderer } = require('electron');
 const fs = require('fs');
 const Path = require('path');
-const electron = require('electron');
-const ipcRenderer = electron.ipcRenderer;
 
 const appDataPath = ipcRenderer.sendSync('getAppDataPath');
-console.log(appDataPath);
 const userConfigFolderProd = Path.resolve(appDataPath, 'YellowFruit');
 const appFolder = Path.resolve(__dirname, '..');
 
@@ -26,7 +21,7 @@ contextBridge.exposeInMainWorld('defaultRoundReportLocation', Path.resolve(appFo
 // https://www.electronjs.org/docs/latest/tutorial/context-isolation/
 // This uses a trick from https://github.com/electron/electron/issues/21437#issuecomment-880929111
 contextBridge.exposeInMainWorld('ipcRenderer', {
-    ...electron.ipcRenderer,
+    ...ipcRenderer,
     on: (channel, listener) => {
         ipcRenderer.on(channel, listener);
         return () => {
@@ -35,9 +30,5 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     }
 });
 
-electron.ipcRenderer.on
-
 // TODO: We should lock this down so we don't allow arbitrary read/writes
 contextBridge.exposeInMainWorld('fs', { writeFileSync: fs.writeFileSync, readFileSync: fs.readFileSync, existsSync: fs.existsSync });
-
-console.log('End of preload!');

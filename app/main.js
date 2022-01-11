@@ -407,7 +407,8 @@ function showHelpWindow(windowName, fileName, width, height) {
     parent: mainWindow,
     modal: false,
     autoHideMenuBar: true,
-    icon: APP_ICON
+    icon: APP_ICON,
+    webPreferences: { preload: Path.join(__dirname, "js", "aboutPreload.js") }
   });
   helpWindows[windowName] = helpWindow;
   helpWindow.loadURL('file://' + __dirname + '/' + fileName);
