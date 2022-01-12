@@ -408,7 +408,7 @@ function showHelpWindow(windowName, fileName, width, height) {
     modal: false,
     autoHideMenuBar: true,
     icon: APP_ICON,
-    webPreferences: { preload: Path.join(__dirname, "js", "aboutPreload.js") }
+    webPreferences: { preload: Path.join(__dirname, "js", "appVersionPreload.js") }
   });
   helpWindows[windowName] = helpWindow;
   helpWindow.loadURL('file://' + __dirname + '/' + fileName);
@@ -697,7 +697,8 @@ app.on('ready', function() {
     frame: false,
     show: false,
     transparent: true,
-    skipTaskbar: true
+    skipTaskbar: true,
+    webPreferences: { preload: Path.join(__dirname, "js", "appVersionPreload.js") }
   });
   splashWindow.loadURL('file://' + __dirname + '/splash.html');
   splashWindow.once('ready-to-show', () => {
