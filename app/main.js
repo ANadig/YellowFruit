@@ -419,7 +419,8 @@ function showHelpWindow(windowName, fileName, width, height) {
     helpWindows[windowName] = null;
   });
 
-  helpWindow.webContents.openDevTools();
+  // If you need to debug, add this
+  // helpWindow.webContents.openDevTools();
 }
 
 /**
@@ -716,7 +717,8 @@ app.on('ready', function() {
   mainWindow = appWindow;
   appWindow.loadURL('file://' + __dirname + '/index.html');
 
-  appWindow.webContents.openDevTools();
+  // If you need to debug, add this
+  // appWindow.webContents.openDevTools();
 
   appWindow.once('ready-to-show', function() {
     splashWindow.close();
