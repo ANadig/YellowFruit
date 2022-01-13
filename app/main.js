@@ -711,7 +711,6 @@ app.on('ready', function() {
     show: false,
     title: 'YellowFruit - New Tournament',
     icon: APP_ICON,
-    // TODO: Find godo way to do it, preload can't be a URL. See 
     webPreferences: { preload: Path.join(__dirname, "js", "indexPreload.js") }
   }); //appWindow
 
