@@ -17,8 +17,7 @@
 <body>
   <br><br><br><span>By Andrew Nadig</span><br><span id="version">unknown version</span>
   <script type="text/javascript">
-    const {app} = require('electron').remote;
-    document.getElementById("version").innerHTML = app.getVersion();
+    document.getElementById("version").innerHTML = window.appVersion;
   </script>
 </body>
 </html>
