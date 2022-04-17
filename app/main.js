@@ -408,7 +408,7 @@ function showHelpWindow(windowName, fileName, width, height) {
     modal: false,
     autoHideMenuBar: true,
     icon: APP_ICON,
-    webPreferences: { nodeIntegration: true, enableRemoteModule: true }
+    webPreferences: { nodeIntegration: true, enableRemoteModule: true, contextIsolation: false }
   });
   helpWindows[windowName] = helpWindow;
   helpWindow.loadURL('file://' + __dirname + '/' + fileName);
@@ -695,7 +695,7 @@ app.on('ready', function() {
     show: false,
     transparent: true,
     skipTaskbar: true,
-    webPreferences: { nodeIntegration: true, enableRemoteModule: true }
+    webPreferences: { nodeIntegration: true, enableRemoteModule: true, contextIsolation: false }
   });
   splashWindow.loadURL('file://' + __dirname + '/splash.html');
   splashWindow.once('ready-to-show', () => {
@@ -708,7 +708,7 @@ app.on('ready', function() {
     show: false,
     title: 'YellowFruit - New Tournament',
     icon: APP_ICON,
-    webPreferences: { nodeIntegration: true, enableRemoteModule: true }
+    webPreferences: { nodeIntegration: true, enableRemoteModule: true, contextIsolation: false }
   }); //appWindow
 
   mainWindow = appWindow;
@@ -765,6 +765,27 @@ app.on('ready', function() {
       e.preventDefault();
     }
   });//appwindow.on close
+
+  /*---------------------------------------------------------
+  Handle renderer's request for the appdata directory
+  ---------------------------------------------------------*/
+  ipc.on('get-appdata-dir', (event, arg) => {
+    event.returnValue = app.getPath('appData');
+  });
+
+  /*---------------------------------------------------------
+  Handle renderer's request for the root directory
+  ---------------------------------------------------------*/
+  ipc.on('get-root-dir', (event, arg) => {
+    event.returnValue = Path.resolve(__dirname, '..');
+  });
+
+  /*---------------------------------------------------------
+  Handle renderer's request for the app version
+  ---------------------------------------------------------*/
+  ipc.on('get-app-version', (event, arg) => {
+    event.returnValue = app.getVersion();
+  });
 
   /*---------------------------------------------------------
   Set the window title to the name of the file.

@@ -10,7 +10,24 @@ const _ = require('lodash');
 const M = require('materialize-css');
 const Mousetrap = require('mousetrap');
 
-const ipc = electron.ipcRenderer;
+// see https://github.com/electron/electron/issues/9920#issuecomment-606581361
+const fs = eval("require('fs')");
+const Path = eval("require('path')");
+const { ipcRenderer } = eval("require('electron')");
+const ipc = ipcRenderer;
+
+const APPDATA_DIR = ipc.sendSync('get-appdata-dir');
+const ROOT_DIR = ipc.sendSync('get-root-dir');
+
+const RELEASED_RPT_CONFIG_FILE = Path.resolve(ROOT_DIR, 'data', 'ReleasedRptConfig.json');
+const CUSTOM_RPT_CONFIG_FILE_DEV = Path.resolve(ROOT_DIR, 'data', 'CustomRptConfig.json');
+const CUSTOM_RPT_CONFIG_FILE_PROD = Path.resolve(APPDATA_DIR, 'YellowFruit', 'CustomRptConfig.json');
+const DEF_STANDINGS_FILE = Path.resolve(ROOT_DIR, 'app', 'standings.html');
+const DEF_INDIVIDUALS_FILE = Path.resolve(ROOT_DIR, 'app', 'individuals.html');
+const DEF_SCOREBOARD_FILE = Path.resolve(ROOT_DIR, 'app', 'games.html');
+const DEF_TEAMDETAIL_FILE = Path.resolve(ROOT_DIR, 'app', 'teamdetail.html');
+const DEF_PLAYERDETAIL_FILE = Path.resolve(ROOT_DIR, 'app', 'playerdetail.html');
+const DEF_ROUNDREPORT_FILE = Path.resolve(ROOT_DIR, 'app', 'rounds.html');
 
 import * as React from "react";
 import * as SqbsUtils from './SqbsUtils';
@@ -35,7 +52,8 @@ import { StatSidebar } from './StatSidebar';
 import { SidebarToggleButton } from './SidebarToggleButton';
 
 const MAX_PLAYERS_PER_TEAM = 50;
-const METADATA = { version: app.getVersion() }; // take version straight from package.json
+var appVersion = ipc.sendSync('get-app-version');
+const METADATA = { version: appVersion}; // take version straight from package.json
 const DEFAULT_SETTINGS = {
   powers: '15pts',
   negs: true,
@@ -892,12 +910,12 @@ export class MainInterface extends React.Component {
    */
   writeStatReport(fileStart) {
     if(fileStart == '') {
-      var standingsLocation = defaultStandingsLocation;
-      var individualsLocation = defaultIndividualsLocation;
-      var scoreboardLocation = defaultScoreboardLocation;
-      var teamDetailLocation = defaultTeamDetailLocation;
-      var playerDetailLocation = defaultPlayerDetailLocation;
-      var roundReportLocation = defaultRoundReportLocation;
+      var standingsLocation = DEF_STANDINGS_FILE;
+      var individualsLocation = DEF_INDIVIDUALS_FILE;
+      var scoreboardLocation = DEF_SCOREBOARD_FILE;
+      var teamDetailLocation = DEF_TEAMDETAIL_FILE;
+      var playerDetailLocation = DEF_PLAYERDETAIL_FILE;
+      var roundReportLocation = DEF_ROUNDREPORT_FILE;
     }
     else {
       fileStart = fileStart + '_';
@@ -933,7 +951,7 @@ export class MainInterface extends React.Component {
 
     Promise.all([
       StatUtils.getStandingsPage(teams, games, endFileStart, filterPhase, phasesToGroupBy,
-        divsInPhase, phaseSizes, settings, activeRpt, showTbs, app.getVersion()),
+        divsInPhase, phaseSizes, settings, activeRpt, showTbs, appVersion),
       StatUtils.getIndividualsPage(teams, games, endFileStart, filterPhase, phasesToGroupBy,
         usingDivisions, settings, activeRpt, showTbs),
       StatUtils.getScoreboardPage(games, endFileStart, filterPhase, settings, packets,
