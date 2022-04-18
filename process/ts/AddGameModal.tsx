@@ -119,14 +119,14 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
       }
       else if(this.props.addOrEdit == 'edit') {
         this.loadGame();
-        // delay this to wait for the form to load... I don't feel like tracking the additional render
-        setTimeout(() => {
-          //needed so that labels aren't on top of data when the edit form opens
-          M.updateTextFields();
-          //needed so that dropdowns show their value
-          M.FormSelect.init(document.querySelectorAll('#addGame select'));
-        }, 25);
       }
+      // delay this to wait for the form to load... I don't feel like tracking the additional render
+      setTimeout(() => {
+        //needed so that labels aren't on top of data when the edit form opens
+        M.updateTextFields();
+        //needed so that dropdowns show their value
+        M.FormSelect.init(document.querySelectorAll('#addGame select'));
+      }, 25);
     }
     // clear the form if it's being closed
     else if(!this.props.isOpen && prevProps.isOpen) {
