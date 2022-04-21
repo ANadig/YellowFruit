@@ -58,10 +58,6 @@ export class PhaseAssignModal extends React.Component<PhaseAssignModalProps, Pha
     });
   } //handleChange
 
-  /*---------------------------------------------------------
-  Tell the MainInterface to update data when the form is
-  submitted.
-  ---------------------------------------------------------*/
   /**
    * Tell the MainInterface to update data when the form is submitted
    * @param e event
@@ -71,10 +67,6 @@ export class PhaseAssignModal extends React.Component<PhaseAssignModalProps, Pha
     this.props.handleSubmit(this.state.phaseSelections);
   }
 
-  /*---------------------------------------------------------
-  A list of checkboxes, one for each phase, plus one to
-  delete phases.
-  ---------------------------------------------------------*/
   /**
    * A list of checkboxes, one for each phase, plus one to delete phases
    * @return      List of checkbox elements

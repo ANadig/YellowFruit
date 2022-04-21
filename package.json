@@ -57,6 +57,7 @@
     "material-icons": "^0.3.1",
     "materialize-css": "^1.0.0",
     "mousetrap": "^1.6.3",
-    "popper.js": "^1.14.3"
+    "popper.js": "^1.14.3",
+    "string-similarity-js": "^2.1.4"
   }
 }

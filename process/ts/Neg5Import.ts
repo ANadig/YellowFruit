@@ -1,8 +1,8 @@
 /***********************************************************
-QbjUtils.ts
+Neg5Import.ts
 Andrew Nadig
 
-Functions for parsing QBJ files
+Functions for parsing Neg5 QBJ files
 ***********************************************************/
 
 import StatUtils = require('./StatUtils');
@@ -57,7 +57,7 @@ export function parseQbjRules(rules: N5QbjScoringRules): [TournamentSettings, st
   if(rules.bonus_divisor != 10) {
     errors.push('Bonus divisor of ' + rules.bonus_divisor + ' is not supported');
   }
-  // tournament must have 10 points tossups, plus at most one of 15- or 20-point powers,
+  // tournament must have 10 point tossups, plus at most one of 15- or 20-point powers,
   // optional -5 negs, and no other point values
   const answerTypes = rules.answer_types;
   let tensExist = false, tensBonus = false, powersBonus = false;
@@ -229,6 +229,8 @@ export function parseQbjMatches(rounds: any, matches: any, teamIds: any): [YfGam
       tmRdIdx[roundNo][team2Name]++;
 
       yfGames.push({
+        invalid: false,
+        validationMsg: '',
         round: roundNo,
         phases: [],
         tuhtot: matchObj.tossups_read,

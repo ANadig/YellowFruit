@@ -115,6 +115,8 @@ export interface TeamGameLine {
  * Information for a single match.
  */
 export interface YfGame {
+  invalid?: boolean;        // whether the game has valid data and can be fully used for statistics
+  validationMsg: string;    // warning or error message about this game's data
   round: number;            // the round number
   phases: string[];         // list or phases this match belongs to
   tuhtot: number;           // total number of tossups read, including overtime
@@ -148,7 +150,7 @@ export interface GameIndex {
 }
 
 /**
- * Group of settings for the stat report 
+ * Group of settings for the stat report
  */
 export interface RptConfig {
   ppgOrPp20: 'ppg' | 'pp20';

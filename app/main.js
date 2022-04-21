@@ -98,11 +98,47 @@ else {
 }
 
 //Define parts of the menu that don't change dynamically here
+const EXPORT_SUBMENU = [
+  {
+    label: 'Export HTML Report',
+    accelerator: 'CmdOrCtrl+U',
+    click(item, focusedWindow) { exportHtmlReport(); }
+  },
+  {
+    label: 'Export QBJ 2.1',
+    click(item, focusedWindow) { exportQbj(); }
+  },
+  {
+    label: 'Export SQBS',
+    click(item, focusedWindow) { trySqbsExport(); }
+  }
+];
+const IMPORT_SUBMENU = [
+  {
+    label: 'Merge YellowFruit Tournament',
+    click(item, focusedWindow) { mergeTournament(); }
+  },
+  {
+    label: 'Import Neg5 (QBJ 1.2)',
+    click(item, focusedWindow) { importNeg5(); }
+  },
+  {type: 'separator'},
+  {
+    label: 'Import Rosters from SQBS',
+    click(item, focusedWindow) { importRosters(); }
+  },
+  {type: 'separator'},
+  {
+    label: 'Import Game (QBJ 2.1)',
+    accelerator: 'CmdOrCtrl+H',
+    click(item, focusedWindow) { importQbjSingleGame(); }
+  }
+];
 const YF_MENU = {
   label: '&YellowFruit',
   submenu: [
     {
-      label: 'View Full Report',
+      label: 'View HTML Report',
       accelerator: 'CmdOrCtrl+I',
       click(item, focusedWindow) {
         if(mainWindow) {
@@ -111,36 +147,20 @@ const YF_MENU = {
         }
       }
     },
+    {type: 'separator'},
     {
-      label: 'Export Full Report',
-      accelerator: 'CmdOrCtrl+U',
-      click(item, focusedWindow) { exportHtmlReport(); }
+      label: 'Export',
+      submenu: EXPORT_SUBMENU
     },
     {
-      label: 'Export SQBS',
-      click(item, focusedWindow) { trySqbsExport(); }
-    },
-    {
-      label: 'Export QBJ 2.1',
-      click(item, focusedWindow) { exportQbj(); }
+      label: 'Import',
+      submenu: IMPORT_SUBMENU
     },
     {type: 'separator'},
     {
       label: 'New Tournament',
       accelerator: 'CmdOrCtrl+N',
       click(item, focusedWindow) { newTournament(); }
-    },
-    {
-      label: 'Import Neg5 (QBJ 1.2)',
-      click(item, focusedWindow) { importQbj(); }
-    },
-    {
-      label: 'Import Rosters from SQBS',
-      click(item, focusedWindow) { importRosters(); }
-    },
-    {
-      label: 'Merge Tournament',
-      click(item, focusedWindow) { mergeTournament(); }
     },
     {
       label: 'Open',
@@ -540,9 +560,9 @@ function newTournament() {
 }
 
 /**
- * Prompt the user to select a QBJ file to import
+ * Prompt the user to select a (Neg5) QBJ file to import
  */
-function importQbj() {
+function importNeg5() {
   if(!mainWindow) { return; }
 
   let willContinue = true, needToSave = false;
@@ -558,8 +578,21 @@ function importQbj() {
     if(fileNameAry !== undefined) {
       mainWindow.setTitle('YellowFruit - New Tournament');
       unsavedData = false;
-      mainWindow.webContents.send('importQbj', fileNameAry[0]);
+      mainWindow.webContents.send('importNeg5', fileNameAry[0]);
     }
+  }
+}
+
+/**
+ * Prompt the user to select a MODAQ-style QBJ file to import. This will open up the New Game window with data from the
+ * game filled in.
+ */
+ function importQbjSingleGame() {
+  if(!mainWindow) { return; }
+  let fileNameAry = dialog.showOpenDialogSync(mainWindow,
+    { filters: [{ name: 'Tournament Schema ', extensions: ['qbj'] }] });
+  if(fileNameAry !== undefined) {
+    mainWindow.webContents.send('importQbjSingleGame', fileNameAry[0]);
   }
 }
 

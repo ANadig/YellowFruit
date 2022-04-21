@@ -217,6 +217,16 @@ export function gameConversion2x5x2(games: any) {
 }
 
 /**
+ * Add a new game property
+ * @param  games list of games
+ */
+export function gameConversion3x0x0(games: any) {
+  for(let g of games) {
+    g.validationMsg = '';
+  }
+}
+
+/**
  * For each player in this game, increment that player's count in the index. Assumes
  * that teams and players are already defined.
  * @param  game  list of games

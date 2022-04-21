@@ -1,5 +1,5 @@
 /***********************************************************
-QbjUtils2.ts
+QbjExport.ts
 Andrew Nadig
 
 Functions for writing QBJ 2.0 files

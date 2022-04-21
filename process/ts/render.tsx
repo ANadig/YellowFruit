@@ -14,8 +14,3 @@ import { MainInterface } from "./MainInterface";
 
 const root = ReactDOM.createRoot(document.getElementById('statsInterface'));
 root.render(<MainInterface/>);
-
-// ReactDOM.render(
-//   <MainInterface/>,
-//   document.getElementById('statsInterface')
-// );

@@ -317,7 +317,8 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
   createYfGame(): YfGame {
     const forf = this.state.forfeit; //clear irrelevant data if it's a forfeit
     const ot = +this.state.ottu > 0; //clear OT data if no OT
-    const game = {
+    const game: YfGame = {
+      validationMsg: '',
       round: +this.state.round,
       phases: this.state.phases,
       tuhtot: forf ? 0 : +this.state.tuhtot,
@@ -353,7 +354,10 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
   handleAdd(e: any): void {
     e.preventDefault();
     if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
+    const [gameIsValid, errorLevel, errorMessage] = this.validateGame();
     let tempItem = this.createYfGame();
+    tempItem.invalid = !gameIsValid;
+    tempItem.validationMsg = errorLevel == 'error' || errorLevel == 'warning' ? errorMessage : '';
 
     var acceptAndStay = e.target.name == 'acceptAndStay';
     if(this.props.addOrEdit == 'add') {
@@ -532,11 +536,10 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
     return null;
   }
 
-  /*---------------------------------------------------------
-  The field to select phases will appear if:
-  1. Adding a game while not viewing a phase, or
-  2. Editing a game that doesn't have any phases
-  ---------------------------------------------------------*/
+  /**
+   * Whether the field to select phases should appear
+   * @return         true/false
+   */
   canEditPhase(): boolean {
     const allPhases = this.props.allPhases;
     if(allPhases.length == 0) { return false; }
