@@ -12,7 +12,7 @@ import * as M from 'materialize-css';
 import StatUtils = require('./StatUtils');
 import * as GameVal from './GameVal';
 import { PlayerRow } from './PlayerRow';
-import { YfGame, YfTeam, TournamentSettings, TeamGameLine, WhichTeam, FormValidation } from './YfTypes';
+import { YfGame, YfTeam, TournamentSettings, TeamGameLine, WhichTeam, GameValidation } from './YfTypes';
 
 const CHIP_COLORS = ['yellow', 'light-green', 'orange', 'light-blue',
   'red', 'purple', 'teal', 'deep-purple', 'pink', 'green'];
@@ -317,6 +317,8 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
   createYfGame(): YfGame {
     const forf = this.state.forfeit; //clear irrelevant data if it's a forfeit
     const ot = +this.state.ottu > 0; //clear OT data if no OT
+    const score1 = this.state.score1 === '' ? null : +this.state.score1;
+    const score2 = this.state.score2 === '' ? null : +this.state.score2;
     const game: YfGame = {
       validationMsg: '',
       round: +this.state.round,
@@ -327,8 +329,8 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
       tiebreaker: this.state.tiebreaker,
       team1: this.state.team1,
       team2: this.state.team2,
-      score1: forf ? 0 : +this.state.score1,
-      score2: forf ? 0 : +this.state.score2,
+      score1: forf ? null : score1,
+      score2: forf ? null : score2,
       players1: forf ? null : this.state.players1,
       players2: forf ? null : this.state.players2,
       otPwr1: forf || !ot ? 0 : +this.state.otPwr1,
@@ -354,9 +356,12 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
   handleAdd(e: any): void {
     e.preventDefault();
     if(!this.props.isOpen) { return; } //keyboard shortcut shouldn't work here
-    const [gameIsValid, errorLevel, errorMessage] = this.validateGame();
+    const validationResult = this.validateGame();
+    const errorLevel = validationResult.type;
+    const errorMessage = validationResult.message;
+
     let tempItem = this.createYfGame();
-    tempItem.invalid = !gameIsValid;
+    tempItem.invalid = !validationResult.isValid;
     tempItem.validationMsg = errorLevel == 'error' || errorLevel == 'warning' ? errorMessage : '';
 
     var acceptAndStay = e.target.name == 'acceptAndStay';
@@ -442,47 +447,40 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
   /**
    * Determines whether there are any issues with the game. Uses GameVal but there are
    * some things we need to handle differently here.
-   * @return   FormValidation tuple
+   * @return   GameValidation object 
    */
-  validateGame(): FormValidation {
-    const team1 = this.state.team1, team2 = this.state.team2;
-    const round = this.state.round, tuhtot = +this.state.tuhtot;
-    const score1 = this.state.score1, score2 = this.state.score2;
-    const players1 = this.state.players1, players2 = this.state.players2;
+  validateGame(): GameValidation {
+    let result: GameValidation = { isValid: false };
+    const team1 = this.state.team1, team2 = this.state.team2, round = this.state.round;
     //teams are required
     if(team1 == 'nullTeam' || team2 == 'nullTeam' || team1 == '' || team2 == '' ) {
-      return [false, null, ''];
+      return result;
     }
     //round is required
     if(round == '') {
-      return [false, null, ''];
+      return result;
     }
     //two teams can't play each other twice in the same round
     const [teamAPlayed, teamBPlayed] = this.props.haveTeamsPlayedInRound(team1, team2, +round, this.state.originalGameLoaded);
     if(teamAPlayed == 3) {
-      return [false, 'error', 'These teams already played each other in round ' + round];
+      result.type = 'error';
+      result.message = 'These teams already played each other in round ' + round;
+      return result;
     }
     //teams can only play multiple games in the same round if they're tiebreakers
     if(teamAPlayed == 2 || (teamAPlayed && !this.state.tiebreaker)) {
-      return [false, 'error', team1 + ' has already played a game in round ' + round];
+      result.type = 'error';
+      result.message = team1 + ' has already played a game in round ' + round;
+      return result;
     }
     if(teamBPlayed == 2 || (teamBPlayed && !this.state.tiebreaker)) {
-      return [false, 'error', team2 + ' has already played a game in round ' + round];
+      result.type = 'error';
+      result.message = team2 + ' has already played a game in round ' + round;
+      return result;
     }
-
-    //team names and round are the only required info for a forfeit
-    if(this.state.forfeit) {
-      return [true, 'info', team1 + ' defeats ' + team2 + ' by forfeit'];
-    }
-    //total TUH and total scores are required.
-    if(tuhtot <= 0 || score1 == '' || score2 == '') {
-      return [false, null, ''];
-    }
-    //no error message yet if you haven't started entering data for both teams
-    if(players1 == null || players2 == null) { return [false, null, '']; }
 
     return GameVal.validateGame(this.createYfGame(), this.props.settings);
-  }//validateGame
+  }
 
   /**
    * Add the disabled attribute to the submit button.
@@ -572,8 +570,12 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
     const bbHrd = [StatUtils.bbHeard(gameObj, 1, settings), StatUtils.bbHeard(gameObj, 2, settings)];
     const bbHrdFloats = [StatUtils.bbHrdToFloat(bbHrd[0]), StatUtils.bbHrdToFloat(bbHrd[1])];
 
-    const [gameIsValid, errorLevel, errorMessage] = this.validateGame();
-    const errorIcon = this.getErrorIcon(errorLevel);
+    const validationResult = this.validateGame();
+    const gameIsValid = validationResult.isValid;
+    const suppressMessage = validationResult.suppressFromForm;
+    const errorMessage = suppressMessage ? '' : validationResult.message;
+
+    const errorIcon = suppressMessage ? null : this.getErrorIcon(validationResult.type);
     const acceptHotKey = gameIsValid ? 'a' : '';
     const acceptStayHotKey = gameIsValid ? 's' : '';
     const scoreDivisor = GameVal.scoreDivisor(this.props.settings);
@@ -589,7 +591,8 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
     const canEditPhase = this.canEditPhase();
 
     if(canEditPhase) {
-      const phaseOptions = this.props.allPhases.map((phase)=>{
+      const availablePhases = _.without(this.props.allPhases, 'noPhase');
+      const phaseOptions = availablePhases.map((phase)=>{
         return ( <option key={phase} value={phase}>{phase}</option> );
       });
       phaseSelect = (
@@ -938,7 +941,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
           {overtimeRow}
         </div> {/* modal-content*/}
 
-        <div className={'modal-footer ' + (errorMessage.length > 150 ? 'scroll-footer' : '')}>
+        <div className={'modal-footer ' + (errorMessage && errorMessage.length > 150 ? 'scroll-footer' : '')}>
           <div className="row">
             <div className="col s7 l8 qb-validation-msg">
               {errorIcon}&nbsp;{errorMessage}

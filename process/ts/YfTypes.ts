@@ -15,12 +15,22 @@ export enum YfPane {
 }
 
 /**
- * Results of validating some data (team, game, etc):
+ * Results of validating some data (team, division, etc):
  * index 0: whether the data is valid (user is allowed to save);
  * 1: type of message to show;
  * 2: message text
  */
 export type FormValidation = [boolean, 'error' | 'warning' | 'info', string]
+
+/**
+ * Results of validating a game
+ */
+export interface GameValidation {
+  isValid: boolean;           // whether the data is valid (user is allowed to save);
+  type?: 'error' | 'warning' | 'info'; // type of validation message, if any
+  message?: string;           // text of the message
+  suppressFromForm?: boolean; // true if the game modal doesn't actually need to show the error
+}
 
 /**
  * How powers are scored
@@ -116,12 +126,12 @@ export interface TeamGameLine {
  */
 export interface YfGame {
   invalid?: boolean;        // whether the game has valid data and can be fully used for statistics
-  validationMsg: string;    // warning or error message about this game's data
-  round: number;            // the round number
-  phases: string[];         // list or phases this match belongs to
+  validationMsg?: string;   // warning or error message about this game's data
+  round?: number;           // the round number
+  phases: string[];         // list of phases this match belongs to
   tuhtot: number;           // total number of tossups read, including overtime
   ottu: number;             // total number of tossups read in overtime
-  forfeit: boolean;         // if true, team1 defeats teawm2 by forfeit
+  forfeit?: boolean;        // if true, team1 defeats teawm2 by forfeit
   team1: string;            // name of team
   team2: string;            // name of team
   score1: number;           // team1's total points
@@ -134,7 +144,7 @@ export interface YfGame {
   otNeg2: number;           // team2's negs in overtime
   bbPts1: number;           // team1's bounceback points
   bbPts2: number;           // team2's bounceback points
-  notes: string;            // free-text notes about the game
+  notes?: string;           // free-text notes about the game
   tiebreaker: boolean;      // whether the game was a tiebreaker
   lightningPts1: number;    // lightning round points for team1
   lightningPts2: number;    // lightning round points for team2

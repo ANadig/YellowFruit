@@ -36,6 +36,7 @@ import * as StatUtils2 from './StatUtils2';
 import * as Neg5Import from './Neg5Import';
 import * as QbjExport from './QbjExport';
 import * as SingleGameQBJImport from './SingleGameQBJImport';
+import * as GameVal from './GameVal';
 // Bring in all the other React components
 import { TeamListEntry } from './TeamListEntry';
 import { GameListEntry } from './GameListEntry';
@@ -497,11 +498,12 @@ export class MainInterface extends React.Component {
     });
   }
 
-  /*---------------------------------------------------------
-  Load the tournament data from fileName into the appropriate
-  state variables. The user may now begin editing this
-  tournament.
-  ---------------------------------------------------------*/
+  /**
+   * Load the tournament data from fileName into the appropriate
+   * state variables. The user may now begin editing this
+   * tournament.
+   * @param  {string} fileName   path to the yft file
+   */
   loadTournament(fileName) {
     if(fileName == null || !fileName.endsWith('.yft')) { return; }
     var [loadMetadata, loadPackets, loadSettings, loadDivisions, loadTeams, loadGames] = this.parseFile(fileName);
@@ -565,8 +567,12 @@ export class MainInterface extends React.Component {
       assocRpt = SYS_DEFAULT_RPT_NAME;
     }
 
+    // misc game-related tasks
     var tbCount = 0;
-    for(var i in loadGames) { tbCount += loadGames[i].tiebreaker; }
+    for(let g of loadGames) {
+      tbCount += g.tiebreaker;
+      this.validateGame(g, loadSettings);
+    }
 
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
@@ -796,36 +802,37 @@ export class MainInterface extends React.Component {
    * @param  {string} fileName path to file to import
    */
   importQbjSingleGame(fileName) {
-   // Need to verify that the tournament currently exists with at least two teams
-   if (this.state.allTeams == undefined || this.state.allTeams.length < 2) {
-     ipc.sendSync('genericModal', 'error', 'Game import',
-       'Game import failed:\n\n At least two teams must exist in the tournament.');
-     return;
-   }
+    // Need to verify that the tournament currently exists with at least two teams
+    if (this.state.allTeams == undefined || this.state.allTeams.length < 2) {
+      ipc.sendSync('genericModal', 'error', 'Game import',
+        'Game import failed:\n\n At least two teams must exist in the tournament.');
+      return;
+    }
 
-   let fileString = fs.readFileSync(fileName, 'utf8');
-   let result;
-   if(fileString != '') {
-     result = SingleGameQBJImport.importGame(this.state.allTeams, fileString)
-   } else {
-     ipc.sendSync('genericModal', 'error', 'Game import',
-       'Game import failed:\n\n no file specified.');
-     return;
-   }
+    let fileString = fs.readFileSync(fileName, 'utf8');
+    let result;
+    if(fileString != '') {
+      result = SingleGameQBJImport.importGame(this.state.allTeams, fileString)
+    } else {
+      ipc.sendSync('genericModal', 'error', 'Game import',
+        'Game import failed:\n\n no file specified.');
+      return;
+    }
 
-   if (!result.success) {
-     ipc.sendSync('genericModal', 'error', 'Game import',
-     'Game import failed:\n\n' + result.error);
-   return;
-   }
+    if (!result.success) {
+      ipc.sendSync('genericModal', 'error', 'Game import',
+        'Game import failed:\n\n' + result.error);
+      return;
+    }
 
-   const [teamAPlayed, teamBPlayed] = this.haveTeamsPlayedInRound(result.result.team1, result.result.team2, result.result.round, null)
-   if(teamAPlayed || teamBPlayed) {
-     ipc.sendSync('genericModal', 'error', 'Game import',
-     'Game import failed:\n\nAt least one of these teams has already played in this round.' );
-   return;
-   }
-   this.addGame(result.result, false);
+    const [teamAPlayed, teamBPlayed] = this.haveTeamsPlayedInRound(result.result.team1, result.result.team2, result.result.round, null)
+    if(teamAPlayed || teamBPlayed) {
+      ipc.sendSync('genericModal', 'error', 'Game import',
+        'Game import failed:\n\nAt least one of these teams has already played in this round.' );
+      return;
+    }
+    this.validateGame(result.result, this.state.settings);
+    this.addGame(result.result, false);
   }
 
   /**
@@ -914,14 +921,14 @@ export class MainInterface extends React.Component {
     var gamesCopy = this.state.allGames.slice();
     var newGameCount = 0, tbCount = this.state.tbCount;
     var conflictGames = [];
-    for(var i in loadGames) {
-      let newGame = loadGames[i];
-      if(!StatUtils2.mergeConflictGame(newGame, gamesCopy)) {
-        gamesCopy.push(newGame);
+    for(let g of loadGames) {
+      this.validateGame(g, this.state.settings);
+      if(!StatUtils2.mergeConflictGame(g, gamesCopy)) {
+        gamesCopy.push(g);
         newGameCount++;
-        tbCount += newGame.tiebreaker;
+        tbCount += g.tiebreaker;
       }
-      else { conflictGames.push(newGame); }
+      else { conflictGames.push(g); }
     }
     this.setState({
       divisions: divisionsCopy,
@@ -1599,6 +1606,19 @@ export class MainInterface extends React.Component {
       return t.teamName.toLowerCase() == newTeamName.toLowerCase();
     });
     return idx==-1;
+  }
+
+  /**
+   * Validate a game and set the validation attributes accordingly
+   * @param  {YfGame} game  game to validate
+   * @param  {TournamentSettings} settings
+   */
+  validateGame(game, settings) {
+    const result = GameVal.validateGame(game, settings);
+    const errorLevel = result.type;
+    game.invalid = !result.isValid;
+    if(errorLevel == 'error' || errorLevel == 'warning')
+      game.validationMsg = result.message;
   }
 
   /**

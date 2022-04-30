@@ -702,6 +702,10 @@ nav .btn-flat {
   color: #989898;
 }
 
+.collection-item .game-list-validation-msg {
+  color: #989898;
+}
+
 .collection-item .chip-wrapper {
   display: inline-block;
 }
