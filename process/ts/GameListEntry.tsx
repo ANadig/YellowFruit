@@ -184,7 +184,11 @@ export class GameListEntry extends React.Component<GameListEntryProps, GameListE
     let errorIcon = null;
     if(validationMsg) {
       if(this.props.game.invalid) {
-        errorIcon = ( <i className="material-icons red-text text-darken-4 qb-modal-error">error</i> )
+        errorIcon = (
+          <i className="material-icons red-text text-darken-4 qb-modal-error"
+            title="This game will not appear in stat reports and is not exportable to other formats">
+            error</i> 
+        )
       }
       else {
         errorIcon = ( <i className="material-icons yellow-text text-accent-4 qb-modal-error">warning</i> );

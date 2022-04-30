@@ -136,6 +136,7 @@ function gameList(settings: TournamentSettings, teams: YfTeam[], games: YfGame[]
 
   let output = '', gameCount = 0;
   for(let g of games) {
+    if(g.invalid) { continue; }
     if(!StatUtils.matchFilterPhase(g, phase, showTbs)) { continue; }
     gameCount++;
     output += gameID(g) + '\n';
