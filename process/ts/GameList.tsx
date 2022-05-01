@@ -15,6 +15,8 @@ interface GameListProps {
   numberOfTeams: number;        // total number of teams in the file
   totalGames: number;           // total number of games in the file
   numberSelected: number;       // number of games currently selected
+  defaultRound: number;         // default round number for new games
+  setDefaultRound: (roundNo: number) => void;
 }
 
 export class GameList extends React.Component<GameListProps, {}>{
@@ -24,6 +26,7 @@ export class GameList extends React.Component<GameListProps, {}>{
   constructor(props: GameListProps) {
     super(props);
     this.addGame = this.addGame.bind(this);
+    this.handleRoundChange = this.handleRoundChange.bind(this);
   }
 
   /**
@@ -31,6 +34,16 @@ export class GameList extends React.Component<GameListProps, {}>{
    */
   addGame (): void {
     this.props.openModal('add', null);
+  }
+
+  /**
+   * Update state when the value in the Current Round field changes
+   * @param  {any} e               event
+   */
+  handleRoundChange(e: any): void {
+    const rawValue = e.target.value;
+    const roundNo = rawValue === '' ? null : +rawValue;
+    this.props.setDefaultRound(roundNo);
   }
 
   /**
@@ -76,6 +89,9 @@ export class GameList extends React.Component<GameListProps, {}>{
     if (this.props.whichPaneActive != YfPane.Games) {
       return null;
     }
+    const defaultRound = this.props.defaultRound;
+    const defRndFieldVal = defaultRound === null ? '' : defaultRound.toString();
+
     // zero-state display for when there are no games.
     if(this.props.gameList.length == 0) {
       let message: string;
@@ -106,11 +122,27 @@ export class GameList extends React.Component<GameListProps, {}>{
     }
     return(
       <div className="container">
-        {this.selectedCounter()}
         <div className="list-header">
         </div>
-        {this.gameCountDisplay()}
-        <ul className="collection">{this.props.gameList}</ul>
+        <div>
+          {this.selectedCounter()}
+          {this.gameCountDisplay()}
+          <span className="default-round">
+            Current round:&nbsp;
+            <div className="input-field">
+              <input id="defaultRound" type="number" name="defaultRound"
+                min="1" max="1000" step="1"
+                value={defRndFieldVal} onChange={this.handleRoundChange}/>
+            </div>
+            <i className="material-icons tiny"
+              title="Set the default round for new games. You can increment this field throughout the tournament as you enter each round.">
+              help_outline</i>
+          </span>
+        </div>
+
+        <br/>
+
+        <ul className="collection game-list">{this.props.gameList}</ul>
         <div className="fixed-action-btn btn-floating-div">
           <button className="btn-floating btn-large green tooltipped" data-position="left" data-tooltip="Add a game" onClick={this.addGame}>
             <i className="large material-icons">add</i>

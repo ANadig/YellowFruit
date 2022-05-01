@@ -698,6 +698,25 @@ nav .btn-flat {
   color: #989898;
 }
 
+.default-round {
+  display: inline-block;
+  float: right;
+}
+
+.default-round .input-field {
+  display: inline-block;
+  margin: 0px;
+}
+
+.default-round .input-field input {
+  height: 1.2rem !important;
+  width: 40px !important;
+}
+
+.collection.game-list {
+  margin-top: 0;
+}
+
 .collection-item .game-line-score {
   color: #989898;
 }

@@ -140,7 +140,8 @@ export class MainInterface extends React.Component {
       activeRpt: SYS_DEFAULT_RPT_NAME, // which report configuration is currently being used
       formSettings: defFormSettingsCopy, // which optional entry fields to turn on or off
       sidebarOpen: true, // whether the sidebar is visible
-      reconstructSidebar: false // used to force the sidebar to reload when any teams are modified
+      reconstructSidebar: false, // used to force the sidebar to reload when any teams are modified
+      defaultRound: 1  // default round to use when creating a new game
     };
     this.openTeamModal = this.openTeamModal.bind(this);
     this.openGameModal = this.openGameModal.bind(this);
@@ -186,6 +187,7 @@ export class MainInterface extends React.Component {
     this.filterByTeam = this.filterByTeam.bind(this);
     this.toggleSidebar = this.toggleSidebar.bind(this);
     this.saveRankOverrides = this.saveRankOverrides.bind(this);
+    this.setDefaultRound = this.setDefaultRound.bind(this);
   }
 
   /**
@@ -595,7 +597,8 @@ export class MainInterface extends React.Component {
       queryText: '',
       selectedTeams: [],
       selectedGames: [],
-      reconstructSidebar: !this.state.reconstructSidebar
+      reconstructSidebar: !this.state.reconstructSidebar,
+      defaultRound: null
     });
     //the value of settingsLoadToggle doesn't matter; it just needs to change
     //in order to make the settings form load
@@ -788,7 +791,8 @@ export class MainInterface extends React.Component {
       selectedTeams: [],
       selectedGames: [],
       activeRpt: this.state.defaultRpt,
-      reconstructSidebar: !this.state.reconstructSidebar
+      reconstructSidebar: !this.state.reconstructSidebar,
+      defaultRound: null
     });
 
     this.loadGameIndex(yfGames, true);
@@ -830,6 +834,11 @@ export class MainInterface extends React.Component {
         rejectedFiles.push(shortFileName + ': ' + result.error);
         continue;
       }
+      // fill in round if we have one
+      if(this.state.defaultRound !== null) {
+        result.result.round = this.state.defaultRound;
+      }
+
       //if a team has already played this round, import the game without a round number
       let [teamAPlayed, teamBPlayed] = this.haveTeamsPlayedInRound(result.result.team1, result.result.team2, result.result.round, null)
       if(teamAPlayed || teamBPlayed) {
@@ -1169,7 +1178,8 @@ export class MainInterface extends React.Component {
       gameToBeDeleted: null,
       divToBeDeleted: null,
       activeRpt: this.state.defaultRpt,
-      reconstructSidebar: !this.state.reconstructSidebar
+      reconstructSidebar: !this.state.reconstructSidebar,
+      defaultRound: 1
       // DO NOT reset these! These should persist throughout the session
       // releasedRptList: ,
       // customRptList: ,
@@ -2527,6 +2537,22 @@ export class MainInterface extends React.Component {
     ipc.sendSync('unsavedData');
   }
 
+  /**
+   * Set the default round number
+   * @param {number} roundNumber  round number to use
+   */
+  setDefaultRound(roundNumber) {
+    if(isNaN(roundNumber) || roundNumber < -999999999 || roundNumber > 999999999) {
+      this.setState({
+        defaultRound: null
+      });
+      return;
+    }
+    this.setState({
+      defaultRound: roundNumber
+    });
+  }
+
   /*---------------------------------------------------------
   Wrapper for materialize toast messages
   ---------------------------------------------------------*/
@@ -2698,6 +2724,7 @@ export class MainInterface extends React.Component {
             allPhases = {Object.keys(this.state.divisions)}
             currentPhase = {this.state.viewingPhase != 'Tiebreakers' ? this.state.viewingPhase : 'all'}
             settings = {this.state.settings}
+            defaultRound = {this.state.defaultRound}
           />
          <RptConfigModal
             isOpen = {this.state.rptConfigWindowVisible}
@@ -2784,6 +2811,8 @@ export class MainInterface extends React.Component {
                 numberOfTeams = {allTeams.length}
                 totalGames = {allGames.length}
                 numberSelected = {this.state.selectedGames.length}
+                defaultRound = {this.state.defaultRound}
+                setDefaultRound = {this.setDefaultRound}
               />
               <SidebarToggleButton
                 toggle = {this.toggleSidebar}

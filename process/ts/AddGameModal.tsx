@@ -28,6 +28,7 @@ interface AddGameModalProps {
   allPhases: string[];
   currentPhase: string;
   settings: TournamentSettings;
+  defaultRound: number;
 }
 
 interface AddGameModalState {
@@ -111,11 +112,14 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
     //populate data if the modal is being opened
     if(this.props.isOpen && !prevProps.isOpen) {
       const curPhase = this.props.currentPhase;
-      // pre-populate current phase if creating a new game
-      if(this.props.addOrEdit == 'add' && curPhase != 'all' && curPhase != 'Tiebreakers') {
-        this.setState({
-          phases: [curPhase]
-        });
+      // pre-populate current phase and default round if creating a new game
+      if(this.props.addOrEdit == 'add') {
+        let partialState: any = {};
+        partialState.round = this.loadRoundNumber(this.props.defaultRound);
+        if(curPhase != 'all' && curPhase != 'Tiebreakers') {
+          partialState.phases = [curPhase];
+        }
+        this.setState(partialState);
       }
       else if(this.props.addOrEdit == 'edit') {
         this.loadGame();
@@ -242,10 +246,8 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
   /**
    * Once the modal has been closed, clear all the form data
    */
-  resetState(): void {
-    this.setState({
-      round: '',
-      phases: [],
+  resetState(keepDefaults?: boolean): void {
+    let partialState: any = {
       tuhtot: '',
       ottu: '',
       forfeit: false,
@@ -264,7 +266,12 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
       lightningPts1: '',
       lightningPts2: '',
       originalGameLoaded: null
-    });
+    };
+    if(!keepDefaults) {
+      partialState.round = '';
+      partialState.phases = [];
+    }
+    this.setState(partialState);
   }
 
   /**
@@ -383,7 +390,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
       this.props.modifyGame(this.state.originalGameLoaded, tempItem, acceptAndStay);
     }
 
-    this.resetState();
+    this.resetState(acceptAndStay);
   } //handleAdd
 
   /**
