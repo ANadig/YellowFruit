@@ -848,6 +848,15 @@ export class MainInterface extends React.Component {
     }
     this.addGames(acceptedGames, false);
     ipc.sendSync('unsavedData');
+
+    let rejectionString='';
+    if(rejectedFiles.length > 0) {
+      rejectionString = '\n\nRejected the following ' + rejectedFiles.length + ' files:\n';
+      rejectionString += rejectedFiles.join('\n');
+    }
+    ipc.sendSync('genericModal', 'info', 'Game import',
+      'Imported ' + acceptedGames.length + ' games.' + rejectionString);
+    return;
   }
 
   /**
