@@ -329,11 +329,12 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
     const ot = +this.state.ottu > 0; //clear OT data if no OT
     const score1 = this.state.score1 === '' ? null : +this.state.score1;
     const score2 = this.state.score2 === '' ? null : +this.state.score2;
+    const tuhtot = this.state.tuhtot === '' ? null : +this.state.tuhtot;
     const game: YfGame = {
       validationMsg: '',
       round: this.state.round === '' ? null : +this.state.round,
       phases: this.state.phases,
-      tuhtot: forf ? 0 : +this.state.tuhtot,
+      tuhtot: forf ? 0 : tuhtot,
       ottu: forf ? 0 : +this.state.ottu,
       forfeit: this.state.forfeit,
       tiebreaker: this.state.tiebreaker,

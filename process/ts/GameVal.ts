@@ -81,11 +81,6 @@ export function validateGame(g: YfGame, settings: TournamentSettings): GameValid
     result.suppressFromForm = true;
     return result;
   }
-  //two teams can't play each other twice in the same round
-    // removed
-
-  //teams can only play multiple games in the same round if they're tiebreakers
-    // removed
 
   //team names and round are the only required info for a forfeit
   if(g.forfeit) {
@@ -96,10 +91,15 @@ export function validateGame(g: YfGame, settings: TournamentSettings): GameValid
   }
 
   //total TUH and total scores are required.
+  if(tuhtot === undefined || tuhtot === null) {
+    result.type = 'error';
+    result.message = 'Number of tossups heard is required';
+    result.suppressFromForm = true;
+    return result;
+  }
   if(tuhtot <= 0) {
     result.type = 'error';
     result.message = 'Tossups heard must be greater than zero';
-    result.suppressFromForm = true;
     return result;
   }
   if(score1 === undefined || score1 === null || score2 === undefined || score2 === null) {
