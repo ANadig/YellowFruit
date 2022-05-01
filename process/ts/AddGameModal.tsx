@@ -278,12 +278,22 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
   }
 
   /**
+   * Convert the round number into a string to show in the field.
+   * @param  {number} round               round number from the stored game
+   * @return {string}                     string
+   */
+  loadRoundNumber(round: number): string {
+    if(round === undefined || round === null) { return ''; }
+    return round.toString();
+  }
+
+  /**
    * Populate form with the data of the game to be edited. Also keep a pointer to this
    * game so the MainInterface knows which game to modify when the form is submitted.
    */
   loadGame(): void {
     this.setState({
-      round: this.props.gameToLoad.round.toString(),    // 0 should be a legal round number
+      round: this.loadRoundNumber(this.props.gameToLoad.round),
       phases: this.props.gameToLoad.phases,
       tuhtot: this.loadNumericField(this.props.gameToLoad.tuhtot),
       ottu: this.loadNumericField(this.props.gameToLoad.ottu),
@@ -321,7 +331,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
     const score2 = this.state.score2 === '' ? null : +this.state.score2;
     const game: YfGame = {
       validationMsg: '',
-      round: +this.state.round,
+      round: this.state.round === '' ? null : +this.state.round,
       phases: this.state.phases,
       tuhtot: forf ? 0 : +this.state.tuhtot,
       ottu: forf ? 0 : +this.state.ottu,
@@ -447,7 +457,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
   /**
    * Determines whether there are any issues with the game. Uses GameVal but there are
    * some things we need to handle differently here.
-   * @return   GameValidation object 
+   * @return   GameValidation object
    */
   validateGame(): GameValidation {
     let result: GameValidation = { isValid: false };
@@ -457,7 +467,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
       return result;
     }
     //round is required
-    if(round == '') {
+    if(round === '' || round === null || round === undefined) {
       return result;
     }
     //two teams can't play each other twice in the same round

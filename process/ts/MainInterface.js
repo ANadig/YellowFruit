@@ -453,6 +453,7 @@ export class MainInterface extends React.Component {
     else { tempIndex = this.state.gameIndex; }
     for(var i in loadGames) {
       round = loadGames[i].round;
+      if(round === null || round === undefined) { continue; }
       if(tempIndex[round] == undefined) {
         tempIndex[round] = 1;
       }
@@ -799,9 +800,14 @@ export class MainInterface extends React.Component {
 
   /**
    * Compile and write data for the html stat report.
-   * @param  {string} fileName path to file to import
+   * @param  {string} fileNameAry array of file paths
    */
-  importQbjSingleGame(fileName) {
+  importQbjSingleGame(fileNameAry) {
+    if(!fileNameAry || fileNameAry.length < 1) {
+      ipc.sendSync('genericModal', 'error', 'Game import',
+        'Game import failed:\n\n no files specified.');
+      return;
+    }
     // Need to verify that the tournament currently exists with at least two teams
     if (this.state.allTeams == undefined || this.state.allTeams.length < 2) {
       ipc.sendSync('genericModal', 'error', 'Game import',
@@ -809,30 +815,39 @@ export class MainInterface extends React.Component {
       return;
     }
 
-    let fileString = fs.readFileSync(fileName, 'utf8');
-    let result;
-    if(fileString != '') {
-      result = SingleGameQBJImport.importGame(this.state.allTeams, fileString)
-    } else {
-      ipc.sendSync('genericModal', 'error', 'Game import',
-        'Game import failed:\n\n no file specified.');
-      return;
-    }
+    let rejectedFiles = [];
+    let acceptedGames = [];
+    for(const fileName of fileNameAry) {
+      let filePathSegments = fileName.split(/[\\\/]/);
+      let shortFileName = filePathSegments.pop();
+      let fileString = fs.readFileSync(fileName, 'utf8');
+      let result;
+      if(fileString != '') {
+        result = SingleGameQBJImport.importGame(this.state.allTeams, fileString)
+      }
 
-    if (!result.success) {
-      ipc.sendSync('genericModal', 'error', 'Game import',
-        'Game import failed:\n\n' + result.error);
-      return;
+      if (!result.success) {
+        rejectedFiles.push(shortFileName + ': ' + result.error);
+        continue;
+      }
+      //if a team has already played this round, import the game without a round number
+      let [teamAPlayed, teamBPlayed] = this.haveTeamsPlayedInRound(result.result.team1, result.result.team2, result.result.round, null)
+      if(teamAPlayed || teamBPlayed) {
+        result.result.round = null;
+      }
+      // same with the other games that have already been imported in this batch
+      else {
+        let [teamAPlayed, teamBPlayed] =
+          this.haveTeamsPlayedInRound(result.result.team1, result.result.team2, result.result.round, null, acceptedGames);
+        if(teamAPlayed || teamBPlayed) {
+          result.result.round = null;
+        }
+      }
+      acceptedGames.push(result.result);
+      this.validateGame(result.result, this.state.settings);
     }
-
-    const [teamAPlayed, teamBPlayed] = this.haveTeamsPlayedInRound(result.result.team1, result.result.team2, result.result.round, null)
-    if(teamAPlayed || teamBPlayed) {
-      ipc.sendSync('genericModal', 'error', 'Game import',
-        'Game import failed:\n\nAt least one of these teams has already played in this round.' );
-      return;
-    }
-    this.validateGame(result.result, this.state.settings);
-    this.addGame(result.result, false);
+    this.addGames(acceptedGames, false);
+    ipc.sendSync('unsavedData');
   }
 
   /**
@@ -1323,22 +1338,7 @@ export class MainInterface extends React.Component {
    * @param {boolean} acceptAndStay if true, keep the form open
    */
   addGame(tempItem, acceptAndStay) {
-    var tempGms = this.state.allGames.slice();
-    tempGms.push(tempItem);
-    var tempGameIndex = this.state.gameIndex;
-    var round = tempItem.round;
-    if(tempGameIndex[round] == undefined) { tempGameIndex[round] = 1; }
-    else { tempGameIndex[round]++; }
-    var tempPlayerIndex = this.state.playerIndex;
-    StatUtils2.addGameToPlayerIndex(tempItem, tempPlayerIndex);
-    ipc.sendSync('unsavedData');
-    this.setState({
-      allGames: tempGms,
-      gameIndex: tempGameIndex,
-      playerIndex: tempPlayerIndex,
-      tbCount : this.state.tbCount + tempItem.tiebreaker,
-      gmWindowVisible: acceptAndStay
-    }) //setState
+    this.addGames([tempItem], acceptAndStay);
     if(acceptAndStay) {
       $('#round').focus();
       var gameDisp = 'Round ' + tempItem.round + ' ' + tempItem.team1 + ' vs ' + tempItem.team2;
@@ -1346,6 +1346,36 @@ export class MainInterface extends React.Component {
       $('#toast-container').addClass('toast-bottom-left');
     }
   } //addTeam
+
+  /**
+   * Add a games to the list of all games.
+   * @param {YfGame[]} gamesToAdd     games to be added
+   * @param {boolean} acceptAndStay  if true, keep the form open
+   */
+  addGames(gamesToAdd, acceptAndStay) {
+    var tempGms = this.state.allGames.slice();
+    var tempGameIndex = this.state.gameIndex;
+    var tempPlayerIndex = this.state.playerIndex;
+    var tbCount = this.state.tbCount;
+    for(const g of gamesToAdd) {
+      tempGms.push(g);
+      let round = g.round;
+      if(round !== null && round !== undefined) {
+        if(tempGameIndex[round] == undefined) { tempGameIndex[round] = 1; }
+        else { tempGameIndex[round]++; }
+      }
+      StatUtils2.addGameToPlayerIndex(g, tempPlayerIndex);
+      tbCount += g.tiebreaker;
+    }
+    ipc.sendSync('unsavedData');
+    this.setState({
+      allGames: tempGms,
+      gameIndex: tempGameIndex,
+      playerIndex: tempPlayerIndex,
+      tbCount : tbCount,
+      gmWindowVisible: acceptAndStay
+    }) //setState
+  }
 
   /**
    * Update the appropriate team, close the form, and update team and player names in
@@ -1453,9 +1483,12 @@ export class MainInterface extends React.Component {
     }
   }
 
-  /*---------------------------------------------------------
-  Updat the appropriate game and close the form
-  ---------------------------------------------------------*/
+  /**
+   * Update the appropriate game and close the form
+   * @param  {yfGame} oldGame                     game we're modifying
+   * @param  {YfGame} newGame                     new data for that game
+   * @param  {boolean} acceptAndStay              whether to keep the form open
+   */
   modifyGame(oldGame, newGame, acceptAndStay) {
     var tempGameAry = this.state.allGames.slice();
     var oldGameIdx = _.findIndex(tempGameAry, function (o) {
@@ -1468,7 +1501,9 @@ export class MainInterface extends React.Component {
     if(oldRound != newRound) {
       if(tempGameIndex[newRound] == undefined) { tempGameIndex[newRound] = 1; }
       else { tempGameIndex[newRound]++; }
-      if(--tempGameIndex[oldRound] == 0) { delete tempGameIndex[oldRound]; }
+      if(oldRound !== null && oldRound !== undefined) {
+        if(--tempGameIndex[oldRound] == 0) { delete tempGameIndex[oldRound]; }
+      }
     }
     var tempPlayerIndex = this.state.playerIndex;
     StatUtils2.modifyGameInPlayerIndex(oldGame, newGame, tempPlayerIndex);
@@ -1507,25 +1542,33 @@ export class MainInterface extends React.Component {
     ipc.sendSync('unsavedData');
   } //deleteTeam
 
-  /*---------------------------------------------------------
-  Called twice during the game deletion workflow. The first
-  time it triggers a confirmation message. The sencond time,
-  once the user has confirmed, it permanently deletes the
-  game
-  ---------------------------------------------------------*/
+  /**
+   * Called twice during the game deletion workflow. The first
+   * time it triggers a confirmation message. The sencond time,
+   * once the user has confirmed, it permanently deletes the
+   * game
+   * @param  {YfGame} item               game user wants to delete
+   */
   deleteGame(item) {
     if(this.state.gameToBeDeleted == null) {
       this.setState({
         gameToBeDeleted: item
       });
-      ipc.send('tryGameDelete', 'Round ' + item.round + ': ' + item.team1 + ' vs. ' + item.team2);
+      let roundString;
+      if(item.round === null || item.round === undefined) {
+        roundString = '(No round)';
+      }
+      else { roundString = 'Round ' + item.round; }
+      ipc.send('tryGameDelete', roundString + ': ' + item.team1 + ' vs. ' + item.team2);
       return;
     }
     var allGames = this.state.allGames;
     var newGames = _.without(allGames, this.state.gameToBeDeleted);
     // update index
     var tempGameIndex = this.state.gameIndex, round = this.state.gameToBeDeleted.round;
-    if(--tempGameIndex[round] == 0) { delete tempGameIndex[round]; }
+    if(round !== null && round !== undefined) {
+      if(--tempGameIndex[round] == 0) { delete tempGameIndex[round]; }
+    }
     var tempPlayerIndex = this.state.playerIndex;
     StatUtils2.modifyGameInPlayerIndex(this.state.gameToBeDeleted, null, tempPlayerIndex);
     var newTbCount = this.state.tbCount - this.state.gameToBeDeleted.tiebreaker;
@@ -1627,15 +1670,18 @@ export class MainInterface extends React.Component {
    * @param  teamB                            name of the second team
    * @param  roundNo                          round number
    * @param  originalGameLoaded               the game currently being modified
+   * @param  altGameList                      list of games to look at; if null, use the normal list of all games
    * @return                    array with two values, one for each team:
                                  0: has not played a game
                                  1: has played a tiebreaker
                                  2: has played a non-tiebreaker
                                  3: both teams have already played each other in this round
    */
-  haveTeamsPlayedInRound(teamA, teamB, roundNo, originalGameLoaded) {
+  haveTeamsPlayedInRound(teamA, teamB, roundNo, originalGameLoaded, altGameList) {
+    const gameList = altGameList ? altGameList : this.state.allGames;
     var teamAPlayed = 0, teamBPlayed = 0;
-    for(let g of this.state.allGames) {
+    for(let g of gameList) {
+      if(g.round === null || g.round === undefined) { continue; }
       if(g.round == roundNo && !StatUtils2.gameEqual(g, originalGameLoaded)) {
         if((g.team1 == teamA && g.team2 == teamB) || (g.team2 == teamA && g.team1 == teamB)) {
           return [3, 3];
@@ -2551,8 +2597,9 @@ export class MainInterface extends React.Component {
           filteredGames.push(allGames[i]);
         }
       }
-      // don't sort games right now
       filteredGames = _.orderBy(filteredGames, function(item) {
+        const round = item.round;
+        if(round === undefined || round === null) return -999999999;
         return +item.round;
       }, 'asc'); // order array
     }

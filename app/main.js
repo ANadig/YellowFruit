@@ -584,15 +584,19 @@ function importNeg5() {
 }
 
 /**
- * Prompt the user to select a MODAQ-style QBJ file to import. This will open up the New Game window with data from the
- * game filled in.
+ * Prompt the user to select one or more QBJ files to import games from. Each file should be a JSON
+ * representation of a tournament schema "match" object 
  */
  function importQbjSingleGame() {
   if(!mainWindow) { return; }
   let fileNameAry = dialog.showOpenDialogSync(mainWindow,
-    { filters: [{ name: 'Tournament Schema ', extensions: ['qbj'] }] });
+    {
+      filters: [{ name: 'Tournament Schema ', extensions: ['qbj'] }],
+      properties: ['multiSelections']
+    }
+  );
   if(fileNameAry !== undefined) {
-    mainWindow.webContents.send('importQbjSingleGame', fileNameAry[0]);
+    mainWindow.webContents.send('importQbjSingleGame', fileNameAry);
   }
 }
 

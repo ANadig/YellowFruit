@@ -76,7 +76,10 @@ export class GameListEntry extends React.Component<GameListEntryProps, GameListE
    * @return something like "Round 2: West 305, Central 300 (OT)"
    */
   getScoreString(): string {
-    let output = `Round ${this.props.game.round}: `;
+    let output: string;
+    let round = this.props.game.round;
+    if(round === null || round === undefined) { output = '(No round) '; }
+    else { output = `Round ${round}: `; }
     if(this.props.game.forfeit) {
       return `${output}${this.props.game.team1} defeats ${this.props.game.team2} by forfeit`;
     }
@@ -186,8 +189,8 @@ export class GameListEntry extends React.Component<GameListEntryProps, GameListE
       if(this.props.game.invalid) {
         errorIcon = (
           <i className="material-icons red-text text-darken-4 qb-modal-error"
-            title="This game will not appear in stat reports and is not exportable to other formats">
-            error</i> 
+            title="This game does not appear in stat reports and is not exportable to other formats">
+            error</i>
         )
       }
       else {
