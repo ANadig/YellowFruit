@@ -129,7 +129,7 @@ const IMPORT_SUBMENU = [
   },
   {type: 'separator'},
   {
-    label: 'Import Game (QBJ 2.1)',
+    label: 'Import Games (QBJ 2.1)',
     accelerator: 'CmdOrCtrl+H',
     click(item, focusedWindow) { importQbjSingleGame(); }
   }
@@ -585,7 +585,7 @@ function importNeg5() {
 
 /**
  * Prompt the user to select one or more QBJ files to import games from. Each file should be a JSON
- * representation of a tournament schema "match" object 
+ * representation of a tournament schema "match" object
  */
  function importQbjSingleGame() {
   if(!mainWindow) { return; }
