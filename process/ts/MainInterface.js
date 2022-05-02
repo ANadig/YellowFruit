@@ -838,6 +838,10 @@ export class MainInterface extends React.Component {
       if(this.state.defaultRound !== null) {
         result.result.round = this.state.defaultRound;
       }
+      // add current phase, if there is one 
+      if(this.state.viewingPhase != 'all' && this.state.viewingPhase != 'Tiebreakers') {
+        result.result.phases = [this.state.viewingPhase];
+      }
 
       //if a team has already played this round, import the game without a round number
       let [teamAPlayed, teamBPlayed] = this.haveTeamsPlayedInRound(result.result.team1, result.result.team2, result.result.round, null)
