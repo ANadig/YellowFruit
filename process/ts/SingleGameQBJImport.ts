@@ -36,7 +36,7 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
         return createFailure(secondTeamResult.error);
     }
 
-    const tuhtot: number = qbj.tossups_read;
+    const tuhtot: number = getTuhtot(qbj.tossups_read);
     const bbPts1: number = qbj.match_teams[0].bonus_bounceback_points ?? 0;
     const bbPts2: number = qbj.match_teams[1].bonus_bounceback_points ?? 0;
 
@@ -53,6 +53,10 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
     const score1: number = getScore(qbj.match_teams[0]);
     const score2: number = getScore(qbj.match_teams[1]);
 
+    const ottu: number = getOttu(qbj.overtime_tossups_read);
+    const tiebreaker: boolean = qbj.tiebreaker === true;
+    
+
     // Potential issue: ottu, ot etc are unknown, since the format isn't included in the game format
     const game: YfGame = {
         bbPts1,
@@ -68,7 +72,7 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
         otPwr2: 0,
         otTen1: 0,
         otTen2: 0,
-        ottu: 0,
+        ottu,
         phases: [],
         players1: playerLine1Result.result,
         players2: playerLine2Result.result,
@@ -77,7 +81,7 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
         score2,
         team1: firstTeamResult.result.teamName,
         team2: secondTeamResult.result.teamName,
-        tiebreaker: false,
+        tiebreaker,
         tuhtot,
         validationMsg: ''
     };
@@ -96,6 +100,20 @@ function createSuccess<T>(value: T): Result<T> {
         success: true,
         result: value
     };
+}
+
+function getTuhtot(tossups_read: number) : number {
+  if(tossups_read === undefined || isNaN(tossups_read)) {
+    return null;
+  }
+  return tossups_read;
+}
+
+function getOttu(overtime_tossups_read: number) : number {
+  if(overtime_tossups_read === undefined || isNaN(overtime_tossups_read)) {
+    return 0;
+  }
+  return overtime_tossups_read;
 }
 
 function getLikeliestPlayer(playerNames: string[], candidateName: string) : LikeliestPlayer {
@@ -190,6 +208,7 @@ interface IMatch {
     match_questions: IMatchQuestion[];
     notes?: string; // For storing protest info and thrown out Qs
     packets?: string; // The name of the packet
+    tiebreaker?: boolean; // whether this was a tiebreaker
 }
 
 interface ITeam {

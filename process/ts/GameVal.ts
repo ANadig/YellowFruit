@@ -109,6 +109,12 @@ export function validateGame(g: YfGame, settings: TournamentSettings): GameValid
     return result;
   }
 
+  if(g.ottu < 0) {
+    result.type = 'error';
+    result.message = 'Overtime tossups heard cannot be negative';
+    return result;
+  }
+
   //player stats need to exist
   if(players1 === undefined || players1 === null || players2 === undefined || players2 === null) {
     result.type = 'error';
