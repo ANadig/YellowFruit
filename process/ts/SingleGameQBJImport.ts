@@ -26,6 +26,17 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
         return createFailure("QBJ file doesn't have two teams specified");
     }
 
+    // qbj allows double forfeits but we don't
+    if(qbj.match_teams[0].forfeit_loss && qbj.match_teams[1].forfeit_loss) {
+      return createFailure('YellowFruit does not support games where both teams forfeit.');
+    }
+    if(qbj.match_teams[0].forfeit_loss) {
+      // switch the teams around because the first team is always the winner of a forfeit in YF.
+      const tempMatchTeam = qbj.match_teams[1];
+      qbj.match_teams[1] = qbj.match_teams[0];
+      qbj.match_teams[0] = tempMatchTeam;
+    }
+
     const firstTeamResult: Result<YfTeam> = getYfTeam(teams, qbj.match_teams[0].team.name);
     if (firstTeamResult.success === false) {
         return createFailure(firstTeamResult.error);
@@ -34,6 +45,13 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
     const secondTeamResult: Result<YfTeam> = getYfTeam(teams, qbj.match_teams[1].team.name);
     if (secondTeamResult.success === false) {
         return createFailure(secondTeamResult.error);
+    }
+
+    const tiebreaker: boolean = qbj.tiebreaker === true;
+
+    if(qbj.match_teams[1].forfeit_loss) {
+      return createForfeit(firstTeamResult.result.teamName, secondTeamResult.result.teamName,
+        tiebreaker, qbj.notes);
     }
 
     const tuhtot: number = getTuhtot(qbj.tossups_read);
@@ -54,8 +72,6 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
     const score2: number = getScore(qbj.match_teams[1]);
 
     const ottu: number = getOttu(qbj.overtime_tossups_read);
-    const tiebreaker: boolean = qbj.tiebreaker === true;
-    
 
     // Potential issue: ottu, ot etc are unknown, since the format isn't included in the game format
     const game: YfGame = {
@@ -100,6 +116,37 @@ function createSuccess<T>(value: T): Result<T> {
         success: true,
         result: value
     };
+}
+
+function createForfeit(team1: string, team2: string, tiebreaker: boolean, notes: string) : Result<YfGame> {
+  const game : YfGame = {
+    bbPts1: 0,
+    bbPts2: 0,
+    forfeit: true,
+    invalid: false,
+    lightningPts1: 0,
+    lightningPts2: 0,
+    notes: notes,
+    otNeg1: 0,
+    otNeg2: 0,
+    otPwr1: 0,
+    otPwr2: 0,
+    otTen1: 0,
+    otTen2: 0,
+    ottu: 0,
+    phases: [],
+    players1: null,
+    players2: null,
+    round: 0,
+    score1: 0,
+    score2: 0,
+    team1: team1,
+    team2: team2,
+    tiebreaker: tiebreaker,
+    tuhtot: 0,
+    validationMsg: ''
+  }
+  return createSuccess(game);
 }
 
 function getTuhtot(tossups_read: number) : number {
@@ -226,6 +273,7 @@ interface IMatchTeam {
     bonus_bounceback_points?: number;
     match_players: IMatchPlayer[];
     lineups: ILineup[]; // Lineups seen. New entries happen when there are changes in the lineup
+    forfeit_loss?: boolean;
 }
 
 interface IMatchPlayer {
