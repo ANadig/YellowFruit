@@ -698,6 +698,12 @@ nav .btn-flat {
   color: #989898;
 }
 
+.game-list-header .badge {
+  float: none;
+  padding: 5px 6px;
+  cursor: pointer;
+}
+
 .default-round {
   display: inline-block;
   float: right;

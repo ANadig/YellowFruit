@@ -2571,17 +2571,17 @@ export class MainInterface extends React.Component {
 
 
   render() {
-    var filteredTeams = [];
-    var filteredGames = [];
-    var queryText = this.state.queryText.trim().toLowerCase();
-    var allTeams = this.state.allTeams;
-    var allGames = this.state.allGames;
-    var activePane = this.state.activePane;
-    var numberOfPhases = Object.keys(this.state.divisions).length;
-    var usingPhases = this.usingPhases();
-    var usingDivisions = this.usingDivisions();
-    var phasesToGroupBy = this.phasesToGroupBy();
-    var [divsInPhase, phaseSizes] = this.cumulativeRankSetup(phasesToGroupBy);
+    let filteredTeams = [];
+    let filteredGames = [];
+    let queryText = this.state.queryText.trim().toLowerCase();
+    const allTeams = this.state.allTeams;
+    const allGames = this.state.allGames;
+    const activePane = this.state.activePane;
+    const usingPhases = this.usingPhases();
+    const usingDivisions = this.usingDivisions();
+    const phasesToGroupBy = this.phasesToGroupBy();
+    const [divsInPhase, phaseSizes] = this.cumulativeRankSetup(phasesToGroupBy);
+    let errors = 0, warnings = 0;
 
     var rptObj = this.state.releasedRptList[this.state.activeRpt];
     if(rptObj == undefined) { rptObj = this.state.customRptList[this.state.activeRpt]; }
@@ -2624,23 +2624,24 @@ export class MainInterface extends React.Component {
           else { div = item.divisions.noPhase; }
           if(div == undefined) { div = 'zzzzzzzzzzzzzzzzzzz'; } //teams with no division go (hopefully) at the end
           return div.toLowerCase();
-        }, 'asc'); // array orderby
+        }, 'asc');
       }
     }
-
-    //sort and filter games
+    //sort and filter games, and count errors and warnings
     else if (activePane == 'gamesPane') {
       //Filter list of games
-      for (var i = 0; i < allGames.length; i++) {
-        if (this.gameQueryMatch(queryText, allGames[i])) {
-          filteredGames.push(allGames[i]);
+      for (const g of allGames) {
+        if (this.gameQueryMatch(queryText, g)) {
+          filteredGames.push(g);
+          if(g.invalid) { errors++; }
+          else if(g.validationMsg) { warnings++; }
         }
       }
       filteredGames = _.orderBy(filteredGames, function(item) {
         const round = item.round;
         if(round === undefined || round === null) return -999999999;
         return +item.round;
-      }, 'asc'); // order array
+      }, 'asc');
     }
 
     //make a react element for each item in the lists
@@ -2817,6 +2818,8 @@ export class MainInterface extends React.Component {
                 numberSelected = {this.state.selectedGames.length}
                 defaultRound = {this.state.defaultRound}
                 setDefaultRound = {this.setDefaultRound}
+                errors = {errors}
+                warnings = {warnings}
               />
               <SidebarToggleButton
                 toggle = {this.toggleSidebar}

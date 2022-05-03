@@ -17,6 +17,8 @@ interface GameListProps {
   numberSelected: number;       // number of games currently selected
   defaultRound: number;         // default round number for new games
   setDefaultRound: (roundNo: number) => void;
+  errors: number;               // number of invalid games
+  warnings: number;             // number of valid games with validation messages
 }
 
 export class GameList extends React.Component<GameListProps, {}>{
@@ -61,6 +63,26 @@ export class GameList extends React.Component<GameListProps, {}>{
   }
 
   /**
+   * Badge that shows the number of invalid games
+   */
+  errorBadge(): JSX.Element {
+    const errors = this.props.errors;
+    if(errors < 1) { return null; }
+    const caption = errors == 1 ? 'Error' : 'Errors';
+    return ( <span className="new badge red darken-4" data-badge-caption={caption}>{errors}</span> );
+  }
+
+  /**
+   * Badge that shows the number of valid games with validation warnings
+   */
+  warningBadge(): JSX.Element {
+    const warnings = this.props.warnings;
+    if(warnings < 1) { return null; }
+    const caption = warnings == 1 ? 'Warning' : 'Warnings';
+    return ( <span className="new badge yellow accent-4 black-text" data-badge-caption={caption}>{warnings}</span> );
+  }
+
+  /**
    * Display how many games are being shown to the user.
    * @return span with the text
    */
@@ -89,6 +111,7 @@ export class GameList extends React.Component<GameListProps, {}>{
     if (this.props.whichPaneActive != YfPane.Games) {
       return null;
     }
+
     const defaultRound = this.props.defaultRound;
     const defRndFieldVal = defaultRound === null ? '' : defaultRound.toString();
 
@@ -124,9 +147,11 @@ export class GameList extends React.Component<GameListProps, {}>{
       <div className="container">
         <div className="list-header">
         </div>
-        <div>
+        <div className="game-list-header">
           {this.selectedCounter()}
           {this.gameCountDisplay()}
+          {this.errorBadge()}
+          {this.warningBadge()}
           <span className="default-round">
             Current round:&nbsp;
             <div className="input-field">
