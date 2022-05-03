@@ -19,6 +19,8 @@ interface GameListProps {
   setDefaultRound: (roundNo: number) => void;
   errors: number;               // number of invalid games
   warnings: number;             // number of valid games with validation messages
+  changeBadgeFilter: (badge: string) => void; // filter to all errors or warnings
+  activeBadgeFilter: 'errors' | 'warnings'   // which badge filter is currently active
 }
 
 export class GameList extends React.Component<GameListProps, {}>{
@@ -29,6 +31,7 @@ export class GameList extends React.Component<GameListProps, {}>{
     super(props);
     this.addGame = this.addGame.bind(this);
     this.handleRoundChange = this.handleRoundChange.bind(this);
+    this.badgeFilter = this.badgeFilter.bind(this);
   }
 
   /**
@@ -69,7 +72,8 @@ export class GameList extends React.Component<GameListProps, {}>{
     const errors = this.props.errors;
     if(errors < 1) { return null; }
     const caption = errors == 1 ? 'Error' : 'Errors';
-    return ( <span className="new badge red darken-4" data-badge-caption={caption}>{errors}</span> );
+    return ( <span className="new badge red darken-4" id="errors" onClick={this.badgeFilter}
+      title="Show only games with errors" data-badge-caption={caption}>{errors}</span> );
   }
 
   /**
@@ -79,7 +83,24 @@ export class GameList extends React.Component<GameListProps, {}>{
     const warnings = this.props.warnings;
     if(warnings < 1) { return null; }
     const caption = warnings == 1 ? 'Warning' : 'Warnings';
-    return ( <span className="new badge yellow accent-4 black-text" data-badge-caption={caption}>{warnings}</span> );
+    return ( <span className="new badge yellow accent-4 black-text" id="warnings" onClick={this.badgeFilter}
+      title="Show only games with warnings" data-badge-caption={caption}>{warnings}</span> );
+  }
+
+  /**
+   * Determine whether we're filtering by a badge that doesn't exist anymore
+   */
+  badBadgeFilterState(): boolean {
+    return (this.props.activeBadgeFilter == 'errors' && this.props.errors === 0) ||
+      (this.props.activeBadgeFilter == 'warnings' && this.props.warnings === 0);
+  }
+
+  /**
+   * Filter the list of games to the ones with warnings or errors
+   * @param  {[type]} e               event
+   */
+  badgeFilter(e: any): void {
+    this.props.changeBadgeFilter(e.target.id);
   }
 
   /**
@@ -114,6 +135,10 @@ export class GameList extends React.Component<GameListProps, {}>{
 
     const defaultRound = this.props.defaultRound;
     const defRndFieldVal = defaultRound === null ? '' : defaultRound.toString();
+
+    if(this.badBadgeFilterState()) {
+      this.props.changeBadgeFilter(null);
+    }
 
     // zero-state display for when there are no games.
     if(this.props.gameList.length == 0) {

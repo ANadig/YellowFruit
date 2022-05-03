@@ -25,7 +25,6 @@ interface HeaderNavProps {
 
 interface HeaderNavState {
   overflowTabs: boolean;
-  queryText: string;
 }
 
 export class HeaderNav extends React.Component<HeaderNavProps, HeaderNavState>{
@@ -34,7 +33,6 @@ export class HeaderNav extends React.Component<HeaderNavProps, HeaderNavState>{
     super(props);
     this.state = {
       overflowTabs: false,
-      queryText: props.queryText
     }
     this.handleSearch = this.handleSearch.bind(this);
     this.setPane = this.setPane.bind(this);
@@ -50,9 +48,6 @@ export class HeaderNav extends React.Component<HeaderNavProps, HeaderNavState>{
   handleSearch(e: any): void {
     const text = e.target.value;
     this.props.onSearch(text);
-    this.setState({
-      queryText: text
-    });
   }
 
   /**
@@ -231,7 +226,7 @@ export class HeaderNav extends React.Component<HeaderNavProps, HeaderNavState>{
               <li className={this.isActive(YfPane.Games)}><a id="gamesPane" onClick={this.setPane}>Games</a></li>
               <li>
                 <div className="input-field qb-search">
-                  <input id="search" className="qb-search-input form-control" type="text" value={this.state.queryText}
+                  <input id="search" className="qb-search-input form-control" type="text" value={this.props.queryText}
                   onChange={this.handleSearch} placeholder="Search" aria-label="Search" />
                 </div>
               </li>

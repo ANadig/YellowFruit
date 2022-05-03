@@ -172,10 +172,8 @@ function getBounceBackPoints(matchTeam: IMatchTeam, settings: TournamentSettings
 }
 
 function getOtTen(matchTeam: IMatchTeam, settings: TournamentSettings) {
-  console.log(settings);
   // this only works if powers don't exist
   if(settings.powers != 'none') { return 0; }
-  console.log(matchTeam);
   return matchTeam.correct_tossups_without_bonuses ?? 0;
 }
 

@@ -141,7 +141,8 @@ export class MainInterface extends React.Component {
       formSettings: defFormSettingsCopy, // which optional entry fields to turn on or off
       sidebarOpen: true, // whether the sidebar is visible
       reconstructSidebar: false, // used to force the sidebar to reload when any teams are modified
-      defaultRound: 1  // default round to use when creating a new game
+      defaultRound: 1,  // default round to use when creating a new game
+      badgeFilter: null // 'errors' or 'warnings' -- filter to games with validation issues
     };
     this.openTeamModal = this.openTeamModal.bind(this);
     this.openGameModal = this.openGameModal.bind(this);
@@ -188,6 +189,7 @@ export class MainInterface extends React.Component {
     this.toggleSidebar = this.toggleSidebar.bind(this);
     this.saveRankOverrides = this.saveRankOverrides.bind(this);
     this.setDefaultRound = this.setDefaultRound.bind(this);
+    this.changeBadgeFilter = this.changeBadgeFilter.bind(this);
   }
 
   /**
@@ -598,7 +600,8 @@ export class MainInterface extends React.Component {
       selectedTeams: [],
       selectedGames: [],
       reconstructSidebar: !this.state.reconstructSidebar,
-      defaultRound: null
+      defaultRound: null,
+      badgeFilter: null
     });
     //the value of settingsLoadToggle doesn't matter; it just needs to change
     //in order to make the settings form load
@@ -792,7 +795,8 @@ export class MainInterface extends React.Component {
       selectedGames: [],
       activeRpt: this.state.defaultRpt,
       reconstructSidebar: !this.state.reconstructSidebar,
-      defaultRound: null
+      defaultRound: null,
+      badgeFilter: null
     });
 
     this.loadGameIndex(yfGames, true);
@@ -973,7 +977,8 @@ export class MainInterface extends React.Component {
       allGames: gamesCopy,
       tbCount: tbCount,
       settingsLoadToggle: !this.state.settingsLoadToggle,
-      reconstructSidebar: !this.state.reconstructSidebar
+      reconstructSidebar: !this.state.reconstructSidebar,
+      badgeFilter: null
     });
     this.loadGameIndex(gamesCopy, false);
     this.loadPlayerIndex(teamsCopy, gamesCopy, false);
@@ -1183,7 +1188,8 @@ export class MainInterface extends React.Component {
       divToBeDeleted: null,
       activeRpt: this.state.defaultRpt,
       reconstructSidebar: !this.state.reconstructSidebar,
-      defaultRound: 1
+      defaultRound: 1,
+      badgeFilter: null
       // DO NOT reset these! These should persist throughout the session
       // releasedRptList: ,
       // customRptList: ,
@@ -1396,7 +1402,8 @@ export class MainInterface extends React.Component {
       gameIndex: tempGameIndex,
       playerIndex: tempPlayerIndex,
       tbCount : tbCount,
-      gmWindowVisible: acceptAndStay
+      gmWindowVisible: acceptAndStay,
+      badgeFilter: null
     }) //setState
   }
 
@@ -1537,7 +1544,7 @@ export class MainInterface extends React.Component {
       playerIndex: tempPlayerIndex,
       tbCount: this.state.tbCount - oldGame.tiebreaker + newGame.tiebreaker,
       gmWindowVisible: acceptAndStay,
-      gmAddOrEdit: 'add' // needed in case of acceptAndStay
+      gmAddOrEdit: 'add', // needed in case of acceptAndStay
     });
     if(acceptAndStay) {
       $('#round').focus();
@@ -2296,10 +2303,21 @@ export class MainInterface extends React.Component {
     return teamName.indexOf(queryText)!=-1 || Object.keys(team.roster).join(', ').toLowerCase().indexOf(queryText)!=-1
   }
 
-  /*---------------------------------------------------------
-  Does the search text match this game?
-  ---------------------------------------------------------*/
-  gameQueryMatch(queryText, game) {
+  /**
+   * Do the filter conditions match this game?
+   * @param  {string} queryText               what the user typed in the search bar
+   * @param  {YfGame} game                    game to test
+   * @return {boolean}           true if we should show this game in the list
+   */
+  gameFilterMatch(queryText, game) {
+    const badgeFilter = this.state.badgeFilter;
+    if(badgeFilter == 'errors' && !game.invalid) {
+      return false;
+    }
+    if(badgeFilter == 'warnings' && (game.invalid || !game.validationMsg)) {
+      return false;
+    }
+
     if(queryText.length <= 1) { return this.gameBelongsToCurrentPhase(game); } // ignore 1-character searches for performance reasons
     if(this.noPhaseQuery(queryText, game)) { return true; }
     if(!this.gameBelongsToCurrentPhase(game)) { return false; }
@@ -2357,6 +2375,27 @@ export class MainInterface extends React.Component {
     if(game.phases.length > 0 || game.tiebreaker) { return false; }
     queryText = queryText.trim();
     return queryText.search(/^(no\W*phase)/i) == 0;
+  }
+
+  /**
+   * Filter the game list to those with errors or warnings
+   * @param  {string} badgeId               'errors' or 'warnings'
+   */
+  changeBadgeFilter(badgeId) {
+    if(badgeId === null) {
+      this.setState({
+        badgeFilter: null,
+        queryText: ''
+      });
+      return;
+    }
+    if(badgeId !== 'errors' && badgeId !== 'warnings') { return; }
+    let newFilterState = badgeId;
+    if(badgeId == this.state.badgeFilter) { newFilterState = null; }
+    this.setState({
+      badgeFilter: newFilterState,
+      queryText: ''
+    });
   }
 
   /*---------------------------------------------------------
@@ -2631,10 +2670,10 @@ export class MainInterface extends React.Component {
     else if (activePane == 'gamesPane') {
       //Filter list of games
       for (const g of allGames) {
-        if (this.gameQueryMatch(queryText, g)) {
+        if(g.invalid) { errors++; }
+        else if(g.validationMsg) { warnings++; }
+        if (this.gameFilterMatch(queryText, g)) {
           filteredGames.push(g);
-          if(g.invalid) { errors++; }
-          else if(g.validationMsg) { warnings++; }
         }
       }
       filteredGames = _.orderBy(filteredGames, function(item) {
@@ -2820,6 +2859,8 @@ export class MainInterface extends React.Component {
                 setDefaultRound = {this.setDefaultRound}
                 errors = {errors}
                 warnings = {warnings}
+                changeBadgeFilter = {this.changeBadgeFilter}
+                activeBadgeFilter = {this.state.badgeFilter}
               />
               <SidebarToggleButton
                 toggle = {this.toggleSidebar}
