@@ -8,7 +8,7 @@
  */
 
 import StringSimilarity = require('string-similarity-js');
-import {  YfTeam, YfGame, TeamGameLine } from './YfTypes';
+import {  YfTeam, YfGame, TeamGameLine, TournamentSettings } from './YfTypes';
 
 // Confidence threshold for string matching; if it's not past 50%, reject the match
 const confidenceThreshold = 0.5;
@@ -19,7 +19,7 @@ const similaritySubstringLength = 1;
 
 export type Result<T> = { success: true, result: T} | {success: false, error: string };
 
-export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
+export function importGame(teams: YfTeam[], qbjString: string, settings: TournamentSettings): Result<YfGame> {
     const qbj: IMatch = JSON.parse(qbjString);
 
     if (qbj.match_teams == undefined || qbj.match_teams.length !== 2) {
@@ -55,8 +55,8 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
     }
 
     const tuhtot: number = getTuhtot(qbj.tossups_read);
-    const bbPts1: number = qbj.match_teams[0].bonus_bounceback_points ?? 0;
-    const bbPts2: number = qbj.match_teams[1].bonus_bounceback_points ?? 0;
+    const bbPts1: number = getBounceBackPoints(qbj.match_teams[0], settings);
+    const bbPts2: number = getBounceBackPoints(qbj.match_teams[1], settings);
 
     const playerLine1Result = getPlayerLines(firstTeamResult.result, qbj.match_teams[0].match_players);
     if (playerLine1Result.success === false) {
@@ -68,26 +68,29 @@ export function importGame(teams: YfTeam[], qbjString: string): Result<YfGame> {
         return createFailure(playerLine2Result.error);
     }
 
-    const score1: number = getScore(qbj.match_teams[0]);
-    const score2: number = getScore(qbj.match_teams[1]);
+    const score1: number = getScore(qbj.match_teams[0], settings);
+    const score2: number = getScore(qbj.match_teams[1], settings);
 
     const ottu: number = getOttu(qbj.overtime_tossups_read);
+    const otTen1: number = getOtTen(qbj.match_teams[0], settings);
+    const otTen2: number = getOtTen(qbj.match_teams[1], settings);
 
-    // Potential issue: ottu, ot etc are unknown, since the format isn't included in the game format
+    const lightningPts1 = getLightningPoints(qbj.match_teams[0], settings);
+    const lightningPts2 = getLightningPoints(qbj.match_teams[1], settings);
+
     const game: YfGame = {
         bbPts1,
         bbPts2,
         forfeit: false,
-        invalid: false,
-        lightningPts1: 0,
-        lightningPts2: 0,
+        lightningPts1,
+        lightningPts2,
         notes: qbj.notes,
         otNeg1: 0,
         otNeg2: 0,
         otPwr1: 0,
         otPwr2: 0,
-        otTen1: 0,
-        otTen2: 0,
+        otTen1,
+        otTen2,
         ottu,
         phases: [],
         players1: playerLine1Result.result,
@@ -163,6 +166,24 @@ function getOttu(overtime_tossups_read: number) : number {
   return overtime_tossups_read;
 }
 
+function getBounceBackPoints(matchTeam: IMatchTeam, settings: TournamentSettings) {
+  if(!settings.bonusesBounce) { return 0; }
+  return matchTeam.bonus_bounceback_points ?? 0;
+}
+
+function getOtTen(matchTeam: IMatchTeam, settings: TournamentSettings) {
+  console.log(settings);
+  // this only works if powers don't exist
+  if(settings.powers != 'none') { return 0; }
+  console.log(matchTeam);
+  return matchTeam.correct_tossups_without_bonuses ?? 0;
+}
+
+function getLightningPoints(matchTeam: IMatchTeam, settings: TournamentSettings) {
+  if(!settings.lightning) { return 0; }
+  return (matchTeam.lightning_points ?? 0) + (matchTeam.lightning_bounceback_points ?? 0);
+}
+
 function getLikeliestPlayer(playerNames: string[], candidateName: string) : LikeliestPlayer {
     let result: LikeliestPlayer = { playerName: playerNames[0], confidence: 0 };
     for (const playerName of playerNames) {
@@ -236,18 +257,27 @@ function getPlayerLines(team: YfTeam, matchPlayers: IMatchPlayer[]): Result<Team
     return createSuccess(line);
 }
 
-function getScore(team: IMatchTeam): number {
-    return team.bonus_points +
-    (team.bonus_bounceback_points ?? 0) +
-    team.match_players.reduce((teamTotal, player) => teamTotal + player.answer_counts.reduce(
-        (playerTotal, answers) => playerTotal + (answers.number * answers.answer.value), 0),
-        0);
+function getScore(team: IMatchTeam, settings: TournamentSettings): number {
+  if(!team.match_players) {
+    return team.points ?? 0;
+  }
+  let score = team.match_players.reduce((teamTotal, player) => teamTotal + player.answer_counts.reduce(
+      (playerTotal, answers) => playerTotal + (answers.number * answers.answer.value), 0),
+      0);
+  if(isNaN(score)) { return 0; }
+
+  if(settings.bonuses) {
+    score += team.bonus_points ?? 0;
+    score += getBounceBackPoints(team, settings);
+  }
+  score += getLightningPoints(team, settings);
+  return score;
 }
 
 type LikeliestPlayer = { playerName: string, confidence: number };
 type LikeliestTeam = { team: YfTeam, confidence: number};
 
-// Taken from https://github.com/alopezlago/MODAQ/blob/master/src/qbj/QBJ.ts
+// Adapted from https://github.com/alopezlago/MODAQ/blob/master/src/qbj/QBJ.ts
 interface IMatch {
     tossups_read: number;
     overtime_tossups_read?: number; //(leave empty for now, until formats are more integrated)
@@ -269,11 +299,15 @@ interface IPlayer {
 
 interface IMatchTeam {
     team: ITeam;
-    bonus_points: number;
+    points?: number;
+    bonus_points?: number;
     bonus_bounceback_points?: number;
     match_players: IMatchPlayer[];
     lineups: ILineup[]; // Lineups seen. New entries happen when there are changes in the lineup
     forfeit_loss?: boolean;
+    correct_tossups_without_bonuses?: number;
+    lightning_points?: number;
+    lightning_bounceback_points?: number;
 }
 
 interface IMatchPlayer {

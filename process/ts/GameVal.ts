@@ -6,7 +6,7 @@ Code for validating game data
 ***********************************************************/
 
 import StatUtils = require('./StatUtils');
-import { YfGame, GameValidation, TournamentSettings, WhichTeam } from "./YfTypes";
+import { YfGame, GameValidation, TournamentSettings, WhichTeam, PlayerLine } from "./YfTypes";
 
 
 /**
@@ -132,6 +132,11 @@ export function validateGame(g: YfGame, settings: TournamentSettings): GameValid
       result.message = p + ' has heard more than ' + tuhtot + ' tossups';
       return result;
     }
+    if(anyNegativeBuzzes(players1[p])) {
+      result.type = 'error';
+      result.message = 'A player cannot hear or answer a negative number of tossups';
+      return result;
+    }
     const tuAnswered = players1[p].powers + players1[p].tens + players1[p].negs;
     if(players1[p].tuh < tuAnswered) {
       result.type = 'error';
@@ -145,6 +150,11 @@ export function validateGame(g: YfGame, settings: TournamentSettings): GameValid
     if(players2[p].tuh > tuhtot) {
       result.type = 'error';
       result.message = p + ' has heard more than ' + tuhtot + ' tossups';
+      return result;
+    }
+    if(anyNegativeBuzzes(players2[p])) {
+      result.type = 'error';
+      result.message = 'A player cannot hear or answer a negative number of tossups';
       return result;
     }
     const tuAnswered = players2[p].powers + players2[p].tens + players2[p].negs;
@@ -248,6 +258,12 @@ export function validateGame(g: YfGame, settings: TournamentSettings): GameValid
   const otNeg1 = g.otNeg1, otNeg2 = g.otNeg2;
   const ottu = g.ottu;
 
+  if(otPwr1 < 0 || otTen1 < 0 || otNeg1 < 0 || otPwr2 < 0 || otTen2 < 0 || otNeg2 < 0) {
+    result.type = 'error';
+    result.message = 'Negative numbers of questions answered are not allowed';
+    return result;
+  }
+
   if(otPwr1 + otTen1 + otNeg1 > ottu) {
     result.type = 'error';
     result.message = team1 + ' has more overtime buzzes than tossups heard';
@@ -332,3 +348,12 @@ export function validateGame(g: YfGame, settings: TournamentSettings): GameValid
 
   return result;
 }//validateGame
+
+/**
+ * Whether the player has negative numbers for any TU heard/answered field
+ * @param  line               player stats
+ * @return      boolean
+ */
+function anyNegativeBuzzes(line: PlayerLine) : boolean {
+  return line.powers < 0 || line.tens < 0 || line.negs < 0 || line.tuh < 0;
+}

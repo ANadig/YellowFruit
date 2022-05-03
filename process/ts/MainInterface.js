@@ -827,7 +827,7 @@ export class MainInterface extends React.Component {
       let fileString = fs.readFileSync(fileName, 'utf8');
       let result;
       if(fileString != '') {
-        result = SingleGameQBJImport.importGame(this.state.allTeams, fileString)
+        result = SingleGameQBJImport.importGame(this.state.allTeams, fileString, this.state.settings)
       }
 
       if (!result.success) {
@@ -838,7 +838,7 @@ export class MainInterface extends React.Component {
       if(this.state.defaultRound !== null) {
         result.result.round = this.state.defaultRound;
       }
-      // add current phase, if there is one 
+      // add current phase, if there is one
       if(this.state.viewingPhase != 'all' && this.state.viewingPhase != 'Tiebreakers') {
         result.result.phases = [this.state.viewingPhase];
       }
