@@ -72,7 +72,9 @@ export class GameList extends React.Component<GameListProps, {}>{
     const errors = this.props.errors;
     if(errors < 1) { return null; }
     const caption = errors == 1 ? 'Error' : 'Errors';
-    return ( <span className="new badge red darken-4" id="errors" onClick={this.badgeFilter}
+    const shade = this.props.activeBadgeFilter == 'warnings' ? 'lighten-4' : 'darken-4';
+    const active = this.props.activeBadgeFilter == 'errors' ? 'active' : '';
+    return ( <span className={`new badge red ${shade} ${active}`} id="errors" onClick={this.badgeFilter}
       title="Show only games with errors" data-badge-caption={caption}>{errors}</span> );
   }
 
@@ -83,7 +85,10 @@ export class GameList extends React.Component<GameListProps, {}>{
     const warnings = this.props.warnings;
     if(warnings < 1) { return null; }
     const caption = warnings == 1 ? 'Warning' : 'Warnings';
-    return ( <span className="new badge yellow accent-4 black-text" id="warnings" onClick={this.badgeFilter}
+    const shade = this.props.activeBadgeFilter == 'errors' ? 'lighten-4' : 'accent-4';
+    const textColor = this.props.activeBadgeFilter == 'errors' ? 'grey-text text-lighten-1' : 'black-text';
+    const active = this.props.activeBadgeFilter == 'warnings' ? 'active' : '';
+    return ( <span className={`new badge yellow ${shade} ${textColor} ${active}`} id="warnings" onClick={this.badgeFilter}
       title="Show only games with warnings" data-badge-caption={caption}>{warnings}</span> );
   }
 

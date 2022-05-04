@@ -180,3 +180,21 @@ export interface RptConfig {
   pPerN: boolean;
   gPerN: boolean;
 }
+
+/**
+ * A file that couldn't be imported, and the reason why
+ */
+export interface RejectedFile {
+  fileName: string;
+  message: string;
+}
+
+/**
+ * The results of importing a series of files 
+ */
+export interface ImportResult {
+  rejected: RejectedFile[];     // files that couldn't be imported
+  errors: number;               // number of files imported with errors
+  warnings: number;             // number of files imported with warnings
+  successes: number;            // number of files imported with no issues
+}

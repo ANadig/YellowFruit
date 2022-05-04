@@ -51,6 +51,7 @@ const SettingsForm = require('./SettingsForm');
 import { TeamList } from './TeamList';
 import { GameList} from './GameList';
 import { StatSidebar } from './StatSidebar';
+import { ImportSidebar } from './ImportSidebar';
 import { SidebarToggleButton } from './SidebarToggleButton';
 
 const MAX_PLAYERS_PER_TEAM = 50;
@@ -142,7 +143,8 @@ export class MainInterface extends React.Component {
       sidebarOpen: true, // whether the sidebar is visible
       reconstructSidebar: false, // used to force the sidebar to reload when any teams are modified
       defaultRound: 1,  // default round to use when creating a new game
-      badgeFilter: null // 'errors' or 'warnings' -- filter to games with validation issues
+      badgeFilter: null, // 'errors' or 'warnings' -- filter to games with validation issues
+      importResult: null // results of the most recent game import. ImportResult type.
     };
     this.openTeamModal = this.openTeamModal.bind(this);
     this.openGameModal = this.openGameModal.bind(this);
@@ -187,6 +189,7 @@ export class MainInterface extends React.Component {
     this.rptDeletionPrompt = this.rptDeletionPrompt.bind(this);
     this.filterByTeam = this.filterByTeam.bind(this);
     this.toggleSidebar = this.toggleSidebar.bind(this);
+    this.closeImportSidebar = this.closeImportSidebar.bind(this);
     this.saveRankOverrides = this.saveRankOverrides.bind(this);
     this.setDefaultRound = this.setDefaultRound.bind(this);
     this.changeBadgeFilter = this.changeBadgeFilter.bind(this);
@@ -601,7 +604,8 @@ export class MainInterface extends React.Component {
       selectedGames: [],
       reconstructSidebar: !this.state.reconstructSidebar,
       defaultRound: null,
-      badgeFilter: null
+      badgeFilter: null,
+      importResult: null
     });
     //the value of settingsLoadToggle doesn't matter; it just needs to change
     //in order to make the settings form load
@@ -796,7 +800,8 @@ export class MainInterface extends React.Component {
       activeRpt: this.state.defaultRpt,
       reconstructSidebar: !this.state.reconstructSidebar,
       defaultRound: null,
-      badgeFilter: null
+      badgeFilter: null,
+      importResult: null
     });
 
     this.loadGameIndex(yfGames, true);
@@ -825,6 +830,12 @@ export class MainInterface extends React.Component {
 
     let rejectedFiles = [];
     let acceptedGames = [];
+    let importResult = {
+      rejected: [],
+      errors: 0,
+      warnings: 0,
+      successes: 0
+    }
     for(const fileName of fileNameAry) {
       let filePathSegments = fileName.split(/[\\\/]/);
       let shortFileName = filePathSegments.pop();
@@ -835,7 +846,7 @@ export class MainInterface extends React.Component {
       }
 
       if (!result.success) {
-        rejectedFiles.push(shortFileName + ': ' + result.error);
+        importResult.rejected.push({fileName: shortFileName, message: result.error});
         continue;
       }
       // fill in round if we have one
@@ -862,18 +873,32 @@ export class MainInterface extends React.Component {
       }
       acceptedGames.push(result.result);
       this.validateGame(result.result, this.state.settings);
+      if(result.result.invalid) {
+        importResult.errors++;
+      }
+      else if (result.result.validationMsg) {
+        importResult.warnings++;
+      }
+      else {
+        importResult.successes++;
+      }
     }
     this.addGames(acceptedGames, false);
     ipc.sendSync('unsavedData');
 
-    let rejectionString='';
-    if(rejectedFiles.length > 0) {
-      rejectionString = '\n\nRejected the following ' + rejectedFiles.length + ' files:\n';
-      rejectionString += rejectedFiles.join('\n');
-    }
-    ipc.sendSync('genericModal', 'info', 'Game import',
-      'Imported ' + acceptedGames.length + ' games.' + rejectionString);
-    return;
+    this.setState({
+      importResult: importResult,
+      sidebarOpen: true
+    });
+
+    // let rejectionString='';
+    // if(rejectedFiles.length > 0) {
+    //   rejectionString = '\n\nRejected the following ' + rejectedFiles.length + ' files:\n';
+    //   rejectionString += rejectedFiles.join('\n');
+    // }
+    // ipc.sendSync('genericModal', 'info', 'Game import',
+    //   'Imported ' + acceptedGames.length + ' games.' + rejectionString);
+
   }
 
   /**
@@ -1189,7 +1214,8 @@ export class MainInterface extends React.Component {
       activeRpt: this.state.defaultRpt,
       reconstructSidebar: !this.state.reconstructSidebar,
       defaultRound: 1,
-      badgeFilter: null
+      badgeFilter: null,
+      importResult: null
       // DO NOT reset these! These should persist throughout the session
       // releasedRptList: ,
       // customRptList: ,
@@ -1794,6 +1820,15 @@ export class MainInterface extends React.Component {
     this.setState({
       sidebarOpen: !this.state.sidebarOpen
     })
+  }
+
+  /**
+   * Remove the import results from the sidebar (and go back to the normal stats sidebar)
+   */
+  closeImportSidebar() {
+    this.setState({
+      importResult: null
+    });
   }
 
   /*---------------------------------------------------------
@@ -2683,7 +2718,6 @@ export class MainInterface extends React.Component {
       }, 'asc');
     }
 
-    //make a react element for each item in the lists
     filteredTeams=filteredTeams.map(function(item, index) {
       return(
         <TeamListEntry key = {item.teamName + this.state.checkTeamToggle}
@@ -2699,7 +2733,7 @@ export class MainInterface extends React.Component {
           activeInPhase = {this.teamBelongsToCurrentPhase(item)}
         />
       )
-    }.bind(this)); //filteredTeams.map
+    }.bind(this));
     filteredGames=filteredGames.map(function(item, index) {
       return(
         <GameListEntry key = {index + this.state.checkGameToggle}
@@ -2714,20 +2748,28 @@ export class MainInterface extends React.Component {
           settings = {this.state.settings}
         />
       )
-    }.bind(this)); //filteredGames.map
+    }.bind(this));
 
     // need to make a deep copy of this object
     // to prevent player stats from updating before I tell them to
-    var gameToLoadCopy = this.state.editWhichGame == null ? null : $.extend(true, {}, this.state.editWhichGame);
+    const gameToLoadCopy = this.state.editWhichGame == null ? null : $.extend(true, {}, this.state.editWhichGame);
 
-    var mainWindowClass = this.state.sidebarOpen ? 'col s12 l8' : 'col s12';
+    const mainWindowClass = this.state.sidebarOpen ? 'col s12 l8' : 'col s12';
 
-    var sidebar = null;
+    var sidebar = null, sidebarContent;
     if(this.state.sidebarOpen) {
-      let standings = StatUtils.compileStandings(allTeams, allGames, this.state.viewingPhase,
-        phasesToGroupBy, this.state.settings, rptObj, this.state.allGamesShowTbs)
-      sidebar = (
-        <div id="stat-sidebar" className="col l4 s0">
+      if(this.state.importResult) {
+        sidebarContent = (
+          <ImportSidebar
+            results = {this.state.importResult}
+            close = {this.closeImportSidebar}
+          />
+        );
+      }
+      else {
+        let standings = StatUtils.compileStandings(allTeams, allGames, this.state.viewingPhase,
+          phasesToGroupBy, this.state.settings, rptObj, this.state.allGamesShowTbs)
+        sidebarContent = (
           <StatSidebar key={this.state.reconstructSidebar}
             visible = {this.state.sidebarOpen}
             standings = {standings}
@@ -2740,8 +2782,9 @@ export class MainInterface extends React.Component {
             filterByTeam = {this.filterByTeam}
             saveRankOverrides = {this.saveRankOverrides}
           />
-        </div>
-      );
+        );
+      }
+      sidebar = ( <div id="sidebar" className="col l4 s0">{sidebarContent}</div> );
     }
 
     return(
