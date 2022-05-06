@@ -131,7 +131,7 @@ const IMPORT_SUBMENU = [
   {
     label: 'Import Games (QBJ 2.1)',
     accelerator: 'CmdOrCtrl+H',
-    click(item, focusedWindow) { importQbjSingleGame(); }
+    click(item, focusedWindow) { importQbjSingleGames(); }
   }
 ];
 const YF_MENU = {
@@ -587,7 +587,7 @@ function importNeg5() {
  * Prompt the user to select one or more QBJ files to import games from. Each file should be a JSON
  * representation of a tournament schema "match" object
  */
- function importQbjSingleGame() {
+ function importQbjSingleGames() {
   if(!mainWindow) { return; }
   let fileNameAry = dialog.showOpenDialogSync(mainWindow,
     {
@@ -596,7 +596,7 @@ function importNeg5() {
     }
   );
   if(fileNameAry !== undefined) {
-    mainWindow.webContents.send('importQbjSingleGame', fileNameAry);
+    mainWindow.webContents.send('importQbjSingleGames', fileNameAry);
   }
 }
 
@@ -745,7 +745,10 @@ app.on('ready', function() {
     show: false,
     title: 'YellowFruit - New Tournament',
     icon: APP_ICON,
-    webPreferences: { nodeIntegration: true, enableRemoteModule: true, contextIsolation: false }
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    }
   }); //appWindow
 
   mainWindow = appWindow;

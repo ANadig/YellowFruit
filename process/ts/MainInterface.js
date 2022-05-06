@@ -193,6 +193,7 @@ export class MainInterface extends React.Component {
     this.saveRankOverrides = this.saveRankOverrides.bind(this);
     this.setDefaultRound = this.setDefaultRound.bind(this);
     this.changeBadgeFilter = this.changeBadgeFilter.bind(this);
+    this.importGamesFromFileList = this.importGamesFromFileList.bind(this);
   }
 
   /**
@@ -262,8 +263,8 @@ export class MainInterface extends React.Component {
     ipc.on('importNeg5', (event, fileName) => {
       this.importNeg5(fileName);
     });
-    ipc.on('importQbjSingleGame', (event, fileName) => {
-      this.importQbjSingleGame(fileName);
+    ipc.on('importQbjSingleGames', (event, filePaths) => {
+      this.importQbjGamesFromFilePaths(filePaths);
     });
     ipc.on('mergeTournament', (event, fileName) => {
       this.mergeTournament(fileName);
@@ -337,7 +338,7 @@ export class MainInterface extends React.Component {
     ipc.removeAllListeners('openTournament');
     ipc.removeAllListeners('importRosters');
     ipc.removeAllListeners('importNeg5');
-    ipc.removeAllListeners('importQbjSingleGame');
+    ipc.removeAllListeners('importQbjSingleGames');
     ipc.removeAllListeners('mergeTournament');
     ipc.removeAllListeners('saveExistingTournament');
     ipc.removeAllListeners('newTournament');
@@ -812,11 +813,26 @@ export class MainInterface extends React.Component {
   }
 
   /**
-   * Compile and write data for the html stat report.
-   * @param  {string} fileNameAry array of file paths
+   * Process file paths provided by the main process to give to importQbjSingleGames
+   * @param  {string[]} filePaths               list of full file paths
    */
-  importQbjSingleGame(fileNameAry) {
-    if(!fileNameAry || fileNameAry.length < 1) {
+  importQbjGamesFromFilePaths(filePaths) {
+    console.log('here');
+    let fileObjs = [];
+    for(const path of filePaths) {
+      const filePathSegments = path.split(/[\\\/]/);
+      fileObjs.push({file: path, name: filePathSegments.pop()});
+    }
+    this.importQbjSingleGames(fileObjs, this.readDataFromFile);
+  }
+
+  /**
+   * Compile and write data for the html stat report.
+   * @param  {ImportableGame[]} gameFiles array of files, either file paths or base64 encodings of their contents
+   * @param  {(string) => string} readFile
+   */
+  importQbjSingleGames(gameFiles, readFile) {
+    if(!gameFiles || gameFiles.length < 1) {
       ipc.sendSync('genericModal', 'error', 'Game import',
         'Game import failed:\n\n no files specified.');
       return;
@@ -836,13 +852,12 @@ export class MainInterface extends React.Component {
       warnings: 0,
       successes: 0
     }
-    for(const fileName of fileNameAry) {
-      let filePathSegments = fileName.split(/[\\\/]/);
-      let shortFileName = filePathSegments.pop();
-      let fileString = fs.readFileSync(fileName, 'utf8');
+    for(const file of gameFiles) {
+      const fileContents = readFile(file.file);
+      const shortFileName = file.name;
       let result;
-      if(fileString != '') {
-        result = SingleGameQBJImport.importGame(this.state.allTeams, fileString, this.state.settings)
+      if(fileContents != '') {
+        result = SingleGameQBJImport.importGame(this.state.allTeams, fileContents, this.state.settings)
       }
 
       if (!result.success) {
@@ -890,15 +905,52 @@ export class MainInterface extends React.Component {
       importResult: importResult,
       sidebarOpen: true
     });
+  }
 
-    // let rejectionString='';
-    // if(rejectedFiles.length > 0) {
-    //   rejectionString = '\n\nRejected the following ' + rejectedFiles.length + ' files:\n';
-    //   rejectionString += rejectedFiles.join('\n');
-    // }
-    // ipc.sendSync('genericModal', 'info', 'Game import',
-    //   'Imported ' + acceptedGames.length + ' games.' + rejectionString);
+  /**
+   * Return a string with a file's data, given its path.
+   * @param  {string} filePath               full file path
+   * @return {string}          file contents
+   */
+  readDataFromFile(filePath) {
+    return fs.readFileSync(filePath, 'utf8');
+  }
 
+  /**
+   * Return a string with a file's data, given its base64 Data URL
+   * @param  {string} data               base64-encoded Data URL
+   * @return {string}      plain-text contents of the file
+   */
+  readDataFromDataURL(data) {
+    const contents = data.replace(/data.+,/, '');
+    return atob(contents);
+  }
+
+  /**
+   * Read the contents of the specified files so their games can be imported.
+   * @param  {FileList} files               list of File objects
+   */
+  importGamesFromFileList(files) {
+    let filesToImport = [], validFileCount = 0;
+    for(let i = 0; i < files.length; i++) {
+      if(files[i].name && files[i].name.endsWith('.qbj')) {
+        validFileCount++;
+      }
+    }
+    for(let i = 0; i < files.length; i++) {
+      const shortName = files[i].name;
+      if(!shortName || !shortName.endsWith('.qbj')) {
+        continue;
+      }
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+          filesToImport.push({file: reader.result, name: shortName});
+          if(filesToImport.length == validFileCount) {
+            this.importQbjSingleGames(filesToImport, this.readDataFromDataURL);
+          }
+        }, false);
+      reader.readAsDataURL(files[i]);
+    }
   }
 
   /**
@@ -2904,6 +2956,7 @@ export class MainInterface extends React.Component {
                 warnings = {warnings}
                 changeBadgeFilter = {this.changeBadgeFilter}
                 activeBadgeFilter = {this.state.badgeFilter}
+                importGames = {this.importGamesFromFileList}
               />
               <SidebarToggleButton
                 toggle = {this.toggleSidebar}

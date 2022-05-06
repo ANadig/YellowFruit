@@ -21,17 +21,28 @@ interface GameListProps {
   warnings: number;             // number of valid games with validation messages
   changeBadgeFilter: (badge: string) => void; // filter to all errors or warnings
   activeBadgeFilter: 'errors' | 'warnings'   // which badge filter is currently active
+  importGames: (files: FileList) => void; // send game files to the main interfact to import
 }
 
-export class GameList extends React.Component<GameListProps, {}>{
+interface GameListState {
+  dragging: boolean;           // track when something is being dragged over the component
+}
+
+export class GameList extends React.Component<GameListProps, GameListState>{
 
   readonly MAX_ALLOWED_GAMES = 900; // PACE NSC is something like 770-780 games.
 
   constructor(props: GameListProps) {
     super(props);
+    this.state = { dragging: false };
     this.addGame = this.addGame.bind(this);
     this.handleRoundChange = this.handleRoundChange.bind(this);
     this.badgeFilter = this.badgeFilter.bind(this);
+    this.onDragEnter = this.onDragEnter.bind(this);
+    this.onDragOver = this.onDragOver.bind(this);
+    this.onDragLeave = this.onDragLeave.bind(this);
+    this.onDrop = this.onDrop.bind(this);
+    this.badDrop = this.badDrop.bind(this);
   }
 
   /**
@@ -133,6 +144,79 @@ export class GameList extends React.Component<GameListProps, {}>{
     return '';
   }
 
+  /**
+   * Called when something starts being dragged over the element
+   * @param   e               event
+   */
+  onDragEnter(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    const enteredFrom: Element = e.relatedTarget as Element;
+    if(enteredFrom === null || enteredFrom.id == 'main-window') {
+      this.setState({
+        dragging: true
+      });
+    }
+  }
+
+  /**
+   * Called while something is being dragged over the element
+   * @param   e               event
+   */
+  onDragOver(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+  }
+
+  /**
+   * Called when something stops being dragged over the element
+   * @param   e               event
+   */
+  onDragLeave(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    if(!this.state.dragging) { return; }
+    const leftTo: Element = e.relatedTarget as Element;
+    if(leftTo === null || leftTo.id == 'main-window') {
+      this.setState({
+        dragging: false
+      });
+    }
+  }
+
+  /**
+   * Called when something is dropped on the element
+   * @param   e               event
+   */
+  onDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    this.setState({
+      dragging: false
+    });
+    const fileList = e.dataTransfer.files;
+    if(fileList) {
+      this.props.importGames(fileList);
+    }
+  }
+
+  /**
+   * If the files are dropped somewher other than the box, do nothing.
+   */
+  badDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    this.setState({
+      dragging: false
+    });
+  }
+
+  /**
+   * Area into which you can drop qbj game files.
+   */
+  getDropTargetBox(): JSX.Element {
+    if(!this.state.dragging) { return null; }
+    return (
+      <div className="game-drop-target-box" onDrop={this.onDrop}>
+         <i className="material-icons">add_box</i> Drop games here!
+      </div> );
+  }
+
   render () {
     if (this.props.whichPaneActive != YfPane.Games) {
       return null;
@@ -174,7 +258,8 @@ export class GameList extends React.Component<GameListProps, {}>{
       );
     }
     return(
-      <div className="container">
+      <div className="container" onDragEnter={this.onDragEnter} onDragOver={this.onDragOver}
+        onDragLeave={this.onDragLeave} onDrop={this.badDrop}>
         <div className="list-header">
         </div>
         <div className="game-list-header">
@@ -196,6 +281,7 @@ export class GameList extends React.Component<GameListProps, {}>{
         </div>
 
         <br/>
+        {this.getDropTargetBox()}
 
         <ul className="collection game-list">{this.props.gameList}</ul>
         <div className="fixed-action-btn btn-floating-div">

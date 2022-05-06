@@ -190,11 +190,19 @@ export interface RejectedFile {
 }
 
 /**
- * The results of importing a series of files 
+ * The results of importing a series of files
  */
 export interface ImportResult {
   rejected: RejectedFile[];     // files that couldn't be imported
   errors: number;               // number of files imported with errors
   warnings: number;             // number of files imported with warnings
   successes: number;            // number of files imported with no issues
+}
+
+/**
+ * Information about a qbj file that containts a game
+ */
+export interface ImportableGame {
+  file: string;                 // either the full file path, or its base64-encoded contents
+  fileName: string;             // file name
 }

@@ -81,7 +81,7 @@ export class ImportSidebar extends React.Component<ImportSidebarProps, {}>{
         <h6>Lookin' Good!</h6>
         <p>{`Successfully imported ${successes} game${plural}`}</p>
         <div className="import-success-img">
-          <img src="success-banana.png" width="90" height="218"/><br/><br/>
+          <img src="success-banana.png" width="71" height="175"/><br/><br/>
         </div>
       </div>
     );

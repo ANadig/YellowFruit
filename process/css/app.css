@@ -738,6 +738,19 @@ nav .btn-flat {
   width: 40px !important;
 }
 
+.game-drop-target-box {
+  padding: 50px 0;
+  margin-bottom: 5px;
+  text-align: center;
+  background-color: #ffecb3;
+  border: 3px dashed black;
+  border-radius: 15px;
+}
+
+.game-drop-target-box i {
+  vertical-align: bottom;
+}
+
 .collection.game-list {
   margin-top: 0;
 }
