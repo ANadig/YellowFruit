@@ -817,7 +817,6 @@ export class MainInterface extends React.Component {
    * @param  {string[]} filePaths               list of full file paths
    */
   importQbjGamesFromFilePaths(filePaths) {
-    console.log('here');
     let fileObjs = [];
     for(const path of filePaths) {
       const filePathSegments = path.split(/[\\\/]/);
@@ -905,6 +904,10 @@ export class MainInterface extends React.Component {
       importResult: importResult,
       sidebarOpen: true
     });
+    // if the user only imported one game, and that game has issues, open the form so that they can fix it
+    if(gameFiles.length == 1 && acceptedGames.length == 1 && !importResult.successes) {
+      this.openGameModal('edit', acceptedGames[0]);
+    }
   }
 
   /**
@@ -931,9 +934,10 @@ export class MainInterface extends React.Component {
    * @param  {FileList} files               list of File objects
    */
   importGamesFromFileList(files) {
+    console.log(files);
     let filesToImport = [], validFileCount = 0;
     for(let i = 0; i < files.length; i++) {
-      if(files[i].name && files[i].name.endsWith('.qbj')) {
+      if(files[i].name && (files[i].name.endsWith('.qbj') || files[i].name.endsWith('.json'))) {
         validFileCount++;
       }
     }

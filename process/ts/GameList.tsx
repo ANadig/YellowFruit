@@ -174,7 +174,6 @@ export class GameList extends React.Component<GameListProps, GameListState>{
     e.preventDefault();
     if(!this.state.dragging) { return; }
     const leftTo: Element = e.relatedTarget as Element;
-    console.log(leftTo);
     if(leftTo === null || leftTo.id == 'main-window' || leftTo.id == 'sidebar') {
       this.setState({
         dragging: false
