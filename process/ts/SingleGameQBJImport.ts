@@ -225,13 +225,22 @@ function getPlayerLines(team: YfTeam, matchPlayers: IMatchPlayer[]): Result<Team
         const playerNameResult: LikeliestPlayer = getLikeliestPlayer(playerNames, matchPlayerName);
         if (playerNameResult.confidence < confidenceThreshold) {
             return createFailure(`Couldn't find player with name '${matchPlayerName}' on team '${team.teamName}'`);
-        } else if (line[playerNameResult.playerName] != undefined) {
-            return createFailure(`Duplicate player '${playerNameResult.playerName}' on team '${team.teamName}'. Was looking for a player named '${matchPlayerName}'`);
         }
 
+        // Merge the player if they have a duplicated entry in match_players
         let negs = 0;
         let powers = 0;
         let tens = 0;
+        let tuh = 0;
+        if (line[playerNameResult.playerName] != undefined) {
+            const existingPlayer = line[playerNameResult.playerName];
+            negs = existingPlayer.negs;
+            powers = existingPlayer.powers;
+            tens = existingPlayer.tens;
+            tuh = existingPlayer.tuh;
+        }
+
+        tuh += matchPlayer.tossups_heard;
         for (const answer of matchPlayer.answer_counts) {
             const pointValue = answer.answer.value;
             if (pointValue > 10) {
@@ -248,7 +257,7 @@ function getPlayerLines(team: YfTeam, matchPlayers: IMatchPlayer[]): Result<Team
             negs,
             powers,
             tens,
-            tuh: matchPlayer.tossups_heard
+            tuh
         };
     }
 

@@ -939,7 +939,7 @@ export class MainInterface extends React.Component {
     }
     for(let i = 0; i < files.length; i++) {
       const shortName = files[i].name;
-      if(!shortName || !shortName.endsWith('.qbj')) {
+      if(!shortName || (!shortName.endsWith('.qbj') && !shortName.endsWith('.json'))) {
         continue;
       }
       const reader = new FileReader();
