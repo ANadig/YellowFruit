@@ -827,9 +827,9 @@ export class MainInterface extends React.Component {
   }
 
   /**
-   * Compile and write data for the html stat report.
+   * Import single-game qbj files.
    * @param  {ImportableGame[]} gameFiles array of files, either file paths or base64 encodings of their contents
-   * @param  {(string) => string} readFile
+   * @param  {(string) => string} readFile  function to process the file into a JSON string
    */
   importQbjSingleGames(gameFiles, readFile) {
     if(!gameFiles || gameFiles.length < 1) {

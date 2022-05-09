@@ -174,7 +174,8 @@ export class GameList extends React.Component<GameListProps, GameListState>{
     e.preventDefault();
     if(!this.state.dragging) { return; }
     const leftTo: Element = e.relatedTarget as Element;
-    if(leftTo === null || leftTo.id == 'main-window') {
+    console.log(leftTo);
+    if(leftTo === null || leftTo.id == 'main-window' || leftTo.id == 'sidebar') {
       this.setState({
         dragging: false
       });
@@ -232,7 +233,10 @@ export class GameList extends React.Component<GameListProps, GameListState>{
     // zero-state display for when there are no games.
     if(this.props.gameList.length == 0) {
       let message: string;
-      if(this.props.numberOfTeams < 2) {
+      if(this.state.dragging) {
+        message = 'Drop games here!';
+      }
+      else if(this.props.numberOfTeams < 2) {
         message = 'Add more teams to get started';
       }
       else if(this.props.totalGames == 0) {
@@ -241,11 +245,25 @@ export class GameList extends React.Component<GameListProps, GameListState>{
       else { //there are games, but they've all been excluded based on the search
         message = 'Your search did not match any games'
       }
+      let imageFile: string, imageWidth: number, imageHeight: number, zeroStateClass: string;
+      if(this.state.dragging) {
+        imageFile = 'banana-drop.png';
+        imageWidth = 83;
+        imageHeight = 135;
+        zeroStateClass = 'zero-state-drop-target';
+      }
+      else {
+        imageFile = 'banana-bunch.png';
+        imageWidth = 80;
+        imageHeight = 55;
+        zeroStateClass = 'zero-state-container';
+      }
       return (
-        <div className="zero-state-container">
+        <div className={zeroStateClass} onDragEnter={this.onDragEnter} onDragOver={this.onDragOver}
+          onDragLeave={this.onDragLeave} onDrop={this.onDrop}>
           {this.selectedCounter()}
           <div className="qb-zero-state">
-            <img src="banana-bunch.png" width="80" height="55"/><br/><br/>
+            <img src={imageFile} width={imageWidth} height={imageHeight}/><br/><br/>
             <h6>{message}</h6>
           </div>
           <div className="fixed-action-btn btn-floating-div">

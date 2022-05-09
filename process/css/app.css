@@ -599,8 +599,21 @@ nav .btn-flat {
   height: 85%;
 }
 
-.qb-zero-state {
+.zero-state-container .qb-zero-state {
   padding-top: 37vh;
+  text-align: center;
+}
+
+.zero-state-drop-target {
+  margin: 10px;
+  height: 85%;
+  background-color: #ffecb3;
+  border: 3px dashed black;
+  border-radius: 70px;
+}
+
+.zero-state-drop-target .qb-zero-state {
+  padding-top: 28vh;
   text-align: center;
 }
 
