@@ -76,7 +76,10 @@ export class GameListEntry extends React.Component<GameListEntryProps, GameListE
    * @return something like "Round 2: West 305, Central 300 (OT)"
    */
   getScoreString(): string {
-    let output = `Round ${this.props.game.round}: `;
+    let output: string;
+    let round = this.props.game.round;
+    if(round === null || round === undefined) { output = '(No round) '; }
+    else { output = `Round ${round}: `; }
     if(this.props.game.forfeit) {
       return `${output}${this.props.game.team1} defeats ${this.props.game.team2} by forfeit`;
     }
@@ -172,6 +175,33 @@ export class GameListEntry extends React.Component<GameListEntryProps, GameListE
       lineScore = this.getTeamLineScore(1) + '; ' + this.getTeamLineScore(2);
     }
 
+    // "notes" field
+    let commentDisplay = null, notes = this.props.game.notes;
+    if(notes && notes.trim().length > 0) {
+      commentDisplay = ( <div className="game-comment"><em>{this.props.game.notes}</em></div> );
+    }
+
+    // validation messages
+    let validationDisplay = null;
+    const validationMsg = this.props.game.validationMsg;
+    let errorIcon = null;
+    if(validationMsg) {
+      if(this.props.game.invalid) {
+        errorIcon = (
+          <i className="material-icons red-text text-darken-4 qb-modal-error"
+            title="This game does not appear in stat reports and is not exportable to other formats">
+            error</i>
+        )
+      }
+      else {
+        errorIcon = ( <i className="material-icons yellow-text text-accent-4 qb-modal-error">warning</i> );
+      }
+    }
+    if(errorIcon) {
+      validationDisplay = (
+        <div className="game-list-validation-msg">{errorIcon} {validationMsg}</div> );
+    }
+
     return(
       <a className="collection-item" onDoubleClick={this.editGame}>
         <div>
@@ -185,7 +215,8 @@ export class GameListEntry extends React.Component<GameListEntryProps, GameListE
           <button className="secondary-content btn-flat item-delete" title="Delete this game" onClick={this.handleDelete}>
           <i className="material-icons">delete</i></button>
           <br/><span className="game-line-score">{lineScore}</span>
-          <br/><span className="game-comment"><em>{this.props.game.notes}</em></span>
+          {commentDisplay}
+          {validationDisplay}
         </div>
       </a>
     );

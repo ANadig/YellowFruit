@@ -8,11 +8,9 @@ which holds everything else within it
 ***********************************************************/
 
 import * as React from "react";
-import * as ReactDOM from "react-dom";
+import * as ReactDOM from "react-dom/client";
 
 import { MainInterface } from "./MainInterface";
 
-ReactDOM.render(
-  <MainInterface/>,
-  document.getElementById('statsInterface')
-);
+const root = ReactDOM.createRoot(document.getElementById('statsInterface'));
+root.render(<MainInterface/>);

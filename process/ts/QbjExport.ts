@@ -1,5 +1,5 @@
 /***********************************************************
-QbjUtils2.ts
+QbjExport.ts
 Andrew Nadig
 
 Functions for writing QBJ 2.0 files
@@ -229,6 +229,7 @@ function assignRoundsToPhases(games: YfGame[]): { [round: number]: string } {
   let roundGameCounts = {};
   let roundPhaseAssmnts = {};
   for(let g of games) {
+    if(g.invalid) { continue; }
     const round = g.round;
     if(roundGameCounts[round] == undefined) { roundGameCounts[round] = {}; }
     for(let phase of g.phases) {
@@ -273,6 +274,7 @@ function getMatches(games: YfGame[], roundPhases: { [round: number]: string },
   let matchObjs = [];
   let idsByRound = {};
   for(let g of games) {
+    if(g.invalid) { continue; }
     const round = g.round, team1 = g.team1, team2 = g.team2;
     const id = `Match_${round}_${team1}_${team2}`;
     if(idsByRound[round] == undefined) {

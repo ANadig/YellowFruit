@@ -10,15 +10,33 @@ const _ = require('lodash');
 const M = require('materialize-css');
 const Mousetrap = require('mousetrap');
 
-// const ipc = electron.ipcRenderer;
-const ipc = window.ipcRenderer;
+// see https://github.com/electron/electron/issues/9920#issuecomment-606581361
+const fs = eval("require('fs')");
+const Path = eval("require('path')");
+const { ipcRenderer } = eval("require('electron')");
+const ipc = ipcRenderer;
+
+const APPDATA_DIR = ipc.sendSync('get-appdata-dir');
+const ROOT_DIR = ipc.sendSync('get-root-dir');
+
+const RELEASED_RPT_CONFIG_FILE = Path.resolve(ROOT_DIR, 'data', 'ReleasedRptConfig.json');
+const CUSTOM_RPT_CONFIG_FILE_DEV = Path.resolve(ROOT_DIR, 'data', 'CustomRptConfig.json');
+const CUSTOM_RPT_CONFIG_FILE_PROD = Path.resolve(APPDATA_DIR, 'YellowFruit', 'CustomRptConfig.json');
+const DEF_STANDINGS_FILE = Path.resolve(ROOT_DIR, 'app', 'standings.html');
+const DEF_INDIVIDUALS_FILE = Path.resolve(ROOT_DIR, 'app', 'individuals.html');
+const DEF_SCOREBOARD_FILE = Path.resolve(ROOT_DIR, 'app', 'games.html');
+const DEF_TEAMDETAIL_FILE = Path.resolve(ROOT_DIR, 'app', 'teamdetail.html');
+const DEF_PLAYERDETAIL_FILE = Path.resolve(ROOT_DIR, 'app', 'playerdetail.html');
+const DEF_ROUNDREPORT_FILE = Path.resolve(ROOT_DIR, 'app', 'rounds.html');
 
 import * as React from "react";
 import * as SqbsUtils from './SqbsUtils';
 const StatUtils = require('./StatUtils');
 import * as StatUtils2 from './StatUtils2';
-import * as QbjUtils from './QbjUtils';
-import * as QbjUtils2 from './QbjUtils2';
+import * as Neg5Import from './Neg5Import';
+import * as QbjExport from './QbjExport';
+import * as SingleGameQBJImport from './SingleGameQBJImport';
+import * as GameVal from './GameVal';
 // Bring in all the other React components
 import { TeamListEntry } from './TeamListEntry';
 import { GameListEntry } from './GameListEntry';
@@ -33,10 +51,12 @@ const SettingsForm = require('./SettingsForm');
 import { TeamList } from './TeamList';
 import { GameList} from './GameList';
 import { StatSidebar } from './StatSidebar';
+import { ImportSidebar } from './ImportSidebar';
 import { SidebarToggleButton } from './SidebarToggleButton';
 
 const MAX_PLAYERS_PER_TEAM = 50;
-const METADATA = { version: ipc.sendSync('getAppVersion') }; // take version straight from package.json
+var appVersion = ipc.sendSync('get-app-version');
+const METADATA = { version: appVersion }; // take version straight from package.json
 const DEFAULT_SETTINGS = {
   powers: '15pts',
   negs: true,
@@ -89,8 +109,8 @@ export class MainInterface extends React.Component {
       packets: {}, // packet names
       divisions: {}, // object where the keys are phases, and their values are the list
                      // of divisions in that phase
-      myTeams: [], // the list of teams
-      myGames: [], // the list of games
+      allTeams: [], // the list of teams
+      allGames: [], // the list of games
       gameIndex: {}, // the list of rounds, and how many games exist for that round
       playerIndex: {}, // the list of teams with their players, and how many games each player has played
       tbCount: 0, // number of tiebreaker games in the current tournament
@@ -121,7 +141,10 @@ export class MainInterface extends React.Component {
       activeRpt: SYS_DEFAULT_RPT_NAME, // which report configuration is currently being used
       formSettings: defFormSettingsCopy, // which optional entry fields to turn on or off
       sidebarOpen: true, // whether the sidebar is visible
-      reconstructSidebar: false // used to force the sidebar to reload when any teams are modified
+      reconstructSidebar: false, // used to force the sidebar to reload when any teams are modified
+      defaultRound: 1,  // default round to use when creating a new game
+      badgeFilter: null, // 'errors' or 'warnings' -- filter to games with validation issues
+      importResult: null // results of the most recent game import. ImportResult type.
     };
     this.openTeamModal = this.openTeamModal.bind(this);
     this.openGameModal = this.openGameModal.bind(this);
@@ -166,7 +189,11 @@ export class MainInterface extends React.Component {
     this.rptDeletionPrompt = this.rptDeletionPrompt.bind(this);
     this.filterByTeam = this.filterByTeam.bind(this);
     this.toggleSidebar = this.toggleSidebar.bind(this);
+    this.closeImportSidebar = this.closeImportSidebar.bind(this);
     this.saveRankOverrides = this.saveRankOverrides.bind(this);
+    this.setDefaultRound = this.setDefaultRound.bind(this);
+    this.changeBadgeFilter = this.changeBadgeFilter.bind(this);
+    this.importGamesFromFileList = this.importGamesFromFileList.bind(this);
   }
 
   /**
@@ -233,8 +260,11 @@ export class MainInterface extends React.Component {
     ipc.on('importRosters', (event, fileName) =>  {
       this.importRosters(fileName);
     });
-    ipc.on('importQbj', (event, fileName) => {
-      this.importQbj(fileName);
+    ipc.on('importNeg5', (event, fileName) => {
+      this.importNeg5(fileName);
+    });
+    ipc.on('importQbjSingleGames', (event, filePaths) => {
+      this.importQbjGamesFromFilePaths(filePaths);
     });
     ipc.on('mergeTournament', (event, fileName) => {
       this.mergeTournament(fileName);
@@ -307,7 +337,8 @@ export class MainInterface extends React.Component {
     ipc.removeAllListeners('saveTournamentAs');
     ipc.removeAllListeners('openTournament');
     ipc.removeAllListeners('importRosters');
-    ipc.removeAllListeners('importQbj');
+    ipc.removeAllListeners('importNeg5');
+    ipc.removeAllListeners('importQbjSingleGames');
     ipc.removeAllListeners('mergeTournament');
     ipc.removeAllListeners('saveExistingTournament');
     ipc.removeAllListeners('newTournament');
@@ -388,8 +419,8 @@ export class MainInterface extends React.Component {
       JSON.stringify(this.state.packets) + '\n' +
       JSON.stringify(tempSettings) + '\n' +
       JSON.stringify(this.state.divisions) + '\n' +
-      JSON.stringify(this.state.myTeams) + '\n' +
-      JSON.stringify(this.state.myGames);
+      JSON.stringify(this.state.allTeams) + '\n' +
+      JSON.stringify(this.state.allGames);
 
     new Promise(function(resolve, reject) {
       resolve(fs.writeFileSync(fileName, fileString, 'utf8', StatUtils2.printError));
@@ -430,6 +461,7 @@ export class MainInterface extends React.Component {
     else { tempIndex = this.state.gameIndex; }
     for(var i in loadGames) {
       round = loadGames[i].round;
+      if(round === null || round === undefined) { continue; }
       if(tempIndex[round] == undefined) {
         tempIndex[round] = 1;
       }
@@ -475,11 +507,12 @@ export class MainInterface extends React.Component {
     });
   }
 
-  /*---------------------------------------------------------
-  Load the tournament data from fileName into the appropriate
-  state variables. The user may now begin editing this
-  tournament.
-  ---------------------------------------------------------*/
+  /**
+   * Load the tournament data from fileName into the appropriate
+   * state variables. The user may now begin editing this
+   * tournament.
+   * @param  {string} fileName   path to the yft file
+   */
   loadTournament(fileName) {
     if(fileName == null || !fileName.endsWith('.yft')) { return; }
     var [loadMetadata, loadPackets, loadSettings, loadDivisions, loadTeams, loadGames] = this.parseFile(fileName);
@@ -535,13 +568,20 @@ export class MainInterface extends React.Component {
     if(StatUtils2.versionLt(loadMetadata.version, '2.5.2')) {
       StatUtils2.gameConversion2x5x2(loadGames);
     }
+    if(StatUtils2.versionLt(loadMetadata.version, '3.0.0')) {
+      StatUtils2.gameConversion3x0x0(loadGames);
+    }
     //revert to system defaults if we can't find this file's report configuration
     if(this.state.releasedRptList[assocRpt] == undefined && this.state.customRptList[assocRpt] == undefined) {
       assocRpt = SYS_DEFAULT_RPT_NAME;
     }
 
+    // misc game-related tasks
     var tbCount = 0;
-    for(var i in loadGames) { tbCount += loadGames[i].tiebreaker; }
+    for(let g of loadGames) {
+      tbCount += g.tiebreaker;
+      this.validateGame(g, loadSettings);
+    }
 
     ipc.sendSync('setWindowTitle',
       fileName.substring(fileName.lastIndexOf('\\')+1, fileName.lastIndexOf('.')));
@@ -551,8 +591,8 @@ export class MainInterface extends React.Component {
       settings: loadSettings,
       packets: loadPackets,
       divisions: loadDivisions,
-      myTeams: loadTeams,
-      myGames: loadGames,
+      allTeams: loadTeams,
+      allGames: loadGames,
       tbCount: tbCount,
       allGamesShowTbs: false,
       settingsLoadToggle: !this.state.settingsLoadToggle,
@@ -563,7 +603,10 @@ export class MainInterface extends React.Component {
       queryText: '',
       selectedTeams: [],
       selectedGames: [],
-      reconstructSidebar: !this.state.reconstructSidebar
+      reconstructSidebar: !this.state.reconstructSidebar,
+      defaultRound: null,
+      badgeFilter: null,
+      importResult: null
     });
     //the value of settingsLoadToggle doesn't matter; it just needs to change
     //in order to make the settings form load
@@ -579,8 +622,8 @@ export class MainInterface extends React.Component {
     if(fileString != '') {
       var sqbsAry = fileString.split('\n');
     }
-    var myTeams = this.state.myTeams.slice();
-    var existingTeams = myTeams.map((o) => { return o.teamName; });
+    var allTeams = this.state.allTeams.slice();
+    var existingTeams = allTeams.map((o) => { return o.teamName; });
     var teamsAdded = [], renamedTeams = '';
     var dupTeams = [];
     var curLine = 0;
@@ -631,7 +674,7 @@ export class MainInterface extends React.Component {
         }
       }
       teamsAdded.push(teamName);
-      myTeams.push({
+      allTeams.push({
         teamName: teamName,
         smallSchool: false,
         jrVarsity: false,
@@ -644,10 +687,10 @@ export class MainInterface extends React.Component {
     var numImported = teamsAdded.length;
     if(numImported > 0) {
       this.setState({
-        myTeams: myTeams,
+        allTeams: allTeams,
         reconstructSidebar: !this.state.reconstructSidebar
       });
-      this.loadPlayerIndex(myTeams, this.state.myGames, true);
+      this.loadPlayerIndex(allTeams, this.state.allGames, true);
 
       let message = 'Imported ' + numImported + ' teams.\n\n';
       if(dupTeams.length > 0) {
@@ -667,10 +710,11 @@ export class MainInterface extends React.Component {
     }
   } // importRosters
 
-  /*---------------------------------------------------------
-  Validate and load a QBJ file
-  ---------------------------------------------------------*/
-  importQbj(fileName) {
+  /**
+   * Validate and load a Neg5 qbj file.
+   * @param  {string} fileName path to file to import
+   */
+  importNeg5(fileName) {
     var fileString = fs.readFileSync(fileName, 'utf8');
     if(fileString != '') {
       var qbj = JSON.parse(fileString);
@@ -703,7 +747,7 @@ export class MainInterface extends React.Component {
         return;
       }
     }
-    var [yfRules, ruleErrors] = QbjUtils.parseQbjRules(tournament.scoring_rules);
+    var [yfRules, ruleErrors] = Neg5Import.parseQbjRules(tournament.scoring_rules);
     if(ruleErrors.length > 0) {
       ipc.sendSync('genericModal', 'error', 'Import QBJ',
         'QBJ import failed:\n\n' + ruleErrors.join('\n'));
@@ -712,7 +756,7 @@ export class MainInterface extends React.Component {
     yfRules.defaultPhases = DEFAULT_SETTINGS.defaultPhases;
     yfRules.rptConfig = DEFAULT_SETTINGS.rptConfig;
 
-    var [yfTeams, teamIds, teamErrors] = QbjUtils.parseQbjTeams(tournament, registrations);
+    var [yfTeams, teamIds, teamErrors] = Neg5Import.parseQbjTeams(tournament, registrations);
     if(teamErrors.length > 0) {
       ipc.sendSync('genericModal', 'error', 'Import QBJ',
         'QBJ import failed:\n\n' + teamErrors.join('\n'));
@@ -720,13 +764,13 @@ export class MainInterface extends React.Component {
     }
 
     var rounds = tournament.phases[0].rounds;
-    var [yfGames, gameErrors] = QbjUtils.parseQbjMatches(rounds, matches, teamIds);
+    var [yfGames, gameErrors] = Neg5Import.parseQbjMatches(rounds, matches, teamIds);
     if(gameErrors.length > 0) {
       ipc.sendSync('genericModal', 'error', 'Import QBJ',
         'QBJ import failed:\n\n' + gameErrors.join('\n'));
       return;
     }
-    var [gameErrors, gameWarnings] = QbjUtils.validateMatches(yfGames, yfRules);
+    var [gameErrors, gameWarnings] = Neg5Import.validateMatches(yfGames, yfRules);
     if(gameErrors.length > 0) {
       ipc.sendSync('genericModal', 'error', 'Import QBJ',
         'QBJ import failed:\n\n' + gameErrors.join('\n'));
@@ -744,8 +788,8 @@ export class MainInterface extends React.Component {
       packets: [],
       divisions: {},
       tbCount: tbCount,
-      myTeams: yfTeams,
-      myGames: yfGames,
+      allTeams: yfTeams,
+      allGames: yfGames,
       allGamesShowTbs: false,
       settingsLoadToggle: !this.state.settingsLoadToggle,
       viewingPhase: 'all',
@@ -755,7 +799,10 @@ export class MainInterface extends React.Component {
       selectedTeams: [],
       selectedGames: [],
       activeRpt: this.state.defaultRpt,
-      reconstructSidebar: !this.state.reconstructSidebar
+      reconstructSidebar: !this.state.reconstructSidebar,
+      defaultRound: null,
+      badgeFilter: null,
+      importResult: null
     });
 
     this.loadGameIndex(yfGames, true);
@@ -765,9 +812,155 @@ export class MainInterface extends React.Component {
     ipc.sendSync('unsavedData');
   }
 
-  /*---------------------------------------------------------
-  Merge the tournament in fileName into this one.
-  ---------------------------------------------------------*/
+  /**
+   * Process file paths provided by the main process to give to importQbjSingleGames
+   * @param  {string[]} filePaths               list of full file paths
+   */
+  importQbjGamesFromFilePaths(filePaths) {
+    let fileObjs = [];
+    for(const path of filePaths) {
+      const filePathSegments = path.split(/[\\\/]/);
+      fileObjs.push({file: path, name: filePathSegments.pop()});
+    }
+    this.importQbjSingleGames(fileObjs, this.readDataFromFile);
+  }
+
+  /**
+   * Import single-game qbj files.
+   * @param  {ImportableGame[]} gameFiles array of files, either file paths or base64 encodings of their contents
+   * @param  {(string) => string} readFile  function to process the file into a JSON string
+   */
+  importQbjSingleGames(gameFiles, readFile) {
+    if(!gameFiles || gameFiles.length < 1) {
+      ipc.sendSync('genericModal', 'error', 'Game import',
+        'Game import failed:\n\n no files specified.');
+      return;
+    }
+    // Need to verify that the tournament currently exists with at least two teams
+    if (this.state.allTeams == undefined || this.state.allTeams.length < 2) {
+      ipc.sendSync('genericModal', 'error', 'Game import',
+        'Game import failed:\n\n At least two teams must exist in the tournament.');
+      return;
+    }
+
+    let rejectedFiles = [];
+    let acceptedGames = [];
+    let importResult = {
+      rejected: [],
+      errors: 0,
+      warnings: 0,
+      successes: 0
+    }
+    for(const file of gameFiles) {
+      const fileContents = readFile(file.file);
+      const shortFileName = file.name;
+      let result;
+      if(fileContents != '') {
+        result = SingleGameQBJImport.importGame(this.state.allTeams, fileContents, this.state.settings)
+      }
+
+      if (!result.success) {
+        importResult.rejected.push({fileName: shortFileName, message: result.error});
+        continue;
+      }
+      // fill in round if we have one
+      if(this.state.defaultRound !== null) {
+        result.result.round = this.state.defaultRound;
+      }
+      // add current phase, if there is one
+      if(this.state.viewingPhase != 'all' && this.state.viewingPhase != 'Tiebreakers') {
+        result.result.phases = [this.state.viewingPhase];
+      }
+
+      //if a team has already played this round, import the game without a round number
+      let [teamAPlayed, teamBPlayed] = this.haveTeamsPlayedInRound(result.result.team1, result.result.team2, result.result.round, null)
+      if(teamAPlayed || teamBPlayed) {
+        result.result.round = null;
+      }
+      // same with the other games that have already been imported in this batch
+      else {
+        let [teamAPlayed, teamBPlayed] =
+          this.haveTeamsPlayedInRound(result.result.team1, result.result.team2, result.result.round, null, acceptedGames);
+        if(teamAPlayed || teamBPlayed) {
+          result.result.round = null;
+        }
+      }
+      acceptedGames.push(result.result);
+      this.validateGame(result.result, this.state.settings);
+      if(result.result.invalid) {
+        importResult.errors++;
+      }
+      else if (result.result.validationMsg) {
+        importResult.warnings++;
+      }
+      else {
+        importResult.successes++;
+      }
+    }
+    this.addGames(acceptedGames, false);
+    ipc.sendSync('unsavedData');
+
+    this.setState({
+      importResult: importResult,
+      sidebarOpen: true
+    });
+    // if the user only imported one game, and that game has issues, open the form so that they can fix it
+    if(gameFiles.length == 1 && acceptedGames.length == 1 && !importResult.successes) {
+      this.openGameModal('edit', acceptedGames[0]);
+    }
+  }
+
+  /**
+   * Return a string with a file's data, given its path.
+   * @param  {string} filePath               full file path
+   * @return {string}          file contents
+   */
+  readDataFromFile(filePath) {
+    return fs.readFileSync(filePath, 'utf8');
+  }
+
+  /**
+   * Return a string with a file's data, given its base64 Data URL
+   * @param  {string} data               base64-encoded Data URL
+   * @return {string}      plain-text contents of the file
+   */
+  readDataFromDataURL(data) {
+    const contents = data.replace(/data.+,/, '');
+    return atob(contents);
+  }
+
+  /**
+   * Read the contents of the specified files so their games can be imported.
+   * @param  {FileList} files               list of File objects
+   */
+  importGamesFromFileList(files) {
+    console.log(files);
+    let filesToImport = [], validFileCount = 0;
+    for(let i = 0; i < files.length; i++) {
+      if(files[i].name && (files[i].name.endsWith('.qbj') || files[i].name.endsWith('.json'))) {
+        validFileCount++;
+      }
+    }
+    for(let i = 0; i < files.length; i++) {
+      const shortName = files[i].name;
+      if(!shortName || (!shortName.endsWith('.qbj') && !shortName.endsWith('.json'))) {
+        continue;
+      }
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+          filesToImport.push({file: reader.result, name: shortName});
+          if(filesToImport.length == validFileCount) {
+            this.importQbjSingleGames(filesToImport, this.readDataFromDataURL);
+          }
+        }, false);
+      reader.readAsDataURL(files[i]);
+    }
+  }
+
+  /**
+   * Merge the tournament in fileName into this one.
+   * @param  {string} fileName path to file to merge into this tournament
+   */
   mergeTournament(fileName) {
     if(fileName == '') { return; }
     var [loadMetadata, loadPackets, loadSettings, loadDivisions, loadTeams, loadGames] = this.parseFile(fileName);
@@ -822,7 +1015,7 @@ export class MainInterface extends React.Component {
       StatUtils2.gameConversion2x4x0(loadGames);
     }
     // merge teams
-    var teamsCopy = this.state.myTeams.slice();
+    var teamsCopy = this.state.allTeams.slice();
     var newTeamCount = 0;
     for(var i in loadTeams) {
       var newTeam = loadTeams[i];
@@ -847,25 +1040,26 @@ export class MainInterface extends React.Component {
       }
     }
     // merge games
-    var gamesCopy = this.state.myGames.slice();
+    var gamesCopy = this.state.allGames.slice();
     var newGameCount = 0, tbCount = this.state.tbCount;
     var conflictGames = [];
-    for(var i in loadGames) {
-      let newGame = loadGames[i];
-      if(!StatUtils2.mergeConflictGame(newGame, gamesCopy)) {
-        gamesCopy.push(newGame);
+    for(let g of loadGames) {
+      this.validateGame(g, this.state.settings);
+      if(!StatUtils2.mergeConflictGame(g, gamesCopy)) {
+        gamesCopy.push(g);
         newGameCount++;
-        tbCount += newGame.tiebreaker;
+        tbCount += g.tiebreaker;
       }
-      else { conflictGames.push(newGame); }
+      else { conflictGames.push(g); }
     }
     this.setState({
       divisions: divisionsCopy,
-      myTeams: teamsCopy,
-      myGames: gamesCopy,
+      allTeams: teamsCopy,
+      allGames: gamesCopy,
       tbCount: tbCount,
       settingsLoadToggle: !this.state.settingsLoadToggle,
-      reconstructSidebar: !this.state.reconstructSidebar
+      reconstructSidebar: !this.state.reconstructSidebar,
+      badgeFilter: null
     });
     this.loadGameIndex(gamesCopy, false);
     this.loadPlayerIndex(teamsCopy, gamesCopy, false);
@@ -893,12 +1087,12 @@ export class MainInterface extends React.Component {
    */
   writeStatReport(fileStart) {
     if(fileStart == '') {
-      var standingsLocation = defaultStandingsLocation;
-      var individualsLocation = defaultIndividualsLocation;
-      var scoreboardLocation = defaultScoreboardLocation;
-      var teamDetailLocation = defaultTeamDetailLocation;
-      var playerDetailLocation = defaultPlayerDetailLocation;
-      var roundReportLocation = defaultRoundReportLocation;
+      var standingsLocation = DEF_STANDINGS_FILE;
+      var individualsLocation = DEF_INDIVIDUALS_FILE;
+      var scoreboardLocation = DEF_SCOREBOARD_FILE;
+      var teamDetailLocation = DEF_TEAMDETAIL_FILE;
+      var playerDetailLocation = DEF_PLAYERDETAIL_FILE;
+      var roundReportLocation = DEF_ROUNDREPORT_FILE;
     }
     else {
       fileStart = fileStart + '_';
@@ -929,12 +1123,12 @@ export class MainInterface extends React.Component {
     var activeRpt = this.state.releasedRptList[this.state.activeRpt];
     if(activeRpt == undefined) { activeRpt = this.state.customRptList[this.state.activeRpt]; }
 
-    var teams = this.state.myTeams, games = this.state.myGames,
+    var teams = this.state.allTeams, games = this.state.allGames,
       settings = this.state.settings, packets = this.state.packets;
 
     Promise.all([
       StatUtils.getStandingsPage(teams, games, endFileStart, filterPhase, phasesToGroupBy,
-        divsInPhase, phaseSizes, settings, activeRpt, showTbs, ipc.sendSync('getAppVersion')),
+        divsInPhase, phaseSizes, settings, activeRpt, showTbs, appVersion),
       StatUtils.getIndividualsPage(teams, games, endFileStart, filterPhase, phasesToGroupBy,
         usingDivisions, settings, activeRpt, showTbs),
       StatUtils.getScoreboardPage(games, endFileStart, filterPhase, settings, packets,
@@ -975,7 +1169,7 @@ export class MainInterface extends React.Component {
     var [divsInPhase, phaseSizes] = this.cumulativeRankSetup(phasesToGroupBy);
 
     var sqbsData = SqbsUtils.getSqbsFile(this.state.settings, this.state.viewingPhase,
-      phasesToGroupBy, divsInPhase, this.state.myTeams, this.state.myGames,
+      phasesToGroupBy, divsInPhase, this.state.allTeams, this.state.allGames,
       this.state.packets, this.state.gameIndex, this.state.allGamesShowTbs);
     new Promise(function(resolve, reject) {
       resolve(fs.writeFileSync(fileName, sqbsData, 'utf8', StatUtils2.printError));
@@ -994,8 +1188,8 @@ export class MainInterface extends React.Component {
     var tournName = fileName.split(Path.sep).pop();
     tournName = tournName.replace(/.qbj/i, '');
     var tbsExist = this.state.tbCount > 0;
-    var schemaObj = QbjUtils2.getQbjFile(this.state.settings, this.state.divisions,
-      this.state.myTeams, this.state.myGames, this.state.packets, tbsExist, tournName);
+    var schemaObj = QbjExport.getQbjFile(this.state.settings, this.state.divisions,
+      this.state.allTeams, this.state.allGames, this.state.packets, tbsExist, tournName);
     new Promise(function(resolve, reject) {
       resolve(fs.writeFileSync(fileName, JSON.stringify(schemaObj), 'utf8', StatUtils2.printError));
     }).then(() => {
@@ -1013,8 +1207,8 @@ export class MainInterface extends React.Component {
    */
   sqbsCompatErrors() {
     var badGameAry = [];
-    for(var i in this.state.myGames) {
-      var g = this.state.myGames[i];
+    for(var i in this.state.allGames) {
+      var g = this.state.allGames[i];
       var playerCount = 0;
       for(var p in g.players1) {
         if(g.players1[p].tuh > 0) { playerCount++; }
@@ -1051,8 +1245,8 @@ export class MainInterface extends React.Component {
       settings: defSettingsCopy,
       packets: {},
       divisions: {},
-      myTeams: [],
-      myGames: [],
+      allTeams: [],
+      allGames: [],
       gameIndex: {},
       playerIndex: {},
       tbCount: 0,
@@ -1074,7 +1268,10 @@ export class MainInterface extends React.Component {
       gameToBeDeleted: null,
       divToBeDeleted: null,
       activeRpt: this.state.defaultRpt,
-      reconstructSidebar: !this.state.reconstructSidebar
+      reconstructSidebar: !this.state.reconstructSidebar,
+      defaultRound: 1,
+      badgeFilter: null,
+      importResult: null
       // DO NOT reset these! These should persist throughout the session
       // releasedRptList: ,
       // customRptList: ,
@@ -1177,7 +1374,7 @@ export class MainInterface extends React.Component {
    * @param {YfGame} gameToEdit which game to load in the form
    */
   openGameModal(addOrEdit, gameToEdit) {
-    if(this.state.myTeams.length < 2 || this.state.editingSettings) { return; }
+    if(this.state.allTeams.length < 2 || this.state.editingSettings) { return; }
     let partialState = {
       gmWindowVisible: true,
       gmAddOrEdit: addOrEdit
@@ -1195,10 +1392,9 @@ export class MainInterface extends React.Component {
     M.Modal.getInstance(document.querySelector(descriptor)).open();
   }
 
-  /*---------------------------------------------------------
-  Prevents modals from staying open on the next render. Also
-  directs modals to clear their data.
-  ---------------------------------------------------------*/
+  /**
+   * Prevents modals from staying open on the next render. Also directs modals to clear their data.
+   */
   onModalClose() {
     this.setState({
       divEditWindowVisible: false,
@@ -1226,7 +1422,7 @@ export class MainInterface extends React.Component {
     tempItem.divisions = {}; // fill in properties that aren't defined in the AddTeamModal
     tempItem.rank = null;
 
-    let tempTms = this.state.myTeams.slice();
+    let tempTms = this.state.allTeams.slice();
     tempTms.push(tempItem);
     let settings = this.state.settings;
     ipc.sendSync('unsavedData');
@@ -1235,7 +1431,7 @@ export class MainInterface extends React.Component {
     tempIndex[teamName] = {};
     for(let p in tempItem.roster) { tempIndex[teamName][p] = 0; }
     this.setState({
-      myTeams: tempTms,
+      allTeams: tempTms,
       tmWindowVisible: acceptAndStay,
       settings: settings,
       playerIndex: tempIndex,
@@ -1247,26 +1443,13 @@ export class MainInterface extends React.Component {
     }
   } //addTeam
 
-  /*---------------------------------------------------------
-  Add the new game, then close the form
-  ---------------------------------------------------------*/
+  /**
+   * Add the new game, then close the form
+   * @param {YfGame} tempItem       game to be added
+   * @param {boolean} acceptAndStay if true, keep the form open
+   */
   addGame(tempItem, acceptAndStay) {
-    var tempGms = this.state.myGames.slice();
-    tempGms.push(tempItem);
-    var tempGameIndex = this.state.gameIndex;
-    var round = tempItem.round;
-    if(tempGameIndex[round] == undefined) { tempGameIndex[round] = 1; }
-    else { tempGameIndex[round]++; }
-    var tempPlayerIndex = this.state.playerIndex;
-    StatUtils2.addGameToPlayerIndex(tempItem, tempPlayerIndex);
-    ipc.sendSync('unsavedData');
-    this.setState({
-      myGames: tempGms,
-      gameIndex: tempGameIndex,
-      playerIndex: tempPlayerIndex,
-      tbCount : this.state.tbCount + tempItem.tiebreaker,
-      gmWindowVisible: acceptAndStay
-    }) //setState
+    this.addGames([tempItem], acceptAndStay);
     if(acceptAndStay) {
       $('#round').focus();
       var gameDisp = 'Round ' + tempItem.round + ' ' + tempItem.team1 + ' vs ' + tempItem.team2;
@@ -1274,6 +1457,37 @@ export class MainInterface extends React.Component {
       $('#toast-container').addClass('toast-bottom-left');
     }
   } //addTeam
+
+  /**
+   * Add a games to the list of all games.
+   * @param {YfGame[]} gamesToAdd     games to be added
+   * @param {boolean} acceptAndStay  if true, keep the form open
+   */
+  addGames(gamesToAdd, acceptAndStay) {
+    var tempGms = this.state.allGames.slice();
+    var tempGameIndex = this.state.gameIndex;
+    var tempPlayerIndex = this.state.playerIndex;
+    var tbCount = this.state.tbCount;
+    for(const g of gamesToAdd) {
+      tempGms.push(g);
+      let round = g.round;
+      if(round !== null && round !== undefined) {
+        if(tempGameIndex[round] == undefined) { tempGameIndex[round] = 1; }
+        else { tempGameIndex[round]++; }
+      }
+      StatUtils2.addGameToPlayerIndex(g, tempPlayerIndex);
+      tbCount += g.tiebreaker;
+    }
+    ipc.sendSync('unsavedData');
+    this.setState({
+      allGames: tempGms,
+      gameIndex: tempGameIndex,
+      playerIndex: tempPlayerIndex,
+      tbCount : tbCount,
+      gmWindowVisible: acceptAndStay,
+      badgeFilter: null
+    }) //setState
+  }
 
   /**
    * Update the appropriate team, close the form, and update team and player names in
@@ -1284,8 +1498,8 @@ export class MainInterface extends React.Component {
    * @param  {boolean} acceptAndStay true if Accept and Stay button was clicked
    */
   modifyTeam(oldTeam, newTeam, acceptAndStay) {
-    let tempTeams = this.state.myTeams.slice();
-    let tempGames = this.state.myGames.slice();
+    let tempTeams = this.state.allTeams.slice();
+    let tempGames = this.state.allGames.slice();
     const originalNames = Object.keys(oldTeam.roster), newNames = Object.keys(newTeam.roster);
 
     for(var i in originalNames) {
@@ -1323,8 +1537,8 @@ export class MainInterface extends React.Component {
 
     ipc.sendSync('unsavedData');
     this.setState({
-      myTeams: tempTeams,
-      myGames: tempGames,
+      allTeams: tempTeams,
+      allGames: tempGames,
       tmWindowVisible: acceptAndStay,
       playerIndex: tempPlayerIndex,
       tmAddOrEdit: 'add', // need to set here in case of acceptAndStay
@@ -1381,11 +1595,14 @@ export class MainInterface extends React.Component {
     }
   }
 
-  /*---------------------------------------------------------
-  Updat the appropriate game and close the form
-  ---------------------------------------------------------*/
+  /**
+   * Update the appropriate game and close the form
+   * @param  {yfGame} oldGame                     game we're modifying
+   * @param  {YfGame} newGame                     new data for that game
+   * @param  {boolean} acceptAndStay              whether to keep the form open
+   */
   modifyGame(oldGame, newGame, acceptAndStay) {
-    var tempGameAry = this.state.myGames.slice();
+    var tempGameAry = this.state.allGames.slice();
     var oldGameIdx = _.findIndex(tempGameAry, function (o) {
        return StatUtils2.gameEqual(o, oldGame)
      });
@@ -1396,18 +1613,20 @@ export class MainInterface extends React.Component {
     if(oldRound != newRound) {
       if(tempGameIndex[newRound] == undefined) { tempGameIndex[newRound] = 1; }
       else { tempGameIndex[newRound]++; }
-      if(--tempGameIndex[oldRound] == 0) { delete tempGameIndex[oldRound]; }
+      if(oldRound !== null && oldRound !== undefined) {
+        if(--tempGameIndex[oldRound] == 0) { delete tempGameIndex[oldRound]; }
+      }
     }
     var tempPlayerIndex = this.state.playerIndex;
     StatUtils2.modifyGameInPlayerIndex(oldGame, newGame, tempPlayerIndex);
     ipc.sendSync('unsavedData');
     this.setState({
-      myGames: tempGameAry,
+      allGames: tempGameAry,
       gameIndex: tempGameIndex,
       playerIndex: tempPlayerIndex,
       tbCount: this.state.tbCount - oldGame.tiebreaker + newGame.tiebreaker,
       gmWindowVisible: acceptAndStay,
-      gmAddOrEdit: 'add' // needed in case of acceptAndStay
+      gmAddOrEdit: 'add', // needed in case of acceptAndStay
     });
     if(acceptAndStay) {
       $('#round').focus();
@@ -1422,12 +1641,12 @@ export class MainInterface extends React.Component {
   has any game data; make sure it doesn't before calling!
   ---------------------------------------------------------*/
   deleteTeam(item) {
-    var newTeams = _.without(this.state.myTeams, item);
+    var newTeams = _.without(this.state.allTeams, item);
     var newSelected = _.without(this.state.selectedTeams, item);
     var tempPlayerIndex = this.state.playerIndex;
     delete tempPlayerIndex[item.teamName];
     this.setState({
-      myTeams: newTeams,
+      allTeams: newTeams,
       selectedTeams: newSelected,
       playerIndex: tempPlayerIndex,
       reconstructSidebar: !this.state.reconstructSidebar
@@ -1435,25 +1654,33 @@ export class MainInterface extends React.Component {
     ipc.sendSync('unsavedData');
   } //deleteTeam
 
-  /*---------------------------------------------------------
-  Called twice during the game deletion workflow. The first
-  time it triggers a confirmation message. The sencond time,
-  once the user has confirmed, it permanently deletes the
-  game
-  ---------------------------------------------------------*/
+  /**
+   * Called twice during the game deletion workflow. The first
+   * time it triggers a confirmation message. The sencond time,
+   * once the user has confirmed, it permanently deletes the
+   * game
+   * @param  {YfGame} item               game user wants to delete
+   */
   deleteGame(item) {
     if(this.state.gameToBeDeleted == null) {
       this.setState({
         gameToBeDeleted: item
       });
-      ipc.send('tryGameDelete', 'Round ' + item.round + ': ' + item.team1 + ' vs. ' + item.team2);
+      let roundString;
+      if(item.round === null || item.round === undefined) {
+        roundString = '(No round)';
+      }
+      else { roundString = 'Round ' + item.round; }
+      ipc.send('tryGameDelete', roundString + ': ' + item.team1 + ' vs. ' + item.team2);
       return;
     }
-    var allGames = this.state.myGames;
+    var allGames = this.state.allGames;
     var newGames = _.without(allGames, this.state.gameToBeDeleted);
     // update index
     var tempGameIndex = this.state.gameIndex, round = this.state.gameToBeDeleted.round;
-    if(--tempGameIndex[round] == 0) { delete tempGameIndex[round]; }
+    if(round !== null && round !== undefined) {
+      if(--tempGameIndex[round] == 0) { delete tempGameIndex[round]; }
+    }
     var tempPlayerIndex = this.state.playerIndex;
     StatUtils2.modifyGameInPlayerIndex(this.state.gameToBeDeleted, null, tempPlayerIndex);
     var newTbCount = this.state.tbCount - this.state.gameToBeDeleted.tiebreaker;
@@ -1462,7 +1689,7 @@ export class MainInterface extends React.Component {
       newViewingPhase = 'all';
     }
     this.setState({
-      myGames: newGames,
+      allGames: newGames,
       gameIndex: tempGameIndex,
       playerIndex: tempPlayerIndex,
       tbCount: newTbCount,
@@ -1477,11 +1704,11 @@ export class MainInterface extends React.Component {
   phase.
   ---------------------------------------------------------*/
   removeDivisionFromTeam(whichTeam, phase) {
-    var tempTeams = this.state.myTeams;
+    var tempTeams = this.state.allTeams;
     var idx = _.indexOf(tempTeams, whichTeam);
     delete tempTeams[idx].divisions[phase];
     this.setState({
-      myTeams: tempTeams
+      allTeams: tempTeams
     });
     ipc.sendSync('unsavedData');
   }
@@ -1490,11 +1717,11 @@ export class MainInterface extends React.Component {
   Dissociate the specified game from the specified phase
   ---------------------------------------------------------*/
   removePhaseFromGame(whichGame, phase) {
-    var tempGames = this.state.myGames;
+    var tempGames = this.state.allGames;
     var idx = _.indexOf(tempGames, whichGame);
     _.pull(tempGames[idx].phases, phase);
     this.setState({
-      myGames: tempGames
+      allGames: tempGames
     });
     ipc.sendSync('unsavedData');
   }
@@ -1525,10 +1752,10 @@ export class MainInterface extends React.Component {
   validateTeamName(newTeamName, savedTeam) {
     var otherTeams;
     if(savedTeam != null) {
-      otherTeams = _.without(this.state.myTeams, savedTeam);
+      otherTeams = _.without(this.state.allTeams, savedTeam);
     }
     else {
-      otherTeams = this.state.myTeams;
+      otherTeams = this.state.allTeams;
     }
     var idx = otherTeams.findIndex((t) => {
       return t.teamName.toLowerCase() == newTeamName.toLowerCase();
@@ -1536,19 +1763,37 @@ export class MainInterface extends React.Component {
     return idx==-1;
   }
 
-  /*---------------------------------------------------------
-  Whether the given teams have already played in this round.
-  originalGameLoaded: the game currently open for editing
-  Returns an array with two values, one for each team:
-  0: has not played a game
-  1: has played a tiebreaker
-  2: has played a non-tiebreaker
-  3: both teams have already played each other in this round
-  ---------------------------------------------------------*/
-  haveTeamsPlayedInRound(teamA, teamB, roundNo, originalGameLoaded) {
+  /**
+   * Validate a game and set the validation attributes accordingly
+   * @param  {YfGame} game  game to validate
+   * @param  {TournamentSettings} settings
+   */
+  validateGame(game, settings) {
+    const result = GameVal.validateGame(game, settings);
+    const errorLevel = result.type;
+    game.invalid = !result.isValid;
+    if(errorLevel == 'error' || errorLevel == 'warning')
+      game.validationMsg = result.message;
+  }
+
+  /**
+   * Whether the given teams have already played in this round.
+   * @param  teamA                            name of the first team
+   * @param  teamB                            name of the second team
+   * @param  roundNo                          round number
+   * @param  originalGameLoaded               the game currently being modified
+   * @param  altGameList                      list of games to look at; if null, use the normal list of all games
+   * @return                    array with two values, one for each team:
+                                 0: has not played a game
+                                 1: has played a tiebreaker
+                                 2: has played a non-tiebreaker
+                                 3: both teams have already played each other in this round
+   */
+  haveTeamsPlayedInRound(teamA, teamB, roundNo, originalGameLoaded, altGameList) {
+    const gameList = altGameList ? altGameList : this.state.allGames;
     var teamAPlayed = 0, teamBPlayed = 0;
-    for(var i in this.state.myGames) {
-      var g = this.state.myGames[i];
+    for(let g of gameList) {
+      if(g.round === null || g.round === undefined) { continue; }
       if(g.round == roundNo && !StatUtils2.gameEqual(g, originalGameLoaded)) {
         if((g.team1 == teamA && g.team2 == teamB) || (g.team2 == teamA && g.team1 == teamB)) {
           return [3, 3];
@@ -1570,8 +1815,8 @@ export class MainInterface extends React.Component {
   Whether this team has played at least one game.
   ---------------------------------------------------------*/
   teamHasPlayedGames(team) {
-    for(var i in this.state.myGames) {
-      var g = this.state.myGames[i];
+    for(var i in this.state.allGames) {
+      var g = this.state.allGames[i];
       if(g.team1 == team.teamName || g.team2 == team.teamName) { return true; }
     }
     return false;
@@ -1633,6 +1878,15 @@ export class MainInterface extends React.Component {
     })
   }
 
+  /**
+   * Remove the import results from the sidebar (and go back to the normal stats sidebar)
+   */
+  closeImportSidebar() {
+    this.setState({
+      importResult: null
+    });
+  }
+
   /*---------------------------------------------------------
   Add a single new division to the specified phase
   (Phase can be 'noPhase')
@@ -1683,7 +1937,7 @@ export class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   modifyDivision(oldDivision, newDivName, newPhase, acceptAndStay) {
     var tempDivisions = this.state.divisions;
-    var tempTeams = this.state.myTeams;
+    var tempTeams = this.state.allTeams;
     var oldDivName = oldDivision.divisionName, oldPhase = oldDivision.phase;
     //if phase was changed remove it from teams and from division structure
     if(oldPhase != newPhase) {
@@ -1713,7 +1967,7 @@ export class MainInterface extends React.Component {
     }
     this.setState({
       divisions: tempDivisions,
-      myTeams: tempTeams,
+      allTeams: tempTeams,
       settingsLoadToggle: !this.state.settingsLoadToggle,
       divEditWindowVisible: acceptAndStay,
       divAddOrEdit: 'add' // need to reset this here in case of acceptAndStay
@@ -1743,7 +1997,7 @@ export class MainInterface extends React.Component {
       return;
     }
     // delete the division from any teams that have it
-    var tempTeams = this.state.myTeams;
+    var tempTeams = this.state.allTeams;
     var divName = this.state.divToBeDeleted.divisionName;
     var phase = this.state.divToBeDeleted.phase;
     for(var i in tempTeams) {
@@ -1841,9 +2095,9 @@ export class MainInterface extends React.Component {
     tempDivisions = reorderedPhases;
 
     // adjust team structure
-    var tempTeams = this.state.myTeams.slice();
-    for(var i in this.state.myTeams) {
-      let tm = this.state.myTeams[i]
+    var tempTeams = this.state.allTeams.slice();
+    for(var i in this.state.allTeams) {
+      let tm = this.state.allTeams[i]
       for(var phase in tm.divisions) {
         // rename phases
         if(nameChanges[phase] != undefined) {
@@ -1858,9 +2112,9 @@ export class MainInterface extends React.Component {
     }
 
     // adjust game structure
-    var tempGames = this.state.myGames.slice();
-    for(var i in this.state.myGames) {
-      let gm = this.state.myGames[i];
+    var tempGames = this.state.allGames.slice();
+    for(var i in this.state.allGames) {
+      let gm = this.state.allGames[i];
       for(var j in gm.phases) {
         let phase = gm.phases[j];
         // rename phases
@@ -1899,8 +2153,8 @@ export class MainInterface extends React.Component {
 
     this.setState({
       divisions: tempDivisions,
-      myTeams: tempTeams,
-      myGames: tempGames,
+      allTeams: tempTeams,
+      allGames: tempGames,
       viewingPhase: newViewingPhase,
       settings: newSettings,
       settingsLoadToggle: !this.state.settingsLoadToggle
@@ -1968,7 +2222,7 @@ export class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   submitDivAssignments(divSelections) {
     var selTeams = this.state.selectedTeams;
-    var allTeams = this.state.myTeams;
+    var allTeams = this.state.allTeams;
     for(var i in selTeams) {
       var tmIdx = allTeams.indexOf(selTeams[i]);
       for(var phase in divSelections) {
@@ -1983,7 +2237,7 @@ export class MainInterface extends React.Component {
     }
     this.setState({
       divWindowVisible: false,
-      myTeams: allTeams,
+      allTeams: allTeams,
       selectedTeams: [],
       checkTeamToggle: !this.state.checkTeamToggle
     });
@@ -1995,7 +2249,7 @@ export class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   submitPhaseAssignments(phaseSelections) {
     var selGames = this.state.selectedGames;
-    var allGames = this.state.myGames;
+    var allGames = this.state.allGames;
     for(var i in selGames) {
       var idx = allGames.indexOf(selGames[i]);
       for(var i in phaseSelections) {
@@ -2008,7 +2262,7 @@ export class MainInterface extends React.Component {
       }
     }
     this.setState({
-      myGames: allGames,
+      allGames: allGames,
       phaseWindowVisible: false,
       selectedGames: [],
       checkGameToggle: !this.state.checkGameToggle
@@ -2140,10 +2394,21 @@ export class MainInterface extends React.Component {
     return teamName.indexOf(queryText)!=-1 || Object.keys(team.roster).join(', ').toLowerCase().indexOf(queryText)!=-1
   }
 
-  /*---------------------------------------------------------
-  Does the search text match this game?
-  ---------------------------------------------------------*/
-  gameQueryMatch(queryText, game) {
+  /**
+   * Do the filter conditions match this game?
+   * @param  {string} queryText               what the user typed in the search bar
+   * @param  {YfGame} game                    game to test
+   * @return {boolean}           true if we should show this game in the list
+   */
+  gameFilterMatch(queryText, game) {
+    const badgeFilter = this.state.badgeFilter;
+    if(badgeFilter == 'errors' && !game.invalid) {
+      return false;
+    }
+    if(badgeFilter == 'warnings' && (game.invalid || !game.validationMsg)) {
+      return false;
+    }
+
     if(queryText.length <= 1) { return this.gameBelongsToCurrentPhase(game); } // ignore 1-character searches for performance reasons
     if(this.noPhaseQuery(queryText, game)) { return true; }
     if(!this.gameBelongsToCurrentPhase(game)) { return false; }
@@ -2201,6 +2466,27 @@ export class MainInterface extends React.Component {
     if(game.phases.length > 0 || game.tiebreaker) { return false; }
     queryText = queryText.trim();
     return queryText.search(/^(no\W*phase)/i) == 0;
+  }
+
+  /**
+   * Filter the game list to those with errors or warnings
+   * @param  {string} badgeId               'errors' or 'warnings'
+   */
+  changeBadgeFilter(badgeId) {
+    if(badgeId === null) {
+      this.setState({
+        badgeFilter: null,
+        queryText: ''
+      });
+      return;
+    }
+    if(badgeId !== 'errors' && badgeId !== 'warnings') { return; }
+    let newFilterState = badgeId;
+    if(badgeId == this.state.badgeFilter) { newFilterState = null; }
+    this.setState({
+      badgeFilter: newFilterState,
+      queryText: ''
+    });
   }
 
   /*---------------------------------------------------------
@@ -2370,7 +2656,7 @@ export class MainInterface extends React.Component {
    * @param  {RankingList} rankOverrides rankings from StatSidebar indexed by team name
    */
   saveRankOverrides(rankOverrides) {
-    var tempTeams = this.state.myTeams;
+    var tempTeams = this.state.allTeams;
     for(var i in tempTeams) {
       let rank = Math.round(rankOverrides[tempTeams[i].teamName]);
       if(!isNaN(rank) && rank >= 1) {
@@ -2379,10 +2665,26 @@ export class MainInterface extends React.Component {
       else { tempTeams[i].rank = null; }
     }
     this.setState({
-      myTeams: tempTeams,
+      allTeams: tempTeams,
       reconstructSidebar: !this.state.reconstructSidebar
     });
     ipc.sendSync('unsavedData');
+  }
+
+  /**
+   * Set the default round number
+   * @param {number} roundNumber  round number to use
+   */
+  setDefaultRound(roundNumber) {
+    if(isNaN(roundNumber) || roundNumber < -999999999 || roundNumber > 999999999) {
+      this.setState({
+        defaultRound: null
+      });
+      return;
+    }
+    this.setState({
+      defaultRound: roundNumber
+    });
   }
 
   /*---------------------------------------------------------
@@ -2399,17 +2701,17 @@ export class MainInterface extends React.Component {
 
 
   render() {
-    var filteredTeams = [];
-    var filteredGames = [];
-    var queryText = this.state.queryText.trim().toLowerCase();
-    var myTeams = this.state.myTeams;
-    var myGames = this.state.myGames;
-    var activePane = this.state.activePane;
-    var numberOfPhases = Object.keys(this.state.divisions).length;
-    var usingPhases = this.usingPhases();
-    var usingDivisions = this.usingDivisions();
-    var phasesToGroupBy = this.phasesToGroupBy();
-    var [divsInPhase, phaseSizes] = this.cumulativeRankSetup(phasesToGroupBy);
+    let filteredTeams = [];
+    let filteredGames = [];
+    let queryText = this.state.queryText.trim().toLowerCase();
+    const allTeams = this.state.allTeams;
+    const allGames = this.state.allGames;
+    const activePane = this.state.activePane;
+    const usingPhases = this.usingPhases();
+    const usingDivisions = this.usingDivisions();
+    const phasesToGroupBy = this.phasesToGroupBy();
+    const [divsInPhase, phaseSizes] = this.cumulativeRankSetup(phasesToGroupBy);
+    let errors = 0, warnings = 0;
 
     var rptObj = this.state.releasedRptList[this.state.activeRpt];
     if(rptObj == undefined) { rptObj = this.state.customRptList[this.state.activeRpt]; }
@@ -2436,9 +2738,9 @@ export class MainInterface extends React.Component {
     //sort and filter teams
     if (activePane == 'teamsPane') {
       //Filter list of teams
-      for (var i = 0; i < myTeams.length; i++) {
-        if (this.teamQueryMatch(queryText, myTeams[i])) {
-          filteredTeams.push(myTeams[i]);
+      for (var i = 0; i < allTeams.length; i++) {
+        if (this.teamQueryMatch(queryText, allTeams[i])) {
+          filteredTeams.push(allTeams[i]);
         }
       }
       //always sort alphabetically. Then sort by division if appropriate
@@ -2452,25 +2754,26 @@ export class MainInterface extends React.Component {
           else { div = item.divisions.noPhase; }
           if(div == undefined) { div = 'zzzzzzzzzzzzzzzzzzz'; } //teams with no division go (hopefully) at the end
           return div.toLowerCase();
-        }, 'asc'); // array orderby
+        }, 'asc');
       }
     }
-
-    //sort and filter games
+    //sort and filter games, and count errors and warnings
     else if (activePane == 'gamesPane') {
       //Filter list of games
-      for (var i = 0; i < myGames.length; i++) {
-        if (this.gameQueryMatch(queryText, myGames[i])) {
-          filteredGames.push(myGames[i]);
+      for (const g of allGames) {
+        if(g.invalid) { errors++; }
+        else if(g.validationMsg) { warnings++; }
+        if (this.gameFilterMatch(queryText, g)) {
+          filteredGames.push(g);
         }
       }
-      // don't sort games right now
       filteredGames = _.orderBy(filteredGames, function(item) {
+        const round = item.round;
+        if(round === undefined || round === null) return -999999999;
         return +item.round;
-      }, 'asc'); // order array
+      }, 'asc');
     }
 
-    //make a react element for each item in the lists
     filteredTeams=filteredTeams.map(function(item, index) {
       return(
         <TeamListEntry key = {item.teamName + this.state.checkTeamToggle}
@@ -2479,17 +2782,17 @@ export class MainInterface extends React.Component {
           openModal = {this.openTeamModal}
           onSelectTeam = {this.onSelectTeam}
           selected = {this.state.selectedTeams.includes(item)}
-          numGamesPlayed = {StatUtils.gamesPlayed(item, myGames)}
+          numGamesPlayed = {StatUtils.gamesPlayed(item, allGames)}
           allPhases = {Object.keys(this.state.divisions)}
           usingDivisions = {usingDivisions}
           removeDivision = {this.removeDivisionFromTeam}
           activeInPhase = {this.teamBelongsToCurrentPhase(item)}
         />
       )
-    }.bind(this)); //filteredTeams.map
+    }.bind(this));
     filteredGames=filteredGames.map(function(item, index) {
       return(
-        <GameListEntry key = {item.team1 + item.team2 + item.round + this.state.checkGameToggle}
+        <GameListEntry key = {index + this.state.checkGameToggle}
           game = {item}
           onDelete = {this.deleteGame}
           openModal = {this.openGameModal}
@@ -2501,20 +2804,28 @@ export class MainInterface extends React.Component {
           settings = {this.state.settings}
         />
       )
-    }.bind(this)); //filteredGames.map
+    }.bind(this));
 
     // need to make a deep copy of this object
     // to prevent player stats from updating before I tell them to
-    var gameToLoadCopy = this.state.editWhichGame == null ? null : $.extend(true, {}, this.state.editWhichGame);
+    const gameToLoadCopy = this.state.editWhichGame == null ? null : $.extend(true, {}, this.state.editWhichGame);
 
-    var mainWindowClass = this.state.sidebarOpen ? 'col s12 l8' : 'col s12';
+    const mainWindowClass = this.state.sidebarOpen ? 'col s12 l8' : 'col s12';
 
-    var sidebar = null;
+    var sidebar = null, sidebarContent;
     if(this.state.sidebarOpen) {
-      let standings = StatUtils.compileStandings(myTeams, myGames, this.state.viewingPhase,
-        phasesToGroupBy, this.state.settings, rptObj, this.state.allGamesShowTbs)
-      sidebar = (
-        <div id="stat-sidebar" className="col l4 s0">
+      if(this.state.importResult) {
+        sidebarContent = (
+          <ImportSidebar
+            results = {this.state.importResult}
+            close = {this.closeImportSidebar}
+          />
+        );
+      }
+      else {
+        let standings = StatUtils.compileStandings(allTeams, allGames, this.state.viewingPhase,
+          phasesToGroupBy, this.state.settings, rptObj, this.state.allGamesShowTbs)
+        sidebarContent = (
           <StatSidebar key={this.state.reconstructSidebar}
             visible = {this.state.sidebarOpen}
             standings = {standings}
@@ -2527,8 +2838,9 @@ export class MainInterface extends React.Component {
             filterByTeam = {this.filterByTeam}
             saveRankOverrides = {this.saveRankOverrides}
           />
-        </div>
-      );
+        );
+      }
+      sidebar = ( <div id="sidebar" className="col l4 s0">{sidebarContent}</div> );
     }
 
     return(
@@ -2550,11 +2862,12 @@ export class MainInterface extends React.Component {
             addGame = {this.addGame}
             modifyGame = {this.modifyGame}
             isOpen = {this.state.gmWindowVisible}
-            teamData = {myTeams.slice()}
+            teamData = {allTeams.slice()}
             haveTeamsPlayedInRound = {this.haveTeamsPlayedInRound}
             allPhases = {Object.keys(this.state.divisions)}
             currentPhase = {this.state.viewingPhase != 'Tiebreakers' ? this.state.viewingPhase : 'all'}
             settings = {this.state.settings}
+            defaultRound = {this.state.defaultRound}
           />
          <RptConfigModal
             isOpen = {this.state.rptConfigWindowVisible}
@@ -2623,13 +2936,13 @@ export class MainInterface extends React.Component {
                 tbsExist = {this.state.tbCount > 0}
                 toggleTbs = {this.toggleTiebreakers}
                 editingSettings = {this.editingSettings}
-                haveGamesBeenEntered = {this.state.myGames.length > 0}
+                haveGamesBeenEntered = {this.state.allGames.length > 0}
               />
               <TeamList
                 whichPaneActive = {activePane}
                 teamList = {filteredTeams}
                 openModal = {this.openTeamModal}
-                totalTeams = {myTeams.length}
+                totalTeams = {allTeams.length}
                 sortTeamsBy = {this.sortTeamsBy}
                 usingDivisions = {usingDivisions}
                 numberSelected = {this.state.selectedTeams.length}
@@ -2638,9 +2951,16 @@ export class MainInterface extends React.Component {
                 whichPaneActive = {activePane}
                 gameList = {filteredGames}
                 openModal = {this.openGameModal}
-                numberOfTeams = {myTeams.length}
-                totalGames = {myGames.length}
+                numberOfTeams = {allTeams.length}
+                totalGames = {allGames.length}
                 numberSelected = {this.state.selectedGames.length}
+                defaultRound = {this.state.defaultRound}
+                setDefaultRound = {this.setDefaultRound}
+                errors = {errors}
+                warnings = {warnings}
+                changeBadgeFilter = {this.changeBadgeFilter}
+                activeBadgeFilter = {this.state.badgeFilter}
+                importGames = {this.importGamesFromFileList}
               />
               <SidebarToggleButton
                 toggle = {this.toggleSidebar}

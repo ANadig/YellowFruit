@@ -98,11 +98,47 @@ else {
 }
 
 //Define parts of the menu that don't change dynamically here
+const EXPORT_SUBMENU = [
+  {
+    label: 'Export HTML Report',
+    accelerator: 'CmdOrCtrl+U',
+    click(item, focusedWindow) { exportHtmlReport(); }
+  },
+  {
+    label: 'Export QBJ 2.1',
+    click(item, focusedWindow) { exportQbj(); }
+  },
+  {
+    label: 'Export SQBS',
+    click(item, focusedWindow) { trySqbsExport(); }
+  }
+];
+const IMPORT_SUBMENU = [
+  {
+    label: 'Merge YellowFruit Tournament',
+    click(item, focusedWindow) { mergeTournament(); }
+  },
+  {
+    label: 'Import Neg5 (QBJ 1.2)',
+    click(item, focusedWindow) { importNeg5(); }
+  },
+  {type: 'separator'},
+  {
+    label: 'Import Rosters from SQBS',
+    click(item, focusedWindow) { importRosters(); }
+  },
+  {type: 'separator'},
+  {
+    label: 'Import Games (QBJ 2.1)',
+    accelerator: 'CmdOrCtrl+H',
+    click(item, focusedWindow) { importQbjSingleGames(); }
+  }
+];
 const YF_MENU = {
   label: '&YellowFruit',
   submenu: [
     {
-      label: 'View Full Report',
+      label: 'View HTML Report',
       accelerator: 'CmdOrCtrl+I',
       click(item, focusedWindow) {
         if(mainWindow) {
@@ -111,36 +147,20 @@ const YF_MENU = {
         }
       }
     },
+    {type: 'separator'},
     {
-      label: 'Export Full Report',
-      accelerator: 'CmdOrCtrl+U',
-      click(item, focusedWindow) { exportHtmlReport(); }
+      label: 'Export',
+      submenu: EXPORT_SUBMENU
     },
     {
-      label: 'Export SQBS',
-      click(item, focusedWindow) { trySqbsExport(); }
-    },
-    {
-      label: 'Export QBJ 2.1',
-      click(item, focusedWindow) { exportQbj(); }
+      label: 'Import',
+      submenu: IMPORT_SUBMENU
     },
     {type: 'separator'},
     {
       label: 'New Tournament',
       accelerator: 'CmdOrCtrl+N',
       click(item, focusedWindow) { newTournament(); }
-    },
-    {
-      label: 'Import Neg5 (QBJ 1.2)',
-      click(item, focusedWindow) { importQbj(); }
-    },
-    {
-      label: 'Import Rosters from SQBS',
-      click(item, focusedWindow) { importRosters(); }
-    },
-    {
-      label: 'Merge Tournament',
-      click(item, focusedWindow) { mergeTournament(); }
     },
     {
       label: 'Open',
@@ -408,7 +428,7 @@ function showHelpWindow(windowName, fileName, width, height) {
     modal: false,
     autoHideMenuBar: true,
     icon: APP_ICON,
-    webPreferences: { preload: Path.join(__dirname, "js", "appVersionPreload.js") }
+    webPreferences: { nodeIntegration: true, enableRemoteModule: true, contextIsolation: false }
   });
   helpWindows[windowName] = helpWindow;
   helpWindow.loadURL('file://' + __dirname + '/' + fileName);
@@ -543,9 +563,9 @@ function newTournament() {
 }
 
 /**
- * Prompt the user to select a QBJ file to import
+ * Prompt the user to select a (Neg5) QBJ file to import
  */
-function importQbj() {
+function importNeg5() {
   if(!mainWindow) { return; }
 
   let willContinue = true, needToSave = false;
@@ -561,8 +581,25 @@ function importQbj() {
     if(fileNameAry !== undefined) {
       mainWindow.setTitle('YellowFruit - New Tournament');
       unsavedData = false;
-      mainWindow.webContents.send('importQbj', fileNameAry[0]);
+      mainWindow.webContents.send('importNeg5', fileNameAry[0]);
     }
+  }
+}
+
+/**
+ * Prompt the user to select one or more QBJ files to import games from. Each file should be a JSON
+ * representation of a tournament schema "match" object
+ */
+ function importQbjSingleGames() {
+  if(!mainWindow) { return; }
+  let fileNameAry = dialog.showOpenDialogSync(mainWindow,
+    {
+      filters: [{ name: 'Tournament Schema ', extensions: ['qbj', 'json'] }],
+      properties: ['multiSelections']
+    }
+  );
+  if(fileNameAry !== undefined) {
+    mainWindow.webContents.send('importQbjSingleGames', fileNameAry);
   }
 }
 
@@ -698,7 +735,7 @@ app.on('ready', function() {
     show: false,
     transparent: true,
     skipTaskbar: true,
-    webPreferences: { preload: Path.join(__dirname, "js", "appVersionPreload.js") }
+    webPreferences: { nodeIntegration: true, enableRemoteModule: true, contextIsolation: false }
   });
   splashWindow.loadURL('file://' + __dirname + '/splash.html');
   splashWindow.once('ready-to-show', () => {
@@ -711,7 +748,10 @@ app.on('ready', function() {
     show: false,
     title: 'YellowFruit - New Tournament',
     icon: APP_ICON,
-    webPreferences: { preload: Path.join(__dirname, "js", "indexPreload.js") }
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    }
   }); //appWindow
 
   mainWindow = appWindow;
@@ -773,17 +813,24 @@ app.on('ready', function() {
   });//appwindow.on close
 
   /*---------------------------------------------------------
-  Gets the path to Application Data
+  Handle renderer's request for the appdata directory
   ---------------------------------------------------------*/
-  ipc.on('getAppDataPath', (event) => {
-    event.returnValue = electron.app.getPath('appData');
+  ipc.on('get-appdata-dir', (event, arg) => {
+    event.returnValue = app.getPath('appData');
   });
 
   /*---------------------------------------------------------
-  Gets the version of the application
+  Handle renderer's request for the root directory
   ---------------------------------------------------------*/
-  ipc.on('getAppVersion', (event) => {
-    event.returnValue = electron.app.getVersion();
+  ipc.on('get-root-dir', (event, arg) => {
+    event.returnValue = Path.resolve(__dirname, '..');
+  });
+
+  /*---------------------------------------------------------
+  Handle renderer's request for the app version
+  ---------------------------------------------------------*/
+  ipc.on('get-app-version', (event, arg) => {
+    event.returnValue = app.getVersion();
   });
 
   /*---------------------------------------------------------

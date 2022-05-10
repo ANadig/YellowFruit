@@ -308,6 +308,7 @@ function showPlayerCombined(rptConfig: RptConfig): boolean {
 export function gamesPlayed(team: YfTeam, games: YfGame[]): number {
   let count = 0;
   for(let g of games) {
+    if(g.invalid) { continue; }
     if(g.team1 == team.teamName || g.team2 == team.teamName) {
       count += 1;
     }
@@ -766,6 +767,7 @@ export function compileStandings(teams: YfTeam[], games: YfGame[], filterPhase: 
   }); //map
 
   for(let g of games) {
+    if(g.invalid) { continue; }
     const team1Line = _.find(standings, (o) => { return o.teamName == g.team1; });
     const team2Line = _.find(standings, (o) => { return o.teamName == g.team2; });
     //tens digit - whether to count for team 1. ones digit - whether to count for team 2
@@ -1065,6 +1067,7 @@ function compileIndividuals(teams: YfTeam[], games: YfGame[], phase: string,
     }
   }
   for(let g of games) {
+    if(g.invalid) { continue; }
     if(matchFilterPhase(g, phase, showTbs)) {
       const players1 = g.players1, players2 = g.players2;
       for(let p in players1) {
@@ -1133,6 +1136,7 @@ function compileIndividuals(teams: YfTeam[], games: YfGame[], phase: string,
 function getRoundsForScoreboard(games: YfGame[], phase: string, showTbs: boolean): number[] {
   let rounds = [];
   for(let g of games) {
+    if(g.invalid) { continue; }
     let roundNo = g.round;
     if(matchFilterPhase(g, phase, showTbs) && !rounds.includes(roundNo)) {
       rounds.push(roundNo);
@@ -1212,6 +1216,7 @@ function scoreboardGameSummaries(games: YfGame[], roundNo: number, phase: string
 
   let html = '';
   for(let g of games) {
+    if(g.invalid) { continue; }
     if(matchFilterPhase(g, phase, showTbs) && g.round == roundNo) {
       const linkId = 'R' + roundNo + '-' + g.team1.replace(/\W/g, '') + '-' +
         g.team2.replace(/\W/g, '');
@@ -1978,6 +1983,7 @@ function compileRoundSummaries(games: YfGame[], phase: string, settings: Tournam
   };
 
   for(let game of games) {
+    if(game.invalid) { continue; }
     const round = game.round;
     if(matchFilterPhase(game, phase, showTbs) && !game.forfeit) {
       if(summaries[round] == undefined) {
@@ -2277,7 +2283,7 @@ export function arrangeStandingsLines(standings: TeamStandingsLine[], phase: str
       }
 
       let teamsInDiv = _.filter(standings, (t) => { return t.division == curDiv });
-      if(teamsInDiv.length < 1) { continue; } // don't print header for empty division 
+      if(teamsInDiv.length < 1) { continue; } // don't print header for empty division
       linesToPrint.push({type: 'divLabel', divName: curDiv});
       linesToPrint.push({type: 'tableHeader', curGrpPhase: curGrpPhase});
       let curRank = 0, prevPhaseRecord = null;
@@ -2452,6 +2458,7 @@ function getTeamDetailHtml(teams: YfTeam[], games: YfGame[], fileStart: string, 
     html += '<table width=100%>' + '\n';
     html += teamDetailGameTableHeader(packetsExist, settings, rptConfig) + '\n';
     for(let oneGame of games) {
+      if(oneGame.invalid) { continue; }
       let gameInPhase = matchFilterPhase(oneGame, phase, showTbs);
       var formatRdCol = phase == 'all' && (oneGame.phases.length > 0 || oneGame.tiebreaker);
       if(gameInPhase && oneGame.team1 == teamName) {
@@ -2542,6 +2549,7 @@ function getPlayerDetailHtml(teams: YfTeam[], games: YfGame[], fileStart: string
     html += '<table width=100%>' + '\n';
     html += playerDetailTableHeader(settings, rptConfig);
     for(let game of games) {
+      if(game.invalid) { continue; }
       let gameInPhase = matchFilterPhase(game, phase, showTbs);
       let formatRdCol = phase == 'all' && (game.phases.length > 0 || game.tiebreaker);
       if (gameInPhase && game.team1 == indvTot.teamName) {

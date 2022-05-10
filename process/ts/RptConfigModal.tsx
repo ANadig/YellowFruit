@@ -416,7 +416,9 @@ export class RptConfigModal extends React.Component<RptConfigModalProps, RptConf
 
     const rptCollection = (
       <div className="collection">
-        {this.getRptList()}
+        <>
+          {this.getRptList()}
+        </>
       </div>
     );
 

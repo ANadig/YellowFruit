@@ -15,9 +15,11 @@
   </style>
 </head>
 <body>
-  <br><br><br><span>By Andrew Nadig</span><br><span id="version">unknown version</span>
+  <br><br><br><br>Version <span id="version">unknown</span>
   <script type="text/javascript">
-    document.getElementById("version").innerHTML = window.appVersion;
+    const { ipcRenderer } = require('electron');
+    const appVersion = ipcRenderer.sendSync('get-app-version');
+    document.getElementById("version").innerHTML = appVersion;
   </script>
 </body>
 </html>

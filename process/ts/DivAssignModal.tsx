@@ -108,8 +108,10 @@ export class DivAssignModal extends React.Component<DivAssignModalProps, DivAssi
     const header = phase == 'noPhase' ? null : ( <h6>{phase}</h6> );
     return (
       <div key={phase} className="row">
-        {header}
-        {divRadios}
+        <>
+          {header}
+          {divRadios}
+        </>
       </div>
     );
   } //getPhaseSection

@@ -73,7 +73,7 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0;
 }
 
-#stat-sidebar {
+#sidebar {
   position: fixed;
   right: 0;
   overflow-y: scroll;
@@ -82,52 +82,65 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media screen and (max-width: 992px) {
-  #stat-sidebar {
+  #sidebar {
     display: none;
   }
 }
 
-#stat-sidebar td, #stat-sidebar th {
+#sidebar td, #sidebar th {
   padding: 8px 5px;
   text-align: right;
 }
 
-#stat-sidebar .text-cell {
+#sidebar .text-cell {
   text-align: left;
 }
 
-#stat-sidebar h5 {
+#sidebar h5 {
   margin-top: 10px;
 }
 
-#stat-sidebar a {
+#sidebar a {
   color: black;
 }
 
-#stat-sidebar a:hover{
+#sidebar a:hover{
   color: blue;
   cursor: pointer;
 }
 
-#stat-sidebar th[title]:not([title=""]) {
+#sidebar th[title]:not([title=""]) {
   cursor: help;
   text-decoration: underline;
   text-decoration-style: dotted;
 }
 
-#stat-sidebar td.rank[title]:not([title=""]) {
+#sidebar td.rank[title]:not([title=""]) {
   cursor: help;
 }
 
-#stat-sidebar button {
+#sidebar button {
   float: right;
   margin-top: 5px;
 }
 
-#stat-sidebar input {
+#sidebar input {
   width: 35px;
   margin-left: 0;
   margin-bottom: 0;
+}
+
+#sidebar ul {
+  list-style-type: circle;
+}
+
+#sidebar p i {
+  vertical-align: bottom;
+}
+
+#sidebar div.import-success-img {
+  padding-top: 20vh;
+  text-align: center;
 }
 
 @media screen and (max-width: 992px) {
@@ -586,8 +599,21 @@ nav .btn-flat {
   height: 85%;
 }
 
-.qb-zero-state {
+.zero-state-container .qb-zero-state {
   padding-top: 37vh;
+  text-align: center;
+}
+
+.zero-state-drop-target {
+  margin: 10px;
+  height: 85%;
+  background-color: #ffecb3;
+  border: 3px dashed black;
+  border-radius: 70px;
+}
+
+.zero-state-drop-target .qb-zero-state {
+  padding-top: 28vh;
   text-align: center;
 }
 
@@ -698,7 +724,55 @@ nav .btn-flat {
   color: #989898;
 }
 
+.game-list-header .badge {
+  float: none;
+  padding: 5px 6px;
+  cursor: pointer;
+  border: 2px solid white;
+  border-radius: 0 !important;
+}
+
+.game-list-header .badge.active {
+  border: 2px solid black;
+}
+
+.default-round {
+  display: inline-block;
+  float: right;
+}
+
+.default-round .input-field {
+  display: inline-block;
+  margin: 0px;
+}
+
+.default-round .input-field input {
+  height: 1.2rem !important;
+  width: 40px !important;
+}
+
+.game-drop-target-box {
+  padding: 50px 0;
+  margin-bottom: 5px;
+  text-align: center;
+  background-color: #ffecb3;
+  border: 3px dashed black;
+  border-radius: 15px;
+}
+
+.game-drop-target-box i {
+  vertical-align: bottom;
+}
+
+.collection.game-list {
+  margin-top: 0;
+}
+
 .collection-item .game-line-score {
+  color: #989898;
+}
+
+.collection-item .game-list-validation-msg {
   color: #989898;
 }
 

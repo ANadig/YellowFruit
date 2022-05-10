@@ -15,12 +15,22 @@ export enum YfPane {
 }
 
 /**
- * Results of validating some data (team, game, etc):
+ * Results of validating some data (team, division, etc):
  * index 0: whether the data is valid (user is allowed to save);
  * 1: type of message to show;
  * 2: message text
  */
 export type FormValidation = [boolean, 'error' | 'warning' | 'info', string]
+
+/**
+ * Results of validating a game
+ */
+export interface GameValidation {
+  isValid: boolean;           // whether the data is valid (user is allowed to save);
+  type?: 'error' | 'warning' | 'info'; // type of validation message, if any
+  message?: string;           // text of the message
+  suppressFromForm?: boolean; // true if the game modal doesn't actually need to show the error
+}
 
 /**
  * How powers are scored
@@ -115,11 +125,13 @@ export interface TeamGameLine {
  * Information for a single match.
  */
 export interface YfGame {
-  round: number;            // the round number
-  phases: string[];         // list or phases this match belongs to
+  invalid?: boolean;        // whether the game has valid data and can be fully used for statistics
+  validationMsg?: string;   // warning or error message about this game's data
+  round?: number;           // the round number
+  phases: string[];         // list of phases this match belongs to
   tuhtot: number;           // total number of tossups read, including overtime
   ottu: number;             // total number of tossups read in overtime
-  forfeit: boolean;         // if true, team1 defeats teawm2 by forfeit
+  forfeit?: boolean;        // if true, team1 defeats teawm2 by forfeit
   team1: string;            // name of team
   team2: string;            // name of team
   score1: number;           // team1's total points
@@ -132,7 +144,7 @@ export interface YfGame {
   otNeg2: number;           // team2's negs in overtime
   bbPts1: number;           // team1's bounceback points
   bbPts2: number;           // team2's bounceback points
-  notes: string;            // free-text notes about the game
+  notes?: string;           // free-text notes about the game
   tiebreaker: boolean;      // whether the game was a tiebreaker
   lightningPts1: number;    // lightning round points for team1
   lightningPts2: number;    // lightning round points for team2
@@ -148,7 +160,7 @@ export interface GameIndex {
 }
 
 /**
- * Group of settings for the stat report 
+ * Group of settings for the stat report
  */
 export interface RptConfig {
   ppgOrPp20: 'ppg' | 'pp20';
@@ -167,4 +179,30 @@ export interface RptConfig {
   pptuh: boolean;
   pPerN: boolean;
   gPerN: boolean;
+}
+
+/**
+ * A file that couldn't be imported, and the reason why
+ */
+export interface RejectedFile {
+  fileName: string;
+  message: string;
+}
+
+/**
+ * The results of importing a series of files
+ */
+export interface ImportResult {
+  rejected: RejectedFile[];     // files that couldn't be imported
+  errors: number;               // number of files imported with errors
+  warnings: number;             // number of files imported with warnings
+  successes: number;            // number of files imported with no issues
+}
+
+/**
+ * Information about a qbj file that containts a game
+ */
+export interface ImportableGame {
+  file: string;                 // either the full file path, or its base64-encoded contents
+  fileName: string;             // file name
 }
