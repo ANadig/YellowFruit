@@ -11,7 +11,7 @@ import StringSimilarity = require('string-similarity-js');
 import {  YfTeam, YfGame, TeamGameLine, TournamentSettings } from './YfTypes';
 
 // Confidence threshold for string matching; if it's not past 50%, reject the match
-const confidenceThreshold = 0.5;
+const confidenceThreshold = 0.8;
 
 // How many n-grams to look at. Team names can be pretty short, so by the documentation from
 // https://www.npmjs.com/package/string-similarity-js we'll go with 1 as the substring length.
@@ -223,6 +223,9 @@ function getPlayerLines(team: YfTeam, matchPlayers: IMatchPlayer[]): Result<Team
         // Doing likeliest player matches like this is O(n^2), but n should be small here (< 10)
         const matchPlayerName: string = matchPlayer.player.name;
         const playerNameResult: LikeliestPlayer = getLikeliestPlayer(playerNames, matchPlayerName);
+
+        console.log(matchPlayerName + ': assigned to ' + playerNameResult.playerName + ' with confidence ' + playerNameResult.confidence);
+
         if (playerNameResult.confidence < confidenceThreshold) {
             return createFailure(`Couldn't find player with name '${matchPlayerName}' on team '${team.teamName}'`);
         }
