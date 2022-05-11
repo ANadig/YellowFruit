@@ -46,6 +46,25 @@ export class GameList extends React.Component<GameListProps, GameListState>{
   }
 
   /**
+   * Lifecyle method. Un-select badge if it no longer exists.
+   * @param  {[type]} void               [description]
+   * @return {[type]}      [description]
+   */
+  componentDidUpdate(): void {
+    if(this.badBadgeFilterState()) {
+      this.props.changeBadgeFilter(null);
+    }
+  }
+
+  /**
+   * Determine whether we're filtering by a badge that doesn't exist anymore
+   */
+  badBadgeFilterState(): boolean {
+    return (this.props.activeBadgeFilter == 'errors' && this.props.errors === 0) ||
+      (this.props.activeBadgeFilter == 'warnings' && this.props.warnings === 0);
+  }
+
+  /**
    * Tell the MainInterface to open the game entry modal.
    */
   addGame (): void {
@@ -101,14 +120,6 @@ export class GameList extends React.Component<GameListProps, GameListState>{
     const active = this.props.activeBadgeFilter == 'warnings' ? 'active' : '';
     return ( <span className={`new badge yellow ${shade} ${textColor} ${active}`} id="warnings" onClick={this.badgeFilter}
       title="Show only games with warnings" data-badge-caption={caption}>{warnings}</span> );
-  }
-
-  /**
-   * Determine whether we're filtering by a badge that doesn't exist anymore
-   */
-  badBadgeFilterState(): boolean {
-    return (this.props.activeBadgeFilter == 'errors' && this.props.errors === 0) ||
-      (this.props.activeBadgeFilter == 'warnings' && this.props.warnings === 0);
   }
 
   /**
@@ -224,10 +235,6 @@ export class GameList extends React.Component<GameListProps, GameListState>{
 
     const defaultRound = this.props.defaultRound;
     const defRndFieldVal = defaultRound === null ? '' : defaultRound.toString();
-
-    if(this.badBadgeFilterState()) {
-      this.props.changeBadgeFilter(null);
-    }
 
     // zero-state display for when there are no games.
     if(this.props.gameList.length == 0) {

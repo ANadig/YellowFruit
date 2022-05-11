@@ -934,7 +934,6 @@ export class MainInterface extends React.Component {
    * @param  {FileList} files               list of File objects
    */
   importGamesFromFileList(files) {
-    console.log(files);
     let filesToImport = [], validFileCount = 0;
     for(let i = 0; i < files.length; i++) {
       if(files[i].name && (files[i].name.endsWith('.qbj') || files[i].name.endsWith('.json'))) {
