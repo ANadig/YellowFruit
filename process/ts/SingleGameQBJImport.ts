@@ -223,9 +223,6 @@ function getPlayerLines(team: YfTeam, matchPlayers: IMatchPlayer[]): Result<Team
         // Doing likeliest player matches like this is O(n^2), but n should be small here (< 10)
         const matchPlayerName: string = matchPlayer.player.name;
         const playerNameResult: LikeliestPlayer = getLikeliestPlayer(playerNames, matchPlayerName);
-
-        console.log(matchPlayerName + ': assigned to ' + playerNameResult.playerName + ' with confidence ' + playerNameResult.confidence);
-
         if (playerNameResult.confidence < confidenceThreshold) {
             return createFailure(`Couldn't find player with name '${matchPlayerName}' on team '${team.teamName}'`);
         }

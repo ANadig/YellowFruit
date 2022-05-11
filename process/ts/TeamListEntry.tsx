@@ -78,10 +78,6 @@ export class TeamListEntry extends React.Component<TeamListEntryProps, TeamListE
     return this.state.selected ? 'disabled' : '';
   }
 
-  /*---------------------------------------------------------
-  IF a team has played games, disable the delete button, with
-  a tooltip explaining why.
-  ---------------------------------------------------------*/
   /**
    * The delete button for this team. May be disabled
    * @return JSX element for the delete button

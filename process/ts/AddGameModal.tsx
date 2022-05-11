@@ -516,7 +516,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
    * @return                'invalid' or ''
    */
   validateField(item: keyof AddGameModalState, includeForfeit: boolean) {
-    if(!this.props.isOpen || this.props.gameToLoad != null) { return ''; }
+    if(!this.props.isOpen) { return ''; }
     if(this.state[item] == '' && (!this.state.forfeit || includeForfeit)) {
       return 'invalid';
     }
