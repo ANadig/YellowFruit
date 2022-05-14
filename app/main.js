@@ -592,7 +592,7 @@ function importNeg5() {
   let fileNameAry = dialog.showOpenDialogSync(mainWindow,
     {
       filters: [{ name: 'Tournament Schema ', extensions: ['qbj', 'json'] }],
-      properties: ['multiSelections']
+      properties: ['openFile', 'multiSelections']
     }
   );
   if(fileNameAry !== undefined) {
