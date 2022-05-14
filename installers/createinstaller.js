@@ -16,7 +16,7 @@ function getInstallerConfig () {
     authors: 'Andrew Nadig',
     noMsi: true,
     iconUrl: Path.resolve(__dirname, 'banana.ico'),
-    outputDirectory: 'C:/Users/awnad/Desktop/YellowFruit-installer-win',
+    outputDirectory: Path.resolve(__dirname, '..', 'dist', 'pkg'),
     exe: 'YellowFruit.exe',
     setupExe: 'Install-YellowFruit.exe'
   });
