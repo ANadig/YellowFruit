@@ -1330,7 +1330,8 @@ export class MainInterface extends React.Component {
     let newPhase = phaseList[(numPhases + oldPhaseNo + n) % numPhases];
 
     this.setState({
-      viewingPhase: newPhase
+      viewingPhase: newPhase,
+      badgeFilter: null
     });
   }
 
@@ -1864,7 +1865,8 @@ export class MainInterface extends React.Component {
   ---------------------------------------------------------*/
   setPhase(phase) {
     this.setState({
-      viewingPhase: phase
+      viewingPhase: phase,
+      badgeFilter: null
     });
   }
 
@@ -2760,10 +2762,10 @@ export class MainInterface extends React.Component {
     else if (activePane == 'gamesPane') {
       //Filter list of games
       for (const g of allGames) {
-        if(g.invalid) { errors++; }
-        else if(g.validationMsg) { warnings++; }
         if (this.gameFilterMatch(queryText, g)) {
           filteredGames.push(g);
+          if(g.invalid) { errors++; }
+          else if(g.validationMsg) { warnings++; }
         }
       }
       filteredGames = _.orderBy(filteredGames, function(item) {
