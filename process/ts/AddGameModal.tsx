@@ -280,6 +280,7 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
    * @return     string representation of the number
    */
   loadNumericField(num: number): string {
+    num = num ?? 0;
     if(num === 0) { return ''; }
     return num.toString();
   }
@@ -292,6 +293,16 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
   loadRoundNumber(round: number): string {
     if(round === undefined || round === null) { return ''; }
     return round.toString();
+  }
+
+  /**
+   * Convert the score into a string to show in the field.
+   * @param  {number} round               round number from the stored game
+   * @return {string}                     string
+   */
+  loadTeamScore(score: number): string {
+    if(score === null) { return ''; }
+    return score.toString();
   }
 
   /**
@@ -308,8 +319,8 @@ export class AddGameModal extends React.Component<AddGameModalProps, AddGameModa
       tiebreaker: this.props.gameToLoad.tiebreaker,
       team1: this.props.gameToLoad.team1,
       team2: this.props.gameToLoad.team2,
-      score1: this.props.gameToLoad.score1.toString(),  // team scores of 0 should stay
-      score2: this.props.gameToLoad.score2.toString(),
+      score1: this.loadTeamScore(this.props.gameToLoad.score1),
+      score2: this.loadTeamScore(this.props.gameToLoad.score2),
       players1: this.props.gameToLoad.players1,
       players2: this.props.gameToLoad.players2,
       notes: this.props.gameToLoad.notes,
