@@ -132,7 +132,7 @@ export function validateGame(g: YfGame, settings: TournamentSettings): GameValid
       result.message = p + ' has heard more than ' + tuhtot + ' tossups';
       return result;
     }
-    if(anyNegativeBuzzes(players1[p])) {
+    if(anyNegativeStats(players1[p])) {
       result.type = 'error';
       result.message = 'A player cannot hear or answer a negative number of tossups';
       return result;
@@ -152,7 +152,7 @@ export function validateGame(g: YfGame, settings: TournamentSettings): GameValid
       result.message = p + ' has heard more than ' + tuhtot + ' tossups';
       return result;
     }
-    if(anyNegativeBuzzes(players2[p])) {
+    if(anyNegativeStats(players2[p])) {
       result.type = 'error';
       result.message = 'A player cannot hear or answer a negative number of tossups';
       return result;
@@ -230,6 +230,18 @@ export function validateGame(g: YfGame, settings: TournamentSettings): GameValid
   if(bHeard1 + bHeard2 >  tuhtot) {
     result.type = 'error';
     result.message = 'Total tossups converted by both teams exceeds total tossups heard for the game';
+    return result;
+  }
+
+  // Each team can only buzz in at most once per toss-up
+  if(tooManyTeamBuzzes(g, 1)) {
+    result.type = 'error';
+    result.message = `${g.team1} has a total number of buzzes that exceeds the total tossups heard for the game.`
+    return result;
+  }
+  if(tooManyTeamBuzzes(g, 2)) {
+    result.type = 'error';
+    result.message = `${g.team2} has a total number of buzzes that exceeds the total tossups heard for the game.`
     return result;
   }
 
@@ -354,6 +366,22 @@ export function validateGame(g: YfGame, settings: TournamentSettings): GameValid
  * @param  line               player stats
  * @return      boolean
  */
-function anyNegativeBuzzes(line: PlayerLine) : boolean {
+function anyNegativeStats(line: PlayerLine) : boolean {
   return line.powers < 0 || line.tens < 0 || line.negs < 0 || line.tuh < 0;
+}
+
+/**
+ * Did this team buzz (powers + tens + negs) more times than there were tossups heard?
+ * @param g game object
+ * @param whichTeam team 1 or 2
+ * @returns boolean
+ */
+function tooManyTeamBuzzes(g: YfGame, whichTeam: WhichTeam) : boolean {
+  const players = whichTeam === 1 ? g.players1 : g.players2;
+  let totalBuzzes = 0;
+  for(const p in players) {
+    const pline = players[p];
+    totalBuzzes += pline.powers + pline.tens + pline.negs;
+  }
+  return totalBuzzes > g.tuhtot;
 }
