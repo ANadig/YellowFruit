@@ -41,19 +41,25 @@ const APP_ICON = process.platform === 'darwin' ?
   nativeImage.createFromPath(Path.resolve(__dirname, '..', 'icons', 'banana.icns')) :
   Path.resolve(__dirname, '..', 'icons', 'banana.ico');
 
-var autoSaveIntervalId = null; // store the interval ID from setInterval here
-const AUTO_SAVE_TIME_MS = 300000; //number of milliseconds between auto-saves. 300000=5min
+/** store the interval ID from setInterval here */
+var autoSaveIntervalId = null;
+/** number of milliseconds between auto-saves. 300000=5min */
+const AUTO_SAVE_TIME_MS = 300000;
 var mainMenu, mainMenuTemplate, reportMenu, reportMenuTemplate, helpMenu, helpMenuTemplate;
-var mainWindow; // keep track of which window is the main app window
-var reportWindow; //to show the html report
+/** keep track of which window is the main app window */
+var mainWindow;
+/** to show the html report */
+var reportWindow; 
+/** list of windows opened from the help menu */
 var helpWindows  = {
   searchTips: null,
   keyboardShortcuts: null,
   aboutYF: null
-}; // list of windows opened from the help menu
+};
+/** name of the yft file currently open for editing */
 var currentFile = '';
 var unsavedData = false;
-// error message to show on startup
+/** error message to show on startup */
 var startupMsg;
 
 /*---------------------------------------------------------
@@ -447,7 +453,10 @@ function showHelpWindow(windowName, fileName, width, height) {
 function exportHtmlReport() {
   if(!mainWindow) { return; }
   let fileName = dialog.showSaveDialogSync(mainWindow,
-    { filters: [{ name: 'HTML Webpages', extensions: ['html'] }] });
+    { 
+      defaultPath: stripExtension(currentFile),
+      filters: [{ name: 'HTML Webpages', extensions: ['html'] }] 
+    });
   if(fileName == undefined) { return; }
   let fileStart = fileName.replace(/.html/i, '');
   fileStart = fileStart.replace(/_(standings|individuals|games|teamdetail|playerdetail|rounds|statkey)/i, '');
@@ -469,7 +478,10 @@ function trySqbsExport() {
 function sqbsSaveDialog() {
   if(!mainWindow) { return; }
   let fileName = dialog.showSaveDialogSync(mainWindow,
-    { filters: [{ name: 'SQBS tournament', extensions: ['sqbs'] }] });
+    { 
+      defaultPath: stripExtension(currentFile),
+      filters: [{ name: 'SQBS tournament', extensions: ['sqbs'] }] 
+    });
   if(fileName === undefined) { return; }
   mainWindow.webContents.send('exportSqbsFile', fileName);
 }
@@ -480,7 +492,10 @@ function sqbsSaveDialog() {
 function exportQbj() {
   if(!mainWindow) { return; }
   let fileName = dialog.showSaveDialogSync(mainWindow,
-    { filters: [{ name: 'Tournament Schema', extensions: ['qbj'] }] });
+    { 
+      defaultPath: stripExtension(currentFile),
+      filters: [{ name: 'Tournament Schema', extensions: ['qbj'] }] 
+    });
   if(fileName === undefined) { return; }
   mainWindow.webContents.send('exportQbj', fileName);
 }
@@ -700,6 +715,15 @@ function genericModal(type, title, message) {
       normalizeAccessKeys: true
     }
   );
+}
+
+/**
+ * 
+ * @param {string} filename file name
+ * @returns filename without the extension
+ */
+function stripExtension (filename) {
+  return filename.replace(".yft", "");
 }
 
 
