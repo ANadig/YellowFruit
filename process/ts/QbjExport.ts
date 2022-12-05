@@ -331,6 +331,7 @@ function getMatchTeam(game: YfGame, whichTeam: WhichTeam, settings: TournamentSe
     matchTeam.bonus_bounceback_points = whichTeam == 1 ? game.bbPts1 : game.bbPts2;
   }
   for(var p in players) {
+    if(p === "") { continue; }
     const ref = `Player_${teamName}_${p}`;
     matchTeam.match_players.push(getMatchPlayer(ref, players[p], settings));
   }

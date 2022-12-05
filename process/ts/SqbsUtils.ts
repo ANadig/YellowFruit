@@ -88,6 +88,7 @@ function addOnePlayer(settings: TournamentSettings, teams: YfTeam[], game: YfGam
   const teamName = whichTeam == 1 ? game.team1 : game.team2;
   const teamObj: YfTeam = teams.find((t) => { return t.teamName == teamName; });
   const playerIdx: number = Object.keys(teamObj.roster).indexOf(playerName);
+  if(playerIdx === -1) { return dummyPlayer(); }
   output += playerIdx + '\n';
   const gameLine: TeamGameLine = whichTeam == 1 ? game.players1 : game.players2;
   const [tuh, powers, tens, negs] = StatUtils.playerSlashLine(gameLine[playerName]);
