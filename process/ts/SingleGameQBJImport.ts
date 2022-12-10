@@ -54,6 +54,7 @@ export function importGame(teams: YfTeam[], qbjString: string, settings: Tournam
         tiebreaker, qbj.notes);
     }
 
+    const round: number = getRoundNumber(qbj._round);
     const tuhtot: number = getTuhtot(qbj.tossups_read);
     const bbPts1: number = getBounceBackPoints(qbj.match_teams[0], settings);
     const bbPts2: number = getBounceBackPoints(qbj.match_teams[1], settings);
@@ -95,7 +96,7 @@ export function importGame(teams: YfTeam[], qbjString: string, settings: Tournam
         phases: [],
         players1: playerLine1Result.result,
         players2: playerLine2Result.result,
-        round: 0,
+        round,
         score1,
         score2,
         team1: firstTeamResult.result.teamName,
@@ -150,6 +151,13 @@ function createForfeit(team1: string, team2: string, tiebreaker: boolean, notes:
     validationMsg: ''
   }
   return createSuccess(game);
+}
+
+function getRoundNumber(round: number) : number {
+    if(round === undefined || isNaN(round)) {
+        return 0;
+    }
+    return round;
 }
 
 function getTuhtot(tossups_read: number) : number {
@@ -290,9 +298,13 @@ interface IMatch {
     overtime_tossups_read?: number; //(leave empty for now, until formats are more integrated)
     match_teams: IMatchTeam[];
     match_questions: IMatchQuestion[];
-    notes?: string; // For storing protest info and thrown out Qs
-    packets?: string; // The name of the packet
-    tiebreaker?: boolean; // whether this was a tiebreaker
+    /** For storing protest info and thrown out Qs */
+    notes?: string;
+    /** The name of the packet */
+    packets?: string;
+    tiebreaker?: boolean;
+    /** used by MODAQ but not part of the schema */
+    _round?: number;
 }
 
 interface ITeam {
