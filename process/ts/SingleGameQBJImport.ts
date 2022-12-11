@@ -155,7 +155,7 @@ function createForfeit(team1: string, team2: string, tiebreaker: boolean, notes:
 
 function getRoundNumber(round: number) : number {
     if(round === undefined || isNaN(round)) {
-        return 0;
+        return -1;
     }
     return round;
 }

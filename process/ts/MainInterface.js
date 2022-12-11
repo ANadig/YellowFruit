@@ -863,8 +863,8 @@ export class MainInterface extends React.Component {
         importResult.rejected.push({fileName: shortFileName, message: result.error});
         continue;
       }
-      // fill in round if we have one
-      if(this.state.defaultRound !== null) {
+      // round no. of -1 means the file didn't have one
+      if(result.result.round == -1 && this.state.defaultRound !== null) {
         result.result.round = this.state.defaultRound;
       }
       // add current phase, if there is one
@@ -874,19 +874,32 @@ export class MainInterface extends React.Component {
 
       //if a team has already played this round, import the game without a round number
       let [teamAPlayed, teamBPlayed] = this.haveTeamsPlayedInRound(result.result.team1, result.result.team2, result.result.round, null)
-      if(teamAPlayed || teamBPlayed) {
+      if(teamAPlayed === 3) {
+        // YF can't store two games with same teams and round right now
         result.result.round = null;
+      }
+      else if(teamAPlayed || teamBPlayed) {
+        result.result.invalid = true;
+        result.result.validationMsg = "One or both teams have already played a game in this round";
       }
       // same with the other games that have already been imported in this batch
       else {
         let [teamAPlayed, teamBPlayed] =
           this.haveTeamsPlayedInRound(result.result.team1, result.result.team2, result.result.round, null, acceptedGames);
-        if(teamAPlayed || teamBPlayed) {
-          result.result.round = null;
-        }
+          if(teamAPlayed === 3) {
+            // YF can't store two games with same teams and round right now
+            result.result.round = null;
+          }
+          else if(teamAPlayed || teamBPlayed) {
+            result.result.invalid = true;
+            result.result.validationMsg = "One or both teams have already played a game in this round";
+          }
       }
+
       acceptedGames.push(result.result);
-      this.validateGame(result.result, this.state.settings);
+      if(!result.result.validationMsg) {
+        this.validateGame(result.result, this.state.settings);
+      }
       if(result.result.invalid) {
         importResult.errors++;
       }
