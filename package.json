@@ -45,7 +45,7 @@
     "react-dom": "^18.0.0",
     "reactify": "^1.1.1",
     "source-map-loader": "^1.0.0",
-    "ts-loader": "^7.0.5",
+    "ts-loader": "^9.4.2",
     "typescript": "^3.9.3"
   },
   "dependencies": {
