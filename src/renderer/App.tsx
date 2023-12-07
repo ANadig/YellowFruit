@@ -4,17 +4,23 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-
-import NavBar from './NavBar';
-
 import './App.css';
-import GeneralPage from './Pages/GeneralPage';
 
+import CssBaseline from '@mui/material/CssBaseline';
+import Box from '@mui/material/Box';
+
+import NavBar from './Components/NavBar';
+import GeneralPage from './Components/GeneralPage';
+
+/** Holds the entire UI */
 function YellowFruit() {
   return (
     <div>
+      <CssBaseline />
       <NavBar />
-      <GeneralPage />
+      <Box sx={{ p: 3 }}>
+        <GeneralPage />
+      </Box>
     </div>
   );
 }
