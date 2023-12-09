@@ -15,13 +15,13 @@ import GeneralPage from './Components/GeneralPage';
 /** Holds the entire UI */
 function YellowFruit() {
   return (
-    <div>
+    <>
       <CssBaseline />
       <NavBar />
       <Box sx={{ p: 3 }}>
         <GeneralPage />
       </Box>
-    </div>
+    </>
   );
 }
 
