@@ -3,14 +3,6 @@ import { createContext } from 'react';
 import Tournament from './DataModel/Tournament';
 import { textFieldChanged } from './Utils/GeneralUtils';
 
-/** A list of changes to the data that one or more components want to know about */
-export enum DataSubscriptions {
-  /** Dummy value for no changes */
-  None,
-  TournamentName,
-  TournamentSiteName,
-}
-
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
   /** The tournament being edited */
@@ -19,6 +11,7 @@ export class TournamentManager {
   /** Hook into the UI to tell it when it needs to update */
   dataChangedCallback: () => void;
 
+  /** Is there data that hasn't been saved to a file? */
   unsavedData: boolean = false;
 
   readonly isNull: boolean = false;

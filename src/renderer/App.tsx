@@ -16,7 +16,7 @@ import { TournamentManager, TournamentContext } from './TournamentManager';
 
 /** Holds the entire UI */
 function YellowFruit() {
-  const [, setUpdateNeeded] = useState({}); // set this object to a new object whenever we want to force a rerender
+  const [, setUpdateNeeded] = useState({}); // set this object to a new object whenever we want to force a re-render
   const [tournManager] = useState(new TournamentManager());
   useEffect(() => {
     tournManager.dataChangedCallback = () => {

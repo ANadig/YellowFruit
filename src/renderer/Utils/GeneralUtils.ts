@@ -9,6 +9,4 @@ export function textFieldChanged(oldVal: string, newVal: string): boolean {
   return oldVal !== newVal;
 }
 
-export function somethingelse() {
-  return 0;
-}
+export function somethingelse() {}
