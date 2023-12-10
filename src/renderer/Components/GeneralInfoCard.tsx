@@ -1,15 +1,16 @@
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
+import useSubscription from '../Utils/CustomHooks';
 
 /** Miscellaneous what/where/when info about the tournament */
 function GeneralInfoCard() {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
-  const [tournName, setTournName] = useState(thisTournament.name);
-  const [location, setLocation] = useState(thisTournament.tournamentSite.name);
+  const [tournName, setTournName] = useSubscription(thisTournament.name, '');
+  const [location, setLocation] = useSubscription(thisTournament.tournamentSite.name, '');
 
   return (
     <YfCard title="General">
