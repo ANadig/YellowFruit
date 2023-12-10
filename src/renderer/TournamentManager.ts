@@ -16,9 +16,8 @@ export class TournamentManager {
   /** The tournament being edited */
   tournament: Tournament;
 
+  /** Hook into the UI to tell it when it needs to update */
   dataChangedCallback: () => void;
-
-  dataChangedEvent: DataSubscriptions = DataSubscriptions.None;
 
   unsavedData: boolean = false;
 
@@ -29,11 +28,6 @@ export class TournamentManager {
     this.dataChangedCallback = () => {};
   }
 
-  dataChangeAlert(event: DataSubscriptions): void {
-    this.dataChangedEvent = event;
-    this.dataChangedCallback();
-  }
-
   /** Set the tournament's display name */
   setTournamentName(name: string): void {
     const trimmedName = name.trim();
@@ -42,7 +36,7 @@ export class TournamentManager {
     }
     this.tournament.name = trimmedName;
     this.unsavedData = true;
-    this.dataChangeAlert(DataSubscriptions.TournamentName);
+    this.dataChangedCallback();
   }
 
   /** Set the free-text description of where the tournament is */
@@ -53,7 +47,7 @@ export class TournamentManager {
     }
     this.tournament.tournamentSite.name = trimmedName;
     this.unsavedData = true;
-    this.dataChangeAlert(DataSubscriptions.TournamentSiteName);
+    this.dataChangedCallback();
   }
 }
 
