@@ -1,4 +1,5 @@
 import { app, Menu, shell, BrowserWindow, MenuItemConstructorOptions } from 'electron';
+import { openYftFile, saveYftFile } from './FileUtils';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -7,6 +8,43 @@ interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
 
 export default class MenuBuilder {
   mainWindow: BrowserWindow;
+
+  /** Parts of the file menu common to MacOS and Windows */
+  readonly subMenuFileCommonElements: MenuItemConstructorOptions[] = [
+    {
+      label: '&New Tournament',
+      accelerator: 'Ctrl+N',
+    },
+    {
+      label: '&Open',
+      accelerator: 'Ctrl+O',
+      click: () => {
+        openYftFile(this.mainWindow);
+      },
+    },
+    {
+      label: '&Save As',
+    },
+    {
+      label: '&Save',
+      accelerator: 'Ctrl+S',
+      click: () => {
+        saveYftFile();
+      },
+    },
+  ];
+
+  readonly subMenuHelp: MenuItemConstructorOptions = {
+    label: 'Help',
+    submenu: [
+      {
+        label: 'Learn More',
+        click() {
+          shell.openExternal('https://electronjs.org');
+        },
+      },
+    ],
+  };
 
   constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow;
@@ -71,6 +109,10 @@ export default class MenuBuilder {
           },
         },
       ],
+    };
+    const subMenuFile: DarwinMenuItemConstructorOptions = {
+      label: 'File',
+      submenu: this.subMenuFileCommonElements,
     };
     const subMenuEdit: DarwinMenuItemConstructorOptions = {
       label: 'Edit',
@@ -139,33 +181,18 @@ export default class MenuBuilder {
         { label: 'Bring All to Front', selector: 'arrangeInFront:' },
       ],
     };
-    const subMenuHelp: MenuItemConstructorOptions = {
-      label: 'Help',
-      submenu: [
-        {
-          label: 'Learn More',
-          click() {
-            shell.openExternal('https://electronjs.org');
-          },
-        },
-      ],
-    };
 
     const subMenuView =
       process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true' ? subMenuViewDev : subMenuViewProd;
 
-    return [subMenuAbout, subMenuEdit, subMenuView, subMenuWindow, subMenuHelp];
+    return [subMenuAbout, subMenuFile, subMenuEdit, subMenuView, subMenuWindow, this.subMenuHelp];
   }
 
   buildDefaultTemplate() {
     const templateDefault = [
       {
         label: '&File',
-        submenu: [
-          {
-            label: '&Open',
-            accelerator: 'Ctrl+O',
-          },
+        submenu: this.subMenuFileCommonElements.concat([
           {
             label: '&Close',
             accelerator: 'Ctrl+W',
@@ -173,7 +200,7 @@ export default class MenuBuilder {
               this.mainWindow.close();
             },
           },
-        ],
+        ]),
       },
       {
         label: '&View',
@@ -212,17 +239,7 @@ export default class MenuBuilder {
                 },
               ],
       },
-      {
-        label: 'Help',
-        submenu: [
-          {
-            label: 'Learn More',
-            click() {
-              shell.openExternal('https://electronjs.org');
-            },
-          },
-        ],
-      },
+      this.subMenuHelp,
     ];
 
     return templateDefault;
