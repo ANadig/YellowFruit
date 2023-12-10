@@ -47,7 +47,7 @@ class Tournament {
   name: string = '';
 
   /** Where the tournament happened */
-  tournamentSite: ITournamentSite;
+  tournamentSite: ITournamentSite = { name: '' };
 
   /** Validation rules for scoring matches in this tournament */
   scoringRules?: ScoringRules;
@@ -74,7 +74,7 @@ class Tournament {
   level?: Level;
 
   /** Name of the question set used */
-  questionSet?: string;
+  questionSet: string = '';
 
   /** The subject matter of the tournament question set */
   content?: Content;
@@ -86,7 +86,6 @@ class Tournament {
     if (name) {
       this.name = name;
     }
-    this.tournamentSite = { name: '' };
   }
 
   /** Set the scoring rules for this tournament */

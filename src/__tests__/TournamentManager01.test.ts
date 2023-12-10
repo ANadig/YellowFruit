@@ -40,5 +40,24 @@ test('setTournamentSiteName01', () => {
   mgr.setTournamentSiteName(' abc ');
   expect(mgr.tournament.tournamentSite.name).toBe('abc');
   expect(mgr.unsavedData).toBeTruthy();
+
+  mgr.unsavedData = false;
+  mgr.setTournamentSiteName(' abc ');
+  expect(mgr.unsavedData).toBeFalsy();
+});
+// #endregion
+
+// #region setQuestionSetName
+test('setQuestionSetname01', () => {
+  const mgr = new TournamentManager();
+  expect(mgr.unsavedData).toBeFalsy();
+
+  mgr.setQuestionSetname(' abc ');
+  expect(mgr.tournament.questionSet).toBe('abc');
+  expect(mgr.unsavedData).toBeTruthy();
+
+  mgr.unsavedData = false;
+  mgr.setQuestionSetname(' abc ');
+  expect(mgr.unsavedData).toBeFalsy();
 });
 // #endregion

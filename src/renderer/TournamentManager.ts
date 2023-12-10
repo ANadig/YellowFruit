@@ -42,6 +42,17 @@ export class TournamentManager {
     this.unsavedData = true;
     this.dataChangedCallback();
   }
+
+  /** Set the name of the question set used by the tournament */
+  setQuestionSetname(setName: string): void {
+    const trimmedName = setName.trim();
+    if (!textFieldChanged(this.tournament.questionSet, trimmedName)) {
+      return;
+    }
+    this.tournament.questionSet = trimmedName;
+    this.unsavedData = true;
+    this.dataChangedCallback();
+  }
 }
 
 /** Represents an error state where we haven't properly created or loaded a tournament to edit */
