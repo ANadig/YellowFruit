@@ -44,10 +44,10 @@ enum Content {
  */
 class Tournament {
   /** Free-text name of the tournament */
-  name?: string;
+  name: string = '';
 
   /** Where the tournament happened */
-  tournamentSite?: ITournamentSite;
+  tournamentSite: ITournamentSite;
 
   /** Validation rules for scoring matches in this tournament */
   scoringRules?: ScoringRules;
@@ -86,6 +86,7 @@ class Tournament {
     if (name) {
       this.name = name;
     }
+    this.tournamentSite = { name: '' };
   }
 
   /** Set the scoring rules for this tournament */
