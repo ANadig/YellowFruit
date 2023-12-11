@@ -7,6 +7,8 @@ import '@fontsource/roboto/700.css';
 import './App.css';
 
 import CssBaseline from '@mui/material/CssBaseline';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Box from '@mui/material/Box';
 
 import { useEffect, useState } from 'react';
@@ -14,7 +16,19 @@ import NavBar from './Components/NavBar';
 import GeneralPage from './Components/GeneralPage';
 import { TournamentManager, TournamentContext } from './TournamentManager';
 
-/** Holds the entire UI */
+/** The actual UI of the application */
+function TournamentEditor() {
+  return (
+    <>
+      <NavBar />
+      <Box sx={{ p: 3 }}>
+        <GeneralPage />
+      </Box>
+    </>
+  );
+}
+
+/** Set up various contexts for the application */
 function YellowFruit() {
   const [, setUpdateNeeded] = useState({}); // set this object to a new object whenever we want to force a re-render
   const [tournManager] = useState(new TournamentManager());
@@ -27,12 +41,11 @@ function YellowFruit() {
   return (
     <>
       <CssBaseline />
-      <TournamentContext.Provider value={tournManager}>
-        <NavBar />
-        <Box sx={{ p: 3 }}>
-          <GeneralPage />
-        </Box>
-      </TournamentContext.Provider>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <TournamentContext.Provider value={tournManager}>
+          <TournamentEditor />
+        </TournamentContext.Provider>
+      </LocalizationProvider>
     </>
   );
 }

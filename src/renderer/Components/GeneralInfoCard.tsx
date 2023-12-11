@@ -1,6 +1,8 @@
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import { useContext } from 'react';
+import { DatePicker } from '@mui/x-date-pickers';
+import dayjs from 'dayjs';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -9,8 +11,10 @@ import useSubscription from '../Utils/CustomHooks';
 function GeneralInfoCard() {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
-  const [tournName, setTournName] = useSubscription(thisTournament.name, '');
-  const [location, setLocation] = useSubscription(thisTournament.tournamentSite.name, '');
+  const [tournName, setTournName] = useSubscription(thisTournament.name);
+  const [location, setLocation] = useSubscription(thisTournament.tournamentSite.name);
+  const initialDateVal = thisTournament.startDate === null ? null : dayjs(thisTournament.startDate);
+  const [date, setDate] = useSubscription(initialDateVal);
 
   return (
     <YfCard title="General">
@@ -33,6 +37,16 @@ function GeneralInfoCard() {
           onChange={(e) => setLocation(e.target.value)}
           onBlur={() => tournManager.setTournamentSiteName(location)}
         />
+        <Box sx={{ '& .MuiInputBase-root': { height: '40px' }, '& .MuiFormLabel-root': { marginTop: '-7px' } }}>
+          <DatePicker
+            label="Date"
+            value={date}
+            onChange={(newValue) => {
+              setDate(newValue);
+              tournManager.setTournamentStartDate(newValue);
+            }}
+          />
+        </Box>
       </Box>
     </YfCard>
   );

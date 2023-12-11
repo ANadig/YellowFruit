@@ -53,10 +53,10 @@ class Tournament {
   scoringRules?: ScoringRules;
 
   /** Tournament's start date */
-  startDate?: Date;
+  startDate: Date | null = null;
 
   /** Tournament's end date */
-  endDate?: Date;
+  endDate: Date | null = null;
 
   /** The schools/organizations at this tournament */
   registrations?: Registration[];

@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import dayjs from 'dayjs';
 import { TournamentManager } from '../renderer/TournamentManager';
 
 // #region setTournamentName
@@ -31,8 +32,6 @@ test('setTournamentName03', () => {
 });
 // #endregion
 
-// #region setTournamentLocation
-// basic test + strip whitespace + unsaved data
 test('setTournamentSiteName01', () => {
   const mgr = new TournamentManager();
   expect(mgr.unsavedData).toBeFalsy();
@@ -45,9 +44,7 @@ test('setTournamentSiteName01', () => {
   mgr.setTournamentSiteName(' abc ');
   expect(mgr.unsavedData).toBeFalsy();
 });
-// #endregion
 
-// #region setQuestionSetName
 test('setQuestionSetname01', () => {
   const mgr = new TournamentManager();
   expect(mgr.unsavedData).toBeFalsy();
@@ -60,4 +57,20 @@ test('setQuestionSetname01', () => {
   mgr.setQuestionSetname(' abc ');
   expect(mgr.unsavedData).toBeFalsy();
 });
-// #endregion
+
+test('setTournamentStartDate', () => {
+  const mgr = new TournamentManager();
+  expect(mgr.unsavedData).toBeFalsy();
+
+  mgr.setTournamentStartDate(dayjs('2023-10-15'));
+  expect(mgr.tournament.startDate?.toString()).toBe(dayjs('2023-10-15').toDate().toString());
+  expect(mgr.unsavedData).toBeTruthy();
+
+  mgr.unsavedData = false;
+  mgr.setTournamentStartDate(dayjs('2023-10-15'));
+  expect(mgr.unsavedData).toBeFalsy();
+
+  mgr.setTournamentStartDate(null);
+  expect(mgr.tournament.startDate).toBeNull();
+  expect(mgr.unsavedData).toBeTruthy();
+});

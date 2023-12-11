@@ -1,7 +1,8 @@
 /* eslint-disable max-classes-per-file */
 import { createContext } from 'react';
+import dayjs, { Dayjs } from 'dayjs';
 import Tournament from './DataModel/Tournament';
-import { textFieldChanged } from './Utils/GeneralUtils';
+import { dateFieldChanged, textFieldChanged } from './Utils/GeneralUtils';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -39,6 +40,16 @@ export class TournamentManager {
       return;
     }
     this.tournament.tournamentSite.name = trimmedName;
+    this.unsavedData = true;
+    this.dataChangedCallback();
+  }
+
+  setTournamentStartDate(dateFromUser: Dayjs | null) {
+    const newDate = dateFromUser?.isValid() ? dateFromUser : null;
+    if (!dateFieldChanged(dayjs(this.tournament.startDate), newDate)) {
+      return;
+    }
+    this.tournament.startDate = newDate === null ? null : newDate.toDate();
     this.unsavedData = true;
     this.dataChangedCallback();
   }

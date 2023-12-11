@@ -8,8 +8,8 @@ import useSubscription from '../Utils/CustomHooks';
 function QuestionSetCard() {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
-  const [qsetName, setQsetName] = useSubscription<string>(thisTournament.questionSet, '');
-  const [name] = useSubscription<string>(thisTournament.name, '');
+  const [qsetName, setQsetName] = useSubscription<string>(thisTournament.questionSet);
+  const [name] = useSubscription<string>(thisTournament.name);
 
   return (
     <YfCard title="Question Set">
