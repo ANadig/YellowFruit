@@ -1,11 +1,12 @@
 import { BrowserWindow, dialog } from 'electron';
+import IpcChannels from '../IPCChannels';
 
 export function openYftFile(mainWindow: BrowserWindow) {
   const fileNameAry = dialog.showOpenDialogSync(mainWindow, {
     filters: [{ name: 'YellowFruit Tournament', extensions: ['yft'] }],
   });
   if (fileNameAry) {
-    dialog.showMessageBoxSync(mainWindow, { message: fileNameAry[0] });
+    mainWindow.webContents.send(IpcChannels.openYftFile, fileNameAry[0]);
   }
 }
 

@@ -3,11 +3,15 @@ import { createContext } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import Tournament from './DataModel/Tournament';
 import { dateFieldChanged, textFieldChanged } from './Utils/GeneralUtils';
+import IpcChannels from '../IPCChannels';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
   /** The tournament being edited */
   tournament: Tournament;
+
+  /** name of the currently-open file */
+  fileName: string | null = null;
 
   /** Hook into the UI to tell it when it needs to update */
   dataChangedCallback: () => void;
@@ -20,6 +24,13 @@ export class TournamentManager {
   constructor() {
     this.tournament = new Tournament();
     this.dataChangedCallback = () => {};
+    this.addIpcListeners();
+  }
+
+  addIpcListeners() {
+    window.electron.ipcRenderer.on(IpcChannels.openYftFile, (fileName) => {
+      this.fileName = fileName as string;
+    });
   }
 
   /** Set the tournament's display name */
