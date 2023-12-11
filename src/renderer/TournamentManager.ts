@@ -28,6 +28,11 @@ export class TournamentManager {
   }
 
   addIpcListeners() {
+    // needed so unit tests don't error out
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     window.electron.ipcRenderer.on(IpcChannels.openYftFile, (fileName) => {
       this.fileName = fileName as string;
     });
