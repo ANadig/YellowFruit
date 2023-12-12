@@ -16,6 +16,7 @@ module.exports = {
     'no-underscore-dangle': 'off',
     'no-restricted-syntax': 'off',
     'no-plusplus': 'off',
+    'max-classes-per-file': 'off',
   },
   parserOptions: {
     ecmaVersion: 2022,
