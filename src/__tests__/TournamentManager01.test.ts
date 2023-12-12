@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import dayjs from 'dayjs';
 import { TournamentManager } from '../renderer/TournamentManager';
+import { NullDate } from '../renderer/Utils/UtilTypes';
 
 // #region setTournamentName
 // basic test
@@ -71,6 +72,6 @@ test('setTournamentStartDate', () => {
   expect(mgr.unsavedData).toBeFalsy();
 
   mgr.setTournamentStartDate(null);
-  expect(mgr.tournament.startDate).toBeNull();
+  expect(NullDate.isNullDate(mgr.tournament.startDate)).toBeTruthy();
   expect(mgr.unsavedData).toBeTruthy();
 });

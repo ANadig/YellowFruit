@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
+import { NullDate } from '../Utils/UtilTypes';
 
 /** Miscellaneous what/where/when info about the tournament */
 function GeneralInfoCard() {
@@ -13,7 +14,7 @@ function GeneralInfoCard() {
   const thisTournament = tournManager.tournament;
   const [tournName, setTournName] = useSubscription(thisTournament.name);
   const [location, setLocation] = useSubscription(thisTournament.tournamentSite.name);
-  const initialDateVal = thisTournament.startDate === null ? null : dayjs(thisTournament.startDate);
+  const initialDateVal = NullDate.isNullDate(thisTournament.startDate) ? null : dayjs(thisTournament.startDate);
   const [date, setDate] = useSubscription(initialDateVal);
 
   return (

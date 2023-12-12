@@ -3,6 +3,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import Tournament from './DataModel/Tournament';
 import { dateFieldChanged, textFieldChanged } from './Utils/GeneralUtils';
 import IpcChannels from '../IPCChannels';
+import { NullObjects } from './Utils/UtilTypes';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -65,11 +66,11 @@ export class TournamentManager {
   }
 
   setTournamentStartDate(dateFromUser: Dayjs | null) {
-    const newDate = dateFromUser?.isValid() ? dateFromUser : null;
-    if (!dateFieldChanged(dayjs(this.tournament.startDate), newDate)) {
+    const validDateOrNull = dateFromUser?.isValid() ? dateFromUser : null;
+    if (!dateFieldChanged(dayjs(this.tournament.startDate), validDateOrNull)) {
       return;
     }
-    this.tournament.startDate = newDate === null ? null : newDate.toDate();
+    this.tournament.startDate = validDateOrNull === null ? NullObjects.nullDate : validDateOrNull.toDate();
     this.unsavedData = true;
     this.dataChangedCallback();
   }

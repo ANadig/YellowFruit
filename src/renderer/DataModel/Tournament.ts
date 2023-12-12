@@ -1,3 +1,4 @@
+import { NullDate, NullObjects } from '../Utils/UtilTypes';
 import Phase from './Phase';
 import Registration from './Registration';
 import { CommonRuleSets, ScoringRules } from './ScoringRules';
@@ -57,9 +58,9 @@ interface IQbjTournament {
   /** Validation rules for scoring matches in this tournament */
   scoringRules?: ScoringRules;
   /** Tournament's start date */
-  startDate?: Date | null;
+  startDate?: Date;
   /** Tournament's end date */
-  endDate?: Date | null;
+  endDate?: Date;
   /** The schools/organizations at this tournament */
   registrations?: Registration[];
   /** Phases (prelims, playoffs, etc) of the tournament */
@@ -86,7 +87,7 @@ class Tournament implements IQbjTournament {
 
   scoringRules?: ScoringRules;
 
-  startDate: Date | null = null;
+  startDate: Date = NullObjects.nullDate;
 
   registrations?: Registration[];
 
@@ -108,7 +109,7 @@ class Tournament implements IQbjTournament {
       name: this.name,
       tournamentSite: this.tournamentSite.name !== '' ? this.tournamentSite : undefined,
       scoringRules: this.scoringRules ? this.scoringRules : undefined,
-      startDate: this.startDate ? this.startDate : undefined,
+      startDate: !NullDate.isNullDate(this.startDate) ? this.startDate : undefined,
       questionSet: this.questionSet !== '' ? this.questionSet : undefined,
     };
 
