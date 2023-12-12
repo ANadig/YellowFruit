@@ -1,4 +1,3 @@
-/* eslint-disable max-classes-per-file */
 import { createContext } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import Tournament from './DataModel/Tournament';
@@ -34,8 +33,13 @@ export class TournamentManager {
     }
 
     window.electron.ipcRenderer.on(IpcChannels.openYftFile, (fileName) => {
-      this.fileName = fileName as string;
+      this.openYftFile(fileName as string);
     });
+  }
+
+  /** Open the file at the given path for editing */
+  openYftFile(fileName: string) {
+    this.fileName = fileName as string;
   }
 
   /** Set the tournament's display name */

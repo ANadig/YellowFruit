@@ -3,8 +3,6 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import IpcChannels from '../IPCChannels';
 
-export type Channels = 'ipc-example';
-
 const electronHandler = {
   ipcRenderer: {
     sendMessage(channel: IpcChannels, ...args: unknown[]) {
