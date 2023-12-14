@@ -1,46 +1,13 @@
 import { NullDate, NullObjects } from '../Utils/UtilTypes';
 import Phase from './Phase';
+import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import Registration from './Registration';
 import { CommonRuleSets, ScoringRules } from './ScoringRules';
 import { IRanking } from './Team';
 
-/** The location where tournament happened. Corresponds to the Tournament Schema object */
-interface IQbjTournamentSite {
-  /** General name/description of where the tournament is happening */
-  name: string;
-  /** Specific location info such as an address */
-  place?: string;
-  /** The latitude of the tournament's site (for geolocation) */
-  latitude?: Number;
-  /** The longitude of the tournament's site (for geolocation) */
-  longitude?: Number;
-}
-
-/** Audience / level of the tournament */
-enum QbjAudience {
-  ElementarySchool,
-  MiddleSchool,
-  HighSchool,
-  CommunityCollege,
-  College,
-  Open,
-  Other,
-}
-
-/** Level of the tournament, within a given Audience */
-enum QbjLevel {
-  Novice,
-  Regular,
-  Nationals,
-  Other,
-}
-
-/** Kinds of question sets */
-enum QbjContent {
-  GeneralAcademic,
-  SpecializedAcademic,
-  Trash,
-  Other,
+/** Used for supplementing QBJ data types with additional YF-specific info */
+export interface IYftFileObject {
+  YfData?: object;
 }
 
 /**
@@ -49,6 +16,7 @@ enum QbjContent {
  * https://schema.quizbowl.technology/tournament
  */
 interface IQbjTournament {
+  type?: QbjTypeNames.Tournament;
   /** Free-text name of the tournament */
   name: string;
   /** An abbreviated version of the tournament's name */
@@ -79,6 +47,17 @@ interface IQbjTournament {
   info?: string;
 }
 
+/** Tournament object as written to a .yft file */
+interface IYftFileTournament extends IQbjTournament, IYftFileObject {
+  YfData: ITournamentExtraData;
+}
+
+/** Additional info not in qbj but needed for a .yft file */
+interface ITournamentExtraData {
+  /** Version of this software used to write the file */
+  YfVersion: String;
+}
+
 /** YellowFruit implementation of the Tournament object */
 class Tournament implements IQbjTournament {
   name: string = '';
@@ -106,7 +85,8 @@ class Tournament implements IQbjTournament {
   /** Create an object that exactly complies with the tournament schema */
   toQbjObject(): IQbjTournament {
     const qbjObject: IQbjTournament = {
-      name: this.name,
+      type: QbjTypeNames.Tournament,
+      name: this.name || 'unnamed tournament',
       tournamentSite: this.tournamentSite.name !== '' ? this.tournamentSite : undefined,
       scoringRules: this.scoringRules ? this.scoringRules : undefined,
       startDate: !NullDate.isNullDate(this.startDate) ? this.startDate : undefined,
@@ -116,10 +96,29 @@ class Tournament implements IQbjTournament {
     return qbjObject;
   }
 
+  toYftFileObject(): IYftFileTournament {
+    const qbjObject = this.toQbjObject();
+    const metadata: ITournamentExtraData = { YfVersion: '4.0.0' };
+
+    return { YfData: metadata, ...qbjObject };
+  }
+
   /** Set the scoring rules for this tournament */
   applyRuleSet(rules: CommonRuleSets): void {
     this.scoringRules = new ScoringRules(rules);
   }
+}
+
+/** The location where tournament happened. Corresponds to the Tournament Schema object */
+interface IQbjTournamentSite {
+  /** General name/description of where the tournament is happening */
+  name: string;
+  /** Specific location info such as an address */
+  place?: string;
+  /** The latitude of the tournament's site (for geolocation) */
+  latitude?: Number;
+  /** The longitude of the tournament's site (for geolocation) */
+  longitude?: Number;
 }
 
 export default Tournament;

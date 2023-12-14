@@ -16,6 +16,9 @@ import NavBar from './Components/NavBar';
 import GeneralPage from './Components/GeneralPage';
 import { TournamentManager, TournamentContext } from './TournamentManager';
 
+window.electron.ipcRenderer.removeAllListeners();
+const tournManager = new TournamentManager();
+
 /** The actual UI of the application */
 function TournamentEditor() {
   return (
@@ -31,18 +34,18 @@ function TournamentEditor() {
 /** Set up various contexts for the application */
 function YellowFruit() {
   const [, setUpdateNeeded] = useState({}); // set this object to a new object whenever we want to force a re-render
-  const [tournManager] = useState(new TournamentManager());
+  const [mgr] = useState(tournManager);
   useEffect(() => {
-    tournManager.dataChangedCallback = () => {
+    mgr.dataChangedCallback = () => {
       setUpdateNeeded({});
     };
-  }, [tournManager]);
+  }, [mgr]);
 
   return (
     <>
       <CssBaseline />
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <TournamentContext.Provider value={tournManager}>
+        <TournamentContext.Provider value={mgr}>
           <TournamentEditor />
         </TournamentContext.Provider>
       </LocalizationProvider>

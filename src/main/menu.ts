@@ -1,5 +1,5 @@
 import { app, Menu, shell, BrowserWindow, MenuItemConstructorOptions } from 'electron';
-import { openYftFile, saveYftFile } from './FileUtils';
+import { openYftFile, requestToSaveYftFile } from './FileUtils';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -29,7 +29,7 @@ export default class MenuBuilder {
       label: '&Save',
       accelerator: 'Ctrl+S',
       click: () => {
-        saveYftFile();
+        requestToSaveYftFile(this.mainWindow);
       },
     },
   ];

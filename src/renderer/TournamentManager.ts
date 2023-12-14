@@ -33,14 +33,35 @@ export class TournamentManager {
       return;
     }
 
+    console.log('addipclisteners');
+
     window.electron.ipcRenderer.on(IpcChannels.openYftFile, (fileName) => {
       this.openYftFile(fileName as string);
+    });
+    window.electron.ipcRenderer.on(IpcChannels.saveCurrentTournament, () => {
+      this.saveYftFile();
+    });
+    window.electron.ipcRenderer.on(IpcChannels.tournamentSavedSuccessfully, () => {
+      this.onSuccessfulYftSave();
     });
   }
 
   /** Open the file at the given path for editing */
   openYftFile(fileName: string) {
     this.fileName = fileName as string;
+  }
+
+  /** Write the current tournament to the current file */
+  saveYftFile() {
+    if (this.fileName === null) return;
+
+    const fileContents = JSON.stringify(this.tournament.toYftFileObject());
+    window.electron.ipcRenderer.sendMessage(IpcChannels.saveFile, this.fileName, fileContents);
+  }
+
+  onSuccessfulYftSave() {
+    this.unsavedData = false;
+    this.makeToast('Data saved');
   }
 
   /** Set the tournament's display name */
@@ -85,6 +106,10 @@ export class TournamentManager {
     this.unsavedData = true;
     this.dataChangedCallback();
   }
+
+  makeToast(msg: string) {
+    console.log(msg);
+  }
 }
 
 /** Represents an error state where we haven't properly created or loaded a tournament to edit */
@@ -95,6 +120,9 @@ class NullTournamentManager extends TournamentManager {
     super();
     this.tournament.name = 'NullTournamentManager';
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  addIpcListeners(): void {}
 }
 
 export const TournamentContext = createContext<TournamentManager>(new NullTournamentManager());
