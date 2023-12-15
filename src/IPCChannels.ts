@@ -1,9 +1,14 @@
-/** Channels used for inter-process communication */
-enum IpcChannels {
+/** Channels for renderer sending messages to main */
+export enum IpcRendToMain {
+  ipcExample = 'ipc-example',
+  /** Save arbitrary file contents */
+  saveFile = 'saveFile',
+}
+
+/** Channels for main sending messages to renderer */
+export enum IpcMainToRend {
   ipcExample = 'ipc-example',
   openYftFile = 'openYftFile',
-  /** Renderer telling main to save arbitrary file contents */
-  saveFile = 'saveFile',
   /** Request the renderer to save the currently open tournament to yft */
   saveCurrentTournament = 'saveCurrentTournament',
   /** Tell the renderer that the .yft file was saved */
@@ -13,10 +18,17 @@ enum IpcChannels {
   newTournament = 'newTournament',
 }
 
-export const rendererListenableEvents = [
-  IpcChannels.openYftFile,
-  IpcChannels.saveCurrentTournament,
-  IpcChannels.tournamentSavedSuccessfully,
-];
+/** Channels for both directions renderer<-->main */
+export enum IpcBidirectional {
+  ipcExample = 'ipc-example',
+}
 
-export default IpcChannels;
+export type IpcChannels = IpcRendToMain | IpcMainToRend | IpcBidirectional;
+
+export const rendererListenableEvents = [
+  IpcMainToRend.openYftFile,
+  IpcMainToRend.saveCurrentTournament,
+  IpcMainToRend.tournamentSavedSuccessfully,
+  IpcMainToRend.saveAsCommand,
+  IpcMainToRend.newTournament,
+];

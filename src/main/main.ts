@@ -14,8 +14,8 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import IpcChannels from '../IPCChannels';
 import { handleSaveFile } from './FileUtils';
+import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
 
 class AppUpdater {
   constructor() {
@@ -27,10 +27,10 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on(IpcChannels.ipcExample, async (event, arg) => {
+ipcMain.on(IpcBidirectional.ipcExample, async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
-  event.reply(IpcChannels.ipcExample, msgTemplate('pong'));
+  event.reply(IpcBidirectional.ipcExample, msgTemplate('pong'));
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -126,7 +126,7 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
-    ipcMain.on(IpcChannels.saveFile, handleSaveFile);
+    ipcMain.on(IpcRendToMain.saveFile, handleSaveFile);
 
     createWindow();
     app.on('activate', () => {

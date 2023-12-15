@@ -88,9 +88,9 @@ class Tournament implements IQbjTournament {
       type: QbjTypeNames.Tournament,
       name: this.name || 'unnamed tournament',
       tournamentSite: this.tournamentSite.name !== '' ? this.tournamentSite : undefined,
-      scoringRules: this.scoringRules ? this.scoringRules : undefined,
+      scoringRules: this.scoringRules || undefined,
       startDate: !NullDate.isNullDate(this.startDate) ? this.startDate : undefined,
-      questionSet: this.questionSet !== '' ? this.questionSet : undefined,
+      questionSet: this.questionSet || undefined,
     };
 
     return qbjObject;

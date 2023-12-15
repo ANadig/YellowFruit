@@ -1,18 +1,18 @@
 import { BrowserWindow, IpcMainEvent, dialog } from 'electron';
 import fs from 'fs';
-import IpcChannels from '../IPCChannels';
+import { IpcMainToRend } from '../IPCChannels';
 
 export function openYftFile(mainWindow: BrowserWindow) {
   const fileNameAry = dialog.showOpenDialogSync(mainWindow, {
     filters: [{ name: 'YellowFruit Tournament', extensions: ['yft'] }],
   });
   if (fileNameAry) {
-    mainWindow.webContents.send(IpcChannels.openYftFile, fileNameAry[0]);
+    mainWindow.webContents.send(IpcMainToRend.openYftFile, fileNameAry[0]);
   }
 }
 
 export function requestToSaveYftFile(mainWindow: BrowserWindow) {
-  mainWindow.webContents.send(IpcChannels.saveCurrentTournament);
+  mainWindow.webContents.send(IpcMainToRend.saveCurrentTournament);
 }
 
 export function handleSaveFile(event: IpcMainEvent, filePath: string, fileContents: string) {
@@ -24,6 +24,6 @@ export function handleSaveFile(event: IpcMainEvent, filePath: string, fileConten
       dialog.showMessageBoxSync(window, { message: `Error saving file: \n\n ${err.message}` });
       return;
     }
-    window.webContents.send(IpcChannels.tournamentSavedSuccessfully);
+    window.webContents.send(IpcMainToRend.tournamentSavedSuccessfully);
   });
 }

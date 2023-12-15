@@ -2,8 +2,8 @@ import { createContext } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import Tournament from './DataModel/Tournament';
 import { dateFieldChanged, textFieldChanged } from './Utils/GeneralUtils';
-import IpcChannels from '../IPCChannels';
 import { NullObjects } from './Utils/UtilTypes';
+import { IpcMainToRend, IpcRendToMain } from '../IPCChannels';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -35,13 +35,13 @@ export class TournamentManager {
 
     console.log('addipclisteners');
 
-    window.electron.ipcRenderer.on(IpcChannels.openYftFile, (fileName) => {
+    window.electron.ipcRenderer.on(IpcMainToRend.openYftFile, (fileName) => {
       this.openYftFile(fileName as string);
     });
-    window.electron.ipcRenderer.on(IpcChannels.saveCurrentTournament, () => {
+    window.electron.ipcRenderer.on(IpcMainToRend.saveCurrentTournament, () => {
       this.saveYftFile();
     });
-    window.electron.ipcRenderer.on(IpcChannels.tournamentSavedSuccessfully, () => {
+    window.electron.ipcRenderer.on(IpcMainToRend.tournamentSavedSuccessfully, () => {
       this.onSuccessfulYftSave();
     });
   }
@@ -56,7 +56,7 @@ export class TournamentManager {
     if (this.fileName === null) return;
 
     const fileContents = JSON.stringify(this.tournament.toYftFileObject());
-    window.electron.ipcRenderer.sendMessage(IpcChannels.saveFile, this.fileName, fileContents);
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.saveFile, this.fileName, fileContents);
   }
 
   onSuccessfulYftSave() {
