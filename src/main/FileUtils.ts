@@ -6,9 +6,15 @@ export function openYftFile(mainWindow: BrowserWindow) {
   const fileNameAry = dialog.showOpenDialogSync(mainWindow, {
     filters: [{ name: 'YellowFruit Tournament', extensions: ['yft'] }],
   });
-  if (fileNameAry) {
-    mainWindow.webContents.send(IpcMainToRend.openYftFile, fileNameAry[0]);
-  }
+  if (!fileNameAry) return;
+
+  fs.readFile(fileNameAry[0], { encoding: 'utf8' }, (err, data) => {
+    if (err) {
+      dialog.showMessageBoxSync(mainWindow, { message: `Error reading file: \n\n ${err.message}` });
+      return;
+    }
+    mainWindow.webContents.send(IpcMainToRend.openYftFile, fileNameAry[0], data);
+  });
 }
 
 export function requestToSaveYftFile(mainWindow: BrowserWindow) {

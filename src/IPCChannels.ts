@@ -1,13 +1,11 @@
 /** Channels for renderer sending messages to main */
 export enum IpcRendToMain {
-  ipcExample = 'ipc-example',
   /** Save arbitrary file contents */
   saveFile = 'saveFile',
 }
 
 /** Channels for main sending messages to renderer */
 export enum IpcMainToRend {
-  ipcExample = 'ipc-example',
   openYftFile = 'openYftFile',
   /** Request the renderer to save the currently open tournament to yft */
   saveCurrentTournament = 'saveCurrentTournament',

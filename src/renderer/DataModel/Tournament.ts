@@ -1,21 +1,18 @@
 import { NullDate, NullObjects } from '../Utils/UtilTypes';
+import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import Phase from './Phase';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import Registration from './Registration';
 import { CommonRuleSets, ScoringRules } from './ScoringRules';
 import { IRanking } from './Team';
-
-/** Used for supplementing QBJ data types with additional YF-specific info */
-export interface IYftFileObject {
-  YfData?: object;
-}
+import { IQbjTournamentSite } from './TournamentSite';
 
 /**
  * Represents the data for a tournament.
  * Corresponds to the Tournament schema object
  * https://schema.quizbowl.technology/tournament
  */
-interface IQbjTournament {
+interface IQbjTournament extends IQbjObject {
   type?: QbjTypeNames.Tournament;
   /** Free-text name of the tournament */
   name: string;
@@ -59,7 +56,7 @@ interface ITournamentExtraData {
 }
 
 /** YellowFruit implementation of the Tournament object */
-class Tournament implements IQbjTournament {
+class Tournament implements IQbjTournament, IYftDataModelObject {
   name: string = '';
 
   tournamentSite: IQbjTournamentSite = { name: '' };
@@ -80,6 +77,17 @@ class Tournament implements IQbjTournament {
     if (name) {
       this.name = name;
     }
+  }
+
+  static fromYftFileObject(obj: IYftFileTournament): Tournament {
+    const tourn = new Tournament();
+    if (obj.type !== QbjTypeNames.Tournament) return tourn;
+
+    if (obj.name) tourn.name = obj.name;
+    // if (obj.tournamentSite)
+    // tourn.tournamentSite =
+
+    return tourn;
   }
 
   /** Create an object that exactly complies with the tournament schema */
@@ -107,18 +115,6 @@ class Tournament implements IQbjTournament {
   applyRuleSet(rules: CommonRuleSets): void {
     this.scoringRules = new ScoringRules(rules);
   }
-}
-
-/** The location where tournament happened. Corresponds to the Tournament Schema object */
-interface IQbjTournamentSite {
-  /** General name/description of where the tournament is happening */
-  name: string;
-  /** Specific location info such as an address */
-  place?: string;
-  /** The latitude of the tournament's site (for geolocation) */
-  latitude?: Number;
-  /** The longitude of the tournament's site (for geolocation) */
-  longitude?: Number;
 }
 
 export default Tournament;

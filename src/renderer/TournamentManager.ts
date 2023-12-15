@@ -11,7 +11,7 @@ export class TournamentManager {
   tournament: Tournament;
 
   /** name of the currently-open file */
-  fileName: string | null = null;
+  filePath: string | null = null;
 
   /** Hook into the UI to tell it when it needs to update */
   dataChangedCallback: () => void;
@@ -35,8 +35,8 @@ export class TournamentManager {
 
     console.log('addipclisteners');
 
-    window.electron.ipcRenderer.on(IpcMainToRend.openYftFile, (fileName) => {
-      this.openYftFile(fileName as string);
+    window.electron.ipcRenderer.on(IpcMainToRend.openYftFile, (filePath, fileContents) => {
+      this.openYftFile(filePath as string, fileContents as string);
     });
     window.electron.ipcRenderer.on(IpcMainToRend.saveCurrentTournament, () => {
       this.saveYftFile();
@@ -46,17 +46,21 @@ export class TournamentManager {
     });
   }
 
-  /** Open the file at the given path for editing */
-  openYftFile(fileName: string) {
-    this.fileName = fileName as string;
+  /** Parse file contents and load tournament for editing */
+  openYftFile(filePath: string, fileContents: string) {
+    this.filePath = filePath as string;
+
+    const objFromFile = JSON.parse(fileContents);
+
+    this.tournament = Tournament.fromYftFileObject(objFromFile);
   }
 
   /** Write the current tournament to the current file */
   saveYftFile() {
-    if (this.fileName === null) return;
+    if (this.filePath === null) return;
 
     const fileContents = JSON.stringify(this.tournament.toYftFileObject());
-    window.electron.ipcRenderer.sendMessage(IpcRendToMain.saveFile, this.fileName, fileContents);
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.saveFile, this.filePath, fileContents);
   }
 
   onSuccessfulYftSave() {
