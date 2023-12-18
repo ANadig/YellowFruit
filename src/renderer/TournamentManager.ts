@@ -2,7 +2,7 @@ import { createContext } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import Tournament, { IQbjTournament, IYftFileTournament } from './DataModel/Tournament';
 import { dateFieldChanged, textFieldChanged } from './Utils/GeneralUtils';
-import { NullObjects } from './Utils/UtilTypes';
+import { NullDate, NullObjects } from './Utils/UtilTypes';
 import { IpcMainToRend, IpcRendToMain } from '../IPCChannels';
 import { IQbjObject, IQbjWholeFile } from './DataModel/Interfaces';
 import { QbjTypeNames } from './DataModel/QbjEnums';
@@ -59,7 +59,7 @@ export class TournamentManager {
     this.filePath = filePath as string;
 
     const objFromFile: IQbjObject[] = JSON.parse(fileContents, (key, value) => {
-      if (TournamentManager.isNameOfDateField(key)) return dayjs(value).toDate; // must be ISO 8601 format
+      if (TournamentManager.isNameOfDateField(key)) return dayjs(value).toDate(); // must be ISO 8601 format
       return value;
     });
 
@@ -71,7 +71,12 @@ export class TournamentManager {
     const refTargets = collectRefTargets(objFromFile);
     const loadedTournament = Tournament.fromYftFileObject(tournamentObj as IYftFileTournament, refTargets);
     if (loadedTournament === null) return;
+
     this.tournament = loadedTournament;
+    this.unsavedData = false;
+    this.dataChangedCallback();
+
+    console.log(this.tournament.startDate);
   }
 
   private static getTournamentFromQbjFile(fileObj: IQbjWholeFile): IQbjTournament | null {
@@ -93,7 +98,10 @@ export class TournamentManager {
     const wholeFileObj = [this.tournament.toYftFileObject()];
 
     const fileContents = JSON.stringify(wholeFileObj, (key, value) => {
-      if (TournamentManager.isNameOfDateField(key)) return dayjs(value).toISOString();
+      if (TournamentManager.isNameOfDateField(key)) {
+        if (value) return dayjs(value).toISOString();
+        return undefined;
+      }
       return value;
     });
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.saveFile, this.filePath, fileContents);

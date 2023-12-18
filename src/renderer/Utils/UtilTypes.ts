@@ -1,4 +1,4 @@
-// Dummy object representing a lack of a date
+/** Dummy object representing a lack of a date */
 export class NullDate extends Date {
   static nullStr = 'Yft Null Date';
 

@@ -127,7 +127,9 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     const qbjObject = this.toQbjObject();
     const metadata: ITournamentExtraData = { YfVersion: '4.0.0' };
 
-    return { YfData: metadata, ...qbjObject };
+    const yftFIleObj = { YfData: metadata, ...qbjObject };
+    yftFIleObj.tournamentSite = this.tournamentSite.toYftFileObject();
+    return yftFIleObj;
   }
 
   /** Set the scoring rules for this tournament */
