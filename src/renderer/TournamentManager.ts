@@ -1,9 +1,12 @@
 import { createContext } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import Tournament from './DataModel/Tournament';
+import Tournament, { IQbjTournament, IYftFileTournament } from './DataModel/Tournament';
 import { dateFieldChanged, textFieldChanged } from './Utils/GeneralUtils';
 import { NullObjects } from './Utils/UtilTypes';
 import { IpcMainToRend, IpcRendToMain } from '../IPCChannels';
+import { IQbjObject, IQbjWholeFile } from './DataModel/Interfaces';
+import { QbjTypeNames } from './DataModel/QbjEnums';
+import { collectRefTargets } from './DataModel/QbjUtils';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -46,24 +49,57 @@ export class TournamentManager {
     });
   }
 
+  /** Is this a property in a JSON file that we should try to parse into a date? */
+  static isNameOfDateField(key: string) {
+    return key === 'startDate'; // additional fields in QBJ files aren't used or stored in YF
+  }
+
   /** Parse file contents and load tournament for editing */
-  openYftFile(filePath: string, fileContents: string) {
+  private openYftFile(filePath: string, fileContents: string) {
     this.filePath = filePath as string;
 
-    const objFromFile = JSON.parse(fileContents);
+    const objFromFile: IQbjObject[] = JSON.parse(fileContents, (key, value) => {
+      if (TournamentManager.isNameOfDateField(key)) return dayjs(value).toDate; // must be ISO 8601 format
+      return value;
+    });
 
-    this.tournament = Tournament.fromYftFileObject(objFromFile);
+    const tournamentObj = TournamentManager.findTournamentObject(objFromFile);
+    if (tournamentObj === null) {
+      return; // TODO: some sort of error
+    }
+
+    const refTargets = collectRefTargets(objFromFile);
+    const loadedTournament = Tournament.fromYftFileObject(tournamentObj as IYftFileTournament, refTargets);
+    if (loadedTournament === null) return;
+    this.tournament = loadedTournament;
+  }
+
+  private static getTournamentFromQbjFile(fileObj: IQbjWholeFile): IQbjTournament | null {
+    if (!fileObj.objects) return null;
+    return this.findTournamentObject(fileObj.objects);
+  }
+
+  private static findTournamentObject(objects: IQbjObject[]): IQbjTournament | null {
+    for (const obj of objects) {
+      if (obj.type === QbjTypeNames.Tournament) return obj as IQbjTournament;
+    }
+    return null;
   }
 
   /** Write the current tournament to the current file */
-  saveYftFile() {
+  private saveYftFile() {
     if (this.filePath === null) return;
 
-    const fileContents = JSON.stringify(this.tournament.toYftFileObject());
+    const wholeFileObj = [this.tournament.toYftFileObject()];
+
+    const fileContents = JSON.stringify(wholeFileObj, (key, value) => {
+      if (TournamentManager.isNameOfDateField(key)) return dayjs(value).toISOString();
+      return value;
+    });
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.saveFile, this.filePath, fileContents);
   }
 
-  onSuccessfulYftSave() {
+  private onSuccessfulYftSave() {
     this.unsavedData = false;
     this.makeToast('Data saved');
   }

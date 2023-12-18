@@ -18,6 +18,7 @@ module.exports = {
     'no-plusplus': 'off',
     'max-classes-per-file': 'off',
     'no-use-before-define': 'off',
+    'no-continue': 'off',
   },
   parserOptions: {
     ecmaVersion: 2022,

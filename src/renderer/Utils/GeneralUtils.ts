@@ -21,3 +21,28 @@ export function dateFieldChanged(oldVal: Dayjs | null, newVal: Dayjs | null): bo
   }
   return oldVal.unix() !== newVal.unix();
 }
+
+/**
+ * Is version a less than version b? Versions are 3-piece dot-delimited, e.g. '1.2.3'
+ * @param  a    version string
+ * @param  b    version string
+ * @param  type precision to use for the comparison. Default: 'patch' (third piece)
+ * @return      true if a is less than b
+ */
+export function versionLt(a: string, b: string, type?: 'major' | 'minor' | 'patch'): boolean {
+  const aSplit = a.split('.');
+  const bSplit = b.split('.');
+  if (aSplit[0] !== bSplit[0]) {
+    return aSplit[0] < bSplit[0];
+  }
+  if (type === 'major') {
+    return false;
+  }
+  if (aSplit[1] !== bSplit[1]) {
+    return aSplit[1] < bSplit[1];
+  }
+  if (type === 'minor') {
+    return false;
+  }
+  return aSplit[2] < bSplit[2];
+}

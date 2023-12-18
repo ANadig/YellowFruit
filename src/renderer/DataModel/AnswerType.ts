@@ -2,13 +2,26 @@
  *  Corresponds with qb schema objects
  *  https://schema.quizbowl.technology/tournament
  */
-class AnswerType {
+
+import { IQbjObject } from './Interfaces';
+
+export interface IQbjAnswerType extends IQbjObject {
+  /** The number of points a player receives for this answer type. */
+  value: number;
+  /** How to label the answer type on reports */
+  label?: string;
+  /** Abbreviated label  */
+  shortLabel?: string;
+  /** Whether or not the team that gets this answer value will next receive a bonus question */
+  awardsBonus?: boolean;
+}
+
+class AnswerType implements IQbjAnswerType {
   /** The number of points a player receives for this answer type. */
   value: number;
 
   private _label: string | undefined;
 
-  /** How to label the answer type on reports */
   get label(): string {
     return this._label ? this._label : this.value.toString();
   }
@@ -19,7 +32,6 @@ class AnswerType {
 
   private _shortLabel: string | undefined;
 
-  /** Abbreviated label  */
   get shortLabel(): string {
     return this._shortLabel ? this._shortLabel : this.label;
   }
@@ -28,7 +40,6 @@ class AnswerType {
     this._shortLabel = str;
   }
 
-  /** Whether or not the team that gets this answer value will next receive a bonus question */
   get awardsBonus(): boolean {
     return this.value > 0;
   }

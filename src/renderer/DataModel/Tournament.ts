@@ -1,18 +1,19 @@
+import { versionLt } from '../Utils/GeneralUtils';
 import { NullDate, NullObjects } from '../Utils/UtilTypes';
-import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { IIndeterminateQbj, IQbjObject, IRefTargetDict, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import Phase from './Phase';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import Registration from './Registration';
-import { CommonRuleSets, ScoringRules } from './ScoringRules';
+import { CommonRuleSets, IQbjScoringRules, ScoringRules } from './ScoringRules';
 import { IRanking } from './Team';
-import { IQbjTournamentSite } from './TournamentSite';
+import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 
 /**
  * Represents the data for a tournament.
  * Corresponds to the Tournament schema object
  * https://schema.quizbowl.technology/tournament
  */
-interface IQbjTournament extends IQbjObject {
+export interface IQbjTournament extends IQbjObject {
   type?: QbjTypeNames.Tournament;
   /** Free-text name of the tournament */
   name: string;
@@ -21,7 +22,7 @@ interface IQbjTournament extends IQbjObject {
   /** Where the tournament happened */
   tournamentSite?: IQbjTournamentSite;
   /** Validation rules for scoring matches in this tournament */
-  scoringRules?: ScoringRules;
+  scoringRules?: IQbjScoringRules;
   /** Tournament's start date */
   startDate?: Date;
   /** Tournament's end date */
@@ -45,21 +46,24 @@ interface IQbjTournament extends IQbjObject {
 }
 
 /** Tournament object as written to a .yft file */
-interface IYftFileTournament extends IQbjTournament, IYftFileObject {
+export interface IYftFileTournament extends IQbjTournament, IYftFileObject {
   YfData: ITournamentExtraData;
 }
 
 /** Additional info not in qbj but needed for a .yft file */
 interface ITournamentExtraData {
   /** Version of this software used to write the file */
-  YfVersion: String;
+  YfVersion: string;
 }
 
 /** YellowFruit implementation of the Tournament object */
 class Tournament implements IQbjTournament, IYftDataModelObject {
   name: string = '';
 
-  tournamentSite: IQbjTournamentSite = { name: '' };
+  /** QB schema requires a name, so use this when needed */
+  static placeholderName = 'unnamed tournament';
+
+  tournamentSite: TournamentSite;
 
   scoringRules?: ScoringRules;
 
@@ -77,31 +81,46 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     if (name) {
       this.name = name;
     }
+    this.tournamentSite = new TournamentSite();
   }
 
-  static fromYftFileObject(obj: IYftFileTournament): Tournament {
-    const tourn = new Tournament();
-    if (obj.type !== QbjTypeNames.Tournament) return tourn;
+  static fromYftFileObject(obj: IYftFileTournament, refTargets: IRefTargetDict): Tournament | null {
+    const version = obj.YfData?.YfVersion;
+    if (!version) return null;
+    if (versionLt('4.0.0', version)) return null;
 
-    if (obj.name) tourn.name = obj.name;
-    // if (obj.tournamentSite)
-    // tourn.tournamentSite =
-
-    return tourn;
+    return this.fromQbjObject(obj, refTargets);
   }
 
-  /** Create an object that exactly complies with the tournament schema */
   toQbjObject(): IQbjTournament {
     const qbjObject: IQbjTournament = {
       type: QbjTypeNames.Tournament,
-      name: this.name || 'unnamed tournament',
-      tournamentSite: this.tournamentSite.name !== '' ? this.tournamentSite : undefined,
+      name: this.name || Tournament.placeholderName,
+      tournamentSite: this.tournamentSite.toQbjObject(),
       scoringRules: this.scoringRules || undefined,
       startDate: !NullDate.isNullDate(this.startDate) ? this.startDate : undefined,
       questionSet: this.questionSet || undefined,
     };
 
     return qbjObject;
+  }
+
+  static fromQbjObject(obj: IQbjTournament, refTargets: IRefTargetDict): Tournament {
+    const tourn = new Tournament();
+
+    if (obj.name && obj.name !== this.placeholderName) tourn.name = obj.name;
+
+    const site = obj.tournamentSite;
+    if (site) tourn.tournamentSite = TournamentSite.fromQbjObject(site as IIndeterminateQbj, refTargets);
+    else tourn.tournamentSite = new TournamentSite();
+
+    if (obj.startDate) tourn.startDate = obj.startDate;
+
+    if (obj.questionSet) tourn.questionSet = obj.questionSet;
+
+    // TODO: scoring rules
+
+    return tourn;
   }
 
   toYftFileObject(): IYftFileTournament {

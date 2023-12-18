@@ -3,7 +3,8 @@
  * Corresponds with qb schema objects
  * https://schema.quizbowl.technology/tournament
  */
-import AnswerType from './AnswerType';
+import AnswerType, { IQbjAnswerType } from './AnswerType';
+import { IQbjObject } from './Interfaces';
 
 /** Common match formats to standardly implement */
 export enum CommonRuleSets {
@@ -13,31 +14,59 @@ export enum CommonRuleSets {
   Pace,
 }
 
-/** Rules for how teams score points */
-export class ScoringRules {
+export interface IQbjScoringRules extends IQbjObject {
   /** Name of the rule set */
-  name?: string;
-
+  name: string;
   /** YF only supports 2-team matches */
-  readonly teamsPerMatch = 2;
-
+  teamsPerMatch?: number;
   /** Maximum number of players that can be active at once */
+  maximumPlayersPerTeam?: number;
+  /** The standard number of tossups heard in a match */
+  regulationTossupCount?: number;
+  /** The maximum number of tossups heard in a match that does not go into overtime. */
+  maximumRegulationTossupCount?: number;
+  /** The smallest possible number of overtime tossups */
+  minimumOvertimeQuestionCount?: number;
+  /** Are bonuses used in overtime? */
+  overtimeIncludesBonuses?: boolean;
+  /** The largest integer that always evenly divides a score */
+  totalDivisor?: number;
+  /** The largest integers that always divides a bonus score */
+  bonusDivisor?: number;
+  /** Bonuses always have at least this many parts */
+  minimumPartsPerBonus?: number;
+  /** Number of points for each bonus part, if always the same */
+  pointsPerBonuspart?: number;
+  /** Whether incorrect bonus parts rebound to the other team */
+  bonusesBounceBack?: boolean;
+  /** Number of lightning rounds per team per round */
+  lightningCountPerTeam?: number;
+  /** Highest score for a single lightning round */
+  maximumLightningScore?: number;
+  /** The largest number that always evenly divides a lightning round score */
+  lightningDivisor?: number;
+  /** Whether incorrect lightning round parts rebound to the other team */
+  lightningsBounceBack?: boolean;
+  /** Different things that can happen when someone answers a tossup */
+  answerTypes: IQbjAnswerType[];
+}
+
+/** Rules for how teams score points */
+export class ScoringRules implements IQbjScoringRules {
+  name: string = '';
+
+  readonly teamsPerMatch = 2; /** YF only supports 2-team matches */
+
   maximumPlayersPerTeam: number = 4;
 
-  /** The standard number of tossups heard in a match */
   regulationTossupCount: number = 20;
 
-  /** The maximum number of tossups heard in a match that does not go into overtime. */
   maximumRegulationTossupCount: number;
 
-  /** The smallest possible number of overtime tossups */
   minimumOvertimeQuestionCount: number;
 
-  /** YF doesn't support bonuses in overtime */
-  readonly overtimeIncludesBonuses = false;
+  readonly overtimeIncludesBonuses = false; /** YF doesn't support bonuses in overtime */
 
-  /** The largest integer that is guaranteed to be a factor of a valid final score for
-   * one team in one match. */
   get totalDivisor(): number {
     let divisor = 10;
     for (const ans of this.answerTypes) {
@@ -57,41 +86,28 @@ export class ScoringRules {
     return divisor;
   }
 
-  /** The maximum possible score on a single bonus. Omitting this means there are no bonuses. */
   maximumBonusScore: number = 30;
 
-  /** The largest integer that is guaranteed to be a factor of a valid score on a single bonus. */
   get bonusDivisor(): number {
     return this.pointsPerBonusPart;
   }
 
-  /** The smallest number of parts that may exist in one bonus */
   mimimumPartsPerBonus: number = 3;
 
-  /** The greatest number of parts that may exist in one bonus. */
   maximumPartsPerBonus: number = 3;
 
-  /** The number of points earned for a correct answer to one bonus part. */
   pointsPerBonusPart: number = 10;
 
-  /** true if the non-controlling team has an opportunity to answer parts of a bonus that the
-   * controlling team did not answer correctly */
   bonusesBounceBack: boolean = false;
 
-  /** The number of lightning rounds received by each team in each game */
   lightningCountPerTeam: number = 0;
 
-  /** The maximum possible score on a single lightning round */
   maximumLightningScore?: number;
 
-  /** The largest integer that is guaranteed to be a factor of a valid score on a single lightning round */
   lightningDivisor?: number;
 
-  /** true if the non-controlling team has an opportunity to answer parts of a lightning round that the
-   * controlling team did not answer correctly */
   readonly lightningsBounceBack = false;
 
-  /** The different answer types possible in this tournament */
   answerTypes: AnswerType[];
 
   constructor(ruleSet: CommonRuleSets = CommonRuleSets.NaqtUntimed) {
