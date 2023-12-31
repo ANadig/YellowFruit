@@ -1,6 +1,8 @@
+/* eslint-disable import/no-cycle */
 import { IIndeterminateQbj, IQbjObject, IQbjRefPointer, IRefTargetDict } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
 import { IQbjScoringRules } from './ScoringRules';
+import { IQbjTournament } from './Tournament';
 
 export function makeQbjRefPointer($ref: string): IQbjRefPointer {
   return { $ref };
@@ -20,16 +22,32 @@ export function getBaseQbjObject(obj: IIndeterminateQbj, refTargets: IRefTargetD
   return null;
 }
 
+/** Parse a file and collect all the objects that have an 'id' property */
 export function collectRefTargets(objectList: IQbjObject[]): IRefTargetDict {
   let dict: IRefTargetDict = {};
 
   for (const obj of objectList) {
     if (obj.id) dict[obj.id] = obj;
+    // everything in the top-level array of objects should have a 'type' property
+    if (obj.type === QbjTypeNames.Tournament) dict = { ...dict, ...collectRefTargetsTournament(obj as IQbjTournament) };
 
     if (obj.type === QbjTypeNames.ScoringRules)
       dict = { ...dict, ...collectRefTargetsScoringRules(obj as IQbjScoringRules) };
   }
 
+  return dict;
+}
+
+export function collectRefTargetsTournament(tournament: IQbjTournament) {
+  let dict: IRefTargetDict = {};
+  const site = tournament.tournamentSite;
+  if (site?.id) dict[site.id] = site;
+
+  const rules = tournament.scoringRules;
+  if (rules) dict = { ...dict, ...collectRefTargetsScoringRules(rules) };
+  if (rules?.id) dict[rules.id] = rules;
+
+  // TODO: registrations, phases
   return dict;
 }
 
