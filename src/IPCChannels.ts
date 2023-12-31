@@ -2,6 +2,8 @@
 export enum IpcRendToMain {
   /** Save arbitrary file contents */
   saveFile = 'saveFile',
+  /** Set the title of the electron window */
+  setWindowTitle = 'setWindowTitle',
 }
 
 /** Channels for main sending messages to renderer */

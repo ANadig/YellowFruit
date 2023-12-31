@@ -2,7 +2,7 @@ import { createContext } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import Tournament, { IQbjTournament, IYftFileTournament } from './DataModel/Tournament';
 import { dateFieldChanged, textFieldChanged } from './Utils/GeneralUtils';
-import { NullDate, NullObjects } from './Utils/UtilTypes';
+import { NullObjects } from './Utils/UtilTypes';
 import { IpcMainToRend, IpcRendToMain } from '../IPCChannels';
 import { IQbjObject, IQbjWholeFile } from './DataModel/Interfaces';
 import { QbjTypeNames } from './DataModel/QbjEnums';
@@ -16,8 +16,14 @@ export class TournamentManager {
   /** name of the currently-open file */
   filePath: string | null = null;
 
+  /** Display name for the file being edited */
+  displayName: string = '';
+
+  /** What to call this tournament when there's no file */
+  static newTournamentName = 'New Tournament';
+
   /** Hook into the UI to tell it when it needs to update */
-  dataChangedCallback: () => void;
+  dataChangedReactCallback: () => void;
 
   /** Is there data that hasn't been saved to a file? */
   unsavedData: boolean = false;
@@ -26,8 +32,9 @@ export class TournamentManager {
 
   constructor() {
     this.tournament = new Tournament();
-    this.dataChangedCallback = () => {};
+    this.dataChangedReactCallback = () => {};
     this.addIpcListeners();
+    this.setWindowTitle();
   }
 
   addIpcListeners() {
@@ -35,8 +42,6 @@ export class TournamentManager {
     if (typeof window === 'undefined') {
       return;
     }
-
-    console.log('addipclisteners');
 
     window.electron.ipcRenderer.on(IpcMainToRend.openYftFile, (filePath, fileContents) => {
       this.openYftFile(filePath as string, fileContents as string);
@@ -49,7 +54,7 @@ export class TournamentManager {
     });
   }
 
-  /** Is this a property in a JSON file that we should try to parse into a date? */
+  /** Is this a property in a JSON file that we should try to parse a date from? */
   static isNameOfDateField(key: string) {
     return key === 'startDate'; // additional fields in QBJ files aren't used or stored in YF
   }
@@ -73,10 +78,10 @@ export class TournamentManager {
     if (loadedTournament === null) return;
 
     this.tournament = loadedTournament;
+    this.displayName = this.tournament.name || '';
     this.unsavedData = false;
-    this.dataChangedCallback();
-
-    console.log(this.tournament.startDate);
+    this.setWindowTitle();
+    this.dataChangedReactCallback();
   }
 
   private static getTournamentFromQbjFile(fileObj: IQbjWholeFile): IQbjTournament | null {
@@ -108,7 +113,9 @@ export class TournamentManager {
   }
 
   private onSuccessfulYftSave() {
+    this.displayName = this.tournament.name || '';
     this.unsavedData = false;
+    this.setWindowTitle();
     this.makeToast('Data saved');
   }
 
@@ -119,8 +126,7 @@ export class TournamentManager {
       return;
     }
     this.tournament.name = trimmedName;
-    this.unsavedData = true;
-    this.dataChangedCallback();
+    this.onDataChanged();
   }
 
   /** Set the free-text description of where the tournament is */
@@ -130,8 +136,7 @@ export class TournamentManager {
       return;
     }
     this.tournament.tournamentSite.name = trimmedName;
-    this.unsavedData = true;
-    this.dataChangedCallback();
+    this.onDataChanged();
   }
 
   setTournamentStartDate(dateFromUser: Dayjs | null) {
@@ -140,8 +145,7 @@ export class TournamentManager {
       return;
     }
     this.tournament.startDate = validDateOrNull === null ? NullObjects.nullDate : validDateOrNull.toDate();
-    this.unsavedData = true;
-    this.dataChangedCallback();
+    this.onDataChanged();
   }
 
   /** Set the name of the question set used by the tournament */
@@ -151,12 +155,33 @@ export class TournamentManager {
       return;
     }
     this.tournament.questionSet = trimmedName;
-    this.unsavedData = true;
-    this.dataChangedCallback();
+    this.onDataChanged();
   }
 
-  makeToast(msg: string) {
+  /** Should be called anytime the user modifies something */
+  private onDataChanged(doesntAffectFile = false) {
+    this.dataChangedReactCallback();
+    if (doesntAffectFile) return;
+
+    this.unsavedData = true;
+    this.setWindowTitle();
+  }
+
+  private makeToast(msg: string) {
     console.log(msg);
+  }
+
+  private setWindowTitle() {
+    let title = this.getFileDisplayName();
+    if (this.unsavedData) title = title.concat('*');
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.setWindowTitle, title);
+  }
+
+  private getFileDisplayName() {
+    if (this.filePath === null) return TournamentManager.newTournamentName;
+    if (this.displayName) return this.displayName;
+
+    return this.filePath.substring(this.filePath.lastIndexOf('\\') + 1, this.filePath.lastIndexOf('.'));
   }
 }
 

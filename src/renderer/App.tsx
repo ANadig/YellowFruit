@@ -36,7 +36,7 @@ function YellowFruit() {
   const [, setUpdateNeeded] = useState({}); // set this object to a new object whenever we want to force a re-render
   const [mgr] = useState(tournManager);
   useEffect(() => {
-    mgr.dataChangedCallback = () => {
+    mgr.dataChangedReactCallback = () => {
       setUpdateNeeded({});
     };
   }, [mgr]);

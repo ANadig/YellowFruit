@@ -14,7 +14,7 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import { handleSaveFile } from './FileUtils';
+import { handleSaveFile, handleSetWindowTitle } from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
 
 class AppUpdater {
@@ -127,6 +127,7 @@ app
   .whenReady()
   .then(() => {
     ipcMain.on(IpcRendToMain.saveFile, handleSaveFile);
+    ipcMain.on(IpcRendToMain.setWindowTitle, handleSetWindowTitle);
 
     createWindow();
     app.on('activate', () => {

@@ -33,3 +33,10 @@ export function handleSaveFile(event: IpcMainEvent, filePath: string, fileConten
     window.webContents.send(IpcMainToRend.tournamentSavedSuccessfully);
   });
 }
+
+export function handleSetWindowTitle(event: IpcMainEvent, title: string) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  window?.setTitle(`YellowFruit - ${title}`);
+}
