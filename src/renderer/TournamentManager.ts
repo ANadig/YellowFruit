@@ -55,6 +55,9 @@ export class TournamentManager {
     window.electron.ipcRenderer.on(IpcMainToRend.newTournament, () => {
       this.newTournament();
     });
+    window.electron.ipcRenderer.on(IpcMainToRend.saveAsCommand, (filePath) => {
+      this.yftSaveAs(filePath as string);
+    });
   }
 
   private newTournament() {
@@ -109,9 +112,18 @@ export class TournamentManager {
     return null;
   }
 
+  /** Save the tournament to the given file and switch context to that file */
+  yftSaveAs(filePath: string) {
+    this.filePath = filePath;
+    this.saveYftFile();
+  }
+
   /** Write the current tournament to the current file */
   private saveYftFile() {
-    if (this.filePath === null) return;
+    if (this.filePath === null) {
+      window.electron.ipcRenderer.sendMessage(IpcRendToMain.saveAsDialog);
+      return;
+    }
 
     const wholeFileObj = [this.tournament.toYftFileObject()];
 

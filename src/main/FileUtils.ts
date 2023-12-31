@@ -12,17 +12,36 @@ export function openYftFile(mainWindow: BrowserWindow) {
   });
   if (!fileNameAry) return;
 
-  fs.readFile(fileNameAry[0], { encoding: 'utf8' }, (err, data) => {
+  fs.readFile(fileNameAry[0], { encoding: 'utf8' }, (err, fileContents) => {
     if (err) {
       dialog.showMessageBoxSync(mainWindow, { message: `Error reading file: \n\n ${err.message}` });
       return;
     }
-    mainWindow.webContents.send(IpcMainToRend.openYftFile, fileNameAry[0], data);
+    mainWindow.webContents.send(IpcMainToRend.openYftFile, fileNameAry[0], fileContents);
   });
 }
 
 export function requestToSaveYftFile(mainWindow: BrowserWindow) {
   mainWindow.webContents.send(IpcMainToRend.saveCurrentTournament);
+}
+
+export function yftSaveAs(mainWindow: BrowserWindow) {
+  const fileName = dialog.showSaveDialogSync(mainWindow, {
+    filters: [{ name: 'YellowFruit Tournament', extensions: ['yft'] }],
+  });
+
+  if (!fileName) return;
+
+  mainWindow.webContents.send(IpcMainToRend.saveAsCommand, fileName);
+}
+
+// Handlers for renderer-->main
+
+export function handleSaveAsRequest(event: IpcMainEvent) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  yftSaveAs(window);
 }
 
 export function handleSaveFile(event: IpcMainEvent, filePath: string, fileContents: string) {

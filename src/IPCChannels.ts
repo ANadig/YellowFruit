@@ -2,6 +2,8 @@
 export enum IpcRendToMain {
   /** Save arbitrary file contents */
   saveFile = 'saveFile',
+  /** Ask the main process to prompt the user for a file to save to */
+  saveAsDialog = 'saveAsDialog',
   /** Set the title of the electron window */
   setWindowTitle = 'setWindowTitle',
 }
