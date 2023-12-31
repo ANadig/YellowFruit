@@ -13,6 +13,7 @@ export function isQbjRefPointer(obj: IIndeterminateQbj): boolean {
   return !!$ref;
 }
 
+/** Returns the given object, or the object it points to if it's a ref pointer */
 export function getBaseQbjObject(obj: IIndeterminateQbj, refTargets: IRefTargetDict): IQbjObject | null {
   if (!isQbjRefPointer(obj)) return obj as IQbjObject;
 

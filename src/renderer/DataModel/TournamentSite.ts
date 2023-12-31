@@ -1,5 +1,6 @@
 import { IIndeterminateQbj, IQbjObject, IRefTargetDict, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
+// eslint-disable-next-line import/no-cycle
 import { getBaseQbjObject } from './QbjUtils';
 
 /** The location where tournament happened. Corresponds to the Tournament Schema object */

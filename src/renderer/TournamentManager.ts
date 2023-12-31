@@ -52,11 +52,19 @@ export class TournamentManager {
     window.electron.ipcRenderer.on(IpcMainToRend.tournamentSavedSuccessfully, () => {
       this.onSuccessfulYftSave();
     });
+    window.electron.ipcRenderer.on(IpcMainToRend.newTournament, () => {
+      this.newTournament();
+    });
   }
 
-  /** Is this a property in a JSON file that we should try to parse a date from? */
-  static isNameOfDateField(key: string) {
-    return key === 'startDate'; // additional fields in QBJ files aren't used or stored in YF
+  private newTournament() {
+    this.tournament = new Tournament();
+    this.filePath = null;
+    this.displayName = '';
+    this.unsavedData = false;
+
+    this.setWindowTitle();
+    this.dataChangedReactCallback();
   }
 
   /** Parse file contents and load tournament for editing */
@@ -82,6 +90,11 @@ export class TournamentManager {
     this.unsavedData = false;
     this.setWindowTitle();
     this.dataChangedReactCallback();
+  }
+
+  /** Is this a property in a JSON file that we should try to parse a date from? */
+  static isNameOfDateField(key: string) {
+    return key === 'startDate'; // additional fields in QBJ files aren't used or stored in YF
   }
 
   private static getTournamentFromQbjFile(fileObj: IQbjWholeFile): IQbjTournament | null {

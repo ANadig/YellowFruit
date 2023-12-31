@@ -15,6 +15,7 @@ export enum IpcMainToRend {
   tournamentSavedSuccessfully = 'tournamentSavedSuccessfully',
   /** "Save as" menu option */
   saveAsCommand = 'saveAsYft',
+  /** Start a blank tournament with no file */
   newTournament = 'newTournament',
 }
 
