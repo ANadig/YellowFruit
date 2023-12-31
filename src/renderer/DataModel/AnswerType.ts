@@ -1,10 +1,8 @@
-/** Represents a certain way a tossup can be answered
- *  Corresponds with qb schema objects
- *  https://schema.quizbowl.technology/tournament
- */
-
 import { IQbjObject } from './Interfaces';
 
+/** Represents a certain way a tossup can be answered. Corresponds with qb schema object
+ *  https://schema.quizbowl.technology/tournament
+ */
 export interface IQbjAnswerType extends IQbjObject {
   /** The number of points a player receives for this answer type. */
   value: number;
@@ -16,8 +14,8 @@ export interface IQbjAnswerType extends IQbjObject {
   awardsBonus?: boolean;
 }
 
+/** YellowFruit implementation of the AnswerType object */
 class AnswerType implements IQbjAnswerType {
-  /** The number of points a player receives for this answer type. */
   value: number;
 
   private _label: string | undefined;

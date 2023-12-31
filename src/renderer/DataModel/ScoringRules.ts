@@ -1,8 +1,3 @@
-/**
- * Classes representing the rules for a tournament
- * Corresponds with qb schema objects
- * https://schema.quizbowl.technology/tournament
- */
 import AnswerType, { IQbjAnswerType } from './AnswerType';
 import { IQbjObject } from './Interfaces';
 
@@ -14,6 +9,10 @@ export enum CommonRuleSets {
   Pace,
 }
 
+/**
+ * The rules for a tournament. Corresponds with qb schema objects
+ * https://schema.quizbowl.technology/tournament
+ */
 export interface IQbjScoringRules extends IQbjObject {
   /** Name of the rule set */
   name: string;
@@ -51,7 +50,7 @@ export interface IQbjScoringRules extends IQbjObject {
   answerTypes: IQbjAnswerType[];
 }
 
-/** Rules for how teams score points */
+/** YellowFruit implementation of the ScoringRules object */
 export class ScoringRules implements IQbjScoringRules {
   name: string = '';
 
@@ -139,6 +138,21 @@ export class ScoringRules implements IQbjScoringRules {
         this.minimumOvertimeQuestionCount = 3;
         this.answerTypes = [power15, ten, neg];
         break;
+    }
+  }
+
+  static getRuleSetName(ruleSet: CommonRuleSets) {
+    switch (ruleSet) {
+      case CommonRuleSets.Acf:
+        return 'ACF';
+      case CommonRuleSets.Pace:
+        return 'PACE NSC';
+      case CommonRuleSets.NaqtTimed:
+        return 'NAQT (timed)';
+      case CommonRuleSets.NaqtUntimed:
+        return 'NAQT (untimed)';
+      default:
+        return 'Custom';
     }
   }
 }

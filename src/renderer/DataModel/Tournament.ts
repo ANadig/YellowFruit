@@ -6,6 +6,7 @@ import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import Registration from './Registration';
 import { CommonRuleSets, IQbjScoringRules, ScoringRules } from './ScoringRules';
 import { IRanking } from './Team';
+// eslint-disable-next-line import/no-cycle
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 
 /**
@@ -23,7 +24,7 @@ export interface IQbjTournament extends IQbjObject {
   tournamentSite?: IQbjTournamentSite;
   /** Validation rules for scoring matches in this tournament */
   scoringRules?: IQbjScoringRules;
-  /** Tournament's start date */
+  /** Tournament's start date. We assume ISO 8601, though the schema doesn't specify. */
   startDate?: Date;
   /** Tournament's end date */
   endDate?: Date;
@@ -82,6 +83,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       this.name = name;
     }
     this.tournamentSite = new TournamentSite();
+    this.applyRuleSet(CommonRuleSets.NaqtUntimed);
   }
 
   static fromYftFileObject(obj: IYftFileTournament, refTargets: IRefTargetDict): Tournament | null {
