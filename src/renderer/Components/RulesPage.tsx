@@ -1,4 +1,5 @@
 import Grid from '@mui/material/Unstable_Grid2';
+import { Stack } from '@mui/material';
 import StandardRuleSetCard from './StandardRuleSetCard';
 import TossupSettingsCard from './TossupSettingsCard';
 import BonusSettingsCard from './BonusSettingsCard';
@@ -17,13 +18,11 @@ function RulesPage() {
       <Grid xs={12} sm={4}>
         <BonusSettingsCard />
       </Grid>
-      <Grid container xs={12} sm={4}>
-        <Grid xs={12}>
+      <Grid xs={12} sm={4}>
+        <Stack spacing={2}>
           <MaxPlayersSettingsCard />
-        </Grid>
-        <Grid xs={12}>
           <OvertimeSettingsCard />
-        </Grid>
+        </Stack>
       </Grid>
     </Grid>
   );

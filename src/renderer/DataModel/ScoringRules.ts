@@ -10,7 +10,7 @@ export enum CommonRuleSets {
 }
 
 /**
- * The rules for a tournament. Corresponds with qb schema objects
+ * The rules for a tournament. Corresponds to qb schema objects
  * https://schema.quizbowl.technology/tournament
  */
 export interface IQbjScoringRules extends IQbjObject {
