@@ -9,10 +9,32 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
+import ApplicationPages from './Enums';
 
-const pages = ['General', 'Rules', 'Schedule', 'Teams', 'Games'];
+// Display names for the buttons
+const pageNames = {
+  [ApplicationPages.General]: 'General',
+  [ApplicationPages.Rules]: 'Rules',
+  [ApplicationPages.Schedule]: 'Schedule',
+  [ApplicationPages.Teams]: 'Teams',
+  [ApplicationPages.Games]: 'Games',
+};
+// Which order the pages should be in
+const pages = [
+  ApplicationPages.General,
+  ApplicationPages.Rules,
+  ApplicationPages.Schedule,
+  ApplicationPages.Teams,
+  ApplicationPages.Games,
+];
 
-function NavBar() {
+interface INavBarProps {
+  activePage: ApplicationPages;
+  setActivePage: (page: ApplicationPages) => void;
+}
+
+function NavBar(props: INavBarProps) {
+  const { activePage, setActivePage } = props;
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -21,6 +43,11 @@ function NavBar() {
 
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
+  };
+
+  const handlePageButtonClick = (whichPage: ApplicationPages) => {
+    handleCloseNavMenu();
+    setActivePage(whichPage);
   };
 
   return (
@@ -57,16 +84,20 @@ function NavBar() {
               }}
             >
               {pages.map((page) => (
-                <MenuItem key={page} onClick={handleCloseNavMenu}>
-                  <Typography textAlign="center">{page}</Typography>
+                <MenuItem key={page} onClick={() => handlePageButtonClick(page)}>
+                  <Typography textAlign="center">{pageNames[page]}</Typography>
                 </MenuItem>
               ))}
             </Menu>
           </Box>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' } }}>
             {pages.map((page) => (
-              <Button key={page} onClick={handleCloseNavMenu} sx={{ my: 2, color: 'white', display: 'block' }}>
-                {page}
+              <Button
+                key={page}
+                onClick={() => handlePageButtonClick(page)}
+                sx={{ my: 2, color: 'white', display: 'block' }}
+              >
+                {pageNames[page]}
               </Button>
             ))}
           </Box>

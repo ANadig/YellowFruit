@@ -15,17 +15,35 @@ import { useEffect, useState } from 'react';
 import NavBar from './Components/NavBar';
 import GeneralPage from './Components/GeneralPage';
 import { TournamentManager, TournamentContext } from './TournamentManager';
+import ApplicationPages from './Components/Enums';
 
 window.electron.ipcRenderer.removeAllListeners();
 const tournManager = new TournamentManager();
 
+interface IActivePageProps {
+  whichPage: ApplicationPages;
+}
+
+/** A switch statement for which page to show */
+function ActivePage(props: IActivePageProps) {
+  const { whichPage } = props;
+  switch (whichPage) {
+    case ApplicationPages.General:
+      return <GeneralPage />;
+    default:
+      return null;
+  }
+}
+
 /** The actual UI of the application */
 function TournamentEditor() {
+  const [activePage, setactivePage] = useState(ApplicationPages.General);
+
   return (
     <>
-      <NavBar />
+      <NavBar activePage={activePage} setActivePage={setactivePage} />
       <Box sx={{ p: 3 }}>
-        <GeneralPage />
+        <ActivePage whichPage={activePage} />
       </Box>
     </>
   );

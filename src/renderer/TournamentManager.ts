@@ -72,8 +72,6 @@ export class TournamentManager {
 
   /** Parse file contents and load tournament for editing */
   private openYftFile(filePath: string, fileContents: string) {
-    this.filePath = filePath as string;
-
     const objFromFile: IQbjObject[] = JSON.parse(fileContents, (key, value) => {
       if (TournamentManager.isNameOfDateField(key)) return dayjs(value).toDate(); // must be ISO 8601 format
       return value;
@@ -86,8 +84,9 @@ export class TournamentManager {
 
     const refTargets = collectRefTargets(objFromFile);
     const loadedTournament = Tournament.fromYftFileObject(tournamentObj as IYftFileTournament, refTargets);
-    if (loadedTournament === null) return;
+    if (loadedTournament === null) return; // TODO: some sort of error
 
+    this.filePath = filePath as string;
     this.tournament = loadedTournament;
     this.displayName = this.tournament.name || '';
     this.unsavedData = false;
@@ -223,4 +222,7 @@ class NullTournamentManager extends TournamentManager {
   addIpcListeners(): void {}
 }
 
+/** React context that elements can use to access the TournamentManager and its data without
+ * having to thread data and data-changing functions up and down the react tree
+ */
 export const TournamentContext = createContext<TournamentManager>(new NullTournamentManager());
