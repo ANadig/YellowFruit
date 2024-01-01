@@ -100,9 +100,9 @@ function NavBar(props: INavBarProps) {
                   py: 2.5,
                   color: 'white',
                   display: 'block',
-                  'background-color': page === activePage ? '#ffffff30' : 'transparent',
-                  'border-radius': 0,
-                  '&:hover': { 'background-color': '#ffffff30' },
+                  backgroundColor: page === activePage ? '#ffffff30' : 'transparent',
+                  borderRadius: 0,
+                  '&:hover': { backgroundColor: '#ffffff30' },
                 }}
               >
                 {pageNames[page]}

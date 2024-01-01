@@ -16,6 +16,7 @@ import NavBar from './Components/NavBar';
 import GeneralPage from './Components/GeneralPage';
 import { TournamentManager, TournamentContext } from './TournamentManager';
 import ApplicationPages from './Components/Enums';
+import RulesPage from './Components/RulesPage';
 
 window.electron.ipcRenderer.removeAllListeners();
 const tournManager = new TournamentManager();
@@ -30,6 +31,8 @@ function ActivePage(props: IActivePageProps) {
   switch (whichPage) {
     case ApplicationPages.General:
       return <GeneralPage />;
+    case ApplicationPages.Rules:
+      return <RulesPage />;
     default:
       return null;
   }

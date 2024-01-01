@@ -140,7 +140,7 @@ export class TournamentManager {
     this.displayName = this.tournament.name || '';
     this.unsavedData = false;
     this.setWindowTitle();
-    this.makeToast('Data saved');
+    // this.makeToast('Data saved');
   }
 
   /** Set the tournament's display name */
@@ -189,10 +189,6 @@ export class TournamentManager {
 
     this.unsavedData = true;
     this.setWindowTitle();
-  }
-
-  private makeToast(msg: string) {
-    console.log(msg);
   }
 
   private setWindowTitle() {
