@@ -1,4 +1,5 @@
 import { Dayjs } from 'dayjs';
+import AnswerType from '../DataModel/AnswerType';
 
 /**
  * Did this field's value change such that we should prompt the user to save?
@@ -20,6 +21,11 @@ export function dateFieldChanged(oldVal: Dayjs | null, newVal: Dayjs | null): bo
     return true;
   }
   return oldVal.unix() !== newVal.unix();
+}
+
+/** Sort a list of answer types. Descending order of point value, meaning powers first, negs last */
+export function sortAnswerTypes(ary: AnswerType[]) {
+  ary.sort((a, b) => b.value - a.value);
 }
 
 /**
