@@ -95,7 +95,15 @@ function NavBar(props: INavBarProps) {
               <Button
                 key={page}
                 onClick={() => handlePageButtonClick(page)}
-                sx={{ my: 2, color: 'white', display: 'block' }}
+                sx={{
+                  my: 0,
+                  py: 2.5,
+                  color: 'white',
+                  display: 'block',
+                  'background-color': page === activePage ? '#ffffff30' : 'transparent',
+                  'border-radius': 0,
+                  '&:hover': { 'background-color': '#ffffff30' },
+                }}
               >
                 {pageNames[page]}
               </Button>
