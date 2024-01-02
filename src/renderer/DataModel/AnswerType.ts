@@ -1,4 +1,5 @@
-import { IQbjObject } from './Interfaces';
+import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { QbjTypeNames } from './QbjEnums';
 
 /** Represents a certain way a tossup can be answered. Corresponds with qb schema object
  *  https://schema.quizbowl.technology/tournament
@@ -14,8 +15,11 @@ export interface IQbjAnswerType extends IQbjObject {
   awardsBonus?: boolean;
 }
 
+/** Answer Type object as written to a .yft file */
+export interface IYftFileAnswerType extends IQbjAnswerType, IYftFileObject {}
+
 /** YellowFruit implementation of the AnswerType object */
-class AnswerType implements IQbjAnswerType {
+class AnswerType implements IQbjAnswerType, IYftDataModelObject {
   value: number;
 
   private _label: string | undefined;
@@ -44,6 +48,26 @@ class AnswerType implements IQbjAnswerType {
 
   constructor(points: number) {
     this.value = points;
+  }
+
+  toQbjObject(isTopLevel = false, isReferenced = false): IQbjAnswerType {
+    // only specify labels if there are overrides
+    const qbjObject: IQbjAnswerType = {
+      value: this.value,
+      label: this._label || undefined,
+      shortLabel: this._shortLabel || undefined,
+      awardsBonus: this.awardsBonus,
+    };
+    if (isTopLevel) qbjObject.type = QbjTypeNames.AnswerType;
+    if (isReferenced) qbjObject.id = `AnswerType_${qbjObject.value}`;
+
+    return qbjObject;
+  }
+
+  toYftFileObject(): IYftFileObject {
+    const qbjObj = this.toQbjObject();
+    delete qbjObj.awardsBonus;
+    return qbjObj as IYftFileAnswerType;
   }
 }
 

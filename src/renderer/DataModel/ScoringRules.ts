@@ -1,5 +1,5 @@
 import AnswerType, { IQbjAnswerType } from './AnswerType';
-import { IQbjObject } from './Interfaces';
+import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 
 /** Common match formats to standardly implement */
 export enum CommonRuleSets {
@@ -50,8 +50,11 @@ export interface IQbjScoringRules extends IQbjObject {
   answerTypes: IQbjAnswerType[];
 }
 
+/** Scoring rules object as written to a .yft file */
+interface IYftFileScoringRules extends IQbjScoringRules, IYftFileObject {}
+
 /** YellowFruit implementation of the ScoringRules object */
-export class ScoringRules implements IQbjScoringRules {
+export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
   name: string = '';
 
   readonly teamsPerMatch = 2; /** YF only supports 2-team matches */
@@ -139,6 +142,18 @@ export class ScoringRules implements IQbjScoringRules {
         this.answerTypes = [power15, ten, neg];
         break;
     }
+  }
+
+  toQbjObject(): IQbjScoringRules {
+    const qbjObject: IQbjScoringRules = {
+      name: this.name,
+      answerTypes: this.answerTypes,
+    };
+    return qbjObject;
+  }
+
+  toYftFileObject(): IYftFileObject {
+    return this.toQbjObject() as IYftFileScoringRules;
   }
 
   static getRuleSetName(ruleSet: CommonRuleSets) {

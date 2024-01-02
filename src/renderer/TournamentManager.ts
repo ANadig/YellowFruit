@@ -7,6 +7,8 @@ import { IpcMainToRend, IpcRendToMain } from '../IPCChannels';
 import { IQbjObject, IQbjWholeFile } from './DataModel/Interfaces';
 import { QbjTypeNames } from './DataModel/QbjEnums';
 import { collectRefTargets } from './DataModel/QbjUtils';
+import AnswerType from './DataModel/AnswerType';
+import { parseYftTournament } from './DataModel/FileParsing';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -37,12 +39,7 @@ export class TournamentManager {
     this.setWindowTitle();
   }
 
-  addIpcListeners() {
-    // needed so unit tests don't error out
-    if (typeof window === 'undefined') {
-      return;
-    }
-
+  protected addIpcListeners() {
     window.electron.ipcRenderer.on(IpcMainToRend.openYftFile, (filePath, fileContents) => {
       this.openYftFile(filePath as string, fileContents as string);
     });
@@ -83,7 +80,7 @@ export class TournamentManager {
     }
 
     const refTargets = collectRefTargets(objFromFile);
-    const loadedTournament = Tournament.fromYftFileObject(tournamentObj as IYftFileTournament, refTargets);
+    const loadedTournament = parseYftTournament(tournamentObj as IYftFileTournament, refTargets);
     if (loadedTournament === null) return; // TODO: some sort of error
 
     this.filePath = filePath as string;
@@ -143,6 +140,8 @@ export class TournamentManager {
     // this.makeToast('Data saved');
   }
 
+  // #region Functions for changing the data from the UI
+
   /** Set the tournament's display name */
   setTournamentName(name: string): void {
     const trimmedName = name.trim();
@@ -182,6 +181,13 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  setAnswerTypes(answerTypes: AnswerType[]) {
+    this.tournament.scoringRules.answerTypes = answerTypes;
+    this.onDataChanged();
+  }
+
+  // #endregion
+
   /** Should be called anytime the user modifies something */
   private onDataChanged(doesntAffectFile = false) {
     this.dataChangedReactCallback();
@@ -191,7 +197,7 @@ export class TournamentManager {
     this.setWindowTitle();
   }
 
-  private setWindowTitle() {
+  protected setWindowTitle() {
     let title = this.getFileDisplayName();
     if (this.unsavedData) title = title.concat('*');
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.setWindowTitle, title);
@@ -216,6 +222,9 @@ class NullTournamentManager extends TournamentManager {
 
   // eslint-disable-next-line class-methods-use-this
   addIpcListeners(): void {}
+
+  // eslint-disable-next-line class-methods-use-this
+  protected setWindowTitle(): void {}
 }
 
 /** React context that elements can use to access the TournamentManager and its data without

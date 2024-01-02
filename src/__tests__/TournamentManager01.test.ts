@@ -3,10 +3,18 @@ import dayjs from 'dayjs';
 import { TournamentManager } from '../renderer/TournamentManager';
 import { NullDate } from '../renderer/Utils/UtilTypes';
 
+class TestTournamentManager extends TournamentManager {
+  // eslint-disable-next-line class-methods-use-this
+  addIpcListeners(): void {}
+
+  // eslint-disable-next-line class-methods-use-this
+  protected setWindowTitle(): void {}
+}
+
 // #region setTournamentName
 // basic test
 test('setTournamentName01', () => {
-  const mgr = new TournamentManager();
+  const mgr = new TestTournamentManager();
   const expected = 'abc';
   mgr.setTournamentName(expected);
   expect(mgr.tournament.name).toBe(expected);
@@ -14,7 +22,7 @@ test('setTournamentName01', () => {
 
 // unsaved data flag
 test('setTournamentName02', () => {
-  const mgr = new TournamentManager();
+  const mgr = new TestTournamentManager();
   expect(mgr.unsavedData).toBeFalsy();
 
   mgr.setTournamentName('abc');
@@ -27,14 +35,14 @@ test('setTournamentName02', () => {
 
 // trim whitspace
 test('setTournamentName03', () => {
-  const mgr = new TournamentManager();
+  const mgr = new TestTournamentManager();
   mgr.setTournamentName(' abc ');
   expect(mgr.tournament.name).toBe('abc');
 });
 // #endregion
 
 test('setTournamentSiteName01', () => {
-  const mgr = new TournamentManager();
+  const mgr = new TestTournamentManager();
   expect(mgr.unsavedData).toBeFalsy();
 
   mgr.setTournamentSiteName(' abc ');
@@ -47,7 +55,7 @@ test('setTournamentSiteName01', () => {
 });
 
 test('setQuestionSetname01', () => {
-  const mgr = new TournamentManager();
+  const mgr = new TestTournamentManager();
   expect(mgr.unsavedData).toBeFalsy();
 
   mgr.setQuestionSetname(' abc ');
@@ -60,7 +68,7 @@ test('setQuestionSetname01', () => {
 });
 
 test('setTournamentStartDate', () => {
-  const mgr = new TournamentManager();
+  const mgr = new TestTournamentManager();
   expect(mgr.unsavedData).toBeFalsy();
 
   mgr.setTournamentStartDate(dayjs('2023-10-15'));

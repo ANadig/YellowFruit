@@ -1,12 +1,10 @@
-import { versionLt } from '../Utils/GeneralUtils';
 import { NullDate, NullObjects } from '../Utils/UtilTypes';
-import { IIndeterminateQbj, IQbjObject, IRefTargetDict, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import Phase from './Phase';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import Registration from './Registration';
 import { CommonRuleSets, IQbjScoringRules, ScoringRules } from './ScoringRules';
 import { IRanking } from './Team';
-// eslint-disable-next-line import/no-cycle
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 
 /**
@@ -66,7 +64,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   tournamentSite: TournamentSite;
 
-  scoringRules?: ScoringRules;
+  scoringRules: ScoringRules;
 
   startDate: Date = NullObjects.nullDate;
 
@@ -83,15 +81,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       this.name = name;
     }
     this.tournamentSite = new TournamentSite();
-    this.applyRuleSet(CommonRuleSets.NaqtUntimed);
-  }
-
-  static fromYftFileObject(obj: IYftFileTournament, refTargets: IRefTargetDict): Tournament | null {
-    const version = obj.YfData?.YfVersion;
-    if (!version) return null;
-    if (versionLt('4.0.0', version)) return null;
-
-    return this.fromQbjObject(obj, refTargets);
+    this.scoringRules = new ScoringRules(CommonRuleSets.NaqtUntimed);
   }
 
   toQbjObject(): IQbjTournament {
@@ -105,24 +95,6 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     };
 
     return qbjObject;
-  }
-
-  static fromQbjObject(obj: IQbjTournament, refTargets: IRefTargetDict): Tournament {
-    const tourn = new Tournament();
-
-    if (obj.name && obj.name !== this.placeholderName) tourn.name = obj.name;
-
-    const site = obj.tournamentSite;
-    if (site) tourn.tournamentSite = TournamentSite.fromQbjObject(site as IIndeterminateQbj, refTargets);
-    else tourn.tournamentSite = new TournamentSite();
-
-    if (obj.startDate) tourn.startDate = obj.startDate;
-
-    if (obj.questionSet) tourn.questionSet = obj.questionSet;
-
-    // TODO: scoring rules
-
-    return tourn;
   }
 
   toYftFileObject(): IYftFileTournament {
