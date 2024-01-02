@@ -61,9 +61,7 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
 
   maximumPlayersPerTeam: number = 4;
 
-  regulationTossupCount: number = 20;
-
-  maximumRegulationTossupCount: number;
+  maximumRegulationTossupCount: number = 20;
 
   minimumOvertimeQuestionCount: number;
 
