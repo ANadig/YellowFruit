@@ -11,7 +11,7 @@ import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 export function parseYftTournament(obj: IYftFileTournament, refTargets: IRefTargetDict): Tournament | null {
   const version = obj.YfData?.YfVersion;
   if (!version) return null;
-  if (versionLt('4.0.0', version)) return null;
+  if (versionLt(version, '4.0.0')) return null;
 
   return parseTournament(obj, refTargets);
 }
