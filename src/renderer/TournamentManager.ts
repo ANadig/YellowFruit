@@ -186,6 +186,16 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  setTimedRoundSetting(checked: boolean) {
+    this.tournament.scoringRules.timed = checked;
+    this.onDataChanged();
+  }
+
+  setNumTusPerRound(numTus: number) {
+    this.tournament.scoringRules.maximumRegulationTossupCount = numTus;
+    this.onDataChanged();
+  }
+
   // #endregion
 
   /** Should be called anytime the user modifies something */

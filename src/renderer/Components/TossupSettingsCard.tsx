@@ -200,7 +200,7 @@ function CustomPtValDialog(props: ICustomPtValDialogProps) {
   return (
     <Dialog open={isOpen} onClose={() => closeWindow(false)}>
       <DialogTitle>Add Point Value</DialogTitle>
-      <Box sx={{ '& .MuiDialogContent-root': { paddingRight: 8, paddingBottom: error ? 2 : 4.88 } }}>
+      <Box sx={{ '& .MuiDialogContent-root': { paddingRight: 8 } }}>
         <DialogContent>
           <FormControl sx={{ width: '15ch' }} variant="outlined">
             <OutlinedInput
@@ -211,7 +211,7 @@ function CustomPtValDialog(props: ICustomPtValDialogProps) {
               onChange={(e) => onPtValChange(e.target.value)}
               endAdornment={<InputAdornment position="end">pts</InputAdornment>}
             />
-            {error && <FormHelperText error>{errMsg}</FormHelperText>}
+            <FormHelperText error>{error ? errMsg : ' '}</FormHelperText>
           </FormControl>
         </DialogContent>
       </Box>

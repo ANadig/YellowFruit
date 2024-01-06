@@ -5,6 +5,7 @@ import TossupSettingsCard from './TossupSettingsCard';
 import BonusSettingsCard from './BonusSettingsCard';
 import MaxPlayersSettingsCard from './MaxPlayerSettingsCard';
 import OvertimeSettingsCard from './OvertimeSettingsCard';
+import RoundLengthSettingsCard from './RoundLengthSettingsCard';
 
 function RulesPage() {
   return (
@@ -13,7 +14,10 @@ function RulesPage() {
         <StandardRuleSetCard />
       </Grid>
       <Grid xs={12} sm={4}>
-        <TossupSettingsCard />
+        <Stack spacing={2}>
+          <RoundLengthSettingsCard />
+          <TossupSettingsCard />
+        </Stack>
       </Grid>
       <Grid xs={12} sm={4}>
         <BonusSettingsCard />
