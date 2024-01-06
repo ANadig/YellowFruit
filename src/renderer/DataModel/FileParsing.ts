@@ -27,7 +27,8 @@ export function parseTournament(obj: IQbjTournament, refTargets: IRefTargetDict)
   if (site) tourn.tournamentSite = parseTournamentSite(site as IIndeterminateQbj, refTargets);
   else tourn.tournamentSite = new TournamentSite();
 
-  // TODO: scoring rules
+  const rules = obj.scoringRules;
+  if (rules) tourn.scoringRules = parseScoringRules(rules as IIndeterminateQbj, refTargets);
 
   return tourn;
 }
@@ -68,7 +69,7 @@ function parseAnswerType(obj: IIndeterminateQbj, refTargets: IRefTargetDict): An
   const qbjAType = baseObj as IQbjAnswerType;
   if (qbjAType.value === undefined) return null;
   // unsupported formats
-  if (qbjAType.value > 0 && !qbjAType.awardsBonus) return null;
+  if (qbjAType.value > 0 && qbjAType.awardsBonus === false) return null;
   if (qbjAType.value <= 0 && qbjAType.awardsBonus) return null;
 
   const yftAType = new AnswerType(qbjAType.value);

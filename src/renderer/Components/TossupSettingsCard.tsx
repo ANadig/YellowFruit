@@ -31,6 +31,7 @@ function TossupSettingsCard() {
       return aType.value !== pointValue;
     });
     setAnswerTypes(newAnswerTypes);
+    tournManager.setAnswerTypes(newAnswerTypes);
   };
 
   const addAnswerType = (pointValue: number) => {
@@ -44,6 +45,7 @@ function TossupSettingsCard() {
     const newAnswerTypes = activeAnswerTypes.concat([new AnswerType(pointValue)]);
     sortAnswerTypes(newAnswerTypes);
     setAnswerTypes(newAnswerTypes);
+    tournManager.setAnswerTypes(newAnswerTypes);
   };
 
   return (
