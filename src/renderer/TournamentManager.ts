@@ -192,6 +192,9 @@ export class TournamentManager {
   }
 
   setNumTusPerRound(numTus: number) {
+    if (numTus === this.tournament.scoringRules.maximumRegulationTossupCount) {
+      return;
+    }
     this.tournament.scoringRules.maximumRegulationTossupCount = numTus;
     this.onDataChanged();
   }
