@@ -4,6 +4,7 @@ import { HelpOutline } from '@mui/icons-material';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import { ScoringRules } from '../DataModel/ScoringRules';
+import useSubscription from '../Utils/CustomHooks';
 
 const standardTusLabel = 'Toss-Ups';
 const standardTusHelpText = 'The number of toss-ups read per round (not including overtime)';
@@ -18,17 +19,13 @@ function getTuFieldHelpText(timed: boolean) {
   return timed ? timedTusHelpText : standardTusHelpText;
 }
 
-function tuNumberInValidRange(num: number) {
-  return 1 <= num && num <= 100;
-}
-
 function RoundLengthSettingsCard() {
   const tournManager = useContext(TournamentContext);
   const thisTournamentRules = tournManager.tournament.scoringRules;
-  const [timedRoundsChecked, setTimedRoundsChecked] = useState(thisTournamentRules.timed);
+  const [timedRoundsChecked, setTimedRoundsChecked] = useSubscription(thisTournamentRules.timed);
+  const [numTus, setNumTus] = useSubscription(thisTournamentRules.maximumRegulationTossupCount.toString());
   const [numTusLabel, setNumTusLabel] = useState(getTuFieldLabel(thisTournamentRules.timed));
   const [numTusHelpText, setNumTusHelpText] = useState(getTuFieldHelpText(thisTournamentRules.timed));
-  const [numTus, setNumTus] = useState(thisTournamentRules.maximumRegulationTossupCount.toString());
 
   const handleTimedRoundsChange = (e: ChangeEvent<HTMLInputElement>) => {
     setTimedRoundsChecked(e.target.checked);
@@ -40,7 +37,7 @@ function RoundLengthSettingsCard() {
   const saveNumTusSetting = () => {
     let valueToSave: number;
     const parsed = parseFloat(numTus);
-    if (numTus === '' || Number.isNaN(parsed) || !tuNumberInValidRange(parsed)) {
+    if (numTus === '' || Number.isNaN(parsed) || !ScoringRules.validateMaxRegTuCount(parsed)) {
       valueToSave = ScoringRules.defaultRegulationTossupCount;
     } else {
       valueToSave = parseInt(numTus, 10);
@@ -52,7 +49,7 @@ function RoundLengthSettingsCard() {
   const tuNumberIsValid = () => {
     if (numTus === '') return true;
     const parsed = parseFloat(numTus);
-    return tuNumberInValidRange(parsed);
+    return ScoringRules.validateMaxRegTuCount(parsed);
   };
 
   return (

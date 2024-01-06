@@ -4,7 +4,7 @@ import { sortAnswerTypes, versionLt } from '../Utils/GeneralUtils';
 import AnswerType, { IQbjAnswerType } from './AnswerType';
 import { IIndeterminateQbj, IRefTargetDict } from './Interfaces';
 import { getBaseQbjObject } from './QbjUtils';
-import { IQbjScoringRules, ScoringRules } from './ScoringRules';
+import { IQbjScoringRules, IYftFileScoringRules, ScoringRules } from './ScoringRules';
 import Tournament, { IQbjTournament, IYftFileTournament } from './Tournament';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 
@@ -49,17 +49,36 @@ export function parseScoringRules(obj: IIndeterminateQbj, refTargets: IRefTarget
   if (!qbjScoringRules.answerTypes) return new ScoringRules();
 
   const yftScoringRules = new ScoringRules();
-  yftScoringRules.name = qbjScoringRules.name || '';
 
+  yftScoringRules.name = qbjScoringRules.name || '';
+  parseScoringRulesGameLength(qbjScoringRules, yftScoringRules);
+  parseScoringRulesAnswerTypes(qbjScoringRules, yftScoringRules, refTargets);
+  // TODO: lots more properties
+
+  return yftScoringRules;
+}
+
+function parseScoringRulesGameLength(sourceQbj: IQbjScoringRules, yftScoringRules: ScoringRules) {
+  const yfExtraData = (sourceQbj as IYftFileScoringRules).YfData;
+
+  const maxRegTuCnt = sourceQbj.maximumRegulationTossupCount ?? 20;
+  const regTuCnt = sourceQbj.regulationTossupCount ?? 20;
+  yftScoringRules.maximumRegulationTossupCount = ScoringRules.validateMaxRegTuCount(maxRegTuCnt) ? maxRegTuCnt : 20;
+  yftScoringRules.timed = yfExtraData ? !!yfExtraData.timed : maxRegTuCnt !== regTuCnt; // non-standard round lengths implies timed
+}
+
+function parseScoringRulesAnswerTypes(
+  sourceQbj: IQbjScoringRules,
+  yftScoringRules: ScoringRules,
+  refTargets: IRefTargetDict,
+) {
   const yftAnswerTypes: AnswerType[] = [];
-  for (const aType of qbjScoringRules.answerTypes) {
+  for (const aType of sourceQbj.answerTypes) {
     const oneYftAType = parseAnswerType(aType as IIndeterminateQbj, refTargets);
     if (oneYftAType !== null) yftAnswerTypes.push(oneYftAType);
   }
   sortAnswerTypes(yftAnswerTypes);
   yftScoringRules.answerTypes = yftAnswerTypes;
-
-  return yftScoringRules;
 }
 
 function parseAnswerType(obj: IIndeterminateQbj, refTargets: IRefTargetDict): AnswerType | null {

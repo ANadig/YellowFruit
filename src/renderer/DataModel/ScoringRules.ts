@@ -1,5 +1,5 @@
 import AnswerType, { IQbjAnswerType } from './AnswerType';
-import { IQbjObject, IYftDataModelObject } from './Interfaces';
+import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
 
 /** Common match formats to standardly implement */
@@ -49,6 +49,16 @@ export interface IQbjScoringRules extends IQbjObject {
   lightningsBounceBack?: boolean;
   /** Different things that can happen when someone answers a tossup */
   answerTypes: IQbjAnswerType[];
+}
+
+/** Scoring rules object as written to a .yft file */
+export interface IYftFileScoringRules extends IQbjScoringRules, IYftFileObject {
+  YfData: IScoringRulesExtraData;
+}
+
+/** Additional info not in qbj but needed for a .yft file */
+interface IScoringRulesExtraData {
+  timed: boolean;
 }
 
 /** YellowFruit implementation of the ScoringRules object */
@@ -156,12 +166,21 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
     const qbjObject: IQbjScoringRules = {
       name: this.name,
       answerTypes: this.answerTypes.map((aType) => aType.toFileObject(qbjOnly)),
+      maximumRegulationTossupCount: this.maximumRegulationTossupCount,
       // TODO: all the other properties
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.ScoringRules;
     if (isReferenced) qbjObject.id = `ScoringRules_${this.name}`;
 
-    return qbjObject;
+    if (qbjOnly) {
+      qbjObject.regulationTossupCount = this.regulationTossupCount;
+      return qbjObject;
+    }
+
+    const yfData: IScoringRulesExtraData = { timed: this.timed };
+    const yftFileObj = { YfData: yfData, ...qbjObject };
+
+    return yftFileObj;
   }
 
   static getRuleSetName(ruleSet: CommonRuleSets) {
@@ -177,5 +196,10 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
       default:
         return 'Custom';
     }
+  }
+
+  /** If true, val is a valid setting for maximum regulation tossups */
+  static validateMaxRegTuCount(val: number) {
+    return 1 <= val && val <= 100;
   }
 }
