@@ -121,7 +121,7 @@ export class TournamentManager {
       return;
     }
 
-    const wholeFileObj = [this.tournament.toYftFileObject()];
+    const wholeFileObj = [this.tournament.toFileObject(false, true)];
 
     const fileContents = JSON.stringify(wholeFileObj, (key, value) => {
       if (TournamentManager.isNameOfDateField(key)) {

@@ -1,5 +1,6 @@
 import AnswerType, { IQbjAnswerType } from './AnswerType';
-import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { IQbjObject, IYftDataModelObject } from './Interfaces';
+import { QbjTypeNames } from './QbjEnums';
 
 /** Common match formats to standardly implement */
 export enum CommonRuleSets {
@@ -49,9 +50,6 @@ export interface IQbjScoringRules extends IQbjObject {
   /** Different things that can happen when someone answers a tossup */
   answerTypes: IQbjAnswerType[];
 }
-
-/** Scoring rules object as written to a .yft file */
-interface IYftFileScoringRules extends IQbjScoringRules, IYftFileObject {}
 
 /** YellowFruit implementation of the ScoringRules object */
 export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
@@ -142,16 +140,16 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
     }
   }
 
-  toQbjObject(): IQbjScoringRules {
+  toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjScoringRules {
     const qbjObject: IQbjScoringRules = {
       name: this.name,
-      answerTypes: this.answerTypes,
+      answerTypes: this.answerTypes.map((aType) => aType.toFileObject(qbjOnly)),
+      // TODO: all the other properties
     };
-    return qbjObject;
-  }
+    if (isTopLevel) qbjObject.type = QbjTypeNames.ScoringRules;
+    if (isReferenced) qbjObject.id = `ScoringRules_${this.name}`;
 
-  toYftFileObject(): IYftFileObject {
-    return this.toQbjObject() as IYftFileScoringRules;
+    return qbjObject;
   }
 
   static getRuleSetName(ruleSet: CommonRuleSets) {

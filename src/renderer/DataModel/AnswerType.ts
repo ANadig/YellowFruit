@@ -50,24 +50,19 @@ class AnswerType implements IQbjAnswerType, IYftDataModelObject {
     this.value = points;
   }
 
-  toQbjObject(isTopLevel = false, isReferenced = false): IQbjAnswerType {
+  toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjAnswerType {
     // only specify labels if there are overrides
     const qbjObject: IQbjAnswerType = {
       value: this.value,
       label: this._label || undefined,
       shortLabel: this._shortLabel || undefined,
-      awardsBonus: this.awardsBonus,
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.AnswerType;
     if (isReferenced) qbjObject.id = `AnswerType_${qbjObject.value}`;
+    // In YF, awards bonus iff point value is >0, so don't explicitly save that
+    if (qbjOnly) qbjObject.awardsBonus = this.awardsBonus;
 
     return qbjObject;
-  }
-
-  toYftFileObject(): IYftFileObject {
-    const qbjObj = this.toQbjObject();
-    delete qbjObj.awardsBonus;
-    return qbjObj as IYftFileAnswerType;
   }
 }
 

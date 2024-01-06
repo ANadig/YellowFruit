@@ -36,8 +36,6 @@ export interface IYftFileObject {
 }
 
 export interface IYftDataModelObject {
-  /** Generate an object that exactly meets the QB schema */
-  toQbjObject: (isTopLevel?: boolean, isReferenced?: boolean) => IQbjObject;
-  /** Generate an object for the .yft file format */
-  toYftFileObject: () => IYftFileObject;
+  /** Generate an object that we can save to a file (qbj or yft) */
+  toFileObject: (qbjOnly?: boolean, isTopLevel?: boolean, isReferenced?: boolean) => IQbjObject;
 }

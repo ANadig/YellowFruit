@@ -61,7 +61,7 @@ export function parseScoringRules(obj: IIndeterminateQbj, refTargets: IRefTarget
   return yftScoringRules;
 }
 
-export function parseAnswerType(obj: IIndeterminateQbj, refTargets: IRefTargetDict): AnswerType | null {
+function parseAnswerType(obj: IIndeterminateQbj, refTargets: IRefTargetDict): AnswerType | null {
   const baseObj = getBaseQbjObject(obj, refTargets);
   if (baseObj === null) return null;
 

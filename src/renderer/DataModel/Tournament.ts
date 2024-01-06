@@ -84,25 +84,23 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.scoringRules = new ScoringRules(CommonRuleSets.NaqtUntimed);
   }
 
-  toQbjObject(): IQbjTournament {
+  toFileObject(qbjOnly = false, isTopLevel = true, isReferenced = false): IQbjTournament {
     const qbjObject: IQbjTournament = {
-      type: QbjTypeNames.Tournament,
       name: this.name || Tournament.placeholderName,
-      tournamentSite: this.tournamentSite.toQbjObject(),
-      scoringRules: this.scoringRules || undefined,
       startDate: !NullDate.isNullDate(this.startDate) ? this.startDate : undefined,
       questionSet: this.questionSet || undefined,
     };
+    if (isTopLevel) qbjObject.type = QbjTypeNames.Tournament;
+    if (isReferenced) qbjObject.id = 'Tournament';
 
-    return qbjObject;
-  }
+    if (this.tournamentSite.name) qbjObject.tournamentSite = this.tournamentSite.toFileObject(qbjOnly);
+    if (this.scoringRules) qbjObject.scoringRules = this.scoringRules.toFileObject(qbjOnly);
 
-  toYftFileObject(): IYftFileTournament {
-    const qbjObject = this.toQbjObject();
+    if (qbjOnly) return qbjObject;
+
     const metadata: ITournamentExtraData = { YfVersion: '4.0.0' };
-
     const yftFIleObj = { YfData: metadata, ...qbjObject };
-    yftFIleObj.tournamentSite = this.tournamentSite.toYftFileObject();
+
     return yftFIleObj;
   }
 

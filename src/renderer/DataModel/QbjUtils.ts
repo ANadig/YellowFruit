@@ -34,12 +34,14 @@ export function collectRefTargets(objectList: IQbjObject[]): IRefTargetDict {
 
     if (obj.type === QbjTypeNames.ScoringRules)
       dict = { ...dict, ...collectRefTargetsScoringRules(obj as IQbjScoringRules) };
+
+    // TODO: every other type of object that could theoretically be at the top level
   }
 
   return dict;
 }
 
-export function collectRefTargetsTournament(tournament: IQbjTournament) {
+function collectRefTargetsTournament(tournament: IQbjTournament) {
   let dict: IRefTargetDict = {};
   const site = tournament.tournamentSite;
   if (site?.id) dict[site.id] = site;
@@ -52,7 +54,7 @@ export function collectRefTargetsTournament(tournament: IQbjTournament) {
   return dict;
 }
 
-export function collectRefTargetsScoringRules(rules: IQbjScoringRules) {
+function collectRefTargetsScoringRules(rules: IQbjScoringRules) {
   const dict: IRefTargetDict = {};
   if (!rules.answerTypes) return dict;
 

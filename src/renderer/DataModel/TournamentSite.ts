@@ -1,4 +1,4 @@
-import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { IQbjObject, IYftDataModelObject } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
 
 /** The location where tournament happened. Corresponds to the Tournament Schema object */
@@ -14,9 +14,6 @@ export interface IQbjTournamentSite extends IQbjObject {
   longitude?: Number;
 }
 
-/** Tournament Site object as written to a .yft file */
-interface IYftFileTournamentSite extends IQbjTournamentSite, IYftFileObject {}
-
 /** YellowFruit implementation of the TournamentSite object */
 export class TournamentSite implements IQbjTournamentSite, IYftDataModelObject {
   name: string = '';
@@ -24,12 +21,13 @@ export class TournamentSite implements IQbjTournamentSite, IYftDataModelObject {
   static placeHolderName = 'unknown site';
 
   constructor(name?: string) {
-    if (name) {
+    if (name && name !== TournamentSite.placeHolderName) {
       this.name = name;
     }
   }
 
-  toQbjObject(isTopLevel = false, isReferenced = false) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false) {
     const qbjObject: IQbjTournamentSite = {
       name: this.name || TournamentSite.placeHolderName,
     };
@@ -37,9 +35,5 @@ export class TournamentSite implements IQbjTournamentSite, IYftDataModelObject {
     if (isReferenced) qbjObject.id = `TournamentSite_${qbjObject.name}`;
 
     return qbjObject;
-  }
-
-  toYftFileObject(): IYftFileTournamentSite {
-    return this.toQbjObject() as IYftFileTournamentSite;
   }
 }
