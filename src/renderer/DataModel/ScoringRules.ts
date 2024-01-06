@@ -59,6 +59,14 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
 
   maximumPlayersPerTeam: number = 4;
 
+  /** Timed rounds? If no, assume all rounds have the same number of TU in regulation */
+  timed: boolean = false;
+
+  get regulationTossupCount(): number {
+    if (!this.timed) return this.maximumRegulationTossupCount;
+    return 20; // in the future, maybe support setting this manually
+  }
+
   maximumRegulationTossupCount: number = 20;
 
   minimumOvertimeQuestionCount: number;
