@@ -1,6 +1,23 @@
-import { Box, Chip, IconButton, List, ListItem, Tooltip, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  FormHelperText,
+  IconButton,
+  InputAdornment,
+  List,
+  ListItem,
+  OutlinedInput,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -12,6 +29,7 @@ const commonPointValues = [-5, 10, 15, 20];
 function TossupSettingsCard() {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
+  const [customPtValFormOpen, setCustomPtValFormOpen] = useState(false);
   const [activeAnswerTypes, setAnswerTypes] = useSubscription(thisTournament.scoringRules?.answerTypes);
   if (!activeAnswerTypes) return null;
 
@@ -35,11 +53,7 @@ function TossupSettingsCard() {
   };
 
   const addAnswerType = (pointValue: number) => {
-    if (
-      activeAnswerTypes.find((aType) => {
-        return aType.value === pointValue;
-      })
-    ) {
+    if (findPointValue(activeAnswerTypes, pointValue)) {
       return;
     }
     const newAnswerTypes = activeAnswerTypes.concat([new AnswerType(pointValue)]);
@@ -55,8 +69,23 @@ function TossupSettingsCard() {
       <Typography variant="subtitle2">Add more point values</Typography>
       <Box sx={{ py: 1 }}>
         <AvailableStandardPtValuesList pointValues={pointValuesForChips} addPointValue={addAnswerType} />
-        <Chip key="custom" sx={{ marginBottom: 1 }} label="Custom..." onDelete={() => {}} deleteIcon={<Add />} />
+        <Chip
+          key="custom"
+          sx={{ marginBottom: 1 }}
+          label="Custom..."
+          onDelete={() => setCustomPtValFormOpen(true)}
+          deleteIcon={<Add />}
+        />
       </Box>
+      <CustomPtValDialog
+        isOpen={customPtValFormOpen}
+        answerTypesInUse={activeAnswerTypes}
+        handleAccept={(pointVal: number) => {
+          setCustomPtValFormOpen(false);
+          addAnswerType(pointVal);
+        }}
+        handleCancel={() => setCustomPtValFormOpen(false)}
+      />
     </YfCard>
   );
 }
@@ -104,12 +133,12 @@ function ActivePointValueList(props: IActivePointValueListProps) {
   );
 }
 
-interface IAvailableStandardPtValuesList {
+interface IAvailableStandardPtValuesListProps {
   pointValues: number[];
   addPointValue: (pointValue: number) => void;
 }
 
-function AvailableStandardPtValuesList(props: IAvailableStandardPtValuesList) {
+function AvailableStandardPtValuesList(props: IAvailableStandardPtValuesListProps) {
   const { pointValues, addPointValue } = props;
 
   return pointValues.map((value) => (
@@ -121,6 +150,92 @@ function AvailableStandardPtValuesList(props: IAvailableStandardPtValuesList) {
       deleteIcon={<Add />}
     />
   ));
+}
+
+interface ICustomPtValDialogProps {
+  isOpen: boolean;
+  answerTypesInUse: AnswerType[];
+  handleAccept: (pointValue: number) => void;
+  handleCancel: () => void;
+}
+
+function CustomPtValDialog(props: ICustomPtValDialogProps) {
+  const { isOpen, answerTypesInUse, handleAccept, handleCancel } = props;
+  const [newPtVal, setNewPtVal] = useState('');
+  const [error, setError] = useState(false);
+  const [errMsg, setErrMsg] = useState('');
+
+  const onPtValChange = (val: string) => {
+    setNewPtVal(val);
+    if (val === '') {
+      setError(false);
+      return;
+    }
+    const parsed = parseFloat(val);
+    if (pointValIsInvalid(parsed)) {
+      setError(true);
+      setErrMsg('Invalid point value');
+      return;
+    }
+    if (findPointValue(answerTypesInUse, parsed)) {
+      setError(true);
+      setErrMsg('Already exists');
+      return;
+    }
+    setError(false);
+    setErrMsg('');
+  };
+
+  const closeWindow = (saveData: boolean) => {
+    setNewPtVal('');
+    setError(false);
+    setErrMsg('');
+    if (saveData) {
+      handleAccept(parseInt(newPtVal, 10));
+    } else {
+      handleCancel();
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onClose={() => closeWindow(false)}>
+      <DialogTitle>Add Point Value</DialogTitle>
+      <Box sx={{ '& .MuiDialogContent-root': { paddingRight: 8, paddingBottom: error ? 2 : 4.88 } }}>
+        <DialogContent>
+          <FormControl sx={{ width: '15ch' }} variant="outlined">
+            <OutlinedInput
+              type="number"
+              size="small"
+              error={error}
+              value={newPtVal}
+              onChange={(e) => onPtValChange(e.target.value)}
+              endAdornment={<InputAdornment position="end">pts</InputAdornment>}
+            />
+            {error && <FormHelperText error>{errMsg}</FormHelperText>}
+          </FormControl>
+        </DialogContent>
+      </Box>
+      <DialogActions>
+        <Button onClick={() => closeWindow(false)}>Cancel</Button>
+        <Button disabled={error || newPtVal === ''} onClick={() => closeWindow(true)}>
+          Accept
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+/** Does the list of answer types contain an instance of the given point value? */
+function findPointValue(answerTypes: AnswerType[], pointValue: number) {
+  return answerTypes.find((aType) => {
+    return aType.value === pointValue;
+  });
+}
+
+function pointValIsInvalid(val: number) {
+  if (Number.isNaN(val)) return true;
+  if (val % 1) return true;
+  return val > 1000 || val < -1000;
 }
 
 export default TossupSettingsCard;
