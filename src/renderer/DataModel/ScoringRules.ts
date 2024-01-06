@@ -135,6 +135,7 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
         this.answerTypes = [power20, ten];
         break;
       case CommonRuleSets.NaqtTimed:
+        this.timed = true;
         this.maximumRegulationTossupCount = 24;
         this.minimumOvertimeQuestionCount = 3;
         this.answerTypes = [power15, ten, neg];
