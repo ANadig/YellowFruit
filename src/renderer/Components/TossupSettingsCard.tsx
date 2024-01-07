@@ -206,6 +206,7 @@ function CustomPtValDialog(props: ICustomPtValDialogProps) {
             <OutlinedInput
               type="number"
               size="small"
+              autoFocus
               error={error}
               value={newPtVal}
               onChange={(e) => onPtValChange(e.target.value)}
