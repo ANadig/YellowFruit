@@ -78,10 +78,17 @@ export class TournamentManager {
 
   /** Parse file contents and load tournament for editing */
   private openYftFile(filePath: string, fileContents: string) {
-    const objFromFile: IQbjObject[] = JSON.parse(fileContents, (key, value) => {
-      if (TournamentManager.isNameOfDateField(key)) return dayjs(value).toDate(); // must be ISO 8601 format
-      return value;
-    });
+    let objFromFile: IQbjObject[] = [];
+    try {
+      objFromFile = JSON.parse(fileContents, (key, value) => {
+        if (TournamentManager.isNameOfDateField(key)) return dayjs(value).toDate(); // must be ISO 8601 format
+        return value;
+      });
+    } catch (err: any) {
+      this.openGenericModal('Invalid File', 'This file does not contain valid JSON.');
+    }
+
+    if (objFromFile.length < 1) return;
 
     const loadedTournament = this.loadTournamentFromQbjObjects(objFromFile);
     if (loadedTournament === null) {
