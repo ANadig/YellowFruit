@@ -61,8 +61,12 @@ export function parseScoringRules(obj: IIndeterminateQbj, refTargets: IRefTarget
 function parseScoringRulesGameLength(sourceQbj: IQbjScoringRules, yftScoringRules: ScoringRules) {
   const yfExtraData = (sourceQbj as IYftFileScoringRules).YfData;
 
-  const maxRegTuCnt = sourceQbj.maximumRegulationTossupCount ?? 20;
   const regTuCnt = sourceQbj.regulationTossupCount ?? 20;
+  const maxRegTuCnt = sourceQbj.maximumRegulationTossupCount ?? 20;
+  if (!ScoringRules.validateMaxRegTuCount(maxRegTuCnt)) {
+    throw new Error('Unsupported value for maximum regulation tossup count.');
+  }
+
   yftScoringRules.maximumRegulationTossupCount = ScoringRules.validateMaxRegTuCount(maxRegTuCnt) ? maxRegTuCnt : 20;
   yftScoringRules.timed = yfExtraData ? !!yfExtraData.timed : maxRegTuCnt !== regTuCnt; // non-standard round lengths implies timed
 }

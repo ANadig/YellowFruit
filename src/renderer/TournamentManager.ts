@@ -30,6 +30,15 @@ export class TournamentManager {
   /** Is there data that hasn't been saved to a file? */
   unsavedData: boolean = false;
 
+  /** Is there a message that we need to show in a modal dialog? */
+  showGenericModal: boolean = false;
+
+  /** Title of the modal currently being shown */
+  genericModalTitle: string = '';
+
+  /** Contents of the modal currently being shown */
+  genericModalContents: string = '';
+
   readonly isNull: boolean = false;
 
   constructor() {
@@ -74,14 +83,10 @@ export class TournamentManager {
       return value;
     });
 
-    const tournamentObj = TournamentManager.findTournamentObject(objFromFile);
-    if (tournamentObj === null) {
-      return; // TODO: some sort of error
+    const loadedTournament = this.loadTournamentFromQbjObjects(objFromFile);
+    if (loadedTournament === null) {
+      return;
     }
-
-    const refTargets = collectRefTargets(objFromFile);
-    const loadedTournament = parseYftTournament(tournamentObj as IYftFileTournament, refTargets);
-    if (loadedTournament === null) return; // TODO: some sort of error
 
     this.filePath = filePath as string;
     this.tournament = loadedTournament;
@@ -89,6 +94,25 @@ export class TournamentManager {
     this.unsavedData = false;
     this.setWindowTitle();
     this.dataChangedReactCallback();
+  }
+
+  /** Given an array of Qbj/Yft objects, parse them and create a tournament from the info */
+  loadTournamentFromQbjObjects(objFromFile: IQbjObject[]): Tournament | null {
+    const tournamentObj = TournamentManager.findTournamentObject(objFromFile);
+    if (tournamentObj === null) {
+      this.openGenericModal('Invalid File', 'This file doesn\'t contain a "Tournament" object.');
+      return null;
+    }
+
+    const refTargets = collectRefTargets(objFromFile);
+    let loadedTournament: Tournament | null = null;
+    try {
+      loadedTournament = parseYftTournament(tournamentObj as IYftFileTournament, refTargets);
+    } catch (err: any) {
+      this.openGenericModal('Invalid File', err.message);
+    }
+
+    return loadedTournament;
   }
 
   /** Is this a property in a JSON file that we should try to parse a date from? */
@@ -221,6 +245,20 @@ export class TournamentManager {
     if (this.displayName) return this.displayName;
 
     return this.filePath.substring(this.filePath.lastIndexOf('\\') + 1, this.filePath.lastIndexOf('.'));
+  }
+
+  openGenericModal(title: string, contents: string) {
+    this.showGenericModal = true;
+    this.genericModalTitle = title;
+    this.genericModalContents = contents;
+    this.dataChangedReactCallback();
+  }
+
+  closeGenericModal() {
+    this.showGenericModal = false;
+    this.genericModalTitle = '';
+    this.genericModalContents = '';
+    this.dataChangedReactCallback();
   }
 }
 
