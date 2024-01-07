@@ -35,6 +35,8 @@ export interface IQbjScoringRules extends IQbjObject {
   bonusDivisor?: number;
   /** Bonuses always have at least this many parts */
   minimumPartsPerBonus?: number;
+  /** Bonuses have at most this many parts */
+  maximumPartsPerBonus?: number;
   /** Number of points for each bonus part, if always the same */
   pointsPerBonuspart?: number;
   /** Whether incorrect bonus parts rebound to the other team */
@@ -106,6 +108,10 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
   }
 
   maximumBonusScore: number = 30;
+
+  get useBonuses(): boolean {
+    return this.maximumBonusScore > 0;
+  }
 
   get bonusDivisor(): number {
     return this.pointsPerBonusPart;

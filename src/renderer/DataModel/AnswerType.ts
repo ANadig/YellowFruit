@@ -42,14 +42,11 @@ class AnswerType implements IQbjAnswerType, IYftDataModelObject {
     this._shortLabel = str;
   }
 
-  get awardsBonus(): boolean {
-    return this.value > 0;
-  }
-
   constructor(points: number) {
     this.value = points;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjAnswerType {
     // only specify labels if there are overrides
     const qbjObject: IQbjAnswerType = {
@@ -59,8 +56,6 @@ class AnswerType implements IQbjAnswerType, IYftDataModelObject {
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.AnswerType;
     if (isReferenced) qbjObject.id = `AnswerType_${qbjObject.value}`;
-    // In YF, awards bonus iff point value is >0, so don't explicitly save that
-    if (qbjOnly) qbjObject.awardsBonus = this.awardsBonus;
 
     return qbjObject;
   }

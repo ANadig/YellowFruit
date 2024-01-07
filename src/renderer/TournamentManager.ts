@@ -230,6 +230,11 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  setBonusesBounceBack(checked: boolean) {
+    this.tournament.scoringRules.bonusesBounceBack = checked;
+    this.onDataChanged();
+  }
+
   // #endregion
 
   /** Should be called anytime the user modifies something */
