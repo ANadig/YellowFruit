@@ -28,6 +28,17 @@ export function sortAnswerTypes(ary: AnswerType[]) {
   ary.sort((a, b) => b.value - a.value);
 }
 
+/** Is this string an integer within the given bounds? (Empty string is valid) */
+export function invalidInteger(str: string, lowerBound?: number, upperBound?: number) {
+  if (str === '') return false;
+  const int = parseInt(str, 10);
+  if (Number.isNaN(int)) return true;
+  if (parseFloat(str) % 1) return true;
+  if (lowerBound !== undefined && int < lowerBound) return true;
+  if (upperBound !== undefined && int > upperBound) return true;
+  return false;
+}
+
 /**
  * Is version a less than version b? Versions are 3-piece dot-delimited, e.g. '1.2.3'
  * @param  a    version string
