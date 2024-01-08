@@ -95,7 +95,7 @@ function AdvancedBonusSection() {
   const [minBonusParts, setMinBonusParts] = useSubscription(thisTournamentRules.mimimumPartsPerBonus.toString());
   const [maxBonusParts, setMaxBonusParts] = useSubscription(thisTournamentRules.maximumPartsPerBonus.toString());
   const [ptsPerPart, setPtsPerPart] = useSubscription(thisTournamentRules.pointsPerBonusPart.toString());
-  const [divisor] = useSubscription(thisTournamentRules.bonusDivisor.toString());
+  const [divisor, setDivisor] = useSubscription(thisTournamentRules.bonusDivisor.toString());
 
   const handleMaxBonusScoreChange = (value: string) => {
     const deflt = ptsPerPart !== '' ? parseInt(ptsPerPart, 10) * parseInt(maxBonusParts, 10) : 30;
@@ -125,6 +125,11 @@ function AdvancedBonusSection() {
 
     const newMaxScore = valueToSave * parseInt(maxBonusParts, 10);
     setMaxBonusScore(newMaxScore.toString());
+  };
+
+  const handleDivisorChange = (value: string) => {
+    const valueToSave = intValueToUse(value, 1, 1, parseInt(maxBonusScore, 10));
+    setDivisor(valueToSave.toString());
   };
 
   return (
@@ -174,11 +179,11 @@ function AdvancedBonusSection() {
           label="Divisor"
           required
           value={divisor}
-          disabled
+          disabled={ptsPerPart !== ''}
           minValue={1}
-          maxValue={1000}
-          onChange={() => {}}
-          onBlur={() => {}}
+          maxValue={parseInt(maxBonusScore, 10)}
+          onChange={(val) => setDivisor(val)}
+          onBlur={() => handleDivisorChange(divisor)}
         />
       </Stack>
     </Box>
