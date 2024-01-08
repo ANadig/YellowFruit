@@ -235,6 +235,31 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  setMaxBonusScore(val: number) {
+    this.tournament.scoringRules.maximumBonusScore = val;
+    this.onDataChanged();
+  }
+
+  setMinPartsPerBonus(val: number) {
+    this.tournament.scoringRules.mimimumPartsPerBonus = val;
+    this.onDataChanged();
+  }
+
+  setMaxPartsPerBonus(val: number) {
+    this.tournament.scoringRules.maximumPartsPerBonus = val;
+    this.onDataChanged();
+  }
+
+  setPtsPerBonusPart(val: number | undefined) {
+    this.tournament.scoringRules.pointsPerBonusPart = val;
+    this.onDataChanged();
+  }
+
+  setBonusDivisor(val: number) {
+    this.tournament.scoringRules.bonusDivisor = val;
+    this.onDataChanged();
+  }
+
   // #endregion
 
   /** Should be called anytime the user modifies something */

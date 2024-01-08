@@ -19,24 +19,6 @@ import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
 import { invalidInteger } from '../Utils/GeneralUtils';
 
-interface ExpandButtonProps extends IconButtonProps {
-  expand: boolean;
-}
-
-// from https://mui.com/material-ui/react-card/
-const ExpandButton = styled((props: ExpandButtonProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { expand, ...other } = props;
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  return <IconButton {...other} />;
-})(({ theme, expand }) => ({
-  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-  marginLeft: 'auto',
-  transition: theme.transitions.create('transform', {
-    duration: theme.transitions.duration.shortest,
-  }),
-}));
-
 function BonusSettingsCard() {
   const tournManager = useContext(TournamentContext);
   const thisTournamentRules = tournManager.tournament.scoringRules;
@@ -94,42 +76,62 @@ function AdvancedBonusSection() {
   const [maxBonusScore, setMaxBonusScore] = useSubscription(thisTournamentRules.maximumBonusScore.toString());
   const [minBonusParts, setMinBonusParts] = useSubscription(thisTournamentRules.mimimumPartsPerBonus.toString());
   const [maxBonusParts, setMaxBonusParts] = useSubscription(thisTournamentRules.maximumPartsPerBonus.toString());
-  const [ptsPerPart, setPtsPerPart] = useSubscription(thisTournamentRules.pointsPerBonusPart.toString());
+  const [ptsPerPart, setPtsPerPart] = useSubscription(thisTournamentRules.pointsPerBonusPart?.toString() || '');
   const [divisor, setDivisor] = useSubscription(thisTournamentRules.bonusDivisor.toString());
 
   const handleMaxBonusScoreChange = (value: string) => {
     const deflt = ptsPerPart !== '' ? parseInt(ptsPerPart, 10) * parseInt(maxBonusParts, 10) : 30;
     const valueToSave = intValueToUse(value, deflt, 1, 1000);
     setMaxBonusScore(valueToSave.toString());
+    tournManager.setMaxBonusScore(valueToSave);
+
+    if (valueToSave % parseInt(divisor, 10)) {
+      setDivisor('1');
+      tournManager.setBonusDivisor(1);
+    }
   };
 
   const handleMinBonusPartsChange = (value: string) => {
     const valueToSave = intValueToUse(value, parseInt(maxBonusParts, 10), 1, parseInt(maxBonusParts, 10));
     setMinBonusParts(valueToSave.toString());
+    tournManager.setMinPartsPerBonus(valueToSave);
   };
 
   const handleMaxBonusPartsChange = (value: string) => {
     const valueToSave = intValueToUse(value, parseInt(minBonusParts, 10), parseInt(minBonusParts, 10), 1000);
     setMaxBonusParts(valueToSave.toString());
+    tournManager.setMaxPartsPerBonus(valueToSave);
 
     if (ptsPerPart !== '') {
       const newMaxScore = valueToSave * parseInt(ptsPerPart, 10);
       setMaxBonusScore(newMaxScore.toString());
+      tournManager.setMaxBonusScore(newMaxScore);
     }
   };
 
   const handlePtsPerPartChange = (value: string) => {
-    if (value === '') return;
-    const valueToSave = intValueToUse(value, 10, 1, 1000);
+    if (value === '') {
+      tournManager.setPtsPerBonusPart(undefined);
+      return;
+    }
+    const valueToSave = intValueToUse(value, thisTournamentRules.pointsPerBonusPart || 10, 1, 1000);
     setPtsPerPart(valueToSave.toString());
+    tournManager.setPtsPerBonusPart(valueToSave);
 
     const newMaxScore = valueToSave * parseInt(maxBonusParts, 10);
     setMaxBonusScore(newMaxScore.toString());
+    tournManager.setMaxBonusScore(newMaxScore);
+
+    setDivisor(valueToSave.toString());
+    tournManager.setBonusDivisor(valueToSave);
   };
 
   const handleDivisorChange = (value: string) => {
-    const valueToSave = intValueToUse(value, 1, 1, parseInt(maxBonusScore, 10));
+    const maxBonusScoreInt = parseInt(maxBonusScore, 10);
+    let valueToSave = intValueToUse(value, thisTournamentRules.bonusDivisor, 1, maxBonusScoreInt);
+    if (maxBonusScoreInt % valueToSave) valueToSave = thisTournamentRules.bonusDivisor;
     setDivisor(valueToSave.toString());
+    tournManager.setBonusDivisor(valueToSave);
   };
 
   return (
@@ -142,7 +144,7 @@ function AdvancedBonusSection() {
           disabled={ptsPerPart !== ''}
           minValue={1}
           maxValue={1000}
-          onChange={(val) => setMaxBonusScore(val)}
+          onChange={setMaxBonusScore}
           onBlur={() => handleMaxBonusScoreChange(maxBonusScore)}
         />
         <AdvancedBonusField
@@ -152,7 +154,7 @@ function AdvancedBonusSection() {
           disabled={false}
           minValue={1}
           maxValue={parseInt(maxBonusParts, 10)}
-          onChange={(val) => setMinBonusParts(val)}
+          onChange={setMinBonusParts}
           onBlur={() => handleMinBonusPartsChange(minBonusParts)}
         />
         <AdvancedBonusField
@@ -162,7 +164,7 @@ function AdvancedBonusSection() {
           disabled={false}
           minValue={parseInt(minBonusParts, 10)}
           maxValue={1000}
-          onChange={(val) => setMaxBonusParts(val)}
+          onChange={setMaxBonusParts}
           onBlur={() => handleMaxBonusPartsChange(maxBonusParts)}
         />
         <AdvancedBonusField
@@ -172,7 +174,7 @@ function AdvancedBonusSection() {
           disabled={false}
           minValue={1}
           maxValue={1000}
-          onChange={(val) => setPtsPerPart(val)}
+          onChange={setPtsPerPart}
           onBlur={() => handlePtsPerPartChange(ptsPerPart)}
         />
         <AdvancedBonusField
@@ -182,7 +184,7 @@ function AdvancedBonusSection() {
           disabled={ptsPerPart !== ''}
           minValue={1}
           maxValue={parseInt(maxBonusScore, 10)}
-          onChange={(val) => setDivisor(val)}
+          onChange={setDivisor}
           onBlur={() => handleDivisorChange(divisor)}
         />
       </Stack>
@@ -249,6 +251,24 @@ function InlineLabel(props: { text: string }) {
     </div>
   );
 }
+
+interface ExpandButtonProps extends IconButtonProps {
+  expand: boolean;
+}
+
+// from https://mui.com/material-ui/react-card/
+const ExpandButton = styled((props: ExpandButtonProps) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { expand, ...other } = props;
+  // eslint-disable-next-line react/jsx-props-no-spreading
+  return <IconButton {...other} />;
+})(({ theme, expand }) => ({
+  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
+  marginLeft: 'auto',
+  transition: theme.transitions.create('transform', {
+    duration: theme.transitions.duration.shortest,
+  }),
+}));
 
 function intValueToUse(str: string, deflt: number, lowerBound?: number, upperBound?: number) {
   if (str === '') return deflt;

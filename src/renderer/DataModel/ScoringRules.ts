@@ -31,6 +31,8 @@ export interface IQbjScoringRules extends IQbjObject {
   overtimeIncludesBonuses?: boolean;
   /** The largest integer that always evenly divides a score */
   totalDivisor?: number;
+  /** The most points a team can get on a single bonus */
+  maximumBonusScore?: number;
   /** The largest integers that always divides a bonus score */
   bonusDivisor?: number;
   /** Bonuses always have at least this many parts */
@@ -113,15 +115,13 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
     return this.maximumBonusScore > 0;
   }
 
-  get bonusDivisor(): number {
-    return this.pointsPerBonusPart;
-  }
+  bonusDivisor: number = 10;
 
   mimimumPartsPerBonus: number = 3;
 
   maximumPartsPerBonus: number = 3;
 
-  pointsPerBonusPart: number = 10;
+  pointsPerBonusPart?: number = 10;
 
   bonusesBounceBack: boolean = false;
 
@@ -175,6 +175,16 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
       maximumRegulationTossupCount: this.maximumRegulationTossupCount,
       // TODO: all the other properties
     };
+
+    if (this.useBonuses) {
+      qbjObject.bonusesBounceBack = this.bonusesBounceBack;
+      qbjObject.maximumBonusScore = this.maximumBonusScore;
+      qbjObject.minimumPartsPerBonus = this.mimimumPartsPerBonus;
+      qbjObject.maximumPartsPerBonus = this.maximumPartsPerBonus;
+      qbjObject.pointsPerBonuspart = this.pointsPerBonusPart;
+      qbjObject.bonusDivisor = this.bonusDivisor;
+    }
+
     if (isTopLevel) qbjObject.type = QbjTypeNames.ScoringRules;
     if (isReferenced) qbjObject.id = `ScoringRules_${this.name}`;
 
