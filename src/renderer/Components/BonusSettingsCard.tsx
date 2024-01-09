@@ -74,7 +74,7 @@ function AdvancedBonusSection() {
   const tournManager = useContext(TournamentContext);
   const thisTournamentRules = tournManager.tournament.scoringRules;
   const [maxBonusScore, setMaxBonusScore] = useSubscription(thisTournamentRules.maximumBonusScore.toString());
-  const [minBonusParts, setMinBonusParts] = useSubscription(thisTournamentRules.mimimumPartsPerBonus.toString());
+  const [minBonusParts, setMinBonusParts] = useSubscription(thisTournamentRules.minimumPartsPerBonus.toString());
   const [maxBonusParts, setMaxBonusParts] = useSubscription(thisTournamentRules.maximumPartsPerBonus.toString());
   const [ptsPerPart, setPtsPerPart] = useSubscription(thisTournamentRules.pointsPerBonusPart?.toString() || '');
   const [divisor, setDivisor] = useSubscription(thisTournamentRules.bonusDivisor.toString());

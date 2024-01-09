@@ -241,7 +241,7 @@ export class TournamentManager {
   }
 
   setMinPartsPerBonus(val: number) {
-    this.tournament.scoringRules.mimimumPartsPerBonus = val;
+    this.tournament.scoringRules.minimumPartsPerBonus = val;
     this.onDataChanged();
   }
 

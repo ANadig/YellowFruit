@@ -40,7 +40,7 @@ export interface IQbjScoringRules extends IQbjObject {
   /** Bonuses have at most this many parts */
   maximumPartsPerBonus?: number;
   /** Number of points for each bonus part, if always the same */
-  pointsPerBonuspart?: number;
+  pointsPerBonusPart?: number;
   /** Whether incorrect bonus parts rebound to the other team */
   bonusesBounceBack?: boolean;
   /** Number of lightning rounds per team per round */
@@ -117,7 +117,7 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
 
   bonusDivisor: number = 10;
 
-  mimimumPartsPerBonus: number = 3;
+  minimumPartsPerBonus: number = 3;
 
   maximumPartsPerBonus: number = 3;
 
@@ -179,9 +179,9 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
     if (this.useBonuses) {
       qbjObject.bonusesBounceBack = this.bonusesBounceBack;
       qbjObject.maximumBonusScore = this.maximumBonusScore;
-      qbjObject.minimumPartsPerBonus = this.mimimumPartsPerBonus;
+      qbjObject.minimumPartsPerBonus = this.minimumPartsPerBonus;
       qbjObject.maximumPartsPerBonus = this.maximumPartsPerBonus;
-      qbjObject.pointsPerBonuspart = this.pointsPerBonusPart;
+      qbjObject.pointsPerBonusPart = this.pointsPerBonusPart;
       qbjObject.bonusDivisor = this.bonusDivisor;
     }
 

@@ -46,13 +46,16 @@ export function parseScoringRules(obj: IIndeterminateQbj, refTargets: IRefTarget
   if (baseObj === null) return new ScoringRules();
 
   const qbjScoringRules = baseObj as IQbjScoringRules;
-  if (!qbjScoringRules.answerTypes) return new ScoringRules();
+  if (!qbjScoringRules.answerTypes) {
+    throw new Error('There are no tossup point values (Answer Types) defined for this tournament.');
+  }
 
   const yftScoringRules = new ScoringRules();
 
   yftScoringRules.name = qbjScoringRules.name || '';
   parseScoringRulesGameLength(qbjScoringRules, yftScoringRules);
   parseScoringRulesAnswerTypes(qbjScoringRules, yftScoringRules, refTargets);
+  parseScoringRulesBonusSettings(qbjScoringRules, yftScoringRules);
   // TODO: lots more properties
 
   return yftScoringRules;
@@ -64,7 +67,7 @@ function parseScoringRulesGameLength(sourceQbj: IQbjScoringRules, yftScoringRule
   const regTuCnt = sourceQbj.regulationTossupCount ?? 20;
   const maxRegTuCnt = sourceQbj.maximumRegulationTossupCount ?? 20;
   if (!ScoringRules.validateMaxRegTuCount(maxRegTuCnt)) {
-    throw new Error('Unsupported value for maximum regulation tossup count.');
+    throw new Error('Unsupported value for maximum regulation toss-up count.');
   }
 
   yftScoringRules.maximumRegulationTossupCount = ScoringRules.validateMaxRegTuCount(maxRegTuCnt) ? maxRegTuCnt : 20;
@@ -81,8 +84,65 @@ function parseScoringRulesAnswerTypes(
     const oneYftAType = parseAnswerType(aType as IIndeterminateQbj, refTargets);
     if (oneYftAType !== null) yftAnswerTypes.push(oneYftAType);
   }
+
+  if (!yftAnswerTypes.find((aType) => aType.value > 0)) {
+    throw new Error('This tournament contains no positive toss-up point values.');
+  }
+
   sortAnswerTypes(yftAnswerTypes);
   yftScoringRules.answerTypes = yftAnswerTypes;
+}
+
+function parseScoringRulesBonusSettings(sourceQbj: IQbjScoringRules, yftScoringRules: ScoringRules) {
+  const useBonuses = sourceQbj.maximumBonusScore !== undefined;
+  if (!useBonuses) return;
+
+  const maximumBonusScore = sourceQbj.maximumBonusScore ?? 30;
+  if (badInteger(maximumBonusScore, 1, 1000)) {
+    throw new Error(`Invalid maximum bonus score: ${maximumBonusScore}`);
+  }
+  yftScoringRules.maximumBonusScore = maximumBonusScore;
+
+  const minimumPartsPerBonus = sourceQbj.minimumPartsPerBonus ?? 3;
+  if (badInteger(minimumPartsPerBonus, 1, 1000)) {
+    throw new Error(`Invalid minimum parts per bonus: ${minimumPartsPerBonus}`);
+  }
+  yftScoringRules.minimumPartsPerBonus = minimumPartsPerBonus;
+
+  const maximumPartsPerBonus = sourceQbj.maximumPartsPerBonus ?? 3;
+  if (badInteger(maximumPartsPerBonus, 1, 1000)) {
+    throw new Error(`Invalid maximum parts per bonus: ${maximumPartsPerBonus}`);
+  }
+  if (maximumPartsPerBonus < yftScoringRules.minimumPartsPerBonus) {
+    throw new Error('Maximum parts per bonus is less than minimum parts per bonus.');
+  }
+  yftScoringRules.maximumPartsPerBonus = maximumPartsPerBonus;
+
+  const { pointsPerBonusPart } = sourceQbj;
+  if (pointsPerBonusPart !== undefined) {
+    if (badInteger(pointsPerBonusPart, 1, 1000)) {
+      throw new Error(`Invalid points per bonus part setting: ${pointsPerBonusPart}`);
+    }
+    if (pointsPerBonusPart * yftScoringRules.maximumPartsPerBonus !== yftScoringRules.maximumBonusScore) {
+      throw new Error(
+        `Maximum bonus score, maximum parts per bonus, and points per bonus part settings must be consistent.`,
+      );
+    }
+  }
+  yftScoringRules.pointsPerBonusPart = pointsPerBonusPart;
+
+  let bonusDivisor = sourceQbj.bonusDivisor ?? 10;
+  if (badInteger(bonusDivisor, 1, 1000)) {
+    throw new Error(`Invalid bonus divisor setting: ${bonusDivisor}`);
+  }
+  if (yftScoringRules.maximumBonusScore % bonusDivisor) {
+    bonusDivisor = 1;
+  } else if (yftScoringRules.pointsPerBonusPart && yftScoringRules.pointsPerBonusPart % bonusDivisor) {
+    throw new Error(
+      `Points per bonus (${yftScoringRules.pointsPerBonusPart}) and bonus divisor (${bonusDivisor}) settings are incompatible.`,
+    );
+  }
+  yftScoringRules.bonusDivisor = bonusDivisor;
 }
 
 function parseAnswerType(obj: IIndeterminateQbj, refTargets: IRefTargetDict): AnswerType | null {
@@ -90,14 +150,27 @@ function parseAnswerType(obj: IIndeterminateQbj, refTargets: IRefTargetDict): An
   if (baseObj === null) return null;
 
   const qbjAType = baseObj as IQbjAnswerType;
-  if (qbjAType.value === undefined) return null;
+  const ptValue = qbjAType.value;
+  if (ptValue === undefined) {
+    throw new Error('Scoring Rules contain an Answer Type with no point value.');
+  }
+  if (badInteger(ptValue, -1000, 1000)) {
+    throw new Error(`Scoring Rules contain an Answer Type with an invalid point value: ${ptValue}`);
+  }
   // unsupported formats
-  if (qbjAType.value > 0 && qbjAType.awardsBonus === false) return null;
-  if (qbjAType.value <= 0 && qbjAType.awardsBonus) return null;
+  if (ptValue <= 0 && qbjAType.awardsBonus) {
+    throw new Error(`Answer Types with non-positive point values may not award bonuses.`);
+  }
 
-  const yftAType = new AnswerType(qbjAType.value);
+  const yftAType = new AnswerType(ptValue);
   if (qbjAType.label) yftAType.label = qbjAType.label;
   if (qbjAType.shortLabel) yftAType.shortLabel = qbjAType.shortLabel;
 
   return yftAType;
+}
+
+/** Returns true if suppliedValue isn't an integer between the given bounds */
+function badInteger(suppliedValue: number, lowerBound: number, upperBound: number) {
+  if (suppliedValue < lowerBound || suppliedValue > upperBound) return true;
+  return suppliedValue % 1 > 0;
 }
