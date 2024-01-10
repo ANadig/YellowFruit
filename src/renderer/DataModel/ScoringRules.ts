@@ -116,6 +116,7 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
 
   maximumBonusScore: number = 30;
 
+  /** YF-internal explicit flag */
   useBonuses: boolean = true;
 
   bonusDivisor: number = 10;

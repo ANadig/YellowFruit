@@ -100,6 +100,7 @@ function parseScoringRulesAnswerTypes(
 
 function parseScoringRulesBonusSettings(sourceQbj: IQbjScoringRules, yftScoringRules: ScoringRules) {
   const useBonuses = sourceQbj.maximumBonusScore !== undefined;
+  yftScoringRules.useBonuses = useBonuses;
   if (!useBonuses) return;
 
   const maximumBonusScore = sourceQbj.maximumBonusScore ?? 30;
