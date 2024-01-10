@@ -60,6 +60,7 @@ export function parseScoringRules(obj: IIndeterminateQbj, refTargets: IRefTarget
   parseScoringRulesGameLength(qbjScoringRules, yftScoringRules);
   parseScoringRulesAnswerTypes(qbjScoringRules, yftScoringRules, refTargets);
   parseScoringRulesBonusSettings(qbjScoringRules, yftScoringRules);
+  parseScoringRulesMaxPlayers(qbjScoringRules, yftScoringRules);
   // TODO: lots more properties
 
   return yftScoringRules;
@@ -147,6 +148,14 @@ function parseScoringRulesBonusSettings(sourceQbj: IQbjScoringRules, yftScoringR
     );
   }
   yftScoringRules.bonusDivisor = bonusDivisor;
+}
+
+function parseScoringRulesMaxPlayers(sourceQbj: IQbjScoringRules, yftScoringRules: ScoringRules) {
+  const maxPlayers = sourceQbj.maximumPlayersPerTeam ?? 4;
+  if (badInteger(maxPlayers, 1, ScoringRules.maximumAllowedRosterSize)) {
+    throw new Error(`Invalid maximum players per team setting: ${maxPlayers}`);
+  }
+  yftScoringRules.maximumPlayersPerTeam = maxPlayers;
 }
 
 function parseAnswerType(obj: IIndeterminateQbj, refTargets: IRefTargetDict): AnswerType | null {
