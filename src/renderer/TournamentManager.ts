@@ -270,6 +270,12 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  setMaxPlayers(val: number) {
+    if (this.tournament.scoringRules.maximumPlayersPerTeam === val) return;
+    this.tournament.scoringRules.maximumPlayersPerTeam = val;
+    this.onDataChanged();
+  }
+
   // #endregion
 
   /** Should be called anytime the user modifies something */

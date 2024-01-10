@@ -71,7 +71,12 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
 
   readonly teamsPerMatch = 2; /** YF only supports 2-team matches */
 
+  static defaultMaximumPlayersPerTeam = 4;
+
   maximumPlayersPerTeam: number = 4;
+
+  /** The most players that YF will let you put on one team */
+  static maximumAllowedRosterSize: number = 30;
 
   /** Timed rounds? If no, assume all rounds have the same number of TU in regulation */
   timed: boolean = false;
@@ -215,5 +220,10 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
   /** If true, val is a valid setting for maximum regulation tossups */
   static validateMaxRegTuCount(val: number) {
     return 1 <= val && val <= 100;
+  }
+
+  /** If true, val is a valid setting for maximum players */
+  static validateMaxPlayerCount(val: number) {
+    return 1 <= val && val <= this.maximumAllowedRosterSize;
   }
 }
