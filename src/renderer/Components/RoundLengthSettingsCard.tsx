@@ -47,7 +47,7 @@ function RoundLengthSettingsCard() {
   };
 
   const tuNumberIsValid = () => {
-    if (numTus === '') return true;
+    if (numTus === '') return false;
     const parsed = parseFloat(numTus);
     return ScoringRules.validateMaxRegTuCount(parsed);
   };
@@ -61,7 +61,7 @@ function RoundLengthSettingsCard() {
         />
       </FormGroup>
       <TextField
-        sx={{ marginTop: 1, width: '15ch' }}
+        sx={{ marginTop: 1, width: '13ch' }}
         size="small"
         type="number"
         label={numTusLabel}
@@ -69,6 +69,9 @@ function RoundLengthSettingsCard() {
         error={!tuNumberIsValid()}
         onChange={(e) => setNumTus(e.target.value)}
         onBlur={saveNumTusSetting}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') saveNumTusSetting();
+        }}
       />
       <Tooltip sx={{ marginTop: 2, mx: 1 }} title={numTusHelpText} placement="right">
         <HelpOutline fontSize="small" />

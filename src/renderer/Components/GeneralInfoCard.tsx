@@ -28,6 +28,9 @@ function GeneralInfoCard() {
           value={tournName}
           onChange={(e) => setTournName(e.target.value)}
           onBlur={() => tournManager.setTournamentName(tournName)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') tournManager.setTournamentName(tournName);
+          }}
         />
         <TextField
           label="Tournament Location"
@@ -37,6 +40,9 @@ function GeneralInfoCard() {
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           onBlur={() => tournManager.setTournamentSiteName(location)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') tournManager.setTournamentSiteName(location);
+          }}
         />
         <Box sx={{ '& .MuiInputBase-root': { height: '40px' }, '& .MuiFormLabel-root': { marginTop: '-7px' } }}>
           <DatePicker

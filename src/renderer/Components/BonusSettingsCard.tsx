@@ -240,6 +240,9 @@ function AdvancedBonusField(props: IAdvancedBonusFieldProps) {
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           onBlur={() => onBlur(value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') onBlur(value);
+          }}
         />
       </Grid>
     </Grid>
@@ -249,7 +252,7 @@ function AdvancedBonusField(props: IAdvancedBonusFieldProps) {
 function InlineLabel(props: { text: string }) {
   const { text } = props;
   return (
-    <div style={{ marginTop: '1.2rem' }}>
+    <div style={{ marginTop: '1rem' }}>
       <Typography variant="body2">{text}</Typography>
     </div>
   );

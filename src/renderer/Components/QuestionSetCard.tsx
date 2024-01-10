@@ -22,6 +22,9 @@ function QuestionSetCard() {
           value={qsetName}
           onChange={(e) => setQsetName(e.target.value)}
           onBlur={() => tournManager.setQuestionSetname(qsetName)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') tournManager.setQuestionSetname(qsetName);
+          }}
         />
       </Box>
       Name: {name}
