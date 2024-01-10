@@ -25,7 +25,7 @@ export interface IQbjScoringRules extends IQbjObject {
   regulationTossupCount?: number;
   /** The maximum number of tossups heard in a match that does not go into overtime. */
   maximumRegulationTossupCount?: number;
-  /** The smallest possible number of overtime tossups */
+  /** The smallest possible number of overtime tossups. 1 for sudden-death */
   minimumOvertimeQuestionCount?: number;
   /** Are bonuses used in overtime? */
   overtimeIncludesBonuses?: boolean;
@@ -91,9 +91,11 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
 
   maximumRegulationTossupCount: number = 20; // for untimed rounds, this is the only allowed regulation number for non-tiebreakers
 
-  minimumOvertimeQuestionCount: number;
+  minimumOvertimeQuestionCount: number = 1;
 
-  readonly overtimeIncludesBonuses = false; /** YF doesn't support bonuses in overtime */
+  static defaultNonSuddenDeathTuCount: number = 3;
+
+  overtimeIncludesBonuses = false;
 
   get totalDivisor(): number {
     let divisor = 10;
@@ -227,5 +229,10 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
   /** If true, val is a valid setting for maximum players */
   static validateMaxPlayerCount(val: number) {
     return 1 <= val && val <= this.maximumAllowedRosterSize;
+  }
+
+  /** If true, val is a valid setting for minimum overtime tossups */
+  static validateMinOvertimeTuCount(val: number) {
+    return 1 <= val && val <= 100;
   }
 }

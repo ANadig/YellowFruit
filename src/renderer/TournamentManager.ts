@@ -276,6 +276,17 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  setMinOverTimeTossupCount(val: number) {
+    if (this.tournament.scoringRules.minimumOvertimeQuestionCount === val) return;
+    this.tournament.scoringRules.minimumOvertimeQuestionCount = val;
+    this.onDataChanged();
+  }
+
+  setOvertimeUsesBonuses(checked: boolean) {
+    this.tournament.scoringRules.overtimeIncludesBonuses = checked;
+    this.onDataChanged();
+  }
+
   // #endregion
 
   /** Should be called anytime the user modifies something */

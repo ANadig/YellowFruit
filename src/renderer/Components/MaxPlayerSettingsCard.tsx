@@ -13,22 +13,21 @@ function MaxPlayersSettingsCard() {
   const thisTournamentRules = tournManager.tournament.scoringRules;
   const [numPlayers, setNumPlayers] = useSubscription(thisTournamentRules.maximumPlayersPerTeam.toString());
 
+  const numPlayersIsValid = () => {
+    if (numPlayers === '') return false;
+    const parsed = parseFloat(numPlayers);
+    return ScoringRules.validateMaxPlayerCount(parsed);
+  };
+
   const saveNumPlayersSetting = () => {
     let valueToSave: number;
-    const parsed = parseFloat(numPlayers);
-    if (numPlayers === '' || Number.isNaN(parsed) || !ScoringRules.validateMaxPlayerCount(parsed)) {
-      valueToSave = ScoringRules.defaultMaximumPlayersPerTeam;
+    if (!numPlayersIsValid()) {
+      valueToSave = thisTournamentRules.maximumPlayersPerTeam;
     } else {
       valueToSave = parseInt(numPlayers, 10);
     }
     setNumPlayers(valueToSave.toString());
     tournManager.setMaxPlayers(valueToSave);
-  };
-
-  const numPlayersIsValid = () => {
-    if (numPlayers === '') return false;
-    const parsed = parseFloat(numPlayers);
-    return ScoringRules.validateMaxPlayerCount(parsed);
   };
 
   return (
