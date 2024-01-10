@@ -30,6 +30,8 @@ export function parseTournament(obj: IQbjTournament, refTargets: IRefTargetDict)
   const rules = obj.scoringRules;
   if (rules) tourn.scoringRules = parseScoringRules(rules as IIndeterminateQbj, refTargets);
 
+  // TODO: registrations, phases
+
   return tourn;
 }
 
@@ -49,6 +51,8 @@ export function parseScoringRules(obj: IIndeterminateQbj, refTargets: IRefTarget
   if (!qbjScoringRules.answerTypes) {
     throw new Error('There are no tossup point values (Answer Types) defined for this tournament.');
   }
+
+  // TODO: validate teamspermatch
 
   const yftScoringRules = new ScoringRules();
 

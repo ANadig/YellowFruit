@@ -230,32 +230,42 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  setUseBonuses(checked: boolean) {
+    this.tournament.scoringRules.useBonuses = checked;
+    this.onDataChanged();
+  }
+
   setBonusesBounceBack(checked: boolean) {
     this.tournament.scoringRules.bonusesBounceBack = checked;
     this.onDataChanged();
   }
 
   setMaxBonusScore(val: number) {
+    if (this.tournament.scoringRules.maximumBonusScore === val) return;
     this.tournament.scoringRules.maximumBonusScore = val;
     this.onDataChanged();
   }
 
   setMinPartsPerBonus(val: number) {
+    if (this.tournament.scoringRules.minimumPartsPerBonus === val) return;
     this.tournament.scoringRules.minimumPartsPerBonus = val;
     this.onDataChanged();
   }
 
   setMaxPartsPerBonus(val: number) {
+    if (this.tournament.scoringRules.maximumPartsPerBonus === val) return;
     this.tournament.scoringRules.maximumPartsPerBonus = val;
     this.onDataChanged();
   }
 
   setPtsPerBonusPart(val: number | undefined) {
+    if (this.tournament.scoringRules.pointsPerBonusPart === val) return;
     this.tournament.scoringRules.pointsPerBonusPart = val;
     this.onDataChanged();
   }
 
   setBonusDivisor(val: number) {
+    if (this.tournament.scoringRules.bonusDivisor === val) return;
     this.tournament.scoringRules.bonusDivisor = val;
     this.onDataChanged();
   }

@@ -28,14 +28,17 @@ function BonusSettingsCard() {
 
   const handleUseBonusesChange = (e: ChangeEvent<HTMLInputElement>) => {
     setUseBonuses(e.target.checked);
+    tournManager.setUseBonuses(e.target.checked);
     if (!e.target.checked) {
       setBonusesBounce(false);
+      tournManager.setBonusesBounceBack(false);
       setAdvancedExpanded(false);
     }
   };
 
   const handleBonusesBounceChange = (e: ChangeEvent<HTMLInputElement>) => {
     setBonusesBounce(e.target.checked);
+    tournManager.setBonusesBounceBack(e.target.checked);
   };
 
   return (
