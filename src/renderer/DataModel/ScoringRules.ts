@@ -133,15 +133,13 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
 
   lightningCountPerTeam: number = 0;
 
-  maximumLightningScore?: number;
-
-  lightningDivisor?: number;
-
-  readonly lightningsBounceBack = false;
-
-  answerTypes: AnswerType[];
+  answerTypes: AnswerType[] = [];
 
   constructor(ruleSet: CommonRuleSets = CommonRuleSets.NaqtUntimed) {
+    this.applyRuleSet(ruleSet);
+  }
+
+  applyRuleSet(ruleSet: CommonRuleSets) {
     const ten = new AnswerType(10);
     const power15 = new AnswerType(15);
     const power20 = new AnswerType(20);
@@ -149,13 +147,18 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
 
     switch (ruleSet) {
       case CommonRuleSets.Acf:
+        this.timed = false;
         this.maximumRegulationTossupCount = 20;
         this.minimumOvertimeQuestionCount = 1;
+        this.useBonuses = true;
+        this.bonusesBounceBack = false;
         this.answerTypes = [ten, neg];
         break;
       case CommonRuleSets.Pace:
+        this.timed = false;
         this.maximumRegulationTossupCount = 20;
         this.minimumOvertimeQuestionCount = 1;
+        this.useBonuses = true;
         this.bonusesBounceBack = true;
         this.answerTypes = [power20, ten];
         break;
@@ -163,15 +166,30 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
         this.timed = true;
         this.maximumRegulationTossupCount = 24;
         this.minimumOvertimeQuestionCount = 3;
+        this.useBonuses = true;
+        this.bonusesBounceBack = false;
         this.answerTypes = [power15, ten, neg];
         break;
       case CommonRuleSets.NaqtUntimed:
       default:
+        this.timed = false;
         this.maximumRegulationTossupCount = 20;
         this.minimumOvertimeQuestionCount = 3;
+        this.useBonuses = true;
+        this.bonusesBounceBack = false;
         this.answerTypes = [power15, ten, neg];
         break;
     }
+
+    // common settings to all standard rule sets
+    this.maximumPlayersPerTeam = 4;
+    this.overtimeIncludesBonuses = false;
+    this.maximumBonusScore = 30;
+    this.bonusDivisor = 10;
+    this.minimumPartsPerBonus = 3;
+    this.maximumPartsPerBonus = 3;
+    this.pointsPerBonusPart = 10;
+    this.lightningCountPerTeam = 0;
   }
 
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjScoringRules {
@@ -183,7 +201,7 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
       minimumOvertimeQuestionCount: this.minimumOvertimeQuestionCount,
       overtimeIncludesBonuses: this.overtimeIncludesBonuses,
       lightningCountPerTeam: this.lightningCountPerTeam,
-      // TODO: all the other properties
+      totalDivisor: this.totalDivisor,
     };
 
     if (this.useBonuses) {
