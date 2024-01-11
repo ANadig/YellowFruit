@@ -6,6 +6,7 @@ import BonusSettingsCard from './BonusSettingsCard';
 import MaxPlayersSettingsCard from './MaxPlayerSettingsCard';
 import OvertimeSettingsCard from './OvertimeSettingsCard';
 import RoundLengthSettingsCard from './RoundLengthSettingsCard';
+import LightningRoundSettingsCard from './LightningRoundSettingsCard';
 
 function RulesPage() {
   return (
@@ -20,7 +21,10 @@ function RulesPage() {
         </Stack>
       </Grid>
       <Grid xs={12} sm={4}>
-        <BonusSettingsCard />
+        <Stack spacing={2}>
+          <BonusSettingsCard />
+          <LightningRoundSettingsCard />
+        </Stack>
       </Grid>
       <Grid xs={12} sm={4}>
         <Stack spacing={2}>

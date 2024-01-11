@@ -180,6 +180,9 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
       answerTypes: this.answerTypes.map((aType) => aType.toFileObject(qbjOnly)),
       maximumRegulationTossupCount: this.maximumRegulationTossupCount,
       maximumPlayersPerTeam: this.maximumPlayersPerTeam,
+      minimumOvertimeQuestionCount: this.minimumOvertimeQuestionCount,
+      overtimeIncludesBonuses: this.overtimeIncludesBonuses,
+      lightningCountPerTeam: this.lightningCountPerTeam,
       // TODO: all the other properties
     };
 

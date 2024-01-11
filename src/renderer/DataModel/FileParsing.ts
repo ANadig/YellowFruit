@@ -61,7 +61,8 @@ export function parseScoringRules(obj: IIndeterminateQbj, refTargets: IRefTarget
   parseScoringRulesAnswerTypes(qbjScoringRules, yftScoringRules, refTargets);
   parseScoringRulesBonusSettings(qbjScoringRules, yftScoringRules);
   parseScoringRulesMaxPlayers(qbjScoringRules, yftScoringRules);
-  // TODO: lots more properties
+  parseScoringRulesOvertime(qbjScoringRules, yftScoringRules);
+  parseScoringRulesLightning(qbjScoringRules, yftScoringRules);
 
   return yftScoringRules;
 }
@@ -157,6 +158,24 @@ function parseScoringRulesMaxPlayers(sourceQbj: IQbjScoringRules, yftScoringRule
     throw new Error(`Invalid maximum players per team setting: ${maxPlayers}`);
   }
   yftScoringRules.maximumPlayersPerTeam = maxPlayers;
+}
+
+function parseScoringRulesOvertime(sourceQbj: IQbjScoringRules, yftScoringRules: ScoringRules) {
+  const minTossups = sourceQbj.minimumOvertimeQuestionCount ?? 1;
+  if (badInteger(minTossups, 1, 100)) {
+    throw new Error(`Invalid mimimum overtime question setting: ${minTossups}`);
+  }
+  yftScoringRules.minimumOvertimeQuestionCount = minTossups;
+
+  yftScoringRules.overtimeIncludesBonuses = !!sourceQbj.overtimeIncludesBonuses;
+}
+
+function parseScoringRulesLightning(sourceQbj: IQbjScoringRules, yftScoringRules: ScoringRules) {
+  const lightningCount = sourceQbj.lightningCountPerTeam ?? 0;
+  if (badInteger(lightningCount, 0, 10)) {
+    throw new Error(`Invalid lightning rounds per team setting: ${lightningCount}`);
+  }
+  yftScoringRules.lightningCountPerTeam = lightningCount > 0 ? 1 : 0;
 }
 
 function parseAnswerType(obj: IIndeterminateQbj, refTargets: IRefTargetDict): AnswerType | null {

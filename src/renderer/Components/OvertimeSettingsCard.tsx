@@ -20,8 +20,7 @@ function OvertimeSettingsCard() {
     if (e.target.checked) {
       setMinTossups('1');
       tournManager.setMinOverTimeTossupCount(1);
-    }
-    if (!e.target.checked) {
+    } else {
       setMinTossups(ScoringRules.defaultNonSuddenDeathTuCount.toString());
       tournManager.setMinOverTimeTossupCount(ScoringRules.defaultNonSuddenDeathTuCount);
     }

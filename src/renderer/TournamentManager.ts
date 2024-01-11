@@ -287,6 +287,11 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  setUseLightning(checked: boolean) {
+    this.tournament.scoringRules.lightningCountPerTeam = checked ? 1 : 0;
+    this.onDataChanged();
+  }
+
   // #endregion
 
   /** Should be called anytime the user modifies something */
