@@ -41,7 +41,7 @@ export function collectRefTargets(objectList: IQbjObject[]): IRefTargetDict {
   return dict;
 }
 
-function collectRefTargetsTournament(tournament: IQbjTournament) {
+export function collectRefTargetsTournament(tournament: IQbjTournament) {
   let dict: IRefTargetDict = {};
   const site = tournament.tournamentSite;
   if (site?.id) dict[site.id] = site;
@@ -54,7 +54,7 @@ function collectRefTargetsTournament(tournament: IQbjTournament) {
   return dict;
 }
 
-function collectRefTargetsScoringRules(rules: IQbjScoringRules) {
+export function collectRefTargetsScoringRules(rules: IQbjScoringRules) {
   const dict: IRefTargetDict = {};
   if (!rules.answerTypes) return dict;
 

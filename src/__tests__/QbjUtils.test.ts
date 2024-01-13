@@ -19,7 +19,7 @@ test('isQbjRefPointer01', () => {
 });
 
 test('isQbjRefPointer02', () => {
-  const obj = new TournamentSite().toQbjObject();
+  const obj = new TournamentSite().toFileObject();
   expect(isQbjRefPointer(obj as IIndeterminateQbj)).toBeFalsy();
 });
 
