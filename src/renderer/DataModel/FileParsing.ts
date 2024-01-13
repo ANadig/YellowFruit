@@ -49,7 +49,7 @@ export function parseScoringRules(obj: IIndeterminateQbj, refTargets: IRefTarget
 
   const qbjScoringRules = baseObj as IQbjScoringRules;
   if (!qbjScoringRules.answerTypes) {
-    throw new Error('There are no tossup point values (Answer Types) defined for this tournament.');
+    throw new Error('Scoring Rules: There are no tossup point values (Answer Types) defined for this tournament.');
   }
 
   // TODO: validate teamspermatch
@@ -73,7 +73,7 @@ function parseScoringRulesGameLength(sourceQbj: IQbjScoringRules, yftScoringRule
   const regTuCnt = sourceQbj.regulationTossupCount ?? 20;
   const maxRegTuCnt = sourceQbj.maximumRegulationTossupCount ?? 20;
   if (!ScoringRules.validateMaxRegTuCount(maxRegTuCnt)) {
-    throw new Error('Unsupported value for maximum regulation toss-up count.');
+    throw new Error('Scoring Rules: Unsupported value for maximum regulation toss-up count.');
   }
 
   yftScoringRules.maximumRegulationTossupCount = ScoringRules.validateMaxRegTuCount(maxRegTuCnt) ? maxRegTuCnt : 20;
@@ -92,7 +92,7 @@ function parseScoringRulesAnswerTypes(
   }
 
   if (!yftAnswerTypes.find((aType) => aType.value > 0)) {
-    throw new Error('This tournament contains no positive toss-up point values.');
+    throw new Error('Scoring Rules: This tournament contains no positive toss-up point values.');
   }
 
   sortAnswerTypes(yftAnswerTypes);
@@ -106,33 +106,33 @@ function parseScoringRulesBonusSettings(sourceQbj: IQbjScoringRules, yftScoringR
 
   const maximumBonusScore = sourceQbj.maximumBonusScore ?? 30;
   if (badInteger(maximumBonusScore, 1, 1000)) {
-    throw new Error(`Invalid maximum bonus score: ${maximumBonusScore}`);
+    throw new Error(`Scoring Rules: Invalid maximum bonus score: ${maximumBonusScore}`);
   }
   yftScoringRules.maximumBonusScore = maximumBonusScore;
 
   const minimumPartsPerBonus = sourceQbj.minimumPartsPerBonus ?? 3;
   if (badInteger(minimumPartsPerBonus, 1, 1000)) {
-    throw new Error(`Invalid minimum parts per bonus: ${minimumPartsPerBonus}`);
+    throw new Error(`Scoring Rules: Invalid minimum parts per bonus: ${minimumPartsPerBonus}`);
   }
   yftScoringRules.minimumPartsPerBonus = minimumPartsPerBonus;
 
   const maximumPartsPerBonus = sourceQbj.maximumPartsPerBonus ?? 3;
   if (badInteger(maximumPartsPerBonus, 1, 1000)) {
-    throw new Error(`Invalid maximum parts per bonus: ${maximumPartsPerBonus}`);
+    throw new Error(`Scoring Rules: Invalid maximum parts per bonus: ${maximumPartsPerBonus}`);
   }
   if (maximumPartsPerBonus < yftScoringRules.minimumPartsPerBonus) {
-    throw new Error('Maximum parts per bonus is less than minimum parts per bonus.');
+    throw new Error('Scoring Rules: Maximum parts per bonus is less than minimum parts per bonus.');
   }
   yftScoringRules.maximumPartsPerBonus = maximumPartsPerBonus;
 
   const { pointsPerBonusPart } = sourceQbj;
   if (pointsPerBonusPart !== undefined) {
     if (badInteger(pointsPerBonusPart, 1, 1000)) {
-      throw new Error(`Invalid points per bonus part setting: ${pointsPerBonusPart}`);
+      throw new Error(`Scoring Rules: Invalid points per bonus part setting: ${pointsPerBonusPart}`);
     }
     if (pointsPerBonusPart * yftScoringRules.maximumPartsPerBonus !== yftScoringRules.maximumBonusScore) {
       throw new Error(
-        `Maximum bonus score, maximum parts per bonus, and points per bonus part settings must be consistent.`,
+        `Scoring Rules: Maximum bonus score, maximum parts per bonus, and points per bonus part settings must be consistent.`,
       );
     }
   }
@@ -140,13 +140,13 @@ function parseScoringRulesBonusSettings(sourceQbj: IQbjScoringRules, yftScoringR
 
   let bonusDivisor = sourceQbj.bonusDivisor ?? 10;
   if (badInteger(bonusDivisor, 1, 1000)) {
-    throw new Error(`Invalid bonus divisor setting: ${bonusDivisor}`);
+    throw new Error(`Scoring Rules: Invalid bonus divisor setting: ${bonusDivisor}`);
   }
   if (yftScoringRules.maximumBonusScore % bonusDivisor) {
     bonusDivisor = 1;
   } else if (yftScoringRules.pointsPerBonusPart && yftScoringRules.pointsPerBonusPart % bonusDivisor) {
     throw new Error(
-      `Points per bonus (${yftScoringRules.pointsPerBonusPart}) and bonus divisor (${bonusDivisor}) settings are incompatible.`,
+      `Scoring Rules: Points per bonus (${yftScoringRules.pointsPerBonusPart}) and bonus divisor (${bonusDivisor}) settings are incompatible.`,
     );
   }
   yftScoringRules.bonusDivisor = bonusDivisor;
@@ -155,7 +155,7 @@ function parseScoringRulesBonusSettings(sourceQbj: IQbjScoringRules, yftScoringR
 function parseScoringRulesMaxPlayers(sourceQbj: IQbjScoringRules, yftScoringRules: ScoringRules) {
   const maxPlayers = sourceQbj.maximumPlayersPerTeam ?? 4;
   if (badInteger(maxPlayers, 1, ScoringRules.maximumAllowedRosterSize)) {
-    throw new Error(`Invalid maximum players per team setting: ${maxPlayers}`);
+    throw new Error(`Scoring Rules: Invalid maximum players per team setting: ${maxPlayers}`);
   }
   yftScoringRules.maximumPlayersPerTeam = maxPlayers;
 }
@@ -163,7 +163,7 @@ function parseScoringRulesMaxPlayers(sourceQbj: IQbjScoringRules, yftScoringRule
 function parseScoringRulesOvertime(sourceQbj: IQbjScoringRules, yftScoringRules: ScoringRules) {
   const minTossups = sourceQbj.minimumOvertimeQuestionCount ?? 1;
   if (badInteger(minTossups, 1, 100)) {
-    throw new Error(`Invalid mimimum overtime question setting: ${minTossups}`);
+    throw new Error(`Scoring Rules: Invalid mimimum overtime question setting: ${minTossups}`);
   }
   yftScoringRules.minimumOvertimeQuestionCount = minTossups;
 
@@ -173,7 +173,7 @@ function parseScoringRulesOvertime(sourceQbj: IQbjScoringRules, yftScoringRules:
 function parseScoringRulesLightning(sourceQbj: IQbjScoringRules, yftScoringRules: ScoringRules) {
   const lightningCount = sourceQbj.lightningCountPerTeam ?? 0;
   if (badInteger(lightningCount, 0, 10)) {
-    throw new Error(`Invalid lightning rounds per team setting: ${lightningCount}`);
+    throw new Error(`Scoring Rules: Invalid lightning rounds per team setting: ${lightningCount}`);
   }
   yftScoringRules.lightningCountPerTeam = lightningCount > 0 ? 1 : 0;
 }
