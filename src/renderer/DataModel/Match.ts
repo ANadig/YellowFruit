@@ -5,7 +5,8 @@
  */
 
 import MatchTeam from './MatchTeam';
-import Phase from './Phase';
+// eslint-disable-next-line import/no-cycle
+import { Phase } from './Phase';
 import Team from './Team';
 
 /** A single match scheduled between two teams */

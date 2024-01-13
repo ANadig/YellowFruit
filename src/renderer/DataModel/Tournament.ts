@@ -1,6 +1,6 @@
 import { NullDate, NullObjects } from '../Utils/UtilTypes';
 import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
-import Phase from './Phase';
+import { IQbjPhase, Phase } from './Phase';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import Registration from './Registration';
 import { CommonRuleSets, IQbjScoringRules, ScoringRules } from './ScoringRules';
@@ -29,7 +29,7 @@ export interface IQbjTournament extends IQbjObject {
   /** The schools/organizations at this tournament */
   registrations?: Registration[];
   /** Phases (prelims, playoffs, etc) of the tournament */
-  phases?: Phase[];
+  phases?: IQbjPhase[];
   /** Ranking systems used at the tournament (overall, JV, etc) */
   rankings?: IRanking[];
   /** Audience / level of the tournament */

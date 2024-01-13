@@ -4,6 +4,11 @@ export enum QbjTypeNames {
   ScoringRules = 'ScoringRules',
   AnswerType = 'AnswerType',
   TournamentSite = 'TournamentSite',
+  Phase = 'Phase',
+  Pool = 'Pool',
+  PoolTeam = 'PoolTeam',
+  Round = 'Round',
+  Packet = 'Packet',
 }
 
 /** Audience / level of the tournament */
