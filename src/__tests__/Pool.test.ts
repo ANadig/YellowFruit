@@ -23,7 +23,7 @@ test('makePoolSet01', () => {
   expect(pools[1].autoAdvanceRules[2].ranksThatAdvance).toMatchObject([6]);
 });
 
-test('makePoolSet01', () => {
+test('makePoolSet02', () => {
   const numPools = 2;
   const poolSize = 6;
   const position = 1;
