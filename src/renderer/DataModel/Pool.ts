@@ -12,6 +12,8 @@ enum AutoQualificationRankRules {
   RecordThenPPGThenOther,
 }
 
+const defaultAutoQualRankRule = AutoQualificationRankRules.RecordThenPPGThenOther;
+
 /** A group of teams, e.g. a single prelim bracket */
 export interface IQbjPool extends IQbjObject {
   /** name of the pool */
@@ -43,6 +45,11 @@ export class Pool implements IQbjPool, IYftDataModelObject {
    * the user hasn't entered all teams yet */
   size: number;
 
+  /** Numbered seeds this bracket contains, in ascending order. e.g. a 16-team tournament might have
+   *  [1, 4, 5, 8, 9, 12, 13, 16] as the seeds of one of its prelim pools.
+   */
+  seeds: number[] = [];
+
   hasCarryover: boolean = false;
 
   /** List of pools from the previous phase that this pool's teams should come from. Null if all pools supply
@@ -71,6 +78,14 @@ export class Pool implements IQbjPool, IYftDataModelObject {
     if (isReferenced) qbjObject.id = `Pool_${this.name}`;
 
     return qbjObject;
+  }
+
+  /** Set this pool's seeds to the given range of numbers */
+  setSeedRange(firstSeed: number, lastSeed: number) {
+    this.seeds = [];
+    for (let i = firstSeed; i <= lastSeed; i++) {
+      this.seeds.push(i);
+    }
   }
 }
 
@@ -121,11 +136,44 @@ export function makePoolSet(
       onePool.autoAdvanceRules.push({
         tier,
         ranksThatAdvance,
-        rankingRule: AutoQualificationRankRules.RecordThenPPGThenOther,
+        rankingRule: defaultAutoQualRankRule,
       });
       tier++;
     }
     pools.push(onePool);
   }
   return pools;
+}
+
+/**
+ * Populate seeds array in the given pools. Caller is resonsible for making sure pools are in the desired order
+ * and that numTeams is compatible with the list of pools.
+ * @param pools List of pools. Should be in the same tier.
+ * @param topSeed Highest seed involved (lowest number)
+ * @param bottomSeed Lowest seed invovled (highest number)
+ */
+export function snakeSeed(pools: Pool[], topSeed: number, bottomSeed: number) {
+  let seed = topSeed;
+  let direction: 1 | -1 = 1;
+  while (seed <= bottomSeed) {
+    seedOneRow(pools, seed, bottomSeed, direction);
+    seed += pools.length;
+    direction = direction === 1 ? -1 : 1;
+  }
+}
+
+// only exporting for unit tests
+export function seedOneRow(pools: Pool[], firstSeed: number, maxSeed: number, direction: 1 | -1) {
+  const poolStart = direction === 1 ? 0 : pools.length - 1;
+  const poolEnd = direction === 1 ? pools.length - 1 : 0;
+  let curSeed = firstSeed;
+  for (let i = poolStart; ; i += direction) {
+    if (curSeed > maxSeed) break;
+
+    pools[i].seeds.push(curSeed);
+    curSeed++;
+
+    if (direction === 1 && i >= poolEnd) break;
+    if (direction === -1 && i <= poolEnd) break;
+  }
 }
