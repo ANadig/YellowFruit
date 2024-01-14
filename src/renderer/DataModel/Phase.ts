@@ -1,10 +1,10 @@
 // eslint-disable-next-line import/no-cycle
 import { Round } from './Round';
 import { IQbjObject, IYftDataModelObject } from './Interfaces';
-import { IQbjPool } from './Pool';
+import { IQbjPool, Pool } from './Pool';
 import { QbjTypeNames } from './QbjEnums';
 
-enum PhaseTypes {
+export enum PhaseTypes {
   /** The first phase of a tournament */
   Prelim,
   /** Subsequent main phases after the prelim phase  */
@@ -13,6 +13,23 @@ enum PhaseTypes {
   Finals,
   /** For breaking ties for advancing from one phase to another */
   Tiebreaker,
+}
+
+/** When a phase uses wild card advancement (as opposed to set numbers of teams advancing from each pool),
+ *  How do rank wild card teams?
+ */
+enum WildCardRankingRules {
+  /** Rank within the team's pool, then PPB. e.g. prioritize all 3rd place teams over all 4th place teams. */
+  RankThenPPB,
+  /** Strictly by PPB, without regard to record/rank */
+  PpbOnly,
+}
+
+interface IWildCardAdvancementRule {
+  /** Which tier (pool position) in the next phase do we move teams to? */
+  tier: number;
+  /** How many teams (across all pools) advance to this tier via wild card? */
+  numberOfTeams: number;
 }
 
 export interface IQbjPhase extends IQbjObject {
@@ -42,9 +59,19 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
 
   rounds: Round[];
 
-  constructor(type: PhaseTypes, firstRound: number, lastRound: number) {
+  pools: Pool[] = [];
+
+  /** How do we use wild cards to populate different tiers in the next phase? Empty array means no wildcards. */
+  wildCardAdvancementRules: IWildCardAdvancementRule[] = [];
+
+  /** How do we rank wild card teams to determine who has priority? */
+  wildCardRankingMethod: WildCardRankingRules = WildCardRankingRules.RankThenPPB;
+
+  constructor(type: PhaseTypes, firstRound: number, lastRound: number, tiers: number, code: string) {
     this.phaseType = type;
     this.rounds = [];
+    this.tiers = tiers;
+    this.code = code;
     for (let i = firstRound; i <= lastRound; i++) {
       this.rounds.push(new Round(i));
     }
