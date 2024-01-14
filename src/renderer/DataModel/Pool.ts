@@ -46,11 +46,19 @@ export class Pool implements IQbjPool, IYftDataModelObject {
    * the user hasn't entered all teams yet */
   size: number;
 
+  /** How many round robins does this pool play? This should usually be 1, but can be more.
+   *  0 means we don't expect every team to play every other team, e.g. a consolation bracket
+   *  with an unusual number of teams playing arbitrary matchups. If teams need to carry over
+   *  games from the previous phase to complete the round robin, it still counts as a round robin.
+   */
+  roundRobins: number = 1;
+
   /** Numbered seeds this bracket contains, in ascending order. e.g. a 16-team tournament might have
    *  [1, 4, 5, 8, 9, 12, 13, 16] as the seeds of one of its prelim pools.
    */
   seeds: number[] = [];
 
+  /** Does this pool carry over games from the previous phase? */
   hasCarryover: boolean = false;
 
   /** List of pools from the previous phase that this pool's teams should come from. Null if all pools supply
