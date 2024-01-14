@@ -48,7 +48,7 @@ export class Pool implements IQbjPool, IYftDataModelObject {
    */
   autoAdvanceRules: AdvancementOpportunity[] = [];
 
-  constructor(position: number, size: number, name?: string) {
+  constructor(size: number, position: number, name?: string) {
     this.position = position;
     this.size = size;
     if (name) this.name = name;
