@@ -5,11 +5,12 @@ test('makePoolSet01', () => {
   const numPools = 2;
   const poolSize = 6;
   const position = 1;
-  const pools = makePoolSet(numPools, poolSize, position, 'test', [2, 3, 1]);
+  const pools = makePoolSet(numPools, poolSize, position, 'test', [2, 3, 1], true);
 
   expect(pools.length).toBe(numPools);
   expect(pools[1].name).toBe('test 2');
   expect(pools[1].position).toBe(position);
+  expect(pools[1].hasCarryover).toBeTruthy();
   expect(pools[1].size).toBe(poolSize);
   expect(pools[1].autoAdvanceRules.length).toBe(3);
   expect(pools[1].autoAdvanceRules[0].tier).toBe(1);

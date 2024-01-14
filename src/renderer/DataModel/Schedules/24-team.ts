@@ -16,9 +16,9 @@ export class sched24Teams2Phases11Rounds implements StandardSchedule {
   constructor() {
     const prelimPools = makePoolSet(4, 6, 1, 'Prelim', [2, 2, 2]);
 
-    const championship = new Pool(8, 1, 'Championship');
-    const place9 = new Pool(8, 2, '9th Place');
-    const place17 = new Pool(8, 3, '17th Place');
+    const championship = new Pool(8, 1, 'Championship', true);
+    const place9 = new Pool(8, 2, '9th Place', true);
+    const place17 = new Pool(8, 3, '17th Place', true);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 5, 1, '1');
     prelims.pools = prelimPools;
@@ -41,13 +41,18 @@ export default class sched24Teams3Phases11Rounds implements StandardSchedule {
   constructor() {
     const prelimPools = makePoolSet(4, 6, 1, 'Prelim', [3, 3]);
 
-    const playoffTopPools = makePoolSet(2, 6, 1, 'Playoffs Tier 1 Pool', [3, 3]);
-    const playoffBottomPools = makePoolSet(2, 6, 2, 'Playoffs Tier 2 Pool', [3, 3]);
+    const playoffTopPools = makePoolSet(2, 6, 1, 'Playoffs Tier 1 Pool', [3, 3], true);
+    const playoffBottomPools = makePoolSet(2, 6, 2, 'Playoffs Tier 2 Pool', [3, 3], true);
 
-    const championship = new Pool(6, 1, 'Championship');
-    const place7 = new Pool(6, 2, '7th Place');
-    const place13 = new Pool(6, 3, '13th Place');
-    const place19 = new Pool(6, 4, '19th Place');
+    playoffBottomPools[0].feederPools = [prelimPools[0], prelimPools[3]];
+    playoffBottomPools[1].feederPools = [prelimPools[1], prelimPools[2]];
+    playoffBottomPools[0].feederPools = [prelimPools[0], prelimPools[3]];
+    playoffBottomPools[1].feederPools = [prelimPools[1], prelimPools[2]];
+
+    const championship = new Pool(6, 1, 'Championship', true);
+    const place7 = new Pool(6, 2, '7th Place', true);
+    const place13 = new Pool(6, 3, '13th Place', true);
+    const place19 = new Pool(6, 4, '19th Place', true);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 5, 1, '1');
     prelims.pools = prelimPools;

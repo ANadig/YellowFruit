@@ -43,14 +43,23 @@ export class Pool implements IQbjPool, IYftDataModelObject {
    * the user hasn't entered all teams yet */
   size: number;
 
+  hasCarryover: boolean = false;
+
+  /** List of pools from the previous phase that this pool's teams should come from. Null if all pools supply
+   *  (or potentially supply) teams to this pool. This property is needed for certain schedules with parallel
+   *  playoff pools that require a certain number of prelim->playoff carryovers.
+   */
+  feederPools: Pool[] | null = null;
+
   /** Which ranks automatically go to which tiers in the next phase?
    *  Wild card situations are specified at the Phase level, not here.
    */
   autoAdvanceRules: AdvancementOpportunity[] = [];
 
-  constructor(size: number, position: number, name?: string) {
+  constructor(size: number, position: number, name?: string, hasCarryOver?: boolean) {
     this.position = position;
     this.size = size;
+    this.hasCarryover = hasCarryOver ?? false;
     if (name) this.name = name;
   }
 
@@ -82,6 +91,7 @@ interface AdvancementOpportunity {
  * @param position which tier these pools are in
  * @param nameStarter first part of the name for each pool; e.g. pass in "Prelim" to get "Prelim 1", "Prelim 2", etc.
  * @param autoQualChunks in order, the number of teams qualifying for each subequent tier. e.g. [2, 2, 1]
+ * @param hasCarryOver does these pools carry over matches from the previous phase?
  * if the top 2 teams go to the top tier, next 2 to the middle, and last 1 to the bottom
  */
 export function makePoolSet(
@@ -90,11 +100,11 @@ export function makePoolSet(
   position: number,
   nameStarter: string,
   autoQualChunks: number[],
+  hasCarryOver?: boolean,
 ): Pool[] {
   const pools: Pool[] = [];
   for (let i = 1; i <= numPools; i++) {
-    const onePool = new Pool(position, poolSize);
-    onePool.name = `${nameStarter} ${i}`;
+    const onePool = new Pool(poolSize, position, `${nameStarter} ${i}`, hasCarryOver);
 
     let tier = 1;
     let curRank = 1;
