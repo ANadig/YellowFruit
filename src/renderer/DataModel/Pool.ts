@@ -1,3 +1,4 @@
+import { getAlphabetLetter } from '../Utils/GeneralUtils';
 import { IQbjObject, IYftDataModelObject } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
 import Team from './Team';
@@ -104,7 +105,8 @@ interface AdvancementOpportunity {
  * @param numPools how many pools to make
  * @param poolSize how many teams in each pool
  * @param position which tier these pools are in
- * @param nameStarter first part of the name for each pool; e.g. pass in "Prelim" to get "Prelim 1", "Prelim 2", etc.
+ * @param nameStarter first part of the name for each pool; e.g. pass in "Prelim " to get "Prelim 1", "Prelim 2", etc.
+ *  (you must include a space if you want one)
  * @param autoQualChunks in order, the number of teams qualifying for each subequent tier. e.g. [2, 2, 1]. You must
  * include zeroes for any phase the pool does not send teams to, e.g. [0, 0, 3, 3] for lower playoff pools that populate
  * the bottom two of four superplayoff pools
@@ -121,11 +123,12 @@ export function makePoolSet(
 ): Pool[] {
   const pools: Pool[] = [];
   for (let i = 1; i <= numPools; i++) {
-    const onePool = new Pool(poolSize, position, `${nameStarter} ${i}`, hasCarryOver);
+    const onePool = new Pool(poolSize, position, `${nameStarter}${getAlphabetLetter(i)}`, hasCarryOver);
 
-    let tier = 1;
+    let tier = 0;
     let curRank = 1;
     for (const c of autoQualChunks) {
+      tier++;
       if (c === 0) continue;
 
       const ranksThatAdvance = [];
@@ -138,7 +141,6 @@ export function makePoolSet(
         ranksThatAdvance,
         rankingRule: defaultAutoQualRankRule,
       });
-      tier++;
     }
     pools.push(onePool);
   }

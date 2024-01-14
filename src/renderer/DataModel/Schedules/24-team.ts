@@ -15,7 +15,7 @@ export class sched24Teams11Rounds2Phases implements StandardSchedule {
 
   constructor() {
     // Prelim: 4 pools of 6
-    const prelimPools = makePoolSet(4, 6, 1, 'Prelim', [2, 2, 2]);
+    const prelimPools = makePoolSet(4, 6, 1, 'Prelim ', [2, 2, 2]);
     snakeSeed(prelimPools, 1, 24);
 
     // Playoffs: 3 tiers, each with 1 pool of 8
@@ -48,12 +48,12 @@ export default class sched24Teams11Rounds3Phases implements StandardSchedule {
 
   constructor() {
     // Prelim: 4 pools of 6
-    const prelimPools = makePoolSet(4, 6, 1, 'Prelim', [3, 3]);
+    const prelimPools = makePoolSet(4, 6, 1, 'Prelim ', [3, 3]);
     snakeSeed(prelimPools, 1, 24);
 
     // Playoffs: 2 tiers, each with 2 parallel pools of 6
-    const playoffTopPools = makePoolSet(2, 6, 1, 'Playoffs Tier 1 Pool', [3, 3, 0, 0], true);
-    const playoffBottomPools = makePoolSet(2, 6, 2, 'Playoffs Tier 2 Pool', [0, 0, 3, 3], true);
+    const playoffTopPools = makePoolSet(2, 6, 1, 'Playoffs 1', [3, 3, 0, 0], true);
+    const playoffBottomPools = makePoolSet(2, 6, 2, 'Playoffs 2', [0, 0, 3, 3], true);
 
     snakeSeed(playoffTopPools, 1, 12);
     snakeSeed(playoffBottomPools, 13, 24);

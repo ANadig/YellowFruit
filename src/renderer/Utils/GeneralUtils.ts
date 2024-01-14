@@ -33,6 +33,14 @@ export function invalidInteger(str: string, lowerBound?: number, upperBound?: nu
   return false;
 }
 
+/** Unicode/ASCII code for uppercase 'A' */
+const unicodeA = 65;
+
+/** Get the nth letter of the alphabet (uppercase) */
+export function getAlphabetLetter(num: number) {
+  return String.fromCharCode(unicodeA + num - 1);
+}
+
 /**
  * Is version a less than version b? Versions are 3-piece dot-delimited, e.g. '1.2.3'
  * @param  a    version string
