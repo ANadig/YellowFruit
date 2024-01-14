@@ -5,11 +5,13 @@ import { Pool, makePoolSet, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
 export class sched24Teams11Rounds2Phases implements StandardSchedule {
-  size = 24;
+  readonly size = 24;
 
-  rounds = 11;
+  readonly rounds = 11;
 
-  rooms = 12;
+  readonly rebracketAfter = [5];
+
+  readonly rooms = 12;
 
   phases: Phase[];
 
@@ -38,11 +40,13 @@ export class sched24Teams11Rounds2Phases implements StandardSchedule {
 }
 
 export default class sched24Teams11Rounds3Phases implements StandardSchedule {
-  size = 24;
+  readonly size = 24;
 
-  rounds = 11;
+  readonly rounds = 11;
 
-  rooms = 12;
+  readonly rebracketAfter = [5, 8];
+
+  readonly rooms = 12;
 
   phases: Phase[];
 
