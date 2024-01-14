@@ -31,17 +31,17 @@ test('answerType03', () => {
 
 test('toQbjObject01', () => {
   const aType = new AnswerType(15);
-  const qbjObj = aType.toQbjObject();
+  const qbjObj = aType.toFileObject();
 
   expect(qbjObj.value).toBe(15);
   expect(qbjObj.label).toBeUndefined();
-  expect(qbjObj.awardsBonus).toBeTruthy();
+  expect(qbjObj.awardsBonus).toBeUndefined();
 });
 
 test('toQbjObject02', () => {
   const aType = new AnswerType(15);
   aType.label = 'Power';
-  const qbjObj = aType.toQbjObject();
+  const qbjObj = aType.toFileObject();
 
   expect(qbjObj.value).toBe(15);
   expect(qbjObj.label).toBe('Power');
@@ -50,7 +50,7 @@ test('toQbjObject02', () => {
 
 test('toQbjObject02', () => {
   const aType = new AnswerType(15);
-  const yftObj = aType.toYftFileObject() as IYftFileAnswerType;
+  const yftObj = aType.toFileObject() as IYftFileAnswerType;
 
   expect(yftObj.value).toBe(15);
   expect(yftObj.label).toBeUndefined();

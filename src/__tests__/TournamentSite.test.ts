@@ -4,7 +4,7 @@ import { QbjTypeNames } from '../renderer/DataModel/QbjEnums';
 
 test('toQbjObject01', () => {
   const tsite = new TournamentSite();
-  const qbjObj = tsite.toQbjObject();
+  const qbjObj = tsite.toFileObject(true);
 
   expect(qbjObj.name).toBe(TournamentSite.placeHolderName);
   expect(qbjObj.type).toBeUndefined();
@@ -16,14 +16,14 @@ test('toQbjObject02', () => {
   const name = 'my house';
   tsite.name = name;
 
-  const qbjObj = tsite.toQbjObject();
+  const qbjObj = tsite.toFileObject(true);
 
   expect(qbjObj.name).toBe(name);
 });
 
 test('toQbjObject03', () => {
   const tsite = new TournamentSite();
-  const qbjObj = tsite.toQbjObject(true);
+  const qbjObj = tsite.toFileObject(true, true);
 
   expect(qbjObj.type).toBe(QbjTypeNames.TournamentSite);
   expect(qbjObj.id).toBeUndefined();
@@ -34,7 +34,7 @@ test('toQbjObject04', () => {
   const name = 'my house';
   tsite.name = name;
 
-  const qbjObj = tsite.toQbjObject(false, true);
+  const qbjObj = tsite.toFileObject(true, false, true);
 
   expect(qbjObj.type).toBeUndefined();
   expect(qbjObj.id).toBe(`TournamentSite_${name}`);
@@ -45,7 +45,7 @@ test('toYftFileObject01', () => {
   const name = 'my house';
   tsite.name = name;
 
-  const yftFIleObj = tsite.toYftFileObject();
+  const yftFIleObj = tsite.toFileObject(false);
 
   expect(yftFIleObj.name).toBe(name);
   expect(yftFIleObj.type).toBeUndefined();
