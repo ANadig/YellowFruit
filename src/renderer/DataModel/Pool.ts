@@ -90,7 +90,9 @@ interface AdvancementOpportunity {
  * @param poolSize how many teams in each pool
  * @param position which tier these pools are in
  * @param nameStarter first part of the name for each pool; e.g. pass in "Prelim" to get "Prelim 1", "Prelim 2", etc.
- * @param autoQualChunks in order, the number of teams qualifying for each subequent tier. e.g. [2, 2, 1]
+ * @param autoQualChunks in order, the number of teams qualifying for each subequent tier. e.g. [2, 2, 1]. You must
+ * include zeroes for any phase the pool does not send teams to, e.g. [0, 0, 3, 3] for lower playoff pools that populate
+ * the bottom two of four superplayoff pools
  * @param hasCarryOver does these pools carry over matches from the previous phase?
  * if the top 2 teams go to the top tier, next 2 to the middle, and last 1 to the bottom
  */
@@ -109,6 +111,8 @@ export function makePoolSet(
     let tier = 1;
     let curRank = 1;
     for (const c of autoQualChunks) {
+      if (c === 0) continue;
+
       const ranksThatAdvance = [];
       for (let j = 1; j <= c; j++) {
         ranksThatAdvance.push(curRank);

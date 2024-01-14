@@ -41,8 +41,8 @@ export default class sched24Teams3Phases11Rounds implements StandardSchedule {
   constructor() {
     const prelimPools = makePoolSet(4, 6, 1, 'Prelim', [3, 3]);
 
-    const playoffTopPools = makePoolSet(2, 6, 1, 'Playoffs Tier 1 Pool', [3, 3], true);
-    const playoffBottomPools = makePoolSet(2, 6, 2, 'Playoffs Tier 2 Pool', [3, 3], true);
+    const playoffTopPools = makePoolSet(2, 6, 1, 'Playoffs Tier 1 Pool', [3, 3, 0, 0], true);
+    const playoffBottomPools = makePoolSet(2, 6, 2, 'Playoffs Tier 2 Pool', [0, 0, 3, 3], true);
 
     playoffBottomPools[0].feederPools = [prelimPools[0], prelimPools[3]];
     playoffBottomPools[1].feederPools = [prelimPools[1], prelimPools[2]];
