@@ -19,6 +19,7 @@ import { TournamentManager, TournamentContext } from './TournamentManager';
 import ApplicationPages from './Components/Enums';
 import RulesPage from './Components/RulesPage';
 import useSubscription from './Utils/CustomHooks';
+import SchedulePage from './Components/SchedulePage';
 
 window.electron.ipcRenderer.removeAllListeners();
 const tournManager = new TournamentManager();
@@ -82,6 +83,8 @@ function ActivePage(props: IActivePageProps) {
       return <GeneralPage />;
     case ApplicationPages.Rules:
       return <RulesPage />;
+    case ApplicationPages.Schedule:
+      return <SchedulePage />;
     default:
       return null;
   }

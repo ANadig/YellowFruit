@@ -15,6 +15,16 @@ enum AutoQualificationRankRules {
 
 const defaultAutoQualRankRule = AutoQualificationRankRules.RecordThenPPGThenOther;
 
+/** One tier of the next phase that teams in a pool might advance to. */
+interface AdvancementOpportunity {
+  /** Which tier (pool position) in the next phase do we move teams to? */
+  tier: number;
+  /** Which rankings within the pool advance to the given tier? */
+  ranksThatAdvance: number[];
+  /** How do we rank teams to determine who goes where in the next phase? */
+  rankingRule: AutoQualificationRankRules;
+}
+
 /** A group of teams, e.g. a single prelim bracket */
 export interface IQbjPool extends IQbjObject {
   /** name of the pool */
@@ -96,16 +106,6 @@ export class Pool implements IQbjPool, IYftDataModelObject {
       this.seeds.push(i);
     }
   }
-}
-
-/** One tier of the next phase that teams in a pool might advance to. */
-interface AdvancementOpportunity {
-  /** Which tier (pool position) in the next phase do we move teams to? */
-  tier: number;
-  /** Which rankings within the pool advance to tier? */
-  ranksThatAdvance: number[];
-  /** How do we rank teams to determine who goes where in the next phase? */
-  rankingRule: AutoQualificationRankRules;
 }
 
 /**
