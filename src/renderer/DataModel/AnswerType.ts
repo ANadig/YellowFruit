@@ -61,4 +61,9 @@ class AnswerType implements IQbjAnswerType, IYftDataModelObject {
   }
 }
 
+/** Sort a list of answer types. Descending order of point value, meaning powers first, negs last */
+export function sortAnswerTypes(ary: AnswerType[]) {
+  ary.sort((a, b) => b.value - a.value);
+}
+
 export default AnswerType;

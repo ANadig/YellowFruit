@@ -1,7 +1,7 @@
 // Parse objects from a JSON file into internal YellowFruit objects
 
-import { sortAnswerTypes, versionLt } from '../Utils/GeneralUtils';
-import AnswerType, { IQbjAnswerType } from './AnswerType';
+import { versionLt } from '../Utils/GeneralUtils';
+import AnswerType, { IQbjAnswerType, sortAnswerTypes } from './AnswerType';
 import { IIndeterminateQbj, IRefTargetDict } from './Interfaces';
 import { getBaseQbjObject } from './QbjUtils';
 import { IQbjScoringRules, IYftFileScoringRules, ScoringRules } from './ScoringRules';

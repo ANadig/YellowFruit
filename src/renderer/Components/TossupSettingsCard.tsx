@@ -21,8 +21,7 @@ import { useContext, useState } from 'react';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import AnswerType from '../DataModel/AnswerType';
-import { sortAnswerTypes } from '../Utils/GeneralUtils';
+import AnswerType, { sortAnswerTypes } from '../DataModel/AnswerType';
 
 const commonPointValues = [-5, 10, 15, 20];
 
