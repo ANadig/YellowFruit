@@ -4,7 +4,7 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export class sched24Teams11Rounds2Phases implements StandardSchedule {
+export class Sched24Teams11Rounds2Phases implements StandardSchedule {
   readonly size = 24;
 
   readonly rounds = 11;
@@ -39,7 +39,7 @@ export class sched24Teams11Rounds2Phases implements StandardSchedule {
   }
 }
 
-export default class sched24Teams11Rounds3Phases implements StandardSchedule {
+export class Sched24Teams11Rounds3Phases implements StandardSchedule {
   readonly size = 24;
 
   readonly rounds = 11;

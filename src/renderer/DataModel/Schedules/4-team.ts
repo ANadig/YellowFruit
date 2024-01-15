@@ -4,7 +4,7 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export class sched4TeamsTripleRR implements StandardSchedule {
+export class Sched4TeamsTripleRR implements StandardSchedule {
   readonly size = 4;
 
   readonly rounds = 9;
@@ -23,7 +23,7 @@ export class sched4TeamsTripleRR implements StandardSchedule {
   }
 }
 
-export class sched4TeamsQuadRR implements StandardSchedule {
+export class Sched4TeamsQuadRR implements StandardSchedule {
   readonly size = 4;
 
   readonly rounds = 12;
