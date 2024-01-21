@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-cycle
-import { Round } from './Round';
-import { IQbjObject, IYftDataModelObject } from './Interfaces';
+import { IQbjRound, Round } from './Round';
+import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { IQbjPool, Pool } from './Pool';
 import { QbjTypeNames } from './QbjEnums';
 
@@ -53,11 +53,25 @@ export interface IQbjPhase extends IQbjObject {
   /** A description of the phase. Might contain information like how teams are split into pools, etc */
   description?: string;
   /** Rounds this phase encompasses */
-  rounds?: Round[];
+  rounds?: IQbjRound[];
   /** Pools teams are grouped into for this phase */
   pools?: IQbjPool[];
   /** Whether teams may trade cards during this phase */
   cardsTraded?: boolean;
+}
+
+/** Pool object as written to a .yft file */
+export interface IYftFilePhase extends IQbjPhase, IYftFileObject {
+  YfData: IPhaseExtraData;
+}
+
+/** Additional info not in qbj but needed for a .yft file */
+interface IPhaseExtraData {
+  phaseType: PhaseTypes;
+  code: string;
+  tiers: number;
+  wildCardAdvancementRules?: IWildCardAdvancementRule[];
+  wildCardRankingMethod?: WildCardRankingRules;
 }
 
 export class Phase implements IQbjPhase, IYftDataModelObject {
@@ -96,10 +110,24 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjPhase {
     const qbjObject: IQbjPhase = {
       name: this.name,
+      rounds: this.rounds.map((rd) => rd.toFileObject(qbjOnly)),
+      pools: this.pools.map((pool) => pool.toFileObject(qbjOnly)),
     };
+
     if (isTopLevel) qbjObject.type = QbjTypeNames.Phase;
     if (isReferenced) qbjObject.id = `Phase_${this.name}`;
 
-    return qbjObject;
+    if (qbjOnly) return qbjObject;
+
+    const yfData: IPhaseExtraData = {
+      phaseType: this.phaseType,
+      code: this.code,
+      tiers: this.tiers,
+      wildCardAdvancementRules: this.wildCardAdvancementRules,
+      wildCardRankingMethod: this.wildCardRankingMethod,
+    };
+    const yftFileObj = { YfData: yfData, ...qbjObject };
+
+    return yftFileObj;
   }
 }
