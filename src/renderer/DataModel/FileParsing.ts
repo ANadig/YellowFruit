@@ -33,7 +33,10 @@ export function parseTournament(obj: IQbjTournament, refTargets: IRefTargetDict)
   const rules = obj.scoringRules;
   if (rules) tourn.scoringRules = parseScoringRules(rules as IIndeterminateQbj, refTargets);
 
-  // TODO: registrations, phases
+  const { phases } = obj;
+  if (phases) tourn.phases = parsePhaseList(phases as IIndeterminateQbj[], refTargets);
+
+  // TODO: registrations
 
   return tourn;
 }
@@ -203,6 +206,24 @@ function parseAnswerType(obj: IIndeterminateQbj, refTargets: IRefTargetDict): An
   if (qbjAType.shortLabel) yftAType.shortLabel = qbjAType.shortLabel;
 
   return yftAType;
+}
+
+function parsePhaseList(ary: IIndeterminateQbj[], refTargets: IRefTargetDict): Phase[] {
+  const phases: Phase[] = [];
+  let phaseCount = 1;
+  let lastUsedRound = 0;
+  let curCodeNo = 1;
+  for (const obj of ary) {
+    const fallbackPhaseType = phaseCount === 1 ? PhaseTypes.Prelim : PhaseTypes.Playoff;
+    const onePhase = parsePhase(obj, refTargets, fallbackPhaseType, lastUsedRound + 1, curCodeNo.toString());
+    if (onePhase === null) continue;
+
+    phases.push(onePhase);
+    phaseCount++;
+    lastUsedRound = onePhase.rounds[onePhase.rounds.length - 1].number;
+    curCodeNo++;
+  }
+  return phases;
 }
 
 function parsePhase(
