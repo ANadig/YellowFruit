@@ -1,5 +1,5 @@
 import { getAlphabetLetter } from '../Utils/GeneralUtils';
-import { IQbjObject, IYftDataModelObject } from './Interfaces';
+import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
 import Team from './Team';
 
@@ -34,7 +34,7 @@ export function advOpportunityDisplay(ao: AdvancementOpportunity) {
 /** A group of teams, e.g. a single prelim bracket */
 export interface IQbjPool extends IQbjObject {
   /** name of the pool */
-  name?: string;
+  name: string;
   /** Further info about the pool */
   description?: string;
   /** The position/rank of this Pool among all Pool objects used for its Phase. Need not be unique (e.g. in the case of parallel pools) */
@@ -49,6 +49,21 @@ interface IQbjPoolTeam extends IQbjObject {
   team: Team;
   /** The final position/rank of this Team within this Pool */
   position: number;
+}
+
+/** Pool object as written to a .yft file */
+export interface IYftFilePool extends IQbjPool, IYftFileObject {
+  YfData: IPoolExtraData;
+}
+
+/** Additional info not in qbj but needed for a .yft file */
+interface IPoolExtraData {
+  size: number;
+  roundRobins: number;
+  seeds: number[];
+  hasCarryover: boolean;
+  feederPools?: IQbjPool;
+  autoAdvanceRules?: AdvancementOpportunity[];
 }
 
 export class Pool implements IQbjPool, IYftDataModelObject {
@@ -98,11 +113,24 @@ export class Pool implements IQbjPool, IYftDataModelObject {
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjPool {
     const qbjObject: IQbjPool = {
       name: this.name,
+      description: this.description || undefined,
+      position: this.position,
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.Pool;
     if (isReferenced) qbjObject.id = `Pool_${this.name}`;
 
-    return qbjObject;
+    if (qbjOnly) return qbjObject;
+
+    // TODO: feeder pools, autoadvance rules
+    const yfData: IPoolExtraData = {
+      size: this.size,
+      roundRobins: this.roundRobins,
+      seeds: this.seeds,
+      hasCarryover: this.hasCarryover,
+    };
+    const yftFileObj = { YfData: yfData, ...qbjObject };
+
+    return yftFileObj;
   }
 
   /** Set this pool's seeds to the given range of numbers */

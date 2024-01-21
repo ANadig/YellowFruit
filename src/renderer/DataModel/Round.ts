@@ -1,4 +1,4 @@
-import { IQbjObject, IYftDataModelObject } from './Interfaces';
+import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 // eslint-disable-next-line import/no-cycle
 import Match from './Match';
 import { IQbjPacket, Packet } from './Packet';
@@ -16,6 +16,16 @@ export interface IQbjRound extends IQbjObject {
   packets?: IQbjPacket[];
   /** The matches that took place in this round */
   matches?: Match[]; // TODO: make a QBJ object type for this
+}
+
+/** Round object as written to a .yft file */
+export interface IYftFileRound extends IQbjRound, IYftFileObject {
+  YfData: IRoundExtraData;
+}
+
+/** Additional info not in qbj but needed for a .yft file */
+interface IRoundExtraData {
+  number: number;
 }
 
 /** One round of games */
@@ -53,6 +63,11 @@ export class Round implements IQbjRound, IYftDataModelObject {
     if (isTopLevel) qbjObject.type = QbjTypeNames.Round;
     if (isReferenced) qbjObject.id = `Round_${this.name}`;
 
-    return qbjObject;
+    if (qbjOnly) return qbjObject;
+
+    const yfData: IRoundExtraData = { number: this.number };
+    const yftFileObj = { YfData: yfData, ...qbjObject };
+
+    return yftFileObj;
   }
 }

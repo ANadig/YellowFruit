@@ -3,7 +3,9 @@
 import { versionLt } from '../Utils/GeneralUtils';
 import AnswerType, { IQbjAnswerType, sortAnswerTypes } from './AnswerType';
 import { IIndeterminateQbj, IRefTargetDict } from './Interfaces';
+import { IQbjPool, IYftFilePool, Pool } from './Pool';
 import { getBaseQbjObject } from './QbjUtils';
+import { IQbjRound, IYftFileRound, Round } from './Round';
 import { IQbjScoringRules, IYftFileScoringRules, ScoringRules } from './ScoringRules';
 import Tournament, { IQbjTournament, IYftFileTournament } from './Tournament';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
@@ -200,6 +202,56 @@ function parseAnswerType(obj: IIndeterminateQbj, refTargets: IRefTargetDict): An
   if (qbjAType.shortLabel) yftAType.shortLabel = qbjAType.shortLabel;
 
   return yftAType;
+}
+
+function parsePool(obj: IIndeterminateQbj, refTargets: IRefTargetDict): Pool | null {
+  const baseObj = getBaseQbjObject(obj, refTargets);
+  if (baseObj === null) return null;
+
+  const qbjPool = baseObj as IQbjPool;
+  const yfExtraData = (baseObj as IYftFilePool).YfData;
+
+  const { name, description } = qbjPool;
+  if (!name) {
+    throw new Error('This file contains a Pool object with no name.');
+  }
+
+  let position = qbjPool.position ?? 1;
+  if (badInteger(position, 1, 100)) position = 1;
+
+  if (!yfExtraData && !qbjPool.poolTeams?.length) {
+    throw new Error(`Pool ${name} has no defined size.`);
+  }
+  const size = yfExtraData ? yfExtraData.size : qbjPool.poolTeams?.length || 99;
+
+  const yftPool = new Pool(size, position);
+  yftPool.name = name;
+  if (description) yftPool.description = description;
+  if (!yfExtraData) return yftPool;
+
+  yftPool.roundRobins = yfExtraData.roundRobins;
+  yftPool.seeds = yfExtraData.seeds;
+  yftPool.hasCarryover = yfExtraData.hasCarryover;
+  // TODO: feeder pools, autoadvance rules, poolteams
+
+  return yftPool;
+}
+
+function parseRound(obj: IIndeterminateQbj, refTargets: IRefTargetDict, fallbackRoundNo: number): Round | null {
+  const baseObj = getBaseQbjObject(obj, refTargets);
+  if (baseObj === null) return null;
+
+  const qbjRound = baseObj as IQbjRound;
+  const yfExtraData = (baseObj as IYftFileRound).YfData;
+
+  const roundNumber = yfExtraData ? yfExtraData.number : parseFloat(qbjRound.name);
+  if (Number.isNaN(roundNumber)) {
+    const yftRound = new Round(fallbackRoundNo);
+    yftRound.name = qbjRound.name;
+    return yftRound;
+  }
+  const yftRound = new Round(roundNumber);
+  return yftRound;
 }
 
 /** Returns true if suppliedValue isn't an integer between the given bounds */
