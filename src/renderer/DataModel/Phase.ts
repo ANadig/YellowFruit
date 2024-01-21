@@ -77,6 +77,8 @@ interface IPhaseExtraData {
 export class Phase implements IQbjPhase, IYftDataModelObject {
   name: string = '';
 
+  description: string = '';
+
   /** Is this phase prelims, playoffs, etc */
   phaseType: PhaseTypes;
 
@@ -110,6 +112,7 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjPhase {
     const qbjObject: IQbjPhase = {
       name: this.name,
+      description: this.description || undefined,
       rounds: this.rounds.map((rd) => rd.toFileObject(qbjOnly)),
       pools: this.pools.map((pool) => pool.toFileObject(qbjOnly)),
     };

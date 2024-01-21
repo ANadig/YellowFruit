@@ -6,11 +6,11 @@ import Team from './Team';
 /** How do we rank teams to determine who goes where in the next phase? */
 enum AutoQualificationRankRules {
   /** Break ties at the buzzer if same record */
-  RecordThenTB,
+  RecordThenTB = 'RecordThenTB',
   /** Use PPG as tiebreaker, then break PPG ties at the buzzer */
-  RecordThenPPGThenTB,
+  RecordThenPPGThenTB = 'RecordThenPPGThenTB',
   /** Use PPG as tiebreaker. If same PPG, use something other than TB games (powers, coin flip, etc.) */
-  RecordThenPPGThenOther,
+  RecordThenPPGThenOther = 'RecordthenPPGThenOther',
 }
 
 const defaultAutoQualRankRule = AutoQualificationRankRules.RecordThenPPGThenOther;
@@ -63,7 +63,7 @@ interface IPoolExtraData {
   seeds: number[];
   hasCarryover: boolean;
   feederPools?: IQbjPool;
-  autoAdvanceRules?: AdvancementOpportunity[];
+  autoAdvanceRules: AdvancementOpportunity[];
 }
 
 export class Pool implements IQbjPool, IYftDataModelObject {
@@ -127,6 +127,7 @@ export class Pool implements IQbjPool, IYftDataModelObject {
       roundRobins: this.roundRobins,
       seeds: this.seeds,
       hasCarryover: this.hasCarryover,
+      autoAdvanceRules: this.autoAdvanceRules,
     };
     const yftFileObj = { YfData: yfData, ...qbjObject };
 

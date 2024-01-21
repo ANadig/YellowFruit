@@ -71,3 +71,8 @@ export class Round implements IQbjRound, IYftDataModelObject {
     return yftFileObj;
   }
 }
+
+/** Sort a list of rounds in ascending order. */
+export function sortRounds(ary: Round[]) {
+  ary.sort((a, b) => a.number - b.number);
+}

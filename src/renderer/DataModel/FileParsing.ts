@@ -3,9 +3,10 @@
 import { versionLt } from '../Utils/GeneralUtils';
 import AnswerType, { IQbjAnswerType, sortAnswerTypes } from './AnswerType';
 import { IIndeterminateQbj, IRefTargetDict } from './Interfaces';
+import { IQbjPhase, IYftFilePhase, Phase, PhaseTypes } from './Phase';
 import { IQbjPool, IYftFilePool, Pool } from './Pool';
 import { getBaseQbjObject } from './QbjUtils';
-import { IQbjRound, IYftFileRound, Round } from './Round';
+import { IQbjRound, IYftFileRound, Round, sortRounds } from './Round';
 import { IQbjScoringRules, IYftFileScoringRules, ScoringRules } from './ScoringRules';
 import Tournament, { IQbjTournament, IYftFileTournament } from './Tournament';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
@@ -204,6 +205,84 @@ function parseAnswerType(obj: IIndeterminateQbj, refTargets: IRefTargetDict): An
   return yftAType;
 }
 
+function parsePhase(
+  obj: IIndeterminateQbj,
+  refTargets: IRefTargetDict,
+  assumedPhaseType: PhaseTypes,
+  fallbackRoundStart: number,
+  fallbackCode: string,
+): Phase | null {
+  const baseObj = getBaseQbjObject(obj, refTargets);
+  if (baseObj === null) return null;
+
+  const qbjPhase = baseObj as IQbjPhase;
+  const yfExtraData = (baseObj as IYftFilePhase).YfData;
+
+  const { name, description } = qbjPhase;
+  if (!name) {
+    throw new Error('This file contains a Phase object with no name.');
+  }
+
+  const phaseType = yfExtraData ? yfExtraData.phaseType : assumedPhaseType;
+  const rounds = parsePhaseRounds(qbjPhase, refTargets, fallbackRoundStart);
+  const tiers = yfExtraData ? yfExtraData.tiers : 1;
+  const code = yfExtraData ? yfExtraData.code : fallbackCode;
+  const firstRound = rounds[0].number;
+  const lastRound = rounds[rounds.length - 1].number;
+
+  const yftPhase = new Phase(phaseType, firstRound, lastRound, tiers, code, name);
+  yftPhase.description = description || '';
+  addRoundsFromFile(yftPhase, rounds, firstRound, lastRound);
+  yftPhase.pools = parsePhasePools(qbjPhase, refTargets);
+  // TODO: wildcard stuff
+
+  return yftPhase;
+}
+
+/** Returns the list of rounds in ascending order of round number */
+function parsePhaseRounds(sourceQbj: IQbjPhase, refTargets: IRefTargetDict, fallbackRoundStart: number): Round[] {
+  if (!sourceQbj.rounds) return [];
+
+  const yftRounds: Round[] = [];
+  let fallbackRound = fallbackRoundStart;
+  for (const oneRound of sourceQbj.rounds) {
+    const oneYftRound = parseRound(oneRound as IIndeterminateQbj, refTargets, fallbackRound);
+    if (oneYftRound !== null) {
+      yftRounds.push(oneYftRound);
+      fallbackRound++;
+    }
+  }
+  sortRounds(yftRounds);
+  return yftRounds;
+}
+
+function addRoundsFromFile(yftPhase: Phase, roundsFromFile: Round[], firstRound: number, lastRound: number) {
+  if (firstRound > lastRound) {
+    throw new Error('addRoundsFromFile: first round was greater than last round');
+  }
+
+  for (let i = firstRound; i <= lastRound; i++) {
+    const rdFromFile = roundsFromFile.find((val) => val.number === i);
+    if (!rdFromFile) continue;
+
+    const idx = yftPhase.rounds.findIndex((val) => val.number === i);
+    if (idx !== -1) yftPhase.rounds[idx] = rdFromFile;
+  }
+}
+
+function parsePhasePools(sourceQbj: IQbjPhase, refTargets: IRefTargetDict): Pool[] {
+  if (!sourceQbj.pools) return [];
+
+  const yftPools: Pool[] = [];
+  for (const onePool of sourceQbj.pools) {
+    const oneYftPool = parsePool(onePool as IIndeterminateQbj, refTargets);
+    if (oneYftPool !== null) {
+      yftPools.push(oneYftPool);
+    }
+  }
+  return yftPools;
+}
+
 function parsePool(obj: IIndeterminateQbj, refTargets: IRefTargetDict): Pool | null {
   const baseObj = getBaseQbjObject(obj, refTargets);
   if (baseObj === null) return null;
@@ -232,7 +311,8 @@ function parsePool(obj: IIndeterminateQbj, refTargets: IRefTargetDict): Pool | n
   yftPool.roundRobins = yfExtraData.roundRobins;
   yftPool.seeds = yfExtraData.seeds;
   yftPool.hasCarryover = yfExtraData.hasCarryover;
-  // TODO: feeder pools, autoadvance rules, poolteams
+  yftPool.autoAdvanceRules = yfExtraData.autoAdvanceRules;
+  // TODO: feeder pools, poolteams
 
   return yftPool;
 }
