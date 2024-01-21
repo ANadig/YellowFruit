@@ -25,6 +25,12 @@ interface AdvancementOpportunity {
   rankingRule: AutoQualificationRankRules;
 }
 
+export function advOpportunityDisplay(ao: AdvancementOpportunity) {
+  if (ao.ranksThatAdvance.length < 1) return '';
+  if (ao.ranksThatAdvance.length === 1) return `Rank ${ao.ranksThatAdvance[0]} advances to tier ${ao.tier}`;
+  return `Ranks ${ao.ranksThatAdvance.join(', ')} advance to tier ${ao.tier}`;
+}
+
 /** A group of teams, e.g. a single prelim bracket */
 export interface IQbjPool extends IQbjObject {
   /** name of the pool */

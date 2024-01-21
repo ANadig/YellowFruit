@@ -18,7 +18,10 @@ export class Sched4TeamsTripleRR implements StandardSchedule {
   constructor() {
     const rrPool = new Pool(4, 1, 'Round Robin');
     rrPool.setSeedRange(1, 4);
-    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 9, 1, '1');
+    rrPool.roundRobins = 3;
+
+    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 9, 1, '1', 'Round Robin');
+    roundRobin.pools = [rrPool];
     this.phases = [roundRobin];
   }
 }
@@ -37,7 +40,10 @@ export class Sched4TeamsQuadRR implements StandardSchedule {
   constructor() {
     const rrPool = new Pool(4, 1, 'Round Robin');
     rrPool.setSeedRange(1, 4);
-    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 12, 1, '1');
+    rrPool.roundRobins = 4;
+
+    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 12, 1, '1', 'Round Robin');
+    roundRobin.pools = [rrPool];
     this.phases = [roundRobin];
   }
 }

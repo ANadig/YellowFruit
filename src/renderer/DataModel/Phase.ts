@@ -15,6 +15,21 @@ export enum PhaseTypes {
   Tiebreaker,
 }
 
+function defaultPhaseName(type: PhaseTypes) {
+  switch (type) {
+    case PhaseTypes.Prelim:
+      return 'Prelims';
+    case PhaseTypes.Playoff:
+      return 'Playoffs';
+    case PhaseTypes.Finals:
+      return 'Finals';
+    case PhaseTypes.Tiebreaker:
+      return 'Tiebreaker';
+    default:
+      return '';
+  }
+}
+
 /** When a phase uses wild card advancement (as opposed to set numbers of teams advancing from each pool),
  *  How do rank wild card teams?
  */
@@ -67,8 +82,9 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   /** How do we rank wild card teams to determine who has priority? */
   wildCardRankingMethod: WildCardRankingRules = WildCardRankingRules.RankThenPPB;
 
-  constructor(type: PhaseTypes, firstRound: number, lastRound: number, tiers: number, code: string) {
+  constructor(type: PhaseTypes, firstRound: number, lastRound: number, tiers: number, code: string, name?: string) {
     this.phaseType = type;
+    this.name = name || defaultPhaseName(type);
     this.rounds = [];
     this.tiers = tiers;
     this.code = code;

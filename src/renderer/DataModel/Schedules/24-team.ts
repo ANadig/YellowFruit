@@ -80,7 +80,7 @@ export class Sched24Teams11Rounds3Phases implements StandardSchedule {
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 5, 1, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 6, 8, 2, '2');
-    const superPlayoffs = new Phase(PhaseTypes.Playoff, 9, 11, 4, '3');
+    const superPlayoffs = new Phase(PhaseTypes.Playoff, 9, 11, 4, '3', 'Superplayoffs');
 
     prelims.pools = prelimPools;
     playoffs.pools = playoffTopPools.concat(playoffBottomPools);

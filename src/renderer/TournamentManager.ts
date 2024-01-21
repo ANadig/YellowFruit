@@ -9,6 +9,7 @@ import { QbjTypeNames } from './DataModel/QbjEnums';
 import { collectRefTargets } from './DataModel/QbjUtils';
 import AnswerType from './DataModel/AnswerType';
 import { parseYftTournament } from './DataModel/FileParsing';
+import StandardSchedule from './DataModel/StandardSchedule';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -289,6 +290,11 @@ export class TournamentManager {
 
   setUseLightning(checked: boolean) {
     this.tournament.scoringRules.lightningCountPerTeam = checked ? 1 : 0;
+    this.onDataChanged();
+  }
+
+  setStandardSchedule(sched: StandardSchedule) {
+    this.tournament.phases = sched.phases;
     this.onDataChanged();
   }
 
