@@ -167,26 +167,30 @@ export function makePoolSet(
   for (let i = 1; i <= numPools; i++) {
     const onePool = new Pool(poolSize, position, `${nameStarter}${getAlphabetLetter(i)}`, hasCarryOver);
 
-    let tier = 0;
-    let curRank = 1;
-    for (const c of autoQualChunks) {
-      tier++;
-      if (c === 0) continue;
-
-      const ranksThatAdvance = [];
-      for (let j = 1; j <= c; j++) {
-        ranksThatAdvance.push(curRank);
-        curRank++;
-      }
-      onePool.autoAdvanceRules.push({
-        tier,
-        ranksThatAdvance,
-        rankingRule: defaultAutoQualRankRule,
-      });
-    }
+    setAutoAdvanceRules(onePool, autoQualChunks);
     pools.push(onePool);
   }
   return pools;
+}
+
+export function setAutoAdvanceRules(pool: Pool, autoQualChunks: number[]) {
+  let tier = 0;
+  let curRank = 1;
+  for (const c of autoQualChunks) {
+    tier++;
+    if (c === 0) continue;
+
+    const ranksThatAdvance = [];
+    for (let j = 1; j <= c; j++) {
+      ranksThatAdvance.push(curRank);
+      curRank++;
+    }
+    pool.autoAdvanceRules.push({
+      tier,
+      ranksThatAdvance,
+      rankingRule: defaultAutoQualRankRule,
+    });
+  }
 }
 
 /**

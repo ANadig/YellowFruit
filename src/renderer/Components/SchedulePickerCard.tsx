@@ -13,13 +13,18 @@ import {
 } from '@mui/material';
 import { AutoAwesome } from '@mui/icons-material';
 import YfCard from './YfCard';
-import { ScheduleTemplates, getTemplateList, getTemplateShortName, makeSchedule } from '../DataModel/ScheduleUtils';
+import {
+  ScheduleTemplates,
+  getTemplateList,
+  getTemplateShortName,
+  makeSchedule,
+  sizesWithTemplates,
+} from '../DataModel/ScheduleUtils';
 import StandardSchedule from '../DataModel/StandardSchedule';
 import { TournamentContext } from '../TournamentManager';
 
 const sizeSelectLabel = 'Tournament Size';
 const templateSelectLabel = 'Template';
-const sizesWithTemplates = [4, 24];
 
 export default function SchedulePickerCard() {
   const tournManager = useContext(TournamentContext);
