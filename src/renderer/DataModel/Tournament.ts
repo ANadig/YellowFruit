@@ -2,9 +2,9 @@ import { NullDate, NullObjects } from '../Utils/UtilTypes';
 import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { IQbjPhase, Phase } from './Phase';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
+import { IQbjRanking, Ranking } from './Ranking';
 import Registration from './Registration';
 import { CommonRuleSets, IQbjScoringRules, ScoringRules } from './ScoringRules';
-import { IRanking } from './Team';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 
 /**
@@ -31,7 +31,7 @@ export interface IQbjTournament extends IQbjObject {
   /** Phases (prelims, playoffs, etc) of the tournament */
   phases?: IQbjPhase[];
   /** Ranking systems used at the tournament (overall, JV, etc) */
-  rankings?: IRanking[];
+  rankings?: IQbjRanking[];
   /** Audience / level of the tournament */
   audience?: QbjAudience;
   /** Level of the tournament, within a given Audience */
@@ -72,7 +72,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   phases: Phase[] = [];
 
-  rankings: IRanking[] = [];
+  rankings: Ranking[] = [];
 
   questionSet: string = '';
 

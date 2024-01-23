@@ -37,5 +37,5 @@ export interface IYftFileObject {
 
 export interface IYftDataModelObject {
   /** Generate an object that we can save to a file (qbj or yft) */
-  toFileObject: (qbjOnly?: boolean, isTopLevel?: boolean, isReferenced?: boolean) => IQbjObject;
+  toFileObject: (qbjOnly?: boolean, isTopLevel?: boolean, isReferenced?: boolean, idXtraPc?: string) => IQbjObject;
 }

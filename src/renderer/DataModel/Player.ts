@@ -1,3 +1,6 @@
+import { IQbjObject, IYftDataModelObject } from './Interfaces';
+import { QbjTypeNames } from './QbjEnums';
+
 /** Grades/years in school */
 enum PlayerYear {
   NotApplicable = -1,
@@ -22,25 +25,31 @@ enum PlayerYear {
   GradStudent = 18,
 }
 
-/** A player on a single team */
-class Player {
+export interface IQbjPlayer extends IQbjObject {
   /** The player's name */
-  name?: string;
+  name: string;
+  /** The player's year in school */
+  year?: PlayerYear;
+}
+
+/** A player on a single team */
+export class Player implements IQbjPlayer, IYftDataModelObject {
+  name: string;
 
   /** Grade in school as a string. */
   yearString?: string;
 
   /** Grade in school, in the schema's numerical format. Is null if we can't parse to something valid */
-  get year(): PlayerYear | null {
+  get year(): PlayerYear | undefined {
     if (!this.yearString) {
-      return null;
+      return undefined;
     }
     let grade = Player.parseNonNumericYear(this.yearString);
     if (grade === null) {
       grade = parseInt(this.yearString, 10);
     }
     if (Number.isNaN(grade) || PlayerYear[grade] === undefined) {
-      return null;
+      return undefined;
     }
     return grade;
   }
@@ -99,6 +108,22 @@ class Player {
     18: ['grad'],
   };
 
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false, idXtraPc = ''): IQbjPlayer {
+    const qbjObject: IQbjPlayer = {
+      name: this.name,
+      year: this.year,
+    };
+
+    if (isTopLevel) qbjObject.type = QbjTypeNames.Player;
+    if (isReferenced) qbjObject.id = `Player_${this.name}-${idXtraPc}`;
+
+    return qbjObject;
+  }
+
   /** Try to find a matching non-numeric year (e.g. "Freshman") and return the
    * schema-definied numeric value. If none found, return null.
    */
@@ -115,6 +140,8 @@ class Player {
   }
 
   private static _startsWithAny(text: string, ary: string[]): boolean {
+    if (!ary) return false;
+
     for (const s of ary) {
       if (text.startsWith(s)) {
         return true;
@@ -123,5 +150,3 @@ class Player {
     return false;
   }
 }
-
-export default Player;

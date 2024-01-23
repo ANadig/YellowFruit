@@ -9,6 +9,10 @@ export enum QbjTypeNames {
   PoolTeam = 'PoolTeam',
   Round = 'Round',
   Packet = 'Packet',
+  Team = 'Team',
+  Player = 'Player',
+  Rank = 'Rank',
+  Ranking = 'Ranking',
 }
 
 /** Audience / level of the tournament */

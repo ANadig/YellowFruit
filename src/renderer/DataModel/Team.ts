@@ -1,35 +1,41 @@
-import Player from './Player';
+import { IQbjObject, IYftDataModelObject } from './Interfaces';
+import { IQbjPlayer, Player } from './Player';
+import { QbjTypeNames } from './QbjEnums';
+import { IQbjRank, Rank } from './Rank';
 
-/** A kind of ranking that teams might be ranked by, such as "JV" or "Small school" */
-export interface IRanking {
-  /** short name */
+export interface IQbjTeam extends IQbjObject {
+  /** name of the team */
   name: string;
-  /** A description of the ranking, such as information on eligibility */
-  description: string;
-}
-
-/** A single placement in the tournament, such as "2nd place overall" or "3rd place JV" */
-interface IRank {
-  /** A Ranking for which the team is eligible */
-  ranking: IRanking;
-  /** The position/rank the team has achieved among all teams eligible for the given Ranking */
-  position: number;
+  /** The players registered to play on this team */
+  players?: IQbjPlayer[];
+  /** The ranks this team has achieved and/or is eligible for */
+  ranks?: IQbjRank[];
 }
 
 /** A single team */
-class Team {
-  /** name of the team */
+export class Team implements IQbjTeam, IYftDataModelObject {
   name: string;
 
-  /** The players registered to play on this team */
   players: Player[];
 
-  /** The ranks this team has achieved and/or is eligible for */
-  ranks?: IRank[];
+  ranks?: Rank[];
 
   constructor(name: string) {
     this.name = name;
     this.players = [];
+  }
+
+  toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjTeam {
+    const qbjObject: IQbjTeam = {
+      name: this.name,
+      players: this.players.map((plr) => plr.toFileObject(qbjOnly, false, false, this.name)),
+      ranks: this.ranks?.map((rk) => rk.toFileObject(qbjOnly, false, false, this.name)),
+    };
+
+    if (isTopLevel) qbjObject.type = QbjTypeNames.Team;
+    if (isReferenced) qbjObject.id = `Team_${this.name}`;
+
+    return qbjObject;
   }
 }
 
