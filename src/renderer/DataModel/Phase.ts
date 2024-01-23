@@ -6,13 +6,13 @@ import { QbjTypeNames } from './QbjEnums';
 
 export enum PhaseTypes {
   /** The first phase of a tournament */
-  Prelim,
+  Prelim = 'Prelim',
   /** Subsequent main phases after the prelim phase  */
-  Playoff,
+  Playoff = 'Playoff',
   /** Used for determining the top several ranks */
-  Finals,
+  Finals = 'Finals',
   /** For breaking ties for advancing from one phase to another */
-  Tiebreaker,
+  Tiebreaker = 'Tiebreaker',
 }
 
 function defaultPhaseName(type: PhaseTypes) {

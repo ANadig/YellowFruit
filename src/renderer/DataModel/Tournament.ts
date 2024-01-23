@@ -89,6 +89,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       name: this.name || Tournament.placeholderName,
       startDate: !NullDate.isNullDate(this.startDate) ? this.startDate : undefined,
       questionSet: this.questionSet || undefined,
+      phases: this.phases.map((ph) => ph.toFileObject(qbjOnly)),
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.Tournament;
     if (isReferenced) qbjObject.id = 'Tournament';
