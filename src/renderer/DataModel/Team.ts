@@ -38,5 +38,3 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     return qbjObject;
   }
 }
-
-export default Team;

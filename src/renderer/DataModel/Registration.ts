@@ -1,24 +1,38 @@
-/**
- * Classes representing the teams playing in a tournament
- * Corresponds with qb schema objects
- * https://schema.quizbowl.technology/registration
- */
+import { IQbjObject, IYftDataModelObject } from './Interfaces';
+import { QbjTypeNames } from './QbjEnums';
+import { IQbjTeam, Team } from './Team';
 
-import Team from './Team';
-
-/** A single school/organization at the tournament, which might enter multiple teams
- * Corresponds with qb schema objects
- * https://schema.quizbowl.technology/registration
- */
-class Registration {
+export interface IQbjRegistration extends IQbjObject {
   /** name of the school / organization */
-  name?: string;
-
+  name: string;
   /** Where the school/organization is, in any human-readable format */
   location?: string;
+  /** The teams registered to play by this school/organization */
+  teams?: IQbjTeam[];
+}
+
+class Registration implements IQbjRegistration, IYftDataModelObject {
+  /** name of the school / organization */
+  name: string;
 
   /** The teams registered to play by this school/organization */
-  teams?: Team[];
+  teams: Team[] = [];
+
+  constructor(orgName: string) {
+    this.name = orgName;
+  }
+
+  toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjRegistration {
+    const qbjObject: IQbjRegistration = {
+      name: this.name,
+      teams: this.teams.map((tm) => tm.toFileObject(qbjOnly)),
+    };
+
+    if (isTopLevel) qbjObject.type = QbjTypeNames.Registration;
+    if (isReferenced) qbjObject.id = `Registration_${this.name}`;
+
+    return qbjObject;
+  }
 }
 
 export default Registration;
