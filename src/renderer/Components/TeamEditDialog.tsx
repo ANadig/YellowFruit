@@ -15,6 +15,7 @@ import Grid from '@mui/material/Unstable_Grid2';
 import React, { useContext } from 'react';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
+import { MAX_PLAYERS_PER_TEAM } from '../Utils/GeneralUtils';
 
 function TeamEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -71,7 +72,7 @@ function TeamEditDialog() {
     <Dialog fullWidth maxWidth="md" open={isOpen} onClose={handleCancel}>
       <DialogTitle>{teamBeingModified === null ? 'New Team' : `Edit ${teamBeingModified.name}`}</DialogTitle>
       <DialogContent>
-        <Box sx={{ '& .MuiGrid2-root': { display: 'flex', alignItems: 'end' } }}>
+        <Box sx={{ height: 375, '& .MuiGrid2-root': { display: 'flex', alignItems: 'end' } }}>
           <Grid container spacing={1}>
             <Grid xs={9} sm={6}>
               <TextField
@@ -173,7 +174,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
   const isLastRow = rowIdx === tournManager.teamModalManager.tempTeam.players.length - 1;
 
   const handlePlayerNameChange = (newName: string) => {
-    if (isLastRow && playerName === '' && newName !== null) {
+    if (isLastRow && playerName === '' && newName !== null && rowIdx < MAX_PLAYERS_PER_TEAM - 1) {
       tournManager.teamModalManager.addEmptyPlayer();
     }
     setPlayerName(newName);
