@@ -7,7 +7,7 @@ import { CommonRuleSets, ScoringRules } from '../DataModel/ScoringRules';
 const ruleSets = [CommonRuleSets.NaqtUntimed, CommonRuleSets.NaqtTimed, CommonRuleSets.Acf, CommonRuleSets.Pace];
 
 function StandardRuleSetCard() {
-  const [ruleSet, setRuleSet] = useState('1');
+  const [ruleSet, setRuleSet] = useState('');
 
   return (
     <YfCard title="Standard Rule Sets">

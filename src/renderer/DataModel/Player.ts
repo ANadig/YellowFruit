@@ -37,9 +37,9 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
   name: string;
 
   /** Grade in school as a string. */
-  yearString?: string;
+  yearString: string = '';
 
-  /** Grade in school, in the schema's numerical format. Is null if we can't parse to something valid */
+  /** Grade in school, in the schema's numerical format. Is undefined if we can't parse to something valid */
   get year(): PlayerYear | undefined {
     if (!this.yearString) {
       return undefined;
@@ -53,6 +53,12 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
     }
     return grade;
   }
+
+  /** Is this player considered "undergrad"? */
+  isUG: boolean = false;
+
+  /** Is this player considered "divison 2"? */
+  isD2: boolean = false;
 
   static yearTitles = {
     0: 'Kindergarten',
@@ -119,7 +125,7 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
     };
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.Player;
-    if (isReferenced) qbjObject.id = `Player_${this.name}-${idXtraPc}`;
+    if (isReferenced) qbjObject.id = `Player_${this.name}_${idXtraPc}`;
 
     return qbjObject;
   }

@@ -1,3 +1,6 @@
+import Registration from '../DataModel/Registration';
+import { Team } from '../DataModel/Team';
+
 /** Dummy object representing a lack of a date */
 export class NullDate extends Date {
   static nullStr = 'Yft Null Date';
@@ -14,4 +17,8 @@ export class NullDate extends Date {
 
 export class NullObjects {
   static nullDate = new NullDate();
+
+  static nullRegistration = new Registration('');
+
+  static nullTeam = new Team('');
 }

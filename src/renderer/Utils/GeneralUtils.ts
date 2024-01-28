@@ -1,5 +1,8 @@
 import { Dayjs } from 'dayjs';
 
+/** Disallow creating teams with more than this many players on the roster */
+export const MAX_PLAYERS_PER_TEAM = 30;
+
 /**
  * Did this field's value change such that we should prompt the user to save?
  * Changing nullish to empty string doesn't count.

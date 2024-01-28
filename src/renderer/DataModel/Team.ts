@@ -20,6 +20,18 @@ export class Team implements IQbjTeam, IYftDataModelObject {
 
   ranks?: Rank[];
 
+  /** Whether this is the A, B, C, etc. team. Not necessarily a letter -- e.g. colors */
+  letter: string = '';
+
+  /** Is this team considered "junion varsity"? */
+  isJV: boolean = false;
+
+  /** Is this team considered "undergrad"? */
+  isUG: boolean = false;
+
+  /** Is this team considered "division 2"? */
+  isD2: boolean = false;
+
   constructor(name: string) {
     this.name = name;
     this.players = [];
@@ -36,5 +48,9 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     if (isReferenced) qbjObject.id = `Team_${this.name}`;
 
     return qbjObject;
+  }
+
+  removeNullPlayers() {
+    this.players = this.players.filter((player) => player.name !== '');
   }
 }

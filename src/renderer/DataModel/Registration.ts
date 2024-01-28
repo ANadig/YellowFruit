@@ -11,15 +11,20 @@ export interface IQbjRegistration extends IQbjObject {
   teams?: IQbjTeam[];
 }
 
+/** An organization (e.g. school) with one or more teams participating in the tournament */
 class Registration implements IQbjRegistration, IYftDataModelObject {
-  /** name of the school / organization */
   name: string;
 
-  /** The teams registered to play by this school/organization */
   teams: Team[] = [];
 
-  constructor(orgName: string) {
+  /** Is this organization considered a "small school"? */
+  isSmallSchool: boolean = false;
+
+  constructor(orgName: string, team?: Team) {
     this.name = orgName;
+    if (team) {
+      this.teams = [team];
+    }
   }
 
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjRegistration {

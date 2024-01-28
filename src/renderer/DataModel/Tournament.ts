@@ -68,7 +68,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   startDate: Date = NullObjects.nullDate;
 
-  registrations?: Registration[];
+  registrations: Registration[] = [];
 
   phases: Phase[] = [];
 

@@ -10,6 +10,9 @@ import { collectRefTargets } from './DataModel/QbjUtils';
 import AnswerType from './DataModel/AnswerType';
 import { parseYftTournament } from './DataModel/FileParsing';
 import StandardSchedule from './DataModel/StandardSchedule';
+import { Team } from './DataModel/Team';
+import Registration from './DataModel/Registration';
+import TempTeamManager from './Modal Managers/TempTeamManager';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -42,11 +45,21 @@ export class TournamentManager {
 
   readonly isNull: boolean = false;
 
+  // properties for managing the Team/Registration edit workflow
+  teamEditModalOpen: boolean = false;
+
+  teamModalManager: TempTeamManager;
+
+  /** The existing team that we are editing a copy of, if any */
+  teamBeingModified: Team | null = null;
+
   constructor() {
     this.tournament = new Tournament();
     this.dataChangedReactCallback = () => {};
     this.addIpcListeners();
     this.setWindowTitle();
+
+    this.teamModalManager = new TempTeamManager(() => this.onDataChanged(true));
   }
 
   protected addIpcListeners() {
@@ -296,6 +309,36 @@ export class TournamentManager {
   setStandardSchedule(sched: StandardSchedule) {
     this.tournament.phases = sched.phases;
     this.onDataChanged();
+  }
+
+  addNewTeamAndRegistration(team: Team) {
+    const registration = new Registration(team.name, team);
+    this.tournament.registrations.push(registration);
+    this.onDataChanged();
+  }
+
+  // #endregion
+
+  // #region Functions for handling temporary data used by dialogs
+
+  /** Create a blank team and load it in the modal for editing. */
+  openTeamEditModalNewTeam() {
+    this.teamEditModalOpen = true;
+    this.teamModalManager.createBlankTeam();
+  }
+
+  saveTeamModal() {
+    if (this.teamBeingModified === null) {
+      this.teamModalManager.cleanUpTeamForSaving();
+      this.addNewTeamAndRegistration(this.teamModalManager.tempTeam);
+    }
+    this.closeTeamEditModal();
+  }
+
+  /** Close without saving */
+  closeTeamEditModal() {
+    this.teamEditModalOpen = false;
+    this.onDataChanged(true);
   }
 
   // #endregion

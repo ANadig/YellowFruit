@@ -20,6 +20,8 @@ import ApplicationPages from './Components/Enums';
 import RulesPage from './Components/RulesPage';
 import useSubscription from './Utils/CustomHooks';
 import SchedulePage from './Components/SchedulePage';
+import TeamsPage from './Components/TeamsPage';
+import TeamEditDialog from './Components/TeamEditDialog';
 
 window.electron.ipcRenderer.removeAllListeners();
 const tournManager = new TournamentManager();
@@ -67,6 +69,7 @@ function TournamentEditor() {
         <ActivePage whichPage={activePage} />
       </Box>
       <GenericDialog />
+      <TeamEditDialog />
     </>
   );
 }
@@ -85,6 +88,8 @@ function ActivePage(props: IActivePageProps) {
       return <RulesPage />;
     case ApplicationPages.Schedule:
       return <SchedulePage />;
+    case ApplicationPages.Teams:
+      return <TeamsPage />;
     default:
       return null;
   }
