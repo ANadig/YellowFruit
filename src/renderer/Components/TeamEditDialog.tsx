@@ -10,6 +10,7 @@ import {
   Checkbox,
   Box,
   Typography,
+  Divider,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import React, { useContext } from 'react';
@@ -130,9 +131,10 @@ function TeamEditDialog() {
               </FormGroup>
             </Grid>
           </Grid>
-          <Typography variant="subtitle1" sx={{ marginTop: 2 }}>
-            Players
-          </Typography>
+
+          <Divider textAlign="left" sx={{ my: 2, '&:before': { width: '0%' } }}>
+            <Typography variant="subtitle1">Players</Typography>
+          </Divider>
           <PlayersGrid numRows={numPlayers} />
         </Box>
       </DialogContent>

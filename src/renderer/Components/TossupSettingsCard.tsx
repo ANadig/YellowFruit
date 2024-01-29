@@ -111,7 +111,7 @@ function ActivePointValueList(props: IActivePointValueListProps) {
         return (
           <ListItem
             key={answerType.value}
-            sx={{ '&:hover': { backgroundColor: '#f0f0f0' } }}
+            sx={{ '&:hover': { backgroundColor: 'ivory' } }}
             secondaryAction={
               <Tooltip title={tooltip} placement="right">
                 <span>
