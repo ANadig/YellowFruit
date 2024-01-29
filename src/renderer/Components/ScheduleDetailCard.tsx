@@ -61,20 +61,21 @@ function PhaseEditor(props: IPhaseEditorProps) {
   return (
     <Grid container spacing={2}>
       <Grid xs={4}>
-        <List dense>
-          {phase.pools.map((pool, idx) => (
-            <div key={pool.name}>
-              {idx === 0 && <Divider />}
-              <ListItemButton selected={idx === selectedPoolIdx} onClick={() => setSelectedPoolIdx(idx)}>
-                <ListItemText
-                  primary={pool.name}
-                  secondary={`${showTiers ? `Tier ${pool.position} | ` : ''}${pool.size} Teams`}
-                />
-              </ListItemButton>
-              <Divider />
-            </div>
-          ))}
-        </List>
+        <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+          <List dense sx={{ py: 0 }}>
+            {phase.pools.map((pool, idx) => (
+              <div key={pool.name}>
+                {idx !== 0 && <Divider />}
+                <ListItemButton selected={idx === selectedPoolIdx} onClick={() => setSelectedPoolIdx(idx)}>
+                  <ListItemText
+                    primary={pool.name}
+                    secondary={`${showTiers ? `Tier ${pool.position} | ` : ''}${pool.size} Teams`}
+                  />
+                </ListItemButton>
+              </div>
+            ))}
+          </List>
+        </Box>
       </Grid>
       <Grid xs={8}>
         <Typography sx={{ marginTop: 1 }} variant="subtitle2">
