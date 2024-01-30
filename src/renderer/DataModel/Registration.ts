@@ -27,6 +27,18 @@ class Registration implements IQbjRegistration, IYftDataModelObject {
     }
   }
 
+  makeCopy(): Registration {
+    const copy = new Registration('');
+    copy.copyFromRegistration(this);
+    return copy;
+  }
+
+  copyFromRegistration(source: Registration) {
+    this.name = source.name;
+    this.teams = source.teams;
+    this.isSmallSchool = source.isSmallSchool;
+  }
+
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjRegistration {
     const qbjObject: IQbjRegistration = {
       name: this.name,

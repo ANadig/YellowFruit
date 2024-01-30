@@ -50,6 +50,9 @@ export class TournamentManager {
 
   teamModalManager: TempTeamManager;
 
+  /** The existing registration that we are editing a copy of, if any */
+  registrationBeingModified: Registration | null = null;
+
   /** The existing team that we are editing a copy of, if any */
   teamBeingModified: Team | null = null;
 
@@ -311,9 +314,9 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
-  addNewTeamAndRegistration(team: Team) {
-    const registration = new Registration(team.name, team);
-    this.tournament.registrations.push(registration);
+  addNewTeamAndRegistration(reg: Registration, team: Team) {
+    reg.teams = [team];
+    this.tournament.registrations.push(reg);
     this.onDataChanged();
   }
 
@@ -327,18 +330,35 @@ export class TournamentManager {
     this.teamModalManager.createBlankTeam();
   }
 
+  openTeamEditModalExistingTeam(reg: Registration, team: Team) {
+    this.teamEditModalOpen = true;
+    this.registrationBeingModified = reg;
+    this.teamBeingModified = team;
+    this.teamModalManager.loadTeam(reg, team);
+  }
+
   saveTeamModal() {
+    this.teamModalManager.cleanUpTeamForSaving();
     if (this.teamBeingModified === null) {
-      this.teamModalManager.cleanUpTeamForSaving();
-      this.addNewTeamAndRegistration(this.teamModalManager.tempTeam);
+      this.addNewTeamAndRegistration(this.teamModalManager.tempRegistration, this.teamModalManager.tempTeam);
+    } else {
+      if (this.registrationBeingModified === null) {
+        this.openGenericModal('Error', 'Tried to modify team but there was no registration object to save to');
+        return;
+      }
+      this.teamModalManager.saveTeam(this.registrationBeingModified, this.teamBeingModified);
     }
-    this.closeTeamEditModal();
+    this.closeTeamEditModal(true);
+    this.onDataChanged();
   }
 
   /** Close without saving */
-  closeTeamEditModal() {
+  closeTeamEditModal(skipOnDataChanged?: boolean) {
     this.teamEditModalOpen = false;
-    this.onDataChanged(true);
+    this.registrationBeingModified = null;
+    this.teamBeingModified = null;
+    this.teamModalManager.reset();
+    if (!skipOnDataChanged) this.onDataChanged(true);
   }
 
   // #endregion

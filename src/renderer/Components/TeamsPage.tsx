@@ -1,10 +1,22 @@
-import { AddCircle } from '@mui/icons-material';
-import { Button, Card, CardContent, List, ListItem, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { AddCircle, CopyAll, Delete, Edit } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Divider,
+  IconButton,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useContext, useState } from 'react';
 import Registration from '../DataModel/Registration';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
+import { Team } from '../DataModel/Team';
 
 // Defines the order the buttons should be in
 const viewList = ['Registration', 'Seeding', 'Standings'];
@@ -62,11 +74,16 @@ function RegistrationView() {
             </Button>
           </Grid>
         </Grid>
-        <List>
-          {registrations.map((reg) => (
-            <RegistrationList key={reg.name} registration={reg} />
-          ))}
-        </List>
+        <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+          <Stack>
+            {registrations.map((reg, idx) => (
+              <div key={reg.name}>
+                {idx !== 0 && <Divider />}
+                <RegistrationList registration={reg} />
+              </div>
+            ))}
+          </Stack>
+        </Box>
       </CardContent>
     </Card>
   );
@@ -81,15 +98,55 @@ function RegistrationList(props: IRegistrationListProps) {
   const { registration } = props;
   const [teams] = useSubscription(registration.teams);
 
+  return teams.map((team) => <TeamListItem key={team.name} registration={registration} team={team} />);
+}
+
+interface ITeamListItemProps {
+  registration: Registration;
+  team: Team;
+}
+
+function TeamListItem(props: ITeamListItemProps) {
+  const { registration, team } = props;
+  const tournManager = useContext(TournamentContext);
+
   return (
-    <>
-      {teams.map((team) => (
-        <ListItem key={team.name}>
-          {team.name}, Players: {team.players.length}
-        </ListItem>
-      ))}
-    </>
+    <Grid container sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}>
+      <Grid xs={9}>
+        <Box typography="h5">{team.name}</Box>
+        <Typography variant="body2">{teamInfoDisplay(registration, team)}</Typography>
+      </Grid>
+      <Grid xs={3}>
+        <Box sx={{ float: 'right' }}>
+          <IconButton>
+            <CopyAll />
+          </IconButton>
+          <IconButton onClick={() => tournManager.openTeamEditModalExistingTeam(registration, team)}>
+            <Edit />
+          </IconButton>
+          <IconButton>
+            <Delete />
+          </IconButton>
+        </Box>
+      </Grid>
+    </Grid>
   );
+}
+
+function teamInfoDisplay(reg: Registration, team: Team) {
+  const attributes: string[] = [];
+  if (reg.isSmallSchool) attributes.push('SS');
+  if (team.isJV) attributes.push('JV');
+  if (team.isUG) attributes.push('UG');
+  if (team.isD2) attributes.push('D2');
+  attributes.push(numPlayersDisplay(team.players.length));
+
+  return attributes.join(' | ');
+}
+
+function numPlayersDisplay(num: number) {
+  if (num === 1) return `${num} player`;
+  return `${num} players`;
 }
 
 export default TeamsPage;

@@ -16,16 +16,35 @@ class TempTeamManager {
     this.dataChangedCallback = callback;
   }
 
+  reset() {
+    this.tempRegistration = NullObjects.nullRegistration;
+    this.tempTeam = NullObjects.nullTeam;
+  }
+
   createBlankTeam() {
     this.tempRegistration = new Registration('');
     this.tempTeam = new Team('');
-    this.tempTeam.players.push(new Player(''));
+    this.tempTeam.pushBlankPlayer();
     this.dataChangedCallback();
+  }
+
+  loadTeam(reg: Registration, team: Team) {
+    this.tempRegistration = reg.makeCopy();
+    this.tempTeam = team.makeCopy();
+    this.tempTeam.pushBlankPlayer();
+    this.dataChangedCallback();
+  }
+
+  /** Transfer data from temp objects to real objects */
+  saveTeam(targetReg: Registration, targetTeam: Team) {
+    targetReg.copyFromRegistration(this.tempRegistration);
+    targetTeam.copyFromTeam(this.tempTeam);
   }
 
   changeTeamName(name: string) {
     const trimmedName = name.trim();
     this.tempTeam.name = trimmedName;
+    this.tempRegistration.name = trimmedName;
     this.dataChangedCallback();
   }
 

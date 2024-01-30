@@ -37,6 +37,22 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     this.players = [];
   }
 
+  makeCopy(): Team {
+    const copy = new Team('');
+    copy.copyFromTeam(this);
+    return copy;
+  }
+
+  copyFromTeam(source: Team) {
+    this.name = source.name;
+    this.players = source.players;
+    this.ranks = source.ranks;
+    this.letter = source.letter;
+    this.isJV = source.isJV;
+    this.isUG = source.isUG;
+    this.isD2 = source.isD2;
+  }
+
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjTeam {
     const qbjObject: IQbjTeam = {
       name: this.name,
@@ -48,6 +64,11 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     if (isReferenced) qbjObject.id = `Team_${this.name}`;
 
     return qbjObject;
+  }
+
+  /** Add a new player to the end of the list */
+  pushBlankPlayer() {
+    this.players.push(new Player(''));
   }
 
   removeNullPlayers() {

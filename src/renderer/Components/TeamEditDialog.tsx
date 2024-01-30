@@ -31,22 +31,12 @@ function TeamEditDialog() {
   const [teamIsD2, setTeamIsD2] = useSubscription(tempTeamToEdit.isD2);
   const [numPlayers] = useSubscription(tournManager.teamModalManager.tempTeam.players.length);
 
-  const clearForm = () => {
-    setTeamName('');
-    setTeamIsSS(false);
-    setTeamIsJV(false);
-    setTeamIsUG(false);
-    setTeamIsD2(false);
-  };
-
   const handleAccept = () => {
     tournManager.saveTeamModal();
-    clearForm();
   };
 
   const handleCancel = () => {
     tournManager.closeTeamEditModal();
-    clearForm();
   };
 
   const handleSsChange = (checked: boolean) => {
@@ -55,17 +45,17 @@ function TeamEditDialog() {
   };
 
   const handleJvChange = (checked: boolean) => {
-    setTeamIsSS(checked);
+    setTeamIsJV(checked);
     tournManager.teamModalManager.changeJV(checked);
   };
 
   const handleUgChange = (checked: boolean) => {
-    setTeamIsSS(checked);
+    setTeamIsUG(checked);
     tournManager.teamModalManager.changeUG(checked);
   };
 
   const handleD2Change = (checked: boolean) => {
-    setTeamIsSS(checked);
+    setTeamIsD2(checked);
     tournManager.teamModalManager.changeD2(checked);
   };
 
