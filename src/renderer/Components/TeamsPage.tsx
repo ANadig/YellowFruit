@@ -9,6 +9,7 @@ import {
   Stack,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -17,6 +18,7 @@ import Registration from '../DataModel/Registration';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
 import { Team } from '../DataModel/Team';
+import { nextAlphabetLetter } from '../Utils/GeneralUtils';
 
 // Defines the order the buttons should be in
 const viewList = ['Registration', 'Seeding', 'Standings'];
@@ -110,6 +112,8 @@ function TeamListItem(props: ITeamListItemProps) {
   const { registration, team } = props;
   const tournManager = useContext(TournamentContext);
 
+  const nextLetter = nextAlphabetLetter(team.letter);
+
   return (
     <Grid container sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}>
       <Grid xs={9}>
@@ -118,15 +122,23 @@ function TeamListItem(props: ITeamListItemProps) {
       </Grid>
       <Grid xs={3}>
         <Box sx={{ float: 'right' }}>
-          <IconButton>
-            <CopyAll />
-          </IconButton>
-          <IconButton onClick={() => tournManager.openTeamEditModalExistingTeam(registration, team)}>
-            <Edit />
-          </IconButton>
-          <IconButton>
-            <Delete />
-          </IconButton>
+          {nextLetter !== '' && (
+            <Tooltip title={`Add ${nextLetter} team`}>
+              <IconButton>
+                <CopyAll />
+              </IconButton>
+            </Tooltip>
+          )}
+          <Tooltip title="Edit team">
+            <IconButton onClick={() => tournManager.openTeamEditModalExistingTeam(registration, team)}>
+              <Edit />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete team">
+            <IconButton>
+              <Delete />
+            </IconButton>
+          </Tooltip>
         </Box>
       </Grid>
     </Grid>

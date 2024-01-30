@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { teamGetNameAndLetter } from '../renderer/Utils/GeneralUtils';
+import { nextAlphabetLetter, teamGetNameAndLetter } from '../renderer/Utils/GeneralUtils';
 
 test('teamGetNameAndLetter01', () => {
   const raw = 'West River A';
@@ -63,4 +63,24 @@ test('teamGetNameAndLetter07', () => {
 
   expect(actual[0]).toBe(expected[0]);
   expect(actual[1]).toBe(expected[1]);
+});
+
+test('nextAlphabetLetter01', () => {
+  expect(nextAlphabetLetter('A')).toBe('B');
+});
+
+test('nextAlphabetLetter02', () => {
+  expect(nextAlphabetLetter('Z')).toBe('');
+});
+
+test('nextAlphabetLetter03', () => {
+  expect(nextAlphabetLetter('?')).toBe('');
+});
+
+test('nextAlphabetLetter04', () => {
+  expect(nextAlphabetLetter('a')).toBe('');
+});
+
+test('nextAlphabetLetter05', () => {
+  expect(nextAlphabetLetter('AA')).toBe('');
 });

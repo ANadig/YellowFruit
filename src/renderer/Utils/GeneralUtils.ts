@@ -47,6 +47,12 @@ export function getAlphabetLetter(num: number) {
   return String.fromCharCode(unicodeA + num - 1);
 }
 
+export function nextAlphabetLetter(char: string) {
+  if (!isNormalTeamLetter(char)) return '';
+  if (char === 'Z') return '';
+  return String.fromCharCode(char.charCodeAt(0) + 1);
+}
+
 /** Split team name into org name + letter if possible, e.g. "Riverview A" -> ["Riverview", "A"] */
 export function teamGetNameAndLetter(rawName: string): [string, string] {
   const lastIdx = rawName.length - 1;
@@ -55,12 +61,18 @@ export function teamGetNameAndLetter(rawName: string): [string, string] {
     return [rawName, ''];
   }
   const letter = rawName.substring(lastIdx).toLocaleUpperCase();
-  const ascii = letter.charCodeAt(0);
-  if (ascii < unicodeA || ascii > unicodeZ) {
+  if (!isNormalTeamLetter(letter)) {
     return [rawName, ''];
   }
   const orgName = rawName.substring(0, lastIdx).trim();
   return [orgName, letter];
+}
+
+/** Is this a normal team designator? (A, B, C, etc.) */
+export function isNormalTeamLetter(letter: string) {
+  if (letter.length !== 1) return false;
+  const ascii = letter.charCodeAt(0);
+  return ascii >= unicodeA && ascii <= unicodeZ;
 }
 
 /**
