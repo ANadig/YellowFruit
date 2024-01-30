@@ -13,18 +13,21 @@ import {
   Divider,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { MAX_PLAYERS_PER_TEAM } from '../Utils/GeneralUtils';
 
 function TeamEditDialog() {
   const tournManager = useContext(TournamentContext);
+
   const [isOpen] = useSubscription(tournManager.teamEditModalOpen);
   const [teamBeingModified] = useSubscription(tournManager.teamBeingModified);
   const tempTeamToEdit = tournManager.teamModalManager.tempTeam;
   const tempRegToEdit = tournManager.teamModalManager.tempRegistration;
-  const [teamName, setTeamName] = useSubscription(tempRegToEdit.name);
+
+  const [regName, setRegName] = useState(tempRegToEdit.name);
+  useEffect(() => setRegName(tempRegToEdit.name), [tempRegToEdit.name, tempTeamToEdit.name]); // can't use useSubscription due to the extra dependency
   const [teamLetter, setTeamLetter] = useSubscription(tempTeamToEdit.letter);
   const [teamIsSS, setTeamIsSS] = useSubscription(tempRegToEdit.isSmallSchool);
   const [teamIsJV, setTeamIsJV] = useSubscription(tempTeamToEdit.isJV);
@@ -74,11 +77,11 @@ function TeamEditDialog() {
                 autoFocus
                 variant="outlined"
                 size="small"
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                onBlur={() => tournManager.teamModalManager.changeTeamName(teamName)}
+                value={regName}
+                onChange={(e) => setRegName(e.target.value)}
+                onBlur={() => tournManager.teamModalManager.changeTeamName(regName)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') tournManager.teamModalManager.changeTeamName(teamName);
+                  if (e.key === 'Enter') tournManager.teamModalManager.changeTeamName(regName);
                 }}
               />
             </Grid>
