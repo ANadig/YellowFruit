@@ -39,9 +39,28 @@ export function invalidInteger(str: string, lowerBound?: number, upperBound?: nu
 /** Unicode/ASCII code for uppercase 'A' */
 const unicodeA = 65;
 
+/** Unicode/ASCII code for uppercase 'Z' */
+const unicodeZ = 90;
+
 /** Get the nth letter of the alphabet (uppercase) */
 export function getAlphabetLetter(num: number) {
   return String.fromCharCode(unicodeA + num - 1);
+}
+
+/** Split team name into org name + letter if possible, e.g. "Riverview A" -> ["Riverview", "A"] */
+export function teamGetNameAndLetter(rawName: string): [string, string] {
+  const lastIdx = rawName.length - 1;
+  const penultimate = rawName.charAt(lastIdx - 1);
+  if (penultimate !== ' ') {
+    return [rawName, ''];
+  }
+  const letter = rawName.substring(lastIdx).toLocaleUpperCase();
+  const ascii = letter.charCodeAt(0);
+  if (ascii < unicodeA || ascii > unicodeZ) {
+    return [rawName, ''];
+  }
+  const orgName = rawName.substring(0, lastIdx).trim();
+  return [orgName, letter];
 }
 
 /**

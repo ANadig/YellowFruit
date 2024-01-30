@@ -23,9 +23,10 @@ function TeamEditDialog() {
   const [isOpen] = useSubscription(tournManager.teamEditModalOpen);
   const [teamBeingModified] = useSubscription(tournManager.teamBeingModified);
   const tempTeamToEdit = tournManager.teamModalManager.tempTeam;
-  const [teamName, setTeamName] = useSubscription(tempTeamToEdit.name);
+  const tempRegToEdit = tournManager.teamModalManager.tempRegistration;
+  const [teamName, setTeamName] = useSubscription(tempRegToEdit.name);
   const [teamLetter, setTeamLetter] = useSubscription(tempTeamToEdit.letter);
-  const [teamIsSS, setTeamIsSS] = useSubscription(tournManager.teamModalManager.tempRegistration.isSmallSchool);
+  const [teamIsSS, setTeamIsSS] = useSubscription(tempRegToEdit.isSmallSchool);
   const [teamIsJV, setTeamIsJV] = useSubscription(tempTeamToEdit.isJV);
   const [teamIsUG, setTeamIsUG] = useSubscription(tempTeamToEdit.isUG);
   const [teamIsD2, setTeamIsD2] = useSubscription(tempTeamToEdit.isD2);
@@ -76,6 +77,9 @@ function TeamEditDialog() {
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
                 onBlur={() => tournManager.teamModalManager.changeTeamName(teamName)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') tournManager.teamModalManager.changeTeamName(teamName);
+                }}
               />
             </Grid>
             <Grid xs={3} sm={2}>
@@ -86,6 +90,7 @@ function TeamEditDialog() {
                 size="small"
                 value={teamLetter}
                 onChange={(e) => setTeamLetter(e.target.value)}
+                onBlur={() => tournManager.teamModalManager.changeTeamLetter(teamLetter)}
               />
             </Grid>
             <Grid xs={2} md={1} sx={{ display: 'flex', alignItems: 'end' }}>

@@ -1,6 +1,7 @@
 import { Player } from '../DataModel/Player';
 import Registration from '../DataModel/Registration';
 import { Team } from '../DataModel/Team';
+import { teamGetNameAndLetter } from '../Utils/GeneralUtils';
 import { NullObjects } from '../Utils/UtilTypes';
 
 class TempTeamManager {
@@ -43,8 +44,22 @@ class TempTeamManager {
 
   changeTeamName(name: string) {
     const trimmedName = name.trim();
-    this.tempTeam.name = trimmedName;
-    this.tempRegistration.name = trimmedName;
+    if (this.tempTeam.letter === '') {
+      const [orgName, letter] = teamGetNameAndLetter(trimmedName);
+      this.tempRegistration.name = orgName;
+      this.tempTeam.name = letter !== '' ? `${orgName} ${letter}` : orgName;
+      this.tempTeam.letter = letter;
+    } else {
+      this.tempRegistration.name = trimmedName;
+      this.tempTeam.name = trimmedName;
+    }
+    this.dataChangedCallback();
+  }
+
+  changeTeamLetter(letter: string) {
+    const trimmedStr = letter.trim();
+    this.tempTeam.letter = trimmedStr;
+    this.tempTeam.name = `${this.tempRegistration.name} ${trimmedStr}`;
     this.dataChangedCallback();
   }
 
