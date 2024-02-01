@@ -50,6 +50,19 @@ class Registration implements IQbjRegistration, IYftDataModelObject {
 
     return qbjObject;
   }
+
+  addTeam(teamToAdd: Team) {
+    this.teams.push(teamToAdd);
+  }
+
+  addTeams(teams: Team[]) {
+    this.teams = this.teams.concat(teams);
+  }
+
+  deleteTeam(teamToDelete: Team | null) {
+    if (teamToDelete === null) return;
+    this.teams = this.teams.filter((tm) => tm !== teamToDelete);
+  }
 }
 
 export default Registration;

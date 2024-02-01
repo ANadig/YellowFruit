@@ -1,7 +1,7 @@
 import { getAlphabetLetter } from '../Utils/GeneralUtils';
 import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
-import Team from './Team';
+import { Team } from './Team';
 
 /** How do we rank teams to determine who goes where in the next phase? */
 enum AutoQualificationRankRules {

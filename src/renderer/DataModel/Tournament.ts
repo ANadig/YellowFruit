@@ -5,6 +5,7 @@ import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import { IQbjRanking, Ranking } from './Ranking';
 import Registration from './Registration';
 import { CommonRuleSets, IQbjScoringRules, ScoringRules } from './ScoringRules';
+import { Team } from './Team';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 
 /**
@@ -108,6 +109,16 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** Set the scoring rules for this tournament */
   applyRuleSet(rules: CommonRuleSets): void {
     this.scoringRules = new ScoringRules(rules);
+  }
+
+  /** Add a new registration, and a team that should be contained in that registration */
+  addRegAndTeam(regToAdd: Registration, teamToAdd: Team) {
+    regToAdd.addTeam(teamToAdd);
+    this.addRegistration(regToAdd);
+  }
+
+  addRegistration(regToAdd: Registration) {
+    this.registrations.push(regToAdd);
   }
 }
 

@@ -23,6 +23,7 @@ class TempTeamManager {
   }
 
   createBlankTeam() {
+    // don't actually put the team in the registration, because we might end up saving to a different registration
     this.tempRegistration = new Registration('');
     this.tempTeam = new Team('');
     this.tempTeam.pushBlankPlayer();
@@ -36,9 +37,38 @@ class TempTeamManager {
     this.dataChangedCallback();
   }
 
+  /** Once the form is accepted, get the registration we actually need to change (if any), since changing the organization
+   *  name can switch which regitration we're editing. Returns null if we should create a new registration.
+   */
+  getRegistrationToSaveTo(
+    regThatWasOpened: Registration | null,
+    allRegistrations: Registration[],
+  ): Registration | null {
+    if (this.tempRegistration.name === regThatWasOpened?.name) {
+      return regThatWasOpened;
+    }
+    const matchingReg = allRegistrations.find((val) => val.name === this.tempRegistration.name);
+    if (matchingReg === undefined) return null;
+
+    return matchingReg;
+  }
+
+  addExistingTeamsToReg(teams: Team[]) {
+    this.tempRegistration.addTeams(teams);
+  }
+
+  /** Transfer data from temp object to real object */
+  saveRegistration(targetReg: Registration, teamIsNew?: boolean) {
+    if (teamIsNew) {
+      this.tempRegistration.addTeams(targetReg.teams);
+      this.tempRegistration.addTeam(this.tempTeam);
+    }
+    targetReg.copyFromRegistration(this.tempRegistration);
+  }
+
   /** Transfer data from temp objects to real objects */
   saveTeam(targetReg: Registration, targetTeam: Team) {
-    targetReg.copyFromRegistration(this.tempRegistration);
+    this.saveRegistration(targetReg);
     targetTeam.copyFromTeam(this.tempTeam);
   }
 
@@ -47,19 +77,26 @@ class TempTeamManager {
     if (this.tempTeam.letter === '') {
       const [orgName, letter] = teamGetNameAndLetter(trimmedName);
       this.tempRegistration.name = orgName;
-      this.tempTeam.name = letter !== '' ? `${orgName} ${letter}` : orgName;
       this.tempTeam.letter = letter;
     } else {
       this.tempRegistration.name = trimmedName;
-      this.tempTeam.name = trimmedName;
     }
+    this.makeTeamName();
     this.dataChangedCallback();
   }
 
+  /** Keep the official team name, which is not directly edited, up to date */
+  makeTeamName() {
+    const teamLetter = this.tempTeam.letter;
+    const orgName = this.tempRegistration.name;
+    this.tempTeam.name = teamLetter === '' ? orgName : `${orgName} ${teamLetter}`;
+  }
+
   changeTeamLetter(letter: string) {
-    const trimmedStr = letter.trim();
+    let trimmedStr = letter.trim();
+    if (trimmedStr.length === 1) trimmedStr = trimmedStr.toLocaleUpperCase();
     this.tempTeam.letter = trimmedStr;
-    this.tempTeam.name = `${this.tempRegistration.name} ${trimmedStr}`;
+    this.makeTeamName();
     this.dataChangedCallback();
   }
 

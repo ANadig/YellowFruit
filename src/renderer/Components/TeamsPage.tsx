@@ -58,6 +58,8 @@ function RegistrationView() {
   const thisTournament = tournManager.tournament;
   const [registrations] = useSubscription(thisTournament.registrations);
 
+  console.log(thisTournament.registrations);
+
   return (
     <Card>
       <CardContent>

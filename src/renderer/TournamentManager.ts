@@ -316,8 +316,7 @@ export class TournamentManager {
 
   addNewTeamAndRegistration(reg: Registration, team: Team) {
     reg.teams = [team];
-    this.tournament.registrations.push(reg);
-    this.onDataChanged();
+    this.tournament.addRegistration(reg);
   }
 
   // #endregion
@@ -339,14 +338,22 @@ export class TournamentManager {
 
   saveTeamModal() {
     this.teamModalManager.cleanUpTeamForSaving();
-    if (this.teamBeingModified === null) {
-      this.addNewTeamAndRegistration(this.teamModalManager.tempRegistration, this.teamModalManager.tempTeam);
+    // changing the team name means we might need to save to a different registration than we opened
+    const actualRegToModify = this.teamModalManager.getRegistrationToSaveTo(
+      this.registrationBeingModified,
+      this.tournament.registrations,
+    );
+
+    if (this.registrationBeingModified !== null && this.registrationBeingModified !== actualRegToModify) {
+      this.registrationBeingModified.deleteTeam(this.teamBeingModified);
+    }
+
+    if (actualRegToModify === null) {
+      this.tournament.addRegAndTeam(this.teamModalManager.tempRegistration, this.teamModalManager.tempTeam);
+    } else if (this.teamBeingModified === null) {
+      this.teamModalManager.saveRegistration(actualRegToModify, true);
     } else {
-      if (this.registrationBeingModified === null) {
-        this.openGenericModal('Error', 'Tried to modify team but there was no registration object to save to');
-        return;
-      }
-      this.teamModalManager.saveTeam(this.registrationBeingModified, this.teamBeingModified);
+      this.teamModalManager.saveTeam(actualRegToModify, this.teamBeingModified);
     }
     this.closeTeamEditModal(true);
     this.onDataChanged();

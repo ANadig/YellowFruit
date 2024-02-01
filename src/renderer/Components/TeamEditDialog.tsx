@@ -27,7 +27,7 @@ function TeamEditDialog() {
   const tempRegToEdit = tournManager.teamModalManager.tempRegistration;
 
   const [regName, setRegName] = useState(tempRegToEdit.name);
-  useEffect(() => setRegName(tempRegToEdit.name), [tempRegToEdit.name, tempTeamToEdit.name]); // can't use useSubscription due to the extra dependency
+  useEffect(() => setRegName(tempRegToEdit.name), [tempRegToEdit.name, tempTeamToEdit.name]); // can't use useSubscription due to the unusual dependency
   const [teamLetter, setTeamLetter] = useSubscription(tempTeamToEdit.letter);
   const [teamIsSS, setTeamIsSS] = useSubscription(tempRegToEdit.isSmallSchool);
   const [teamIsJV, setTeamIsJV] = useSubscription(tempTeamToEdit.isJV);
