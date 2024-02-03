@@ -57,13 +57,18 @@ function RegistrationView() {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
   const [registrations] = useSubscription(thisTournament.registrations);
+  const [numberOfTeams] = useSubscription(thisTournament.getNumberOfTeams());
+  const [expectedNumTeams] = useSubscription(thisTournament.getExpectedNumberOfTeams());
+
+  const teamTotDisp =
+    expectedNumTeams === null ? `${numberOfTeams} teams` : `${numberOfTeams} of ${expectedNumTeams} teams registered`;
 
   return (
     <Card>
       <CardContent>
         <Grid container>
           <Grid xs={6} sx={{ display: 'flex', alignItems: 'center' }}>
-            Number of teams
+            {teamTotDisp}
           </Grid>
           <Grid xs={6}>
             <Button

@@ -1,6 +1,7 @@
+import { sumReduce } from '../Utils/GeneralUtils';
 import { NullDate, NullObjects } from '../Utils/UtilTypes';
 import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
-import { IQbjPhase, Phase } from './Phase';
+import { IQbjPhase, Phase, PhaseTypes } from './Phase';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import { IQbjRanking, Ranking } from './Ranking';
 import Registration, { IQbjRegistration } from './Registration';
@@ -110,6 +111,23 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** Set the scoring rules for this tournament */
   applyRuleSet(rules: CommonRuleSets): void {
     this.scoringRules = new ScoringRules(rules);
+  }
+
+  getNumberOfTeams() {
+    const regSizes = this.registrations.map((reg) => reg.teams.length);
+    return sumReduce(regSizes);
+  }
+
+  /** How many teams there's room for based on the pools that exist.
+   *  We assume all teams play in the prelim phase.
+   *  Returns null if there isn't enough information to calculate.
+   */
+  getExpectedNumberOfTeams(): number | null {
+    const prelimPhase = this.phases.find((phase) => phase.phaseType === PhaseTypes.Prelim);
+    if (!prelimPhase) return null;
+
+    const poolSizes = prelimPhase.pools.map((pool) => pool.size);
+    return sumReduce(poolSizes);
   }
 
   /** Add a new registration, and a team that should be contained in that registration */

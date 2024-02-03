@@ -320,11 +320,6 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
-  addNewTeamAndRegistration(reg: Registration, team: Team) {
-    reg.teams = [team];
-    this.tournament.addRegistration(reg);
-  }
-
   // #endregion
 
   // #region Functions for handling temporary data used by dialogs

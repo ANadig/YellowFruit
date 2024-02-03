@@ -1,7 +1,9 @@
 import { Dayjs } from 'dayjs';
 
-/** Disallow creating teams with more than this many players on the roster */
-export const MAX_PLAYERS_PER_TEAM = 30;
+/** Add up the numbers in an array */
+export function sumReduce(ary: number[]): number {
+  return ary.reduce((sumSoFar, currVal) => sumSoFar + currVal, 0);
+}
 
 /**
  * Did this field's value change such that we should prompt the user to save?
