@@ -58,8 +58,6 @@ function RegistrationView() {
   const thisTournament = tournManager.tournament;
   const [registrations] = useSubscription(thisTournament.registrations);
 
-  // console.log(thisTournament.registrations);
-
   return (
     <Card>
       <CardContent>
@@ -102,7 +100,12 @@ function RegistrationList(props: IRegistrationListProps) {
   const { registration } = props;
   const [teams] = useSubscription(registration.teams);
 
-  return teams.map((team) => <TeamListItem key={team.name} registration={registration} team={team} />);
+  return teams.map((team, idx) => (
+    <div key={team.name}>
+      {idx !== 0 && <Divider />}
+      <TeamListItem key={team.name} registration={registration} team={team} />
+    </div>
+  ));
 }
 
 interface ITeamListItemProps {
