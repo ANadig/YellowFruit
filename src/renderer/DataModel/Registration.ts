@@ -1,4 +1,11 @@
-import { IQbjObject, IValidationInfo, IYftDataModelObject, ValidationStatuses, makeEmptyValidator } from './Interfaces';
+import {
+  IQbjObject,
+  IValidationInfo,
+  IYftDataModelObject,
+  IYftFileObject,
+  ValidationStatuses,
+  makeEmptyValidator,
+} from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
 import { IQbjTeam, Team } from './Team';
 
@@ -9,6 +16,16 @@ export interface IQbjRegistration extends IQbjObject {
   location?: string;
   /** The teams registered to play by this school/organization */
   teams?: IQbjTeam[];
+}
+
+/** Registration object as written to a .yft file */
+export interface IYftFileRegistration extends IQbjRegistration, IYftFileObject {
+  YfData: IRegistrationExtraData;
+}
+
+/** Additional info not in qbj but needed for a .yft file */
+interface IRegistrationExtraData {
+  isSmallSchool: boolean;
 }
 
 /** An organization (e.g. school) with one or more teams participating in the tournament */
@@ -47,13 +64,18 @@ class Registration implements IQbjRegistration, IYftDataModelObject {
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjRegistration {
     const qbjObject: IQbjRegistration = {
       name: this.name,
-      teams: this.teams.map((tm) => tm.toFileObject(qbjOnly)),
+      teams: this.teams.map((tm) => tm.toFileObject(qbjOnly, false, true)),
     };
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.Registration;
     if (isReferenced) qbjObject.id = `Registration_${this.name}`;
 
-    return qbjObject;
+    if (qbjOnly) return qbjObject;
+
+    const yfData: IRegistrationExtraData = { isSmallSchool: this.isSmallSchool };
+    const yftFileObj: IYftFileRegistration = { YfData: yfData, ...qbjObject };
+
+    return yftFileObj;
   }
 
   addTeam(teamToAdd: Team) {

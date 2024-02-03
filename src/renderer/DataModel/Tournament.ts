@@ -3,7 +3,7 @@ import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { IQbjPhase, Phase } from './Phase';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import { IQbjRanking, Ranking } from './Ranking';
-import Registration from './Registration';
+import Registration, { IQbjRegistration } from './Registration';
 import { CommonRuleSets, IQbjScoringRules, ScoringRules } from './ScoringRules';
 import { Team } from './Team';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
@@ -28,7 +28,7 @@ export interface IQbjTournament extends IQbjObject {
   /** Tournament's end date */
   endDate?: Date;
   /** The schools/organizations at this tournament */
-  registrations?: Registration[];
+  registrations?: IQbjRegistration[];
   /** Phases (prelims, playoffs, etc) of the tournament */
   phases?: IQbjPhase[];
   /** Ranking systems used at the tournament (overall, JV, etc) */
@@ -90,6 +90,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       name: this.name || Tournament.placeholderName,
       startDate: !NullDate.isNullDate(this.startDate) ? this.startDate : undefined,
       questionSet: this.questionSet || undefined,
+      registrations: this.registrations.map((reg) => reg.toFileObject(qbjOnly)),
       phases: this.phases.map((ph) => ph.toFileObject(qbjOnly)),
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.Tournament;
@@ -101,9 +102,9 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     if (qbjOnly) return qbjObject;
 
     const metadata: ITournamentExtraData = { YfVersion: '4.0.0' };
-    const yftFIleObj = { YfData: metadata, ...qbjObject };
+    const yftFileObj = { YfData: metadata, ...qbjObject };
 
-    return yftFIleObj;
+    return yftFileObj;
   }
 
   /** Set the scoring rules for this tournament */

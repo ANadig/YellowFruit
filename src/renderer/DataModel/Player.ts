@@ -1,4 +1,4 @@
-import { IQbjObject, IYftDataModelObject } from './Interfaces';
+import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
 
 /** Grades/years in school */
@@ -30,6 +30,18 @@ export interface IQbjPlayer extends IQbjObject {
   name: string;
   /** The player's year in school */
   year?: PlayerYear;
+}
+
+/** Player object as written to a .yft file */
+export interface IYftFilePlayer extends IQbjPlayer, IYftFileObject {
+  YfData: IPlayerExtraData;
+}
+
+/** Additional info not in qbj but needed for a .yft file */
+interface IPlayerExtraData {
+  yearString: string;
+  isUG: boolean;
+  isD2: boolean;
 }
 
 /** A player on a single team */
@@ -127,7 +139,11 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
     if (isTopLevel) qbjObject.type = QbjTypeNames.Player;
     if (isReferenced) qbjObject.id = `Player_${this.name}_${idXtraPc}`;
 
-    return qbjObject;
+    if (qbjOnly) return qbjObject;
+
+    const yfData: IPlayerExtraData = { yearString: this.yearString, isUG: this.isUG, isD2: this.isD2 };
+    const yftFileObj: IYftFilePlayer = { YfData: yfData, ...qbjObject };
+    return yftFileObj;
   }
 
   /** Try to find a matching non-numeric year (e.g. "Freshman") and return the

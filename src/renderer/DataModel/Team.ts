@@ -1,4 +1,11 @@
-import { IQbjObject, IValidationInfo, IYftDataModelObject, ValidationStatuses, makeEmptyValidator } from './Interfaces';
+import {
+  IQbjObject,
+  IValidationInfo,
+  IYftDataModelObject,
+  IYftFileObject,
+  ValidationStatuses,
+  makeEmptyValidator,
+} from './Interfaces';
 import { IQbjPlayer, Player } from './Player';
 import { QbjTypeNames } from './QbjEnums';
 import { IQbjRank, Rank } from './Rank';
@@ -10,6 +17,19 @@ export interface IQbjTeam extends IQbjObject {
   players?: IQbjPlayer[];
   /** The ranks this team has achieved and/or is eligible for */
   ranks?: IQbjRank[];
+}
+
+/** Team object as written to a .yft file */
+export interface IYftFileTeam extends IQbjTeam, IYftFileObject {
+  YfData: ITeamExtraData;
+}
+
+/** Additional info not in qbj but needed for a .yft file */
+interface ITeamExtraData {
+  letter: string;
+  isJV: boolean;
+  isUG: boolean;
+  isD2: boolean;
 }
 
 /** A single team */
@@ -74,14 +94,19 @@ export class Team implements IQbjTeam, IYftDataModelObject {
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjTeam {
     const qbjObject: IQbjTeam = {
       name: this.name,
-      players: this.players.map((plr) => plr.toFileObject(qbjOnly, false, false, this.name)),
+      players: this.players.map((plr) => plr.toFileObject(qbjOnly, false, true, this.name)),
       ranks: this.ranks?.map((rk) => rk.toFileObject(qbjOnly, false, false, this.name)),
     };
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.Team;
     if (isReferenced) qbjObject.id = `Team_${this.name}`;
 
-    return qbjObject;
+    if (qbjOnly) return qbjObject;
+
+    const yfData: ITeamExtraData = { letter: this.letter, isJV: this.isJV, isUG: this.isUG, isD2: this.isD2 };
+    const yftFileObj: IYftFileTeam = { YfData: yfData, ...qbjObject };
+
+    return yftFileObj;
   }
 
   /** Add a new player to the end of the list */
