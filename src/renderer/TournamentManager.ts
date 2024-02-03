@@ -12,7 +12,7 @@ import { parseYftTournament } from './DataModel/FileParsing';
 import StandardSchedule from './DataModel/StandardSchedule';
 import { Team } from './DataModel/Team';
 import Registration from './DataModel/Registration';
-import TempTeamManager from './Modal Managers/TempTeamManager';
+import { TempTeamManager } from './Modal Managers/TempTeamManager';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -46,7 +46,6 @@ export class TournamentManager {
   readonly isNull: boolean = false;
 
   // properties for managing the Team/Registration edit workflow
-  teamEditModalOpen: boolean = false;
 
   teamModalManager: TempTeamManager;
 
@@ -62,7 +61,7 @@ export class TournamentManager {
     this.addIpcListeners();
     this.setWindowTitle();
 
-    this.teamModalManager = new TempTeamManager(() => this.onDataChanged(true));
+    this.teamModalManager = new TempTeamManager();
   }
 
   protected addIpcListeners() {
@@ -323,17 +322,15 @@ export class TournamentManager {
 
   // #region Functions for handling temporary data used by dialogs
 
-  /** Create a blank team and load it in the modal for editing. */
+  /** Open with a new blank team */
   openTeamEditModalNewTeam() {
-    this.teamEditModalOpen = true;
-    this.teamModalManager.createBlankTeam();
+    this.teamModalManager.openModal();
   }
 
   openTeamEditModalExistingTeam(reg: Registration, team: Team) {
-    this.teamEditModalOpen = true;
+    this.teamModalManager.openModal(reg, team);
     this.registrationBeingModified = reg;
     this.teamBeingModified = team;
-    this.teamModalManager.loadTeam(reg, team);
   }
 
   saveTeamModal() {
@@ -361,10 +358,9 @@ export class TournamentManager {
 
   /** Close without saving */
   closeTeamEditModal(skipOnDataChanged?: boolean) {
-    this.teamEditModalOpen = false;
     this.registrationBeingModified = null;
     this.teamBeingModified = null;
-    this.teamModalManager.reset();
+    this.teamModalManager.closeModal();
     if (!skipOnDataChanged) this.onDataChanged(true);
   }
 

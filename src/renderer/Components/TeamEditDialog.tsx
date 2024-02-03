@@ -17,14 +17,34 @@ import React, { useContext, useEffect, useState } from 'react';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { MAX_PLAYERS_PER_TEAM } from '../Utils/GeneralUtils';
+import { TeamEditModalContext } from '../Modal Managers/TempTeamManager';
 
 function TeamEditDialog() {
   const tournManager = useContext(TournamentContext);
+  const modalManager = tournManager.teamModalManager;
+  const [, setUpdateNeeded] = useState({}); // set this object to a new object whenever we want to force a re-render
+  const [mgr] = useState(modalManager);
+  useEffect(() => {
+    mgr.dataChangedReactCallback = () => {
+      setUpdateNeeded({});
+    };
+  }, [mgr]);
 
-  const [isOpen] = useSubscription(tournManager.teamEditModalOpen);
+  return (
+    <TeamEditModalContext.Provider value={mgr}>
+      <TeamEditDialogCore />
+    </TeamEditModalContext.Provider>
+  );
+}
+
+function TeamEditDialogCore() {
+  const tournManager = useContext(TournamentContext);
+  const modalManager = useContext(TeamEditModalContext);
+
+  const [isOpen] = useSubscription(modalManager.modalIsOpen);
   const [teamBeingModified] = useSubscription(tournManager.teamBeingModified);
-  const tempTeamToEdit = tournManager.teamModalManager.tempTeam;
-  const tempRegToEdit = tournManager.teamModalManager.tempRegistration;
+  const tempTeamToEdit = modalManager.tempTeam;
+  const tempRegToEdit = modalManager.tempRegistration;
 
   const [regName, setRegName] = useState(tempRegToEdit.name);
   useEffect(() => setRegName(tempRegToEdit.name), [tempRegToEdit.name, tempTeamToEdit.name]); // can't use useSubscription due to the unusual dependency
@@ -33,7 +53,7 @@ function TeamEditDialog() {
   const [teamIsJV, setTeamIsJV] = useSubscription(tempTeamToEdit.isJV);
   const [teamIsUG, setTeamIsUG] = useSubscription(tempTeamToEdit.isUG);
   const [teamIsD2, setTeamIsD2] = useSubscription(tempTeamToEdit.isD2);
-  const [numPlayers] = useSubscription(tournManager.teamModalManager.tempTeam.players.length);
+  const [numPlayers] = useSubscription(modalManager.tempTeam.players.length);
 
   const handleAccept = () => {
     tournManager.saveTeamModal();
@@ -45,22 +65,22 @@ function TeamEditDialog() {
 
   const handleSsChange = (checked: boolean) => {
     setTeamIsSS(checked);
-    tournManager.teamModalManager.changeSS(checked);
+    modalManager.changeSS(checked);
   };
 
   const handleJvChange = (checked: boolean) => {
     setTeamIsJV(checked);
-    tournManager.teamModalManager.changeJV(checked);
+    modalManager.changeJV(checked);
   };
 
   const handleUgChange = (checked: boolean) => {
     setTeamIsUG(checked);
-    tournManager.teamModalManager.changeUG(checked);
+    modalManager.changeUG(checked);
   };
 
   const handleD2Change = (checked: boolean) => {
     setTeamIsD2(checked);
-    tournManager.teamModalManager.changeD2(checked);
+    modalManager.changeD2(checked);
   };
 
   return (
@@ -79,9 +99,9 @@ function TeamEditDialog() {
                 size="small"
                 value={regName}
                 onChange={(e) => setRegName(e.target.value)}
-                onBlur={() => tournManager.teamModalManager.changeTeamName(regName)}
+                onBlur={() => modalManager.changeTeamName(regName)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') tournManager.teamModalManager.changeTeamName(regName);
+                  if (e.key === 'Enter') modalManager.changeTeamName(regName);
                 }}
               />
             </Grid>
@@ -93,7 +113,7 @@ function TeamEditDialog() {
                 size="small"
                 value={teamLetter}
                 onChange={(e) => setTeamLetter(e.target.value)}
-                onBlur={() => tournManager.teamModalManager.changeTeamLetter(teamLetter)}
+                onBlur={() => modalManager.changeTeamLetter(teamLetter)}
               />
             </Grid>
             <Grid xs={2} md={1} sx={{ display: 'flex', alignItems: 'end' }}>
@@ -163,31 +183,31 @@ interface IPlayerGridRowProps {
 
 function PlayerGridRow(props: IPlayerGridRowProps) {
   const { rowIdx } = props;
-  const tournManager = useContext(TournamentContext);
-  const player = tournManager.teamModalManager.tempTeam.players[rowIdx];
+  const modalManager = useContext(TeamEditModalContext);
+  const player = modalManager.tempTeam.players[rowIdx];
 
   const [playerName, setPlayerName] = useSubscription(player?.name || '');
   const [playerYear, setPlayerYear] = useSubscription(player?.yearString || '');
   const [playerIsUG, setPlayerIsUG] = useSubscription(player?.isUG || false);
   const [playerIsD2, setPlayerIsD2] = useSubscription(player?.isD2 || false);
 
-  const isLastRow = rowIdx === tournManager.teamModalManager.tempTeam.players.length - 1;
+  const isLastRow = rowIdx === modalManager.tempTeam.players.length - 1;
 
   const handlePlayerNameChange = (newName: string) => {
     if (isLastRow && playerName === '' && newName !== null && rowIdx < MAX_PLAYERS_PER_TEAM - 1) {
-      tournManager.teamModalManager.addEmptyPlayer();
+      modalManager.addEmptyPlayer();
     }
     setPlayerName(newName);
   };
 
   const handleUgChange = (checked: boolean) => {
     setPlayerIsUG(checked);
-    tournManager.teamModalManager.changePlayerUG(rowIdx, checked);
+    modalManager.changePlayerUG(rowIdx, checked);
   };
 
   const handleD2Change = (checked: boolean) => {
     setPlayerIsD2(checked);
-    tournManager.teamModalManager.changePlayerD2(rowIdx, checked);
+    modalManager.changePlayerD2(rowIdx, checked);
   };
 
   return (
@@ -200,7 +220,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
           size="small"
           value={playerName}
           onChange={(e) => handlePlayerNameChange(e.target.value)}
-          onBlur={() => tournManager.teamModalManager.changePlayerName(rowIdx, playerName)}
+          onBlur={() => modalManager.changePlayerName(rowIdx, playerName)}
         />
       </Grid>
       <Grid xs={2}>
@@ -211,7 +231,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
           size="small"
           value={playerYear}
           onChange={(e) => setPlayerYear(e.target.value)}
-          onBlur={() => tournManager.teamModalManager.changePlayerYear(rowIdx, playerYear)}
+          onBlur={() => modalManager.changePlayerYear(rowIdx, playerYear)}
         />
       </Grid>
       <Grid xs={2} md={1}>

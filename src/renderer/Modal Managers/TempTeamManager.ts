@@ -1,20 +1,23 @@
+import { createContext } from 'react';
 import { Player } from '../DataModel/Player';
 import Registration from '../DataModel/Registration';
 import { Team } from '../DataModel/Team';
 import { teamGetNameAndLetter } from '../Utils/GeneralUtils';
 import { NullObjects } from '../Utils/UtilTypes';
 
-class TempTeamManager {
+export class TempTeamManager {
   /** The registration whose team is being edited */
   tempRegistration: Registration = NullObjects.nullRegistration;
 
   /** The team being edited */
   tempTeam: Team = NullObjects.nullTeam;
 
-  dataChangedCallback: () => void;
+  modalIsOpen: boolean = false;
 
-  constructor(callback: () => void) {
-    this.dataChangedCallback = callback;
+  dataChangedReactCallback: () => void;
+
+  constructor() {
+    this.dataChangedReactCallback = () => {};
   }
 
   reset() {
@@ -22,19 +25,35 @@ class TempTeamManager {
     this.tempTeam = NullObjects.nullTeam;
   }
 
+  openModal(reg?: Registration, team?: Team) {
+    this.modalIsOpen = true;
+    if (reg && team) {
+      this.loadTeam(reg, team);
+    } else {
+      this.createBlankTeam();
+    }
+    this.dataChangedReactCallback();
+  }
+
+  closeModal() {
+    this.modalIsOpen = false;
+    this.reset();
+    this.dataChangedReactCallback();
+  }
+
   createBlankTeam() {
     // don't actually put the team in the registration, because we might end up saving to a different registration
     this.tempRegistration = new Registration('');
     this.tempTeam = new Team('');
     this.tempTeam.pushBlankPlayer();
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   loadTeam(reg: Registration, team: Team) {
     this.tempRegistration = reg.makeCopy();
     this.tempTeam = team.makeCopy();
     this.tempTeam.pushBlankPlayer();
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   /** Once the form is accepted, get the registration we actually need to change (if any), since changing the organization
@@ -82,7 +101,7 @@ class TempTeamManager {
       this.tempRegistration.name = trimmedName;
     }
     this.makeTeamName();
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   /** Keep the official team name, which is not directly edited, up to date */
@@ -97,54 +116,54 @@ class TempTeamManager {
     if (trimmedStr.length === 1) trimmedStr = trimmedStr.toLocaleUpperCase();
     this.tempTeam.letter = trimmedStr;
     this.makeTeamName();
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   changeSS(checked: boolean) {
     this.tempRegistration.isSmallSchool = checked;
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   changeJV(checked: boolean) {
     this.tempTeam.isJV = checked;
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   changeUG(checked: boolean) {
     this.tempTeam.isUG = checked;
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   changeD2(checked: boolean) {
     this.tempTeam.isD2 = checked;
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   addEmptyPlayer() {
     this.tempTeam.players.push(new Player(''));
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   changePlayerName(playerIdx: number, newName: string) {
     const trimmedName = newName.trim();
     this.tempTeam.players[playerIdx].name = trimmedName;
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   changePlayerYear(playerIdx: number, newYear: string) {
     const trimmedYear = newYear.trim();
     this.tempTeam.players[playerIdx].yearString = trimmedYear;
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   changePlayerUG(playerIdx: number, checked: boolean) {
     this.tempTeam.players[playerIdx].isUG = checked;
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   changePlayerD2(playerIdx: number, checked: boolean) {
     this.tempTeam.players[playerIdx].isD2 = checked;
-    this.dataChangedCallback();
+    this.dataChangedReactCallback();
   }
 
   cleanUpTeamForSaving() {
@@ -152,4 +171,4 @@ class TempTeamManager {
   }
 }
 
-export default TempTeamManager;
+export const TeamEditModalContext = createContext<TempTeamManager>(new TempTeamManager());
