@@ -51,6 +51,10 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
   /** Grade in school as a string. */
   yearString: string = '';
 
+  static nameMaxLength = 200;
+
+  static yearStringMaxLength = 20;
+
   /** Grade in school, in the schema's numerical format. Is undefined if we can't parse to something valid */
   get year(): PlayerYear | undefined {
     if (!this.yearString) {

@@ -4,10 +4,13 @@ import { versionLt } from '../Utils/GeneralUtils';
 import AnswerType, { IQbjAnswerType, sortAnswerTypes } from './AnswerType';
 import { IIndeterminateQbj, IRefTargetDict } from './Interfaces';
 import { IQbjPhase, IYftFilePhase, Phase, PhaseTypes } from './Phase';
+import { IQbjPlayer, IYftFilePlayer, Player } from './Player';
 import { IQbjPool, IYftFilePool, Pool } from './Pool';
 import { getBaseQbjObject } from './QbjUtils';
+import Registration, { IQbjRegistration, IYftFileRegistration } from './Registration';
 import { IQbjRound, IYftFileRound, Round, sortRounds } from './Round';
 import { IQbjScoringRules, IYftFileScoringRules, ScoringRules } from './ScoringRules';
+import { IQbjTeam, IYftFileTeam, Team } from './Team';
 import Tournament, { IQbjTournament, IYftFileTournament } from './Tournament';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 
@@ -33,10 +36,9 @@ export function parseTournament(obj: IQbjTournament, refTargets: IRefTargetDict)
   const rules = obj.scoringRules;
   if (rules) tourn.scoringRules = parseScoringRules(rules as IIndeterminateQbj, refTargets);
 
-  const { phases } = obj;
+  const { phases, registrations } = obj;
+  if (registrations) tourn.registrations = parseRegistrationList(registrations as IIndeterminateQbj[], refTargets);
   if (phases) tourn.phases = parsePhaseList(phases as IIndeterminateQbj[], refTargets);
-
-  // TODO: registrations
 
   return tourn;
 }
@@ -208,6 +210,126 @@ function parseAnswerType(obj: IIndeterminateQbj, refTargets: IRefTargetDict): An
   if (qbjAType.shortLabel) yftAType.shortLabel = qbjAType.shortLabel;
 
   return yftAType;
+}
+
+function parseRegistrationList(ary: IIndeterminateQbj[], refTargets: IRefTargetDict): Registration[] {
+  const regs: Registration[] = [];
+  for (const obj of ary) {
+    const oneReg = parseRegistration(obj, refTargets);
+    if (oneReg !== null) regs.push(oneReg);
+  }
+  return regs;
+}
+
+function parseRegistration(obj: IIndeterminateQbj, refTargets: IRefTargetDict): Registration | null {
+  const baseObj = getBaseQbjObject(obj, refTargets);
+  if (baseObj === null) return null;
+
+  const qbjReg = baseObj as IQbjRegistration;
+  const yfExtraData = (baseObj as IYftFileRegistration).YfData;
+
+  const { name, teams } = qbjReg;
+  if (!name?.trim()) {
+    throw new Error('This file contains a Registration object with no name.');
+  }
+  const yftReg = new Registration(name.trim().substring(0, Registration.maxNameLength));
+  yftReg.isSmallSchool = yfExtraData?.isSmallSchool || false;
+  yftReg.teams = parseTeamList(teams as IIndeterminateQbj[], refTargets);
+
+  return yftReg;
+}
+
+function parseTeamList(ary: IIndeterminateQbj[], refTargets: IRefTargetDict): Team[] {
+  const teams: Team[] = [];
+  for (const obj of ary) {
+    const oneTeam = parseTeam(obj, refTargets);
+    if (oneTeam !== null) teams.push(oneTeam);
+  }
+  return teams;
+}
+
+function parseTeam(obj: IIndeterminateQbj, refTargets: IRefTargetDict): Team | null {
+  const baseObj = getBaseQbjObject(obj, refTargets);
+  if (baseObj === null) return null;
+
+  const qbjTeam = baseObj as IQbjTeam;
+  const yfExtraData = (baseObj as IYftFileTeam).YfData;
+
+  const { name, players } = qbjTeam;
+  if (!name?.trim()) {
+    throw new Error('This file contains a Team object with no name');
+  }
+
+  const yfTeam = new Team(name.trim().substring(0, Registration.maxNameLength + 1 + Team.maxLetterLength));
+  const yfPlayers = parsePlayerList(players as IIndeterminateQbj[], refTargets, yfTeam.name);
+  if (yfPlayers.length < 1) {
+    throw new Error(`Team ${name} doesn't have any players.`);
+  }
+  yfTeam.players = yfPlayers;
+  yfTeam.letter = parseTeamLetter(yfExtraData.letter, name);
+  yfTeam.isJV = yfExtraData.isJV || false;
+  yfTeam.isUG = yfExtraData.isUG || false;
+  yfTeam.isD2 = yfExtraData.isD2 || false;
+
+  return yfTeam;
+}
+
+function parseTeamLetter(letterFromFile: string, teamName: string): string {
+  if (letterFromFile === undefined) return '';
+  const trimmed = letterFromFile.trim();
+  if (trimmed.includes(' ')) {
+    throw new Error(`Team ${teamName} has an invalid letter/modifier: ${trimmed}`);
+  }
+  return trimmed.substring(0, Team.maxLetterLength);
+}
+
+function parsePlayerList(ary: IIndeterminateQbj[], refTargets: IRefTargetDict, teamName: string): Player[] {
+  const players: Player[] = [];
+  for (const obj of ary) {
+    const onePlayer = parsePlayer(obj, refTargets, teamName);
+    if (onePlayer !== null) players.push(onePlayer);
+  }
+  return players;
+}
+
+function parsePlayer(obj: IIndeterminateQbj, refTargets: IRefTargetDict, teamName: string): Player | null {
+  const baseObj = getBaseQbjObject(obj, refTargets);
+  if (baseObj === null) return null;
+
+  const qbjPlayer = baseObj as IQbjPlayer;
+  const yfExtraData = (baseObj as IYftFilePlayer).YfData;
+
+  const { name, year } = qbjPlayer;
+  if (!name?.trim()) {
+    throw new Error(`Team ${teamName} contains a player with no name.`);
+  }
+
+  const yfPlayer = new Player(name.trim().substring(0, Player.nameMaxLength));
+  const yearStr = yfExtraData?.yearString?.trim().substring(0, Player.yearStringMaxLength);
+  if (yearStr) {
+    yfPlayer.yearString = yearStr;
+  } else {
+    const yearStringFromNumericYear = parsePlayerYear(year);
+    if (yearStringFromNumericYear === undefined) {
+      throw new Error(
+        `Player ${yfPlayer.name} on team ${teamName} has an invalid Year attribute (must be between -1 and 18)`,
+      );
+    }
+    yfPlayer.yearString = yearStringFromNumericYear;
+  }
+  yfPlayer.isUG = yfExtraData.isUG || false;
+  yfPlayer.isD2 = yfExtraData.isD2 || false;
+
+  return yfPlayer;
+}
+
+// only exporting so I can unit test
+/** Translate Qbj numeric year to YF string representation. Returns undefined if invalid. */
+export function parsePlayerYear(yearFromFile: number | undefined): string | undefined {
+  if (yearFromFile === undefined) return '';
+  if (yearFromFile < -1 || 18 < yearFromFile) return undefined;
+  if (yearFromFile === -1) return '';
+  return Player.yearAbbrevs[yearFromFile as unknown as keyof typeof Player.yearAbbrevs];
 }
 
 function parsePhaseList(ary: IIndeterminateQbj[], refTargets: IRefTargetDict): Phase[] {
