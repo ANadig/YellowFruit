@@ -81,16 +81,18 @@ function RegistrationView() {
             </Button>
           </Grid>
         </Grid>
-        <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
-          <Stack>
-            {registrations.map((reg, idx) => (
-              <div key={reg.name}>
-                {idx !== 0 && <Divider />}
-                <RegistrationList registration={reg} />
-              </div>
-            ))}
-          </Stack>
-        </Box>
+        {numberOfTeams > 0 && (
+          <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+            <Stack>
+              {registrations.map((reg, idx) => (
+                <div key={reg.name}>
+                  {idx !== 0 && <Divider />}
+                  <RegistrationList registration={reg} />
+                </div>
+              ))}
+            </Stack>
+          </Box>
+        )}
       </CardContent>
     </Card>
   );
@@ -145,7 +147,7 @@ function TeamListItem(props: ITeamListItemProps) {
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete team">
-            <IconButton>
+            <IconButton onClick={() => tournManager.deleteTeam(registration, team)}>
               <Delete />
             </IconButton>
           </Tooltip>

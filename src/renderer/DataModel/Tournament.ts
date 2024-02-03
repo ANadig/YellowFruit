@@ -144,6 +144,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   sortRegistrations() {
     this.registrations.sort((a, b) => a.name.localeCompare(b.name));
   }
+
+  deleteRegistration(regToDelete: Registration) {
+    if (regToDelete === null) return;
+    this.registrations = this.registrations.filter((reg) => reg !== regToDelete);
+  }
 }
 
 export default Tournament;

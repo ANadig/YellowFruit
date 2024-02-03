@@ -320,6 +320,14 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  deleteTeam(reg: Registration, team: Team) {
+    reg.deleteTeam(team);
+    if (reg.teams.length === 0) {
+      this.tournament.deleteRegistration(reg);
+    }
+    this.onDataChanged();
+  }
+
   // #endregion
 
   // #region Functions for handling temporary data used by dialogs
