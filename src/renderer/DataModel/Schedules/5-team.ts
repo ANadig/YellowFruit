@@ -27,7 +27,7 @@ export class Sched5TeamsDoubleRR implements StandardSchedule {
 }
 
 export class Sched5Teams13Rounds implements StandardSchedule {
-  readonly size = 4;
+  readonly size = 5;
 
   readonly rounds = 13;
 
