@@ -14,6 +14,10 @@ export class TempTeamManager {
 
   modalIsOpen: boolean = false;
 
+  errorDialogIsOpen: boolean = false;
+
+  errorDialogContents: string[] = [];
+
   dataChangedReactCallback: () => void;
 
   constructor() {
@@ -35,9 +39,35 @@ export class TempTeamManager {
     this.dataChangedReactCallback();
   }
 
+  /** Returns true if we can save the data */
+  preSaveValidation() {
+    this.tempTeam.removeNullPlayers();
+    this.tempRegistration.validateAll();
+    this.tempTeam.validateAll();
+    const errs = this.tempRegistration.getErrorMessages().concat(this.tempTeam.getErrorMessages());
+    if (errs.length > 0) {
+      this.tempTeam.pushBlankPlayer();
+      this.openErrorDialog(errs);
+      return false;
+    }
+    return true;
+  }
+
   closeModal() {
     this.modalIsOpen = false;
     this.reset();
+    this.dataChangedReactCallback();
+  }
+
+  openErrorDialog(errs: string[]) {
+    this.errorDialogIsOpen = true;
+    this.errorDialogContents = errs;
+    this.dataChangedReactCallback();
+  }
+
+  closeErrorDialog() {
+    this.errorDialogIsOpen = false;
+    this.errorDialogContents = [];
     this.dataChangedReactCallback();
   }
 
@@ -102,6 +132,8 @@ export class TempTeamManager {
     } else {
       this.tempRegistration.name = trimmedName;
     }
+    this.tempRegistration.validateName();
+    this.tempTeam.validateLetter();
     this.makeTeamName();
     this.dataChangedReactCallback();
   }
@@ -117,6 +149,7 @@ export class TempTeamManager {
     let trimmedStr = letter.trim();
     if (trimmedStr.length === 1) trimmedStr = trimmedStr.toLocaleUpperCase();
     this.tempTeam.letter = trimmedStr;
+    this.tempTeam.validateLetter();
     this.makeTeamName();
     this.dataChangedReactCallback();
   }
@@ -166,10 +199,6 @@ export class TempTeamManager {
   changePlayerD2(playerIdx: number, checked: boolean) {
     this.tempTeam.players[playerIdx].isD2 = checked;
     this.dataChangedReactCallback();
-  }
-
-  cleanUpTeamForSaving() {
-    this.tempTeam.removeNullPlayers();
   }
 }
 

@@ -333,8 +333,13 @@ export class TournamentManager {
     this.teamBeingModified = team;
   }
 
-  saveTeamModal() {
-    this.teamModalManager.cleanUpTeamForSaving();
+  teamEditModalAttemptToSave() {
+    if (this.teamModalManager.preSaveValidation()) {
+      this.teamModalSave();
+    }
+  }
+
+  private teamModalSave() {
     // changing the team name means we might need to save to a different registration than we opened
     const actualRegToModify = this.teamModalManager.getRegistrationToSaveTo(
       this.registrationBeingModified,
@@ -353,12 +358,12 @@ export class TournamentManager {
     } else {
       this.teamModalManager.saveTeam(actualRegToModify, this.teamBeingModified);
     }
-    this.closeTeamEditModal(true);
+    this.teamEditModalClose(true);
     this.onDataChanged();
   }
 
   /** Close without saving */
-  closeTeamEditModal(skipOnDataChanged?: boolean) {
+  teamEditModalClose(skipOnDataChanged?: boolean) {
     this.registrationBeingModified = null;
     this.teamBeingModified = null;
     this.teamModalManager.closeModal();

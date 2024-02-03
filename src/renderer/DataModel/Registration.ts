@@ -1,4 +1,4 @@
-import { IQbjObject, IYftDataModelObject } from './Interfaces';
+import { IQbjObject, IValidationInfo, IYftDataModelObject, ValidationStatuses, makeEmptyValidator } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
 import { IQbjTeam, Team } from './Team';
 
@@ -20,11 +20,16 @@ class Registration implements IQbjRegistration, IYftDataModelObject {
   /** Is this organization considered a "small school"? */
   isSmallSchool: boolean = false;
 
+  static maxNameLength = 300;
+
+  nameValidation: IValidationInfo;
+
   constructor(orgName: string, team?: Team) {
     this.name = orgName;
     if (team) {
       this.teams = [team];
     }
+    this.nameValidation = makeEmptyValidator();
   }
 
   makeCopy(): Registration {
@@ -66,6 +71,30 @@ class Registration implements IQbjRegistration, IYftDataModelObject {
 
   sortTeams() {
     this.teams.sort((a, b) => a.letter.localeCompare(b.letter));
+  }
+
+  validateAll() {
+    this.validateName();
+  }
+
+  validateName() {
+    if (this.name === '') {
+      this.nameValidation.status = ValidationStatuses.Error;
+      this.nameValidation.message = `Name is required.`;
+    } else if (this.name.length > Registration.maxNameLength) {
+      this.nameValidation.status = ValidationStatuses.Error;
+      this.nameValidation.message = `Maximum allowed name length is ${Registration.maxNameLength} characters.`;
+    } else {
+      this.nameValidation = makeEmptyValidator();
+    }
+  }
+
+  getErrorMessages(): string[] {
+    const errs: string[] = [];
+    if (this.nameValidation.status === ValidationStatuses.Error) {
+      errs.push(`Organization name: ${this.nameValidation.message}`);
+    }
+    return errs;
   }
 }
 

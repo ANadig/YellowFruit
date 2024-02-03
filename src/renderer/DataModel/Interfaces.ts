@@ -39,3 +39,19 @@ export interface IYftDataModelObject {
   /** Generate an object that we can save to a file (qbj or yft) */
   toFileObject: (qbjOnly?: boolean, isTopLevel?: boolean, isReferenced?: boolean, idXtraPc?: string) => IQbjObject;
 }
+
+export enum ValidationStatuses {
+  Ok,
+  Error,
+  Warning,
+  Info,
+}
+
+export interface IValidationInfo {
+  status: ValidationStatuses;
+  message: string;
+}
+
+export function makeEmptyValidator(): IValidationInfo {
+  return { status: ValidationStatuses.Ok, message: '' };
+}

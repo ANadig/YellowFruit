@@ -65,6 +65,15 @@ test('teamGetNameAndLetter07', () => {
   expect(actual[1]).toBe(expected[1]);
 });
 
+test('teamGetNameAndLetter08', () => {
+  const raw = '';
+  const expected = ['', ''];
+  const actual = teamGetNameAndLetter(raw);
+
+  expect(actual[0]).toBe(expected[0]);
+  expect(actual[1]).toBe(expected[1]);
+});
+
 test('nextAlphabetLetter01', () => {
   expect(nextAlphabetLetter('A')).toBe('B');
 });

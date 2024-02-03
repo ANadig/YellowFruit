@@ -1,4 +1,4 @@
-import { IQbjObject, IYftDataModelObject } from './Interfaces';
+import { IQbjObject, IValidationInfo, IYftDataModelObject, ValidationStatuses, makeEmptyValidator } from './Interfaces';
 import { IQbjPlayer, Player } from './Player';
 import { QbjTypeNames } from './QbjEnums';
 import { IQbjRank, Rank } from './Rank';
@@ -32,9 +32,27 @@ export class Team implements IQbjTeam, IYftDataModelObject {
   /** Is this team considered "division 2"? */
   isD2: boolean = false;
 
+  /** Disallow creating teams with more than this many players on the roster */
+  static maxPlayers = 30;
+
+  static maxLetterLength = 20;
+
+  playerListValidation: IValidationInfo;
+
+  letterValidation: IValidationInfo;
+
+  /** Error that should prevent the team from being saved or used */
+  validationError: string = '';
+
+  /** Non-fatal issues */
+  validationWarnings: string[] = [];
+
   constructor(name: string) {
     this.name = name;
     this.players = [];
+
+    this.playerListValidation = makeEmptyValidator();
+    this.letterValidation = makeEmptyValidator();
   }
 
   makeCopy(): Team {
@@ -45,7 +63,7 @@ export class Team implements IQbjTeam, IYftDataModelObject {
 
   copyFromTeam(source: Team) {
     this.name = source.name;
-    this.players = source.players;
+    this.players = source.players.slice();
     this.ranks = source.ranks;
     this.letter = source.letter;
     this.isJV = source.isJV;
@@ -73,5 +91,45 @@ export class Team implements IQbjTeam, IYftDataModelObject {
 
   removeNullPlayers() {
     this.players = this.players.filter((player) => player.name !== '');
+  }
+
+  validateAll() {
+    this.validatePlayerList();
+    this.validateLetter();
+  }
+
+  validatePlayerList() {
+    if (this.players.length > Team.maxPlayers) {
+      this.playerListValidation.status = ValidationStatuses.Error;
+      this.playerListValidation.message = `A team cannot have more than ${Team.maxPlayers} players.`;
+    } else if (this.players.length < 1) {
+      this.playerListValidation.status = ValidationStatuses.Error;
+      this.playerListValidation.message = `At least one player is required.`;
+    } else {
+      this.playerListValidation = makeEmptyValidator();
+    }
+  }
+
+  validateLetter() {
+    if (this.letter.length > Team.maxLetterLength) {
+      this.letterValidation.status = ValidationStatuses.Error;
+      this.letterValidation.message = `Maximum allowed length is ${Team.maxLetterLength} characters.`;
+    } else if (this.letter.trim().includes(' ')) {
+      this.letterValidation.status = ValidationStatuses.Error;
+      this.letterValidation.message = 'Cannot contain spaces';
+    } else {
+      this.letterValidation = makeEmptyValidator();
+    }
+  }
+
+  getErrorMessages(): string[] {
+    const errs: string[] = [];
+    if (this.playerListValidation.status === ValidationStatuses.Error) {
+      errs.push(`Players: ${this.playerListValidation.message}`);
+    }
+    if (this.letterValidation.status === ValidationStatuses.Error) {
+      errs.push(`Team modifier: ${this.letterValidation.message}`);
+    }
+    return errs;
   }
 }

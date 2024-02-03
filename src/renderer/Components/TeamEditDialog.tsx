@@ -11,13 +11,15 @@ import {
   Box,
   Typography,
   Divider,
+  List,
+  ListItem,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import React, { useContext, useEffect, useState } from 'react';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import { MAX_PLAYERS_PER_TEAM } from '../Utils/GeneralUtils';
 import { TeamEditModalContext } from '../Modal Managers/TempTeamManager';
+import { Team } from '../DataModel/Team';
 
 function TeamEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -56,11 +58,11 @@ function TeamEditDialogCore() {
   const [numPlayers] = useSubscription(modalManager.tempTeam.players.length);
 
   const handleAccept = () => {
-    tournManager.saveTeamModal();
+    tournManager.teamEditModalAttemptToSave();
   };
 
   const handleCancel = () => {
-    tournManager.closeTeamEditModal();
+    tournManager.teamEditModalClose();
   };
 
   const handleSsChange = (checked: boolean) => {
@@ -84,83 +86,86 @@ function TeamEditDialogCore() {
   };
 
   return (
-    <Dialog fullWidth maxWidth="md" open={isOpen} onClose={handleCancel}>
-      <DialogTitle>{teamBeingModified === null ? 'New Team' : `Edit ${teamBeingModified.name}`}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ height: 375, '& .MuiGrid2-root': { display: 'flex', alignItems: 'end' } }}>
-          <Grid container spacing={1}>
-            <Grid xs={9} sm={6}>
-              <TextField
-                sx={{ marginTop: 1 }}
-                label="School / Organization"
-                fullWidth
-                autoFocus
-                variant="outlined"
-                size="small"
-                value={regName}
-                onChange={(e) => setRegName(e.target.value)}
-                onBlur={() => modalManager.changeTeamName(regName)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') modalManager.changeTeamName(regName);
-                }}
-              />
-            </Grid>
-            <Grid xs={3} sm={2}>
-              <TextField
-                sx={{ marginTop: 1, width: '10ch' }}
-                placeholder="A, B, etc."
-                variant="outlined"
-                size="small"
-                value={teamLetter}
-                onChange={(e) => setTeamLetter(e.target.value)}
-                onBlur={() => modalManager.changeTeamLetter(teamLetter)}
-              />
-            </Grid>
-            <Grid xs={2} md={1} sx={{ display: 'flex', alignItems: 'end' }}>
-              <FormGroup>
-                <FormControlLabel
-                  label="SS"
-                  control={<Checkbox checked={teamIsSS} onChange={(e) => handleSsChange(e.target.checked)} />}
+    <>
+      <Dialog fullWidth maxWidth="md" open={isOpen} onClose={handleCancel}>
+        <DialogTitle>{teamBeingModified === null ? 'New Team' : `Edit ${teamBeingModified.name}`}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ height: 375, '& .MuiGrid2-root': { display: 'flex', alignItems: 'end' } }}>
+            <Grid container spacing={1}>
+              <Grid xs={9} sm={6}>
+                <TextField
+                  sx={{ marginTop: 1 }}
+                  label="School / Organization"
+                  fullWidth
+                  autoFocus
+                  variant="outlined"
+                  size="small"
+                  value={regName}
+                  onChange={(e) => setRegName(e.target.value)}
+                  onBlur={() => modalManager.changeTeamName(regName)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') modalManager.changeTeamName(regName);
+                  }}
                 />
-              </FormGroup>
-            </Grid>
-            <Grid xs={2} md={1}>
-              <FormGroup>
-                <FormControlLabel
-                  label="JV"
-                  control={<Checkbox checked={teamIsJV} onChange={(e) => handleJvChange(e.target.checked)} />}
+              </Grid>
+              <Grid xs={3} sm={2}>
+                <TextField
+                  sx={{ marginTop: 1, width: '10ch' }}
+                  placeholder="A, B, etc."
+                  variant="outlined"
+                  size="small"
+                  value={teamLetter}
+                  onChange={(e) => setTeamLetter(e.target.value)}
+                  onBlur={() => modalManager.changeTeamLetter(teamLetter)}
                 />
-              </FormGroup>
+              </Grid>
+              <Grid xs={2} md={1} sx={{ display: 'flex', alignItems: 'end' }}>
+                <FormGroup>
+                  <FormControlLabel
+                    label="SS"
+                    control={<Checkbox checked={teamIsSS} onChange={(e) => handleSsChange(e.target.checked)} />}
+                  />
+                </FormGroup>
+              </Grid>
+              <Grid xs={2} md={1}>
+                <FormGroup>
+                  <FormControlLabel
+                    label="JV"
+                    control={<Checkbox checked={teamIsJV} onChange={(e) => handleJvChange(e.target.checked)} />}
+                  />
+                </FormGroup>
+              </Grid>
+              <Grid xs={2} md={1}>
+                <FormGroup>
+                  <FormControlLabel
+                    label="UG"
+                    control={<Checkbox checked={teamIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
+                  />
+                </FormGroup>
+              </Grid>
+              <Grid xs={2} md={1}>
+                <FormGroup>
+                  <FormControlLabel
+                    label="D2"
+                    control={<Checkbox checked={teamIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
+                  />
+                </FormGroup>
+              </Grid>
             </Grid>
-            <Grid xs={2} md={1}>
-              <FormGroup>
-                <FormControlLabel
-                  label="UG"
-                  control={<Checkbox checked={teamIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
-                />
-              </FormGroup>
-            </Grid>
-            <Grid xs={2} md={1}>
-              <FormGroup>
-                <FormControlLabel
-                  label="D2"
-                  control={<Checkbox checked={teamIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
-                />
-              </FormGroup>
-            </Grid>
-          </Grid>
 
-          <Divider textAlign="left" sx={{ my: 2, '&:before': { width: '0%' } }}>
-            <Typography variant="subtitle1">Players</Typography>
-          </Divider>
-          <PlayersGrid numRows={numPlayers} />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleCancel}>Cancel</Button>
-        <Button onClick={handleAccept}>Accept</Button>
-      </DialogActions>
-    </Dialog>
+            <Divider textAlign="left" sx={{ my: 2, '&:before': { width: '0%' } }}>
+              <Typography variant="subtitle1">Players</Typography>
+            </Divider>
+            <PlayersGrid numRows={numPlayers} />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancel}>Cancel</Button>
+          <Button onClick={handleAccept}>Accept</Button>
+        </DialogActions>
+      </Dialog>
+      <ErrorDialog />
+    </>
   );
 }
 
@@ -194,7 +199,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
   const isLastRow = rowIdx === modalManager.tempTeam.players.length - 1;
 
   const handlePlayerNameChange = (newName: string) => {
-    if (isLastRow && playerName === '' && newName !== null && rowIdx < MAX_PLAYERS_PER_TEAM - 1) {
+    if (isLastRow && playerName === '' && newName !== null && rowIdx < Team.maxPlayers - 1) {
       modalManager.addEmptyPlayer();
     }
     setPlayerName(newName);
@@ -251,6 +256,34 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
         </FormGroup>
       </Grid>
     </Grid>
+  );
+}
+
+function ErrorDialog() {
+  const modalManager = useContext(TeamEditModalContext);
+  const [isOpen] = useSubscription(modalManager.errorDialogIsOpen);
+  const [contents] = useSubscription(modalManager.errorDialogContents);
+
+  const handleClose = () => {
+    modalManager.closeErrorDialog();
+  };
+
+  return (
+    <Dialog open={isOpen} onClose={handleClose}>
+      <DialogTitle>Unable to save team</DialogTitle>
+      <DialogContent>
+        <List dense>
+          {contents.map((str) => (
+            <ListItem key={str} disableGutters>
+              {str}
+            </ListItem>
+          ))}
+        </List>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose}>Go Back</Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 
