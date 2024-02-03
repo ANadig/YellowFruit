@@ -4,7 +4,7 @@ import Tournament, { IQbjTournament, IYftFileTournament } from './DataModel/Tour
 import { dateFieldChanged, textFieldChanged } from './Utils/GeneralUtils';
 import { NullObjects } from './Utils/UtilTypes';
 import { IpcMainToRend, IpcRendToMain } from '../IPCChannels';
-import { IQbjObject, IQbjWholeFile } from './DataModel/Interfaces';
+import { IQbjObject, IQbjWholeFile, IRefTargetDict } from './DataModel/Interfaces';
 import { QbjTypeNames } from './DataModel/QbjEnums';
 import { collectRefTargets } from './DataModel/QbjUtils';
 import AnswerType from './DataModel/AnswerType';
@@ -127,7 +127,14 @@ export class TournamentManager {
       return null;
     }
 
-    const refTargets = collectRefTargets(objFromFile);
+    let refTargets: IRefTargetDict = {};
+    try {
+      refTargets = collectRefTargets(objFromFile);
+    } catch (err: any) {
+      this.openGenericModal('Invalid File', err.message);
+    }
+    console.log(refTargets);
+
     let loadedTournament: Tournament | null = null;
     try {
       loadedTournament = parseYftTournament(tournamentObj as IYftFileTournament, refTargets);
