@@ -340,14 +340,15 @@ export class TournamentManager {
       this.registrationBeingModified,
       this.tournament.registrations,
     );
+    const registrationSwitched = this.registrationBeingModified !== actualRegToModify;
 
-    if (this.registrationBeingModified !== null && this.registrationBeingModified !== actualRegToModify) {
+    if (this.registrationBeingModified !== null && registrationSwitched) {
       this.registrationBeingModified.deleteTeam(this.teamBeingModified);
     }
 
     if (actualRegToModify === null) {
       this.tournament.addRegAndTeam(this.teamModalManager.tempRegistration, this.teamModalManager.tempTeam);
-    } else if (this.teamBeingModified === null) {
+    } else if (this.teamBeingModified === null || registrationSwitched) {
       this.teamModalManager.saveRegistration(actualRegToModify, true);
     } else {
       this.teamModalManager.saveTeam(actualRegToModify, this.teamBeingModified);

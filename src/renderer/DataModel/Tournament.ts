@@ -113,12 +113,17 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   /** Add a new registration, and a team that should be contained in that registration */
   addRegAndTeam(regToAdd: Registration, teamToAdd: Team) {
-    regToAdd.addTeam(teamToAdd);
+    regToAdd.teams = [teamToAdd];
     this.addRegistration(regToAdd);
   }
 
   addRegistration(regToAdd: Registration) {
     this.registrations.push(regToAdd);
+    this.sortRegistrations();
+  }
+
+  sortRegistrations() {
+    this.registrations.sort((a, b) => a.name.localeCompare(b.name));
   }
 }
 

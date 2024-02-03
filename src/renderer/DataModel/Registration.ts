@@ -63,6 +63,10 @@ class Registration implements IQbjRegistration, IYftDataModelObject {
     if (teamToDelete === null) return;
     this.teams = this.teams.filter((tm) => tm !== teamToDelete);
   }
+
+  sortTeams() {
+    this.teams.sort((a, b) => a.letter.localeCompare(b.letter));
+  }
 }
 
 export default Registration;
