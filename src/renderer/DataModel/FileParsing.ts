@@ -58,7 +58,9 @@ export function parseScoringRules(obj: IIndeterminateQbj, refTargets: IRefTarget
     throw new Error('Scoring Rules: There are no tossup point values (Answer Types) defined for this tournament.');
   }
 
-  // TODO: validate teamspermatch
+  if (qbjScoringRules.teamsPerMatch && qbjScoringRules.teamsPerMatch !== 2) {
+    throw new Error(`YellowFruit doesn't support formates with ${qbjScoringRules.teamsPerMatch} teams per match.`);
+  }
 
   const yftScoringRules = new ScoringRules();
 
