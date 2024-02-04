@@ -351,6 +351,11 @@ export class TournamentManager {
     this.teamBeingModified = null;
   }
 
+  /** Called then the team name in the team edit form is changed */
+  onTemRegistrationNameUpdate() {
+    this.teamModalManager.copyDataFromOtherRegistration(this.registrationBeingModified, this.tournament.registrations);
+  }
+
   teamEditModalAttemptToSave() {
     if (this.teamModalManager.preSaveValidation()) {
       this.teamModalSave();

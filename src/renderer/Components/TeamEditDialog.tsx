@@ -66,6 +66,11 @@ function TeamEditDialogCore() {
     tournManager.teamEditModalClose();
   };
 
+  const handleRegNameblur = () => {
+    modalManager.changeTeamName(regName);
+    tournManager.onTemRegistrationNameUpdate();
+  };
+
   const handleSsChange = (checked: boolean) => {
     setTeamIsSS(checked);
     modalManager.changeSS(checked);
@@ -103,9 +108,9 @@ function TeamEditDialogCore() {
                   size="small"
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
-                  onBlur={() => modalManager.changeTeamName(regName)}
+                  onBlur={handleRegNameblur}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') modalManager.changeTeamName(regName);
+                    if (e.key === 'Enter') handleRegNameblur();
                   }}
                 />
               </Grid>

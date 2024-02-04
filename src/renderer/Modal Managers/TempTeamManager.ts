@@ -112,7 +112,17 @@ export class TempTeamManager {
     this.dataChangedReactCallback();
   }
 
-  /** Once the form is accepted, get the registration we actually need to change (if any), since changing the organization
+  /** When the team name is changed to match some other registration, load data from that registration */
+  copyDataFromOtherRegistration(regThatWasOpened: Registration | null, allRegistrations: Registration[]) {
+    const matchingReg = this.getRegistrationToSaveTo(regThatWasOpened, allRegistrations);
+    if (matchingReg === null) return;
+    if (matchingReg === regThatWasOpened) return;
+
+    this.tempRegistration.isSmallSchool = matchingReg.isSmallSchool;
+    this.dataChangedReactCallback();
+  }
+
+  /** Get the registration we would actually need to change (if any), since changing the organization
    *  name can switch which regitration we're editing. Returns null if we should create a new registration.
    */
   getRegistrationToSaveTo(
