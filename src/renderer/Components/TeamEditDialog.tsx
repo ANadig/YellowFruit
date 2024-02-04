@@ -56,6 +56,8 @@ function TeamEditDialogCore() {
   const [teamIsD2, setTeamIsD2] = useSubscription(tempTeamToEdit.isD2);
   const [numPlayers] = useSubscription(modalManager.tempTeam.players.length);
 
+  const autoFocusFirstPlayer = regName !== '' && teamLetter !== '' && numPlayers === 1;
+
   const handleAccept = () => {
     tournManager.teamEditModalAttemptToSave();
   };
@@ -96,7 +98,7 @@ function TeamEditDialogCore() {
                   sx={{ marginTop: 1 }}
                   label="School / Organization"
                   fullWidth
-                  autoFocus
+                  autoFocus={!autoFocusFirstPlayer}
                   variant="outlined"
                   size="small"
                   value={regName}
@@ -155,7 +157,7 @@ function TeamEditDialogCore() {
             <Divider textAlign="left" sx={{ my: 2, '&:before': { width: '0%' } }}>
               <Typography variant="subtitle1">Players</Typography>
             </Divider>
-            <PlayersGrid numRows={numPlayers} />
+            <PlayersGrid numRows={numPlayers} autoFocusFirstPlayer={autoFocusFirstPlayer} />
           </Box>
         </DialogContent>
         <DialogActions>
@@ -170,23 +172,25 @@ function TeamEditDialogCore() {
 
 interface IPlayersGridProps {
   numRows: number;
+  autoFocusFirstPlayer: boolean;
 }
 
 function PlayersGrid(props: IPlayersGridProps) {
-  const { numRows } = props;
+  const { numRows, autoFocusFirstPlayer } = props;
   const rows: React.JSX.Element[] = [];
   for (let i = 0; i < numRows; i++) {
-    rows.push(<PlayerGridRow key={i} rowIdx={i} />);
+    rows.push(<PlayerGridRow key={i} rowIdx={i} autoFocus={autoFocusFirstPlayer && i === 0} />);
   }
   return rows;
 }
 
 interface IPlayerGridRowProps {
   rowIdx: number;
+  autoFocus: boolean;
 }
 
 function PlayerGridRow(props: IPlayerGridRowProps) {
-  const { rowIdx } = props;
+  const { rowIdx, autoFocus } = props;
   const modalManager = useContext(TeamEditModalContext);
   const player = modalManager.tempTeam.players[rowIdx];
 
@@ -220,6 +224,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
         <TextField
           placeholder="Player Name"
           fullWidth
+          autoFocus={autoFocus}
           variant="outlined"
           size="small"
           value={playerName}

@@ -344,6 +344,13 @@ export class TournamentManager {
     this.teamBeingModified = team;
   }
 
+  /** In the modal form, queue up a team of the given letter for the given registration */
+  startNextTeamForRegistration(reg: Registration, letter: string) {
+    this.teamModalManager.openModal(reg, undefined, letter);
+    this.registrationBeingModified = reg;
+    this.teamBeingModified = null;
+  }
+
   teamEditModalAttemptToSave() {
     if (this.teamModalManager.preSaveValidation()) {
       this.teamModalSave();

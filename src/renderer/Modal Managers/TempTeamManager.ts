@@ -29,13 +29,28 @@ export class TempTeamManager {
     this.tempTeam = NullObjects.nullTeam;
   }
 
-  openModal(reg?: Registration, team?: Team) {
+  /**
+   * Get the form ready, and open it
+   * @param reg Existing registration to edit. Required if team is provided
+   * @param team Existing team to edit
+   * @param letter Letter to assign to a new team. Ignored if team is provided
+   */
+  openModal(reg?: Registration, team?: Team, letter?: string) {
     this.modalIsOpen = true;
-    if (reg && team) {
-      this.loadTeam(reg, team);
+    if (team && !reg) return; // not allowed
+
+    if (reg) {
+      this.loadRegistration(reg);
     } else {
-      this.createBlankTeam();
+      this.createBlankRegistration();
     }
+
+    if (team) {
+      this.loadTeam(team);
+    } else {
+      this.createBlankTeam(letter);
+    }
+
     this.dataChangedReactCallback();
   }
 
@@ -71,16 +86,27 @@ export class TempTeamManager {
     this.dataChangedReactCallback();
   }
 
-  createBlankTeam() {
-    // don't actually put the team in the registration, because we might end up saving to a different registration
+  createBlankRegistration() {
     this.tempRegistration = new Registration('');
+    this.dataChangedReactCallback();
+  }
+
+  createBlankTeam(letter: string | undefined) {
+    // don't actually put the team in the registration, because we might end up saving to a different registration
     this.tempTeam = new Team('');
+    if (letter) {
+      this.tempTeam.letter = letter;
+      this.makeTeamName();
+    }
     this.tempTeam.pushBlankPlayer();
     this.dataChangedReactCallback();
   }
 
-  loadTeam(reg: Registration, team: Team) {
+  loadRegistration(reg: Registration) {
     this.tempRegistration = reg.makeCopy();
+  }
+
+  loadTeam(team: Team) {
     this.tempTeam = team.makeCopy();
     this.tempTeam.pushBlankPlayer();
     this.dataChangedReactCallback();
@@ -110,6 +136,9 @@ export class TempTeamManager {
   saveRegistration(targetReg: Registration, teamIsNew?: boolean) {
     if (teamIsNew) {
       this.tempRegistration.teams = [];
+      if (targetReg.teams.length === 1 && this.tempTeam.letter === 'B') {
+        targetReg.teams[0].makeThisTheATeam();
+      }
       this.tempRegistration.addTeams(targetReg.teams);
       this.tempRegistration.addTeam(this.tempTeam);
     }

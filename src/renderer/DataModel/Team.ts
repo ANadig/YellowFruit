@@ -118,6 +118,14 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     this.players = this.players.filter((player) => player.name !== '');
   }
 
+  /** Change a team with no letter to be the A team for its registration */
+  makeThisTheATeam() {
+    if (this.letter !== '') return;
+
+    this.letter = 'A';
+    this.name = this.name.concat(' A');
+  }
+
   validateAll() {
     this.validatePlayerList();
     this.validateLetter();

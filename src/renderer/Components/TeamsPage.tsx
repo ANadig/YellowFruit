@@ -110,7 +110,7 @@ function RegistrationList(props: IRegistrationListProps) {
   return teams.map((team, idx) => (
     <div key={team.name}>
       {idx !== 0 && <Divider />}
-      <TeamListItem key={team.name} registration={registration} team={team} />
+      <TeamListItem key={team.name} registration={registration} team={team} isLastForReg={idx === teams.length - 1} />
     </div>
   ));
 }
@@ -118,13 +118,16 @@ function RegistrationList(props: IRegistrationListProps) {
 interface ITeamListItemProps {
   registration: Registration;
   team: Team;
+  /** Is this the last team in the registration? e.g. C team with no D, E, etc teams */
+  isLastForReg: boolean;
 }
 
 function TeamListItem(props: ITeamListItemProps) {
-  const { registration, team } = props;
+  const { registration, team, isLastForReg } = props;
   const tournManager = useContext(TournamentContext);
 
-  const nextLetter = nextAlphabetLetter(team.letter);
+  let nextLetter = '';
+  if (isLastForReg) nextLetter = team.letter === '' ? 'B' : nextAlphabetLetter(team.letter);
 
   return (
     <Grid container sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}>
@@ -134,9 +137,9 @@ function TeamListItem(props: ITeamListItemProps) {
       </Grid>
       <Grid xs={3}>
         <Box sx={{ float: 'right' }}>
-          {nextLetter !== '' && (
+          {nextLetter && (
             <Tooltip title={`Add ${nextLetter} team`}>
-              <IconButton>
+              <IconButton onClick={() => tournManager.startNextTeamForRegistration(registration, nextLetter)}>
                 <CopyAll />
               </IconButton>
             </Tooltip>
