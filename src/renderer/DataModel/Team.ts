@@ -43,7 +43,7 @@ export class Team implements IQbjTeam, IYftDataModelObject {
   /** Whether this is the A, B, C, etc. team. Not necessarily a letter -- e.g. colors */
   letter: string = '';
 
-  /** Is this team considered "junion varsity"? */
+  /** Is this team considered "junior varsity"? */
   isJV: boolean = false;
 
   /** Is this team considered "undergrad"? */

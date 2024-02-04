@@ -60,8 +60,7 @@ function RegistrationView() {
   const [numberOfTeams] = useSubscription(thisTournament.getNumberOfTeams());
   const [expectedNumTeams] = useSubscription(thisTournament.getExpectedNumberOfTeams());
 
-  const teamTotDisp =
-    expectedNumTeams === null ? `${numberOfTeams} teams` : `${numberOfTeams} of ${expectedNumTeams} teams registered`;
+  const teamTotDisp = numberOfTeamsDisplay(numberOfTeams, expectedNumTeams);
 
   return (
     <Card>
@@ -158,6 +157,13 @@ function TeamListItem(props: ITeamListItemProps) {
       </Grid>
     </Grid>
   );
+}
+
+function numberOfTeamsDisplay(numTeams: number, numTeamsForSchedule: number | null) {
+  if (numTeamsForSchedule === null) {
+    return `${numTeams} team${numTeams !== 1 ? 's' : ''}`;
+  }
+  return `${numTeams} of ${numTeamsForSchedule} teams registered`;
 }
 
 function teamInfoDisplay(reg: Registration, team: Team) {
