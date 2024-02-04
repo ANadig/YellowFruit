@@ -1,4 +1,11 @@
-import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import {
+  IQbjObject,
+  IValidationInfo,
+  IYftDataModelObject,
+  IYftFileObject,
+  ValidationStatuses,
+  makeEmptyValidator,
+} from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
 
 /** Grades/years in school */
@@ -76,6 +83,12 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
   /** Is this player considered "divison 2"? */
   isD2: boolean = false;
 
+  nameValidation: IValidationInfo;
+
+  yearStringValidation: IValidationInfo;
+
+  static duplicateErrorMessage = 'Duplicate player';
+
   static yearTitles = {
     0: 'Kindergarten',
     1: '1st Grade',
@@ -132,6 +145,9 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
 
   constructor(name: string) {
     this.name = name;
+
+    this.nameValidation = makeEmptyValidator();
+    this.yearStringValidation = makeEmptyValidator();
   }
 
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false, idXtraPc = ''): IQbjPlayer {
@@ -148,6 +164,62 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
     const yfData: IPlayerExtraData = { yearString: this.yearString, isUG: this.isUG, isD2: this.isD2 };
     const yftFileObj: IYftFilePlayer = { YfData: yfData, ...qbjObject };
     return yftFileObj;
+  }
+
+  validateAll() {
+    this.validateName();
+    this.validateYearString();
+  }
+
+  validateName() {
+    if (this.name.length > Player.nameMaxLength) {
+      this.nameValidation.status = ValidationStatuses.Error;
+      this.nameValidation.message = `Maximum allowed length is ${Player.nameMaxLength} characters.`;
+    } else {
+      this.nameValidation = makeEmptyValidator();
+    }
+  }
+
+  validateYearString() {
+    if (this.yearString.length > Player.yearStringMaxLength) {
+      this.yearStringValidation.status = ValidationStatuses.Error;
+      this.yearStringValidation.message = `Maximum allowed length is ${Player.yearStringMaxLength} characters.`;
+    } else if (this.yearString !== '' && this.year === undefined) {
+      this.yearStringValidation.status = ValidationStatuses.Warning;
+      this.yearStringValidation.message = 'Unrecognized grade/year.';
+    } else {
+      this.yearStringValidation = makeEmptyValidator();
+    }
+  }
+
+  setDuplicateStatus(isDup: boolean) {
+    if (
+      this.nameValidation.status === ValidationStatuses.Error &&
+      this.nameValidation.message !== Player.duplicateErrorMessage
+    ) {
+      return; // already invalid? don't bother
+    }
+
+    if (isDup) {
+      this.nameValidation.status = ValidationStatuses.Error;
+      this.nameValidation.message = Player.duplicateErrorMessage;
+      return;
+    }
+
+    if (this.nameValidation.message !== Player.duplicateErrorMessage) return;
+
+    this.nameValidation = makeEmptyValidator();
+  }
+
+  getErrorMessages() {
+    const errs: string[] = [];
+    if (this.nameValidation.status === ValidationStatuses.Error) {
+      errs.push(`Name: ${this.nameValidation.message}`);
+    }
+    if (this.yearStringValidation.status === ValidationStatuses.Error) {
+      errs.push(`Grade/year: ${this.yearStringValidation.message}`);
+    }
+    return errs;
   }
 
   /** Try to find a matching non-numeric year (e.g. "Freshman") and return the

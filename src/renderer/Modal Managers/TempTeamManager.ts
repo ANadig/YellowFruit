@@ -220,13 +220,18 @@ export class TempTeamManager {
 
   changePlayerName(playerIdx: number, newName: string) {
     const trimmedName = newName.trim();
-    this.tempTeam.players[playerIdx].name = trimmedName;
+    const player = this.tempTeam.players[playerIdx];
+    player.name = trimmedName;
+    player.validateName();
+    this.tempTeam.validatePlayerUniqueness();
     this.dataChangedReactCallback();
   }
 
   changePlayerYear(playerIdx: number, newYear: string) {
     const trimmedYear = newYear.trim();
-    this.tempTeam.players[playerIdx].yearString = trimmedYear;
+    const player = this.tempTeam.players[playerIdx];
+    player.yearString = trimmedYear;
+    player.validateYearString();
     this.dataChangedReactCallback();
   }
 

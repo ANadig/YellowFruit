@@ -129,8 +129,10 @@ export class Team implements IQbjTeam, IYftDataModelObject {
   validateAll() {
     this.validatePlayerList();
     this.validateLetter();
+    this.validatePlayerUniqueness();
   }
 
+  /** Validate that the team has an appropriate number of players */
   validatePlayerList() {
     if (this.players.length > Team.maxPlayers) {
       this.playerListValidation.status = ValidationStatuses.Error;
@@ -155,14 +157,39 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     }
   }
 
+  /** Validated that there aren't duplicate players */
+  validatePlayerUniqueness() {
+    const nameDict: { [name: string]: Player[] } = {};
+    for (const pl of this.players) {
+      const name = pl.name.toLocaleUpperCase();
+      if (name !== '') {
+        if (nameDict[name] === undefined) nameDict[name] = [];
+        nameDict[name].push(pl);
+      }
+    }
+    let playersWithErrors: Player[] = [];
+    for (const name in nameDict) {
+      if (nameDict[name].length > 1) {
+        playersWithErrors = playersWithErrors.concat(nameDict[name]);
+      }
+    }
+    for (const pl of this.players) {
+      pl.setDuplicateStatus(playersWithErrors.includes(pl));
+    }
+  }
+
   getErrorMessages(): string[] {
-    const errs: string[] = [];
+    let errs: string[] = [];
     if (this.playerListValidation.status === ValidationStatuses.Error) {
       errs.push(`Players: ${this.playerListValidation.message}`);
     }
     if (this.letterValidation.status === ValidationStatuses.Error) {
       errs.push(`Team modifier: ${this.letterValidation.message}`);
     }
+    this.players.forEach((pl, idx) => {
+      const errsOnePlayer = pl.getErrorMessages();
+      errs = errs.concat(errsOnePlayer.map((err) => `Players row ${idx + 1}: ${err}`));
+    });
     return errs;
   }
 }

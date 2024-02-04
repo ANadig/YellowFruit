@@ -13,6 +13,8 @@ import {
   Divider,
   List,
   ListItem,
+  FormHelperText,
+  FormControl,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import React, { useContext, useEffect, useState } from 'react';
@@ -20,6 +22,7 @@ import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { TeamEditModalContext } from '../Modal Managers/TempTeamManager';
 import { Team } from '../DataModel/Team';
+import { ValidationStatuses } from '../DataModel/Interfaces';
 
 function TeamEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -96,7 +99,13 @@ function TeamEditDialogCore() {
       <Dialog fullWidth maxWidth="md" open={isOpen} onClose={handleCancel}>
         <DialogTitle>{teamBeingModified === null ? 'New Team' : `Edit ${teamBeingModified.name}`}</DialogTitle>
         <DialogContent>
-          <Box sx={{ height: 375, '& .MuiGrid2-root': { display: 'flex', alignItems: 'end' } }}>
+          <Box
+            sx={{
+              height: 375,
+              '& .MuiGrid2-root': { display: 'flex', alignItems: 'end' },
+              '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
+            }}
+          >
             <Grid container spacing={1}>
               <Grid xs={9} sm={6}>
                 <TextField
@@ -204,6 +213,13 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
   const [playerIsUG, setPlayerIsUG] = useSubscription(player?.isUG || false);
   const [playerIsD2, setPlayerIsD2] = useSubscription(player?.isD2 || false);
 
+  const [nameValidationStatus] = useSubscription(player?.nameValidation.status);
+  const [nameValidationMsg] = useSubscription(player?.nameValidation.message);
+  const [yearValidationStatus] = useSubscription(player?.yearStringValidation.status);
+  const [yearValidationMsg] = useSubscription(player?.yearStringValidation.message);
+  const warningExists =
+    yearValidationStatus !== ValidationStatuses.Ok || nameValidationStatus !== ValidationStatuses.Ok;
+
   const isLastRow = rowIdx === modalManager.tempTeam.players.length - 1;
 
   const handlePlayerNameChange = (newName: string) => {
@@ -232,6 +248,8 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
           autoFocus={autoFocus}
           variant="outlined"
           size="small"
+          error={nameValidationStatus === ValidationStatuses.Error}
+          helperText={getHelperText(nameValidationMsg, warningExists)}
           value={playerName}
           onChange={(e) => handlePlayerNameChange(e.target.value)}
           onBlur={() => modalManager.changePlayerName(rowIdx, playerName)}
@@ -243,29 +261,43 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
           fullWidth
           variant="outlined"
           size="small"
+          error={yearValidationStatus === ValidationStatuses.Error}
+          helperText={getHelperText(yearValidationMsg, warningExists)}
           value={playerYear}
           onChange={(e) => setPlayerYear(e.target.value)}
           onBlur={() => modalManager.changePlayerYear(rowIdx, playerYear)}
         />
       </Grid>
       <Grid xs={2} md={1}>
-        <FormGroup>
-          <FormControlLabel
-            label="UG"
-            control={<Checkbox checked={playerIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
-          />
-        </FormGroup>
+        <FormControl>
+          <FormGroup>
+            <FormControlLabel
+              label="UG"
+              control={<Checkbox checked={playerIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
+            />
+          </FormGroup>
+          <FormHelperText>{getHelperText('', warningExists)}</FormHelperText>
+        </FormControl>
       </Grid>
       <Grid xs={2} md={1}>
-        <FormGroup>
-          <FormControlLabel
-            label="D2"
-            control={<Checkbox checked={playerIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
-          />
-        </FormGroup>
+        <FormControl>
+          <FormGroup>
+            <FormControlLabel
+              label="D2"
+              control={<Checkbox checked={playerIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
+            />
+          </FormGroup>
+          <FormHelperText>{getHelperText('', warningExists)}</FormHelperText>
+        </FormControl>
       </Grid>
     </Grid>
   );
+}
+
+function getHelperText(warning: string, anyWarnings: boolean) {
+  if (warning !== '') return warning;
+  if (anyWarnings) return ' ';
+  return '';
 }
 
 function ErrorDialog() {
