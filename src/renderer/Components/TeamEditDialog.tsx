@@ -303,21 +303,21 @@ interface ITeamFormCheckBoxProps {
 
 /** Checkbox wrapper that stays aligned with text fields when they have warnings under them */
 function TeamFormCheckBox(props: ITeamFormCheckBoxProps) {
-  const { label, control, extraSpace: warningExists } = props;
+  const { label, control, extraSpace } = props;
 
   return (
     <FormControl>
       <FormGroup>
         <FormControlLabel label={label} control={control} />
       </FormGroup>
-      <FormHelperText>{getHelperText('', warningExists)}</FormHelperText>
+      <FormHelperText>{getHelperText('', extraSpace)}</FormHelperText>
     </FormControl>
   );
 }
 
-function getHelperText(warning: string, anyWarnings: boolean) {
+function getHelperText(warning: string, extraSpace: boolean) {
   if (warning !== '') return warning;
-  if (anyWarnings) return ' ';
+  if (extraSpace) return ' ';
   return '';
 }
 
