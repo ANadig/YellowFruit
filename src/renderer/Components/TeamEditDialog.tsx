@@ -23,9 +23,8 @@ import { Team } from '../DataModel/Team';
 
 function TeamEditDialog() {
   const tournManager = useContext(TournamentContext);
-  const modalManager = tournManager.teamModalManager;
   const [, setUpdateNeeded] = useState({}); // set this object to a new object whenever we want to force a re-render
-  const [mgr] = useState(modalManager);
+  const [mgr] = useState(tournManager.teamModalManager);
   useEffect(() => {
     mgr.dataChangedReactCallback = () => {
       setUpdateNeeded({});

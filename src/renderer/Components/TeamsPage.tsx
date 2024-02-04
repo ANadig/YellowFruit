@@ -147,7 +147,7 @@ function TeamListItem(props: ITeamListItemProps) {
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete team">
-            <IconButton onClick={() => tournManager.deleteTeam(registration, team)}>
+            <IconButton onClick={() => tournManager.tryDeleteTeam(registration, team)}>
               <Delete />
             </IconButton>
           </Tooltip>

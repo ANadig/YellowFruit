@@ -13,6 +13,7 @@ import StandardSchedule from './DataModel/StandardSchedule';
 import { Team } from './DataModel/Team';
 import Registration from './DataModel/Registration';
 import { TempTeamManager } from './Modal Managers/TempTeamManager';
+import { GenericModalManager } from './Modal Managers/GenericModalManager';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -34,16 +35,7 @@ export class TournamentManager {
   /** Is there data that hasn't been saved to a file? */
   unsavedData: boolean = false;
 
-  /** Is there a message that we need to show in a modal dialog? */
-  showGenericModal: boolean = false;
-
-  /** Title of the modal currently being shown */
-  genericModalTitle: string = '';
-
-  /** Contents of the modal currently being shown */
-  genericModalContents: string = '';
-
-  readonly isNull: boolean = false;
+  genericModalManager: GenericModalManager;
 
   // properties for managing the Team/Registration edit workflow
 
@@ -55,11 +47,14 @@ export class TournamentManager {
   /** The existing team that we are editing a copy of, if any */
   teamBeingModified: Team | null = null;
 
+  readonly isNull: boolean = false;
+
   constructor() {
     this.tournament = new Tournament();
     this.dataChangedReactCallback = () => {};
     this.addIpcListeners();
     this.setWindowTitle();
+    this.genericModalManager = new GenericModalManager();
 
     this.teamModalManager = new TempTeamManager();
   }
@@ -320,6 +315,12 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  tryDeleteTeam(reg: Registration, team: Team) {
+    this.genericModalManager.open('Delete Team', `Are you sure you want to delete ${team.name}?`, 'No', 'Yes', () => {
+      this.deleteTeam(reg, team);
+    });
+  }
+
   deleteTeam(reg: Registration, team: Team) {
     reg.deleteTeam(team);
     if (reg.teams.length === 0) {
@@ -405,17 +406,12 @@ export class TournamentManager {
   }
 
   openGenericModal(title: string, contents: string) {
-    this.showGenericModal = true;
-    this.genericModalTitle = title;
-    this.genericModalContents = contents;
+    this.genericModalManager.open(title, contents);
     this.dataChangedReactCallback();
   }
 
   closeGenericModal() {
-    this.showGenericModal = false;
-    this.genericModalTitle = '';
-    this.genericModalContents = '';
-    this.dataChangedReactCallback();
+    this.genericModalManager.close();
   }
 }
 

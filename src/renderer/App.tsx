@@ -11,17 +11,16 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Box from '@mui/material/Box';
 
-import { useContext, useEffect, useState } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { useEffect, useState } from 'react';
 import NavBar from './Components/NavBar';
 import GeneralPage from './Components/GeneralPage';
 import { TournamentManager, TournamentContext } from './TournamentManager';
 import ApplicationPages from './Components/Enums';
 import RulesPage from './Components/RulesPage';
-import useSubscription from './Utils/CustomHooks';
 import SchedulePage from './Components/SchedulePage';
 import TeamsPage from './Components/TeamsPage';
 import TeamEditDialog from './Components/TeamEditDialog';
+import GenericDialog from './Components/GenericDialog';
 
 window.electron.ipcRenderer.removeAllListeners();
 const tournManager = new TournamentManager();
@@ -93,25 +92,4 @@ function ActivePage(props: IActivePageProps) {
     default:
       return null;
   }
-}
-
-function GenericDialog() {
-  const curTournManager = useContext(TournamentContext);
-  const [isOpen] = useSubscription(curTournManager.showGenericModal);
-  const [title] = useSubscription(curTournManager.genericModalTitle);
-  const [contents] = useSubscription(curTournManager.genericModalContents);
-
-  const handleClose = () => {
-    curTournManager.closeGenericModal();
-  };
-
-  return (
-    <Dialog open={isOpen} onClose={handleClose}>
-      {title && <DialogTitle>{title}</DialogTitle>}
-      <DialogContent>{contents}</DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>OK</Button>
-      </DialogActions>
-    </Dialog>
-  );
 }
