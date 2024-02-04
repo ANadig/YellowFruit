@@ -73,6 +73,7 @@ function RegistrationView() {
             <Button
               variant="contained"
               sx={{ float: 'right' }}
+              disabled={expectedNumTeams !== null && numberOfTeams >= expectedNumTeams}
               startIcon={<AddCircle />}
               onClick={() => tournManager.openTeamEditModalNewTeam()}
             >
