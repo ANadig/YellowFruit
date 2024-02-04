@@ -28,7 +28,7 @@ function TeamsPage() {
 
   return (
     <>
-      <Card sx={{ marginBottom: 2 }}>
+      <Card sx={{ marginBottom: 2, '& .MuiCardContent-root': { paddingBottom: 2.1 } }}>
         <CardContent>
           <ToggleButtonGroup
             size="small"
