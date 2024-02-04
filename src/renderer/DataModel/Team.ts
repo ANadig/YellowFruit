@@ -61,6 +61,8 @@ export class Team implements IQbjTeam, IYftDataModelObject {
 
   letterValidation: IValidationInfo;
 
+  nameValidation: IValidationInfo; // for the overall team name
+
   /** Error that should prevent the team from being saved or used */
   validationError: string = '';
 
@@ -73,6 +75,7 @@ export class Team implements IQbjTeam, IYftDataModelObject {
 
     this.playerListValidation = makeEmptyValidator();
     this.letterValidation = makeEmptyValidator();
+    this.nameValidation = makeEmptyValidator();
   }
 
   makeCopy(): Team {
@@ -178,8 +181,21 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     }
   }
 
+  setDuplicateStatus(isDup: boolean) {
+    if (isDup) {
+      this.nameValidation.status = ValidationStatuses.Error;
+      this.nameValidation.message = `${this.name} already exists`;
+      return;
+    }
+
+    this.nameValidation = makeEmptyValidator();
+  }
+
   getErrorMessages(): string[] {
     let errs: string[] = [];
+    if (this.nameValidation.status === ValidationStatuses.Error) {
+      errs.push(`Duplicate team: ${this.nameValidation.message}`);
+    }
     if (this.playerListValidation.status === ValidationStatuses.Error) {
       errs.push(`Players: ${this.playerListValidation.message}`);
     }

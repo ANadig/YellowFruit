@@ -17,7 +17,7 @@ import {
   FormControl,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { ReactElement, useContext, useEffect, useState } from 'react';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { TeamEditModalContext } from '../Modal Managers/TempTeamManager';
@@ -59,6 +59,10 @@ function TeamEditDialogCore() {
   const [teamIsD2, setTeamIsD2] = useSubscription(tempTeamToEdit.isD2);
   const [numPlayers] = useSubscription(modalManager.tempTeam.players.length);
 
+  const [teamNameValidationStatus] = useSubscription(tempTeamToEdit.nameValidation.status);
+  const [teamNameValidationMsg] = useSubscription(tempTeamToEdit.nameValidation.message);
+  const warningExists = teamNameValidationStatus !== ValidationStatuses.Ok;
+
   const autoFocusFirstPlayer = regName !== '' && teamLetter !== '' && numPlayers === 1;
 
   const handleAccept = () => {
@@ -71,7 +75,12 @@ function TeamEditDialogCore() {
 
   const handleRegNameblur = () => {
     modalManager.changeTeamName(regName);
-    tournManager.onTemRegistrationNameUpdate();
+    tournManager.onTeamRegistrationNameUpdate();
+  };
+
+  const handleLetterBlur = () => {
+    modalManager.changeTeamLetter(teamLetter);
+    tournManager.onTeamLetterUpdate();
   };
 
   const handleSsChange = (checked: boolean) => {
@@ -115,6 +124,8 @@ function TeamEditDialogCore() {
                   autoFocus={!autoFocusFirstPlayer}
                   variant="outlined"
                   size="small"
+                  error={teamNameValidationStatus === ValidationStatuses.Error}
+                  helperText={warningExists ? teamNameValidationMsg : ' '}
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
                   onBlur={handleRegNameblur}
@@ -129,42 +140,40 @@ function TeamEditDialogCore() {
                   placeholder="A, B, etc."
                   variant="outlined"
                   size="small"
+                  error={teamLetter !== '' && teamNameValidationStatus === ValidationStatuses.Error}
+                  helperText={' '}
                   value={teamLetter}
                   onChange={(e) => setTeamLetter(e.target.value)}
-                  onBlur={() => modalManager.changeTeamLetter(teamLetter)}
+                  onBlur={handleLetterBlur}
                 />
               </Grid>
               <Grid xs={2} md={1} sx={{ display: 'flex', alignItems: 'end' }}>
-                <FormGroup>
-                  <FormControlLabel
-                    label="SS"
-                    control={<Checkbox checked={teamIsSS} onChange={(e) => handleSsChange(e.target.checked)} />}
-                  />
-                </FormGroup>
+                <TeamFormCheckBox
+                  label="SS"
+                  extraSpace
+                  control={<Checkbox checked={teamIsSS} onChange={(e) => handleSsChange(e.target.checked)} />}
+                />
               </Grid>
               <Grid xs={2} md={1}>
-                <FormGroup>
-                  <FormControlLabel
-                    label="JV"
-                    control={<Checkbox checked={teamIsJV} onChange={(e) => handleJvChange(e.target.checked)} />}
-                  />
-                </FormGroup>
+                <TeamFormCheckBox
+                  label="JV"
+                  extraSpace
+                  control={<Checkbox checked={teamIsJV} onChange={(e) => handleJvChange(e.target.checked)} />}
+                />
               </Grid>
               <Grid xs={2} md={1}>
-                <FormGroup>
-                  <FormControlLabel
-                    label="UG"
-                    control={<Checkbox checked={teamIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
-                  />
-                </FormGroup>
+                <TeamFormCheckBox
+                  label="UG"
+                  extraSpace
+                  control={<Checkbox checked={teamIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
+                />
               </Grid>
               <Grid xs={2} md={1}>
-                <FormGroup>
-                  <FormControlLabel
-                    label="D2"
-                    control={<Checkbox checked={teamIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
-                  />
-                </FormGroup>
+                <TeamFormCheckBox
+                  label="D2"
+                  extraSpace
+                  control={<Checkbox checked={teamIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
+                />
               </Grid>
             </Grid>
 
@@ -269,28 +278,40 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
         />
       </Grid>
       <Grid xs={2} md={1}>
-        <FormControl>
-          <FormGroup>
-            <FormControlLabel
-              label="UG"
-              control={<Checkbox checked={playerIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
-            />
-          </FormGroup>
-          <FormHelperText>{getHelperText('', warningExists)}</FormHelperText>
-        </FormControl>
+        <TeamFormCheckBox
+          label="UG"
+          extraSpace={warningExists}
+          control={<Checkbox checked={playerIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
+        />
       </Grid>
       <Grid xs={2} md={1}>
-        <FormControl>
-          <FormGroup>
-            <FormControlLabel
-              label="D2"
-              control={<Checkbox checked={playerIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
-            />
-          </FormGroup>
-          <FormHelperText>{getHelperText('', warningExists)}</FormHelperText>
-        </FormControl>
+        <TeamFormCheckBox
+          label="D2"
+          extraSpace={warningExists}
+          control={<Checkbox checked={playerIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
+        />
       </Grid>
     </Grid>
+  );
+}
+
+interface ITeamFormCheckBoxProps {
+  label: string;
+  control: ReactElement<any, any>;
+  extraSpace: boolean;
+}
+
+/** Checkbox wrapper that stays aligned with text fields when they have warnings under them */
+function TeamFormCheckBox(props: ITeamFormCheckBoxProps) {
+  const { label, control, extraSpace: warningExists } = props;
+
+  return (
+    <FormControl>
+      <FormGroup>
+        <FormControlLabel label={label} control={control} />
+      </FormGroup>
+      <FormHelperText>{getHelperText('', warningExists)}</FormHelperText>
+    </FormControl>
   );
 }
 

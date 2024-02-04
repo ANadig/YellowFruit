@@ -244,6 +244,20 @@ export class TempTeamManager {
     this.tempTeam.players[playerIdx].isD2 = checked;
     this.dataChangedReactCallback();
   }
+
+  checkForDuplicateTeam(allRegistrations: Registration[], originalTeamOpened: Team | null) {
+    const matchingReg = allRegistrations.find(
+      (val) => val.name.toLocaleUpperCase() === this.tempRegistration.name.toLocaleUpperCase(),
+    );
+    if (!matchingReg) {
+      this.tempTeam.setDuplicateStatus(false);
+      return;
+    }
+
+    const matchingTeam = matchingReg.teams.find((tm) => tm.letter === this.tempTeam.letter);
+    const isDup = matchingTeam !== undefined && matchingTeam !== originalTeamOpened;
+    this.tempTeam.setDuplicateStatus(isDup);
+  }
 }
 
 export const TeamEditModalContext = createContext<TempTeamManager>(new TempTeamManager());

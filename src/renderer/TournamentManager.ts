@@ -351,9 +351,15 @@ export class TournamentManager {
     this.teamBeingModified = null;
   }
 
-  /** Called then the team name in the team edit form is changed */
-  onTemRegistrationNameUpdate() {
+  /** Called when the team name in the team edit form is changed */
+  onTeamRegistrationNameUpdate() {
     this.teamModalManager.copyDataFromOtherRegistration(this.registrationBeingModified, this.tournament.registrations);
+    this.teamModalManager.checkForDuplicateTeam(this.tournament.registrations, this.teamBeingModified);
+  }
+
+  /** Called when the team letter field in the team edit form is changed */
+  onTeamLetterUpdate() {
+    this.teamModalManager.checkForDuplicateTeam(this.tournament.registrations, this.teamBeingModified);
   }
 
   teamEditModalAttemptToSave() {
