@@ -60,19 +60,19 @@ export function getTemplateName(template: ScheduleTemplates, size: number) {
 export function getTemplateShortName(template: ScheduleTemplates) {
   switch (template) {
     case ScheduleTemplates.$4teamsTripleRR:
-      return 'Triple Round Robin';
+      return Sched4TeamsTripleRR.shortName;
     case ScheduleTemplates.$4teamsQuadRR:
-      return 'Quadruple Round Robin';
+      return Sched4TeamsQuadRR.shortName;
     case ScheduleTemplates.$5teamsDoubleRR:
-      return 'Double Round Robin';
+      return Sched5TeamsDoubleRR.shortName;
     case ScheduleTemplates.$5teams13Rounds:
-      return '13 Rounds';
+      return Sched5Teams13Rounds.shortName;
     case ScheduleTemplates.$6teamsDoubleRR:
-      return 'Double Round Robin';
+      return Sched6TeamsDoubleRR.shortName;
     case ScheduleTemplates.$6teams13RoundsSplit33:
-      return '13 Rounds (3/3 Split)';
+      return Sched6Teams13RoundsSplit33.shortName;
     case ScheduleTemplates.$6teams13RoundsSplit42:
-      return '13 Rounds (4/2 Split)';
+      return Sched6Teams13RoundsSplit42.shortName;
     case ScheduleTemplates.$7Teams10Rounds:
       return Sched7Teams10Rounds.shortName;
     case ScheduleTemplates.$7Teams13Rounds:
@@ -80,9 +80,9 @@ export function getTemplateShortName(template: ScheduleTemplates) {
     case ScheduleTemplates.$7TeamsDoubleRR:
       return Sched7TeamsDoubleRR.shortName;
     case ScheduleTemplates.$24teams11rounds2phases:
-      return '11 Rounds (2 Phases)';
+      return Sched24Teams11Rounds2Phases.shortName;
     case ScheduleTemplates.$24teams11rounds3phases:
-      return '11 Rounds (3 Phases)';
+      return Sched24Teams11Rounds3Phases.shortName;
     default:
       return '';
   }

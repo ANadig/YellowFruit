@@ -5,6 +5,10 @@ import { Pool, makePoolSet, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
 export class Sched24Teams11Rounds2Phases implements StandardSchedule {
+  static fullName = '24 Teams - 4 Pools of 6 Teams, Then 3 Pools of 8 Teams';
+
+  static shortName = '11 Rounds (2 Phases)';
+
   readonly size = 24;
 
   readonly rounds = 11;
@@ -40,6 +44,11 @@ export class Sched24Teams11Rounds2Phases implements StandardSchedule {
 }
 
 export class Sched24Teams11Rounds3Phases implements StandardSchedule {
+  static fullName =
+    '24 Teams - 4 Pools of 6 Teams, Then 2 Sets of 2 Parallel Pools of 6 Teams, Then 4 Pools of 6 Teams';
+
+  static shortName = '11 Rounds (3 Phases)';
+
   readonly size = 24;
 
   readonly rounds = 11;
