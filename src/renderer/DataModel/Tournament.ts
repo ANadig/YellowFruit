@@ -78,6 +78,9 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   questionSet: string = '';
 
+  /** The list of teams ordered by their initial seed. This should NOT be the source of truth for what teams exist in general. */
+  seeds: Team[] = [];
+
   constructor(name?: string) {
     if (name) {
       this.name = name;
@@ -134,6 +137,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   addRegAndTeam(regToAdd: Registration, teamToAdd: Team) {
     regToAdd.teams = [teamToAdd];
     this.addRegistration(regToAdd);
+    this.addTeamToSeeds(teamToAdd);
   }
 
   addRegistration(regToAdd: Registration) {
@@ -148,6 +152,21 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   deleteRegistration(regToDelete: Registration) {
     if (regToDelete === null) return;
     this.registrations = this.registrations.filter((reg) => reg !== regToDelete);
+  }
+
+  addTeamToSeeds(newTeam: Team) {
+    this.seeds.push(newTeam);
+  }
+
+  deleteTeamFromSeeds(deletedTeam: Team) {
+    this.seeds = this.seeds.filter((tm) => tm !== deletedTeam);
+  }
+
+  /** Add all teams in a registration to the list of seeds, if they aren't already there */
+  seedTeamsInRegistration(reg: Registration) {
+    for (const tm of reg.teams) {
+      if (!this.seeds.includes(tm)) this.addTeamToSeeds(tm);
+    }
   }
 }
 

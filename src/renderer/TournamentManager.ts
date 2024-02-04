@@ -322,6 +322,7 @@ export class TournamentManager {
   }
 
   deleteTeam(reg: Registration, team: Team) {
+    this.tournament.deleteTeamFromSeeds(team);
     reg.deleteTeam(team);
     if (reg.teams.length === 0) {
       this.tournament.deleteRegistration(reg);
@@ -384,6 +385,7 @@ export class TournamentManager {
       this.tournament.addRegAndTeam(this.teamModalManager.tempRegistration, this.teamModalManager.tempTeam);
     } else if (this.teamBeingModified === null || registrationSwitched) {
       this.teamModalManager.saveRegistration(actualRegToModify, true);
+      this.tournament.seedTeamsInRegistration(actualRegToModify);
     } else {
       this.teamModalManager.saveTeam(actualRegToModify, this.teamBeingModified);
     }
