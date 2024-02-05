@@ -35,6 +35,8 @@ export class TournamentManager {
   /** Is there data that hasn't been saved to a file? */
   unsavedData: boolean = false;
 
+  currentTeamsPageView: number = 0;
+
   genericModalManager: GenericModalManager;
 
   // properties for managing the Team/Registration edit workflow
@@ -190,6 +192,14 @@ export class TournamentManager {
   }
 
   // #region Functions for changing the data from the UI
+
+  /** Keep track of which view the user is on, so that they can leave the Teams page, then
+   *  come back and see the samve view.
+   */
+  setTeamsPageView(whichPage: number) {
+    this.currentTeamsPageView = whichPage;
+    this.onDataChanged(true);
+  }
 
   /** Set the tournament's display name */
   setTournamentName(name: string): void {

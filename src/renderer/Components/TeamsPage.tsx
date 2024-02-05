@@ -13,7 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import Registration from '../DataModel/Registration';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
@@ -25,7 +25,8 @@ import SeedingView from './TeamsPageSeedingView';
 const viewList = ['Registration', 'Seeding', 'Standings'];
 
 function TeamsPage() {
-  const [curView, setCurView] = useState(0);
+  const tournManager = useContext(TournamentContext);
+  const [curView] = useSubscription(tournManager.currentTeamsPageView);
 
   return (
     <>
@@ -38,7 +39,7 @@ function TeamsPage() {
             value={curView}
             onChange={(e, newValue) => {
               if (newValue === null) return;
-              setCurView(newValue);
+              tournManager.setTeamsPageView(newValue);
             }}
           >
             {viewList.map((val, idx) => (
