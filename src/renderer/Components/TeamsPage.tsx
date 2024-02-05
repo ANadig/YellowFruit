@@ -19,6 +19,7 @@ import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
 import { Team } from '../DataModel/Team';
 import { nextAlphabetLetter } from '../Utils/GeneralUtils';
+import SeedingView from './TeamsPageSeedingView';
 
 // Defines the order the buttons should be in
 const viewList = ['Registration', 'Seeding', 'Standings'];
@@ -49,6 +50,7 @@ function TeamsPage() {
         </CardContent>
       </Card>
       {curView === 0 && <RegistrationView />}
+      {curView === 1 && <SeedingView />}
     </>
   );
 }
