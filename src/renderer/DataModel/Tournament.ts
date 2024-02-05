@@ -126,11 +126,16 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
    *  Returns null if there isn't enough information to calculate.
    */
   getExpectedNumberOfTeams(): number | null {
-    const prelimPhase = this.phases.find((phase) => phase.phaseType === PhaseTypes.Prelim);
+    const prelimPhase = this.getPrelimPhase();
     if (!prelimPhase) return null;
 
     const poolSizes = prelimPhase.pools.map((pool) => pool.size);
     return sumReduce(poolSizes);
+  }
+
+  /** Which phase is the prelim phase? */
+  getPrelimPhase(): Phase | undefined {
+    return this.phases.find((phase) => phase.phaseType === PhaseTypes.Prelim);
   }
 
   /** Add a new registration, and a team that should be contained in that registration */
