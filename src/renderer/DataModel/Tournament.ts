@@ -117,8 +117,9 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.scoringRules = new ScoringRules(rules);
   }
 
+  /** The total number of teams that currently exist. */
   getNumberOfTeams() {
-    const regSizes = this.registrations.map((reg) => reg.teams.length);
+    const regSizes: number[] = this.registrations.map((reg) => reg.teams.length);
     return sumReduce(regSizes);
   }
 

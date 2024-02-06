@@ -22,6 +22,7 @@ import {
 } from '../DataModel/ScheduleUtils';
 import StandardSchedule from '../DataModel/StandardSchedule';
 import { TournamentContext } from '../TournamentManager';
+import useSubscription from '../Utils/CustomHooks';
 
 const sizeSelectLabel = 'Tournament Size';
 const templateSelectLabel = 'Template';
@@ -31,6 +32,7 @@ export default function SchedulePickerCard() {
   const [size, setSize] = useState<number | string>('');
   const [selectedTemplate, setSelectedTemplate] = useState<ScheduleTemplates | string>('');
   const [previewedSchedule, setPreviewedSchedule] = useState<StandardSchedule | null>(null);
+  const [numTeamsRegistered] = useSubscription(tournManager.tournament.getNumberOfTeams());
 
   const handleSizeChange = (val: number | string) => {
     setSize(val);
@@ -60,7 +62,7 @@ export default function SchedulePickerCard() {
           <InputLabel>{sizeSelectLabel}</InputLabel>
           <Select label={sizeSelectLabel} value={size} onChange={(e) => handleSizeChange(e.target.value)}>
             {sizesWithTemplates.map((val) => (
-              <MenuItem key={val} value={val}>{`${val} Teams`}</MenuItem>
+              <MenuItem key={val} value={val} disabled={val < numTeamsRegistered}>{`${val} Teams`}</MenuItem>
             ))}
           </Select>
         </FormControl>
