@@ -6,7 +6,6 @@ import { NullObjects } from './Utils/UtilTypes';
 import { IpcMainToRend, IpcRendToMain } from '../IPCChannels';
 import { IQbjObject, IQbjWholeFile, IRefTargetDict } from './DataModel/Interfaces';
 import { QbjTypeNames } from './DataModel/QbjEnums';
-import { collectRefTargets } from './DataModel/QbjUtils';
 import AnswerType from './DataModel/AnswerType';
 import { parseYftTournament } from './DataModel/FileParsing';
 import StandardSchedule from './DataModel/StandardSchedule';
@@ -14,6 +13,7 @@ import { Team } from './DataModel/Team';
 import Registration from './DataModel/Registration';
 import { TempTeamManager } from './Modal Managers/TempTeamManager';
 import { GenericModalManager } from './Modal Managers/GenericModalManager';
+import { collectRefTargets } from './DataModel/QbjUtils2';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -321,7 +321,7 @@ export class TournamentManager {
   }
 
   setStandardSchedule(sched: StandardSchedule) {
-    this.tournament.phases = sched.phases;
+    this.tournament.setStandardSchedule(sched);
     this.onDataChanged();
   }
 

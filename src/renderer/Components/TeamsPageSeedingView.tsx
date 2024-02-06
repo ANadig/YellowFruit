@@ -79,7 +79,6 @@ interface ISeedListItemProps {
 function SeedListItem(props: ISeedListItemProps) {
   const { team, seedNo, canMoveUp, canMoveDown } = props;
   const str = team === null ? '' : team.name;
-  // const transparentColorStyle = {}
 
   return (
     <ListItem
@@ -110,8 +109,8 @@ function PoolView() {
   return (
     <Grid container spacing={2}>
       {phase.pools.map((pool) => (
-        <Grid xs={12} md={6}>
-          <TableContainer key={pool.name} sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+        <Grid key={pool.name} xs={12} md={6}>
+          <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
             <Table size="small">
               <TableHead>
                 <TableRow>

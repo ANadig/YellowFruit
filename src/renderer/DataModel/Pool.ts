@@ -1,5 +1,6 @@
 import { getAlphabetLetter } from '../Utils/GeneralUtils';
 import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { IQbjPoolTeam, PoolTeam } from './PoolTeam';
 import { QbjTypeNames } from './QbjEnums';
 import { Team } from './Team';
 
@@ -43,14 +44,6 @@ export interface IQbjPool extends IQbjObject {
   poolTeams?: IQbjPoolTeam[];
 }
 
-// TODO: make a separate PoolTeam file?
-/** A single team's assignment to a single pool */
-interface IQbjPoolTeam extends IQbjObject {
-  team: Team;
-  /** The final position/rank of this Team within this Pool */
-  position: number;
-}
-
 /** Pool object as written to a .yft file */
 export interface IYftFilePool extends IQbjPool, IYftFileObject {
   YfData: IPoolExtraData;
@@ -72,6 +65,8 @@ export class Pool implements IQbjPool, IYftDataModelObject {
   description: string = '';
 
   position: number;
+
+  poolTeams: PoolTeam[] = [];
 
   /** The number of teams this pool is supposed to have. poolTeams might have fewer than this if
    * the user hasn't entered all teams yet */
@@ -121,7 +116,7 @@ export class Pool implements IQbjPool, IYftDataModelObject {
 
     if (qbjOnly) return qbjObject;
 
-    // TODO: feeder pools, autoadvance rules
+    // TODO: feeder pools?
     const yfData: IPoolExtraData = {
       size: this.size,
       roundRobins: this.roundRobins,
@@ -140,6 +135,19 @@ export class Pool implements IQbjPool, IYftDataModelObject {
     for (let i = firstSeed; i <= lastSeed; i++) {
       this.seeds.push(i);
     }
+  }
+
+  addTeam(team: Team) {
+    this.poolTeams.push(new PoolTeam(team));
+  }
+
+  removeTeam(team: Team) {
+    this.poolTeams = this.poolTeams.filter((pt) => pt.team !== team);
+  }
+
+  /** Is this team in this pool? */
+  includesTeam(team: Team) {
+    return !!this.poolTeams.find((pt) => pt.team === team);
   }
 }
 

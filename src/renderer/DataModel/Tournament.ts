@@ -6,6 +6,7 @@ import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import { IQbjRanking, Ranking } from './Ranking';
 import Registration, { IQbjRegistration } from './Registration';
 import { CommonRuleSets, IQbjScoringRules, ScoringRules } from './ScoringRules';
+import StandardSchedule from './StandardSchedule';
 import { Team } from './Team';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 
@@ -142,7 +143,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   addRegAndTeam(regToAdd: Registration, teamToAdd: Team) {
     regToAdd.teams = [teamToAdd];
     this.addRegistration(regToAdd);
-    this.addTeamToSeeds(teamToAdd);
+    this.seedAndAssignNewTeam(teamToAdd);
   }
 
   addRegistration(regToAdd: Registration) {
@@ -159,19 +160,31 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.registrations = this.registrations.filter((reg) => reg !== regToDelete);
   }
 
-  addTeamToSeeds(newTeam: Team) {
-    this.seeds.push(newTeam);
+  /** Give a new team a seed and assign them to the appropriate prelim pool. Returns the seed number. */
+  seedAndAssignNewTeam(newTeam: Team) {
+    const seedNo = this.seeds.push(newTeam);
+    const prelimPhase = this.getPrelimPhase();
+    if (prelimPhase) {
+      prelimPhase.addSeededTeam(newTeam, seedNo);
+    }
   }
 
   deleteTeamFromSeeds(deletedTeam: Team) {
     this.seeds = this.seeds.filter((tm) => tm !== deletedTeam);
+    const prelimPhase = this.getPrelimPhase();
+    if (prelimPhase) prelimPhase.removeTeam(deletedTeam);
   }
 
   /** Add all teams in a registration to the list of seeds, if they aren't already there */
   seedTeamsInRegistration(reg: Registration) {
     for (const tm of reg.teams) {
-      if (!this.seeds.includes(tm)) this.addTeamToSeeds(tm);
+      if (!this.seeds.includes(tm)) this.seedAndAssignNewTeam(tm);
     }
+  }
+
+  setStandardSchedule(sched: StandardSchedule) {
+    this.phases = sched.phases;
+    this.getPrelimPhase()?.addTeamList(this.seeds);
   }
 }
 

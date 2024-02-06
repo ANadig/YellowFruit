@@ -3,6 +3,7 @@ import { IQbjRound, Round } from './Round';
 import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { IQbjPool, Pool } from './Pool';
 import { QbjTypeNames } from './QbjEnums';
+import { Team } from './Team';
 
 export enum PhaseTypes {
   /** The first phase of a tournament */
@@ -132,5 +133,40 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     const yftFileObj = { YfData: yfData, ...qbjObject };
 
     return yftFileObj;
+  }
+
+  addSeededTeam(team: Team, seed: number) {
+    const poolWithSeed = this.findPoolWithSeed(seed);
+    if (poolWithSeed) {
+      poolWithSeed.addTeam(team);
+    }
+  }
+
+  addTeamList(seededTeams: Team[]) {
+    let curSeed = 1;
+    for (const team of seededTeams) {
+      this.addSeededTeam(team, curSeed++);
+    }
+  }
+
+  findPoolWithSeed(seed: number): Pool | undefined {
+    for (const pool of this.pools) {
+      if (pool.seeds.includes(seed)) return pool;
+    }
+    return undefined;
+  }
+
+  findPoolWithTeam(team: Team): Pool | undefined {
+    for (const pool of this.pools) {
+      if (pool.includesTeam(team)) return pool;
+    }
+    return undefined;
+  }
+
+  removeTeam(team: Team) {
+    const poolWithTeam = this.findPoolWithTeam(team);
+    if (poolWithTeam) {
+      poolWithTeam.removeTeam(team);
+    }
   }
 }

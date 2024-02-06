@@ -28,6 +28,8 @@ function TeamsPage() {
   const tournManager = useContext(TournamentContext);
   const [curView] = useSubscription(tournManager.currentTeamsPageView);
 
+  console.log(tournManager.tournament.getPrelimPhase()?.pools);
+
   return (
     <>
       <Card sx={{ marginBottom: 2, '& .MuiCardContent-root': { paddingBottom: 2.1 } }}>

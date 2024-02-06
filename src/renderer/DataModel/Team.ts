@@ -1,5 +1,6 @@
 import {
   IQbjObject,
+  IQbjRefPointer,
   IValidationInfo,
   IYftDataModelObject,
   IYftFileObject,
@@ -8,6 +9,7 @@ import {
 } from './Interfaces';
 import { IQbjPlayer, Player } from './Player';
 import { QbjTypeNames } from './QbjEnums';
+import { makeQbjRefPointer } from './QbjUtils';
 import { IQbjRank, Rank } from './Rank';
 
 export interface IQbjTeam extends IQbjObject {
@@ -39,6 +41,10 @@ export class Team implements IQbjTeam, IYftDataModelObject {
   players: Player[];
 
   ranks?: Rank[];
+
+  get id(): string {
+    return `Team_${this.name}`;
+  }
 
   /** Whether this is the A, B, C, etc. team. Not necessarily a letter -- e.g. colors */
   letter: string = '';
@@ -102,7 +108,7 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     };
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.Team;
-    if (isReferenced) qbjObject.id = `Team_${this.name}`;
+    if (isReferenced) qbjObject.id = this.id;
 
     if (qbjOnly) return qbjObject;
 
@@ -110,6 +116,10 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     const yftFileObj: IYftFileTeam = { YfData: yfData, ...qbjObject };
 
     return yftFileObj;
+  }
+
+  toRefPointer(): IQbjRefPointer {
+    return makeQbjRefPointer(this.id);
   }
 
   /** Add a new player to the end of the list */
