@@ -71,6 +71,7 @@ export default function SchedulePickerCard() {
           <Select
             label={templateSelectLabel}
             value={selectedTemplate}
+            disabled={size === ''}
             onChange={(e) => handleTemplateChange(e.target.value)}
           >
             {getTemplateList(size).map((tmpl) => (
