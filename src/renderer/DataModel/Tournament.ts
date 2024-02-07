@@ -187,6 +187,30 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     }
   }
 
+  /** Swap the team at the given seed with the team above it.
+   *  @param seedNo 1-indexed seed number
+   */
+  shiftSeedUp(seedNo: number) {
+    if (seedNo < 2) return;
+    const idx = seedNo - 1;
+    const teamToMoveUp = this.seeds[idx];
+    this.seeds[idx] = this.seeds[idx - 1];
+    this.seeds[idx - 1] = teamToMoveUp;
+    this.distributeSeeds();
+  }
+
+  /**
+   * Swap the team at the given seed with the team below it.
+   * @param seedNo 1-indexed seed number
+   */
+  shiftSeedDown(seedNo: number) {
+    const idx = seedNo - 1;
+    const teamToMoveDown = this.seeds[idx];
+    this.seeds[idx] = this.seeds[idx + 1];
+    this.seeds[idx + 1] = teamToMoveDown;
+    this.distributeSeeds();
+  }
+
   findTeamById(id: string): Team | undefined {
     for (const reg of this.registrations) {
       for (const tm of reg.teams) {
@@ -198,6 +222,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   setStandardSchedule(sched: StandardSchedule) {
     this.phases = sched.phases;
+    this.distributeSeeds();
+  }
+
+  /** Take the list of seeds and populate prelim pools with them */
+  distributeSeeds() {
     this.getPrelimPhase()?.addTeamList(this.seeds);
   }
 }

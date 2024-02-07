@@ -327,9 +327,9 @@ export class TournamentManager {
   }
 
   tryDeleteTeam(reg: Registration, team: Team) {
-    this.genericModalManager.open('Delete Team', `Are you sure you want to delete ${team.name}?`, 'No', 'Yes', () => {
-      this.deleteTeam(reg, team);
-    });
+    this.genericModalManager.open('Delete Team', `Are you sure you want to delete ${team.name}?`, 'No', 'Yes', () =>
+      this.deleteTeam(reg, team),
+    );
   }
 
   deleteTeam(reg: Registration, team: Team) {
@@ -338,6 +338,16 @@ export class TournamentManager {
     if (reg.teams.length === 0) {
       this.tournament.deleteRegistration(reg);
     }
+    this.onDataChanged();
+  }
+
+  shiftSeedUp(seedNo: number) {
+    this.tournament.shiftSeedUp(seedNo);
+    this.onDataChanged();
+  }
+
+  shiftSeedDown(seedNo: number) {
+    this.tournament.shiftSeedDown(seedNo);
     this.onDataChanged();
   }
 

@@ -43,11 +43,11 @@ function SeedList() {
   const [expectedNumTeams] = useSubscription(thisTournament.getExpectedNumberOfTeams());
 
   const listItems = seedList.map((tm, idx) => (
-    <SeedListItem team={tm} seedNo={idx} canMoveUp={idx > 0} canMoveDown={idx < seedList.length - 1} />
+    <SeedListItem team={tm} seedNo={idx + 1} canMoveUp={idx > 0} canMoveDown={idx + 1 < seedList.length} />
   ));
   if (expectedNumTeams !== null) {
     for (let i = seedList.length; i < expectedNumTeams || 0; i++) {
-      listItems.push(<SeedListItem team={null} seedNo={i} canMoveUp={false} canMoveDown={false} />);
+      listItems.push(<SeedListItem team={null} seedNo={i + 1} canMoveUp={false} canMoveDown={false} />);
     }
   }
 
@@ -71,6 +71,7 @@ function SeedList() {
 
 interface ISeedListItemProps {
   team: Team | null;
+  /** 1-indexed seed number */
   seedNo: number;
   canMoveUp: boolean;
   canMoveDown: boolean;
@@ -78,22 +79,23 @@ interface ISeedListItemProps {
 
 function SeedListItem(props: ISeedListItemProps) {
   const { team, seedNo, canMoveUp, canMoveDown } = props;
+  const tournManager = useContext(TournamentContext);
   const str = team === null ? '' : team.name;
 
   return (
     <ListItem
       secondaryAction={
         <>
-          <IconButton size="small" disabled={!canMoveUp}>
+          <IconButton size="small" disabled={!canMoveUp} onClick={() => tournManager.shiftSeedUp(seedNo)}>
             <ArrowDropUp sx={{ color: !canMoveUp ? 'transparent' : undefined }} />
           </IconButton>
-          <IconButton size="small" disabled={!canMoveDown}>
+          <IconButton size="small" disabled={!canMoveDown} onClick={() => tournManager.shiftSeedDown(seedNo)}>
             <ArrowDropDown sx={{ color: !canMoveDown ? 'transparent' : undefined }} />
           </IconButton>
         </>
       }
     >
-      <ListItemText>{`${seedNo + 1}. ${str}`}</ListItemText>
+      <ListItemText>{`${seedNo}. ${str}`}</ListItemText>
     </ListItem>
   );
 }
