@@ -351,6 +351,15 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  seedListDragDrop(seedToMove: string, newPosition: number) {
+    const seedNoToMove = parseInt(seedToMove, 10);
+    if (seedNoToMove === undefined || newPosition === undefined) return;
+    if (seedNoToMove === newPosition) return;
+
+    this.tournament.insertSeedAtPosition(seedNoToMove, newPosition);
+    this.onDataChanged();
+  }
+
   // #endregion
 
   // #region Functions for handling temporary data used by dialogs

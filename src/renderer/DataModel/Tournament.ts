@@ -211,6 +211,20 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.distributeSeeds();
   }
 
+  /**
+   * Move the given seed to a new position, shifting other teams as needed.
+   * @param seedToMove 1-indexed seed that we are moving somewhere else
+   * @param newPosition 1-indexed seed where that team should now be
+   */
+  insertSeedAtPosition(seedToMove: number, newPosition: number) {
+    if (seedToMove === newPosition) return;
+    const idxToMove = seedToMove - 1;
+    const newIdx = newPosition - 1;
+
+    const [teamToMove] = this.seeds.splice(idxToMove, 1);
+    this.seeds.splice(newIdx, 0, teamToMove);
+  }
+
   findTeamById(id: string): Team | undefined {
     for (const reg of this.registrations) {
       for (const tm of reg.teams) {

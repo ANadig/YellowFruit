@@ -77,6 +77,8 @@ interface ISeedListItemProps {
   canMoveDown: boolean;
 }
 
+const seedListItemDragKey = 'SeedListItem';
+
 function SeedListItem(props: ISeedListItemProps) {
   const { team, seedNo, canMoveUp, canMoveDown } = props;
   const tournManager = useContext(TournamentContext);
@@ -84,6 +86,17 @@ function SeedListItem(props: ISeedListItemProps) {
 
   return (
     <ListItem
+      draggable={team !== null}
+      onDragStart={(e) => e.dataTransfer.setData(seedListItemDragKey, seedNo.toString())}
+      onDragEnter={(e) => {
+        e.preventDefault();
+      }}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
+        if (team === null) return;
+        tournManager.seedListDragDrop(e.dataTransfer.getData(seedListItemDragKey), seedNo);
+      }}
       secondaryAction={
         <>
           <IconButton size="small" disabled={!canMoveUp} onClick={() => tournManager.shiftSeedUp(seedNo)}>
