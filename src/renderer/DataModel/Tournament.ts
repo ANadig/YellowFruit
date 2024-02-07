@@ -223,6 +223,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
     const [teamToMove] = this.seeds.splice(idxToMove, 1);
     this.seeds.splice(newIdx, 0, teamToMove);
+    this.distributeSeeds();
   }
 
   findTeamById(id: string): Team | undefined {
