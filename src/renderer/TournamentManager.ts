@@ -7,13 +7,13 @@ import { IpcMainToRend, IpcRendToMain } from '../IPCChannels';
 import { IQbjObject, IQbjWholeFile, IRefTargetDict } from './DataModel/Interfaces';
 import { QbjTypeNames } from './DataModel/QbjEnums';
 import AnswerType from './DataModel/AnswerType';
-import { parseYftTournament } from './DataModel/FileParsing';
 import StandardSchedule from './DataModel/StandardSchedule';
 import { Team } from './DataModel/Team';
 import Registration from './DataModel/Registration';
 import { TempTeamManager } from './Modal Managers/TempTeamManager';
 import { GenericModalManager } from './Modal Managers/GenericModalManager';
 import { collectRefTargets } from './DataModel/QbjUtils2';
+import FileParser from './DataModel/FileParsing';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -132,9 +132,10 @@ export class TournamentManager {
     }
     console.log(refTargets);
 
+    const parser = new FileParser(refTargets);
     let loadedTournament: Tournament | null = null;
     try {
-      loadedTournament = parseYftTournament(tournamentObj as IYftFileTournament, refTargets);
+      loadedTournament = parser.parseYftTournament(tournamentObj as IYftFileTournament);
     } catch (err: any) {
       this.openGenericModal('Invalid File', err.message);
     }

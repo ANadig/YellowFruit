@@ -110,6 +110,7 @@ export class Pool implements IQbjPool, IYftDataModelObject {
       name: this.name,
       description: this.description || undefined,
       position: this.position,
+      poolTeams: this.poolTeams.map((pt) => pt.toFileObject(qbjOnly)),
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.Pool;
     if (isReferenced) qbjObject.id = `Pool_${this.name}`;

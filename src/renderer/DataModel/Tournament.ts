@@ -1,6 +1,6 @@
 import { sumReduce } from '../Utils/GeneralUtils';
 import { NullDate, NullObjects } from '../Utils/UtilTypes';
-import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { IQbjPhase, Phase, PhaseTypes } from './Phase';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import { IQbjRanking, Ranking } from './Ranking';
@@ -56,6 +56,7 @@ export interface IYftFileTournament extends IQbjTournament, IYftFileObject {
 interface ITournamentExtraData {
   /** Version of this software used to write the file */
   YfVersion: string;
+  seeds: IQbjRefPointer[];
 }
 
 /** YellowFruit implementation of the Tournament object */
@@ -106,7 +107,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
     if (qbjOnly) return qbjObject;
 
-    const metadata: ITournamentExtraData = { YfVersion: '4.0.0' };
+    const metadata: ITournamentExtraData = {
+      YfVersion: '4.0.0',
+      seeds: this.seeds.map((team) => team.toRefPointer()),
+    };
     const yftFileObj = { YfData: metadata, ...qbjObject };
 
     return yftFileObj;
@@ -181,6 +185,15 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     for (const tm of reg.teams) {
       if (!this.seeds.includes(tm)) this.seedAndAssignNewTeam(tm);
     }
+  }
+
+  findTeamById(id: string): Team | undefined {
+    for (const reg of this.registrations) {
+      for (const tm of reg.teams) {
+        if (tm.id === id) return tm;
+      }
+    }
+    return undefined;
   }
 
   setStandardSchedule(sched: StandardSchedule) {

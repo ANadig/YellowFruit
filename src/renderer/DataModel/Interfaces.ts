@@ -2,7 +2,7 @@ import { QbjTypeNames } from './QbjEnums';
 
 /** Top-level structure of the QBJ file format https://schema.quizbowl.technology/serialization/ */
 export interface IQbjWholeFile {
-  version: '2.1.1';
+  version: '2.1.1'; // qbj schema version, not YF version
   objects: IQbjObject[];
 }
 
