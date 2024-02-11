@@ -353,10 +353,18 @@ export class TournamentManager {
 
   seedListDragDrop(seedToMove: string, newPosition: number) {
     const seedNoToMove = parseInt(seedToMove, 10);
-    if (seedNoToMove === undefined || newPosition === undefined) return;
+    if (Number.isNaN(seedNoToMove)) return;
     if (seedNoToMove === newPosition) return;
 
     this.tournament.insertSeedAtPosition(seedNoToMove, newPosition);
+    this.onDataChanged();
+  }
+
+  swapSeeds(droppedSeed: string, targetSeed: number) {
+    const droppedSeedNo = parseInt(droppedSeed, 10);
+    if (Number.isNaN(droppedSeedNo)) return;
+
+    this.tournament.swapSeeds(droppedSeedNo, targetSeed);
     this.onDataChanged();
   }
 

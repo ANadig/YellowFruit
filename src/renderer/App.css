@@ -7,7 +7,14 @@
   background-color: #f4f4f4 !important;
  }
 
-
 .drop-target * {
   pointer-events: none;
+}
+
+.yf-draggable {
+  cursor: grab;
+}
+
+.yf-draggable:active {
+  cursor: grabbing;
 }

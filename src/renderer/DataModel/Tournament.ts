@@ -226,6 +226,14 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.distributeSeeds();
   }
 
+  swapSeeds(seedA: number, seedB: number) {
+    if (seedA === seedB) return;
+    const seedBTeam = this.seeds[seedB - 1];
+    this.seeds[seedB - 1] = this.seeds[seedA - 1];
+    this.seeds[seedA - 1] = seedBTeam;
+    this.distributeSeeds();
+  }
+
   findTeamById(id: string): Team | undefined {
     for (const reg of this.registrations) {
       for (const tm of reg.teams) {
