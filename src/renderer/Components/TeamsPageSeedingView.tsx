@@ -95,7 +95,7 @@ function SeedListItem(props: ISeedListItemProps) {
       onDragStart={(e) => e.dataTransfer.setData(seedListItemDragKey, seedNo.toString())}
       onDragEnter={(e) => {
         e.preventDefault();
-        setIsBeingDraggedOn(true);
+        if (team !== null) setIsBeingDraggedOn(true);
       }}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
