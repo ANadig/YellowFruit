@@ -135,6 +135,12 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return yftFileObj;
   }
 
+  resetPools() {
+    for (const pool of this.pools) {
+      pool.clearTeams();
+    }
+  }
+
   addSeededTeam(team: Team, seed: number) {
     const poolWithSeed = this.findPoolWithSeed(seed);
     if (poolWithSeed) {
@@ -142,7 +148,8 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     }
   }
 
-  addTeamList(seededTeams: Team[]) {
+  setTeamList(seededTeams: Team[]) {
+    this.resetPools();
     let curSeed = 1;
     for (const team of seededTeams) {
       this.addSeededTeam(team, curSeed++);

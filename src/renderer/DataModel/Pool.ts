@@ -146,6 +146,10 @@ export class Pool implements IQbjPool, IYftDataModelObject {
     this.poolTeams = this.poolTeams.filter((pt) => pt.team !== team);
   }
 
+  clearTeams() {
+    this.poolTeams = [];
+  }
+
   /** Is this team in this pool? */
   includesTeam(team: Team) {
     return !!this.poolTeams.find((pt) => pt.team === team);

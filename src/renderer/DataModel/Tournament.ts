@@ -165,6 +165,14 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.registrations = this.registrations.filter((reg) => reg !== regToDelete);
   }
 
+  deleteTeam(reg: Registration, team: Team) {
+    this.deleteTeamFromSeeds(team);
+    reg.deleteTeam(team);
+    if (reg.teams.length === 0) {
+      this.deleteRegistration(reg);
+    }
+  }
+
   /** Give a new team a seed and assign them to the appropriate prelim pool. Returns the seed number. */
   seedAndAssignNewTeam(newTeam: Team) {
     const seedNo = this.seeds.push(newTeam);
@@ -178,6 +186,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.seeds = this.seeds.filter((tm) => tm !== deletedTeam);
     const prelimPhase = this.getPrelimPhase();
     if (prelimPhase) prelimPhase.removeTeam(deletedTeam);
+    this.distributeSeeds();
   }
 
   /** Add all teams in a registration to the list of seeds, if they aren't already there */
@@ -250,7 +259,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   /** Take the list of seeds and populate prelim pools with them */
   distributeSeeds() {
-    this.getPrelimPhase()?.addTeamList(this.seeds);
+    this.getPrelimPhase()?.setTeamList(this.seeds);
   }
 }
 

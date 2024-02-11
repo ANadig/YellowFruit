@@ -333,11 +333,7 @@ export class TournamentManager {
   }
 
   deleteTeam(reg: Registration, team: Team) {
-    this.tournament.deleteTeamFromSeeds(team);
-    reg.deleteTeam(team);
-    if (reg.teams.length === 0) {
-      this.tournament.deleteRegistration(reg);
-    }
+    this.tournament.deleteTeam(reg, team);
     this.onDataChanged();
   }
 
