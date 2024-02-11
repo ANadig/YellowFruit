@@ -1,6 +1,6 @@
 /* eslint-disable react/no-array-index-key */
 import Grid from '@mui/material/Unstable_Grid2';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import {
   Box,
   Divider,
@@ -43,11 +43,17 @@ function SeedList() {
   const [expectedNumTeams] = useSubscription(thisTournament.getExpectedNumberOfTeams());
 
   const listItems = seedList.map((tm, idx) => (
-    <SeedListItem team={tm} seedNo={idx + 1} canMoveUp={idx > 0} canMoveDown={idx + 1 < seedList.length} />
+    <SeedListItem
+      key={idx + 1}
+      team={tm}
+      seedNo={idx + 1}
+      canMoveUp={idx > 0}
+      canMoveDown={idx + 1 < seedList.length}
+    />
   ));
   if (expectedNumTeams !== null) {
     for (let i = seedList.length; i < expectedNumTeams || 0; i++) {
-      listItems.push(<SeedListItem team={null} seedNo={i + 1} canMoveUp={false} canMoveDown={false} />);
+      listItems.push(<SeedListItem key={i + 1} team={null} seedNo={i + 1} canMoveUp={false} canMoveDown={false} />);
     }
   }
 
@@ -56,12 +62,7 @@ function SeedList() {
       {seedList.length > 0 && (
         <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
           <List dense sx={{ py: 0 }}>
-            {listItems.map((itm, idx) => (
-              <div key={idx}>
-                {idx !== 0 && <Divider />}
-                {itm}
-              </div>
-            ))}
+            {listItems}
           </List>
         </Box>
       )}
@@ -82,34 +83,51 @@ const seedListItemDragKey = 'SeedListItem';
 function SeedListItem(props: ISeedListItemProps) {
   const { team, seedNo, canMoveUp, canMoveDown } = props;
   const tournManager = useContext(TournamentContext);
+  const [beingDraggedOn, setIsBeingDraggedOn] = useState(false);
+
   const str = team === null ? '' : team.name;
 
   return (
-    <ListItem
+    <div
+      className="drop-target"
       draggable={team !== null}
       onDragStart={(e) => e.dataTransfer.setData(seedListItemDragKey, seedNo.toString())}
       onDragEnter={(e) => {
         e.preventDefault();
+        setIsBeingDraggedOn(true);
       }}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
+        setIsBeingDraggedOn(false);
         if (team === null) return;
         tournManager.seedListDragDrop(e.dataTransfer.getData(seedListItemDragKey), seedNo);
       }}
-      secondaryAction={
-        <>
-          <IconButton size="small" disabled={!canMoveUp} onClick={() => tournManager.shiftSeedUp(seedNo)}>
-            <ArrowDropUp sx={{ color: !canMoveUp ? 'transparent' : undefined }} />
-          </IconButton>
-          <IconButton size="small" disabled={!canMoveDown} onClick={() => tournManager.shiftSeedDown(seedNo)}>
-            <ArrowDropDown sx={{ color: !canMoveDown ? 'transparent' : undefined }} />
-          </IconButton>
-        </>
-      }
+      onDragLeave={(e) => {
+        e.preventDefault();
+        setIsBeingDraggedOn(false);
+      }}
     >
-      <ListItemText>{`${seedNo}. ${str}`}</ListItemText>
-    </ListItem>
+      {(seedNo > 1 || beingDraggedOn) && <Divider sx={{ borderBottomWidth: beingDraggedOn ? 'thick' : 'thin' }} />}
+      <ListItem
+        secondaryAction={
+          <>
+            <IconButton size="small" disabled={!canMoveUp} onClick={() => tournManager.shiftSeedUp(seedNo)}>
+              <ArrowDropUp
+                sx={{ color: !canMoveUp ? 'transparent' : undefined, pointerEvents: beingDraggedOn ? 'none' : 'all' }}
+              />
+            </IconButton>
+            <IconButton size="small" disabled={!canMoveDown} onClick={() => tournManager.shiftSeedDown(seedNo)}>
+              <ArrowDropDown
+                sx={{ color: !canMoveDown ? 'transparent' : undefined, pointerEvents: beingDraggedOn ? 'none' : 'all' }}
+              />
+            </IconButton>
+          </>
+        }
+      >
+        <ListItemText>{`${seedNo}. ${str}`}</ListItemText>
+      </ListItem>
+    </div>
   );
 }
 
