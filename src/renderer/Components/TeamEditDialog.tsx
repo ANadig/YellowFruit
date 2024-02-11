@@ -145,6 +145,9 @@ function TeamEditDialogCore() {
                   value={teamLetter}
                   onChange={(e) => setTeamLetter(e.target.value)}
                   onBlur={handleLetterBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleLetterBlur();
+                  }}
                 />
               </Grid>
               <Grid xs={2} md={1} sx={{ display: 'flex', alignItems: 'end' }}>
@@ -262,6 +265,9 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
           value={playerName}
           onChange={(e) => handlePlayerNameChange(e.target.value)}
           onBlur={() => modalManager.changePlayerName(rowIdx, playerName)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') modalManager.changePlayerName(rowIdx, playerName);
+          }}
         />
       </Grid>
       <Grid xs={2}>
@@ -275,6 +281,9 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
           value={playerYear}
           onChange={(e) => setPlayerYear(e.target.value)}
           onBlur={() => modalManager.changePlayerYear(rowIdx, playerYear)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') modalManager.changePlayerYear(rowIdx, playerYear);
+          }}
         />
       </Grid>
       <Grid xs={2} md={1}>
