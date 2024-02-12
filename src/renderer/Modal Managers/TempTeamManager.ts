@@ -2,7 +2,7 @@ import { createContext } from 'react';
 import { Player } from '../DataModel/Player';
 import Registration from '../DataModel/Registration';
 import { Team } from '../DataModel/Team';
-import { teamGetNameAndLetter } from '../Utils/GeneralUtils';
+import { nextAlphabetLetter, teamGetNameAndLetter } from '../Utils/GeneralUtils';
 import { NullObjects } from '../Utils/UtilTypes';
 
 export class TempTeamManager {
@@ -77,6 +77,11 @@ export class TempTeamManager {
   /** Clear the form and leave it open so another team can be entered */
   resetForNewTeam() {
     this.openModal();
+  }
+
+  /** Clear the form but then populate, e.g., "Central B" if we just saved "Central A" */
+  resetAndNextLetter(reg: Registration) {
+    this.openModal(reg, undefined, nextAlphabetLetter(this.tempTeam.letter));
   }
 
   openErrorDialog(errs: string[]) {

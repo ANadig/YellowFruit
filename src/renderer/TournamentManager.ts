@@ -399,13 +399,13 @@ export class TournamentManager {
     this.teamModalManager.checkForDuplicateTeam(this.tournament.registrations, this.teamBeingModified);
   }
 
-  teamEditModalAttemptToSave(stayOpen: boolean = false) {
+  teamEditModalAttemptToSave(stayOpen: boolean = false, startNextLetter: boolean = false) {
     if (this.teamModalManager.preSaveValidation()) {
-      this.teamModalSave(stayOpen);
+      this.teamModalSave(stayOpen, startNextLetter);
     }
   }
 
-  private teamModalSave(stayOpen: boolean = false) {
+  private teamModalSave(stayOpen: boolean = false, startNextLetter: boolean = false) {
     // changing the team name means we might need to save to a different registration than we opened
     const actualRegToModify = this.teamModalManager.getRegistrationToSaveTo(
       this.registrationBeingModified,
@@ -425,14 +425,25 @@ export class TournamentManager {
     } else {
       this.teamModalManager.saveTeam(actualRegToModify, this.teamBeingModified);
     }
-    this.teamEditModalReset(stayOpen);
+    this.teamEditModalReset(stayOpen, startNextLetter);
     this.onDataChanged();
   }
 
   /** Close without saving */
-  teamEditModalReset(stayOpen: boolean = false) {
-    this.registrationBeingModified = null;
+  teamEditModalReset(stayOpen: boolean = false, startNextLetter: boolean = false) {
     this.teamBeingModified = null;
+
+    if (startNextLetter) {
+      if (this.registrationBeingModified !== null) {
+        this.teamModalManager.resetAndNextLetter(this.registrationBeingModified);
+      } else {
+        const regJustAdded = this.tournament.findRegistration(this.teamModalManager.tempRegistration.name);
+        if (regJustAdded) this.teamModalManager.resetAndNextLetter(regJustAdded);
+      }
+      return;
+    }
+
+    this.registrationBeingModified = null;
     if (stayOpen) {
       this.teamModalManager.resetForNewTeam();
     } else {

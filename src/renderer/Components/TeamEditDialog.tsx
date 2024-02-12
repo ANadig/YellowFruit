@@ -15,10 +15,17 @@ import {
   ListItem,
   FormHelperText,
   FormControl,
+  ButtonGroup,
+  Popper,
+  Paper,
+  ClickAwayListener,
+  MenuItem,
+  MenuList,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import React, { ReactElement, useContext, useEffect, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { ArrowDropDown } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { TeamEditModalContext } from '../Modal Managers/TempTeamManager';
@@ -75,6 +82,10 @@ function TeamEditDialogCore() {
     tournManager.teamEditModalAttemptToSave(true);
   };
 
+  const handleAcceptAndNextLetter = () => {
+    tournManager.teamEditModalAttemptToSave(true, true);
+  };
+
   const handleCancel = () => {
     tournManager.teamEditModalReset();
   };
@@ -112,6 +123,7 @@ function TeamEditDialogCore() {
   useHotkeys('alt+a', () => handleAccept(), { enabled: isOpen, enableOnFormTags: true });
   useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });
   useHotkeys('alt+s', () => handleAcceptAndStay(), { enabled: isOpen, enableOnFormTags: true });
+  useHotkeys('alt+t', () => handleAcceptAndNextLetter(), { enabled: isOpen, enableOnFormTags: true });
 
   return (
     <>
@@ -197,12 +209,59 @@ function TeamEditDialogCore() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancel}>{hotkeyFormat('&Cancel')}</Button>
-          <Button onClick={handleAcceptAndStay}>{hotkeyFormat('&Save {AMP} New')}</Button>
-          <Button onClick={handleAccept}>{hotkeyFormat('&Accept')}</Button>
+          <Button variant="outlined" onClick={handleCancel}>
+            {hotkeyFormat('&Cancel')}
+          </Button>
+          <SaveAndNewButtons
+            onClickSaveAndNew={handleAcceptAndStay}
+            onClickSaveAndNextLetter={handleAcceptAndNextLetter}
+          />
+          <Button variant="outlined" onClick={handleAccept}>
+            {hotkeyFormat('&Accept')}
+          </Button>
         </DialogActions>
       </Dialog>
       <ErrorDialog />
+    </>
+  );
+}
+
+interface ISaveAndNewButtonsProps {
+  onClickSaveAndNew: () => void;
+  onClickSaveAndNextLetter: () => void;
+}
+
+function SaveAndNewButtons(props: ISaveAndNewButtonsProps) {
+  const { onClickSaveAndNew, onClickSaveAndNextLetter } = props;
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const anchorRef = React.useRef<HTMLDivElement>(null);
+
+  const handleClose = (event: Event) => {
+    if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
+      return;
+    }
+    setDropdownOpen(false);
+  };
+
+  return (
+    <>
+      <ButtonGroup ref={anchorRef}>
+        <Button onClick={onClickSaveAndNew}>{hotkeyFormat('&Save {AMP} New')}</Button>
+        <Button size="small" onClick={() => setDropdownOpen(!dropdownOpen)}>
+          <ArrowDropDown />
+        </Button>
+      </ButtonGroup>
+      <Popper open={dropdownOpen} anchorEl={anchorRef.current} disablePortal>
+        <Paper>
+          <ClickAwayListener onClickAway={handleClose}>
+            <MenuList id="split-button-menu" autoFocusItem>
+              <MenuItem selected={dropdownOpen} onClick={() => onClickSaveAndNextLetter()}>
+                {hotkeyFormat('Save {AMP} Next &Team for This Organization')}
+              </MenuItem>
+            </MenuList>
+          </ClickAwayListener>
+        </Paper>
+      </Popper>
     </>
   );
 }
