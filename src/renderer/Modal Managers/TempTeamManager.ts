@@ -74,6 +74,11 @@ export class TempTeamManager {
     this.dataChangedReactCallback();
   }
 
+  /** Clear the form and leave it open so another team can be entered */
+  resetForNewTeam() {
+    this.openModal();
+  }
+
   openErrorDialog(errs: string[]) {
     this.errorDialogIsOpen = true;
     this.errorDialogContents = errs;

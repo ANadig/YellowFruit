@@ -71,8 +71,12 @@ function TeamEditDialogCore() {
     tournManager.teamEditModalAttemptToSave();
   };
 
+  const handleAcceptAndStay = () => {
+    tournManager.teamEditModalAttemptToSave(true);
+  };
+
   const handleCancel = () => {
-    tournManager.teamEditModalClose();
+    tournManager.teamEditModalReset();
   };
 
   const handleRegNameblur = () => {
@@ -107,6 +111,7 @@ function TeamEditDialogCore() {
 
   useHotkeys('alt+a', () => handleAccept(), { enabled: isOpen, enableOnFormTags: true });
   useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });
+  useHotkeys('alt+s', () => handleAcceptAndStay(), { enabled: isOpen, enableOnFormTags: true });
 
   return (
     <>
@@ -193,6 +198,7 @@ function TeamEditDialogCore() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancel}>{hotkeyFormat('&Cancel')}</Button>
+          <Button onClick={handleAcceptAndStay}>{hotkeyFormat('&Save {AMP} New')}</Button>
           <Button onClick={handleAccept}>{hotkeyFormat('&Accept')}</Button>
         </DialogActions>
       </Dialog>

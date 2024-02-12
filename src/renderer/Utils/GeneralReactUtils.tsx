@@ -1,12 +1,12 @@
-/* eslint-disable import/prefer-default-export */
-
 export enum YfCssClasses {
   HotkeyUnderline = 'yf-hotkey-underline',
   DropTarget = 'drop-target',
   Draggable = 'yf-draggable',
 }
 
-/** Turn a string with an ampersand into the string with the letter after the ampersand underlined */
+/** Turn a string with an ampersand into the string with the letter after the ampersand underlined.
+ *  Literal ampersands can be specified with {AMP}
+ */
 export function hotkeyFormat(caption: string) {
   const splitLoc = caption.indexOf('&');
   if (splitLoc === -1) return <span>caption</span>;
@@ -17,9 +17,9 @@ export function hotkeyFormat(caption: string) {
 
   return (
     <span>
-      {start}
+      {start.replaceAll('{AMP}', '&')}
       <span className={YfCssClasses.HotkeyUnderline}>{uLetter}</span>
-      {end}
+      {end.replaceAll('{AMP}', '&')}
     </span>
   );
 }
