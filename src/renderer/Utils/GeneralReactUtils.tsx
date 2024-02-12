@@ -1,7 +1,9 @@
 /* eslint-disable import/prefer-default-export */
 
 export enum YfCssClasses {
-  hotkeyUnderline = 'yf-hotkey-underline',
+  HotkeyUnderline = 'yf-hotkey-underline',
+  DropTarget = 'drop-target',
+  Draggable = 'yf-draggable',
 }
 
 /** Turn a string with an ampersand into the string with the letter after the ampersand underlined */
@@ -16,7 +18,7 @@ export function hotkeyFormat(caption: string) {
   return (
     <span>
       {start}
-      <span className={YfCssClasses.hotkeyUnderline}>{uLetter}</span>
+      <span className={YfCssClasses.HotkeyUnderline}>{uLetter}</span>
       {end}
     </span>
   );

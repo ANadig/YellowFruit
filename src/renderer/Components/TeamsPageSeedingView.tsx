@@ -20,6 +20,7 @@ import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { Team } from '../DataModel/Team';
+import { YfCssClasses } from '../Utils/GeneralReactUtils';
 
 export default function SeedingView() {
   return (
@@ -90,7 +91,7 @@ function SeedListItem(props: ISeedListItemProps) {
 
   return (
     <div
-      className="drop-target"
+      className={YfCssClasses.DropTarget}
       draggable={team !== null}
       onDragStart={(e) => e.dataTransfer.setData(seedListItemDragKey, seedNo.toString())}
       onDragEnter={(e) => {
@@ -127,7 +128,7 @@ function SeedListItem(props: ISeedListItemProps) {
         }
       >
         <ListItemText
-          className={team !== null ? 'yf-draggable' : undefined}
+          className={team !== null ? YfCssClasses.Draggable : undefined}
           sx={{ pointerEvents: ptrEventsForInteractiveChld }}
         >{`${seedNo}. ${str}`}</ListItemText>
       </ListItem>
@@ -181,7 +182,7 @@ function PoolViewTableRow(props: IPoolViewTableRowProps) {
 
   return (
     <TableRow
-      className={team !== null ? 'yf-draggable' : undefined}
+      className={team !== null ? YfCssClasses.Draggable : undefined}
       draggable={team !== null}
       onDragStart={(e) => e.dataTransfer.setData(poolViewItemDragKey, seedNo.toString())}
       onDragEnter={(e) => e.preventDefault()}
