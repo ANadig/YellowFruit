@@ -37,6 +37,8 @@ export class TournamentManager {
 
   currentTeamsPageView: number = 0;
 
+  currentGamesPageView: number = 0;
+
   genericModalManager: GenericModalManager;
 
   // properties for managing the Team/Registration edit workflow
@@ -199,6 +201,14 @@ export class TournamentManager {
    */
   setTeamsPageView(whichPage: number) {
     this.currentTeamsPageView = whichPage;
+    this.onDataChanged(true);
+  }
+
+  /** Keep track of which view the user is on, so that they can leave the Games page, then
+   *  come back and see the samve view.
+   */
+  setGamesPageView(whichPage: number) {
+    this.currentGamesPageView = whichPage;
     this.onDataChanged(true);
   }
 

@@ -21,6 +21,7 @@ import SchedulePage from './Components/SchedulePage';
 import TeamsPage from './Components/TeamsPage';
 import TeamEditDialog from './Components/TeamEditDialog';
 import GenericDialog from './Components/GenericDialog';
+import GamesPage from './Components/GamesPage';
 
 window.electron.ipcRenderer.removeAllListeners();
 const tournManager = new TournamentManager();
@@ -89,6 +90,8 @@ function ActivePage(props: IActivePageProps) {
       return <SchedulePage />;
     case ApplicationPages.Teams:
       return <TeamsPage />;
+    case ApplicationPages.Games:
+      return <GamesPage />;
     default:
       return null;
   }
