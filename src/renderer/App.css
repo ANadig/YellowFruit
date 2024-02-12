@@ -18,3 +18,7 @@
 .yf-draggable:active {
   cursor: grabbing;
 }
+
+.yf-hotkey-underline {
+  text-decoration: underline;
+}

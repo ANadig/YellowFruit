@@ -18,10 +18,12 @@ import {
 } from '@mui/material';
 import { Add, Delete } from '@mui/icons-material';
 import { useContext, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import AnswerType, { sortAnswerTypes } from '../DataModel/AnswerType';
+import { hotkeyFormat } from '../Utils/GeneralReactUtils';
 
 const commonPointValues = [-5, 10, 15, 20];
 
@@ -164,6 +166,8 @@ function CustomPtValDialog(props: ICustomPtValDialogProps) {
   const [error, setError] = useState(false);
   const [errMsg, setErrMsg] = useState('');
 
+  const canSave = isOpen && !error && newPtVal !== '';
+
   const onPtValChange = (val: string) => {
     setNewPtVal(val);
     if (val === '') {
@@ -196,6 +200,9 @@ function CustomPtValDialog(props: ICustomPtValDialogProps) {
     }
   };
 
+  useHotkeys('alt+a', () => closeWindow(true), { enabled: canSave, enableOnFormTags: true });
+  useHotkeys('alt+c', () => closeWindow(false), { enabled: isOpen, enableOnFormTags: true });
+
   return (
     <Dialog open={isOpen} onClose={() => closeWindow(false)}>
       <DialogTitle>Add Point Value</DialogTitle>
@@ -210,15 +217,18 @@ function CustomPtValDialog(props: ICustomPtValDialogProps) {
               value={newPtVal}
               onChange={(e) => onPtValChange(e.target.value)}
               endAdornment={<InputAdornment position="end">pts</InputAdornment>}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && canSave) closeWindow(true);
+              }}
             />
             <FormHelperText error>{error ? errMsg : ' '}</FormHelperText>
           </FormControl>
         </DialogContent>
       </Box>
       <DialogActions>
-        <Button onClick={() => closeWindow(false)}>Cancel</Button>
+        <Button onClick={() => closeWindow(false)}>{hotkeyFormat('&Cancel')}</Button>
         <Button disabled={error || newPtVal === ''} onClick={() => closeWindow(true)}>
-          Accept
+          {hotkeyFormat('&Accept')}
         </Button>
       </DialogActions>
     </Dialog>

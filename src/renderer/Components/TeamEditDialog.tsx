@@ -18,11 +18,13 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import React, { ReactElement, useContext, useEffect, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { TeamEditModalContext } from '../Modal Managers/TempTeamManager';
 import { Team } from '../DataModel/Team';
 import { ValidationStatuses } from '../DataModel/Interfaces';
+import { hotkeyFormat } from '../Utils/GeneralReactUtils';
 
 function TeamEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -102,6 +104,9 @@ function TeamEditDialogCore() {
     setTeamIsD2(checked);
     modalManager.changeD2(checked);
   };
+
+  useHotkeys('alt+a', () => handleAccept(), { enabled: isOpen, enableOnFormTags: true });
+  useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });
 
   return (
     <>
@@ -187,8 +192,8 @@ function TeamEditDialogCore() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancel}>Cancel</Button>
-          <Button onClick={handleAccept}>Accept</Button>
+          <Button onClick={handleCancel}>{hotkeyFormat('&Cancel')}</Button>
+          <Button onClick={handleAccept}>{hotkeyFormat('&Accept')}</Button>
         </DialogActions>
       </Dialog>
       <ErrorDialog />
@@ -339,6 +344,8 @@ function ErrorDialog() {
     modalManager.closeErrorDialog();
   };
 
+  useHotkeys('alt+g', () => handleClose(), { enabled: isOpen });
+
   return (
     <Dialog open={isOpen} onClose={handleClose}>
       <DialogTitle>Unable to save team</DialogTitle>
@@ -352,7 +359,7 @@ function ErrorDialog() {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Go Back</Button>
+        <Button onClick={handleClose}>{hotkeyFormat('&Go Back')}</Button>
       </DialogActions>
     </Dialog>
   );
