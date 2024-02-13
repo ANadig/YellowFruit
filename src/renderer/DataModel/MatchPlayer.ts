@@ -1,23 +1,23 @@
-import AnswerType from './AnswerType';
-import Player from './Player';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject } from './Interfaces';
+import { Player, IQbjPlayer } from './Player';
+import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
 
-/** How many times in a game one player scored one specific point value */
-interface IPlayerAnswerCount {
-  /** Number of questions answered for this many points */
-  number: number;
-  answerType: AnswerType;
+export interface IQbjMatchPlayer extends IQbjObject {
+  /** Which player this is referring to */
+  player: IQbjPlayer | IQbjRefPointer;
+  /** The number of tossups this player heard */
+  tossupsHeard: number;
+  /** The number of this player's answers for each answer value */
+  answerCounts: IQbjPlayerAnswerCount[];
 }
 
 /** One player's performance in one game */
-class MatchPlayer {
-  /** Which player this is referring to */
+export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
   player: Player;
 
-  /** The number of tossups this player heard */
   tossupsHeard: number = 0;
 
-  /** The number of this player's answers for each answer value */
-  answerCounts: IPlayerAnswerCount[];
+  answerCounts: PlayerAnswerCount[] = [];
 
   /** total points for this player */
   get points(): number {
@@ -30,7 +30,17 @@ class MatchPlayer {
 
   constructor(p: Player) {
     this.player = p;
-    this.answerCounts = [];
+  }
+
+  toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjMatchPlayer {
+    const qbjObject: IQbjMatchPlayer = {
+      player: this.player.toRefPointer(),
+      tossupsHeard: this.tossupsHeard,
+      answerCounts: this.answerCounts.map((ac) => ac.toFileObject(qbjOnly)),
+    };
+
+    // this should not be a top-level or referenced object
+    return qbjObject;
   }
 }
 

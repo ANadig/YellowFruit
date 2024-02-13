@@ -7,6 +7,7 @@ import {
   makeEmptyValidator,
 } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
+import { makeQbjRefPointer } from './QbjUtils';
 
 /** Grades/years in school */
 enum PlayerYear {
@@ -61,6 +62,15 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
   static nameMaxLength = 200;
 
   static yearStringMaxLength = 20;
+
+  /** counter to make sure player IDs are unique */
+  private static idCounter = 1000;
+
+  private idNumber: number;
+
+  get id(): string {
+    return `Player_${this.name}_${this.idNumber}`;
+  }
 
   /** Grade in school, in the schema's numerical format. Is undefined if we can't parse to something valid */
   get year(): PlayerYear | undefined {
@@ -145,25 +155,30 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
 
   constructor(name: string) {
     this.name = name;
+    this.idNumber = Player.idCounter++;
 
     this.nameValidation = makeEmptyValidator();
     this.yearStringValidation = makeEmptyValidator();
   }
 
-  toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false, idXtraPc = ''): IQbjPlayer {
+  toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjPlayer {
     const qbjObject: IQbjPlayer = {
       name: this.name,
       year: this.year,
     };
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.Player;
-    if (isReferenced) qbjObject.id = `Player_${this.name}_${idXtraPc}`;
+    if (isReferenced) qbjObject.id = this.id;
 
     if (qbjOnly) return qbjObject;
 
     const yfData: IPlayerExtraData = { yearString: this.yearString, isUG: this.isUG, isD2: this.isD2 };
     const yftFileObj: IYftFilePlayer = { YfData: yfData, ...qbjObject };
     return yftFileObj;
+  }
+
+  toRefPointer() {
+    return makeQbjRefPointer(this.id);
   }
 
   validateAll() {

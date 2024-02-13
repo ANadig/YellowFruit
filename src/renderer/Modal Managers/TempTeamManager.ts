@@ -1,5 +1,4 @@
 import { createContext } from 'react';
-import { Player } from '../DataModel/Player';
 import Registration from '../DataModel/Registration';
 import { Team } from '../DataModel/Team';
 import { nextAlphabetLetter, teamGetNameAndLetter } from '../Utils/GeneralUtils';
@@ -224,7 +223,7 @@ export class TempTeamManager {
   }
 
   addEmptyPlayer() {
-    this.tempTeam.players.push(new Player(''));
+    this.tempTeam.pushBlankPlayer();
     this.dataChangedReactCallback();
   }
 

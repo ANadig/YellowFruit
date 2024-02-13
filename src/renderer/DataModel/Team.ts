@@ -103,7 +103,7 @@ export class Team implements IQbjTeam, IYftDataModelObject {
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjTeam {
     const qbjObject: IQbjTeam = {
       name: this.name,
-      players: this.players.map((plr) => plr.toFileObject(qbjOnly, false, true, this.name)),
+      players: this.players.map((plr) => plr.toFileObject(qbjOnly, false, true)),
       ranks: this.ranks?.map((rk) => rk.toFileObject(qbjOnly, false, false, this.name)),
     };
 
