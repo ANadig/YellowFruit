@@ -4,6 +4,7 @@ import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { IQbjPool, Pool } from './Pool';
 import { QbjTypeNames } from './QbjEnums';
 import { Team } from './Team';
+import { makeQbjRefPointer } from './QbjUtils';
 
 export enum PhaseTypes {
   /** The first phase of a tournament */
@@ -137,6 +138,10 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     const yftFileObj = { YfData: yfData, ...qbjObject };
 
     return yftFileObj;
+  }
+
+  toRefPointer() {
+    return makeQbjRefPointer(this.id);
   }
 
   resetPools() {
