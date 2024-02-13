@@ -195,7 +195,7 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjScoringRules {
     const qbjObject: IQbjScoringRules = {
       name: this.name,
-      answerTypes: this.answerTypes.map((aType) => aType.toFileObject(qbjOnly)),
+      answerTypes: this.answerTypes.map((aType) => aType.toFileObject(qbjOnly, false, true)),
       maximumRegulationTossupCount: this.maximumRegulationTossupCount,
       maximumPlayersPerTeam: this.maximumPlayersPerTeam,
       minimumOvertimeQuestionCount: this.minimumOvertimeQuestionCount,

@@ -1,5 +1,6 @@
-import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
+import { makeQbjRefPointer } from './QbjUtils';
 
 /** Represents a certain way a tossup can be answered. Corresponds with qb schema object
  *  https://schema.quizbowl.technology/tournament
@@ -42,6 +43,10 @@ class AnswerType implements IQbjAnswerType, IYftDataModelObject {
     this._shortLabel = str;
   }
 
+  get id(): string {
+    return this.label;
+  }
+
   constructor(points: number) {
     this.value = points;
   }
@@ -55,9 +60,13 @@ class AnswerType implements IQbjAnswerType, IYftDataModelObject {
       shortLabel: this._shortLabel || undefined,
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.AnswerType;
-    if (isReferenced) qbjObject.id = `AnswerType_${qbjObject.value}`;
+    if (isReferenced) qbjObject.id = `AnswerType_${this.id}`;
 
     return qbjObject;
+  }
+
+  toRefPointer(): IQbjRefPointer {
+    return makeQbjRefPointer(this.id);
   }
 }
 
