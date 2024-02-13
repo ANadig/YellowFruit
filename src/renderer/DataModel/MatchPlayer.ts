@@ -1,6 +1,6 @@
 import { IQbjObject, IQbjRefPointer, IYftDataModelObject } from './Interfaces';
 import { Player, IQbjPlayer } from './Player';
-import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
+import { IQbjPlayerAnswerCount, TossupAnswerCount } from './PlayerAnswerCount';
 
 export interface IQbjMatchPlayer extends IQbjObject {
   /** Which player this is referring to */
@@ -17,7 +17,7 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
 
   tossupsHeard: number = 0;
 
-  answerCounts: PlayerAnswerCount[] = [];
+  answerCounts: TossupAnswerCount[] = [];
 
   /** total points for this player */
   get points(): number {
@@ -32,6 +32,7 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
     this.player = p;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjMatchPlayer {
     const qbjObject: IQbjMatchPlayer = {
       player: this.player.toRefPointer(),

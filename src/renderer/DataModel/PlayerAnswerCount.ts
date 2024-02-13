@@ -7,7 +7,7 @@ export interface IQbjPlayerAnswerCount extends IQbjObject {
   answerType: IQbjAnswerType | IQbjRefPointer;
 }
 
-export class PlayerAnswerCount implements IQbjPlayerAnswerCount, IYftDataModelObject {
+export class TossupAnswerCount implements IQbjPlayerAnswerCount, IYftDataModelObject {
   number: number;
 
   answerType: AnswerType;
