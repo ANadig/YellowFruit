@@ -20,6 +20,10 @@ export class TournamentSite implements IQbjTournamentSite, IYftDataModelObject {
 
   static placeHolderName = 'unknown site';
 
+  get id(): string {
+    return `TournamentSite_${this.name}`;
+  }
+
   constructor(name?: string) {
     if (name && name !== TournamentSite.placeHolderName) {
       this.name = name;
@@ -32,7 +36,7 @@ export class TournamentSite implements IQbjTournamentSite, IYftDataModelObject {
       name: this.name || TournamentSite.placeHolderName,
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.TournamentSite;
-    if (isReferenced) qbjObject.id = `TournamentSite_${qbjObject.name}`;
+    if (isReferenced) qbjObject.id = this.id;
 
     return qbjObject;
   }

@@ -41,6 +41,10 @@ class Registration implements IQbjRegistration, IYftDataModelObject {
 
   nameValidation: IValidationInfo;
 
+  get id(): string {
+    return `Registration_${this.name}`;
+  }
+
   constructor(orgName: string, team?: Team) {
     this.name = orgName;
     if (team) {
@@ -68,7 +72,7 @@ class Registration implements IQbjRegistration, IYftDataModelObject {
     };
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.Registration;
-    if (isReferenced) qbjObject.id = `Registration_${this.name}`;
+    if (isReferenced) qbjObject.id = this.id;
 
     if (qbjOnly) return qbjObject;
 

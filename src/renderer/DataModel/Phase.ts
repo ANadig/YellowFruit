@@ -99,6 +99,10 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   /** How do we rank wild card teams to determine who has priority? */
   wildCardRankingMethod: WildCardRankingRules = WildCardRankingRules.RankThenPPB;
 
+  get id(): string {
+    return `Phase_${this.name}`;
+  }
+
   constructor(type: PhaseTypes, firstRound: number, lastRound: number, tiers: number, code: string, name?: string) {
     this.phaseType = type;
     this.name = name || defaultPhaseName(type);
@@ -119,7 +123,7 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     };
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.Phase;
-    if (isReferenced) qbjObject.id = `Phase_${this.name}`;
+    if (isReferenced) qbjObject.id = this.id;
 
     if (qbjOnly) return qbjObject;
 

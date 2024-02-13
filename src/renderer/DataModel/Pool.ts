@@ -98,6 +98,10 @@ export class Pool implements IQbjPool, IYftDataModelObject {
    */
   autoAdvanceRules: AdvancementOpportunity[] = [];
 
+  get id(): string {
+    return `Pool_${this.name}`;
+  }
+
   constructor(size: number, position: number, name?: string, hasCarryOver?: boolean) {
     this.position = position;
     this.size = size;
@@ -113,7 +117,7 @@ export class Pool implements IQbjPool, IYftDataModelObject {
       poolTeams: this.poolTeams.map((pt) => pt.toFileObject(qbjOnly)),
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.Pool;
-    if (isReferenced) qbjObject.id = `Pool_${this.name}`;
+    if (isReferenced) qbjObject.id = this.id;
 
     if (qbjOnly) return qbjObject;
 

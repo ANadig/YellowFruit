@@ -37,7 +37,7 @@ export class Round implements IQbjRound, IYftDataModelObject {
 
   /** The name of the round */
   get name(): string {
-    return this._name ? this._name : `Round ${this.number}`;
+    return this._name ? this._name : this.number.toString();
   }
 
   set name(str) {
@@ -52,6 +52,10 @@ export class Round implements IQbjRound, IYftDataModelObject {
   /** The matches that took place in this round */
   matches?: Match[];
 
+  get id(): string {
+    return `Round_${this.name}`;
+  }
+
   constructor(roundNo: number) {
     this.number = roundNo;
   }
@@ -61,7 +65,7 @@ export class Round implements IQbjRound, IYftDataModelObject {
       name: this.name,
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.Round;
-    if (isReferenced) qbjObject.id = `Round_${this.name}`;
+    if (isReferenced) qbjObject.id = this.id;
 
     if (qbjOnly) return qbjObject;
 

@@ -135,6 +135,10 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
 
   answerTypes: AnswerType[] = [];
 
+  get id(): string {
+    return `ScoringRules_${this.name}`;
+  }
+
   constructor(ruleSet: CommonRuleSets = CommonRuleSets.NaqtUntimed) {
     this.applyRuleSet(ruleSet);
   }
@@ -214,7 +218,7 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
     }
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.ScoringRules;
-    if (isReferenced) qbjObject.id = `ScoringRules_${this.name}`;
+    if (isReferenced) qbjObject.id = this.id;
 
     if (qbjOnly) {
       qbjObject.regulationTossupCount = this.regulationTossupCount;

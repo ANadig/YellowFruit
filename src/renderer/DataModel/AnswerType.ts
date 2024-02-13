@@ -44,7 +44,7 @@ class AnswerType implements IQbjAnswerType, IYftDataModelObject {
   }
 
   get id(): string {
-    return this.label;
+    return `AnswerType_${this.label}`;
   }
 
   constructor(points: number) {
@@ -60,7 +60,7 @@ class AnswerType implements IQbjAnswerType, IYftDataModelObject {
       shortLabel: this._shortLabel || undefined,
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.AnswerType;
-    if (isReferenced) qbjObject.id = `AnswerType_${this.id}`;
+    if (isReferenced) qbjObject.id = this.id;
 
     return qbjObject;
   }

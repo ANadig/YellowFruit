@@ -12,6 +12,10 @@ export interface IQbjRanking extends IQbjObject {
 export class Ranking implements IQbjRanking, IYftDataModelObject {
   name: string;
 
+  get id(): string {
+    return `Ranking_${this.name}`;
+  }
+
   constructor(name: string) {
     this.name = name;
   }
@@ -21,7 +25,7 @@ export class Ranking implements IQbjRanking, IYftDataModelObject {
     const qbjObject: IQbjRanking = { name: this.name };
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.Ranking;
-    if (isReferenced) qbjObject.id = `Ranking_${this.name}`;
+    if (isReferenced) qbjObject.id = this.id;
 
     return qbjObject;
   }
