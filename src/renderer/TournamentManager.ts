@@ -14,6 +14,8 @@ import { TempTeamManager } from './Modal Managers/TempTeamManager';
 import { GenericModalManager } from './Modal Managers/GenericModalManager';
 import { collectRefTargets } from './DataModel/QbjUtils2';
 import FileParser from './DataModel/FileParsing';
+import { TempMatchManager } from './Modal Managers/TempMatchManager';
+import { Match } from './DataModel/Match';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -51,6 +53,11 @@ export class TournamentManager {
   /** The existing team that we are editing a copy of, if any */
   teamBeingModified: Team | null = null;
 
+  // properties for managing the Match edit workflow
+  matchModalManager: TempMatchManager;
+
+  matchBeingModified: Match | null = null;
+
   readonly isNull: boolean = false;
 
   constructor() {
@@ -58,9 +65,10 @@ export class TournamentManager {
     this.dataChangedReactCallback = () => {};
     this.addIpcListeners();
     this.setWindowTitle();
-    this.genericModalManager = new GenericModalManager();
 
+    this.genericModalManager = new GenericModalManager();
     this.teamModalManager = new TempTeamManager();
+    this.matchModalManager = new TempMatchManager();
   }
 
   protected addIpcListeners() {
@@ -458,6 +466,19 @@ export class TournamentManager {
       this.teamModalManager.resetForNewTeam();
     } else {
       this.teamModalManager.closeModal();
+    }
+  }
+
+  openMatchModalNewMatchForRound(round: number) {
+    this.matchModalManager.openModal(undefined, round);
+  }
+
+  matchEditModalReset(stayOpen: boolean = false) {
+    this.matchBeingModified = null;
+    if (stayOpen) {
+      this.matchModalManager.resetForNewMatch();
+    } else {
+      this.matchModalManager.closeModal();
     }
   }
 

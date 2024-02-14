@@ -22,6 +22,7 @@ import TeamsPage from './Components/TeamsPage';
 import TeamEditDialog from './Components/TeamEditDialog';
 import GenericDialog from './Components/GenericDialog';
 import GamesPage from './Components/GamesPage';
+import MatchEditDialog from './Components/MatchEditDialog';
 
 window.electron.ipcRenderer.removeAllListeners();
 const tournManager = new TournamentManager();
@@ -70,6 +71,7 @@ function TournamentEditor() {
       </Box>
       <GenericDialog />
       <TeamEditDialog />
+      <MatchEditDialog />
     </>
   );
 }

@@ -1,5 +1,17 @@
-import { Card, CardContent, ToggleButtonGroup, ToggleButton, Stack } from '@mui/material';
+import {
+  Card,
+  CardContent,
+  ToggleButtonGroup,
+  ToggleButton,
+  Stack,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography,
+  IconButton,
+} from '@mui/material';
 import { useContext } from 'react';
+import { AddCircle, ExpandMore } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import YfCard from './YfCard';
@@ -43,12 +55,27 @@ function GamesViewByRound() {
   const tournManager = useContext(TournamentContext);
   const { phases } = tournManager.tournament;
 
+  const newMatchForRound = (round: number) => {
+    tournManager.openMatchModalNewMatchForRound(round);
+  };
+
   return (
     <Stack spacing={2}>
       {phases.map((phase) => (
         <YfCard key={phase.name} title={phase.name}>
           {phase.rounds.map((round) => (
-            <div>{round.name}</div>
+            <Accordion key={round.name}>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography sx={{ width: '33%', flexShrink: 0 }}>{`Round ${round.number}`}</Typography>
+                <Typography
+                  sx={{ width: '62%', color: 'text.secondary' }}
+                >{`${round.matches.length} matches`}</Typography>
+                <IconButton size="small" sx={{ p: 0 }} onClick={() => newMatchForRound(round.number)}>
+                  <AddCircle />
+                </IconButton>
+              </AccordionSummary>
+              <AccordionDetails>List of matches here</AccordionDetails>
+            </Accordion>
           ))}
         </YfCard>
       ))}

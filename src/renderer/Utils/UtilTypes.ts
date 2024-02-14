@@ -1,3 +1,4 @@
+import { Match } from '../DataModel/Match';
 import Registration from '../DataModel/Registration';
 import { Team } from '../DataModel/Team';
 
@@ -21,4 +22,6 @@ export class NullObjects {
   static nullRegistration = new Registration('');
 
   static nullTeam = new Team('');
+
+  static nullMatch = new Match();
 }

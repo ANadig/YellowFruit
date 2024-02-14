@@ -14,6 +14,10 @@ export enum QbjTypeNames {
   Player = 'Player',
   Rank = 'Rank',
   Ranking = 'Ranking',
+  Match = 'Match',
+  MatchTeam = 'MatchTeam',
+  MatchPlayer = 'MatchPlayer',
+  PlayerAnswerCount = 'PlayerAnswerCount',
 }
 
 /** Audience / level of the tournament */

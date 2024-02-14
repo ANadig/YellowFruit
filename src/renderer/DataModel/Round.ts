@@ -1,6 +1,6 @@
 import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 // eslint-disable-next-line import/no-cycle
-import Match from './Match';
+import { IQbjMatch, Match } from './Match';
 import { IQbjPacket, Packet } from './Packet';
 import { QbjTypeNames } from './QbjEnums';
 
@@ -15,7 +15,7 @@ export interface IQbjRound extends IQbjObject {
    * assumed that the matching packet was used (and no other packets were used) */
   packets?: IQbjPacket[];
   /** The matches that took place in this round */
-  matches?: Match[]; // TODO: make a QBJ object type for this
+  matches?: IQbjMatch[];
 }
 
 /** Round object as written to a .yft file */
@@ -50,7 +50,7 @@ export class Round implements IQbjRound, IYftDataModelObject {
   packet?: Packet;
 
   /** The matches that took place in this round */
-  matches?: Match[];
+  matches: Match[] = [];
 
   get id(): string {
     return `Round_${this.name}`;
@@ -63,6 +63,8 @@ export class Round implements IQbjRound, IYftDataModelObject {
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjRound {
     const qbjObject: IQbjRound = {
       name: this.name,
+      matches: this.matches.map((m) => m.toFileObject(qbjOnly)),
+      // TODO: packet
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.Round;
     if (isReferenced) qbjObject.id = this.id;
