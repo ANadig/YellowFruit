@@ -92,7 +92,7 @@ export class Team implements IQbjTeam, IYftDataModelObject {
 
   copyFromTeam(source: Team) {
     this.name = source.name;
-    this.players = source.players.slice();
+    this.players = source.players.map((pl) => pl.makeCopy());
     this.ranks = source.ranks;
     this.letter = source.letter;
     this.isJV = source.isJV;

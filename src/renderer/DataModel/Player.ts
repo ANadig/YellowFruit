@@ -161,6 +161,20 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
     this.yearStringValidation = makeEmptyValidator();
   }
 
+  makeCopy(): Player {
+    const copy = new Player('');
+    copy.copyFromPlayer(this);
+    return copy;
+  }
+
+  copyFromPlayer(source: Player) {
+    this.name = source.name;
+    this.yearString = source.yearString;
+    this.idNumber = source.idNumber;
+    this.isUG = source.isUG;
+    this.isD2 = source.isD2;
+  }
+
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjPlayer {
     const qbjObject: IQbjPlayer = {
       name: this.name,
