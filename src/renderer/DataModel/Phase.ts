@@ -185,4 +185,8 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
       poolWithTeam.removeTeam(team);
     }
   }
+
+  includesRound(roundNo: number): boolean {
+    return this.rounds.find((rd) => rd.number === roundNo) !== undefined;
+  }
 }

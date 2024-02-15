@@ -2,10 +2,14 @@ import { createContext } from 'react';
 import { NullObjects } from '../Utils/UtilTypes';
 import { Match } from '../DataModel/Match';
 import { Team } from '../DataModel/Team';
+import Tournament, { NullTournament } from '../DataModel/Tournament';
+import { Phase } from '../DataModel/Phase';
 
 export class TempMatchManager {
   /** The Match being edited */
   tempMatch: Match = NullObjects.nullMatch;
+
+  tournament: Tournament = NullTournament;
 
   /** Round number of the match being edited */
   round?: number;
@@ -18,7 +22,8 @@ export class TempMatchManager {
 
   dataChangedReactCallback: () => void;
 
-  constructor() {
+  constructor(tourn?: Tournament) {
+    if (tourn) this.tournament = tourn;
     this.dataChangedReactCallback = () => {};
   }
 
@@ -70,6 +75,35 @@ export class TempMatchManager {
   /** Clear the form and leave it open so another match can be entered */
   resetForNewMatch() {
     this.openModal();
+  }
+
+  setRoundNo(num: number | undefined) {
+    this.round = num;
+    this.dataChangedReactCallback();
+  }
+
+  getMainPhaseName() {
+    if (this.round === undefined) return '';
+    const phase = this.tournament.whichPhaseIsRoundIn(this.round);
+    if (!phase) return '';
+    return phase.name;
+  }
+
+  getAvailableCarryOverPhases() {
+    const playoffPhases = this.tournament.getPlayoffPhases();
+    if (this.round === undefined) return playoffPhases;
+    const curPhase = this.tournament.whichPhaseIsRoundIn(this.round);
+    return playoffPhases.filter((ph) => ph !== curPhase);
+  }
+
+  setCarryoverPhases(phaseNames: string[]) {
+    const phases: Phase[] = [];
+    for (const str of phaseNames) {
+      const matchingPhase = this.tournament.findPhaseByName(str);
+      if (matchingPhase) phases.push(matchingPhase);
+    }
+    this.tempMatch.carryoverPhases = phases;
+    this.dataChangedReactCallback();
   }
 
   openErrorDialog(errs: string[]) {

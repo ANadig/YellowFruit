@@ -1,4 +1,5 @@
 import { sumReduce } from '../Utils/GeneralUtils';
+// eslint-disable-next-line import/no-cycle
 import { NullDate, NullObjects } from '../Utils/UtilTypes';
 import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { IQbjPhase, Phase, PhaseTypes } from './Phase';
@@ -144,6 +145,18 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.find((phase) => phase.phaseType === PhaseTypes.Prelim);
   }
 
+  whichPhaseIsRoundIn(roundNo: number): Phase | undefined {
+    return this.phases.find((phase) => phase.includesRound(roundNo));
+  }
+
+  getPlayoffPhases() {
+    return this.phases.filter((ph) => ph.phaseType === PhaseTypes.Playoff);
+  }
+
+  findPhaseByName(str: string) {
+    return this.phases.find((ph) => ph.name === str);
+  }
+
   /** Add a new registration, and a team that should be contained in that registration */
   addRegAndTeam(regToAdd: Registration, teamToAdd: Team) {
     regToAdd.teams = [teamToAdd];
@@ -266,5 +279,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.getPrelimPhase()?.setTeamList(this.seeds);
   }
 }
+
+export const NullTournament = new Tournament('Null Tournament');
 
 export default Tournament;

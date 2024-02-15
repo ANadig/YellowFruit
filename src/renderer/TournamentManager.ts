@@ -470,6 +470,7 @@ export class TournamentManager {
   }
 
   openMatchModalNewMatchForRound(round: number) {
+    this.matchModalManager.tournament = this.tournament;
     this.matchModalManager.openModal(undefined, round);
   }
 

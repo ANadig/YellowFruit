@@ -1,6 +1,22 @@
 import { useContext, useState, useEffect } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Dialog, DialogTitle, DialogContent, List, ListItem, DialogActions, Button } from '@mui/material';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  List,
+  ListItem,
+  DialogActions,
+  Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Checkbox,
+  ListItemText,
+} from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2';
 import { MatchEditModalContext } from '../Modal Managers/TempMatchManager';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -29,8 +45,6 @@ function MatchEditDialogCore() {
 
   const [isOpen] = useSubscription(modalManager.modalIsOpen);
 
-  const [roundNo, setRoundNo] = useSubscription(modalManager.round || '');
-
   const handleCancel = () => {
     tournManager.matchEditModalReset();
   };
@@ -41,7 +55,23 @@ function MatchEditDialogCore() {
     <>
       <Dialog fullWidth maxWidth="xl" open={isOpen} onClose={handleCancel}>
         <DialogTitle>Edit Game</DialogTitle>
-        <DialogContent>{`Round ${roundNo}`}</DialogContent>
+        <DialogContent>
+          <Grid container spacing={1} sx={{ marginTop: 1 }}>
+            <Grid xs={6} sm={2}>
+              <RoundField />
+            </Grid>
+            <Grid xs={6} sm={3}>
+              <MainPhaseField />
+            </Grid>
+            <Grid xs={6} sm={4}>
+              <CarryoverPhaseSelect />
+            </Grid>
+            <Grid xs={1} />
+            <Grid xs={5} sm={2}>
+              TUH field
+            </Grid>
+          </Grid>
+        </DialogContent>
         <DialogActions>
           <Button variant="outlined" onClick={handleCancel}>
             {hotkeyFormat('&Cancel')}
@@ -56,6 +86,78 @@ function MatchEditDialogCore() {
       </Dialog>
       <ErrorDialog />
     </>
+  );
+}
+
+function RoundField() {
+  const modalManager = useContext(MatchEditModalContext);
+  const [roundNo, setRoundNo] = useSubscription(modalManager.round?.toString() || '');
+
+  const handleBlur = () => {
+    const parsed = parseInt(roundNo, 10);
+    if (Number.isNaN(parsed)) return;
+    modalManager.setRoundNo(parsed);
+    setRoundNo(parsed.toString());
+  };
+
+  return (
+    <TextField
+      type="number"
+      label="Round"
+      fullWidth
+      variant="outlined"
+      size="small"
+      helperText={' '}
+      value={roundNo}
+      onChange={(e) => setRoundNo(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') handleBlur();
+      }}
+    />
+  );
+}
+
+function MainPhaseField() {
+  const modalManager = useContext(MatchEditModalContext);
+  const [phaseName] = useSubscription(modalManager.getMainPhaseName());
+
+  return (
+    <TextField label="Phase" fullWidth variant="outlined" size="small" disabled helperText={' '} value={phaseName} />
+  );
+}
+
+function CarryoverPhaseSelect() {
+  const modalManager = useContext(MatchEditModalContext);
+  const [coPhases, setCoPhases] = useSubscription(modalManager.tempMatch.carryoverPhases.map((ph) => ph.name));
+  const [availablePhases] = useSubscription(modalManager.getAvailableCarryOverPhases());
+
+  const handleChange = (val: string[] | string) => {
+    const phaseNames = typeof val === 'string' ? val.split(',') : val;
+    setCoPhases(phaseNames);
+    modalManager.setCarryoverPhases(phaseNames);
+  };
+
+  return (
+    <FormControl sx={{ minWidth: 200 }} size="small">
+      <InputLabel>Carryover Phases</InputLabel>
+      <Select
+        label="Carryover Phases"
+        multiple
+        fullWidth
+        value={coPhases}
+        disabled={availablePhases.length === 0}
+        onChange={(e) => handleChange(e.target.value)}
+        renderValue={(selected) => selected.join(', ')}
+      >
+        {availablePhases.map((ph) => (
+          <MenuItem key={ph.name} value={ph.name}>
+            <Checkbox checked={coPhases.indexOf(ph.name) > -1} />
+            <ListItemText primary={ph.name} />
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   );
 }
 
