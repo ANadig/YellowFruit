@@ -6,11 +6,15 @@
 
 // eslint-disable-next-line import/no-cycle
 import { IQbjPhase, Phase } from './Phase';
-import { IQbjObject, IQbjRefPointer, IYftDataModelObject, ValidationStatuses } from './Interfaces';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject, ValidationStatuses } from './Interfaces';
 import { MatchTeam, IQbjMatchTeam } from './MatchTeam';
 import { Team } from './Team';
 import { QbjTypeNames } from './QbjEnums';
-import MatchValidationMessage, { MatchValidationCollection, MatchValidationType } from './MatchValidationMessage';
+import MatchValidationMessage, {
+  IYftFileMatchValidationMsg,
+  MatchValidationCollection,
+  MatchValidationType,
+} from './MatchValidationMessage';
 
 export interface IQbjMatch extends IQbjObject {
   /** The number of tossups read, including any tossups read in overtime */
@@ -35,6 +39,16 @@ export interface IQbjMatch extends IQbjObject {
   carryoverPhases?: IQbjPhase[] | IQbjRefPointer[];
   /** Additional notes about this match */
   notes?: string;
+}
+
+/** Tournament object as written to a .yft file */
+export interface IYftFileMatch extends IQbjMatch, IYftFileObject {
+  YfData: IMatchExtraData;
+}
+
+/** Additional info not in qbj but needed for a .yft file */
+interface IMatchExtraData {
+  otherValidation: IYftFileMatchValidationMsg[];
 }
 
 /** A single match scheduled between two teams */
@@ -138,8 +152,12 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.Match;
     if (isReferenced) qbjObject.id = this.id;
+    if (qbjOnly) return qbjObject;
 
-    return qbjObject;
+    const yfData: IMatchExtraData = { otherValidation: this.otherValidation.toFileObject() };
+    const yftFileObj = { YfData: yfData, ...qbjObject };
+
+    return yftFileObj;
   }
 
   setLeftTeam(team: Team) {
@@ -175,7 +193,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       this.otherValidation.addValidationMsg(
         MatchValidationType.lowTotalTuh,
         ValidationStatuses.Warning,
-        `Total tossups heard is less than ${regTossups}, the standard number for a match`,
+        `Total tossups heard is less than ${regTossups}, the standard number for a game`,
         true,
       );
       return;

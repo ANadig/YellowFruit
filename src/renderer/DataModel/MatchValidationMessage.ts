@@ -4,6 +4,14 @@ export enum MatchValidationType {
   lowTotalTuh,
 }
 
+export interface IYftFileMatchValidationMsg {
+  status: ValidationStatuses;
+  message: string;
+  suppressable: boolean;
+  isSuppressed: boolean;
+  type?: MatchValidationType;
+}
+
 export default class MatchValidationMessage {
   status: ValidationStatuses = ValidationStatuses.Ok;
 
@@ -43,6 +51,17 @@ export default class MatchValidationMessage {
     this.type = source.type;
   }
 
+  toFileObject(): IYftFileMatchValidationMsg {
+    // yellow-fruit only - no need to worry about qbj schema
+    return {
+      status: this.status,
+      message: this.message,
+      suppressable: this.suppressable,
+      isSuppressed: this.isSuppressed,
+      type: this.type,
+    };
+  }
+
   setOk() {
     this.status = ValidationStatuses.Ok;
     this.message = '';
@@ -77,6 +96,10 @@ export class MatchValidationCollection {
 
   copyFromOther(source: MatchValidationCollection) {
     this.validators = source.validators.map((v) => v.makeCopy());
+  }
+
+  toFileObject(): IYftFileMatchValidationMsg[] {
+    return this.validators.map((v) => v.toFileObject());
   }
 
   getErrorMessages(): string[] {
