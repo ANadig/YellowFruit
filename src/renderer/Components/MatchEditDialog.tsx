@@ -15,12 +15,16 @@ import {
   Select,
   Checkbox,
   ListItemText,
+  Box,
+  Alert,
+  AlertColor,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { MatchEditModalContext } from '../Modal Managers/TempMatchManager';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { ValidationStatuses } from '../DataModel/Interfaces';
 
 export default function MatchEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -55,23 +59,30 @@ function MatchEditDialogCore() {
     <>
       <Dialog fullWidth maxWidth="xl" open={isOpen} onClose={handleCancel}>
         <DialogTitle>Edit Game</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={1} sx={{ marginTop: 1 }}>
-            <Grid xs={6} sm={2}>
-              <RoundField />
+        <Box
+          sx={{
+            '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
+          }}
+        >
+          <DialogContent>
+            <Grid container spacing={1} sx={{ marginTop: 1 }}>
+              <Grid xs={6} sm={2}>
+                <RoundField />
+              </Grid>
+              <Grid xs={6} sm={3}>
+                <MainPhaseField />
+              </Grid>
+              <Grid xs={6} sm={4}>
+                <CarryoverPhaseSelect />
+              </Grid>
+              <Grid xs={1} />
+              <Grid xs={5} sm={2}>
+                <TuhTotalField />
+              </Grid>
             </Grid>
-            <Grid xs={6} sm={3}>
-              <MainPhaseField />
-            </Grid>
-            <Grid xs={6} sm={4}>
-              <CarryoverPhaseSelect />
-            </Grid>
-            <Grid xs={1} />
-            <Grid xs={5} sm={2}>
-              TUH field
-            </Grid>
-          </Grid>
-        </DialogContent>
+          </DialogContent>
+        </Box>
+        <ValidationSection />
         <DialogActions>
           <Button variant="outlined" onClick={handleCancel}>
             {hotkeyFormat('&Cancel')}
@@ -92,12 +103,12 @@ function MatchEditDialogCore() {
 function RoundField() {
   const modalManager = useContext(MatchEditModalContext);
   const [roundNo, setRoundNo] = useSubscription(modalManager.round?.toString() || '');
+  const [err] = useSubscription(modalManager.roundFieldError);
 
   const handleBlur = () => {
-    const parsed = parseInt(roundNo, 10);
-    if (Number.isNaN(parsed)) return;
-    modalManager.setRoundNo(parsed);
-    setRoundNo(parsed.toString());
+    const newRoundNo = modalManager.setRoundNo(roundNo);
+    const valToUse = newRoundNo === undefined ? '' : newRoundNo.toString();
+    setRoundNo(valToUse);
   };
 
   return (
@@ -107,7 +118,8 @@ function RoundField() {
       fullWidth
       variant="outlined"
       size="small"
-      helperText={' '}
+      error={!!err}
+      helperText={err || ' '}
       value={roundNo}
       onChange={(e) => setRoundNo(e.target.value)}
       onBlur={handleBlur}
@@ -159,6 +171,99 @@ function CarryoverPhaseSelect() {
       </Select>
     </FormControl>
   );
+}
+
+function TuhTotalField() {
+  const modalManager = useContext(MatchEditModalContext);
+  const thisMatch = modalManager.tempMatch;
+  const [tuh, setTuh] = useSubscription(thisMatch.tossupsRead.toString() || '');
+  const [valStatus] = useSubscription(thisMatch.totalTuhFieldValidation.status);
+  const [valMsg] = useSubscription(thisMatch.totalTuhFieldValidation.message);
+
+  const handleBlur = () => {
+    const valToUse = modalManager.setTotalTuh(tuh);
+    setTuh(valToUse.toString());
+  };
+
+  return (
+    <TextField
+      type="number"
+      label="TU Heard (incl. OT)"
+      fullWidth
+      variant="outlined"
+      size="small"
+      error={valStatus === ValidationStatuses.Error}
+      helperText={valMsg || ' '}
+      value={tuh}
+      onChange={(e) => setTuh(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') handleBlur();
+      }}
+    />
+  );
+}
+
+function ValidationSection() {
+  const modalManager = useContext(MatchEditModalContext);
+  const [validators] = useSubscription(modalManager.tempMatch.otherValidation.validators);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // const [_length] = useSubscription(modalManager.tempMatch.otherValidation.validators.length);
+
+  return validators.map((m, idx) => <ValidationMessage key={m.type} index={idx} />);
+}
+
+interface IValidationMessageProps {
+  index: number;
+}
+
+function ValidationMessage(props: IValidationMessageProps) {
+  const { index } = props;
+  const modalManager = useContext(MatchEditModalContext);
+  const thisValidator = modalManager.tempMatch.otherValidation.validators[index];
+  const [type] = useSubscription(thisValidator?.type);
+  const [status] = useSubscription(thisValidator?.status);
+  const [message] = useSubscription(thisValidator?.message);
+  const [suppressable] = useSubscription(thisValidator?.suppressable);
+  const [isSuppressed] = useSubscription(thisValidator?.isSuppressed);
+
+  if (!thisValidator) return null;
+  if (isSuppressed) return null;
+
+  const suppressSelf = () => {
+    if (type === undefined) return;
+    modalManager.suppressValidationMessage(type);
+  };
+
+  return (
+    <Alert
+      sx={{ m: 1 }}
+      variant="filled"
+      severity={getMuiSeverity(status)}
+      action={
+        suppressable && (
+          <Button color="inherit" size="small" onClick={suppressSelf}>
+            Ignore
+          </Button>
+        )
+      }
+    >
+      {message}
+    </Alert>
+  );
+}
+
+function getMuiSeverity(status: ValidationStatuses): AlertColor | undefined {
+  switch (status) {
+    case ValidationStatuses.Error:
+      return 'error';
+    case ValidationStatuses.Warning:
+      return 'warning';
+    case ValidationStatuses.Info:
+      return 'info';
+    default:
+      return undefined;
+  }
 }
 
 function ErrorDialog() {

@@ -4,6 +4,7 @@ import { Match } from '../DataModel/Match';
 import { Team } from '../DataModel/Team';
 import Tournament, { NullTournament } from '../DataModel/Tournament';
 import { Phase } from '../DataModel/Phase';
+import { MatchValidationType } from '../DataModel/MatchValidationMessage';
 
 export class TempMatchManager {
   /** The Match being edited */
@@ -13,6 +14,9 @@ export class TempMatchManager {
 
   /** Round number of the match being edited */
   round?: number;
+
+  /** Error to print next to the round field */
+  roundFieldError?: string;
 
   modalIsOpen: boolean = false;
 
@@ -54,6 +58,7 @@ export class TempMatchManager {
 
   createBlankMatch() {
     this.tempMatch = new Match();
+    this.tempMatch.tossupsRead = this.tournament.scoringRules.regulationTossupCount;
     this.dataChangedReactCallback();
   }
 
@@ -77,9 +82,39 @@ export class TempMatchManager {
     this.openModal();
   }
 
-  setRoundNo(num: number | undefined) {
-    this.round = num;
+  setRoundNo(val: string) {
+    const parsed = parseInt(val, 10);
+    if (Number.isNaN(parsed)) {
+      if (val === '') {
+        this.round = undefined;
+      } // else don't change it (revert to last valid value)
+    } else {
+      this.round = parsed;
+      this.removeBadCarryoverPhase();
+    }
+    this.validateRoundNo();
     this.dataChangedReactCallback();
+    return this.round;
+  }
+
+  /** If the match's round is listed in its carryover phases, remove that phase from the list */
+  removeBadCarryoverPhase() {
+    if (this.round === undefined) return;
+    const newPhase = this.tournament.whichPhaseIsRoundIn(this.round);
+    if (newPhase === undefined) return;
+    this.tempMatch.carryoverPhases = this.tempMatch.carryoverPhases.filter((ph) => ph !== newPhase);
+  }
+
+  validateRoundNo() {
+    if (this.round === undefined) {
+      this.roundFieldError = 'Round number is required';
+      return;
+    }
+    if (!this.tournament.whichPhaseIsRoundIn(this.round)) {
+      this.roundFieldError = 'This round number is not a part of any Phase';
+      return;
+    }
+    delete this.roundFieldError;
   }
 
   getMainPhaseName() {
@@ -103,6 +138,20 @@ export class TempMatchManager {
       if (matchingPhase) phases.push(matchingPhase);
     }
     this.tempMatch.carryoverPhases = phases;
+    this.dataChangedReactCallback();
+  }
+
+  setTotalTuh(val: string): number {
+    let parsed = parseInt(val, 10);
+    if (Number.isNaN(parsed)) parsed = this.tempMatch.tossupsRead;
+    this.tempMatch.tossupsRead = parsed;
+    this.tempMatch.validateTotalTuh(this.tournament.scoringRules.regulationTossupCount);
+    this.dataChangedReactCallback();
+    return parsed;
+  }
+
+  suppressValidationMessage(type: MatchValidationType) {
+    this.tempMatch.suppressMessageType(type);
     this.dataChangedReactCallback();
   }
 

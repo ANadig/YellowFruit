@@ -6,10 +6,11 @@
 
 // eslint-disable-next-line import/no-cycle
 import { IQbjPhase, Phase } from './Phase';
-import { IQbjObject, IQbjRefPointer, IYftDataModelObject } from './Interfaces';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject, ValidationStatuses } from './Interfaces';
 import { MatchTeam, IQbjMatchTeam } from './MatchTeam';
 import { Team } from './Team';
 import { QbjTypeNames } from './QbjEnums';
+import MatchValidationMessage, { MatchValidationCollection, MatchValidationType } from './MatchValidationMessage';
 
 export interface IQbjMatch extends IQbjObject {
   /** The number of tossups read, including any tossups read in overtime */
@@ -72,6 +73,12 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
   notes?: string;
 
+  /** Validation directly associated with the total TUH field */
+  totalTuhFieldValidation: MatchValidationMessage;
+
+  /** Any other messages that should go at the bottom of the modal rather than  */
+  otherValidation: MatchValidationCollection;
+
   /** counter to make sure match IDs are unique */
   private static idCounter = 1000;
 
@@ -85,6 +92,9 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.idNumber = Match.idCounter++;
     if (team1) this.matchTeams = [new MatchTeam(team1)];
     if (team2) this.matchTeams.push(new MatchTeam(team2));
+
+    this.totalTuhFieldValidation = new MatchValidationMessage();
+    this.otherValidation = new MatchValidationCollection();
   }
 
   makeCopy(): Match {
@@ -108,7 +118,6 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.notes = source.notes;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjMatch {
     const qbjObject: IQbjMatch = {
       matchTeams: this.matchTeams.map((mt) => mt.toFileObject(qbjOnly)),
@@ -136,5 +145,34 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
   setRightTeam(team: Team) {
     this.matchTeams[1] = new MatchTeam(team);
+  }
+
+  validateAll(regTossups?: number) {
+    this.validateTotalTuh(regTossups);
+  }
+
+  validateTotalTuh(regTossups?: number) {
+    if (this.tossupsRead < 1 || this.tossupsRead > 999) {
+      this.totalTuhFieldValidation.setError('Invalid number');
+      return;
+    }
+
+    this.totalTuhFieldValidation.setOk();
+
+    if (!!regTossups && this.tossupsRead < regTossups) {
+      this.otherValidation.addValidationMsg(
+        MatchValidationType.lowTotalTuh,
+        ValidationStatuses.Warning,
+        `Total tossups heard is less than ${regTossups}, the standard number for a match`,
+        true,
+      );
+      return;
+    }
+
+    this.otherValidation.clearMsgType(MatchValidationType.lowTotalTuh);
+  }
+
+  suppressMessageType(type: MatchValidationType) {
+    this.otherValidation.suppressMessageType(type);
   }
 }

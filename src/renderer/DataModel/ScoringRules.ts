@@ -86,7 +86,7 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
 
   get regulationTossupCount(): number {
     if (!this.timed) return this.maximumRegulationTossupCount;
-    return 20; // in the future, maybe support setting this manually
+    return ScoringRules.defaultRegulationTossupCount; // in the future, maybe support setting this manually
   }
 
   maximumRegulationTossupCount: number = 20; // for untimed rounds, this is the only allowed regulation number for non-tiebreakers
