@@ -5,6 +5,7 @@ import { IQbjPool, Pool } from './Pool';
 import { QbjTypeNames } from './QbjEnums';
 import { Team } from './Team';
 import { makeQbjRefPointer } from './QbjUtils';
+import { Match } from './Match';
 
 export enum PhaseTypes {
   /** The first phase of a tournament */
@@ -187,6 +188,16 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   }
 
   includesRound(roundNo: number): boolean {
-    return this.rounds.find((rd) => rd.number === roundNo) !== undefined;
+    return this.getRound(roundNo) !== undefined;
+  }
+
+  getRound(roundNo: number): Round | undefined {
+    return this.rounds.find((rd) => rd.number === roundNo);
+  }
+
+  addMatch(match: Match, roundNo: number) {
+    const round = this.getRound(roundNo);
+    if (!round) return;
+    round.matches.push(match);
   }
 }

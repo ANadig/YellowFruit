@@ -2,6 +2,7 @@ import { sumReduce } from '../Utils/GeneralUtils';
 // eslint-disable-next-line import/no-cycle
 import { NullDate, NullObjects } from '../Utils/UtilTypes';
 import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { Match } from './Match';
 import { IQbjPhase, Phase, PhaseTypes } from './Phase';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import { IQbjRanking, Ranking } from './Ranking';
@@ -277,6 +278,13 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** Take the list of seeds and populate prelim pools with them */
   distributeSeeds() {
     this.getPrelimPhase()?.setTeamList(this.seeds);
+  }
+
+  addMatch(match: Match, roundNo: number) {
+    const phase = this.whichPhaseIsRoundIn(roundNo);
+    if (!phase) return;
+
+    phase.addMatch(match, roundNo);
   }
 }
 

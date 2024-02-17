@@ -474,6 +474,21 @@ export class TournamentManager {
     this.matchModalManager.openModal(undefined, round);
   }
 
+  matchEditModalAttemptToSave(stayOpen: boolean = false) {
+    if (this.matchModalManager.preSaveValidation()) {
+      this.matchEditModalSave(stayOpen);
+    }
+  }
+
+  private matchEditModalSave(stayOpen: boolean = false) {
+    if (this.matchBeingModified !== null) {
+      this.matchModalManager.saveExistingMatch(this.matchBeingModified);
+    } else {
+      this.matchModalManager.saveNewMatch();
+    }
+    this.matchEditModalReset(stayOpen);
+  }
+
   matchEditModalReset(stayOpen: boolean = false) {
     this.matchBeingModified = null;
     if (stayOpen) {

@@ -33,6 +33,7 @@ export class TempMatchManager {
 
   reset() {
     this.tempMatch = NullObjects.nullMatch;
+    delete this.roundFieldError;
   }
 
   /**
@@ -62,13 +63,18 @@ export class TempMatchManager {
     this.dataChangedReactCallback();
   }
 
-  loadMatch(match: Match) {
+  private loadMatch(match: Match) {
     this.tempMatch = match.makeCopy();
   }
 
   /** Transfer data from temp objects to real objects */
-  saveMatch(targetMatch: Match) {
+  saveExistingMatch(targetMatch: Match) {
     targetMatch.copyFromMatch(this.tempMatch);
+  }
+
+  saveNewMatch() {
+    if (this.round === undefined) return;
+    this.tournament.addMatch(this.tempMatch, this.round);
   }
 
   closeModal() {
@@ -80,6 +86,19 @@ export class TempMatchManager {
   /** Clear the form and leave it open so another match can be entered */
   resetForNewMatch() {
     this.openModal();
+  }
+
+  /** Returns true if we can save the data */
+  preSaveValidation() {
+    this.tempMatch.validateAll();
+    let errors: string[] = [];
+    if (this.roundFieldError) errors.push(`Round number: ${this.roundFieldError}`);
+    errors = errors.concat(this.tempMatch.getErrorMessages());
+    if (errors.length > 0) {
+      this.openErrorDialog(errors);
+      return false;
+    }
+    return true;
   }
 
   setRoundNo(val: string) {

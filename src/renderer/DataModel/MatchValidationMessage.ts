@@ -29,6 +29,19 @@ export default class MatchValidationMessage {
     this.suppressable = suppressable;
   }
 
+  makeCopy(): MatchValidationMessage {
+    const copy = new MatchValidationMessage();
+    copy.copyFromOther(this);
+    return copy;
+  }
+
+  copyFromOther(source: MatchValidationMessage) {
+    this.status = source.status;
+    this.message = source.message;
+    this.isSuppressed = source.isSuppressed;
+    this.type = source.type;
+  }
+
   setOk() {
     this.status = ValidationStatuses.Ok;
     this.message = '';
@@ -55,6 +68,21 @@ export default class MatchValidationMessage {
 export class MatchValidationCollection {
   validators: MatchValidationMessage[] = [];
 
+  makeCopy(): MatchValidationCollection {
+    const copy = new MatchValidationCollection();
+    copy.copyFromOther(this);
+    return copy;
+  }
+
+  copyFromOther(source: MatchValidationCollection) {
+    this.validators = source.validators.map((v) => v.makeCopy());
+  }
+
+  getErrorMessages(): string[] {
+    const unsuppressed = this.validators.filter((v) => !v.isSuppressed);
+    return unsuppressed.map((v) => v.message);
+  }
+
   findMsgType(type: MatchValidationType) {
     return this.validators.find((v) => v.type === type);
   }
@@ -65,7 +93,7 @@ export class MatchValidationCollection {
     message: string,
     suppressable: boolean = false,
   ) {
-    if (this.findMsgType(type) && suppressable) return; // don't "unsuppress" things just because we noticed the issue still exists
+    if (this.findMsgType(type)?.isSuppressed) return; // don't "unsuppress" things just because we noticed the issue still exists
 
     this.clearMsgType(type);
     this.validators.push(new MatchValidationMessage(status, message, type, suppressable));

@@ -116,6 +116,9 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.scorekeeper = source.scorekeeper;
     this.serial = source.serial;
     this.notes = source.notes;
+
+    this.totalTuhFieldValidation = source.totalTuhFieldValidation;
+    this.otherValidation = source.otherValidation.makeCopy();
   }
 
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjMatch {
@@ -145,6 +148,15 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
   setRightTeam(team: Team) {
     this.matchTeams[1] = new MatchTeam(team);
+  }
+
+  getErrorMessages(): string[] {
+    let errs: string[] = [];
+    if (this.totalTuhFieldValidation.status === ValidationStatuses.Error) {
+      errs.push(`Tossups heard: ${this.totalTuhFieldValidation.message}`);
+    }
+    errs = errs.concat(this.otherValidation.getErrorMessages());
+    return errs;
   }
 
   validateAll(regTossups?: number) {

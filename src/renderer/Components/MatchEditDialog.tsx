@@ -49,6 +49,14 @@ function MatchEditDialogCore() {
 
   const [isOpen] = useSubscription(modalManager.modalIsOpen);
 
+  const handleAccept = () => {
+    tournManager.matchEditModalAttemptToSave();
+  };
+
+  const handleAcceptAndStay = () => {
+    tournManager.matchEditModalAttemptToSave(true);
+  };
+
   const handleCancel = () => {
     tournManager.matchEditModalReset();
   };
@@ -87,10 +95,10 @@ function MatchEditDialogCore() {
           <Button variant="outlined" onClick={handleCancel}>
             {hotkeyFormat('&Cancel')}
           </Button>
-          <Button variant="outlined" onClick={handleCancel}>
+          <Button variant="outlined" onClick={handleAcceptAndStay}>
             {hotkeyFormat('&Save {AMP} New')}
           </Button>
-          <Button variant="outlined" onClick={handleCancel}>
+          <Button variant="outlined" onClick={handleAccept}>
             {hotkeyFormat('&Accept')}
           </Button>
         </DialogActions>
