@@ -11,6 +11,7 @@ import {
   IconButton,
   Box,
   Tooltip,
+  Divider,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useContext } from 'react';
@@ -79,9 +80,16 @@ function GamesViewByRound() {
                 </IconButton>
               </AccordionSummary>
               <AccordionDetails>
-                {round.matches.map((m) => (
-                  <MatchListItem key={m.toString()} match={m} roundNo={round.number} />
-                ))}
+                {round.matches.length > 0 && (
+                  <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+                    {round.matches.map((m, idx) => (
+                      <div key={m.tossupsRead}>
+                        {idx !== 0 && <Divider />}
+                        <MatchListItem key={m.toString()} match={m} roundNo={round.number} />
+                      </div>
+                    ))}
+                  </Box>
+                )}
               </AccordionDetails>
             </Accordion>
           ))}
