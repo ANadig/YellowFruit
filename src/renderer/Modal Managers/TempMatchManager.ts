@@ -15,6 +15,9 @@ export class TempMatchManager {
   /** Round number of the match being edited */
   round?: number;
 
+  /** The round the match belonged to at the time the user opened it */
+  originalRoundOpened?: number;
+
   /** Error to print next to the round field */
   roundFieldError?: string;
 
@@ -47,6 +50,8 @@ export class TempMatchManager {
     this.modalIsOpen = true;
     if (match) {
       this.loadMatch(match);
+      this.round = round;
+      this.originalRoundOpened = round;
     } else {
       this.createBlankMatch();
       this.round = round;
@@ -69,6 +74,10 @@ export class TempMatchManager {
 
   /** Transfer data from temp objects to real objects */
   saveExistingMatch(targetMatch: Match) {
+    if (!!this.round && !!this.originalRoundOpened && this.round !== this.originalRoundOpened) {
+      this.tournament.deleteMatch(targetMatch, this.originalRoundOpened);
+      this.tournament.addMatch(targetMatch, this.round);
+    }
     targetMatch.copyFromMatch(this.tempMatch);
   }
 
@@ -90,7 +99,7 @@ export class TempMatchManager {
 
   /** Returns true if we can save the data */
   preSaveValidation() {
-    this.tempMatch.validateAll();
+    this.tempMatch.validateAll(this.tournament.scoringRules.regulationTossupCount);
     let errors: string[] = [];
     if (this.roundFieldError) errors.push(`Round number: ${this.roundFieldError}`);
     errors = errors.concat(this.tempMatch.getErrorMessages());

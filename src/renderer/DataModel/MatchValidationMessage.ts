@@ -79,8 +79,8 @@ export class MatchValidationCollection {
   }
 
   getErrorMessages(): string[] {
-    const unsuppressed = this.validators.filter((v) => !v.isSuppressed);
-    return unsuppressed.map((v) => v.message);
+    const unsuppressedErrs = this.validators.filter((v) => !v.isSuppressed && v.status === ValidationStatuses.Error);
+    return unsuppressedErrs.map((v) => v.message);
   }
 
   findMsgType(type: MatchValidationType) {

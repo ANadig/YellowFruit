@@ -286,6 +286,12 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
     phase.addMatch(match, roundNo);
   }
+
+  deleteMatch(match: Match, roundNo: number) {
+    const phase = this.whichPhaseIsRoundIn(roundNo);
+    if (!phase) return;
+    phase.deleteMatch(match, roundNo);
+  }
 }
 
 export const NullTournament = new Tournament('Null Tournament');

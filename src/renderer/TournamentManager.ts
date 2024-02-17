@@ -384,6 +384,17 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  tryDeleteMatch(match: Match, roundNo: number) {
+    this.genericModalManager.open('Delete Team', 'Are you sure you want to delete this game?', 'No', 'Yes', () =>
+      this.deleteMatch(match, roundNo),
+    );
+  }
+
+  deleteMatch(match: Match, roundNo: number) {
+    this.tournament.deleteMatch(match, roundNo);
+    this.onDataChanged();
+  }
+
   // #endregion
 
   // #region Functions for handling temporary data used by dialogs
@@ -474,6 +485,11 @@ export class TournamentManager {
     this.matchModalManager.openModal(undefined, round);
   }
 
+  openMatchEditModalExistingMatch(match: Match, roundNo: number) {
+    this.matchModalManager.openModal(match, roundNo);
+    this.matchBeingModified = match;
+  }
+
   matchEditModalAttemptToSave(stayOpen: boolean = false) {
     if (this.matchModalManager.preSaveValidation()) {
       this.matchEditModalSave(stayOpen);
@@ -487,6 +503,7 @@ export class TournamentManager {
       this.matchModalManager.saveNewMatch();
     }
     this.matchEditModalReset(stayOpen);
+    this.onDataChanged();
   }
 
   matchEditModalReset(stayOpen: boolean = false) {

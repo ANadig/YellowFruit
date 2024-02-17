@@ -200,4 +200,10 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     if (!round) return;
     round.matches.push(match);
   }
+
+  deleteMatch(match: Match, roundNo: number) {
+    const round = this.getRound(roundNo);
+    if (!round) return;
+    round.matches = round.matches.filter((m) => m !== match);
+  }
 }

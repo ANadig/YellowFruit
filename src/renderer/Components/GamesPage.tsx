@@ -9,12 +9,16 @@ import {
   AccordionDetails,
   Typography,
   IconButton,
+  Box,
+  Tooltip,
 } from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2';
 import { useContext } from 'react';
-import { AddCircle, ExpandMore } from '@mui/icons-material';
+import { AddCircle, Delete, Edit, ExpandMore } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import YfCard from './YfCard';
+import { Match } from '../DataModel/Match';
 
 // Defines the order the buttons should be in
 const viewList = ['By Round', 'By Pool'];
@@ -69,16 +73,53 @@ function GamesViewByRound() {
                 <Typography sx={{ width: '33%', flexShrink: 0 }}>{`Round ${round.number}`}</Typography>
                 <Typography
                   sx={{ width: '62%', color: 'text.secondary' }}
-                >{`${round.matches.length} matches`}</Typography>
+                >{`${round.matches.length} games`}</Typography>
                 <IconButton size="small" sx={{ p: 0 }} onClick={() => newMatchForRound(round.number)}>
                   <AddCircle />
                 </IconButton>
               </AccordionSummary>
-              <AccordionDetails>List of matches here</AccordionDetails>
+              <AccordionDetails>
+                {round.matches.map((m) => (
+                  <MatchListItem key={m.toString()} match={m} roundNo={round.number} />
+                ))}
+              </AccordionDetails>
             </Accordion>
           ))}
         </YfCard>
       ))}
     </Stack>
+  );
+}
+
+interface IMatchListItemProps {
+  match: Match;
+  roundNo: number;
+}
+
+function MatchListItem(props: IMatchListItemProps) {
+  const { match, roundNo } = props;
+  const tournManager = useContext(TournamentContext);
+
+  return (
+    <Grid container sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}>
+      <Grid xs={9}>
+        <Box typography="h6">{`TUH: ${match.tossupsRead}`}</Box>
+        <Typography variant="body2">more info</Typography>
+      </Grid>
+      <Grid xs={3}>
+        <Box sx={{ float: 'right' }}>
+          <Tooltip title="Edit game">
+            <IconButton onClick={() => tournManager.openMatchEditModalExistingMatch(match, roundNo)}>
+              <Edit />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete game">
+            <IconButton onClick={() => tournManager.tryDeleteMatch(match, roundNo)}>
+              <Delete />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Grid>
+    </Grid>
   );
 }
