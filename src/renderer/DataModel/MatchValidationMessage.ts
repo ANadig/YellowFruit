@@ -38,6 +38,7 @@ export default class MatchValidationMessage {
   copyFromOther(source: MatchValidationMessage) {
     this.status = source.status;
     this.message = source.message;
+    this.suppressable = source.suppressable;
     this.isSuppressed = source.isSuppressed;
     this.type = source.type;
   }
