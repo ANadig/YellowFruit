@@ -80,7 +80,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   bonusBouncebackPoints?: number;
 
-  lightningPoints: number = 0;
+  lightningPoints?: number;
 
   /** Performances of each player. A player being listed here doesn't necessarily mean they actually played in this game. */
   matchPlayers: MatchPlayer[] = [];

@@ -174,17 +174,17 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   }
 
   setLeftTeam(team: Team) {
-    this.leftTeam.team = team;
+    this.leftTeam = new MatchTeam(team);
   }
 
   setRightTeam(team: Team) {
-    this.rightTeam.team = team;
+    this.rightTeam = new MatchTeam(team);
   }
 
   clearTeam(whichTeam: LeftOrRight) {
-    if (whichTeam === 'left') this.leftTeam.team = undefined;
+    if (whichTeam === 'left') this.leftTeam = new MatchTeam();
     else {
-      this.rightTeam.team = undefined;
+      this.rightTeam = new MatchTeam();
     }
   }
 

@@ -5,6 +5,7 @@ import { versionLt } from '../Utils/GeneralUtils';
 import AnswerType, { IQbjAnswerType, sortAnswerTypes } from './AnswerType';
 import { IIndeterminateQbj, IQbjRefPointer, IRefTargetDict } from './Interfaces';
 import { IQbjMatch, IYftFileMatch, Match } from './Match';
+import { MatchTeam, IQbjMatchTeam, IYftFileMatchTeam } from './MatchTeam';
 import { MatchValidationCollection } from './MatchValidationMessage';
 import { IQbjPhase, IYftFilePhase, Phase, PhaseTypes } from './Phase';
 import { IQbjPlayer, IYftFilePlayer, Player } from './Player';
@@ -594,11 +595,50 @@ export default class FileParser {
     yfMatch.serial = qbjMatch.serial;
     yfMatch.notes = qbjMatch.notes;
 
+    const [leftTeam, rightTeam] = this.parseMatchMatchTeams(qbjMatch.matchTeams as IIndeterminateQbj[]);
+    yfMatch.leftTeam = leftTeam;
+    yfMatch.rightTeam = rightTeam;
+
     yfMatch.otherValidation = new MatchValidationCollection();
     yfMatch.otherValidation.addFromFileObjects(yfExtraData.otherValidation);
 
     yfMatch.validateAll(this.tourn.scoringRules.regulationTossupCount);
     return yfMatch;
+  }
+
+  parseMatchMatchTeams(matchTeams: IIndeterminateQbj[]): MatchTeam[] {
+    if (!matchTeams || matchTeams.length < 2) {
+      throw new Error('This file contains a Match object with fewer than two teams.');
+    }
+    if (matchTeams.length > 2) {
+      throw new Error('This file contains a Match object with more than two teams.');
+    }
+    const leftTeam = this.parseMatchTeam(matchTeams[0]);
+    const rightTeam = this.parseMatchTeam(matchTeams[1]);
+    if (!leftTeam || !rightTeam) {
+      throw new Error("This file contains MatchTeam objects that couldn't be parsed");
+    }
+    return [leftTeam, rightTeam];
+  }
+
+  parseMatchTeam(obj: IIndeterminateQbj): MatchTeam | null {
+    const baseObj = getBaseQbjObject(obj, this.refTargets);
+    if (baseObj === null) return null;
+
+    const qbjMatchTeam = baseObj as IQbjMatchTeam;
+    const yfExtraData = (baseObj as IYftFileMatchTeam).YfData;
+
+    const team = this.getTeamFromId(qbjMatchTeam.team as IIndeterminateQbj);
+
+    const yfMatchTeam = new MatchTeam(team);
+    yfMatchTeam.points = qbjMatchTeam.points;
+    yfMatchTeam.forfeitLoss = qbjMatchTeam.forfeitLoss || false;
+    yfMatchTeam.bonusBouncebackPoints = qbjMatchTeam.bonusBouncebackPoints;
+    yfMatchTeam.lightningPoints = qbjMatchTeam.lightningPoints;
+
+    // TODO: overtime stuff matchplayers
+
+    return yfMatchTeam;
   }
 
   /** Get the phase pointers. Later we'll hook the match object up with the real Phase objects once we have them. */
