@@ -55,8 +55,8 @@ export class TempMatchManager {
     } else {
       this.createBlankMatch();
       this.round = round;
-      if (leftTeam) this.tempMatch.setLeftTeam(leftTeam);
-      if (rightTeam) this.tempMatch.setRightTeam(rightTeam);
+      if (leftTeam) this.tempMatch.setTeam('left', leftTeam);
+      if (rightTeam) this.tempMatch.setTeam('right', rightTeam);
     }
 
     this.dataChangedReactCallback();
@@ -189,12 +189,13 @@ export class TempMatchManager {
   }
 
   setTeam(whichTeam: LeftOrRight, teamName: string) {
+    const oldScore = this.tempMatch.getMatchTeam(whichTeam).points;
     const matchingTeam = this.tournament.findTeamByName(teamName);
     if (!matchingTeam) {
       this.tempMatch.clearTeam(whichTeam);
       return;
     }
-    this.tempMatch.setTeam(whichTeam, matchingTeam);
+    this.tempMatch.setTeam(whichTeam, matchingTeam, oldScore);
     this.tempMatch.validateTeams();
     this.dataChangedReactCallback();
   }
