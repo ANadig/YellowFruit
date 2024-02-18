@@ -68,12 +68,13 @@ function MatchEditDialogCore() {
     <>
       <Dialog fullWidth maxWidth="xl" open={isOpen} onClose={handleCancel}>
         <DialogTitle>Edit Game</DialogTitle>
-        <Box
-          sx={{
-            '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
-          }}
-        >
-          <DialogContent>
+        <DialogContent>
+          <Box
+            sx={{
+              height: 375,
+              '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
+            }}
+          >
             <Grid container spacing={1} sx={{ marginTop: 1 }}>
               <Grid xs={6} sm={2}>
                 <RoundField />
@@ -103,9 +104,9 @@ function MatchEditDialogCore() {
                 <TeamScoreField whichTeam="right" />
               </Grid>
             </Grid>
-          </DialogContent>
-        </Box>
-        <ValidationSection />
+          </Box>
+          <ValidationSection />
+        </DialogContent>
         <DialogActions>
           <Button variant="outlined" onClick={handleCancel}>
             {hotkeyFormat('&Cancel')}
@@ -247,6 +248,7 @@ function TeamSelect(props: ITeamSelectProps) {
 
   const handleChange = (val: string) => {
     setTeam(val);
+    modalManager.setTeam(whichTeam, val);
   };
 
   return (
@@ -297,8 +299,6 @@ function TeamScoreField(props: ITeamScoreProps) {
 function ValidationSection() {
   const modalManager = useContext(MatchEditModalContext);
   const [validators] = useSubscription(modalManager.tempMatch.otherValidation.validators);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const [_length] = useSubscription(modalManager.tempMatch.otherValidation.validators.length);
 
   return validators.map((m, idx) => <ValidationMessage key={m.type} index={idx} />);
 }
@@ -318,7 +318,7 @@ function ValidationMessage(props: IValidationMessageProps) {
   const [isSuppressed] = useSubscription(thisValidator?.isSuppressed);
 
   if (!thisValidator) return null;
-  if (isSuppressed) return null;
+  if (isSuppressed || status === ValidationStatuses.HiddenError) return null;
 
   const suppressSelf = () => {
     if (type === undefined) return;
@@ -327,7 +327,7 @@ function ValidationMessage(props: IValidationMessageProps) {
 
   return (
     <Alert
-      sx={{ m: 1 }}
+      sx={{ my: 0.5 }}
       variant="filled"
       severity={getMuiSeverity(status)}
       action={

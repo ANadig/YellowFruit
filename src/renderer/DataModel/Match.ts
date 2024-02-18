@@ -111,7 +111,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.leftTeam = new MatchTeam(leftTeam);
     this.rightTeam = new MatchTeam(rightTeam);
 
-    this.totalTuhFieldValidation = new MatchValidationMessage(MatchValidationType.invalidTotalTuh);
+    this.totalTuhFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidTotalTuh);
     this.otherValidation = new MatchValidationCollection();
   }
 
@@ -198,17 +198,18 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     mt.points = points;
   }
 
-  getErrorMessages(): string[] {
+  getErrorMessages(ignoreHidden: boolean = false): string[] {
     let errs: string[] = [];
     if (this.totalTuhFieldValidation.status === ValidationStatuses.Error) {
       errs.push(`Tossups heard: ${this.totalTuhFieldValidation.message}`);
     }
-    errs = errs.concat(this.otherValidation.getErrorMessages());
+    errs = errs.concat(this.otherValidation.getErrorMessages(ignoreHidden));
     return errs;
   }
 
   validateAll(regTossups: number) {
     this.validateTotalTuh(regTossups);
+    this.validateTeams();
   }
 
   validateTotalTuh(regTossups: number) {
@@ -221,7 +222,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
     if (this.tossupsRead < regTossups) {
       this.otherValidation.addValidationMsg(
-        MatchValidationType.lowTotalTuh,
+        MatchValidationType.LowTotalTuh,
         ValidationStatuses.Warning,
         `Total tossups heard is less than ${regTossups}, the standard number for a game`,
         true,
@@ -229,7 +230,29 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       return;
     }
 
-    this.otherValidation.clearMsgType(MatchValidationType.lowTotalTuh);
+    this.otherValidation.clearMsgType(MatchValidationType.LowTotalTuh);
+  }
+
+  validateTeams() {
+    if (!this.leftTeam.team || !this.rightTeam.team) {
+      this.otherValidation.addValidationMsg(
+        MatchValidationType.MissingTeams,
+        ValidationStatuses.HiddenError,
+        'Teams are required',
+      );
+      return;
+    }
+    this.otherValidation.clearMsgType(MatchValidationType.MissingTeams);
+
+    if (this.leftTeam.team === this.rightTeam.team) {
+      this.otherValidation.addValidationMsg(
+        MatchValidationType.TeamPlayingItself,
+        ValidationStatuses.Error,
+        'A team cannot play itself',
+      );
+      return;
+    }
+    this.otherValidation.clearMsgType(MatchValidationType.TeamPlayingItself);
   }
 
   suppressMessageType(type: MatchValidationType) {

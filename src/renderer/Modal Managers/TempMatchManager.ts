@@ -190,6 +190,7 @@ export class TempMatchManager {
       return;
     }
     this.tempMatch.setTeam(whichTeam, matchingTeam);
+    this.tempMatch.validateTeams();
     this.dataChangedReactCallback();
   }
 

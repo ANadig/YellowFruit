@@ -45,6 +45,7 @@ export enum ValidationStatuses {
   Error,
   Warning,
   Info,
+  HiddenError, // for things that are so obvious we don't need to constantly annoy users until they do it (e.g. a team's total score being required)
 }
 
 export interface IValidationInfo {

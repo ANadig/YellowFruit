@@ -1,8 +1,11 @@
 import { ValidationStatuses } from './Interfaces';
 
 export enum MatchValidationType {
-  lowTotalTuh,
-  invalidTotalTuh,
+  LowTotalTuh = 'LowTotalTuh',
+  InvalidTotalTuh = 'InvalidTotalTuh',
+  MissingTeams = 'MissingTeams',
+  MissingTotalPoints = 'MissingTotalPoints',
+  TeamPlayingItself = 'TeamPlayingItself',
 }
 
 export interface IYftFileMatchValidationMsg {
@@ -105,9 +108,14 @@ export class MatchValidationCollection {
     return this.validators.map((v) => v.toFileObject());
   }
 
-  getErrorMessages(): string[] {
-    const unsuppressedErrs = this.validators.filter((v) => !v.isSuppressed && v.status === ValidationStatuses.Error);
-    return unsuppressedErrs.map((v) => v.message);
+  getErrorMessages(ignoreHidden: boolean = false): string[] {
+    const errorsToShow = this.validators.filter((v) => {
+      if (v.isSuppressed) return false;
+      if (v.status === ValidationStatuses.Error) return true;
+      if (ignoreHidden) return false;
+      return v.status === ValidationStatuses.HiddenError;
+    });
+    return errorsToShow.map((v) => v.message);
   }
 
   findMsgType(type: MatchValidationType) {
