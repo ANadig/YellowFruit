@@ -165,6 +165,25 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return yftFileObj;
   }
 
+  /** The result of the game, such as "Memorial 315, Riverview 180" */
+  getScoreString() {
+    if (!this.leftTeam.team || !this.rightTeam.team) {
+      return 'Incomplete game';
+    }
+    const leftPts = this.leftTeam.points;
+    const rightPts = this.rightTeam.points;
+    if (leftPts === undefined || rightPts === undefined) {
+      return `${this.leftTeam.team.name} vs. ${this.rightTeam.team.name}`;
+    }
+    const winner = rightPts > leftPts ? this.rightTeam : this.leftTeam;
+    const loser = winner === this.leftTeam ? this.rightTeam : this.leftTeam;
+    return `${winner.team?.name} ${winner.points}, ${loser.team?.name} ${loser.points}`;
+  }
+
+  listCarryoverPhases() {
+    return this.carryoverPhases.map((ph) => ph.name).join(', ');
+  }
+
   setTeam(whichTeam: LeftOrRight, team: Team) {
     if (whichTeam === 'left') {
       this.setLeftTeam(team);

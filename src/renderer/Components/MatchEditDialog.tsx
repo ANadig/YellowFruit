@@ -256,7 +256,7 @@ function TeamSelect(props: ITeamSelectProps) {
   return (
     <FormControl fullWidth size="small">
       <InputLabel>Team</InputLabel>
-      <Select label="Team" value={team} onChange={(e) => handleChange(e.target.value)}>
+      <Select label="Team" autoFocus={whichTeam === 'left'} value={team} onChange={(e) => handleChange(e.target.value)}>
         {tournManager.tournament.getListOfAllTeams().map((tm) => (
           <MenuItem key={tm.name} value={tm.name}>
             {tm.name}

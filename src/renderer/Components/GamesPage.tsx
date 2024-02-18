@@ -83,9 +83,9 @@ function GamesViewByRound() {
                 {round.matches.length > 0 && (
                   <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
                     {round.matches.map((m, idx) => (
-                      <div key={m.tossupsRead}>
+                      <div key={m.id}>
                         {idx !== 0 && <Divider />}
-                        <MatchListItem key={m.toString()} match={m} roundNo={round.number} />
+                        <MatchListItem match={m} roundNo={round.number} />
                       </div>
                     ))}
                   </Box>
@@ -111,8 +111,10 @@ function MatchListItem(props: IMatchListItemProps) {
   return (
     <Grid container sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}>
       <Grid xs={9}>
-        <Box typography="h6">{`TUH: ${match.tossupsRead}`}</Box>
-        <Typography variant="body2">more info</Typography>
+        <Box typography="h6">{match.getScoreString()}</Box>
+        <Typography variant="body2">
+          {match.carryoverPhases.length > 0 && `Carries over to: ${match.listCarryoverPhases()}`}
+        </Typography>
       </Grid>
       <Grid xs={3}>
         <Box sx={{ float: 'right' }}>
