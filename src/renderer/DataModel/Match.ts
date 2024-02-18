@@ -85,6 +85,11 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   /** Additional phases in which this match should count, besides the one that actually contains it */
   carryoverPhases: Phase[] = [];
 
+  /** For use during file parsing to hold pointers to phases we haven't parsed yet, due to the
+   *  Phase -> Round -> Match -> Phase circular dependency
+   */
+  coPhaseQbjIds: IQbjRefPointer[] = [];
+
   notes?: string;
 
   /** Validation directly associated with the total TUH field */
@@ -107,7 +112,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     if (team1) this.matchTeams = [new MatchTeam(team1)];
     if (team2) this.matchTeams.push(new MatchTeam(team2));
 
-    this.totalTuhFieldValidation = new MatchValidationMessage();
+    this.totalTuhFieldValidation = new MatchValidationMessage(MatchValidationType.invalidTotalTuh);
     this.otherValidation = new MatchValidationCollection();
   }
 
@@ -177,11 +182,11 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return errs;
   }
 
-  validateAll(regTossups?: number) {
+  validateAll(regTossups: number) {
     this.validateTotalTuh(regTossups);
   }
 
-  validateTotalTuh(regTossups?: number) {
+  validateTotalTuh(regTossups: number) {
     if (this.tossupsRead < 1 || this.tossupsRead > 999) {
       this.totalTuhFieldValidation.setError('Invalid number');
       return;
@@ -189,7 +194,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
     this.totalTuhFieldValidation.setOk();
 
-    if (!!regTossups && this.tossupsRead < regTossups) {
+    if (this.tossupsRead < regTossups) {
       this.otherValidation.addValidationMsg(
         MatchValidationType.lowTotalTuh,
         ValidationStatuses.Warning,

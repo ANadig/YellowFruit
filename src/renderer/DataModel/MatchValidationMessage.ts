@@ -2,6 +2,7 @@ import { ValidationStatuses } from './Interfaces';
 
 export enum MatchValidationType {
   lowTotalTuh,
+  invalidTotalTuh,
 }
 
 export interface IYftFileMatchValidationMsg {
@@ -9,7 +10,7 @@ export interface IYftFileMatchValidationMsg {
   message: string;
   suppressable: boolean;
   isSuppressed: boolean;
-  type?: MatchValidationType;
+  type: MatchValidationType;
 }
 
 export default class MatchValidationMessage {
@@ -23,22 +24,24 @@ export default class MatchValidationMessage {
   /** Did the user choose to hide the message? */
   isSuppressed: boolean = false;
 
-  type?: MatchValidationType;
+  type: MatchValidationType;
 
   constructor(
+    type: MatchValidationType,
     status?: ValidationStatuses,
     message?: string,
-    type?: MatchValidationType,
     suppressable: boolean = false,
+    isSuppressed: boolean = false,
   ) {
+    this.type = type;
     if (status) this.status = status;
     if (message) this.message = message;
-    if (type !== undefined) this.type = type;
     this.suppressable = suppressable;
+    this.isSuppressed = isSuppressed;
   }
 
   makeCopy(): MatchValidationMessage {
-    const copy = new MatchValidationMessage();
+    const copy = new MatchValidationMessage(this.type);
     copy.copyFromOther(this);
     return copy;
   }
@@ -116,15 +119,22 @@ export class MatchValidationCollection {
     status: ValidationStatuses,
     message: string,
     suppressable: boolean = false,
+    isSuppressed: boolean = false,
   ) {
     if (this.findMsgType(type)?.isSuppressed) return; // don't "unsuppress" things just because we noticed the issue still exists
 
     this.clearMsgType(type);
-    this.validators.push(new MatchValidationMessage(status, message, type, suppressable));
+    this.validators.push(new MatchValidationMessage(type, status, message, suppressable, isSuppressed));
   }
 
   clearMsgType(type: MatchValidationType) {
     this.validators = this.validators.filter((v) => v.type !== type);
+  }
+
+  addFromFileObjects(ary: IYftFileMatchValidationMsg[]) {
+    for (const obj of ary) {
+      this.addValidationMsg(obj.type, obj.status, obj.message, obj.suppressable, obj.isSuppressed);
+    }
   }
 
   suppressMessageType(type: MatchValidationType) {

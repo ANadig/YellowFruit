@@ -4,6 +4,8 @@
 import { versionLt } from '../Utils/GeneralUtils';
 import AnswerType, { IQbjAnswerType, sortAnswerTypes } from './AnswerType';
 import { IIndeterminateQbj, IQbjRefPointer, IRefTargetDict } from './Interfaces';
+import { IQbjMatch, IYftFileMatch, Match } from './Match';
+import { MatchValidationCollection } from './MatchValidationMessage';
 import { IQbjPhase, IYftFilePhase, Phase, PhaseTypes } from './Phase';
 import { IQbjPlayer, IYftFilePlayer, Player } from './Player';
 import { IQbjPool, IYftFilePool, Pool } from './Pool';
@@ -16,10 +18,22 @@ import { IQbjTeam, IYftFileTeam, Team } from './Team';
 import Tournament, { IQbjTournament, IYftFileTournament } from './Tournament';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 
+interface IYfTeamDict {
+  [id: string]: Team;
+}
+
+interface IYfPhaseDict {
+  [id: string]: Phase;
+}
+
 export default class FileParser {
   tourn: Tournament;
 
   refTargets: IRefTargetDict;
+
+  teamsById: IYfTeamDict = {};
+
+  phasesById: IYfPhaseDict = {};
 
   /** The pool object currently being parsed, if any */
   currentPool?: IQbjPool;
@@ -284,6 +298,8 @@ export default class FileParser {
     yfTeam.isUG = yfExtraData.isUG || false;
     yfTeam.isD2 = yfExtraData.isD2 || false;
 
+    if (qbjTeam.id) this.teamsById[qbjTeam.id] = yfTeam;
+
     return yfTeam;
   }
 
@@ -374,6 +390,14 @@ export default class FileParser {
       lastUsedRound = onePhase.rounds[onePhase.rounds.length - 1].number;
       curCodeNo++;
     }
+
+    for (const ph of phases) {
+      for (const round of ph.rounds) {
+        for (const match of round.matches) {
+          this.parseMatchCarryoverPhasesFinish(match);
+        }
+      }
+    }
     return phases;
   }
 
@@ -406,6 +430,8 @@ export default class FileParser {
     this.addRoundsFromFile(yftPhase, rounds, firstRound, lastRound);
     yftPhase.pools = this.parsePhasePools(qbjPhase);
     // TODO: wildcard stuff
+
+    if (qbjPhase.id) this.phasesById[qbjPhase.id] = yftPhase; // we need this before we parse rounds
 
     return yftPhase;
   }
@@ -533,7 +559,66 @@ export default class FileParser {
       return yftRound;
     }
     const yftRound = new Round(roundNumber);
+    yftRound.matches = this.parseRoundMatches(qbjRound);
     return yftRound;
+  }
+
+  parseRoundMatches(sourceQbj: IQbjRound): Match[] {
+    if (!sourceQbj.matches) return [];
+
+    const yftMatches: Match[] = [];
+    for (const oneMatch of sourceQbj.matches) {
+      const yfm = this.parseMatch(oneMatch as IIndeterminateQbj);
+      if (yfm) yftMatches.push(yfm);
+    }
+    return yftMatches;
+  }
+
+  parseMatch(obj: IIndeterminateQbj): Match | null {
+    const baseObj = getBaseQbjObject(obj, this.refTargets);
+    if (baseObj === null) return null;
+
+    const qbjMatch = baseObj as IQbjMatch;
+    const yfExtraData = (baseObj as IYftFileMatch).YfData;
+
+    const yfMatch = new Match();
+    yfMatch.tossupsRead = qbjMatch.tossupsRead || this.tourn.scoringRules.regulationTossupCount;
+    yfMatch.coPhaseQbjIds = this.parseMatchCarryoverPhasesStart(qbjMatch.carryoverPhases as IIndeterminateQbj[]);
+    yfMatch.overtimeTossupsRead = qbjMatch.overtimeTossupsRead || 0;
+    yfMatch.tiebreaker = qbjMatch.tiebreaker || false;
+
+    yfMatch.location = qbjMatch.location;
+    yfMatch.packets = qbjMatch.packets;
+    yfMatch.moderator = qbjMatch.moderator;
+    yfMatch.scorekeeper = qbjMatch.scorekeeper;
+    yfMatch.serial = qbjMatch.serial;
+    yfMatch.notes = qbjMatch.notes;
+
+    yfMatch.otherValidation = new MatchValidationCollection();
+    yfMatch.otherValidation.addFromFileObjects(yfExtraData.otherValidation);
+
+    yfMatch.validateAll(this.tourn.scoringRules.regulationTossupCount);
+    return yfMatch;
+  }
+
+  /** Get the phase pointers. Later we'll hook the match object up with the real Phase objects once we have them. */
+  parseMatchCarryoverPhasesStart(ary: IIndeterminateQbj[]): IQbjRefPointer[] {
+    const carryoverPhasesIds: IQbjRefPointer[] = [];
+    for (const obj of ary) {
+      // Require phases here to be ref pointers. It's very silly to define phases within objects that are themselves contained within phases.
+      // Don't give me a headache.
+      if (!isQbjRefPointer(obj)) continue;
+      carryoverPhasesIds.push(obj as IQbjRefPointer);
+    }
+    return carryoverPhasesIds;
+  }
+
+  /** Translate stored ref pointers to real objects */
+  parseMatchCarryoverPhasesFinish(match: Match) {
+    for (const ptr of match.coPhaseQbjIds) {
+      const phaseObj = this.getPhaseFromId(ptr);
+      if (phaseObj) match.carryoverPhases.push(phaseObj);
+    }
   }
 
   /** Assuming we've already loaded our Team objects, find the Team referred to by this qbj object. */
@@ -541,12 +626,25 @@ export default class FileParser {
     if (!obj) return undefined;
 
     if (isQbjRefPointer(obj)) {
-      return this.tourn.findTeamById((obj as IQbjRefPointer).$ref);
+      return this.teamsById[(obj as IQbjRefPointer).$ref];
     }
     const { id } = obj as IQbjTeam;
     if (!id) return undefined;
 
-    return this.tourn.findTeamById(id);
+    return this.teamsById[id];
+  }
+
+  /** Assuming we've already loaded our Phase objects, find the Phase referred to by this qbj object. */
+  getPhaseFromId(obj: IIndeterminateQbj): Phase | undefined {
+    if (!obj) return undefined;
+
+    if (isQbjRefPointer(obj)) {
+      return this.phasesById[(obj as IQbjRefPointer).$ref];
+    }
+    const { id } = obj as IQbjPhase;
+    if (!id) return undefined;
+
+    return this.phasesById[id];
   }
 }
 
