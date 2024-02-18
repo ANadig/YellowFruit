@@ -20,12 +20,15 @@ import {
   AlertColor,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
+import { DragIndicator } from '@mui/icons-material';
 import { MatchEditModalContext } from '../Modal Managers/TempMatchManager';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { hotkeyFormat } from '../Utils/GeneralReactUtils';
 import { ValidationStatuses } from '../DataModel/Interfaces';
 import { LeftOrRight } from '../Utils/UtilTypes';
+import { MatchPlayer } from '../DataModel/MatchPlayer';
+import { PlayerAnswerCount } from '../DataModel/PlayerAnswerCount';
 
 export default function MatchEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -72,12 +75,13 @@ function MatchEditDialogCore() {
         <DialogTitle>Edit Game</DialogTitle>
         <DialogContent>
           <Box
+            fontSize={14}
             sx={{
-              height: 375,
+              height: 600,
               '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
             }}
           >
-            <Grid container spacing={1} sx={{ marginTop: 1 }}>
+            <Grid container columnSpacing={1} sx={{ marginTop: 1 }}>
               <Grid xs={6} sm={2}>
                 <RoundField />
               </Grid>
@@ -105,9 +109,16 @@ function MatchEditDialogCore() {
               <Grid xs={3} md={2} lg={1}>
                 <TeamScoreField whichTeam="right" />
               </Grid>
+              {/** third row */}
+              <Grid xs={12} md={6}>
+                <PlayerGrid whichTeam="left" />
+              </Grid>
+              <Grid xs={12} md={6}>
+                <PlayerGrid whichTeam="right" />
+              </Grid>
             </Grid>
+            <ValidationSection />
           </Box>
-          <ValidationSection />
         </DialogContent>
         <DialogActions>
           <Button variant="outlined" onClick={handleCancel}>
@@ -209,14 +220,16 @@ function CarryoverPhaseSelect() {
 
 function TuhTotalField() {
   const modalManager = useContext(MatchEditModalContext);
+  const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
   const thisMatch = modalManager.tempMatch;
-  const [tuh, setTuh] = useSubscription(thisMatch.tossupsRead.toString() || '');
+  const [tuh, setTuh] = useSubscription(thisMatch.tossupsRead?.toString() || '');
   const [valStatus] = useSubscription(thisMatch.totalTuhFieldValidation.status);
   const [valMsg] = useSubscription(thisMatch.totalTuhFieldValidation.message);
 
   const handleBlur = () => {
     const valToUse = modalManager.setTotalTuh(tuh);
-    setTuh(valToUse.toString());
+    setTuh(valToUse?.toString() || '');
   };
 
   return (
@@ -226,6 +239,7 @@ function TuhTotalField() {
       fullWidth
       variant="outlined"
       size="small"
+      autoFocus={thisTournament.scoringRules.timed}
       error={valStatus === ValidationStatuses.Error}
       helperText={valMsg || ' '}
       value={tuh}
@@ -245,6 +259,7 @@ interface ITeamSelectProps {
 function TeamSelect(props: ITeamSelectProps) {
   const { whichTeam } = props;
   const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
   const modalManager = useContext(MatchEditModalContext);
   const [team, setTeam] = useSubscription(modalManager.getSelectedTeam(whichTeam)?.name || '');
 
@@ -256,7 +271,12 @@ function TeamSelect(props: ITeamSelectProps) {
   return (
     <FormControl fullWidth size="small">
       <InputLabel>Team</InputLabel>
-      <Select label="Team" autoFocus={whichTeam === 'left'} value={team} onChange={(e) => handleChange(e.target.value)}>
+      <Select
+        label="Team"
+        autoFocus={whichTeam === 'left' && !thisTournament.scoringRules.timed}
+        value={team}
+        onChange={(e) => handleChange(e.target.value)}
+      >
         {tournManager.tournament.getListOfAllTeams().map((tm) => (
           <MenuItem key={tm.name} value={tm.name}>
             {tm.name}
@@ -299,6 +319,119 @@ function TeamScoreField(props: ITeamScoreProps) {
         if (e.key === 'Enter') handleBlur();
       }}
     />
+  );
+}
+
+interface IPlayerGridProps {
+  whichTeam: LeftOrRight;
+}
+
+function PlayerGrid(props: IPlayerGridProps) {
+  const { whichTeam } = props;
+  const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
+  const modalManager = useContext(MatchEditModalContext);
+  const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
+
+  return (
+    <Box sx={{ '& .MuiGrid2-container': { my: 2 } }}>
+      <Grid container columns={48} columnSpacing={1}>
+        <Grid xs />
+        <Grid xs={7}>TUH</Grid>
+        {thisTournament.scoringRules.answerTypes.map((at) => (
+          <Grid key={at.value} xs={7}>
+            {at.shortLabel}
+          </Grid>
+        ))}
+        <Grid xs={7}>Pts</Grid>
+      </Grid>
+      {matchTeam.matchPlayers.map((mp) => (
+        <Grid
+          key={mp.player.name}
+          container
+          columns={48}
+          columnSpacing={1}
+          sx={{ '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 } }}
+        >
+          <PlayerRow matchPlayer={mp} />
+        </Grid>
+      ))}
+    </Box>
+  );
+}
+
+interface IPlayerRowProps {
+  matchPlayer: MatchPlayer;
+}
+
+function PlayerRow(props: IPlayerRowProps) {
+  const { matchPlayer } = props;
+  const [name] = useSubscription(matchPlayer?.player.name);
+  const [tuh, setTuh] = useSubscription(matchPlayer?.tossupsHeard?.toString() || '');
+  const [pts] = useSubscription(matchPlayer?.points);
+  const [answerCounts] = useSubscription(matchPlayer?.answerCounts);
+
+  if (!matchPlayer) return null;
+
+  const handleTuhBlur = () => {};
+
+  return (
+    <>
+      <Grid xs>
+        <DragIndicator fontSize="small" color="action" sx={{ verticalAlign: 'text-bottom' }} />
+        {name}
+      </Grid>
+      <Grid xs={7}>
+        <TextField
+          type="number"
+          fullWidth
+          variant="standard"
+          size="small"
+          hiddenLabel
+          value={tuh}
+          onChange={(e) => setTuh(e.target.value)}
+          onBlur={handleTuhBlur}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleTuhBlur();
+          }}
+        />
+      </Grid>
+      {answerCounts.map((ac) => (
+        <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} />
+      ))}
+      <Grid xs={7}>
+        <TextField fullWidth variant="standard" size="small" hiddenLabel inputProps={{ readOnly: true }} value={pts} />
+      </Grid>
+    </>
+  );
+}
+
+interface IPlayerAnswerCountFieldProps {
+  answerCount: PlayerAnswerCount;
+}
+
+function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
+  const { answerCount } = props;
+  const [count, setCount] = useSubscription(answerCount.number?.toString() || '');
+
+  const handleBlur = () => {};
+
+  return (
+    <Grid xs={7}>
+      <TextField
+        type="number"
+        fullWidth
+        variant="standard"
+        size="small"
+        hiddenLabel
+        value={count}
+        onChange={(e) => setCount(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleBlur();
+        }}
+      />
+    </Grid>
   );
 }
 

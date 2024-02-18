@@ -630,7 +630,7 @@ export default class FileParser {
 
     const team = this.getTeamFromId(qbjMatchTeam.team as IIndeterminateQbj);
 
-    const yfMatchTeam = new MatchTeam(team);
+    const yfMatchTeam = new MatchTeam(team, this.tourn.scoringRules.answerTypes);
     yfMatchTeam.points = qbjMatchTeam.points;
     yfMatchTeam.forfeitLoss = qbjMatchTeam.forfeitLoss || false;
     yfMatchTeam.bonusBouncebackPoints = qbjMatchTeam.bonusBouncebackPoints;

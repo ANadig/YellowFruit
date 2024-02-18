@@ -1,6 +1,7 @@
+import AnswerType from './AnswerType';
 import { IQbjObject, IQbjRefPointer, IYftDataModelObject } from './Interfaces';
 import { Player, IQbjPlayer } from './Player';
-import { IQbjPlayerAnswerCount, TossupAnswerCount } from './PlayerAnswerCount';
+import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
 
 export interface IQbjMatchPlayer extends IQbjObject {
   /** Which player this is referring to */
@@ -17,19 +18,35 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
 
   tossupsHeard: number = 0;
 
-  answerCounts: TossupAnswerCount[] = [];
+  answerCounts: PlayerAnswerCount[] = [];
 
   /** total points for this player */
   get points(): number {
     let total = 0;
     for (const a of this.answerCounts) {
-      total += a.number * a.answerType.value;
+      total += a.points;
     }
     return total;
   }
 
-  constructor(p: Player) {
+  constructor(p: Player, answerTypes?: AnswerType[]) {
     this.player = p;
+    if (!answerTypes) return;
+    for (const aType of answerTypes) {
+      this.answerCounts.push(new PlayerAnswerCount(aType));
+    }
+  }
+
+  makeCopy(): MatchPlayer {
+    const copy = new MatchPlayer(this.player);
+    copy.copyFromOther(this);
+    return copy;
+  }
+
+  copyFromOther(source: MatchPlayer) {
+    this.player = source.player;
+    this.tossupsHeard = source.tossupsHeard;
+    this.answerCounts = source.answerCounts.map((ac) => ac.makeCopy());
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

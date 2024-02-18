@@ -17,6 +17,7 @@ import MatchValidationMessage, {
 } from './MatchValidationMessage';
 // eslint-disable-next-line import/no-cycle
 import { LeftOrRight } from '../Utils/UtilTypes';
+import AnswerType from './AnswerType';
 
 export interface IQbjMatch extends IQbjObject {
   /** The number of tossups read, including any tossups read in overtime */
@@ -106,10 +107,10 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return `Match__${this.idNumber}`;
   }
 
-  constructor(leftTeam?: Team, rightTeam?: Team) {
+  constructor(leftTeam?: Team, rightTeam?: Team, answerTypes?: AnswerType[]) {
     this.idNumber = Match.idCounter++;
-    this.leftTeam = new MatchTeam(leftTeam);
-    this.rightTeam = new MatchTeam(rightTeam);
+    this.leftTeam = new MatchTeam(leftTeam, answerTypes);
+    this.rightTeam = new MatchTeam(rightTeam, answerTypes);
 
     this.totalTuhFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidTotalTuh);
     this.otherValidation = new MatchValidationCollection();
@@ -184,14 +185,14 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return this.carryoverPhases.map((ph) => ph.name).join(', ');
   }
 
-  setTeam(whichTeam: LeftOrRight, team: Team, score?: number) {
-    const newMatchTeam = new MatchTeam(team);
+  setTeam(whichTeam: LeftOrRight, team: Team, answerTypes: AnswerType[], score?: number) {
+    const newMatchTeam = new MatchTeam(team, answerTypes);
     if (score !== undefined) newMatchTeam.points = score;
 
     if (whichTeam === 'left') {
-      this.leftTeam = new MatchTeam(team);
+      this.leftTeam = newMatchTeam;
     } else {
-      this.rightTeam = new MatchTeam(team);
+      this.rightTeam = newMatchTeam;
     }
   }
 

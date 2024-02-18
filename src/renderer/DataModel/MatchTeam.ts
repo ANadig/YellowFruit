@@ -1,7 +1,8 @@
+import AnswerType from './AnswerType';
 import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject, ValidationStatuses } from './Interfaces';
 import { MatchPlayer, IQbjMatchPlayer } from './MatchPlayer';
 import MatchValidationMessage, { MatchValidationCollection, MatchValidationType } from './MatchValidationMessage';
-import { IQbjPlayerAnswerCount, TossupAnswerCount } from './PlayerAnswerCount';
+import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
 import { IQbjTeam, Team } from './Team';
 
 export interface IQbjMatchTeam extends IQbjObject {
@@ -45,26 +46,15 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return (this.points || 0) - this.tossupPoints - (this.bonusBouncebackPoints || 0) - (this.lightningPoints || 0);
   }
 
-  private _correctTossupsWithoutBonuses?: number;
-
   /** Number of tossups answered with no bonuses. In YF, this means overtime */
   get correctTossupsWithoutBonuses(): number {
-    if (this._correctTossupsWithoutBonuses !== undefined) return this._correctTossupsWithoutBonuses;
-
     let total = 0;
     for (const ac of this.overTimeBuzzes || []) {
       if (ac.points > 0) {
-        total += ac.number;
+        total += ac.number || 0;
       }
     }
     return total;
-  }
-
-  set correctTossupsWithoutBonuses(num: number) {
-    // if we already have specific information, always use that
-    if (this.overTimeBuzzes !== undefined) return;
-
-    this._correctTossupsWithoutBonuses = num;
   }
 
   /** Number of tossups answered with no bonuses. In YF, this means overtime */
@@ -77,7 +67,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
   }
 
   /** What the team scored in overtime. Note that we don't actually track which player made this buzzes */
-  overTimeBuzzes?: TossupAnswerCount[];
+  overTimeBuzzes?: PlayerAnswerCount[];
 
   bonusBouncebackPoints?: number;
 
@@ -104,13 +94,31 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   static maximumValidScore = 99999;
 
-  constructor(t?: Team) {
+  constructor(t?: Team, answerTypes?: AnswerType[]) {
     if (t) {
       this.team = t;
-      this.matchPlayers = t.players.map((pl) => new MatchPlayer(pl));
+      this.matchPlayers = t.players.map((pl) => new MatchPlayer(pl, answerTypes));
     }
     this.totalScoreFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidTeamScore);
     this.otherValidation = new MatchValidationCollection();
+  }
+
+  makeCopy(): MatchTeam {
+    const copy = new MatchTeam();
+    copy.copyFromOther(this);
+    return copy;
+  }
+
+  copyFromOther(source: MatchTeam) {
+    this.team = source.team;
+    this.matchPlayers = source.matchPlayers.map((mp) => mp.makeCopy());
+    this.forfeitLoss = source.forfeitLoss;
+    this.points = source.points;
+    this.bonusBouncebackPoints = source.bonusBouncebackPoints;
+    this.lightningPoints = source.lightningPoints;
+    this.overTimeBuzzes = source.overTimeBuzzes?.slice(); // TODO: deep copy
+    this.totalScoreFieldValidation = source.totalScoreFieldValidation.makeCopy();
+    this.otherValidation = source.otherValidation.makeCopy();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -137,7 +145,6 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
   }
 
   getErrorMessages(ignoreHidden: boolean = false): string[] {
-    console.log(this.team);
     let errs: string[] = [];
     if (this.totalScoreFieldValidation.status === ValidationStatuses.Error) {
       errs.push(`${this.team?.name || 'Total'} score: ${this.totalScoreFieldValidation.message}`);
@@ -155,7 +162,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       this.otherValidation.addValidationMsg(
         MatchValidationType.MissingTotalPoints,
         ValidationStatuses.HiddenError,
-        `${this.team ? `${this.team.name} :` : ''} Total score is required`,
+        `${this.team ? `${this.team.name}: ` : ''}Total score is required`,
       );
       return;
     }

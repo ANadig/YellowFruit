@@ -55,8 +55,8 @@ export class TempMatchManager {
     } else {
       this.createBlankMatch();
       this.round = round;
-      if (leftTeam) this.tempMatch.setTeam('left', leftTeam);
-      if (rightTeam) this.tempMatch.setTeam('right', rightTeam);
+      if (leftTeam) this.tempMatch.setTeam('left', leftTeam, this.tournament.scoringRules.answerTypes);
+      if (rightTeam) this.tempMatch.setTeam('right', rightTeam, this.tournament.scoringRules.answerTypes);
     }
 
     this.dataChangedReactCallback();
@@ -195,7 +195,7 @@ export class TempMatchManager {
       this.tempMatch.clearTeam(whichTeam);
       return;
     }
-    this.tempMatch.setTeam(whichTeam, matchingTeam, oldScore);
+    this.tempMatch.setTeam(whichTeam, matchingTeam, this.tournament.scoringRules.answerTypes, oldScore);
     this.tempMatch.validateTeams();
     this.dataChangedReactCallback();
   }
