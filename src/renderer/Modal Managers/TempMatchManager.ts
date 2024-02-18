@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { NullObjects } from '../Utils/UtilTypes';
+import { LeftOrRight, NullObjects } from '../Utils/UtilTypes';
 import { Match } from '../DataModel/Match';
 import { Team } from '../DataModel/Team';
 import Tournament, { NullTournament } from '../DataModel/Tournament';
@@ -176,6 +176,29 @@ export class TempMatchManager {
     this.tempMatch.validateTotalTuh(this.tournament.scoringRules.regulationTossupCount);
     this.dataChangedReactCallback();
     return parsed;
+  }
+
+  getSelectedTeam(whichTeam: LeftOrRight): Team | undefined {
+    if (whichTeam === 'left') return this.tempMatch.leftTeam.team;
+    return this.tempMatch.rightTeam.team;
+  }
+
+  setTeam(whichTeam: LeftOrRight, teamName: string) {
+    const matchingTeam = this.tournament.findTeamByName(teamName);
+    if (!matchingTeam) {
+      this.tempMatch.clearTeam(whichTeam);
+      return;
+    }
+    this.tempMatch.setTeam(whichTeam, matchingTeam);
+    this.dataChangedReactCallback();
+  }
+
+  setTeamScore(whichTeam: LeftOrRight, val: string): number | undefined {
+    const parsed = parseInt(val, 10);
+    const valToSave = Number.isNaN(parsed) ? undefined : parsed;
+    this.tempMatch.setTeamScore(whichTeam, valToSave);
+    this.dataChangedReactCallback();
+    return valToSave;
   }
 
   suppressValidationMessage(type: MatchValidationType) {

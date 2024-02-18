@@ -25,6 +25,7 @@ import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { hotkeyFormat } from '../Utils/GeneralReactUtils';
 import { ValidationStatuses } from '../DataModel/Interfaces';
+import { LeftOrRight } from '../Utils/UtilTypes';
 
 export default function MatchEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -87,6 +88,20 @@ function MatchEditDialogCore() {
               <Grid xs={5} sm={2}>
                 <TuhTotalField />
               </Grid>
+              {/** second row */}
+              <Grid xs={9} md={3} lg={4}>
+                <TeamSelect whichTeam="left" />
+              </Grid>
+              <Grid xs={3} md={2} lg={1}>
+                <TeamScoreField whichTeam="left" />
+              </Grid>
+              <Grid md={1} sx={{ display: { xs: 'none', md: 'inherit' } }} />
+              <Grid xs={9} md={3} lg={4}>
+                <TeamSelect whichTeam="right" />
+              </Grid>
+              <Grid xs={3} md={2} lg={1}>
+                <TeamScoreField whichTeam="right" />
+              </Grid>
             </Grid>
           </DialogContent>
         </Box>
@@ -143,7 +158,15 @@ function MainPhaseField() {
   const [phaseName] = useSubscription(modalManager.getMainPhaseName());
 
   return (
-    <TextField label="Phase" fullWidth variant="outlined" size="small" disabled helperText={' '} value={phaseName} />
+    <TextField
+      label="Phase"
+      fullWidth
+      variant="outlined"
+      size="small"
+      inputProps={{ readOnly: true }}
+      helperText={' '}
+      value={phaseName}
+    />
   );
 }
 
@@ -204,6 +227,65 @@ function TuhTotalField() {
       helperText={valMsg || ' '}
       value={tuh}
       onChange={(e) => setTuh(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') handleBlur();
+      }}
+    />
+  );
+}
+
+interface ITeamSelectProps {
+  whichTeam: LeftOrRight;
+}
+
+function TeamSelect(props: ITeamSelectProps) {
+  const { whichTeam } = props;
+  const tournManager = useContext(TournamentContext);
+  const modalManager = useContext(MatchEditModalContext);
+  const [team, setTeam] = useSubscription(modalManager.getSelectedTeam(whichTeam)?.name || '');
+
+  const handleChange = (val: string) => {
+    setTeam(val);
+  };
+
+  return (
+    <FormControl fullWidth size="small">
+      <InputLabel>Team</InputLabel>
+      <Select label="Team" value={team} onChange={(e) => handleChange(e.target.value)}>
+        {tournManager.tournament.getListOfAllTeams().map((tm) => (
+          <MenuItem key={tm.name} value={tm.name}>
+            {tm.name}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
+}
+
+interface ITeamScoreProps {
+  whichTeam: LeftOrRight;
+}
+
+function TeamScoreField(props: ITeamScoreProps) {
+  const { whichTeam } = props;
+  const modalManager = useContext(MatchEditModalContext);
+  const [pts, setPts] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam).points?.toString() || '');
+
+  const handleBlur = () => {
+    const valToUse = modalManager.setTeamScore(whichTeam, pts);
+    setPts(valToUse?.toString() || '');
+  };
+
+  return (
+    <TextField
+      type="number"
+      label="Score"
+      fullWidth
+      variant="outlined"
+      size="small"
+      value={pts}
+      onChange={(e) => setPts(e.target.value)}
       onBlur={handleBlur}
       onKeyDown={(e) => {
         if (e.key === 'Enter') handleBlur();

@@ -1,6 +1,9 @@
+/* eslint-disable import/no-cycle */
 import { Match } from '../DataModel/Match';
 import Registration from '../DataModel/Registration';
 import { Team } from '../DataModel/Team';
+
+export type LeftOrRight = 'left' | 'right';
 
 /** Dummy object representing a lack of a date */
 export class NullDate extends Date {

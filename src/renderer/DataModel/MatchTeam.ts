@@ -5,21 +5,21 @@ import { IQbjTeam, Team } from './Team';
 
 export interface IQbjMatchTeam extends IQbjObject {
   /** Which team this is */
-  team: IQbjTeam | IQbjRefPointer;
+  team?: IQbjTeam | IQbjRefPointer;
   /** Did this team forfeit the match? */
   forfeitLoss?: boolean;
   /** total number of points scored */
-  points: number;
+  points?: number;
   /** The number of points this team earned on bonuses */
-  bonusPoints: number;
+  bonusPoints?: number;
   /** Number of tossups answered with no bonuses */
-  correctTossupsWithoutBonuses: number;
+  correctTossupsWithoutBonuses?: number;
   /** The number of points this team earned on bonuses bounced back from the opponent */
-  bonusBouncebackPoints: number;
+  bonusBouncebackPoints?: number;
   /** The number of points this team earned on lightning questions */
-  lightningPoints: number;
+  lightningPoints?: number;
   /** The performances of the players on this team */
-  matchPlayers: IQbjMatchPlayer[];
+  matchPlayers?: IQbjMatchPlayer[];
 }
 
 /** MatchTeam object as written to a .yft file */
@@ -30,23 +30,19 @@ export interface IYftFileMatchTeam extends IQbjMatchTeam, IYftFileObject {
 /** Additional info not in qbj but needed for a .yft file */
 interface IMatchTeamExtraData {
   overTimeBuzzes?: IQbjPlayerAnswerCount[];
-  totalPointsOverride?: number;
 }
 
 /** One team's performance in one game */
 export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
-  team: Team;
+  team?: Team;
 
   forfeitLoss: boolean = false;
 
-  get points(): number {
-    if (this.totalPointsOverride !== undefined) {
-      return this.totalPointsOverride;
-    }
-    return this.tossupPoints + this.bonusPoints + this.bonusBouncebackPoints + this.lightningPoints;
-  }
+  points?: number;
 
-  bonusPoints: number = 0;
+  get bonusPoints(): number {
+    return (this.points || 0) - this.tossupPoints - (this.bonusBouncebackPoints || 0) - (this.lightningPoints || 0);
+  }
 
   private _correctTossupsWithoutBonuses?: number;
 
@@ -56,7 +52,9 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
     let total = 0;
     for (const ac of this.overTimeBuzzes || []) {
-      total += ac.number * ac.answerType.value;
+      if (ac.points > 0) {
+        total += ac.number;
+      }
     }
     return total;
   }
@@ -68,15 +66,24 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     this._correctTossupsWithoutBonuses = num;
   }
 
-  /** What the team scored in overtime */
+  /** Number of tossups answered with no bonuses. In YF, this means overtime */
+  get overtimePoints(): number {
+    let total = 0;
+    for (const ac of this.overTimeBuzzes || []) {
+      total += ac.points;
+    }
+    return total;
+  }
+
+  /** What the team scored in overtime. Note that we don't actually track which player made this buzzes */
   overTimeBuzzes?: TossupAnswerCount[];
 
-  bonusBouncebackPoints: number = 0;
+  bonusBouncebackPoints?: number;
 
   lightningPoints: number = 0;
 
   /** Performances of each player. A player being listed here doesn't necessarily mean they actually played in this game. */
-  matchPlayers: MatchPlayer[];
+  matchPlayers: MatchPlayer[] = [];
 
   /** Number of points scored on tossups */
   get tossupPoints(): number {
@@ -87,10 +94,8 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return total;
   }
 
-  /** Override the calculated number of points. Use for games with no individual stats */
-  totalPointsOverride: number | undefined;
-
-  constructor(t: Team) {
+  constructor(t?: Team) {
+    if (!t) return;
     this.team = t;
     this.matchPlayers = t.players.map((pl) => new MatchPlayer(pl));
   }
@@ -98,7 +103,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjMatchTeam {
     const qbjObject: IQbjMatchTeam = {
-      team: this.team.toRefPointer(),
+      team: this.team?.toRefPointer(),
       forfeitLoss: this.forfeitLoss,
       points: this.points,
       bonusPoints: this.bonusPoints,
@@ -113,7 +118,6 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
     const yfData: IMatchTeamExtraData = {
       overTimeBuzzes: this.overTimeBuzzes?.map((ac) => ac.toFileObject()),
-      totalPointsOverride: this.totalPointsOverride,
     };
     const yftFileObj: IYftFileMatchTeam = { YfData: yfData, ...qbjObject };
     return yftFileObj;

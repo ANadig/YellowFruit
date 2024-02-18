@@ -12,6 +12,10 @@ export class TossupAnswerCount implements IQbjPlayerAnswerCount, IYftDataModelOb
 
   answerType: AnswerType;
 
+  get points() {
+    return this.number * this.answerType.value;
+  }
+
   constructor(answerType: AnswerType, number: number = 0) {
     this.answerType = answerType;
     this.number = number;

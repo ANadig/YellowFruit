@@ -15,6 +15,8 @@ import MatchValidationMessage, {
   MatchValidationCollection,
   MatchValidationType,
 } from './MatchValidationMessage';
+// eslint-disable-next-line import/no-cycle
+import { LeftOrRight } from '../Utils/UtilTypes';
 
 export interface IQbjMatch extends IQbjObject {
   /** The number of tossups read, including any tossups read in overtime */
@@ -69,18 +71,15 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
   serial?: string;
 
-  matchTeams: MatchTeam[] = [];
-
   /** The first team in the match */
-  // team1?: MatchTeam;
+  leftTeam: MatchTeam;
 
   /** The second team in the match */
-  // team2?: MatchTeam;
+  rightTeam: MatchTeam;
 
-  // get matchTeams(): MatchTeam[] {
-  //   if (!this.team1 || !this.team2) return [];
-  //   return [this.team1, this.team2];
-  // }
+  get matchTeams(): MatchTeam[] {
+    return [this.leftTeam, this.rightTeam];
+  }
 
   /** Additional phases in which this match should count, besides the one that actually contains it */
   carryoverPhases: Phase[] = [];
@@ -107,10 +106,10 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return `Match__${this.idNumber}`;
   }
 
-  constructor(team1?: Team, team2?: Team) {
+  constructor(leftTeam?: Team, rightTeam?: Team) {
     this.idNumber = Match.idCounter++;
-    if (team1) this.matchTeams = [new MatchTeam(team1)];
-    if (team2) this.matchTeams.push(new MatchTeam(team2));
+    this.leftTeam = new MatchTeam(leftTeam);
+    this.rightTeam = new MatchTeam(rightTeam);
 
     this.totalTuhFieldValidation = new MatchValidationMessage(MatchValidationType.invalidTotalTuh);
     this.otherValidation = new MatchValidationCollection();
@@ -123,7 +122,8 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   }
 
   copyFromMatch(source: Match) {
-    this.matchTeams = source.matchTeams.slice(); // TODO: deep copy
+    this.leftTeam = source.leftTeam; // TODO: deep copy
+    this.rightTeam = source.rightTeam;
     this.carryoverPhases = source.carryoverPhases.slice(); // don't need deep copy here
     this.idNumber = source.idNumber;
     this.tossupsRead = source.tossupsRead;
@@ -165,12 +165,37 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return yftFileObj;
   }
 
+  setTeam(whichTeam: LeftOrRight, team: Team) {
+    if (whichTeam === 'left') {
+      this.setLeftTeam(team);
+    } else {
+      this.setRightTeam(team);
+    }
+  }
+
   setLeftTeam(team: Team) {
-    this.matchTeams[0] = new MatchTeam(team);
+    this.leftTeam.team = team;
   }
 
   setRightTeam(team: Team) {
-    this.matchTeams[1] = new MatchTeam(team);
+    this.rightTeam.team = team;
+  }
+
+  clearTeam(whichTeam: LeftOrRight) {
+    if (whichTeam === 'left') this.leftTeam.team = undefined;
+    else {
+      this.rightTeam.team = undefined;
+    }
+  }
+
+  getMatchTeam(whichTeam: LeftOrRight) {
+    if (whichTeam === 'left') return this.leftTeam;
+    return this.rightTeam;
+  }
+
+  setTeamScore(whichTeam: LeftOrRight, points: number | undefined) {
+    const mt = this.getMatchTeam(whichTeam);
+    mt.points = points;
   }
 
   getErrorMessages(): string[] {

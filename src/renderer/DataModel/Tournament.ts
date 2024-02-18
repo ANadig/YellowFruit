@@ -129,6 +129,19 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return sumReduce(regSizes);
   }
 
+  getListOfAllTeams(): Team[] {
+    const teamLists = this.registrations.map((reg) => reg.teams);
+    return teamLists.flat();
+  }
+
+  findTeamByName(name: string) {
+    for (const reg of this.registrations) {
+      const matchingTeam = reg.teams.find((tm) => tm.name === name);
+      if (matchingTeam) return matchingTeam;
+    }
+    return undefined;
+  }
+
   /** How many teams there's room for based on the pools that exist.
    *  We assume all teams play in the prelim phase.
    *  Returns null if there isn't enough information to calculate.
