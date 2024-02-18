@@ -64,7 +64,9 @@ export class TempMatchManager {
 
   createBlankMatch() {
     this.tempMatch = new Match();
-    this.tempMatch.tossupsRead = this.tournament.scoringRules.regulationTossupCount;
+    if (!this.tournament.scoringRules.timed) {
+      this.tempMatch.tossupsRead = this.tournament.scoringRules.regulationTossupCount;
+    }
     this.dataChangedReactCallback();
   }
 
@@ -169,13 +171,16 @@ export class TempMatchManager {
     this.dataChangedReactCallback();
   }
 
-  setTotalTuh(val: string): number {
-    let parsed = parseInt(val, 10);
-    if (Number.isNaN(parsed)) parsed = this.tempMatch.tossupsRead;
-    this.tempMatch.tossupsRead = parsed;
+  setTotalTuh(val: string): number | undefined {
+    const parsed = parseInt(val, 10);
+    if (Number.isNaN(parsed)) {
+      this.tempMatch.tossupsRead = undefined;
+    } else {
+      this.tempMatch.tossupsRead = parsed;
+    }
     this.tempMatch.validateTotalTuh(this.tournament.scoringRules.regulationTossupCount);
     this.dataChangedReactCallback();
-    return parsed;
+    return this.tempMatch.tossupsRead;
   }
 
   getSelectedTeam(whichTeam: LeftOrRight): Team | undefined {

@@ -55,7 +55,7 @@ interface IMatchExtraData {
 
 /** A single match scheduled between two teams */
 export class Match implements IQbjMatch, IYftDataModelObject {
-  tossupsRead: number = 0;
+  tossupsRead?: number;
 
   overtimeTossupsRead: number = 0;
 
@@ -122,8 +122,8 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   }
 
   copyFromMatch(source: Match) {
-    this.leftTeam = source.leftTeam; // TODO: deep copy
-    this.rightTeam = source.rightTeam;
+    this.leftTeam = source.leftTeam.makeCopy();
+    this.rightTeam = source.rightTeam.makeCopy();
     this.carryoverPhases = source.carryoverPhases.slice(); // don't need deep copy here
     this.idNumber = source.idNumber;
     this.tossupsRead = source.tossupsRead;
@@ -235,6 +235,10 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   }
 
   validateTotalTuh(regTossups: number) {
+    if (this.tossupsRead === undefined) {
+      this.totalTuhFieldValidation.setError('Field is required');
+      return;
+    }
     if (this.tossupsRead < 1 || this.tossupsRead > 999) {
       this.totalTuhFieldValidation.setError('Invalid number');
       return;
