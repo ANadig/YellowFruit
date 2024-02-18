@@ -117,19 +117,29 @@ function MatchEditDialogCore() {
                 <PlayerGrid whichTeam="right" />
               </Grid>
             </Grid>
-            <ValidationSection />
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button variant="outlined" onClick={handleCancel}>
-            {hotkeyFormat('&Cancel')}
-          </Button>
-          <Button variant="outlined" onClick={handleAcceptAndStay}>
-            {hotkeyFormat('&Save {AMP} New')}
-          </Button>
-          <Button variant="outlined" onClick={handleAccept}>
-            {hotkeyFormat('&Accept')}
-          </Button>
+        <DialogActions sx={{ justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <ValidationSection />
+          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              '& .MuiButton-root': { marginLeft: 2, whiteSpace: 'nowrap' },
+            }}
+          >
+            <Button variant="outlined" onClick={handleCancel}>
+              {hotkeyFormat('&Cancel')}
+            </Button>
+            <Button variant="outlined" onClick={handleAcceptAndStay}>
+              {hotkeyFormat('&Save {AMP} New')}
+            </Button>
+            <Button variant="outlined" onClick={handleAccept}>
+              {hotkeyFormat('&Accept')}
+            </Button>
+          </Box>
         </DialogActions>
       </Dialog>
       <ErrorDialog />
