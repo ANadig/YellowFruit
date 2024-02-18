@@ -14,12 +14,14 @@ import {
   Divider,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { AddCircle, Delete, Edit, ExpandMore } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import YfCard from './YfCard';
 import { Match } from '../DataModel/Match';
+import { Phase } from '../DataModel/Phase';
+import { Round } from '../DataModel/Round';
 
 // Defines the order the buttons should be in
 const viewList = ['By Round', 'By Pool'];
@@ -58,44 +60,78 @@ export default function GamesPage() {
 
 function GamesViewByRound() {
   const tournManager = useContext(TournamentContext);
-  const { phases } = tournManager.tournament;
-
-  const newMatchForRound = (round: number) => {
-    tournManager.openMatchModalNewMatchForRound(round);
-  };
+  const [phases] = useSubscription(tournManager.tournament.phases);
 
   return (
     <Stack spacing={2}>
       {phases.map((phase) => (
-        <YfCard key={phase.name} title={phase.name}>
-          {phase.rounds.map((round) => (
-            <Accordion key={round.name}>
-              <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography sx={{ width: '33%', flexShrink: 0 }}>{`Round ${round.number}`}</Typography>
-                <Typography
-                  sx={{ width: '62%', color: 'text.secondary' }}
-                >{`${round.matches.length} games`}</Typography>
-                <IconButton size="small" sx={{ p: 0 }} onClick={() => newMatchForRound(round.number)}>
-                  <AddCircle />
-                </IconButton>
-              </AccordionSummary>
-              <AccordionDetails>
-                {round.matches.length > 0 && (
-                  <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
-                    {round.matches.map((m, idx) => (
-                      <div key={m.id}>
-                        {idx !== 0 && <Divider />}
-                        <MatchListItem match={m} roundNo={round.number} />
-                      </div>
-                    ))}
-                  </Box>
-                )}
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </YfCard>
+        <GamesForPhaseByRound key={phase.name} phase={phase} />
       ))}
     </Stack>
+  );
+}
+
+interface IGamesForPhaseByRoundProps {
+  phase: Phase;
+}
+
+function GamesForPhaseByRound(props: IGamesForPhaseByRoundProps) {
+  const { phase } = props;
+
+  return (
+    <YfCard title={phase.name}>
+      {phase.rounds.map((round) => (
+        <SingleRound key={round.name} round={round} expanded={false} />
+      ))}
+    </YfCard>
+  );
+}
+
+interface ISingleRoundProps {
+  round: Round;
+  expanded: boolean;
+}
+
+function SingleRound(props: ISingleRoundProps) {
+  const { round, expanded: expandedProp } = props;
+  const tournManager = useContext(TournamentContext);
+  const [expanded, setExpanded] = useState(expandedProp);
+
+  const newMatchForRound = (roundNo: number) => {
+    tournManager.openMatchModalNewMatchForRound(roundNo);
+  };
+
+  return (
+    <Accordion expanded={expanded} onChange={() => setExpanded(!expanded)}>
+      <AccordionSummary expandIcon={<ExpandMore />}>
+        <Typography sx={{ width: '33%', flexShrink: 0 }}>{`Round ${round.number}`}</Typography>
+        <Typography sx={{ width: '62%', color: 'text.secondary' }}>{`${round.matches.length} games`}</Typography>
+        <Tooltip placement="left" title="Add a game to this round">
+          <IconButton
+            size="small"
+            sx={{ p: 0 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              newMatchForRound(round.number);
+            }}
+          >
+            <AddCircle />
+          </IconButton>
+        </Tooltip>
+      </AccordionSummary>
+      <AccordionDetails>
+        {round.matches.length > 0 && (
+          <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+            {round.matches.map((m, idx) => (
+              <div key={m.id}>
+                {idx !== 0 && <Divider />}
+                <MatchListItem match={m} roundNo={round.number} />
+              </div>
+            ))}
+          </Box>
+        )}
+      </AccordionDetails>
+    </Accordion>
   );
 }
 
