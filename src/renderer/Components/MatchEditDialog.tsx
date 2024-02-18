@@ -63,6 +63,8 @@ function MatchEditDialogCore() {
   };
 
   useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });
+  useHotkeys('alt+s', () => handleAcceptAndStay(), { enabled: isOpen, enableOnFormTags: true });
+  useHotkeys('alt+a', () => handleAccept(), { enabled: isOpen, enableOnFormTags: true });
 
   return (
     <>
