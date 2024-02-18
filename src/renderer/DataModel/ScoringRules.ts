@@ -139,6 +139,9 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
     return `ScoringRules_${this.name}`;
   }
 
+  /** The maximum number of answer types that can be defined for a single tournament */
+  static maximumAnswerTypes = 6;
+
   constructor(ruleSet: CommonRuleSets = CommonRuleSets.NaqtUntimed) {
     this.applyRuleSet(ruleSet);
   }

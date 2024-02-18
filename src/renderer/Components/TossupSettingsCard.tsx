@@ -24,6 +24,7 @@ import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import AnswerType, { sortAnswerTypes } from '../DataModel/AnswerType';
 import { hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { ScoringRules } from '../DataModel/ScoringRules';
 
 const commonPointValues = [-5, 10, 15, 20];
 
@@ -34,6 +35,7 @@ function TossupSettingsCard() {
   const [activeAnswerTypes, setAnswerTypes] = useSubscription(thisTournament.scoringRules?.answerTypes);
   if (!activeAnswerTypes) return null;
 
+  const canAddMoreValues = activeAnswerTypes.length < ScoringRules.maximumAnswerTypes;
   const pointValuesForChips: number[] = [];
   for (const v of commonPointValues) {
     if (
@@ -67,17 +69,19 @@ function TossupSettingsCard() {
     <YfCard title="Toss-Ups">
       <Typography variant="subtitle2">Point values</Typography>
       <ActivePointValueList answerTypes={activeAnswerTypes} deleteItem={deleteAnswerType} />
-      <Typography variant="subtitle2">Add more point values</Typography>
-      <Box sx={{ py: 1 }}>
-        <AvailableStandardPtValuesList pointValues={pointValuesForChips} addPointValue={addAnswerType} />
-        <Chip
-          key="custom"
-          sx={{ marginBottom: 1 }}
-          label="Custom..."
-          onDelete={() => setCustomPtValFormOpen(true)}
-          deleteIcon={<Add />}
-        />
-      </Box>
+      {canAddMoreValues && <Typography variant="subtitle2">Add more point values</Typography>}
+      {canAddMoreValues && (
+        <Box sx={{ py: 1 }}>
+          <AvailableStandardPtValuesList pointValues={pointValuesForChips} addPointValue={addAnswerType} />
+          <Chip
+            key="custom"
+            sx={{ marginBottom: 1 }}
+            label="Custom..."
+            onDelete={() => setCustomPtValFormOpen(true)}
+            deleteIcon={<Add />}
+          />
+        </Box>
+      )}
       <CustomPtValDialog
         isOpen={customPtValFormOpen}
         answerTypesInUse={activeAnswerTypes}
