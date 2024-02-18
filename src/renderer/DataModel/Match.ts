@@ -204,12 +204,15 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       errs.push(`Tossups heard: ${this.totalTuhFieldValidation.message}`);
     }
     errs = errs.concat(this.otherValidation.getErrorMessages(ignoreHidden));
+    errs = errs.concat(this.leftTeam.getErrorMessages(ignoreHidden));
+    errs = errs.concat(this.rightTeam.getErrorMessages(ignoreHidden));
     return errs;
   }
 
   validateAll(regTossups: number) {
     this.validateTotalTuh(regTossups);
     this.validateTeams();
+    this.validateMatchTeams();
   }
 
   validateTotalTuh(regTossups: number) {
@@ -233,6 +236,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.otherValidation.clearMsgType(MatchValidationType.LowTotalTuh);
   }
 
+  /** Validation about which teams are selected */
   validateTeams() {
     if (!this.leftTeam.team || !this.rightTeam.team) {
       this.otherValidation.addValidationMsg(
@@ -253,6 +257,12 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       return;
     }
     this.otherValidation.clearMsgType(MatchValidationType.TeamPlayingItself);
+  }
+
+  /** Validate the stats for each team */
+  validateMatchTeams() {
+    this.leftTeam.validateAll();
+    this.rightTeam.validateAll();
   }
 
   suppressMessageType(type: MatchValidationType) {

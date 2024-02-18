@@ -6,6 +6,7 @@ export enum MatchValidationType {
   MissingTeams = 'MissingTeams',
   MissingTotalPoints = 'MissingTotalPoints',
   TeamPlayingItself = 'TeamPlayingItself',
+  InvalidTeamScore = 'InvalidTeamScore',
 }
 
 export interface IYftFileMatchValidationMsg {

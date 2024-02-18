@@ -275,6 +275,8 @@ function TeamScoreField(props: ITeamScoreProps) {
   const { whichTeam } = props;
   const modalManager = useContext(MatchEditModalContext);
   const [pts, setPts] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam).points?.toString() || '');
+  const [valStatus] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam).totalScoreFieldValidation.status);
+  const [valMsg] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam).totalScoreFieldValidation.message);
 
   const handleBlur = () => {
     const valToUse = modalManager.setTeamScore(whichTeam, pts);
@@ -288,6 +290,8 @@ function TeamScoreField(props: ITeamScoreProps) {
       fullWidth
       variant="outlined"
       size="small"
+      error={valStatus === ValidationStatuses.Error}
+      helperText={valMsg || ' '}
       value={pts}
       onChange={(e) => setPts(e.target.value)}
       onBlur={handleBlur}

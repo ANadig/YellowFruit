@@ -1,5 +1,6 @@
-import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject, ValidationStatuses } from './Interfaces';
 import { MatchPlayer, IQbjMatchPlayer } from './MatchPlayer';
+import MatchValidationMessage, { MatchValidationCollection, MatchValidationType } from './MatchValidationMessage';
 import { IQbjPlayerAnswerCount, TossupAnswerCount } from './PlayerAnswerCount';
 import { IQbjTeam, Team } from './Team';
 
@@ -94,10 +95,22 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return total;
   }
 
+  totalScoreFieldValidation: MatchValidationMessage;
+
+  /** Any other messages that should go at the bottom of the modal rather than a specific field */
+  otherValidation: MatchValidationCollection;
+
+  static minimumValidScore = -99999;
+
+  static maximumValidScore = 99999;
+
   constructor(t?: Team) {
-    if (!t) return;
-    this.team = t;
-    this.matchPlayers = t.players.map((pl) => new MatchPlayer(pl));
+    if (t) {
+      this.team = t;
+      this.matchPlayers = t.players.map((pl) => new MatchPlayer(pl));
+    }
+    this.totalScoreFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidTeamScore);
+    this.otherValidation = new MatchValidationCollection();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -121,6 +134,38 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     };
     const yftFileObj: IYftFileMatchTeam = { YfData: yfData, ...qbjObject };
     return yftFileObj;
+  }
+
+  getErrorMessages(ignoreHidden: boolean = false): string[] {
+    console.log(this.team);
+    let errs: string[] = [];
+    if (this.totalScoreFieldValidation.status === ValidationStatuses.Error) {
+      errs.push(`${this.team?.name || 'Total'} score: ${this.totalScoreFieldValidation.message}`);
+    }
+    errs = errs.concat(this.otherValidation.getErrorMessages(ignoreHidden));
+    return errs;
+  }
+
+  validateAll() {
+    this.validateTotalPoints();
+  }
+
+  validateTotalPoints() {
+    if (this.points === undefined) {
+      this.otherValidation.addValidationMsg(
+        MatchValidationType.MissingTotalPoints,
+        ValidationStatuses.HiddenError,
+        `${this.team ? `${this.team.name} :` : ''} Total score is required`,
+      );
+      return;
+    }
+    this.otherValidation.clearMsgType(MatchValidationType.MissingTotalPoints);
+
+    if (this.points < MatchTeam.minimumValidScore || this.points > MatchTeam.maximumValidScore) {
+      this.totalScoreFieldValidation.setError('Invalid number');
+      return;
+    }
+    this.totalScoreFieldValidation.setOk();
   }
 }
 
