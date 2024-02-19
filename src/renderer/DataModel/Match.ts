@@ -18,6 +18,7 @@ import MatchValidationMessage, {
 // eslint-disable-next-line import/no-cycle
 import { LeftOrRight } from '../Utils/UtilTypes';
 import AnswerType from './AnswerType';
+import { ScoringRules } from './ScoringRules';
 
 export interface IQbjMatch extends IQbjObject {
   /** The number of tossups read, including any tossups read in overtime */
@@ -224,13 +225,13 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return errs;
   }
 
-  validateAll(regTossups: number) {
-    this.validateTotalTuh(regTossups);
+  validateAll(scoringRules: ScoringRules) {
+    this.validateTotalTuh(scoringRules);
     this.validateTeams();
     this.validateMatchTeams();
   }
 
-  validateTotalTuh(regTossups: number) {
+  validateTotalTuh(scoringRules: ScoringRules) {
     if (this.tossupsRead === undefined) {
       this.totalTuhFieldValidation.setError('Field is required');
       return;
@@ -242,11 +243,11 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
     this.totalTuhFieldValidation.setOk();
 
-    if (this.tossupsRead < regTossups) {
+    if (!scoringRules.timed && this.tossupsRead < scoringRules.regulationTossupCount) {
       this.otherValidation.addValidationMsg(
         MatchValidationType.LowTotalTuh,
         ValidationStatuses.Warning,
-        `Total tossups heard is less than ${regTossups}, the standard number for a game`,
+        `Total tossups heard is less than ${scoringRules.regulationTossupCount}, the standard number for a game`,
         true,
       );
       return;

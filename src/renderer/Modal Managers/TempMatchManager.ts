@@ -101,7 +101,7 @@ export class TempMatchManager {
 
   /** Returns true if we can save the data */
   preSaveValidation() {
-    this.tempMatch.validateAll(this.tournament.scoringRules.regulationTossupCount);
+    this.tempMatch.validateAll(this.tournament.scoringRules);
     let errors: string[] = [];
     if (this.roundFieldError) errors.push(`Round number: ${this.roundFieldError}`);
     errors = errors.concat(this.tempMatch.getErrorMessages());
@@ -178,7 +178,7 @@ export class TempMatchManager {
     } else {
       this.tempMatch.tossupsRead = parsed;
     }
-    this.tempMatch.validateTotalTuh(this.tournament.scoringRules.regulationTossupCount);
+    this.tempMatch.validateTotalTuh(this.tournament.scoringRules);
     this.dataChangedReactCallback();
     return this.tempMatch.tossupsRead;
   }
