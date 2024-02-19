@@ -18,6 +18,7 @@ import {
   Box,
   Alert,
   AlertColor,
+  NativeSelect,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { DragIndicator } from '@mui/icons-material';
@@ -279,20 +280,20 @@ function TeamSelect(props: ITeamSelectProps) {
   };
 
   return (
-    <FormControl fullWidth size="small">
-      <InputLabel>Team</InputLabel>
-      <Select
-        label="Team"
+    <FormControl fullWidth size="small" sx={{ marginTop: 1.4, paddingLeft: 0.5 }}>
+      <NativeSelect
+        variant="outlined"
         autoFocus={whichTeam === 'left' && !thisTournament.scoringRules.timed}
         value={team}
         onChange={(e) => handleChange(e.target.value)}
       >
+        <option value="">Team...</option>
         {tournManager.tournament.getListOfAllTeams().map((tm) => (
-          <MenuItem key={tm.name} value={tm.name}>
+          <option key={tm.name} value={tm.name}>
             {tm.name}
-          </MenuItem>
+          </option>
         ))}
-      </Select>
+      </NativeSelect>
     </FormControl>
   );
 }
