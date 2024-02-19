@@ -347,13 +347,17 @@ function PlayerGrid(props: IPlayerGridProps) {
     <Box sx={{ '& .MuiGrid2-container': { my: 2 } }}>
       <Grid container columns={48} columnSpacing={1}>
         <Grid xs />
-        <Grid xs={7}>TUH</Grid>
+        <Grid xs={7}>
+          <b>TUH</b>
+        </Grid>
         {thisTournament.scoringRules.answerTypes.map((at) => (
           <Grid key={at.value} xs={7}>
-            {at.shortLabel}
+            <b>{at.shortLabel}</b>
           </Grid>
         ))}
-        <Grid xs={7}>Pts</Grid>
+        <Grid xs={7}>
+          <b>Pts</b>
+        </Grid>
       </Grid>
       {matchTeam.matchPlayers.map((mp) => (
         <Grid
