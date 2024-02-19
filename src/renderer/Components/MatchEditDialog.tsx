@@ -18,7 +18,7 @@ import {
   Box,
   Alert,
   AlertColor,
-  NativeSelect,
+  Autocomplete,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { DragIndicator } from '@mui/icons-material';
@@ -267,34 +267,46 @@ interface ITeamSelectProps {
   whichTeam: LeftOrRight;
 }
 
+const teamSelectNullOption = '';
+
 function TeamSelect(props: ITeamSelectProps) {
   const { whichTeam } = props;
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
   const modalManager = useContext(MatchEditModalContext);
-  const [team, setTeam] = useSubscription(modalManager.getSelectedTeam(whichTeam)?.name || '');
+  const [team, setTeam] = useSubscription(modalManager.getSelectedTeam(whichTeam)?.name || teamSelectNullOption);
+  const [inputValue, setInputValue] = useState('');
 
   const handleChange = (val: string) => {
     setTeam(val);
     modalManager.setTeam(whichTeam, val);
   };
 
+  const isOptionEqualToValue = (option: string, value: string) => {
+    if (value === option) return true;
+    return value === '' && option === teamSelectNullOption;
+  };
+
+  const options = [teamSelectNullOption].concat(thisTournament.getListOfAllTeams().map((tm) => tm.name));
+
   return (
-    <FormControl fullWidth size="small" sx={{ marginTop: 1.4, paddingLeft: 0.5 }}>
-      <NativeSelect
-        variant="outlined"
-        autoFocus={whichTeam === 'left' && !thisTournament.scoringRules.timed}
-        value={team}
-        onChange={(e) => handleChange(e.target.value)}
-      >
-        <option value="">Team...</option>
-        {tournManager.tournament.getListOfAllTeams().map((tm) => (
-          <option key={tm.name} value={tm.name}>
-            {tm.name}
-          </option>
-        ))}
-      </NativeSelect>
-    </FormControl>
+    <Autocomplete
+      autoHighlight
+      clearOnEscape
+      autoSelect
+      value={team}
+      onChange={(event: any, newValue: string | null) => {
+        handleChange(newValue || '');
+      }}
+      inputValue={inputValue}
+      onInputChange={(event, newVal) => setInputValue(newVal)}
+      options={options}
+      isOptionEqualToValue={isOptionEqualToValue}
+      renderInput={(params) => (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <TextField {...params} size="small" autoFocus={whichTeam === 'left' && !thisTournament.scoringRules.timed} />
+      )}
+    />
   );
 }
 
