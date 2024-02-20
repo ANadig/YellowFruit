@@ -7,6 +7,7 @@ export enum MatchValidationType {
   MissingTotalPoints = 'MissingTotalPoints',
   TeamPlayingItself = 'TeamPlayingItself',
   InvalidTeamScore = 'InvalidTeamScore',
+  TeamsNotInSamePool = 'TeamsNotInSamePool',
 }
 
 export interface IYftFileMatchValidationMsg {
@@ -90,6 +91,10 @@ export default class MatchValidationMessage {
     }
     this.isSuppressed = true;
   }
+
+  unSuppress() {
+    this.isSuppressed = false;
+  }
 }
 
 export class MatchValidationCollection {
@@ -149,5 +154,10 @@ export class MatchValidationCollection {
   suppressMessageType(type: MatchValidationType) {
     const message = this.findMsgType(type);
     if (message) message.suppress();
+  }
+
+  unSuppressMessageType(type: MatchValidationType) {
+    const message = this.findMsgType(type);
+    if (message) message.unSuppress();
   }
 }

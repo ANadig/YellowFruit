@@ -4,6 +4,7 @@ import { NullDate, NullObjects } from '../Utils/UtilTypes';
 import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { Match } from './Match';
 import { IQbjPhase, Phase, PhaseTypes } from './Phase';
+import { Pool } from './Pool';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import { IQbjRanking, Ranking } from './Ranking';
 import Registration, { IQbjRegistration } from './Registration';
@@ -169,6 +170,12 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   findPhaseByName(str: string) {
     return this.phases.find((ph) => ph.name === str);
+  }
+
+  findPoolWithTeam(team: Team, roundNo: number): Pool | undefined {
+    const phase = this.whichPhaseIsRoundIn(roundNo);
+    if (!phase) return undefined;
+    return phase.findPoolWithTeam(team);
   }
 
   /** Add a new registration, and a team that should be contained in that registration */

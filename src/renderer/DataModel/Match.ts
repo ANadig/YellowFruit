@@ -279,6 +279,20 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.otherValidation.clearMsgType(MatchValidationType.TeamPlayingItself);
   }
 
+  setSamePoolValidation(valid: boolean, unSuppress: boolean) {
+    if (unSuppress) this.unSuppressMessageType(MatchValidationType.TeamsNotInSamePool);
+    if (!valid) {
+      this.otherValidation.addValidationMsg(
+        MatchValidationType.TeamsNotInSamePool,
+        ValidationStatuses.Warning,
+        'These teams are not in the same pool for this round',
+        true,
+      );
+      return;
+    }
+    this.otherValidation.clearMsgType(MatchValidationType.TeamsNotInSamePool);
+  }
+
   /** Validate the stats for each team */
   validateMatchTeams() {
     this.leftTeam.validateAll();
@@ -287,5 +301,9 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
   suppressMessageType(type: MatchValidationType) {
     this.otherValidation.suppressMessageType(type);
+  }
+
+  unSuppressMessageType(type: MatchValidationType) {
+    this.otherValidation.unSuppressMessageType(type);
   }
 }

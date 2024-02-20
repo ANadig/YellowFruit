@@ -102,6 +102,7 @@ export class TempMatchManager {
   /** Returns true if we can save the data */
   preSaveValidation() {
     this.tempMatch.validateAll(this.tournament.scoringRules);
+    this.validateTeamPools(false);
     let errors: string[] = [];
     if (this.roundFieldError) errors.push(`Round number: ${this.roundFieldError}`);
     errors = errors.concat(this.tempMatch.getErrorMessages());
@@ -145,6 +146,7 @@ export class TempMatchManager {
       return;
     }
     delete this.roundFieldError;
+    this.validateTeamPools(false);
   }
 
   getMainPhaseName() {
@@ -189,15 +191,33 @@ export class TempMatchManager {
   }
 
   setTeam(whichTeam: LeftOrRight, teamName: string) {
+    const oldTeam = this.tempMatch.getMatchTeam(whichTeam).team;
     const oldScore = this.tempMatch.getMatchTeam(whichTeam).points;
     const matchingTeam = this.tournament.findTeamByName(teamName);
     if (!matchingTeam) {
       this.tempMatch.clearTeam(whichTeam);
       return;
     }
+    if (oldTeam === matchingTeam) return;
+
     this.tempMatch.setTeam(whichTeam, matchingTeam, this.tournament.scoringRules.answerTypes, oldScore);
     this.tempMatch.validateTeams();
+    this.validateTeamPools(true);
     this.dataChangedReactCallback();
+  }
+
+  validateTeamPools(unSuppress: boolean) {
+    const leftTeam = this.tempMatch.leftTeam.team;
+    const rightTeam = this.tempMatch.rightTeam.team;
+    let valid = true;
+    if (leftTeam && rightTeam && this.round !== undefined && leftTeam !== rightTeam) {
+      const leftPool = this.tournament.findPoolWithTeam(leftTeam, this.round);
+      const rightPool = this.tournament.findPoolWithTeam(rightTeam, this.round);
+      if (leftPool && rightPool && leftPool !== rightPool) {
+        valid = false;
+      }
+    }
+    this.tempMatch.setSamePoolValidation(valid, unSuppress);
   }
 
   setTeamScore(whichTeam: LeftOrRight, val: string): number | undefined {
