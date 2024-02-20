@@ -5,6 +5,8 @@ import { Team } from '../DataModel/Team';
 import Tournament, { NullTournament } from '../DataModel/Tournament';
 import { Phase } from '../DataModel/Phase';
 import { MatchValidationType } from '../DataModel/MatchValidationMessage';
+import { MatchPlayer } from '../DataModel/MatchPlayer';
+import { PlayerAnswerCount } from '../DataModel/PlayerAnswerCount';
 
 export class TempMatchManager {
   /** The Match being edited */
@@ -225,6 +227,22 @@ export class TempMatchManager {
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
     this.tempMatch.setTeamScore(whichTeam, valToSave);
     this.tempMatch.validateMatchTeams();
+    this.dataChangedReactCallback();
+    return valToSave;
+  }
+
+  setPlayerTuh(mPlayer: MatchPlayer, val: string): number | undefined {
+    const parsed = parseInt(val, 10);
+    const valToSave = Number.isNaN(parsed) ? undefined : parsed;
+    mPlayer.tossupsHeard = valToSave;
+    this.dataChangedReactCallback();
+    return valToSave;
+  }
+
+  setPlayerAnswerCount(aCount: PlayerAnswerCount, val: string): number | undefined {
+    const parsed = parseInt(val, 10);
+    const valToSave = Number.isNaN(parsed) ? undefined : parsed;
+    aCount.number = valToSave;
     this.dataChangedReactCallback();
     return valToSave;
   }

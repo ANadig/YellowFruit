@@ -7,7 +7,7 @@ export interface IQbjMatchPlayer extends IQbjObject {
   /** Which player this is referring to */
   player: IQbjPlayer | IQbjRefPointer;
   /** The number of tossups this player heard */
-  tossupsHeard: number;
+  tossupsHeard?: number;
   /** The number of this player's answers for each answer value */
   answerCounts: IQbjPlayerAnswerCount[];
 }
@@ -16,7 +16,7 @@ export interface IQbjMatchPlayer extends IQbjObject {
 export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
   player: Player;
 
-  tossupsHeard: number = 0;
+  tossupsHeard?: number;
 
   answerCounts: PlayerAnswerCount[] = [];
 
@@ -53,7 +53,7 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjMatchPlayer {
     const qbjObject: IQbjMatchPlayer = {
       player: this.player.toRefPointer(),
-      tossupsHeard: this.tossupsHeard,
+      tossupsHeard: this.tossupsHeard || 0,
       answerCounts: this.answerCounts.map((ac) => ac.toFileObject(qbjOnly)),
     };
 

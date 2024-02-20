@@ -393,6 +393,7 @@ interface IPlayerRowProps {
 
 function PlayerRow(props: IPlayerRowProps) {
   const { matchPlayer } = props;
+  const modalManager = useContext(MatchEditModalContext);
   const [name] = useSubscription(matchPlayer?.player.name);
   const [tuh, setTuh] = useSubscription(matchPlayer?.tossupsHeard?.toString() || '');
   const [pts] = useSubscription(matchPlayer?.points);
@@ -400,7 +401,10 @@ function PlayerRow(props: IPlayerRowProps) {
 
   if (!matchPlayer) return null;
 
-  const handleTuhBlur = () => {};
+  const handleTuhBlur = () => {
+    const valToUse = modalManager.setPlayerTuh(matchPlayer, tuh);
+    setTuh(valToUse?.toString() || '');
+  };
 
   return (
     <>
@@ -439,9 +443,13 @@ interface IPlayerAnswerCountFieldProps {
 
 function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
   const { answerCount } = props;
+  const modalManager = useContext(MatchEditModalContext);
   const [count, setCount] = useSubscription(answerCount.number?.toString() || '');
 
-  const handleBlur = () => {};
+  const handleBlur = () => {
+    const valToUse = modalManager.setPlayerAnswerCount(answerCount, count);
+    setCount(valToUse?.toString() || '');
+  };
 
   return (
     <Grid xs={7}>
