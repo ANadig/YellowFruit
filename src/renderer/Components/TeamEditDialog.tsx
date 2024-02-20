@@ -23,7 +23,7 @@ import {
   MenuList,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import React, { ReactElement, useContext, useEffect, useState } from 'react';
+import React, { ReactElement, useContext, useEffect, useMemo, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { ArrowDropDown } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
@@ -52,6 +52,7 @@ function TeamEditDialog() {
 
 function TeamEditDialogCore() {
   const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
   const modalManager = useContext(TeamEditModalContext);
 
   const [isOpen] = useSubscription(modalManager.modalIsOpen);
@@ -71,6 +72,14 @@ function TeamEditDialogCore() {
   const [teamNameValidationStatus] = useSubscription(tempTeamToEdit.nameValidation.status);
   const [teamNameValidationMsg] = useSubscription(tempTeamToEdit.nameValidation.message);
   const warningExists = teamNameValidationStatus !== ValidationStatuses.Ok;
+
+  const disableSaveAndNew = useMemo(() => {
+    const numTeams = thisTournament.getNumberOfTeams();
+    const maxTeams = thisTournament.getExpectedNumberOfTeams();
+    if (maxTeams === null) return false;
+    if (numTeams >= maxTeams) return true;
+    return tournManager.teamBeingModified === null && numTeams >= maxTeams - 1;
+  }, [thisTournament, tournManager.teamBeingModified]);
 
   const autoFocusFirstPlayer = regName !== '' && teamLetter !== '' && numPlayers === 1;
 
@@ -122,8 +131,11 @@ function TeamEditDialogCore() {
 
   useHotkeys('alt+a', () => handleAccept(), { enabled: isOpen, enableOnFormTags: true });
   useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });
-  useHotkeys('alt+s', () => handleAcceptAndStay(), { enabled: isOpen, enableOnFormTags: true });
-  useHotkeys('alt+t', () => handleAcceptAndNextLetter(), { enabled: isOpen, enableOnFormTags: true });
+  useHotkeys('alt+s', () => handleAcceptAndStay(), { enabled: isOpen && !disableSaveAndNew, enableOnFormTags: true });
+  useHotkeys('alt+t', () => handleAcceptAndNextLetter(), {
+    enabled: isOpen && !disableSaveAndNew,
+    enableOnFormTags: true,
+  });
 
   return (
     <>
@@ -213,6 +225,7 @@ function TeamEditDialogCore() {
             {hotkeyFormat('&Cancel')}
           </Button>
           <SaveAndNewButtons
+            disabled={disableSaveAndNew}
             onClickSaveAndNew={handleAcceptAndStay}
             onClickSaveAndNextLetter={handleAcceptAndNextLetter}
           />
@@ -227,12 +240,13 @@ function TeamEditDialogCore() {
 }
 
 interface ISaveAndNewButtonsProps {
+  disabled: boolean;
   onClickSaveAndNew: () => void;
   onClickSaveAndNextLetter: () => void;
 }
 
 function SaveAndNewButtons(props: ISaveAndNewButtonsProps) {
-  const { onClickSaveAndNew, onClickSaveAndNextLetter } = props;
+  const { disabled, onClickSaveAndNew, onClickSaveAndNextLetter } = props;
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const anchorRef = React.useRef<HTMLDivElement>(null);
 
@@ -246,8 +260,10 @@ function SaveAndNewButtons(props: ISaveAndNewButtonsProps) {
   return (
     <>
       <ButtonGroup ref={anchorRef}>
-        <Button onClick={onClickSaveAndNew}>{hotkeyFormat('&Save {AMP} New')}</Button>
-        <Button size="small" onClick={() => setDropdownOpen(!dropdownOpen)}>
+        <Button disabled={disabled} onClick={onClickSaveAndNew}>
+          {hotkeyFormat('&Save {AMP} New')}
+        </Button>
+        <Button size="small" disabled={disabled} onClick={() => setDropdownOpen(!dropdownOpen)}>
           <ArrowDropDown />
         </Button>
       </ButtonGroup>
