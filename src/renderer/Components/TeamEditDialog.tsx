@@ -62,16 +62,8 @@ function TeamEditDialogCore() {
 
   const [regName, setRegName] = useState(tempRegToEdit.name);
   useEffect(() => setRegName(tempRegToEdit.name), [tempRegToEdit.name, tempTeamToEdit.name]); // can't use useSubscription due to the unusual dependency
-  const [teamLetter, setTeamLetter] = useSubscription(tempTeamToEdit.letter);
-  const [teamIsSS, setTeamIsSS] = useSubscription(tempRegToEdit.isSmallSchool);
-  const [teamIsJV, setTeamIsJV] = useSubscription(tempTeamToEdit.isJV);
-  const [teamIsUG, setTeamIsUG] = useSubscription(tempTeamToEdit.isUG);
-  const [teamIsD2, setTeamIsD2] = useSubscription(tempTeamToEdit.isD2);
+  const [teamLetter] = useSubscription(tempTeamToEdit.letter);
   const [numPlayers] = useSubscription(modalManager.tempTeam.players.length);
-
-  const [teamNameValidationStatus] = useSubscription(tempTeamToEdit.nameValidation.status);
-  const [teamNameValidationMsg] = useSubscription(tempTeamToEdit.nameValidation.message);
-  const warningExists = teamNameValidationStatus !== ValidationStatuses.Ok;
 
   const disableSaveAndNew = useMemo(() => {
     const numTeams = thisTournament.getNumberOfTeams();
@@ -98,6 +90,76 @@ function TeamEditDialogCore() {
   const handleCancel = () => {
     tournManager.teamEditModalReset();
   };
+
+  useHotkeys('alt+a', () => handleAccept(), { enabled: isOpen, enableOnFormTags: true });
+  useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });
+  useHotkeys('alt+s', () => handleAcceptAndStay(), { enabled: isOpen && !disableSaveAndNew, enableOnFormTags: true });
+  useHotkeys('alt+t', () => handleAcceptAndNextLetter(), {
+    enabled: isOpen && !disableSaveAndNew,
+    enableOnFormTags: true,
+  });
+
+  return (
+    <>
+      <Dialog fullWidth maxWidth="md" open={isOpen} onClose={handleCancel}>
+        <DialogTitle>{teamBeingModified === null ? 'New Team' : `Edit ${teamBeingModified.name}`}</DialogTitle>
+        <DialogContent>
+          <Box
+            sx={{
+              height: 375,
+              '& .MuiGrid2-root': { display: 'flex', alignItems: 'end' },
+              '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
+            }}
+          >
+            <TeamLevelFields autofocusOrgName={!autoFocusFirstPlayer} />
+            <Divider textAlign="left" sx={{ my: 2, '&:before': { width: '0%' } }}>
+              <Typography variant="subtitle1">Players</Typography>
+            </Divider>
+            <PlayersGrid numRows={numPlayers} autoFocusFirstPlayer={autoFocusFirstPlayer} />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={handleCancel}>
+            {hotkeyFormat('&Cancel')}
+          </Button>
+          <SaveAndNewButtons
+            disabled={disableSaveAndNew}
+            onClickSaveAndNew={handleAcceptAndStay}
+            onClickSaveAndNextLetter={handleAcceptAndNextLetter}
+          />
+          <Button variant="outlined" onClick={handleAccept}>
+            {hotkeyFormat('&Accept')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <ErrorDialog />
+    </>
+  );
+}
+
+interface TeamLevelEditFieldsProps {
+  autofocusOrgName: boolean;
+}
+
+function TeamLevelFields(props: TeamLevelEditFieldsProps) {
+  const { autofocusOrgName } = props;
+  const tournManager = useContext(TournamentContext);
+  const modalManager = useContext(TeamEditModalContext);
+
+  const tempTeamToEdit = modalManager.tempTeam;
+  const tempRegToEdit = modalManager.tempRegistration;
+
+  const [regName, setRegName] = useState(tempRegToEdit.name);
+  useEffect(() => setRegName(tempRegToEdit.name), [tempRegToEdit.name, tempTeamToEdit.name]); // can't use useSubscription due to the unusual dependency
+  const [teamLetter, setTeamLetter] = useSubscription(tempTeamToEdit.letter);
+  const [teamIsSS, setTeamIsSS] = useSubscription(tempRegToEdit.isSmallSchool);
+  const [teamIsJV, setTeamIsJV] = useSubscription(tempTeamToEdit.isJV);
+  const [teamIsUG, setTeamIsUG] = useSubscription(tempTeamToEdit.isUG);
+  const [teamIsD2, setTeamIsD2] = useSubscription(tempTeamToEdit.isD2);
+
+  const [teamNameValidationStatus] = useSubscription(tempTeamToEdit.nameValidation.status);
+  const [teamNameValidationMsg] = useSubscription(tempTeamToEdit.nameValidation.message);
+  const warningExists = teamNameValidationStatus !== ValidationStatuses.Ok;
 
   const handleRegNameblur = () => {
     modalManager.changeTeamName(regName);
@@ -129,113 +191,71 @@ function TeamEditDialogCore() {
     modalManager.changeD2(checked);
   };
 
-  useHotkeys('alt+a', () => handleAccept(), { enabled: isOpen, enableOnFormTags: true });
-  useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });
-  useHotkeys('alt+s', () => handleAcceptAndStay(), { enabled: isOpen && !disableSaveAndNew, enableOnFormTags: true });
-  useHotkeys('alt+t', () => handleAcceptAndNextLetter(), {
-    enabled: isOpen && !disableSaveAndNew,
-    enableOnFormTags: true,
-  });
-
   return (
-    <>
-      <Dialog fullWidth maxWidth="md" open={isOpen} onClose={handleCancel}>
-        <DialogTitle>{teamBeingModified === null ? 'New Team' : `Edit ${teamBeingModified.name}`}</DialogTitle>
-        <DialogContent>
-          <Box
-            sx={{
-              height: 375,
-              '& .MuiGrid2-root': { display: 'flex', alignItems: 'end' },
-              '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
-            }}
-          >
-            <Grid container spacing={1}>
-              <Grid xs={9} sm={6}>
-                <TextField
-                  sx={{ marginTop: 1 }}
-                  label="School / Organization"
-                  fullWidth
-                  autoFocus={!autoFocusFirstPlayer}
-                  variant="outlined"
-                  size="small"
-                  error={teamNameValidationStatus === ValidationStatuses.Error}
-                  helperText={warningExists ? teamNameValidationMsg : ' '}
-                  value={regName}
-                  onChange={(e) => setRegName(e.target.value)}
-                  onBlur={handleRegNameblur}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleRegNameblur();
-                  }}
-                />
-              </Grid>
-              <Grid xs={3} sm={2}>
-                <TextField
-                  sx={{ marginTop: 1, width: '10ch' }}
-                  placeholder="A, B, etc."
-                  variant="outlined"
-                  size="small"
-                  error={teamLetter !== '' && teamNameValidationStatus === ValidationStatuses.Error}
-                  helperText={' '}
-                  value={teamLetter}
-                  onChange={(e) => setTeamLetter(e.target.value)}
-                  onBlur={handleLetterBlur}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleLetterBlur();
-                  }}
-                />
-              </Grid>
-              <Grid xs={2} md={1} sx={{ display: 'flex', alignItems: 'end' }}>
-                <TeamFormCheckBox
-                  label="SS"
-                  extraSpace
-                  control={<Checkbox checked={teamIsSS} onChange={(e) => handleSsChange(e.target.checked)} />}
-                />
-              </Grid>
-              <Grid xs={2} md={1}>
-                <TeamFormCheckBox
-                  label="JV"
-                  extraSpace
-                  control={<Checkbox checked={teamIsJV} onChange={(e) => handleJvChange(e.target.checked)} />}
-                />
-              </Grid>
-              <Grid xs={2} md={1}>
-                <TeamFormCheckBox
-                  label="UG"
-                  extraSpace
-                  control={<Checkbox checked={teamIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
-                />
-              </Grid>
-              <Grid xs={2} md={1}>
-                <TeamFormCheckBox
-                  label="D2"
-                  extraSpace
-                  control={<Checkbox checked={teamIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
-                />
-              </Grid>
-            </Grid>
-
-            <Divider textAlign="left" sx={{ my: 2, '&:before': { width: '0%' } }}>
-              <Typography variant="subtitle1">Players</Typography>
-            </Divider>
-            <PlayersGrid numRows={numPlayers} autoFocusFirstPlayer={autoFocusFirstPlayer} />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button variant="outlined" onClick={handleCancel}>
-            {hotkeyFormat('&Cancel')}
-          </Button>
-          <SaveAndNewButtons
-            disabled={disableSaveAndNew}
-            onClickSaveAndNew={handleAcceptAndStay}
-            onClickSaveAndNextLetter={handleAcceptAndNextLetter}
-          />
-          <Button variant="outlined" onClick={handleAccept}>
-            {hotkeyFormat('&Accept')}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <ErrorDialog />
-    </>
+    <Grid container spacing={1}>
+      <Grid xs={9} sm={6}>
+        <TextField
+          sx={{ marginTop: 1 }}
+          label="School / Organization"
+          fullWidth
+          autoFocus={autofocusOrgName}
+          variant="outlined"
+          size="small"
+          error={teamNameValidationStatus === ValidationStatuses.Error}
+          helperText={warningExists ? teamNameValidationMsg : ' '}
+          value={regName}
+          onChange={(e) => setRegName(e.target.value)}
+          onBlur={handleRegNameblur}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleRegNameblur();
+          }}
+        />
+      </Grid>
+      <Grid xs={3} sm={2}>
+        <TextField
+          sx={{ marginTop: 1, width: '10ch' }}
+          placeholder="A, B, etc."
+          variant="outlined"
+          size="small"
+          error={teamLetter !== '' && teamNameValidationStatus === ValidationStatuses.Error}
+          helperText={' '}
+          value={teamLetter}
+          onChange={(e) => setTeamLetter(e.target.value)}
+          onBlur={handleLetterBlur}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleLetterBlur();
+          }}
+        />
+      </Grid>
+      <Grid xs={2} md={1} sx={{ display: 'flex', alignItems: 'end' }}>
+        <TeamFormCheckBox
+          label="SS"
+          extraSpace
+          control={<Checkbox checked={teamIsSS} onChange={(e) => handleSsChange(e.target.checked)} />}
+        />
+      </Grid>
+      <Grid xs={2} md={1}>
+        <TeamFormCheckBox
+          label="JV"
+          extraSpace
+          control={<Checkbox checked={teamIsJV} onChange={(e) => handleJvChange(e.target.checked)} />}
+        />
+      </Grid>
+      <Grid xs={2} md={1}>
+        <TeamFormCheckBox
+          label="UG"
+          extraSpace
+          control={<Checkbox checked={teamIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
+        />
+      </Grid>
+      <Grid xs={2} md={1}>
+        <TeamFormCheckBox
+          label="D2"
+          extraSpace
+          control={<Checkbox checked={teamIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
+        />
+      </Grid>
+    </Grid>
   );
 }
 
