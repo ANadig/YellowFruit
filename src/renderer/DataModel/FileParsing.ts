@@ -599,8 +599,8 @@ export default class FileParser {
     yfMatch.leftTeam = leftTeam;
     yfMatch.rightTeam = rightTeam;
 
-    yfMatch.otherValidation = new MatchValidationCollection();
-    yfMatch.otherValidation.addFromFileObjects(yfExtraData.otherValidation);
+    yfMatch.modalBottomValidation = new MatchValidationCollection();
+    yfMatch.modalBottomValidation.addFromFileObjects(yfExtraData.otherValidation);
 
     yfMatch.validateAll(this.tourn.scoringRules.regulationTossupCount);
     return yfMatch;

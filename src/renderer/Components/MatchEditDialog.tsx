@@ -30,6 +30,7 @@ import { ValidationStatuses } from '../DataModel/Interfaces';
 import { LeftOrRight } from '../Utils/UtilTypes';
 import { MatchPlayer } from '../DataModel/MatchPlayer';
 import { PlayerAnswerCount } from '../DataModel/PlayerAnswerCount';
+import MatchValidationMessage from '../DataModel/MatchValidationMessage';
 
 export default function MatchEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -121,14 +122,12 @@ function MatchEditDialogCore() {
           </Box>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', maxHeight: '150px', overflowY: 'auto' }}>
             <ValidationSection />
           </Box>
           <Box
             sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              '& .MuiButton-root': { marginLeft: 2, whiteSpace: 'nowrap' },
+              '& .MuiButton-root': { marginLeft: 1, whiteSpace: 'nowrap' },
             }}
           >
             <Button variant="outlined" onClick={handleCancel}>
@@ -396,6 +395,7 @@ function PlayerRow(props: IPlayerRowProps) {
   const modalManager = useContext(MatchEditModalContext);
   const [name] = useSubscription(matchPlayer?.player.name);
   const [tuh, setTuh] = useSubscription(matchPlayer?.tossupsHeard?.toString() || '');
+  const [tuhError] = useSubscription(matchPlayer.tuhValidation.status === ValidationStatuses.Error);
   const [pts] = useSubscription(matchPlayer?.points);
   const [answerCounts] = useSubscription(matchPlayer?.answerCounts);
 
@@ -419,6 +419,7 @@ function PlayerRow(props: IPlayerRowProps) {
           variant="standard"
           size="small"
           hiddenLabel
+          error={tuhError}
           value={tuh}
           onChange={(e) => setTuh(e.target.value)}
           onBlur={handleTuhBlur}
@@ -472,26 +473,39 @@ function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
 
 function ValidationSection() {
   const modalManager = useContext(MatchEditModalContext);
-  const [validators] = useSubscription(modalManager.tempMatch.otherValidation.validators);
+  const thisMatch = modalManager.tempMatch;
+  const [validators] = useSubscription(thisMatch.modalBottomValidation.validators);
 
-  return validators.map((m, idx) => <ValidationMessage key={m.type} index={idx} />);
+  return (
+    <>
+      {validators.map((v) => (
+        <ValidationMessage key={v.type} validator={v} />
+      ))}
+      {thisMatch.leftTeam.allValidators.map((v) => (
+        <ValidationMessage key={v.message} validator={v} />
+      ))}
+      {thisMatch.rightTeam.allValidators.map((v) => (
+        <ValidationMessage key={v.message} validator={v} />
+      ))}
+    </>
+  );
 }
 
 interface IValidationMessageProps {
-  index: number;
+  validator: MatchValidationMessage;
 }
 
 function ValidationMessage(props: IValidationMessageProps) {
-  const { index } = props;
+  const { validator } = props;
   const modalManager = useContext(MatchEditModalContext);
-  const thisValidator = modalManager.tempMatch.otherValidation.validators[index];
-  const [type] = useSubscription(thisValidator?.type);
-  const [status] = useSubscription(thisValidator?.status);
-  const [message] = useSubscription(thisValidator?.message);
-  const [suppressable] = useSubscription(thisValidator?.suppressable);
-  const [isSuppressed] = useSubscription(thisValidator?.isSuppressed);
+  const [type] = useSubscription(validator?.type);
+  const [status] = useSubscription(validator?.status);
+  const [message] = useSubscription(validator?.message);
+  const [suppressable] = useSubscription(validator?.suppressable);
+  const [isSuppressed] = useSubscription(validator?.isSuppressed);
 
-  if (!thisValidator) return null;
+  if (!validator) return null;
+  if (status === ValidationStatuses.Ok) return null;
   if (isSuppressed || status === ValidationStatuses.HiddenError) return null;
 
   const suppressSelf = () => {

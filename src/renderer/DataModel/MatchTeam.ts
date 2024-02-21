@@ -88,7 +88,16 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
   totalScoreFieldValidation: MatchValidationMessage;
 
   /** Any other messages that should go at the bottom of the modal rather than a specific field */
-  otherValidation: MatchValidationCollection;
+  modalBottomValidation: MatchValidationCollection;
+
+  /** All messages that might need to appear at the bottom of the modal, including those of nested objects */
+  get allValidators(): MatchValidationMessage[] {
+    let ary = this.modalBottomValidation.validators.slice();
+    for (const mp of this.matchPlayers) {
+      ary = ary.concat(mp.allValidators);
+    }
+    return ary;
+  }
 
   static minimumValidScore = -99999;
 
@@ -100,7 +109,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       this.matchPlayers = t.players.map((pl) => new MatchPlayer(pl, answerTypes));
     }
     this.totalScoreFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidTeamScore);
-    this.otherValidation = new MatchValidationCollection();
+    this.modalBottomValidation = new MatchValidationCollection();
   }
 
   makeCopy(): MatchTeam {
@@ -118,7 +127,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     this.lightningPoints = source.lightningPoints;
     this.overTimeBuzzes = source.overTimeBuzzes?.slice(); // TODO: deep copy
     this.totalScoreFieldValidation = source.totalScoreFieldValidation.makeCopy();
-    this.otherValidation = source.otherValidation.makeCopy();
+    this.modalBottomValidation = source.modalBottomValidation.makeCopy();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -149,7 +158,10 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     if (this.totalScoreFieldValidation.status === ValidationStatuses.Error) {
       errs.push(`${this.team?.name || 'Total'} score: ${this.totalScoreFieldValidation.message}`);
     }
-    errs = errs.concat(this.otherValidation.getErrorMessages(ignoreHidden));
+    errs = errs.concat(this.modalBottomValidation.getErrorMessages(ignoreHidden));
+    this.matchPlayers.forEach((mp) => {
+      errs = errs.concat(mp.getErrorMessages());
+    });
     return errs;
   }
 
@@ -159,14 +171,15 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   validateTotalPoints() {
     if (this.points === undefined) {
-      this.otherValidation.addValidationMsg(
+      this.modalBottomValidation.addValidationMsg(
         MatchValidationType.MissingTotalPoints,
         ValidationStatuses.HiddenError,
         `${this.team ? `${this.team.name}: ` : ''}Total score is required`,
       );
+      this.totalScoreFieldValidation.setOk();
       return;
     }
-    this.otherValidation.clearMsgType(MatchValidationType.MissingTotalPoints);
+    this.modalBottomValidation.clearMsgType(MatchValidationType.MissingTotalPoints);
 
     if (this.points < MatchTeam.minimumValidScore || this.points > MatchTeam.maximumValidScore) {
       this.totalScoreFieldValidation.setError('Invalid number');

@@ -19,6 +19,7 @@ import MatchValidationMessage, {
 import { LeftOrRight } from '../Utils/UtilTypes';
 import AnswerType from './AnswerType';
 import { ScoringRules } from './ScoringRules';
+import { MatchPlayer } from './MatchPlayer';
 
 export interface IQbjMatch extends IQbjObject {
   /** The number of tossups read, including any tossups read in overtime */
@@ -96,8 +97,8 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   /** Validation directly associated with the total TUH field */
   totalTuhFieldValidation: MatchValidationMessage;
 
-  /** Any other messages that should go at the bottom of the modal rather than  */
-  otherValidation: MatchValidationCollection;
+  /** Any other messages that should go at the bottom of the modal rather than a specific field */
+  modalBottomValidation: MatchValidationCollection;
 
   /** counter to make sure match IDs are unique */
   private static idCounter = 1000;
@@ -114,7 +115,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.rightTeam = new MatchTeam(rightTeam, answerTypes);
 
     this.totalTuhFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidTotalTuh);
-    this.otherValidation = new MatchValidationCollection();
+    this.modalBottomValidation = new MatchValidationCollection();
   }
 
   makeCopy(): Match {
@@ -139,7 +140,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.notes = source.notes;
 
     this.totalTuhFieldValidation = source.totalTuhFieldValidation;
-    this.otherValidation = source.otherValidation.makeCopy();
+    this.modalBottomValidation = source.modalBottomValidation.makeCopy();
   }
 
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjMatch {
@@ -161,7 +162,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     if (isReferenced) qbjObject.id = this.id;
     if (qbjOnly) return qbjObject;
 
-    const yfData: IMatchExtraData = { otherValidation: this.otherValidation.toFileObject() };
+    const yfData: IMatchExtraData = { otherValidation: this.modalBottomValidation.toFileObject() };
     const yftFileObj = { YfData: yfData, ...qbjObject };
 
     return yftFileObj;
@@ -219,7 +220,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     if (this.totalTuhFieldValidation.status === ValidationStatuses.Error) {
       errs.push(`Tossups heard: ${this.totalTuhFieldValidation.message}`);
     }
-    errs = errs.concat(this.otherValidation.getErrorMessages(ignoreHidden));
+    errs = errs.concat(this.modalBottomValidation.getErrorMessages(ignoreHidden));
     errs = errs.concat(this.leftTeam.getErrorMessages(ignoreHidden));
     errs = errs.concat(this.rightTeam.getErrorMessages(ignoreHidden));
     return errs;
@@ -229,6 +230,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.validateTotalTuh(scoringRules);
     this.validateTeams();
     this.validateMatchTeams();
+    this.validateAllMatchPlayersTuh();
   }
 
   validateTotalTuh(scoringRules: ScoringRules) {
@@ -244,7 +246,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.totalTuhFieldValidation.setOk();
 
     if (!scoringRules.timed && this.tossupsRead < scoringRules.regulationTossupCount) {
-      this.otherValidation.addValidationMsg(
+      this.modalBottomValidation.addValidationMsg(
         MatchValidationType.LowTotalTuh,
         ValidationStatuses.Warning,
         `Total tossups heard is less than ${scoringRules.regulationTossupCount}, the standard number for a game`,
@@ -253,36 +255,36 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       return;
     }
 
-    this.otherValidation.clearMsgType(MatchValidationType.LowTotalTuh);
+    this.modalBottomValidation.clearMsgType(MatchValidationType.LowTotalTuh);
   }
 
   /** Validation about which teams are selected */
   validateTeams() {
     if (!this.leftTeam.team || !this.rightTeam.team) {
-      this.otherValidation.addValidationMsg(
+      this.modalBottomValidation.addValidationMsg(
         MatchValidationType.MissingTeams,
         ValidationStatuses.HiddenError,
         'Teams are required',
       );
       return;
     }
-    this.otherValidation.clearMsgType(MatchValidationType.MissingTeams);
+    this.modalBottomValidation.clearMsgType(MatchValidationType.MissingTeams);
 
     if (this.leftTeam.team === this.rightTeam.team) {
-      this.otherValidation.addValidationMsg(
+      this.modalBottomValidation.addValidationMsg(
         MatchValidationType.TeamPlayingItself,
         ValidationStatuses.Error,
         'A team cannot play itself',
       );
       return;
     }
-    this.otherValidation.clearMsgType(MatchValidationType.TeamPlayingItself);
+    this.modalBottomValidation.clearMsgType(MatchValidationType.TeamPlayingItself);
   }
 
   setSamePoolValidation(valid: boolean, unSuppress: boolean) {
     if (unSuppress) this.unSuppressMessageType(MatchValidationType.TeamsNotInSamePool);
     if (!valid) {
-      this.otherValidation.addValidationMsg(
+      this.modalBottomValidation.addValidationMsg(
         MatchValidationType.TeamsNotInSamePool,
         ValidationStatuses.Warning,
         'These teams are not in the same pool for this round',
@@ -290,20 +292,39 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       );
       return;
     }
-    this.otherValidation.clearMsgType(MatchValidationType.TeamsNotInSamePool);
+    this.modalBottomValidation.clearMsgType(MatchValidationType.TeamsNotInSamePool);
   }
 
-  /** Validate the stats for each team */
+  /** Validate the team-level stats for both teams */
   validateMatchTeams() {
     this.leftTeam.validateAll();
     this.rightTeam.validateAll();
   }
 
+  /** Validate stats for each individual player */
+  validateAllMatchPlayersTuh() {
+    this.leftTeam.matchPlayers.forEach((mp) => this.validatePlayerTuh(mp));
+    this.rightTeam.matchPlayers.forEach((mp) => this.validatePlayerTuh(mp));
+  }
+
+  validatePlayerTuh(matchPlayer: MatchPlayer) {
+    const tuh = matchPlayer.tossupsHeard;
+    if (tuh === undefined || this.tossupsRead === undefined) {
+      matchPlayer.setTuhHeardValidation(true);
+    } else if (tuh < 0) {
+      matchPlayer.setTuhHeardValidation(false);
+    } else if (tuh > this.tossupsRead) {
+      matchPlayer.setTuhHeardValidation(false, 'Tossups heard is greater than the total tossups in the game');
+    } else {
+      matchPlayer.setTuhHeardValidation(true);
+    }
+  }
+
   suppressMessageType(type: MatchValidationType) {
-    this.otherValidation.suppressMessageType(type);
+    this.modalBottomValidation.suppressMessageType(type);
   }
 
   unSuppressMessageType(type: MatchValidationType) {
-    this.otherValidation.unSuppressMessageType(type);
+    this.modalBottomValidation.unSuppressMessageType(type);
   }
 }

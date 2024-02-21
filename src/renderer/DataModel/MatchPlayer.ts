@@ -1,5 +1,6 @@
 import AnswerType from './AnswerType';
-import { IQbjObject, IQbjRefPointer, IYftDataModelObject } from './Interfaces';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject, ValidationStatuses } from './Interfaces';
+import MatchValidationMessage, { MatchValidationType } from './MatchValidationMessage';
 import { Player, IQbjPlayer } from './Player';
 import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
 
@@ -29,8 +30,16 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
     return total;
   }
 
+  tuhValidation: MatchValidationMessage;
+
+  get allValidators(): MatchValidationMessage[] {
+    return [this.tuhValidation];
+  }
+
   constructor(p: Player, answerTypes?: AnswerType[]) {
     this.player = p;
+    this.tuhValidation = new MatchValidationMessage(MatchValidationType.PlayherTuhInvalid);
+
     if (!answerTypes) return;
     for (const aType of answerTypes) {
       this.answerCounts.push(new PlayerAnswerCount(aType));
@@ -59,6 +68,28 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
 
     // this should not be a top-level or referenced object
     return qbjObject;
+  }
+
+  getErrorMessages() {
+    const errors: string[] = [];
+    if (this.tuhValidation.status === ValidationStatuses.Error) {
+      errors.push(this.tuhValidation.message);
+    }
+    return errors;
+  }
+
+  /**
+   * Set the validation status of the player's tossups heard
+   * @param isValid whether it's valid
+   * @param message Error message, to which the players name is prepended, to override the default.
+   */
+  setTuhHeardValidation(isValid: boolean, message?: string) {
+    if (!isValid) {
+      const msg = `${this.player.name}: ${message || 'Value for tossups heard is invalid'}`;
+      this.tuhValidation.setError(msg);
+      return;
+    }
+    this.tuhValidation.setOk();
   }
 }
 
