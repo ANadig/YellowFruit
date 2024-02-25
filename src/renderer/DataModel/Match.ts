@@ -187,9 +187,21 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return this.carryoverPhases.map((ph) => ph.name).join(', ');
   }
 
-  setTeam(whichTeam: LeftOrRight, team: Team, answerTypes: AnswerType[], score?: number) {
+  setTeam(
+    whichTeam: LeftOrRight,
+    team: Team,
+    answerTypes: AnswerType[],
+    maxPlayersSetting: number,
+    standardTossupsSetting: number,
+    score?: number,
+  ) {
     const newMatchTeam = new MatchTeam(team, answerTypes);
     if (score !== undefined) newMatchTeam.points = score;
+
+    for (let i = 0; i < maxPlayersSetting; i++) {
+      if (i >= newMatchTeam.matchPlayers.length) break;
+      newMatchTeam.matchPlayers[i].tossupsHeard = standardTossupsSetting;
+    }
 
     if (whichTeam === 'left') {
       this.leftTeam = newMatchTeam;

@@ -57,8 +57,8 @@ export class TempMatchManager {
     } else {
       this.createBlankMatch();
       this.round = round;
-      if (leftTeam) this.tempMatch.setTeam('left', leftTeam, this.tournament.scoringRules.answerTypes);
-      if (rightTeam) this.tempMatch.setTeam('right', rightTeam, this.tournament.scoringRules.answerTypes);
+      if (leftTeam) this.setTeam('left', leftTeam);
+      if (rightTeam) this.setTeam('right', rightTeam);
     }
 
     this.dataChangedReactCallback();
@@ -193,7 +193,7 @@ export class TempMatchManager {
     return this.tempMatch.rightTeam.team;
   }
 
-  setTeam(whichTeam: LeftOrRight, teamName: string) {
+  teamSelectChangeTeam(whichTeam: LeftOrRight, teamName: string) {
     const oldTeam = this.tempMatch.getMatchTeam(whichTeam).team;
     const oldScore = this.tempMatch.getMatchTeam(whichTeam).points;
     const matchingTeam = this.tournament.findTeamByName(teamName);
@@ -203,10 +203,15 @@ export class TempMatchManager {
     }
     if (oldTeam === matchingTeam) return;
 
-    this.tempMatch.setTeam(whichTeam, matchingTeam, this.tournament.scoringRules.answerTypes, oldScore);
+    this.setTeam(whichTeam, matchingTeam, oldScore);
     this.tempMatch.validateTeams();
     this.validateTeamPools(true);
     this.dataChangedReactCallback();
+  }
+
+  setTeam(whichTeam: LeftOrRight, team: Team, score?: number) {
+    const { answerTypes, maximumPlayersPerTeam, regulationTossupCount } = this.tournament.scoringRules;
+    this.tempMatch.setTeam(whichTeam, team, answerTypes, maximumPlayersPerTeam, regulationTossupCount, score);
   }
 
   validateTeamPools(unSuppress: boolean) {

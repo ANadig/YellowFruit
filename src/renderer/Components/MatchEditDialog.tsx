@@ -125,11 +125,7 @@ function MatchEditDialogCore() {
           <Box sx={{ display: 'flex', flexDirection: 'column', maxHeight: '150px', overflowY: 'auto' }}>
             <ValidationSection />
           </Box>
-          <Box
-            sx={{
-              '& .MuiButton-root': { marginLeft: 1, whiteSpace: 'nowrap' },
-            }}
-          >
+          <Box sx={{ '& .MuiButton-root': { marginLeft: 1, whiteSpace: 'nowrap' } }}>
             <Button variant="outlined" onClick={handleCancel}>
               {hotkeyFormat('&Cancel')}
             </Button>
@@ -278,7 +274,7 @@ function TeamSelect(props: ITeamSelectProps) {
 
   const handleChange = (val: string) => {
     setTeam(val);
-    modalManager.setTeam(whichTeam, val);
+    modalManager.teamSelectChangeTeam(whichTeam, val);
   };
 
   const isOptionEqualToValue = (option: string, value: string) => {
