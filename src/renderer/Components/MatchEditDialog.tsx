@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState, useEffect, useMemo } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import {
   Dialog,
@@ -282,7 +282,13 @@ function TeamSelect(props: ITeamSelectProps) {
     return value === '' && option === teamSelectNullOption;
   };
 
-  const options = [teamSelectNullOption].concat(thisTournament.getListOfAllTeams().map((tm) => tm.name));
+  const allTeamNames = useMemo(
+    () => thisTournament.getListOfAllTeams().map((tm) => tm.name),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [thisTournament, modalManager.modalIsOpen],
+  );
+
+  const options = [teamSelectNullOption].concat(allTeamNames);
 
   return (
     <Autocomplete
