@@ -469,6 +469,7 @@ export class TournamentManager {
         const regJustAdded = this.tournament.findRegistration(this.teamModalManager.tempRegistration.name);
         if (regJustAdded) this.teamModalManager.resetAndNextLetter(regJustAdded);
       }
+      this.teamModalManager.checkForDuplicateTeam(this.tournament.registrations, null);
       return;
     }
 

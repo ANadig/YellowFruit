@@ -50,6 +50,7 @@ export class TempTeamManager {
       this.createBlankTeam(letter);
     }
 
+    this.makeTeamName();
     this.dataChangedReactCallback();
   }
 
