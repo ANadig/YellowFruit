@@ -60,6 +60,11 @@ interface ITournamentExtraData {
   /** Version of this software used to write the file */
   YfVersion: string;
   seeds: IQbjRefPointer[];
+  trackPlayerYear: boolean;
+  trackSmallSchool: boolean;
+  trackJV: boolean;
+  trackUG: boolean;
+  trackDiv2: boolean;
 }
 
 /** YellowFruit implementation of the Tournament object */
@@ -67,7 +72,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   name: string = '';
 
   /** QB schema requires a name, so use this when needed */
-  static placeholderName = 'unnamed tournament';
+  static readonly placeholderName = 'unnamed tournament';
 
   tournamentSite: TournamentSite;
 
@@ -85,6 +90,16 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   /** The list of teams ordered by their initial seed. This should NOT be the source of truth for what teams exist in general. */
   seeds: Team[] = [];
+
+  trackPlayerYear: boolean = true;
+
+  trackSmallSchool: boolean = false;
+
+  trackJV: boolean = false;
+
+  trackUG: boolean = false;
+
+  trackDiv2: boolean = false;
 
   constructor(name?: string) {
     if (name) {
@@ -113,6 +128,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     const metadata: ITournamentExtraData = {
       YfVersion: '4.0.0',
       seeds: this.seeds.map((team) => team.toRefPointer()),
+      trackPlayerYear: this.trackPlayerYear,
+      trackSmallSchool: this.trackSmallSchool,
+      trackJV: this.trackJV,
+      trackUG: this.trackUG,
+      trackDiv2: this.trackDiv2,
     };
     const yftFileObj = { YfData: metadata, ...qbjObject };
 

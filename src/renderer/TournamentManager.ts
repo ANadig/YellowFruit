@@ -259,6 +259,31 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  setTrackPlayerYear(checked: boolean) {
+    this.tournament.trackPlayerYear = checked;
+    this.onDataChanged();
+  }
+
+  setTrackSmallSchool(checked: boolean) {
+    this.tournament.trackSmallSchool = checked;
+    this.onDataChanged();
+  }
+
+  setTrackJV(checked: boolean) {
+    this.tournament.trackJV = checked;
+    this.onDataChanged();
+  }
+
+  setTrackUG(checked: boolean) {
+    this.tournament.trackUG = checked;
+    this.onDataChanged();
+  }
+
+  setTrackDiv2(checked: boolean) {
+    this.tournament.trackDiv2 = checked;
+    this.onDataChanged();
+  }
+
   setAnswerTypes(answerTypes: AnswerType[]) {
     this.tournament.scoringRules.answerTypes = answerTypes;
     this.onDataChanged();
@@ -458,7 +483,6 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
-  /** Close without saving */
   teamEditModalReset(stayOpen: boolean = false, startNextLetter: boolean = false) {
     this.teamBeingModified = null;
 

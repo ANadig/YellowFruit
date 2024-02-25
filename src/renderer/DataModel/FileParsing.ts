@@ -70,7 +70,14 @@ export default class FileParser {
     if (registrations) this.tourn.registrations = this.parseRegistrationList(registrations as IIndeterminateQbj[]);
     if (phases) this.tourn.phases = this.parsePhaseList(phases as IIndeterminateQbj[]);
 
-    if (yfExtraData) this.tourn.seeds = this.parseSeedList(yfExtraData.seeds);
+    if (yfExtraData) {
+      this.tourn.seeds = this.parseSeedList(yfExtraData.seeds);
+      this.tourn.trackPlayerYear = yfExtraData.trackPlayerYear || true;
+      this.tourn.trackSmallSchool = yfExtraData.trackSmallSchool || false;
+      this.tourn.trackJV = yfExtraData.trackJV || false;
+      this.tourn.trackUG = yfExtraData.trackUG || false;
+      this.tourn.trackDiv2 = yfExtraData.trackDiv2 || false;
+    }
 
     return this.tourn;
   }
@@ -602,7 +609,7 @@ export default class FileParser {
     yfMatch.modalBottomValidation = new MatchValidationCollection();
     yfMatch.modalBottomValidation.addFromFileObjects(yfExtraData.otherValidation);
 
-    yfMatch.validateAll(this.tourn.scoringRules.regulationTossupCount);
+    yfMatch.validateAll(this.tourn.scoringRules);
     return yfMatch;
   }
 

@@ -59,9 +59,9 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
   /** Grade in school as a string. */
   yearString: string = '';
 
-  static nameMaxLength = 200;
+  static readonly nameMaxLength = 200;
 
-  static yearStringMaxLength = 20;
+  static readonly yearStringMaxLength = 20;
 
   /** counter to make sure player IDs are unique */
   private static idCounter = 1000;
@@ -97,7 +97,7 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
 
   yearStringValidation: IValidationInfo;
 
-  static duplicateErrorMessage = 'Duplicate player';
+  static readonly duplicateErrorMessage = 'Duplicate player';
 
   static yearTitles = {
     0: 'Kindergarten',

@@ -144,6 +144,7 @@ interface TeamLevelEditFieldsProps {
 function TeamLevelFields(props: TeamLevelEditFieldsProps) {
   const { autofocusOrgName } = props;
   const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
   const modalManager = useContext(TeamEditModalContext);
 
   const tempTeamToEdit = modalManager.tempTeam;
@@ -227,34 +228,42 @@ function TeamLevelFields(props: TeamLevelEditFieldsProps) {
           }}
         />
       </Grid>
-      <Grid xs={2} md={1} sx={{ display: 'flex', alignItems: 'end' }}>
-        <TeamFormCheckBox
-          label="SS"
-          extraSpace
-          control={<Checkbox checked={teamIsSS} onChange={(e) => handleSsChange(e.target.checked)} />}
-        />
-      </Grid>
-      <Grid xs={2} md={1}>
-        <TeamFormCheckBox
-          label="JV"
-          extraSpace
-          control={<Checkbox checked={teamIsJV} onChange={(e) => handleJvChange(e.target.checked)} />}
-        />
-      </Grid>
-      <Grid xs={2} md={1}>
-        <TeamFormCheckBox
-          label="UG"
-          extraSpace
-          control={<Checkbox checked={teamIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
-        />
-      </Grid>
-      <Grid xs={2} md={1}>
-        <TeamFormCheckBox
-          label="D2"
-          extraSpace
-          control={<Checkbox checked={teamIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
-        />
-      </Grid>
+      {thisTournament.trackSmallSchool && (
+        <Grid xs={2} md={1} sx={{ display: 'flex', alignItems: 'end' }}>
+          <TeamFormCheckBox
+            label="SS"
+            extraSpace
+            control={<Checkbox checked={teamIsSS} onChange={(e) => handleSsChange(e.target.checked)} />}
+          />
+        </Grid>
+      )}
+      {thisTournament.trackJV && (
+        <Grid xs={2} md={1}>
+          <TeamFormCheckBox
+            label="JV"
+            extraSpace
+            control={<Checkbox checked={teamIsJV} onChange={(e) => handleJvChange(e.target.checked)} />}
+          />
+        </Grid>
+      )}
+      {thisTournament.trackUG && (
+        <Grid xs={2} md={1}>
+          <TeamFormCheckBox
+            label="UG"
+            extraSpace
+            control={<Checkbox checked={teamIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
+          />
+        </Grid>
+      )}
+      {thisTournament.trackDiv2 && (
+        <Grid xs={2} md={1}>
+          <TeamFormCheckBox
+            label="D2"
+            extraSpace
+            control={<Checkbox checked={teamIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
+          />
+        </Grid>
+      )}
     </Grid>
   );
 }
@@ -323,6 +332,8 @@ interface IPlayerGridRowProps {
 
 function PlayerGridRow(props: IPlayerGridRowProps) {
   const { rowIdx, autoFocus } = props;
+  const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
   const modalManager = useContext(TeamEditModalContext);
   const player = modalManager.tempTeam.players[rowIdx];
 
@@ -376,36 +387,42 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
           }}
         />
       </Grid>
-      <Grid xs={2}>
-        <TextField
-          placeholder="Grade / Yr."
-          fullWidth
-          variant="outlined"
-          size="small"
-          error={yearValidationStatus === ValidationStatuses.Error}
-          helperText={getHelperText(yearValidationMsg, warningExists)}
-          value={playerYear}
-          onChange={(e) => setPlayerYear(e.target.value)}
-          onBlur={() => modalManager.changePlayerYear(rowIdx, playerYear)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') modalManager.changePlayerYear(rowIdx, playerYear);
-          }}
-        />
-      </Grid>
-      <Grid xs={2} md={1}>
-        <TeamFormCheckBox
-          label="UG"
-          extraSpace={warningExists}
-          control={<Checkbox checked={playerIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
-        />
-      </Grid>
-      <Grid xs={2} md={1}>
-        <TeamFormCheckBox
-          label="D2"
-          extraSpace={warningExists}
-          control={<Checkbox checked={playerIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
-        />
-      </Grid>
+      {thisTournament.trackPlayerYear && (
+        <Grid xs={2}>
+          <TextField
+            placeholder="Grade / Yr."
+            fullWidth
+            variant="outlined"
+            size="small"
+            error={yearValidationStatus === ValidationStatuses.Error}
+            helperText={getHelperText(yearValidationMsg, warningExists)}
+            value={playerYear}
+            onChange={(e) => setPlayerYear(e.target.value)}
+            onBlur={() => modalManager.changePlayerYear(rowIdx, playerYear)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') modalManager.changePlayerYear(rowIdx, playerYear);
+            }}
+          />
+        </Grid>
+      )}
+      {thisTournament.trackUG && (
+        <Grid xs={2} md={1}>
+          <TeamFormCheckBox
+            label="UG"
+            extraSpace={warningExists}
+            control={<Checkbox checked={playerIsUG} onChange={(e) => handleUgChange(e.target.checked)} />}
+          />
+        </Grid>
+      )}
+      {thisTournament.trackDiv2 && (
+        <Grid xs={2} md={1}>
+          <TeamFormCheckBox
+            label="D2"
+            extraSpace={warningExists}
+            control={<Checkbox checked={playerIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
+          />
+        </Grid>
+      )}
     </Grid>
   );
 }

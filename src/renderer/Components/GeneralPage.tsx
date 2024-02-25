@@ -1,5 +1,5 @@
 import Grid from '@mui/material/Unstable_Grid2';
-import { Box, TextField } from '@mui/material';
+import { Box, Checkbox, FormControlLabel, FormGroup, Stack, TextField } from '@mui/material';
 import { useContext } from 'react';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
@@ -15,7 +15,10 @@ function GeneralPage() {
         <GeneralInfoCard />
       </Grid>
       <Grid xs={12} sm={6}>
-        <QuestionSetCard />
+        <Stack spacing={2}>
+          <QuestionSetCard />
+          <AttributeSettingsCard />
+        </Stack>
       </Grid>
     </Grid>
   );
@@ -93,6 +96,68 @@ function QuestionSetCard() {
           }}
         />
       </Box>
+    </YfCard>
+  );
+}
+
+function AttributeSettingsCard() {
+  const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
+  const [trackPlayerYear, setTrackPlayerYear] = useSubscription(thisTournament.trackPlayerYear);
+  const [trackSS, setTrackSS] = useSubscription(thisTournament.trackSmallSchool);
+  const [trackJV, setTrackJV] = useSubscription(thisTournament.trackJV);
+  const [trackUG, setTrackUG] = useSubscription(thisTournament.trackUG);
+  const [trackD2, setTrackD2] = useSubscription(thisTournament.trackDiv2);
+
+  const handleTrackYearChange = (checked: boolean) => {
+    setTrackPlayerYear(checked);
+    tournManager.setTrackPlayerYear(checked);
+  };
+
+  const handleTrackSS = (checked: boolean) => {
+    setTrackSS(checked);
+    tournManager.setTrackSmallSchool(checked);
+  };
+
+  const handleTrackJV = (checked: boolean) => {
+    setTrackJV(checked);
+    tournManager.setTrackJV(checked);
+  };
+
+  const handleTrackUG = (checked: boolean) => {
+    setTrackUG(checked);
+    tournManager.setTrackUG(checked);
+  };
+
+  const handleTrackD2 = (checked: boolean) => {
+    setTrackD2(checked);
+    tournManager.setTrackDiv2(checked);
+  };
+
+  return (
+    <YfCard title="Team/Player Attributes">
+      <FormGroup>
+        <FormControlLabel
+          label="Track Player Year/Grade"
+          control={<Checkbox checked={trackPlayerYear} onChange={(e) => handleTrackYearChange(e.target.checked)} />}
+        />
+        <FormControlLabel
+          label="Track Small School"
+          control={<Checkbox checked={trackSS} onChange={(e) => handleTrackSS(e.target.checked)} />}
+        />
+        <FormControlLabel
+          label="Track Junior Varsity"
+          control={<Checkbox checked={trackJV} onChange={(e) => handleTrackJV(e.target.checked)} />}
+        />
+        <FormControlLabel
+          label="Track Undergrad"
+          control={<Checkbox checked={trackUG} onChange={(e) => handleTrackUG(e.target.checked)} />}
+        />
+        <FormControlLabel
+          label="Track Division 2"
+          control={<Checkbox checked={trackD2} onChange={(e) => handleTrackD2(e.target.checked)} />}
+        />
+      </FormGroup>
     </YfCard>
   );
 }
