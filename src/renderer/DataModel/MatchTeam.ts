@@ -153,6 +153,15 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return yftFileObj;
   }
 
+  /** The sum of all player tossups heard values */
+  getTotalTossupsHeard() {
+    let sum = 0;
+    for (const mp of this.matchPlayers) {
+      sum += mp.tossupsHeard || 0;
+    }
+    return sum;
+  }
+
   getErrorMessages(ignoreHidden: boolean = false): string[] {
     let errs: string[] = [];
     if (this.totalScoreFieldValidation.status === ValidationStatuses.Error) {
@@ -171,10 +180,10 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   validateTotalPoints() {
     if (this.points === undefined) {
-      this.modalBottomValidation.addValidationMsg(
+      this.addValidationMessage(
         MatchValidationType.MissingTotalPoints,
         ValidationStatuses.HiddenError,
-        `${this.team ? `${this.team.name}: ` : ''}Total score is required`,
+        'Total score is required',
       );
       this.totalScoreFieldValidation.setOk();
       return;
@@ -186,6 +195,16 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       return;
     }
     this.totalScoreFieldValidation.setOk();
+  }
+
+  addValidationMessage(
+    type: MatchValidationType,
+    status: ValidationStatuses,
+    message: string,
+    suppressable: boolean = false,
+  ) {
+    const fullMessage = `${this.team ? `${this.team.name}: ` : ''}${message}`;
+    this.modalBottomValidation.addValidationMsg(type, status, fullMessage, suppressable);
   }
 }
 

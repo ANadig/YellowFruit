@@ -8,7 +8,11 @@ export enum MatchValidationType {
   TeamPlayingItself = 'TeamPlayingItself',
   InvalidTeamScore = 'InvalidTeamScore',
   TeamsNotInSamePool = 'TeamsNotInSamePool',
-  PlayherTuhInvalid = 'PlayherTuhInvalid',
+  PlayerTuhInvalid = 'PlayherTuhInvalid',
+  TieGame = 'TieGame',
+  NoTossupsHeard = 'NoTossupsHeard',
+  FewerThanExpectedTUH = 'FewerThanExpectedTUH',
+  MoreThanAllowedTUH = 'MoreThanAllowedTUH',
 }
 
 export interface IYftFileMatchValidationMsg {

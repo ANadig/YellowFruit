@@ -38,7 +38,7 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
 
   constructor(p: Player, answerTypes?: AnswerType[]) {
     this.player = p;
-    this.tuhValidation = new MatchValidationMessage(MatchValidationType.PlayherTuhInvalid);
+    this.tuhValidation = new MatchValidationMessage(MatchValidationType.PlayerTuhInvalid);
 
     if (!answerTypes) return;
     for (const aType of answerTypes) {

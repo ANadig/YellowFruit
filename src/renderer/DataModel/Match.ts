@@ -242,7 +242,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.validateTotalTuh(scoringRules);
     this.validateTeams();
     this.validateMatchTeams();
-    this.validateAllMatchPlayersTuh();
+    this.validateAllMatchPlayersTuh(scoringRules);
   }
 
   validateTotalTuh(scoringRules: ScoringRules) {
@@ -311,12 +311,62 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   validateMatchTeams() {
     this.leftTeam.validateAll();
     this.rightTeam.validateAll();
+
+    if (this.leftTeam.points !== undefined && this.leftTeam.points === this.rightTeam.points) {
+      this.modalBottomValidation.addValidationMsg(
+        MatchValidationType.TieGame,
+        ValidationStatuses.Warning,
+        'This game is a tie',
+        true,
+      );
+    } else {
+      this.modalBottomValidation.clearMsgType(MatchValidationType.TieGame);
+    }
   }
 
   /** Validate stats for each individual player */
-  validateAllMatchPlayersTuh() {
+  validateAllMatchPlayersTuh(scoringRules: ScoringRules) {
     this.leftTeam.matchPlayers.forEach((mp) => this.validatePlayerTuh(mp));
     this.rightTeam.matchPlayers.forEach((mp) => this.validatePlayerTuh(mp));
+
+    for (const matchTeam of [this.leftTeam, this.rightTeam]) {
+      if (matchTeam.team === undefined) continue;
+
+      const totalTUH = matchTeam.getTotalTossupsHeard();
+      if (totalTUH < 1) {
+        matchTeam.addValidationMessage(
+          MatchValidationType.NoTossupsHeard,
+          ValidationStatuses.Error,
+          'No players have heard any tossups for this team',
+        );
+      } else {
+        matchTeam.modalBottomValidation.clearMsgType(MatchValidationType.NoTossupsHeard);
+      }
+
+      const expectedTotalTUH =
+        matchTeam.matchPlayers.length >= scoringRules.maximumPlayersPerTeam
+          ? scoringRules.maximumPlayersPerTeam * (this.tossupsRead || 0)
+          : matchTeam.matchPlayers.length * (this.tossupsRead || 0);
+      if (this.tossupsRead !== undefined && totalTUH > expectedTotalTUH) {
+        matchTeam.addValidationMessage(
+          MatchValidationType.MoreThanAllowedTUH,
+          ValidationStatuses.Error,
+          `Players have heard more than ${expectedTotalTUH} tossups in aggregate`,
+        );
+      } else {
+        matchTeam.modalBottomValidation.clearMsgType(MatchValidationType.MoreThanAllowedTUH);
+      }
+      if (this.tossupsRead !== undefined && totalTUH < expectedTotalTUH) {
+        matchTeam.addValidationMessage(
+          MatchValidationType.FewerThanExpectedTUH,
+          ValidationStatuses.Warning,
+          `Players have heard fewer than ${expectedTotalTUH} tossups in aggregate`,
+          true,
+        );
+      } else {
+        matchTeam.modalBottomValidation.clearMsgType(MatchValidationType.FewerThanExpectedTUH);
+      }
+    }
   }
 
   validatePlayerTuh(matchPlayer: MatchPlayer) {

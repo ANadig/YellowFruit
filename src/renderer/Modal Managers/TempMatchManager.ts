@@ -183,7 +183,7 @@ export class TempMatchManager {
       this.tempMatch.tossupsRead = parsed;
     }
     this.tempMatch.validateTotalTuh(this.tournament.scoringRules);
-    this.tempMatch.validateAllMatchPlayersTuh();
+    this.tempMatch.validateAllMatchPlayersTuh(this.tournament.scoringRules);
     this.dataChangedReactCallback();
     return this.tempMatch.tossupsRead;
   }
@@ -243,6 +243,7 @@ export class TempMatchManager {
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
     mPlayer.tossupsHeard = valToSave;
     this.tempMatch.validatePlayerTuh(mPlayer);
+    this.tempMatch.validateAllMatchPlayersTuh(this.tournament.scoringRules);
     this.dataChangedReactCallback();
     return valToSave;
   }
