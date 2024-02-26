@@ -23,7 +23,7 @@ import {
   MenuList,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import React, { ReactElement, useContext, useEffect, useMemo, useState } from 'react';
+import React, { ReactElement, forwardRef, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { ArrowDropDown } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
@@ -73,6 +73,7 @@ function TeamEditDialogCore() {
     return tournManager.teamBeingModified === null && numTeams >= maxTeams - 1;
   }, [thisTournament, tournManager.teamBeingModified]);
 
+  const orgNameFieldRef = useRef<HTMLElement>(null);
   const autoFocusFirstPlayer = regName !== '' && teamLetter !== '' && numPlayers === 1;
 
   const handleAccept = () => {
@@ -81,6 +82,7 @@ function TeamEditDialogCore() {
 
   const handleAcceptAndStay = () => {
     tournManager.teamEditModalAttemptToSave(true);
+    if (orgNameFieldRef.current) orgNameFieldRef.current.focus();
   };
 
   const handleAcceptAndNextLetter = () => {
@@ -111,7 +113,10 @@ function TeamEditDialogCore() {
               '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
             }}
           >
-            <TeamLevelFields autofocusOrgName={!autoFocusFirstPlayer} />
+            <Grid container spacing={1}>
+              <OrgAndLetterFields autofocusOrgName={!autoFocusFirstPlayer} ref={orgNameFieldRef} />
+              <TeamCheckBoxes />
+            </Grid>
             <Divider textAlign="left" sx={{ my: 2, '&:before': { width: '0%' } }}>
               <Typography variant="subtitle1">Players</Typography>
             </Divider>
@@ -137,26 +142,20 @@ function TeamEditDialogCore() {
   );
 }
 
-interface TeamLevelEditFieldsProps {
+interface TeamAndLetterFieldsProps {
   autofocusOrgName: boolean;
 }
 
-function TeamLevelFields(props: TeamLevelEditFieldsProps) {
+const OrgAndLetterFields = forwardRef((props: TeamAndLetterFieldsProps, orgNameFieldRef) => {
   const { autofocusOrgName } = props;
   const tournManager = useContext(TournamentContext);
-  const thisTournament = tournManager.tournament;
   const modalManager = useContext(TeamEditModalContext);
-
   const tempTeamToEdit = modalManager.tempTeam;
   const tempRegToEdit = modalManager.tempRegistration;
 
   const [regName, setRegName] = useState(tempRegToEdit.name);
   useEffect(() => setRegName(tempRegToEdit.name), [tempRegToEdit.name, tempTeamToEdit.name]); // can't use useSubscription due to the unusual dependency
   const [teamLetter, setTeamLetter] = useSubscription(tempTeamToEdit.letter);
-  const [teamIsSS, setTeamIsSS] = useSubscription(tempRegToEdit.isSmallSchool);
-  const [teamIsJV, setTeamIsJV] = useSubscription(tempTeamToEdit.isJV);
-  const [teamIsUG, setTeamIsUG] = useSubscription(tempTeamToEdit.isUG);
-  const [teamIsD2, setTeamIsD2] = useSubscription(tempTeamToEdit.isD2);
 
   const [teamNameValidationStatus] = useSubscription(tempTeamToEdit.nameValidation.status);
   const [teamNameValidationMsg] = useSubscription(tempTeamToEdit.nameValidation.message);
@@ -172,30 +171,11 @@ function TeamLevelFields(props: TeamLevelEditFieldsProps) {
     tournManager.onTeamLetterUpdate();
   };
 
-  const handleSsChange = (checked: boolean) => {
-    setTeamIsSS(checked);
-    modalManager.changeSS(checked);
-  };
-
-  const handleJvChange = (checked: boolean) => {
-    setTeamIsJV(checked);
-    modalManager.changeJV(checked);
-  };
-
-  const handleUgChange = (checked: boolean) => {
-    setTeamIsUG(checked);
-    modalManager.changeUG(checked);
-  };
-
-  const handleD2Change = (checked: boolean) => {
-    setTeamIsD2(checked);
-    modalManager.changeD2(checked);
-  };
-
   return (
-    <Grid container spacing={1}>
+    <>
       <Grid xs={9} sm={6}>
         <TextField
+          inputRef={orgNameFieldRef}
           sx={{ marginTop: 1 }}
           label="School / Organization"
           fullWidth
@@ -228,6 +208,44 @@ function TeamLevelFields(props: TeamLevelEditFieldsProps) {
           }}
         />
       </Grid>
+    </>
+  );
+});
+
+function TeamCheckBoxes() {
+  const modalManager = useContext(TeamEditModalContext);
+  const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
+  const tempTeamToEdit = modalManager.tempTeam;
+  const tempRegToEdit = modalManager.tempRegistration;
+
+  const [teamIsSS, setTeamIsSS] = useSubscription(tempRegToEdit.isSmallSchool);
+  const [teamIsJV, setTeamIsJV] = useSubscription(tempTeamToEdit.isJV);
+  const [teamIsUG, setTeamIsUG] = useSubscription(tempTeamToEdit.isUG);
+  const [teamIsD2, setTeamIsD2] = useSubscription(tempTeamToEdit.isD2);
+
+  const handleSsChange = (checked: boolean) => {
+    setTeamIsSS(checked);
+    modalManager.changeSS(checked);
+  };
+
+  const handleJvChange = (checked: boolean) => {
+    setTeamIsJV(checked);
+    modalManager.changeJV(checked);
+  };
+
+  const handleUgChange = (checked: boolean) => {
+    setTeamIsUG(checked);
+    modalManager.changeUG(checked);
+  };
+
+  const handleD2Change = (checked: boolean) => {
+    setTeamIsD2(checked);
+    modalManager.changeD2(checked);
+  };
+
+  return (
+    <>
       {thisTournament.trackSmallSchool && (
         <Grid xs={2} md={1} sx={{ display: 'flex', alignItems: 'end' }}>
           <TeamFormCheckBox
@@ -264,7 +282,7 @@ function TeamLevelFields(props: TeamLevelEditFieldsProps) {
           />
         </Grid>
       )}
-    </Grid>
+    </>
   );
 }
 
