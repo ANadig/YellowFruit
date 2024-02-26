@@ -19,7 +19,7 @@ export class TempTeamManager {
 
   dataChangedReactCallback: () => void;
 
-  /** an arbitrary number to change each time we change which team we're editing. Used by some components to know when to reset */
+  /** An arbitrary number to change each time open or reset the form. Used by some components to know when to reset/recompute */
   sessionID: number = 0;
 
   constructor() {
