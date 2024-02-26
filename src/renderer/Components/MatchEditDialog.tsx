@@ -434,7 +434,8 @@ function PlayerRow(props: IPlayerRowProps) {
         <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} />
       ))}
       <Grid xs={7}>
-        <TextField fullWidth variant="standard" size="small" hiddenLabel inputProps={{ readOnly: true }} value={pts} />
+        {/** Don't use the MUI disabled property, which makes the text gray and hard to read */}
+        <TextField fullWidth variant="standard" size="small" hiddenLabel inputProps={{ disabled: true }} value={pts} />
       </Grid>
     </>
   );
@@ -478,15 +479,18 @@ function ValidationSection() {
   const thisMatch = modalManager.tempMatch;
   const [validators] = useSubscription(thisMatch.modalBottomValidation.validators);
 
+  const leftTeamValidators = thisMatch.leftTeam.allValidators.filter((v) => v.status !== ValidationStatuses.Ok);
+  const rightTeamValidators = thisMatch.rightTeam.allValidators.filter((v) => v.status !== ValidationStatuses.Ok);
+
   return (
     <>
       {validators.map((v) => (
         <ValidationMessage key={v.type} validator={v} />
       ))}
-      {thisMatch.leftTeam.allValidators.map((v) => (
+      {leftTeamValidators.map((v) => (
         <ValidationMessage key={v.message} validator={v} />
       ))}
-      {thisMatch.rightTeam.allValidators.map((v) => (
+      {rightTeamValidators.map((v) => (
         <ValidationMessage key={v.message} validator={v} />
       ))}
     </>

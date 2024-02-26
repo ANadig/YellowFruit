@@ -199,6 +199,7 @@ export class TempMatchManager {
     const matchingTeam = this.tournament.findTeamByName(teamName);
     if (!matchingTeam) {
       this.tempMatch.clearTeam(whichTeam);
+      this.dataChangedReactCallback();
       return;
     }
     if (oldTeam === matchingTeam) return;
@@ -210,8 +211,8 @@ export class TempMatchManager {
   }
 
   setTeam(whichTeam: LeftOrRight, team: Team, score?: number) {
-    const { answerTypes, maximumPlayersPerTeam, regulationTossupCount } = this.tournament.scoringRules;
-    this.tempMatch.setTeam(whichTeam, team, answerTypes, maximumPlayersPerTeam, regulationTossupCount, score);
+    const { answerTypes, maximumPlayersPerTeam } = this.tournament.scoringRules;
+    this.tempMatch.setTeam(whichTeam, team, answerTypes, maximumPlayersPerTeam, this.tempMatch.tossupsRead, score);
   }
 
   validateTeamPools(unSuppress: boolean) {
