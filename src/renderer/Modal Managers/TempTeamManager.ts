@@ -238,7 +238,8 @@ export class TempTeamManager {
   }
 
   changePlayerYear(playerIdx: number, newYear: string) {
-    const trimmedYear = newYear.trim();
+    let trimmedYear = newYear.trim();
+    trimmedYear = trimmedYear.charAt(0).toLocaleUpperCase() + trimmedYear.slice(1);
     const player = this.tempTeam.players[playerIdx];
     player.yearString = trimmedYear;
     player.validateYearString();
