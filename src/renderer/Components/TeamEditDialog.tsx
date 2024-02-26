@@ -74,18 +74,23 @@ function TeamEditDialogCore() {
   }, [thisTournament, tournManager.teamBeingModified]);
 
   const orgNameFieldRef = useRef<HTMLElement>(null);
+  const acceptButtonRef = useRef<HTMLButtonElement>(null);
+  const saveAndNewButtonRef = useRef<HTMLButtonElement>(null);
   const autoFocusFirstPlayer = regName !== '' && teamLetter !== '' && numPlayers === 1;
 
   const handleAccept = () => {
+    acceptButtonRef.current?.focus();
     tournManager.teamEditModalAttemptToSave();
   };
 
   const handleAcceptAndStay = () => {
+    saveAndNewButtonRef.current?.focus();
     tournManager.teamEditModalAttemptToSave(true);
     orgNameFieldRef.current?.focus();
   };
 
   const handleAcceptAndNextLetter = () => {
+    saveAndNewButtonRef.current?.focus();
     tournManager.teamEditModalAttemptToSave(true, true);
   };
 
@@ -131,8 +136,9 @@ function TeamEditDialogCore() {
             disabled={disableSaveAndNew}
             onClickSaveAndNew={handleAcceptAndStay}
             onClickSaveAndNextLetter={handleAcceptAndNextLetter}
+            ref={saveAndNewButtonRef}
           />
-          <Button variant="outlined" onClick={handleAccept}>
+          <Button variant="outlined" onClick={handleAccept} ref={acceptButtonRef}>
             {hotkeyFormat('&Accept')}
           </Button>
         </DialogActions>
@@ -292,10 +298,10 @@ interface ISaveAndNewButtonsProps {
   onClickSaveAndNextLetter: () => void;
 }
 
-function SaveAndNewButtons(props: ISaveAndNewButtonsProps) {
+const SaveAndNewButtons = forwardRef((props: ISaveAndNewButtonsProps, ref: React.ForwardedRef<HTMLButtonElement>) => {
   const { disabled, onClickSaveAndNew, onClickSaveAndNextLetter } = props;
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const anchorRef = React.useRef<HTMLDivElement>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
 
   const handleClose = (event: Event) => {
     if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
@@ -307,7 +313,7 @@ function SaveAndNewButtons(props: ISaveAndNewButtonsProps) {
   return (
     <>
       <ButtonGroup ref={anchorRef}>
-        <Button disabled={disabled} onClick={onClickSaveAndNew}>
+        <Button disabled={disabled} onClick={onClickSaveAndNew} ref={ref}>
           {hotkeyFormat('&Save {AMP} New')}
         </Button>
         <Button size="small" disabled={disabled} onClick={() => setDropdownOpen(!dropdownOpen)}>
@@ -327,7 +333,7 @@ function SaveAndNewButtons(props: ISaveAndNewButtonsProps) {
       </Popper>
     </>
   );
-}
+});
 
 interface IPlayersGridProps {
   numRows: number;
@@ -336,9 +342,12 @@ interface IPlayersGridProps {
 
 function PlayersGrid(props: IPlayersGridProps) {
   const { numRows, autoFocusFirstPlayer } = props;
+  const modalManager = useContext(TeamEditModalContext);
+  const sessionID = useSubscription(modalManager.sessionID);
   const rows: React.JSX.Element[] = [];
+
   for (let i = 0; i < numRows; i++) {
-    rows.push(<PlayerGridRow key={i} rowIdx={i} autoFocus={autoFocusFirstPlayer && i === 0} />);
+    rows.push(<PlayerGridRow key={`${sessionID}-${i}`} rowIdx={i} autoFocus={autoFocusFirstPlayer && i === 0} />);
   }
   return rows;
 }

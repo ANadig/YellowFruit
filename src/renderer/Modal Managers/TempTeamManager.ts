@@ -19,6 +19,9 @@ export class TempTeamManager {
 
   dataChangedReactCallback: () => void;
 
+  /** an arbitrary number to change each time we change which team we're editing. Used by some components to know when to reset */
+  sessionID: number = 0;
+
   constructor() {
     this.dataChangedReactCallback = () => {};
   }
@@ -51,6 +54,7 @@ export class TempTeamManager {
     }
 
     this.makeTeamName();
+    this.sessionID++;
     this.dataChangedReactCallback();
   }
 
@@ -231,6 +235,8 @@ export class TempTeamManager {
   changePlayerName(playerIdx: number, newName: string) {
     const trimmedName = newName.trim();
     const player = this.tempTeam.players[playerIdx];
+    if (!player) return;
+
     player.name = trimmedName;
     player.validateName();
     this.tempTeam.validatePlayerUniqueness();
