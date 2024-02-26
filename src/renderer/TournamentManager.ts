@@ -559,9 +559,10 @@ export class TournamentManager {
 
   private getFileDisplayName() {
     if (this.filePath === null) return TournamentManager.newTournamentName;
-    if (this.displayName) return this.displayName;
 
-    return this.filePath.substring(this.filePath.lastIndexOf('\\') + 1, this.filePath.lastIndexOf('.'));
+    const fileName = this.filePath.substring(this.filePath.lastIndexOf('\\') + 1);
+    if (!this.displayName) return fileName;
+    return `${this.displayName} - ${fileName}`;
   }
 
   openGenericModal(title: string, contents: string) {
