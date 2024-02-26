@@ -82,7 +82,7 @@ function TeamEditDialogCore() {
 
   const handleAcceptAndStay = () => {
     tournManager.teamEditModalAttemptToSave(true);
-    if (orgNameFieldRef.current) orgNameFieldRef.current.focus();
+    orgNameFieldRef.current?.focus();
   };
 
   const handleAcceptAndNextLetter = () => {
@@ -108,7 +108,7 @@ function TeamEditDialogCore() {
         <DialogContent>
           <Box
             sx={{
-              height: 375,
+              height: 400,
               '& .MuiGrid2-root': { display: 'flex', alignItems: 'end' },
               '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
             }}
