@@ -3,12 +3,14 @@
 
 import { versionLt } from '../Utils/GeneralUtils';
 import AnswerType, { IQbjAnswerType, sortAnswerTypes } from './AnswerType';
-import { IIndeterminateQbj, IQbjRefPointer, IRefTargetDict } from './Interfaces';
+import { IIndeterminateQbj, IQbjObject, IQbjRefPointer, IRefTargetDict, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { IQbjMatch, IYftFileMatch, Match } from './Match';
+import MatchPlayer, { IQbjMatchPlayer } from './MatchPlayer';
 import { MatchTeam, IQbjMatchTeam, IYftFileMatchTeam } from './MatchTeam';
 import { MatchValidationCollection } from './MatchValidationMessage';
 import { IQbjPhase, IYftFilePhase, Phase, PhaseTypes } from './Phase';
 import { IQbjPlayer, IYftFilePlayer, Player } from './Player';
+import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
 import { IQbjPool, IYftFilePool, Pool } from './Pool';
 import { IQbjPoolTeam, PoolTeam } from './PoolTeam';
 import { getBaseQbjObject, isQbjRefPointer } from './QbjUtils';
@@ -19,12 +21,8 @@ import { IQbjTeam, IYftFileTeam, Team } from './Team';
 import Tournament, { IQbjTournament, IYftFileTournament } from './Tournament';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 
-interface IYfTeamDict {
-  [id: string]: Team;
-}
-
-interface IYfPhaseDict {
-  [id: string]: Phase;
+interface IYftObjectDict<T extends IYftDataModelObject> {
+  [id: string]: T;
 }
 
 export default class FileParser {
@@ -32,9 +30,13 @@ export default class FileParser {
 
   refTargets: IRefTargetDict;
 
-  teamsById: IYfTeamDict = {};
+  teamsById: IYftObjectDict<Team> = {};
 
-  phasesById: IYfPhaseDict = {};
+  phasesById: IYftObjectDict<Phase> = {};
+
+  playersById: IYftObjectDict<Player> = {};
+
+  answerTypesById: IYftObjectDict<AnswerType> = {};
 
   /** The pool object currently being parsed, if any */
   currentPool?: IQbjPool;
@@ -244,6 +246,8 @@ export default class FileParser {
     if (qbjAType.label) yftAType.label = qbjAType.label;
     if (qbjAType.shortLabel) yftAType.shortLabel = qbjAType.shortLabel;
 
+    if (qbjAType.id) this.answerTypesById[qbjAType.id] = yftAType;
+
     return yftAType;
   }
 
@@ -356,6 +360,8 @@ export default class FileParser {
     }
     yfPlayer.isUG = yfExtraData.isUG || false;
     yfPlayer.isD2 = yfExtraData.isD2 || false;
+
+    if (qbjPlayer.id) this.playersById[qbjPlayer.id] = yfPlayer;
 
     return yfPlayer;
   }
@@ -542,7 +548,7 @@ export default class FileParser {
     if (baseObj === null) return null;
 
     const qbjPoolTeam = baseObj as IQbjPoolTeam;
-    const team = this.getTeamFromId(qbjPoolTeam.team as IIndeterminateQbj);
+    const team = this.getYfObjectFromId(qbjPoolTeam.team as IIndeterminateQbj, this.teamsById);
     if (!team) {
       throw new Error(`Pool ${this.currentPool?.name} contains a PoolTeam that doesn't refer to a valid Team.`);
     }
@@ -635,17 +641,67 @@ export default class FileParser {
     const qbjMatchTeam = baseObj as IQbjMatchTeam;
     const yfExtraData = (baseObj as IYftFileMatchTeam).YfData;
 
-    const team = this.getTeamFromId(qbjMatchTeam.team as IIndeterminateQbj);
+    const team = this.getYfObjectFromId(qbjMatchTeam.team as IIndeterminateQbj, this.teamsById);
+    if (!team) {
+      throw new Error('Failed to associate a MatchTeam object with a valid Team');
+    }
 
     const yfMatchTeam = new MatchTeam(team, this.tourn.scoringRules.answerTypes);
     yfMatchTeam.points = qbjMatchTeam.points;
     yfMatchTeam.forfeitLoss = qbjMatchTeam.forfeitLoss || false;
     yfMatchTeam.bonusBouncebackPoints = qbjMatchTeam.bonusBouncebackPoints;
     yfMatchTeam.lightningPoints = qbjMatchTeam.lightningPoints;
-
-    // TODO: overtime stuff matchplayers
+    yfMatchTeam.matchPlayers = this.parseMatchTeamMatchPlayers(qbjMatchTeam.matchPlayers as IIndeterminateQbj[]);
+    // TODO: overtime stuff
 
     return yfMatchTeam;
+  }
+
+  parseMatchTeamMatchPlayers(matchPlayers: IIndeterminateQbj[]): MatchPlayer[] {
+    if (!matchPlayers) return [];
+
+    const yfMatchPlayers: MatchPlayer[] = [];
+    for (const obj of matchPlayers) {
+      const oneMp = this.parseMatchPlayer(obj);
+      if (oneMp) yfMatchPlayers.push(oneMp);
+    }
+    return yfMatchPlayers;
+  }
+
+  parseMatchPlayer(obj: IIndeterminateQbj): MatchPlayer | null {
+    const baseObj = getBaseQbjObject(obj, this.refTargets);
+    if (baseObj === null) return null;
+
+    const qbjMatchPlayer = baseObj as IQbjMatchPlayer;
+    const player = this.getYfObjectFromId(qbjMatchPlayer.player as IIndeterminateQbj, this.playersById);
+    if (!player) {
+      throw new Error('Failed to associate a MatchPlayer object with a valid Player');
+    }
+
+    const yfMatchPlayer = new MatchPlayer(player, this.tourn.scoringRules.answerTypes);
+    yfMatchPlayer.tossupsHeard = dropZero(qbjMatchPlayer.tossupsHeard);
+    for (const pac of qbjMatchPlayer.answerCounts) {
+      const tempAnswerType = this.parsePlayerAnswerCount(pac as IIndeterminateQbj);
+      if (!tempAnswerType) continue;
+      yfMatchPlayer.setAnswerCount(tempAnswerType.answerType, tempAnswerType.number);
+    }
+
+    return yfMatchPlayer;
+  }
+
+  parsePlayerAnswerCount(obj: IIndeterminateQbj): PlayerAnswerCount | null {
+    const baseObj = getBaseQbjObject(obj, this.refTargets);
+    if (baseObj === null) return null;
+
+    const qbjPlayerAnswerCount = baseObj as IQbjPlayerAnswerCount;
+
+    const answerType = this.getYfObjectFromId(qbjPlayerAnswerCount.answerType as IIndeterminateQbj, this.answerTypesById);
+    if (!answerType) {
+      throw new Error('Failed to associate a PlayerAnswerCount object with a valid AnswerType');
+    }
+    const count = dropZero(qbjPlayerAnswerCount.number);
+
+    return new PlayerAnswerCount(answerType, count);
   }
 
   /** Get the phase pointers. Later we'll hook the match object up with the real Phase objects once we have them. */
@@ -663,35 +719,22 @@ export default class FileParser {
   /** Translate stored ref pointers to real objects */
   parseMatchCarryoverPhasesFinish(match: Match) {
     for (const ptr of match.coPhaseQbjIds) {
-      const phaseObj = this.getPhaseFromId(ptr);
+      const phaseObj = this.getYfObjectFromId(ptr, this.phasesById);
       if (phaseObj) match.carryoverPhases.push(phaseObj);
     }
   }
 
-  /** Assuming we've already loaded our Team objects, find the Team referred to by this qbj object. */
-  getTeamFromId(obj: IIndeterminateQbj): Team | undefined {
+  /** Assuming we've already loaded the requisite objects, find the YF object referred to by this qbj object */
+  getYfObjectFromId<T extends IYftDataModelObject>(obj: IIndeterminateQbj, dict: IYftObjectDict<T>): T | undefined {
     if (!obj) return undefined;
 
     if (isQbjRefPointer(obj)) {
-      return this.teamsById[(obj as IQbjRefPointer).$ref];
+      return dict[(obj as IQbjRefPointer).$ref];
     }
-    const { id } = obj as IQbjTeam;
+    const { id } = obj as IQbjObject;
     if (!id) return undefined;
 
-    return this.teamsById[id];
-  }
-
-  /** Assuming we've already loaded our Phase objects, find the Phase referred to by this qbj object. */
-  getPhaseFromId(obj: IIndeterminateQbj): Phase | undefined {
-    if (!obj) return undefined;
-
-    if (isQbjRefPointer(obj)) {
-      return this.phasesById[(obj as IQbjRefPointer).$ref];
-    }
-    const { id } = obj as IQbjPhase;
-    if (!id) return undefined;
-
-    return this.phasesById[id];
+    return dict[id];
   }
 }
 
@@ -699,4 +742,10 @@ export default class FileParser {
 function badInteger(suppliedValue: number, lowerBound: number, upperBound: number) {
   if (suppliedValue < lowerBound || suppliedValue > upperBound) return true;
   return suppliedValue % 1 > 0;
+}
+
+/** Change a number to undefined if it's zero */
+function dropZero(num: number | undefined): number | undefined {
+  if (num === 0) return undefined;
+  return num;
 }

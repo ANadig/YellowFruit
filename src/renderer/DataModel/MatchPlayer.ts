@@ -70,6 +70,12 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
     return qbjObject;
   }
 
+  setAnswerCount(answerType: AnswerType, count: number | undefined) {
+    const answerCount = this.answerCounts.find((ac) => ac.answerType === answerType);
+    if (!answerCount) return;
+    answerCount.number = count;
+  }
+
   getErrorMessages() {
     const errors: string[] = [];
     if (this.tuhValidation.status === ValidationStatuses.Error) {
