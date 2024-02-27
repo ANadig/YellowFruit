@@ -121,7 +121,7 @@ function MatchEditDialogCore() {
             </Grid>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ justifyContent: 'space-between' }}>
+        <DialogActions sx={{ justifyContent: 'space-between', minHeight: '72px' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', maxHeight: '150px', overflowY: 'auto' }}>
             <ValidationSection />
           </Box>
