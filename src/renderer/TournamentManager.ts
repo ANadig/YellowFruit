@@ -410,7 +410,7 @@ export class TournamentManager {
   }
 
   tryDeleteMatch(match: Match, roundNo: number) {
-    this.genericModalManager.open('Delete Team', 'Are you sure you want to delete this game?', 'No', 'Yes', () =>
+    this.genericModalManager.open('Delete Game', 'Are you sure you want to delete this game?', 'No', 'Yes', () =>
       this.deleteMatch(match, roundNo),
     );
   }
