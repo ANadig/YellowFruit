@@ -13,6 +13,7 @@ export enum MatchValidationType {
   NoTossupsHeard = 'NoTossupsHeard',
   FewerThanExpectedTUH = 'FewerThanExpectedTUH',
   MoreThanAllowedTUH = 'MoreThanAllowedTUH',
+  PlayerAnswerCountInvalid = 'PlayerAnswerCountInvalid',
 }
 
 export interface IYftFileMatchValidationMsg {
@@ -73,6 +74,11 @@ export default class MatchValidationMessage {
       isSuppressed: this.isSuppressed,
       type: this.type,
     };
+  }
+
+  /** Is this validator in a status where we should force the user to resolve? */
+  isError() {
+    return this.status === ValidationStatuses.Error || this.status === ValidationStatuses.HiddenError;
   }
 
   setOk() {

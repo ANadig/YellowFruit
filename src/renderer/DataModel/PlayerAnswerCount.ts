@@ -1,5 +1,6 @@
 import AnswerType, { IQbjAnswerType } from './AnswerType';
-import { IQbjObject, IQbjRefPointer, IYftDataModelObject } from './Interfaces';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject, ValidationStatuses } from './Interfaces';
+import MatchValidationMessage, { MatchValidationType } from './MatchValidationMessage';
 
 export interface IQbjPlayerAnswerCount extends IQbjObject {
   /** Number of questions answered for this many points */
@@ -12,6 +13,15 @@ export class PlayerAnswerCount implements IQbjPlayerAnswerCount, IYftDataModelOb
 
   answerType: AnswerType;
 
+  validation: MatchValidationMessage;
+
+  /** Don't allow numbers higher than this */
+  static readonly maximumValue = 999;
+
+  get allValidators(): MatchValidationMessage[] {
+    return [this.validation];
+  }
+
   get points() {
     if (this.number === undefined) return 0;
     return this.number * this.answerType.value;
@@ -20,6 +30,7 @@ export class PlayerAnswerCount implements IQbjPlayerAnswerCount, IYftDataModelOb
   constructor(answerType: AnswerType, number?: number) {
     this.answerType = answerType;
     this.number = number;
+    this.validation = new MatchValidationMessage(MatchValidationType.PlayerAnswerCountInvalid);
   }
 
   makeCopy(): PlayerAnswerCount {
@@ -36,5 +47,30 @@ export class PlayerAnswerCount implements IQbjPlayerAnswerCount, IYftDataModelOb
 
     // this should not be a top-level or referenced object
     return qbjObject;
+  }
+
+  /**
+   * Validate whether the current value is vaguely reasonable
+   * @param playerName Player's name, to which the error message is appended.
+   */
+  validateAll(playerName: string) {
+    if (!this.numberIsValid()) {
+      const msg = `${playerName}: Number of ${this.answerType.value}-point buzzes is invalid`;
+      this.validation.setError(msg);
+      return;
+    }
+    this.validation.setOk();
+  }
+
+  getErrorMessages(): string[] {
+    if (this.validation.isError()) {
+      return [this.validation.message];
+    }
+    return [];
+  }
+
+  numberIsValid() {
+    if (this.number === undefined) return true;
+    return 0 <= this.number && this.number <= PlayerAnswerCount.maximumValue;
   }
 }

@@ -33,7 +33,11 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
   tuhValidation: MatchValidationMessage;
 
   get allValidators(): MatchValidationMessage[] {
-    return [this.tuhValidation];
+    let ary = [this.tuhValidation];
+    for (const ac of this.answerCounts) {
+      ary = ary.concat(ac.allValidators);
+    }
+    return ary;
   }
 
   constructor(p: Player, answerTypes?: AnswerType[]) {
@@ -77,17 +81,18 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
   }
 
   getErrorMessages() {
-    const errors: string[] = [];
-    if (this.tuhValidation.status === ValidationStatuses.Error) {
+    let errors: string[] = [];
+    if (this.tuhValidation.isError()) {
       errors.push(this.tuhValidation.message);
     }
+    this.answerCounts.forEach((ac) => errors = errors.concat(ac.getErrorMessages()));
     return errors;
   }
 
   /**
    * Set the validation status of the player's tossups heard
    * @param isValid whether it's valid
-   * @param message Error message, to which the players name is prepended, to override the default.
+   * @param message Error message, to which the player's name is prepended, to override the default.
    */
   setTuhHeardValidation(isValid: boolean, message?: string) {
     if (!isValid) {
@@ -96,6 +101,10 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
       return;
     }
     this.tuhValidation.setOk();
+  }
+
+  validateAnswerCounts() {
+    this.answerCounts.forEach((ac) => ac.validateAll(this.player.name));
   }
 }
 

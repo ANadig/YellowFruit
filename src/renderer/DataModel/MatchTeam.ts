@@ -176,6 +176,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   validateAll() {
     this.validateTotalPoints();
+    this.validateAnswerCounts();
   }
 
   validateTotalPoints() {
@@ -195,6 +196,10 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       return;
     }
     this.totalScoreFieldValidation.setOk();
+  }
+
+  validateAnswerCounts() {
+    this.matchPlayers.forEach((mp) => mp.validateAnswerCounts());
   }
 
   addValidationMessage(

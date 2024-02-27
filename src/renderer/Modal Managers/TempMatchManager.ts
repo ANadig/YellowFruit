@@ -252,6 +252,7 @@ export class TempMatchManager {
     const parsed = parseInt(val, 10);
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
     aCount.number = valToSave;
+    this.tempMatch.validateMatchTeams();
     this.dataChangedReactCallback();
     return valToSave;
   }

@@ -449,6 +449,7 @@ function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
   const { answerCount } = props;
   const modalManager = useContext(MatchEditModalContext);
   const [count, setCount] = useSubscription(answerCount.number?.toString() || '');
+  const [invalid] = useSubscription(answerCount.validation.status === ValidationStatuses.Error);
 
   const handleBlur = () => {
     const valToUse = modalManager.setPlayerAnswerCount(answerCount, count);
@@ -463,6 +464,7 @@ function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
         variant="standard"
         size="small"
         hiddenLabel
+        error={invalid}
         value={count}
         onChange={(e) => setCount(e.target.value)}
         onBlur={handleBlur}
