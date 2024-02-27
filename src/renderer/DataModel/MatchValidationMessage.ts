@@ -15,6 +15,8 @@ export enum MatchValidationType {
   MoreThanAllowedTUH = 'MoreThanAllowedTUH',
   PlayerAnswerCountInvalid = 'PlayerAnswerCountInvalid',
   PlayerHasTooManyBuzzes = 'PlayerHasTooManyBuzzes',
+  MatchHasTooConvertedTU = 'MatchHasTooConvertedTU',
+  TeamHasTooManyBuzzes = 'TeamHasTooManyBuzzes',
 }
 
 export interface IYftFileMatchValidationMsg {

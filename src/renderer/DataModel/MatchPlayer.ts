@@ -1,5 +1,5 @@
 import AnswerType from './AnswerType';
-import { IQbjObject, IQbjRefPointer, IYftDataModelObject, ValidationStatuses } from './Interfaces';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject } from './Interfaces';
 import MatchValidationMessage, { MatchValidationType } from './MatchValidationMessage';
 import { Player, IQbjPlayer } from './Player';
 import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
@@ -83,6 +83,14 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
     answerCount.number = count;
   }
 
+  getTotalBuzzes(positiveOnly: boolean = false) {
+    let totalBuzzes = 0;
+    this.answerCounts.forEach((ac) => {
+      if (ac.answerType.value > 0 || !positiveOnly) totalBuzzes += ac.number || 0;
+    });
+    return totalBuzzes;
+  }
+
   getErrorMessages() {
     let errors: string[] = [];
     if (this.tuhValidation.isError()) {
@@ -91,7 +99,9 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
     if (this.totalBuzzesValidation.isError()) {
       errors.push(this.totalBuzzesValidation.message);
     }
-    this.answerCounts.forEach((ac) => errors = errors.concat(ac.getErrorMessages()));
+    this.answerCounts.forEach((ac) => {
+      errors = errors.concat(ac.getErrorMessages());
+    });
     return errors;
   }
 
@@ -113,7 +123,7 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
     let totalBuzzes = 0;
     this.answerCounts.forEach((ac) => {
       ac.validateAll(this.player.name);
-      totalBuzzes += (ac.number || 0);
+      totalBuzzes += ac.number || 0;
     });
 
     if (totalBuzzes > (this.tossupsHeard || 0)) {

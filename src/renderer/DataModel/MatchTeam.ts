@@ -156,10 +156,18 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
   /** The sum of all player tossups heard values */
   getTotalTossupsHeard() {
     let sum = 0;
-    for (const mp of this.matchPlayers) {
+    this.matchPlayers.forEach((mp) => {
       sum += mp.tossupsHeard || 0;
-    }
+    });
     return sum;
+  }
+
+  getTotalBuzzes(positiveOnly: boolean = false) {
+    let totalBuzzes = 0;
+    this.matchPlayers.forEach((mp) => {
+      totalBuzzes += mp.getTotalBuzzes(positiveOnly);
+    });
+    return totalBuzzes;
   }
 
   getErrorMessages(ignoreHidden: boolean = false): string[] {
@@ -210,6 +218,10 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
   ) {
     const fullMessage = `${this.team ? `${this.team.name}: ` : ''}${message}`;
     this.modalBottomValidation.addValidationMsg(type, status, fullMessage, suppressable);
+  }
+
+  clearValidationMessage(type: MatchValidationType) {
+    this.modalBottomValidation.clearMsgType(type);
   }
 }
 

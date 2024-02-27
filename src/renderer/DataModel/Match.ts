@@ -242,6 +242,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.validateTotalTuh(scoringRules);
     this.validateTeams();
     this.validateMatchTeams();
+    this.validateTotalBuzzes();
     this.validateAllMatchPlayersTuh(scoringRules);
   }
 
@@ -379,6 +380,32 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       matchPlayer.setTuhHeardValidation(false, 'Tossups heard is greater than the total tossups in the game');
     } else {
       matchPlayer.setTuhHeardValidation(true);
+    }
+  }
+
+  validateTotalBuzzes() {
+    const totalConvertedTU = this.leftTeam.getTotalBuzzes(true) + this.rightTeam.getTotalBuzzes(true);
+    if (this.tossupsRead !== undefined && this.tossupsRead > 0 && totalConvertedTU > this.tossupsRead) {
+      this.modalBottomValidation.addValidationMsg(
+        MatchValidationType.MatchHasTooConvertedTU,
+        ValidationStatuses.Error,
+        `Total number of tossups converted (${totalConvertedTU}) exceeds the number of tossups in the game (${this.tossupsRead})`,
+      );
+    } else {
+      this.modalBottomValidation.clearMsgType(MatchValidationType.MatchHasTooConvertedTU);
+    }
+
+    for (const matchTeam of [this.leftTeam, this.rightTeam]) {
+      const totalBuzzes = matchTeam.getTotalBuzzes();
+      if (this.tossupsRead !== undefined && this.tossupsRead > 0 && totalBuzzes > this.tossupsRead) {
+        matchTeam.addValidationMessage(
+          MatchValidationType.TeamHasTooManyBuzzes,
+          ValidationStatuses.Error,
+          `Team's total buzzes (${totalBuzzes}) exceeds the number of tossups in the game (${this.tossupsRead})`,
+        );
+      } else {
+        matchTeam.clearValidationMessage(MatchValidationType.TeamHasTooManyBuzzes);
+      }
     }
   }
 
