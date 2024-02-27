@@ -356,7 +356,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       } else {
         matchTeam.modalBottomValidation.clearMsgType(MatchValidationType.MoreThanAllowedTUH);
       }
-      if (this.tossupsRead !== undefined && totalTUH < expectedTotalTUH) {
+      if (this.tossupsRead !== undefined && totalTUH < expectedTotalTUH && totalTUH > 0) {
         matchTeam.addValidationMessage(
           MatchValidationType.FewerThanExpectedTUH,
           ValidationStatuses.Warning,
