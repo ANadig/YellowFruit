@@ -32,8 +32,10 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
 
   tuhValidation: MatchValidationMessage;
 
+  totalBuzzesValidation: MatchValidationMessage;
+
   get allValidators(): MatchValidationMessage[] {
-    let ary = [this.tuhValidation];
+    let ary = [this.tuhValidation, this.totalBuzzesValidation];
     for (const ac of this.answerCounts) {
       ary = ary.concat(ac.allValidators);
     }
@@ -43,6 +45,7 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
   constructor(p: Player, answerTypes?: AnswerType[]) {
     this.player = p;
     this.tuhValidation = new MatchValidationMessage(MatchValidationType.PlayerTuhInvalid);
+    this.totalBuzzesValidation = new MatchValidationMessage(MatchValidationType.PlayerHasTooManyBuzzes);
 
     if (!answerTypes) return;
     for (const aType of answerTypes) {
@@ -85,6 +88,9 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
     if (this.tuhValidation.isError()) {
       errors.push(this.tuhValidation.message);
     }
+    if (this.totalBuzzesValidation.isError()) {
+      errors.push(this.totalBuzzesValidation.message);
+    }
     this.answerCounts.forEach((ac) => errors = errors.concat(ac.getErrorMessages()));
     return errors;
   }
@@ -104,7 +110,17 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
   }
 
   validateAnswerCounts() {
-    this.answerCounts.forEach((ac) => ac.validateAll(this.player.name));
+    let totalBuzzes = 0;
+    this.answerCounts.forEach((ac) => {
+      ac.validateAll(this.player.name);
+      totalBuzzes += (ac.number || 0);
+    });
+
+    if (totalBuzzes > (this.tossupsHeard || 0)) {
+      this.totalBuzzesValidation.setError(`${this.player.name}: Player has more buzzes than tossups heard`);
+    } else {
+      this.totalBuzzesValidation.setOk();
+    }
   }
 }
 

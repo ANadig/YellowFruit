@@ -244,6 +244,7 @@ export class TempMatchManager {
     mPlayer.tossupsHeard = valToSave;
     this.tempMatch.validatePlayerTuh(mPlayer);
     this.tempMatch.validateAllMatchPlayersTuh(this.tournament.scoringRules);
+    this.tempMatch.validateMatchTeams();
     this.dataChangedReactCallback();
     return valToSave;
   }

@@ -14,6 +14,7 @@ export enum MatchValidationType {
   FewerThanExpectedTUH = 'FewerThanExpectedTUH',
   MoreThanAllowedTUH = 'MoreThanAllowedTUH',
   PlayerAnswerCountInvalid = 'PlayerAnswerCountInvalid',
+  PlayerHasTooManyBuzzes = 'PlayerHasTooManyBuzzes',
 }
 
 export interface IYftFileMatchValidationMsg {
