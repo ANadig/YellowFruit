@@ -9,12 +9,19 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
+import fs from 'fs';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import { handleSaveAsRequest, handleSaveFile, handleSetWindowTitle } from './FileUtils';
+import {
+  handleSaveAsRequest,
+  handleSaveFile,
+  handleSetWindowTitle,
+  handleShowInAppStatReport,
+  inAppStatReportDirectory,
+} from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
 
 class AppUpdater {
@@ -32,6 +39,10 @@ ipcMain.on(IpcBidirectional.ipcExample, async (event, arg) => {
   console.log(msgTemplate(arg));
   event.reply(IpcBidirectional.ipcExample, msgTemplate('pong'));
 });
+
+if (!fs.existsSync(inAppStatReportDirectory)) {
+  fs.mkdirSync(inAppStatReportDirectory);
+}
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -129,6 +140,7 @@ app
     ipcMain.on(IpcRendToMain.saveFile, handleSaveFile);
     ipcMain.on(IpcRendToMain.setWindowTitle, handleSetWindowTitle);
     ipcMain.on(IpcRendToMain.saveAsDialog, handleSaveAsRequest);
+    ipcMain.on(IpcRendToMain.ShowInAppStatReport, handleShowInAppStatReport);
 
     createWindow();
     app.on('activate', () => {

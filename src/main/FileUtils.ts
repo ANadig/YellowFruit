@@ -1,6 +1,12 @@
-import { BrowserWindow, IpcMainEvent, dialog } from 'electron';
+import path from 'path';
+import { app, BrowserWindow, IpcMainEvent, dialog } from 'electron';
 import fs from 'fs';
 import { IpcMainToRend } from '../IPCChannels';
+import { IStatReportContents, StatReportFileNames } from '../SharedUtils';
+
+export function showInAppStatReport(mainWindow: BrowserWindow) {
+  mainWindow.webContents.send(IpcMainToRend.GenerateInAppStatReport);
+}
 
 export function newYftFile(mainWindow: BrowserWindow) {
   mainWindow.webContents.send(IpcMainToRend.newTournament);
@@ -62,4 +68,18 @@ export function handleSetWindowTitle(event: IpcMainEvent, title: string) {
   if (!window) return;
 
   window?.setTitle(`YellowFruit - ${title}`);
+}
+
+export const inAppStatReportDirectory = path.resolve(app.getPath('userData'), 'StatReport');
+
+export function handleShowInAppStatReport(event: IpcMainEvent, reports: IStatReportContents) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  const standingsPath = path.resolve(inAppStatReportDirectory, StatReportFileNames.standings);
+  fs.writeFile(standingsPath, reports.standings, { encoding: 'utf8' }, (err) => {
+    if (err) {
+      dialog.showMessageBoxSync(window, { message: `Error generating report: \n\n ${err.message}` });
+    }
+  });
 }

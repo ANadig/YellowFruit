@@ -16,6 +16,7 @@ import { collectRefTargets } from './DataModel/QbjUtils2';
 import FileParser from './DataModel/FileParsing';
 import { TempMatchManager } from './Modal Managers/TempMatchManager';
 import { Match } from './DataModel/Match';
+import { IStatReportContents } from '../SharedUtils';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -86,6 +87,9 @@ export class TournamentManager {
     });
     window.electron.ipcRenderer.on(IpcMainToRend.saveAsCommand, (filePath) => {
       this.yftSaveAs(filePath as string);
+    });
+    window.electron.ipcRenderer.on(IpcMainToRend.GenerateInAppStatReport, () => {
+      this.generateInAppStatReport();
     });
   }
 
@@ -200,6 +204,11 @@ export class TournamentManager {
     this.unsavedData = false;
     this.setWindowTitle();
     // this.makeToast('Data saved');
+  }
+
+  private generateInAppStatReport() {
+    const reports: IStatReportContents = { standings: `hello world: ${this.tournament.name}` };
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.ShowInAppStatReport, reports);
   }
 
   // #region Functions for changing the data from the UI

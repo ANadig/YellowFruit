@@ -6,6 +6,8 @@ export enum IpcRendToMain {
   saveAsDialog = 'saveAsDialog',
   /** Set the title of the electron window */
   setWindowTitle = 'setWindowTitle',
+  /** Send contents of the preview stat reports */
+  ShowInAppStatReport = 'ShowInAppStatReport',
 }
 
 /** Channels for main sending messages to renderer */
@@ -19,6 +21,8 @@ export enum IpcMainToRend {
   saveAsCommand = 'saveAsYft',
   /** Start a blank tournament with no file */
   newTournament = 'newTournament',
+  /** Request that the stat reports be generated to show in the app */
+  GenerateInAppStatReport = 'GenerateInAppStatReport',
 }
 
 /** Channels for both directions renderer<-->main */
@@ -34,4 +38,5 @@ export const rendererListenableEvents = [
   IpcMainToRend.tournamentSavedSuccessfully,
   IpcMainToRend.saveAsCommand,
   IpcMainToRend.newTournament,
+  IpcMainToRend.GenerateInAppStatReport,
 ];
