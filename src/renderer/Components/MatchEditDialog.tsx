@@ -164,6 +164,7 @@ function RoundField() {
   return (
     <TextField
       type="number"
+      inputProps={{ min: 1 }}
       label="Round"
       fullWidth
       variant="outlined"
@@ -248,6 +249,7 @@ function TuhTotalField() {
   return (
     <TextField
       type="number"
+      inputProps={{ min: 1 }}
       label="TU Heard (incl. OT)"
       fullWidth
       variant="outlined"
@@ -429,6 +431,7 @@ function PlayerRow(props: IPlayerRowProps) {
       <Grid xs={7}>
         <TextField
           type="number"
+          inputProps={{ min: 0 }}
           fullWidth
           variant="standard"
           size="small"
@@ -472,6 +475,7 @@ function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
     <Grid xs={7}>
       <TextField
         type="number"
+        inputProps={{ min: 0 }}
         fullWidth
         variant="standard"
         size="small"

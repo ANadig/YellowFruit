@@ -64,6 +64,7 @@ function RoundLengthSettingsCard() {
         sx={{ marginTop: 1, width: '13ch' }}
         size="small"
         type="number"
+        inputProps={{ min: 1 }}
         label={numTusLabel}
         value={numTus}
         error={!tuNumberIsValid()}

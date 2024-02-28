@@ -235,6 +235,7 @@ function AdvancedBonusField(props: IAdvancedBonusFieldProps) {
           sx={{ marginTop: 1, width: '8ch' }}
           size="small"
           type="number"
+          inputProps={{ min: 0 }}
           disabled={disabled}
           error={error}
           value={value}

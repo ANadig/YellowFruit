@@ -65,6 +65,7 @@ function OvertimeSettingsCard() {
           sx={{ marginTop: 1, marginLeft: 6, width: '13ch' }}
           size="small"
           type="number"
+          inputProps={{ min: 1 }}
           label="Min Toss-Ups"
           value={minTossups}
           error={!numPlayersIsValid()}
