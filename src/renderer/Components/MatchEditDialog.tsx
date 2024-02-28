@@ -118,6 +118,13 @@ function MatchEditDialogCore() {
               <Grid xs={12} md={6}>
                 <PlayerGrid whichTeam="right" />
               </Grid>
+              {/** fourth row */}
+              <Grid xs={6}>
+                <BonusDisplay whichTeam="left" />
+              </Grid>
+              <Grid xs={6}>
+                <BonusDisplay whichTeam="right" />
+              </Grid>
             </Grid>
           </Box>
         </DialogContent>
@@ -473,6 +480,23 @@ function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
         }}
       />
     </Grid>
+  );
+}
+
+interface IBonusDisplayProps {
+  whichTeam: LeftOrRight;
+}
+
+function BonusDisplay(props: IBonusDisplayProps) {
+  const { whichTeam } = props;
+  const modalManager = useContext(MatchEditModalContext);
+  const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
+  const [bonusPoints, bonusesHeard, ppb] = matchTeam.getBonusStats();
+
+  return (
+    <span>
+      &emsp;Bonuses:&emsp;{`${bonusPoints} points`}&emsp;|&emsp;{`${bonusesHeard} heard`}&emsp;|&emsp;{`${ppb} ppb`}
+    </span>
   );
 }
 

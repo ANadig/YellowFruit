@@ -42,30 +42,6 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   points?: number;
 
-  get bonusPoints(): number {
-    return (this.points || 0) - this.tossupPoints - (this.bonusBouncebackPoints || 0) - (this.lightningPoints || 0);
-  }
-
-  /** Number of tossups answered with no bonuses. In YF, this means overtime */
-  get correctTossupsWithoutBonuses(): number {
-    let total = 0;
-    for (const ac of this.overTimeBuzzes || []) {
-      if (ac.points > 0) {
-        total += ac.number || 0;
-      }
-    }
-    return total;
-  }
-
-  /** Number of tossups answered with no bonuses. In YF, this means overtime */
-  get overtimePoints(): number {
-    let total = 0;
-    for (const ac of this.overTimeBuzzes || []) {
-      total += ac.points;
-    }
-    return total;
-  }
-
   /** What the team scored in overtime. Note that we don't actually track which player made this buzzes */
   overTimeBuzzes?: PlayerAnswerCount[];
 
@@ -75,15 +51,6 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   /** Performances of each player. A player being listed here doesn't necessarily mean they actually played in this game. */
   matchPlayers: MatchPlayer[] = [];
-
-  /** Number of points scored on tossups */
-  get tossupPoints(): number {
-    let total = 0;
-    for (const p of this.matchPlayers) {
-      total += p.points;
-    }
-    return total;
-  }
 
   totalScoreFieldValidation: MatchValidationMessage;
 
@@ -136,8 +103,8 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       team: this.team?.toRefPointer(),
       forfeitLoss: this.forfeitLoss,
       points: this.points,
-      bonusPoints: this.bonusPoints,
-      correctTossupsWithoutBonuses: this.correctTossupsWithoutBonuses,
+      bonusPoints: this.getBonusPoints(),
+      correctTossupsWithoutBonuses: this.getCorrectTossupsWithoutBonuses(),
       bonusBouncebackPoints: this.bonusBouncebackPoints,
       lightningPoints: this.lightningPoints,
       matchPlayers: this.matchPlayers.map((mp) => mp.toFileObject(qbjOnly)),
@@ -168,6 +135,63 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       totalBuzzes += mp.getTotalBuzzes(positiveOnly);
     });
     return totalBuzzes;
+  }
+
+  /** Number of points scored on tossups */
+  getTossupPoints(): number {
+    let total = 0;
+    for (const p of this.matchPlayers) {
+      total += p.points;
+    }
+    return total;
+  }
+
+  getBonusesHeard(): number {
+    let tot = 0;
+    this.matchPlayers.forEach((mp) => {
+      tot += mp.getTotalBuzzes(true);
+    });
+    return tot;
+  }
+
+  getBonusPoints(): number {
+    return (
+      (this.points || 0) - this.getTossupPoints() - (this.bonusBouncebackPoints || 0) - (this.lightningPoints || 0)
+    );
+  }
+
+  getPointsPerBonus(): number | undefined {
+    const bHeard = this.getBonusesHeard();
+    if (bHeard === 0) return undefined;
+    return this.getBonusPoints() / bHeard;
+  }
+
+  getBonusStats(): [string, string, string] {
+    const bonusPoints = this.getBonusPoints();
+    const bonusesHeard = this.getBonusesHeard();
+    const ppb = bonusPoints / bonusesHeard;
+    const ppbStr = !Number.isFinite(ppb) ? '--' : ppb.toFixed(2).toString();
+    return [bonusPoints.toString(), bonusesHeard.toString(), ppbStr];
+  }
+
+  /** Number of tossups answered with no bonuses. In YF, this means overtime */
+  getCorrectTossupsWithoutBonuses(): number {
+    let total = 0;
+    for (const ac of this.overTimeBuzzes || []) {
+      if (ac.points > 0) {
+        total += ac.number || 0;
+      }
+    }
+    return total;
+  }
+
+  /** Number of tossups answered with no bonuses. In YF, this means overtime */
+  getOvertimePoints(): number {
+    let total = 0;
+    for (const ac of this.overTimeBuzzes || []) {
+      total += ac.points;
+    }
+    return total;
   }
 
   getErrorMessages(ignoreHidden: boolean = false): string[] {
