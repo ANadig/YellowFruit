@@ -79,7 +79,7 @@ function MatchEditDialogCore() {
           <Box
             fontSize={14}
             sx={{
-              height: 600,
+              height: 400,
               '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
             }}
           >
@@ -324,10 +324,14 @@ interface ITeamScoreProps {
 
 function TeamScoreField(props: ITeamScoreProps) {
   const { whichTeam } = props;
+  const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
   const modalManager = useContext(MatchEditModalContext);
   const [pts, setPts] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam).points?.toString() || '');
   const [valStatus] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam).totalScoreFieldValidation.status);
   const [valMsg] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam).totalScoreFieldValidation.message);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const divisor = useMemo(() => thisTournament.scoringRules.totalDivisor, [modalManager.modalIsOpen]);
 
   const handleBlur = () => {
     const valToUse = modalManager.setTeamScore(whichTeam, pts);
@@ -337,6 +341,7 @@ function TeamScoreField(props: ITeamScoreProps) {
   return (
     <TextField
       type="number"
+      inputProps={{ step: divisor }}
       label="Score"
       fullWidth
       variant="outlined"
@@ -492,6 +497,8 @@ function BonusDisplay(props: IBonusDisplayProps) {
   const modalManager = useContext(MatchEditModalContext);
   const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
   const [bonusPoints, bonusesHeard, ppb] = matchTeam.getBonusStats();
+
+  if (matchTeam.team === undefined) return null;
 
   return (
     <span>
