@@ -241,7 +241,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   validateAll(scoringRules: ScoringRules) {
     this.validateTotalTuh(scoringRules);
     this.validateTeams();
-    this.validateMatchTeams();
+    this.validateMatchTeams(scoringRules);
     this.validateTotalBuzzes();
     this.validateAllMatchPlayersTuh(scoringRules);
   }
@@ -309,9 +309,9 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   }
 
   /** Validate the team-level stats for both teams */
-  validateMatchTeams() {
-    this.leftTeam.validateAll();
-    this.rightTeam.validateAll();
+  validateMatchTeams(scoringRules: ScoringRules) {
+    this.leftTeam.validateAll(scoringRules);
+    this.rightTeam.validateAll(scoringRules);
 
     if (this.leftTeam.points !== undefined && this.leftTeam.points === this.rightTeam.points) {
       this.modalBottomValidation.addValidationMsg(

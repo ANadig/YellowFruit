@@ -234,7 +234,7 @@ export class TempMatchManager {
     const parsed = parseInt(val, 10);
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
     this.tempMatch.setTeamScore(whichTeam, valToSave);
-    this.tempMatch.validateMatchTeams();
+    this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
     this.dataChangedReactCallback();
     return valToSave;
   }
@@ -245,7 +245,7 @@ export class TempMatchManager {
     mPlayer.tossupsHeard = valToSave;
     this.tempMatch.validatePlayerTuh(mPlayer);
     this.tempMatch.validateAllMatchPlayersTuh(this.tournament.scoringRules);
-    this.tempMatch.validateMatchTeams();
+    this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
     this.dataChangedReactCallback();
     return valToSave;
   }
@@ -254,7 +254,7 @@ export class TempMatchManager {
     const parsed = parseInt(val, 10);
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
     aCount.number = valToSave;
-    this.tempMatch.validateMatchTeams();
+    this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
     this.tempMatch.validateTotalBuzzes();
     this.dataChangedReactCallback();
     return valToSave;

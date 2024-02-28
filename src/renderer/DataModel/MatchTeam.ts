@@ -3,6 +3,7 @@ import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject, Valida
 import { MatchPlayer, IQbjMatchPlayer } from './MatchPlayer';
 import MatchValidationMessage, { MatchValidationCollection, MatchValidationType } from './MatchValidationMessage';
 import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
+import { ScoringRules } from './ScoringRules';
 import { IQbjTeam, Team } from './Team';
 
 export interface IQbjMatchTeam extends IQbjObject {
@@ -206,9 +207,10 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return errs;
   }
 
-  validateAll() {
+  validateAll(scoringRules: ScoringRules) {
     this.validateTotalPoints();
     this.validateAnswerCounts();
+    this.validateBonusPoints(scoringRules);
   }
 
   validateTotalPoints() {
@@ -232,6 +234,32 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   validateAnswerCounts() {
     this.matchPlayers.forEach((mp) => mp.validateAnswerCounts());
+  }
+
+  validateBonusPoints(scoringRules: ScoringRules) {
+    const bonusPoints = this.getBonusPoints();
+    const bonusesHeard = this.getBonusesHeard();
+    const ppb = bonusPoints / bonusesHeard;
+    const maxPpb = scoringRules.maximumBonusScore;
+    if (bonusPoints < 0) {
+      this.addValidationMessage(
+        MatchValidationType.NegativeBonusPoints,
+        ValidationStatuses.Error,
+        'Bonus points cannot be negative',
+      );
+    } else {
+      this.clearValidationMessage(MatchValidationType.NegativeBonusPoints);
+    }
+
+    if ((bonusPoints > 0 && bonusesHeard === 0) || ppb > maxPpb) {
+      this.addValidationMessage(
+        MatchValidationType.BonusPointsTooHigh,
+        ValidationStatuses.Error,
+        `Points per bonus exceeds the maximum of ${maxPpb}`,
+      );
+    } else {
+      this.clearValidationMessage(MatchValidationType.BonusPointsTooHigh);
+    }
   }
 
   addValidationMessage(

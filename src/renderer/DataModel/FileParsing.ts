@@ -3,9 +3,9 @@
 
 import { versionLt } from '../Utils/GeneralUtils';
 import AnswerType, { IQbjAnswerType, sortAnswerTypes } from './AnswerType';
-import { IIndeterminateQbj, IQbjObject, IQbjRefPointer, IRefTargetDict, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { IIndeterminateQbj, IQbjObject, IQbjRefPointer, IRefTargetDict, IYftDataModelObject } from './Interfaces';
 import { IQbjMatch, IYftFileMatch, Match } from './Match';
-import MatchPlayer, { IQbjMatchPlayer } from './MatchPlayer';
+import { MatchPlayer, IQbjMatchPlayer } from './MatchPlayer';
 import { MatchTeam, IQbjMatchTeam, IYftFileMatchTeam } from './MatchTeam';
 import { MatchValidationCollection } from './MatchValidationMessage';
 import { IQbjPhase, IYftFilePhase, Phase, PhaseTypes } from './Phase';
@@ -695,7 +695,10 @@ export default class FileParser {
 
     const qbjPlayerAnswerCount = baseObj as IQbjPlayerAnswerCount;
 
-    const answerType = this.getYfObjectFromId(qbjPlayerAnswerCount.answerType as IIndeterminateQbj, this.answerTypesById);
+    const answerType = this.getYfObjectFromId(
+      qbjPlayerAnswerCount.answerType as IIndeterminateQbj,
+      this.answerTypesById,
+    );
     if (!answerType) {
       throw new Error('Failed to associate a PlayerAnswerCount object with a valid AnswerType');
     }

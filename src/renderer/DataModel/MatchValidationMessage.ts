@@ -17,6 +17,8 @@ export enum MatchValidationType {
   PlayerHasTooManyBuzzes = 'PlayerHasTooManyBuzzes',
   MatchHasTooConvertedTU = 'MatchHasTooConvertedTU',
   TeamHasTooManyBuzzes = 'TeamHasTooManyBuzzes',
+  NegativeBonusPoints = 'NegativeBonusPoints',
+  BonusPointsTooHigh = 'BonusPointsTooHigh',
 }
 
 export interface IYftFileMatchValidationMsg {
