@@ -11,11 +11,10 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Box from '@mui/material/Box';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import NavBar from './Components/NavBar';
 import GeneralPage from './Components/GeneralPage';
 import { TournamentManager, TournamentContext } from './TournamentManager';
-import ApplicationPages from './Components/Enums';
 import RulesPage from './Components/RulesPage';
 import SchedulePage from './Components/SchedulePage';
 import TeamsPage from './Components/TeamsPage';
@@ -23,6 +22,8 @@ import TeamEditDialog from './Components/TeamEditDialog';
 import GenericDialog from './Components/GenericDialog';
 import GamesPage from './Components/GamesPage';
 import MatchEditDialog from './Components/MatchEditDialog';
+import StatReportPage from './Components/StatReportPage';
+import { ApplicationPages } from './Enums';
 
 window.electron.ipcRenderer.removeAllListeners();
 const tournManager = new TournamentManager();
@@ -61,11 +62,19 @@ function YellowFruit() {
 
 /** The actual UI of the application */
 function TournamentEditor() {
+  const mgr = useContext(TournamentContext);
   const [activePage, setactivePage] = useState(ApplicationPages.General);
+
+  const changePage = (page: ApplicationPages) => {
+    if (page === ApplicationPages.StatReport) {
+      mgr.generateInAppStatReport();
+    }
+    setactivePage(page);
+  };
 
   return (
     <>
-      <NavBar activePage={activePage} setActivePage={setactivePage} />
+      <NavBar activePage={activePage} setActivePage={changePage} />
       <Box sx={{ p: 3 }}>
         <ActivePage whichPage={activePage} />
       </Box>
@@ -94,6 +103,8 @@ function ActivePage(props: IActivePageProps) {
       return <TeamsPage />;
     case ApplicationPages.Games:
       return <GamesPage />;
+    case ApplicationPages.StatReport:
+      return <StatReportPage />;
     default:
       return null;
   }

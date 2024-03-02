@@ -106,7 +106,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   private idNumber: number;
 
   get id(): string {
-    return `Match__${this.idNumber}`;
+    return `Match_${this.idNumber}`;
   }
 
   constructor(leftTeam?: Team, rightTeam?: Team, answerTypes?: AnswerType[]) {

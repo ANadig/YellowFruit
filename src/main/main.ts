@@ -10,9 +10,10 @@
  */
 import path from 'path';
 import fs from 'fs';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, protocol, net } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import { pathToFileURL } from 'url';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import {
@@ -23,6 +24,14 @@ import {
   inAppStatReportDirectory,
 } from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
+import { statReportProtocol } from '../SharedUtils';
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: statReportProtocol,
+    privileges: { standard: true, secure: true, supportFetchAPI: true },
+  },
+]);
 
 class AppUpdater {
   constructor() {
@@ -141,6 +150,13 @@ app
     ipcMain.on(IpcRendToMain.setWindowTitle, handleSetWindowTitle);
     ipcMain.on(IpcRendToMain.saveAsDialog, handleSaveAsRequest);
     ipcMain.on(IpcRendToMain.ShowInAppStatReport, handleShowInAppStatReport);
+
+    protocol.handle(statReportProtocol, (request) => {
+      const url = pathToFileURL(
+        path.resolve(inAppStatReportDirectory, request.url.replace(`${statReportProtocol}://`, '')),
+      );
+      return net.fetch(url.href);
+    });
 
     createWindow();
     app.on('activate', () => {

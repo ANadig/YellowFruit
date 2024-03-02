@@ -8,6 +8,8 @@ export enum IpcRendToMain {
   setWindowTitle = 'setWindowTitle',
   /** Send contents of the preview stat reports */
   ShowInAppStatReport = 'ShowInAppStatReport',
+  /** Retrieve the directory containing the in-app stat report */
+  GetAppDataStatReportPath = 'GetAppDataStatReportPath',
 }
 
 /** Channels for main sending messages to renderer */

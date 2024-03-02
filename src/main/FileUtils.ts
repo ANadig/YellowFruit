@@ -2,7 +2,7 @@ import path from 'path';
 import { app, BrowserWindow, IpcMainEvent, dialog } from 'electron';
 import fs from 'fs';
 import { IpcMainToRend } from '../IPCChannels';
-import { IStatReportContents, StatReportFileNames } from '../SharedUtils';
+import { StatReportHtmlPage } from '../SharedUtils';
 
 export function showInAppStatReport(mainWindow: BrowserWindow) {
   mainWindow.webContents.send(IpcMainToRend.GenerateInAppStatReport);
@@ -72,14 +72,14 @@ export function handleSetWindowTitle(event: IpcMainEvent, title: string) {
 
 export const inAppStatReportDirectory = path.resolve(app.getPath('userData'), 'StatReport');
 
-export function handleShowInAppStatReport(event: IpcMainEvent, reports: IStatReportContents) {
+export function handleShowInAppStatReport(event: IpcMainEvent, reports: StatReportHtmlPage[]) {
   const window = BrowserWindow.fromWebContents(event.sender);
   if (!window) return;
 
-  const standingsPath = path.resolve(inAppStatReportDirectory, StatReportFileNames.standings);
-  fs.writeFile(standingsPath, reports.standings, { encoding: 'utf8' }, (err) => {
-    if (err) {
-      dialog.showMessageBoxSync(window, { message: `Error generating report: \n\n ${err.message}` });
-    }
-  });
+  for (const page of reports) {
+    const pagePath = path.resolve(inAppStatReportDirectory, page.fileName);
+    fs.writeFile(pagePath, page.contents, { encoding: 'utf8' }, (err) => {
+      if (err) dialog.showMessageBoxSync(window, { message: `Error generating report: \n\n ${err.message}` });
+    });
+  }
 }

@@ -1,5 +1,5 @@
 import { app, Menu, shell, BrowserWindow, MenuItemConstructorOptions } from 'electron';
-import { newYftFile, openYftFile, requestToSaveYftFile, showInAppStatReport, yftSaveAs } from './FileUtils';
+import { newYftFile, openYftFile, requestToSaveYftFile, yftSaveAs } from './FileUtils';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -11,13 +11,6 @@ export default class MenuBuilder {
 
   /** Parts of the file menu common to MacOS and Windows */
   readonly subMenuFileCommonElements: MenuItemConstructorOptions[] = [
-    {
-      label: 'View HTML Report',
-      accelerator: 'Ctrl+I',
-      click: () => {
-        showInAppStatReport(this.mainWindow);
-      },
-    },
     {
       label: '&New Tournament',
       accelerator: 'Ctrl+N',

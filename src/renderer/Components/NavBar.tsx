@@ -9,7 +9,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
-import ApplicationPages from './Enums';
+import { ApplicationPages } from '../Enums';
 
 // Display names for the buttons
 const pageNames = {
@@ -18,6 +18,7 @@ const pageNames = {
   [ApplicationPages.Schedule]: 'Schedule',
   [ApplicationPages.Teams]: 'Teams',
   [ApplicationPages.Games]: 'Games',
+  [ApplicationPages.StatReport]: 'Stat Report',
 };
 // Which order the pages should be in
 const pages = [
@@ -26,6 +27,7 @@ const pages = [
   ApplicationPages.Schedule,
   ApplicationPages.Teams,
   ApplicationPages.Games,
+  ApplicationPages.StatReport,
 ];
 
 interface INavBarProps {

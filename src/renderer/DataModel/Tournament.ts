@@ -10,6 +10,7 @@ import { IQbjRanking, Ranking } from './Ranking';
 import Registration, { IQbjRegistration } from './Registration';
 import { CommonRuleSets, IQbjScoringRules, ScoringRules } from './ScoringRules';
 import StandardSchedule from './StandardSchedule';
+import { PhaseStandings } from './StatSummaries';
 import { Team } from './Team';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 
@@ -101,6 +102,8 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   trackDiv2: boolean = false;
 
+  stats: PhaseStandings[] = [];
+
   constructor(name?: string) {
     if (name) {
       this.name = name;
@@ -137,6 +140,16 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     const yftFileObj = { YfData: metadata, ...qbjObject };
 
     return yftFileObj;
+  }
+
+  compileStats() {
+    this.stats = [];
+    this.phases.forEach((p) => {
+      if (p.phaseType === PhaseTypes.Prelim || p.phaseType === PhaseTypes.Playoff) {
+        this.stats.push(new PhaseStandings(p));
+      }
+    });
+    this.stats.forEach((phaseSt) => phaseSt.compileStats());
   }
 
   /** Set the scoring rules for this tournament */

@@ -16,7 +16,9 @@ import { collectRefTargets } from './DataModel/QbjUtils2';
 import FileParser from './DataModel/FileParsing';
 import { TempMatchManager } from './Modal Managers/TempMatchManager';
 import { Match } from './DataModel/Match';
-import { IStatReportContents } from '../SharedUtils';
+import { generateStandingsPage } from './DataModel/HTMLReports';
+import { StatReportHtmlPage } from '../SharedUtils';
+import { StatReportFileNames, StatReportPages } from './Enums';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -206,8 +208,11 @@ export class TournamentManager {
     // this.makeToast('Data saved');
   }
 
-  private generateInAppStatReport() {
-    const reports: IStatReportContents = { standings: `hello world: ${this.tournament.name}` };
+  generateInAppStatReport() {
+    this.tournament.compileStats();
+    const reports: StatReportHtmlPage[] = [
+      { fileName: StatReportFileNames[StatReportPages.Standings], contents: generateStandingsPage(this.tournament) },
+    ];
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.ShowInAppStatReport, reports);
   }
 

@@ -2,6 +2,7 @@ export enum YfCssClasses {
   HotkeyUnderline = 'yf-hotkey-underline',
   DropTarget = 'drop-target',
   Draggable = 'yf-draggable',
+  StatReportIFrame = 'stat-report-iframe',
 }
 
 /** Turn a string with an ampersand into the string with the letter after the ampersand underlined.
