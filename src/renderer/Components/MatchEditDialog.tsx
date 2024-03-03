@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect, useMemo } from 'react';
+import { useContext, useState, useEffect, useMemo, forwardRef, useRef } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import {
   Dialog,
@@ -54,15 +54,20 @@ export default function MatchEditDialog() {
 function MatchEditDialogCore() {
   const tournManager = useContext(TournamentContext);
   const modalManager = useContext(MatchEditModalContext);
-
   const [isOpen] = useSubscription(modalManager.modalIsOpen);
+  const tuhTotFieldRef = useRef<HTMLElement>(null);
+  const acceptButtonRef = useRef<HTMLButtonElement>(null);
+  const saveAndNewButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleAccept = () => {
+    acceptButtonRef.current?.focus();
     tournManager.matchEditModalAttemptToSave();
   };
 
   const handleAcceptAndStay = () => {
+    saveAndNewButtonRef.current?.focus();
     tournManager.matchEditModalAttemptToSave(true);
+    tuhTotFieldRef.current?.focus();
   };
 
   const handleCancel = () => {
@@ -97,7 +102,7 @@ function MatchEditDialogCore() {
               </Grid>
               <Grid xs={1} />
               <Grid xs={5} sm={2}>
-                <TuhTotalField />
+                <TuhTotalField ref={tuhTotFieldRef} />
               </Grid>
               {/** second row */}
               <Grid xs={9} md={3} lg={4}>
@@ -144,10 +149,10 @@ function MatchEditDialogCore() {
             <Button variant="outlined" onClick={handleCancel}>
               {hotkeyFormat('&Cancel')}
             </Button>
-            <Button variant="outlined" onClick={handleAcceptAndStay}>
+            <Button variant="outlined" onClick={handleAcceptAndStay} ref={saveAndNewButtonRef}>
               {hotkeyFormat('&Save {AMP} New')}
             </Button>
-            <Button variant="outlined" onClick={handleAccept}>
+            <Button variant="outlined" onClick={handleAccept} ref={acceptButtonRef}>
               {hotkeyFormat('&Accept')}
             </Button>
           </Box>
@@ -240,7 +245,7 @@ function CarryoverPhaseSelect() {
   );
 }
 
-function TuhTotalField() {
+const TuhTotalField = forwardRef((props: {}, ref) => {
   const modalManager = useContext(MatchEditModalContext);
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
@@ -257,6 +262,7 @@ function TuhTotalField() {
 
   return (
     <TextField
+      inputRef={ref}
       type="number"
       inputProps={{ min: 1 }}
       label="TU Heard (incl. OT)"
@@ -275,7 +281,7 @@ function TuhTotalField() {
       }}
     />
   );
-}
+});
 
 interface ITeamSelectProps {
   whichTeam: LeftOrRight;
