@@ -30,7 +30,7 @@ export class PhaseStandings {
     }
     for (const pool of this.pools) {
       pool.sortTeams();
-      pool.rankSortedTeams();
+      pool.rankSortedTeams(true);
       if (!this.anyTiesExist && pool.getAnyTiesExist()) {
         this.anyTiesExist = true;
       }
@@ -80,21 +80,58 @@ export class PoolStats {
     });
   }
 
-  /** Assuming teams are sorted already, give them ranks */
+  /** Assuming teams are sorted already, determine their ranks and the tiers they would advance to */
   rankSortedTeams(sameRecordTies: boolean = false, startingRank: number = 1) {
-    let lastWinPct = 2;
+    let prevWinPct = 2;
     let teamsSoFar = 0;
     let prevRank = startingRank - 1;
+    let prevTeam;
     for (const oneTeam of this.poolTeams) {
       teamsSoFar++;
       const thisWinPct = oneTeam.getWinPct();
-      if (sameRecordTies && thisWinPct === lastWinPct) {
-        oneTeam.rank = `${prevRank.toString()}=`;
+      if (sameRecordTies && thisWinPct === prevWinPct) {
+        const tiedRank = `${prevRank.toString()}=`;
+        oneTeam.rank = tiedRank;
+        if (prevTeam) prevTeam.rank = tiedRank;
       } else {
         oneTeam.rank = teamsSoFar.toString();
         prevRank = teamsSoFar;
       }
-      lastWinPct = thisWinPct;
+      // caller is responsible for revising tier assignments if ties should be broken at the buzzer.
+      oneTeam.advanceToTier = this.pool.getTierThatRankAdvancesTo(teamsSoFar);
+      prevWinPct = thisWinPct;
+      prevTeam = oneTeam;
+    }
+
+    if (sameRecordTies) this.advancementTiersHandleTies();
+  }
+
+  /** Assuming teams have been assigned provisional tiers, remove them if we'd actually want to play a tiebreaker to figure this out */
+  advancementTiersHandleTies() {
+    let prevTeam = this.poolTeams[0];
+    for (let i = 1; i < this.poolTeams.length; i++) {
+      const oneTeam = this.poolTeams[i];
+      if (!prevTeam) {
+        prevTeam = oneTeam;
+        continue;
+      }
+      if (oneTeam.needsTiebreakerWith(prevTeam)) {
+        oneTeam.advancementIsAmbiguous = true;
+      }
+      prevTeam = oneTeam;
+    }
+    // now do it again going backwards to catch the rest
+    prevTeam = this.poolTeams[this.poolTeams.length - 1];
+    for (let i = this.poolTeams.length - 2; i >= 0; i--) {
+      const oneTeam = this.poolTeams[i];
+      if (!prevTeam) {
+        prevTeam = oneTeam;
+        continue;
+      }
+      if (oneTeam.needsTiebreakerWith(prevTeam)) {
+        oneTeam.advancementIsAmbiguous = true;
+      }
+      prevTeam = oneTeam;
     }
   }
 
@@ -117,6 +154,10 @@ export class PoolTeamStats {
   team: Team;
 
   rank: string = '';
+
+  advanceToTier?: number;
+
+  advancementIsAmbiguous: boolean = false;
 
   wins: number = 0;
 
@@ -161,6 +202,12 @@ export class PoolTeamStats {
   /** PPB. Is NaN if bonuses heard is zero! */
   getPtsPerBonus() {
     return this.bonusPoints / this.bonusesHeard;
+  }
+
+  /** Do we need a tiebreaker with this team to determine where they advance to? */
+  needsTiebreakerWith(other: PoolTeamStats) {
+    if (this.rank !== other.rank) return false;
+    return this.advanceToTier !== other.advanceToTier || other.advancementIsAmbiguous;
   }
 
   addMatchTeam(match: Match, whichTeam: LeftOrRight) {

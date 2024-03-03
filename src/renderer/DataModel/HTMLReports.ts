@@ -3,6 +3,8 @@ import { StatReportPages, StatReportPageOrder, StatReportFileNames } from '../En
 import { PoolStats, PoolTeamStats } from './StatSummaries';
 import Tournament from './Tournament';
 
+const mDashHtml = '&mdash;';
+
 export function generateStandingsPage(tournament: Tournament) {
   const title = 'Team Standings';
   const htmlHeader = getHtmlHeader(title);
@@ -58,6 +60,7 @@ function standingsHeader(tournament: Tournament, anyTiesExist: boolean) {
   );
   cells.push(tdTag({ bold: true, align: 'right' }, 'TUH'));
   cells.push(tdTag({ bold: true, align: 'right' }, 'PPB'));
+  cells.push(tdTag({ bold: true }, 'Advance'));
 
   return trTag(cells);
 }
@@ -78,12 +81,12 @@ function standingsRow(teamStats: PoolTeamStats, tournament: Tournament, anyTiesE
   if (anyTiesExist) cells.push(tdTag({ align: 'right' }, teamStats.ties.toString()));
 
   const pct = teamStats.getWinPct();
-  const pctStr = Number.isNaN(pct) ? '&mdash;' : pct.toFixed(3).toString();
+  const pctStr = Number.isNaN(pct) ? mDashHtml : pct.toFixed(3).toString();
   cells.push(tdTag({ align: 'right' }, pctStr));
 
   const ppgStr =
     teamStats.totalPoints === 0
-      ? '&mdash;'
+      ? mDashHtml
       : (teamStats.getPtsPerRegTuh() * tournament.scoringRules.regulationTossupCount).toFixed(1);
   cells.push(tdTag({ align: 'right' }, ppgStr));
 
@@ -94,10 +97,18 @@ function standingsRow(teamStats: PoolTeamStats, tournament: Tournament, anyTiesE
   cells.push(tdTag({ align: 'right' }, teamStats.tuhRegulation.toString()));
 
   const ppb = teamStats.getPtsPerBonus();
-  const ppbStr = Number.isNaN(ppb) ? '&mdash;' : ppb.toFixed(2);
+  const ppbStr = Number.isNaN(ppb) ? mDashHtml : ppb.toFixed(2);
   cells.push(tdTag({ align: 'right' }, ppbStr));
 
+  cells.push(tdTag({}, advancementTierDisplay(teamStats)));
+
   return trTag(cells);
+}
+
+function advancementTierDisplay(teamStats: PoolTeamStats) {
+  if (teamStats.advancementIsAmbiguous) return unicodeHTML('2754');
+  if (teamStats.advanceToTier === undefined) return mDashHtml;
+  return `Tier ${teamStats.advanceToTier}`;
 }
 
 const StatReportPageTitles = {
@@ -186,7 +197,7 @@ function makeAttribute(obj: any, attrName: string) {
 }
 
 function madeWithYellowFruit(yfVersion?: string) {
-  let html = '<span style="font-size:x-small">Made with YellowFruit &#x1F34C;</span>' + '\n'; // banana emoji
+  let html = `<span style="font-size:x-small">Made with YellowFruit ${unicodeHTML('1F34C')}</span>` + '\n'; // banana emoji
   if (yfVersion) {
     html += `<span style="font-size:x-small; color:white">&nbsp;${yfVersion}</span>` + `\n`;
   }
@@ -199,4 +210,8 @@ type CssRule = { attr: string; val: string };
 function cssSelector(selector: string, ...rules: CssRule[]) {
   const ruleStrings = rules.map((r) => `${r.attr}: ${r.val};`);
   return `${selector}{\n${ruleStrings.join('\n')}\n}`;
+}
+
+function unicodeHTML(codepoint: string) {
+  return `&#x${codepoint};`;
 }

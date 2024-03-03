@@ -158,6 +158,13 @@ export class Pool implements IQbjPool, IYftDataModelObject {
   includesTeam(team: Team) {
     return !!this.poolTeams.find((pt) => pt.team === team);
   }
+
+  /** Given a rank, which numbered tier does that rank advance to? */
+  getTierThatRankAdvancesTo(rank: number): number | undefined {
+    const aoWithRank = this.autoAdvanceRules.find((ao) => ao.ranksThatAdvance.includes(rank));
+    if (!aoWithRank) return undefined;
+    return aoWithRank.tier;
+  }
 }
 
 /**
