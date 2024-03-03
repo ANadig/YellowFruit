@@ -419,6 +419,7 @@ function PlayerGrid(props: IPlayerGridProps) {
           <PlayerRow matchPlayer={mp} />
         </Grid>
       ))}
+      {!matchTeam.team && <Box sx={{ py: 13 }} />}
     </Box>
   );
 }
@@ -542,9 +543,7 @@ function BonusDisplay(props: IBonusDisplayProps) {
   const [bonusPoints, bonusesHeard, ppb] = matchTeam.getBonusStats();
   const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
 
-  if (matchTeam.team === undefined) return null;
-
-  if (forfeit) {
+  if (matchTeam.team === undefined || forfeit) {
     return <span>&emsp;&nbsp;Bonuses:&emsp;&mdash; points&emsp;|&emsp;&mdash; heard&emsp;|&emsp;&mdash; ppb</span>;
   }
 
