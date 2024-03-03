@@ -167,7 +167,7 @@ export class PoolTeamStats {
     const matchTeam = match.getMatchTeam(whichTeam);
     const result = getResult(match, whichTeam);
     this.tuhTotal += match.tossupsRead || 0;
-    this.tuhRegulation += this.tuhTotal - match.overtimeTossupsRead;
+    this.tuhRegulation += (match.tossupsRead || 0) - (match.overtimeTossupsRead || 0);
     if (result === 'win') this.wins++;
     else if (result === 'loss') this.losses++;
     else if (result === 'tie') this.ties++;

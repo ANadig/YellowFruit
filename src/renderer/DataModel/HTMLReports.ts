@@ -53,8 +53,11 @@ function standingsHeader(tournament: Tournament, anyTiesExist: boolean) {
   if (anyTiesExist) cells.push(tdTag({ bold: true, align: 'right' }, 'T'));
   cells.push(tdTag({ bold: true, align: 'right' }, 'Pct'));
   cells.push(tdTag({ bold: true, align: 'right' }, `PP${tournament.scoringRules.regulationTossupCount}TUH`));
-  // TODO: tossup values
+  tournament.scoringRules.answerTypes.forEach((ansType) =>
+    cells.push(tdTag({ bold: true, align: 'right' }, ansType.value.toString())),
+  );
   cells.push(tdTag({ bold: true, align: 'right' }, 'TUH'));
+  cells.push(tdTag({ bold: true, align: 'right' }, 'PPB'));
 
   return trTag(cells);
 }
@@ -81,10 +84,18 @@ function standingsRow(teamStats: PoolTeamStats, tournament: Tournament, anyTiesE
   const ppgStr =
     teamStats.totalPoints === 0
       ? '&mdash;'
-      : (teamStats.totalPoints / (teamStats.tuhRegulation / tournament.scoringRules.regulationTossupCount)).toFixed(1);
+      : (teamStats.getPtsPerRegTuh() * tournament.scoringRules.regulationTossupCount).toFixed(1);
   cells.push(tdTag({ align: 'right' }, ppgStr));
 
+  tournament.scoringRules.answerTypes.forEach((at) => {
+    const answerCount = teamStats.tossupCounts.find((ac) => ac.answerType.value === at.value);
+    cells.push(tdTag({ align: 'right' }, answerCount?.number?.toString() || '0'));
+  });
   cells.push(tdTag({ align: 'right' }, teamStats.tuhRegulation.toString()));
+
+  const ppb = teamStats.getPtsPerBonus();
+  const ppbStr = Number.isNaN(ppb) ? '&mdash;' : ppb.toFixed(2);
+  cells.push(tdTag({ align: 'right' }, ppbStr));
 
   return trTag(cells);
 }
