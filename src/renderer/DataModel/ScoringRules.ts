@@ -71,29 +71,29 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
 
   readonly teamsPerMatch = 2; /** YF only supports 2-team matches */
 
-  static defaultMaximumPlayersPerTeam = 4;
+  static readonly defaultMaximumPlayersPerTeam = 4;
 
   maximumPlayersPerTeam: number = 4;
 
   /** The most players that YF will let you put on one team */
-  static maximumAllowedRosterSize: number = 30;
+  static readonly maximumAllowedRosterSize: number = 30;
 
   /** Timed rounds? If no, assume all rounds have the same number of TU in regulation */
   timed: boolean = false;
 
   /** Assume this many tossups unless overridden */
-  static defaultRegulationTossupCount = 20;
+  static readonly defaultRegulationTossupCount = 20;
 
   get regulationTossupCount(): number {
-    if (!this.timed) return this.maximumRegulationTossupCount;
-    return ScoringRules.defaultRegulationTossupCount; // in the future, maybe support setting this manually
+    if (this.timed) return ScoringRules.defaultRegulationTossupCount; // in the future, maybe support setting this manually
+    return this.maximumRegulationTossupCount;
   }
 
   maximumRegulationTossupCount: number = 20; // for untimed rounds, this is the only allowed regulation number for non-tiebreakers
 
   minimumOvertimeQuestionCount: number = 1;
 
-  static defaultNonSuddenDeathTuCount: number = 3;
+  static readonly defaultNonSuddenDeathTuCount: number = 3;
 
   overtimeIncludesBonuses = false;
 

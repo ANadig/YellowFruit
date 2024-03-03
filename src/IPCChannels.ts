@@ -23,8 +23,8 @@ export enum IpcMainToRend {
   saveAsCommand = 'saveAsYft',
   /** Start a blank tournament with no file */
   newTournament = 'newTournament',
-  /** Request that the stat reports be generated to show in the app */
-  GenerateInAppStatReport = 'GenerateInAppStatReport',
+  /** Report that the stat report has been successfully written to file */
+  GeneratedInAppStatReport = 'GeneratedInAppStatReport',
 }
 
 /** Channels for both directions renderer<-->main */
@@ -40,5 +40,5 @@ export const rendererListenableEvents = [
   IpcMainToRend.tournamentSavedSuccessfully,
   IpcMainToRend.saveAsCommand,
   IpcMainToRend.newTournament,
-  IpcMainToRend.GenerateInAppStatReport,
+  IpcMainToRend.GeneratedInAppStatReport,
 ];

@@ -15,6 +15,8 @@ export class PhaseStandings {
 
   pools: PoolStats[] = [];
 
+  anyTiesExist: boolean = false;
+
   constructor(phase: Phase) {
     this.phase = phase;
     this.pools = phase.pools.map((pool) => new PoolStats(pool));
@@ -28,6 +30,10 @@ export class PhaseStandings {
     }
     for (const pool of this.pools) {
       pool.sortTeams();
+      pool.rankSortedTeams();
+      if (!this.anyTiesExist && pool.getAnyTiesExist()) {
+        this.anyTiesExist = true;
+      }
     }
   }
 
@@ -48,36 +54,69 @@ export class PhaseStandings {
   }
 }
 
-class PoolStats {
+export class PoolStats {
+  pool: Pool;
+
   poolTeams: PoolTeamStats[] = [];
 
   constructor(pool: Pool) {
+    this.pool = pool;
     this.poolTeams = pool.poolTeams.map((pt) => new PoolTeamStats(pt.team));
   }
 
   sortTeams() {
     this.poolTeams.sort((a, b) => {
-      const aWinPct = a.getWinPct();
-      const bWinPct = b.getWinPct();
-      if (aWinPct !== bWinPct) return aWinPct - bWinPct;
+      let aWinPct = a.getWinPct();
+      let bWinPct = b.getWinPct();
+      if (Number.isNaN(aWinPct)) aWinPct = -1;
+      if (Number.isNaN(bWinPct)) bWinPct = -1;
+      if (aWinPct !== bWinPct) return bWinPct - aWinPct;
+
       let aPptuh = a.getPtsPerRegTuh();
       let bPptuh = b.getPtsPerRegTuh();
       if (Number.isNaN(aPptuh)) aPptuh = -9999999;
       if (Number.isNaN(bPptuh)) bPptuh = -9999999;
-      return aPptuh - bPptuh;
+      return bPptuh - aPptuh;
     });
+  }
+
+  /** Assuming teams are sorted already, give them ranks */
+  rankSortedTeams(sameRecordTies: boolean = false, startingRank: number = 1) {
+    let lastWinPct = 2;
+    let teamsSoFar = 0;
+    let prevRank = startingRank - 1;
+    for (const oneTeam of this.poolTeams) {
+      teamsSoFar++;
+      const thisWinPct = oneTeam.getWinPct();
+      if (sameRecordTies && thisWinPct === lastWinPct) {
+        oneTeam.rank = `${prevRank.toString()}=`;
+      } else {
+        oneTeam.rank = teamsSoFar.toString();
+        prevRank = teamsSoFar;
+      }
+      lastWinPct = thisWinPct;
+    }
   }
 
   /** Is this team in this pool? */
   findTeam(team: Team) {
     return this.poolTeams.find((pt) => pt.team === team);
   }
+
+  getAnyTiesExist() {
+    for (const pt of this.poolTeams) {
+      if (pt.ties > 0) return true;
+    }
+    return false;
+  }
 }
 
-class PoolTeamStats {
+export class PoolTeamStats {
   registration?: Registration;
 
   team: Team;
+
+  rank: string = '';
 
   wins: number = 0;
 

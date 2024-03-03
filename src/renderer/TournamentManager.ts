@@ -61,6 +61,9 @@ export class TournamentManager {
 
   matchBeingModified: Match | null = null;
 
+  /** When did we last update the stat report? */
+  inAppStatReportGenerated: Date;
+
   readonly isNull: boolean = false;
 
   constructor() {
@@ -72,6 +75,7 @@ export class TournamentManager {
     this.genericModalManager = new GenericModalManager();
     this.teamModalManager = new TempTeamManager();
     this.matchModalManager = new TempMatchManager();
+    this.inAppStatReportGenerated = new Date();
   }
 
   protected addIpcListeners() {
@@ -90,8 +94,8 @@ export class TournamentManager {
     window.electron.ipcRenderer.on(IpcMainToRend.saveAsCommand, (filePath) => {
       this.yftSaveAs(filePath as string);
     });
-    window.electron.ipcRenderer.on(IpcMainToRend.GenerateInAppStatReport, () => {
-      this.generateInAppStatReport();
+    window.electron.ipcRenderer.on(IpcMainToRend.GeneratedInAppStatReport, () => {
+      this.onFinishInAppStatReport();
     });
   }
 
@@ -214,6 +218,11 @@ export class TournamentManager {
       { fileName: StatReportFileNames[StatReportPages.Standings], contents: generateStandingsPage(this.tournament) },
     ];
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.ShowInAppStatReport, reports);
+  }
+
+  onFinishInAppStatReport() {
+    this.inAppStatReportGenerated = new Date();
+    this.onDataChanged(true);
   }
 
   // #region Functions for changing the data from the UI

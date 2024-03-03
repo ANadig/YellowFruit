@@ -4,10 +4,6 @@ import fs from 'fs';
 import { IpcMainToRend } from '../IPCChannels';
 import { StatReportHtmlPage } from '../SharedUtils';
 
-export function showInAppStatReport(mainWindow: BrowserWindow) {
-  mainWindow.webContents.send(IpcMainToRend.GenerateInAppStatReport);
-}
-
 export function newYftFile(mainWindow: BrowserWindow) {
   mainWindow.webContents.send(IpcMainToRend.newTournament);
 }
@@ -76,10 +72,23 @@ export function handleShowInAppStatReport(event: IpcMainEvent, reports: StatRepo
   const window = BrowserWindow.fromWebContents(event.sender);
   if (!window) return;
 
-  for (const page of reports) {
-    const pagePath = path.resolve(inAppStatReportDirectory, page.fileName);
-    fs.writeFile(pagePath, page.contents, { encoding: 'utf8' }, (err) => {
-      if (err) dialog.showMessageBoxSync(window, { message: `Error generating report: \n\n ${err.message}` });
-    });
-  }
+  writeInAppStatReportFile(reports, 0, window);
+}
+
+function writeInAppStatReportFile(reports: StatReportHtmlPage[], idx: number, window: BrowserWindow) {
+  const page = reports[idx];
+  if (!page) return;
+
+  const pagePath = path.resolve(inAppStatReportDirectory, page.fileName);
+  fs.writeFile(pagePath, page.contents, { encoding: 'utf8' }, (err) => {
+    if (err) {
+      dialog.showMessageBoxSync(window, { message: `Error generating report: \n\n ${err.message}` });
+      return;
+    }
+    if (idx < reports.length - 1) {
+      writeInAppStatReportFile(reports, idx + 1, window);
+    } else {
+      window.webContents.send(IpcMainToRend.GeneratedInAppStatReport);
+    }
+  });
 }
