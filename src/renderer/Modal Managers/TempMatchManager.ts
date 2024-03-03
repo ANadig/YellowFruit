@@ -279,6 +279,18 @@ export class TempMatchManager {
     this.dataChangedReactCallback();
   }
 
+  reorderMatchPlayers(whichTeam: LeftOrRight, nameOfPlayerDropped: string, playerDroppedOn: MatchPlayer) {
+    if (nameOfPlayerDropped === '') return;
+    const matchTeam = this.tempMatch.getMatchTeam(whichTeam);
+    const posToMove = matchTeam.matchPlayers.findIndex((mp) => mp.player.name === nameOfPlayerDropped);
+    const newPosition = matchTeam.matchPlayers.findIndex((mp) => mp === playerDroppedOn);
+    if (posToMove === newPosition || posToMove === -1 || newPosition === -1) return;
+
+    const [playerToMove] = matchTeam.matchPlayers.splice(posToMove, 1);
+    matchTeam.matchPlayers.splice(newPosition, 0, playerToMove);
+    this.dataChangedReactCallback();
+  }
+
   openErrorDialog(errs: string[]) {
     this.errorDialogIsOpen = true;
     this.errorDialogContents = errs;
