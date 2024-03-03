@@ -79,7 +79,7 @@ function MatchEditDialogCore() {
           <Box
             fontSize={14}
             sx={{
-              height: 400,
+              height: 475,
               '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
             }}
           >
@@ -506,7 +506,8 @@ function BonusDisplay(props: IBonusDisplayProps) {
 
   return (
     <span>
-      &emsp;Bonuses:&emsp;{`${bonusPoints} points`}&emsp;|&emsp;{`${bonusesHeard} heard`}&emsp;|&emsp;{`${ppb} ppb`}
+      &emsp;&nbsp;Bonuses:&emsp;{`${bonusPoints} points`}&emsp;|&emsp;{`${bonusesHeard} heard`}&emsp;|&emsp;
+      {`${ppb} ppb`}
     </span>
   );
 }

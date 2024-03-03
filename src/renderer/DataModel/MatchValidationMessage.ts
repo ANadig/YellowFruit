@@ -19,6 +19,7 @@ export enum MatchValidationType {
   TeamHasTooManyBuzzes = 'TeamHasTooManyBuzzes',
   NegativeBonusPoints = 'NegativeBonusPoints',
   BonusPointsTooHigh = 'BonusPointsTooHigh',
+  BonusDivisorMismatch = 'BonusDivisorMismatch',
 }
 
 export interface IYftFileMatchValidationMsg {

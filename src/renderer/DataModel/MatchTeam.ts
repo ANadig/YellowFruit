@@ -254,11 +254,21 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     if ((bonusPoints > 0 && bonusesHeard === 0) || ppb > maxPpb) {
       this.addValidationMessage(
         MatchValidationType.BonusPointsTooHigh,
-        ValidationStatuses.Error,
+        bonusesHeard > 0 ? ValidationStatuses.Error : ValidationStatuses.HiddenError,
         `Points per bonus exceeds the maximum of ${maxPpb}`,
       );
     } else {
       this.clearValidationMessage(MatchValidationType.BonusPointsTooHigh);
+    }
+
+    if (bonusPoints % scoringRules.bonusDivisor !== 0 && bonusesHeard > 0 && ppb <= maxPpb) {
+      this.addValidationMessage(
+        MatchValidationType.BonusDivisorMismatch,
+        ValidationStatuses.Warning,
+        `Bonus points are not divisible by ${scoringRules.bonusDivisor}`,
+      );
+    } else {
+      this.clearValidationMessage(MatchValidationType.BonusDivisorMismatch);
     }
   }
 
