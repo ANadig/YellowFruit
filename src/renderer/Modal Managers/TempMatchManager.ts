@@ -98,7 +98,7 @@ export class TempMatchManager {
 
   /** Clear the form and leave it open so another match can be entered */
   resetForNewMatch() {
-    this.openModal();
+    this.openModal(undefined, this.round);
   }
 
   /** Returns true if we can save the data */
