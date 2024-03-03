@@ -103,6 +103,10 @@ export class TempMatchManager {
 
   /** Returns true if we can save the data */
   preSaveValidation() {
+    if (this.tempMatch.isForfeit()) {
+      this.tempMatch.leftTeam.matchPlayers = [];
+      this.tempMatch.rightTeam.matchPlayers = [];
+    }
     this.tempMatch.validateAll(this.tournament.scoringRules);
     this.validateTeamPools(false);
     let errors: string[] = [];
@@ -258,6 +262,16 @@ export class TempMatchManager {
     this.tempMatch.validateTotalBuzzes();
     this.dataChangedReactCallback();
     return valToSave;
+  }
+
+  setForfeit(whichTeam: LeftOrRight, isForfeit: boolean) {
+    this.tempMatch.setForfeit(whichTeam, isForfeit);
+    this.tempMatch.leftTeam.points = undefined;
+    this.tempMatch.rightTeam.points = undefined;
+    this.tempMatch.tossupsRead = undefined;
+    this.tempMatch.validateForfeit();
+    this.tempMatch.validateTotalTuh(this.tournament.scoringRules);
+    this.dataChangedReactCallback();
   }
 
   suppressValidationMessage(type: MatchValidationType) {

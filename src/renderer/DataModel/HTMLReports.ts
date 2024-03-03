@@ -81,7 +81,7 @@ function standingsRow(teamStats: PoolTeamStats, tournament: Tournament, anyTiesE
   const ppgStr =
     teamStats.totalPoints === 0
       ? '&mdash;'
-      : (teamStats.totalPoints / (teamStats.tuhRegulation / tournament.scoringRules.regulationTossupCount)).toFixed(2);
+      : (teamStats.totalPoints / (teamStats.tuhRegulation / tournament.scoringRules.regulationTossupCount)).toFixed(1);
   cells.push(tdTag({ align: 'right' }, ppgStr));
 
   cells.push(tdTag({ align: 'right' }, teamStats.tuhRegulation.toString()));

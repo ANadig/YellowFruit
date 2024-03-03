@@ -213,6 +213,10 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     this.validateBonusPoints(scoringRules);
   }
 
+  clearValidation() {
+    this.modalBottomValidation = new MatchValidationCollection();
+  }
+
   validateTotalPoints() {
     if (this.points === undefined) {
       this.addValidationMessage(

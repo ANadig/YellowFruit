@@ -20,6 +20,7 @@ export enum MatchValidationType {
   NegativeBonusPoints = 'NegativeBonusPoints',
   BonusPointsTooHigh = 'BonusPointsTooHigh',
   BonusDivisorMismatch = 'BonusDivisorMismatch',
+  DoubleForfeit = 'DoubleForfeit',
 }
 
 export interface IYftFileMatchValidationMsg {

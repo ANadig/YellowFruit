@@ -1,7 +1,7 @@
 /** Data structures that hold compiled stats to be used stat reports */
 
 import { LeftOrRight } from '../Utils/UtilTypes';
-import { Match } from './Match';
+import { Match, otherTeam } from './Match';
 import { Phase } from './Phase';
 import { PlayerAnswerCount } from './PlayerAnswerCount';
 import { Pool } from './Pool';
@@ -172,6 +172,8 @@ export class PoolTeamStats {
     else if (result === 'loss') this.losses++;
     else if (result === 'tie') this.ties++;
 
+    if (match.isForfeit()) return;
+
     this.totalPoints += matchTeam.points || 0;
     this.bonusPoints += matchTeam.getBonusPoints();
     this.bonusesHeard += matchTeam.getBonusesHeard();
@@ -198,10 +200,6 @@ export class PoolTeamStats {
       tc.number += answerCount.number || 0;
     }
   }
-}
-
-function otherTeam(whichTeam: LeftOrRight): LeftOrRight {
-  return whichTeam === 'left' ? 'right' : 'left';
 }
 
 /** Did this team win, lose, tie, or none of those (if double forfeit or invalid data) */

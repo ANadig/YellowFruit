@@ -19,6 +19,7 @@ import {
   Alert,
   AlertColor,
   Autocomplete,
+  FormControlLabel,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { DragIndicator } from '@mui/icons-material';
@@ -31,6 +32,7 @@ import { LeftOrRight } from '../Utils/UtilTypes';
 import { MatchPlayer } from '../DataModel/MatchPlayer';
 import { PlayerAnswerCount } from '../DataModel/PlayerAnswerCount';
 import MatchValidationMessage from '../DataModel/MatchValidationMessage';
+import { otherTeam } from '../DataModel/Match';
 
 export default function MatchEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -119,11 +121,17 @@ function MatchEditDialogCore() {
                 <PlayerGrid whichTeam="right" />
               </Grid>
               {/** fourth row */}
-              <Grid xs={6}>
+              <Grid xs={6} md={5}>
                 <BonusDisplay whichTeam="left" />
               </Grid>
-              <Grid xs={6}>
+              <Grid xs={6} md={1}>
+                <ForfeitControl whichTeam="left" />
+              </Grid>
+              <Grid xs={6} md={5}>
                 <BonusDisplay whichTeam="right" />
+              </Grid>
+              <Grid xs={6} md={1}>
+                <ForfeitControl whichTeam="right" />
               </Grid>
             </Grid>
           </Box>
@@ -240,6 +248,7 @@ function TuhTotalField() {
   const [tuh, setTuh] = useSubscription(thisMatch.tossupsRead?.toString() || '');
   const [valStatus] = useSubscription(thisMatch.totalTuhFieldValidation.status);
   const [valMsg] = useSubscription(thisMatch.totalTuhFieldValidation.message);
+  const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
 
   const handleBlur = () => {
     const valToUse = modalManager.setTotalTuh(tuh);
@@ -255,6 +264,7 @@ function TuhTotalField() {
       variant="outlined"
       size="small"
       autoFocus={thisTournament.scoringRules.timed}
+      disabled={forfeit}
       error={valStatus === ValidationStatuses.Error}
       helperText={valMsg || ' '}
       value={tuh}
@@ -332,6 +342,7 @@ function TeamScoreField(props: ITeamScoreProps) {
   const [pts, setPts] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam).points?.toString() || '');
   const [valStatus] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam).totalScoreFieldValidation.status);
   const [valMsg] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam).totalScoreFieldValidation.message);
+  const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const divisor = useMemo(() => thisTournament.scoringRules.totalDivisor, [modalManager.modalIsOpen]);
 
@@ -348,6 +359,7 @@ function TeamScoreField(props: ITeamScoreProps) {
       fullWidth
       variant="outlined"
       size="small"
+      disabled={forfeit}
       error={valStatus === ValidationStatuses.Error}
       helperText={valMsg || ' '}
       value={pts}
@@ -370,6 +382,15 @@ function PlayerGrid(props: IPlayerGridProps) {
   const thisTournament = tournManager.tournament;
   const modalManager = useContext(MatchEditModalContext);
   const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
+  const [thisTeamForfeit] = useSubscription(matchTeam.forfeitLoss);
+  const [otherTeamForfeit] = useSubscription(modalManager.tempMatch.getMatchTeam(otherTeam(whichTeam)).forfeitLoss);
+
+  if (thisTeamForfeit || otherTeamForfeit) {
+    let text = 'Forfeit';
+    if (thisTeamForfeit && !otherTeamForfeit) text = 'Loses by forfeit';
+    else if (!thisTeamForfeit && otherTeamForfeit) text = 'Wins by forfeit';
+    return <ForfeitBox text={text} />;
+  }
 
   return (
     <Box sx={{ '& .MuiGrid2-container': { my: 2 } }}>
@@ -399,6 +420,24 @@ function PlayerGrid(props: IPlayerGridProps) {
         </Grid>
       ))}
     </Box>
+  );
+}
+
+interface IForfeitBoxProps {
+  text: string;
+}
+
+function ForfeitBox(props: IForfeitBoxProps) {
+  const { text } = props;
+
+  return (
+    <Grid container>
+      <Grid xs />
+      <Grid xs="auto">
+        <Box sx={{ py: 13 }}>{text}</Box>
+      </Grid>
+      <Grid xs />
+    </Grid>
   );
 }
 
@@ -501,8 +540,13 @@ function BonusDisplay(props: IBonusDisplayProps) {
   const modalManager = useContext(MatchEditModalContext);
   const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
   const [bonusPoints, bonusesHeard, ppb] = matchTeam.getBonusStats();
+  const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
 
   if (matchTeam.team === undefined) return null;
+
+  if (forfeit) {
+    return <span>&emsp;&nbsp;Bonuses:&emsp;&mdash; points&emsp;|&emsp;&mdash; heard&emsp;|&emsp;&mdash; ppb</span>;
+  }
 
   return (
     <span>
@@ -512,10 +556,38 @@ function BonusDisplay(props: IBonusDisplayProps) {
   );
 }
 
+interface IForfeitControlProps {
+  whichTeam: LeftOrRight;
+}
+
+function ForfeitControl(props: IForfeitControlProps) {
+  const { whichTeam } = props;
+  const modalManager = useContext(MatchEditModalContext);
+  const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
+  const [isForfeit, setIsForfeit] = useSubscription(matchTeam.forfeitLoss);
+
+  const handleChange = (checked: boolean) => {
+    setIsForfeit(checked);
+    modalManager.setForfeit(whichTeam, checked);
+  };
+
+  if (!matchTeam.team) return null;
+
+  return (
+    <Box sx={{ '& .MuiTypography-root': { fontSize: '14px' }, '& .MuiCheckbox-root': { py: 0 } }}>
+      <FormControlLabel
+        label="Forfeit"
+        control={<Checkbox size="small" checked={isForfeit} onChange={(e) => handleChange(e.target.checked)} />}
+      />
+    </Box>
+  );
+}
+
 function ValidationSection() {
   const modalManager = useContext(MatchEditModalContext);
   const thisMatch = modalManager.tempMatch;
   const [validators] = useSubscription(thisMatch.modalBottomValidation.validators);
+  const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
 
   const leftTeamValidators = thisMatch.leftTeam.allValidators.filter((v) => v.status !== ValidationStatuses.Ok);
   const rightTeamValidators = thisMatch.rightTeam.allValidators.filter((v) => v.status !== ValidationStatuses.Ok);
@@ -525,12 +597,8 @@ function ValidationSection() {
       {validators.map((v) => (
         <ValidationMessage key={v.type} validator={v} />
       ))}
-      {leftTeamValidators.map((v) => (
-        <ValidationMessage key={v.message} validator={v} />
-      ))}
-      {rightTeamValidators.map((v) => (
-        <ValidationMessage key={v.message} validator={v} />
-      ))}
+      {!forfeit && leftTeamValidators.map((v) => <ValidationMessage key={v.message} validator={v} />)}
+      {!forfeit && rightTeamValidators.map((v) => <ValidationMessage key={v.message} validator={v} />)}
     </>
   );
 }

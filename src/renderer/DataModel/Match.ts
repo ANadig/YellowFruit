@@ -173,6 +173,17 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     if (!this.leftTeam.team || !this.rightTeam.team) {
       return 'Incomplete game';
     }
+    const leftForfeit = this.leftTeam.forfeitLoss;
+    const rightForfeit = this.rightTeam.forfeitLoss;
+    if (leftForfeit && rightForfeit) {
+      return `${this.leftTeam.team.name} vs. ${this.rightTeam.team.name} - Not played`;
+    }
+    if (leftForfeit || rightForfeit) {
+      const winner = rightForfeit ? this.leftTeam.team.name : this.rightTeam.team.name;
+      const loser = rightForfeit ? this.rightTeam.team.name : this.leftTeam.team.name;
+      return `${winner} defeats ${loser} by forfeit`;
+    }
+
     const leftPts = this.leftTeam.points;
     const rightPts = this.rightTeam.points;
     if (leftPts === undefined || rightPts === undefined) {
@@ -227,6 +238,15 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     mt.points = points;
   }
 
+  setForfeit(whichTeam: LeftOrRight, isForfeit: boolean) {
+    const mt = this.getMatchTeam(whichTeam);
+    mt.forfeitLoss = isForfeit;
+  }
+
+  isForfeit() {
+    return this.leftTeam.forfeitLoss || this.rightTeam.forfeitLoss;
+  }
+
   getErrorMessages(ignoreHidden: boolean = false): string[] {
     let errs: string[] = [];
     if (this.totalTuhFieldValidation.status === ValidationStatuses.Error) {
@@ -244,9 +264,14 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.validateMatchTeams(scoringRules);
     this.validateTotalBuzzes();
     this.validateAllMatchPlayersTuh(scoringRules);
+    this.validateForfeit();
   }
 
   validateTotalTuh(scoringRules: ScoringRules) {
+    if (this.isForfeit()) {
+      this.totalTuhFieldValidation.setOk();
+      return;
+    }
     if (this.tossupsRead === undefined) {
       this.totalTuhFieldValidation.setError('Field is required');
       return;
@@ -310,6 +335,11 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
   /** Validate the team-level stats for both teams */
   validateMatchTeams(scoringRules: ScoringRules) {
+    if (this.isForfeit()) {
+      this.leftTeam.clearValidation();
+      this.rightTeam.clearValidation();
+      return;
+    }
     this.leftTeam.validateAll(scoringRules);
     this.rightTeam.validateAll(scoringRules);
 
@@ -327,6 +357,12 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
   /** Validate stats for each individual player */
   validateAllMatchPlayersTuh(scoringRules: ScoringRules) {
+    if (this.isForfeit()) {
+      this.leftTeam.clearValidationMessage(MatchValidationType.NoTossupsHeard);
+      this.rightTeam.clearValidationMessage(MatchValidationType.NoTossupsHeard);
+      return;
+    }
+
     this.leftTeam.matchPlayers.forEach((mp) => this.validatePlayerTuh(mp));
     this.rightTeam.matchPlayers.forEach((mp) => this.validatePlayerTuh(mp));
 
@@ -409,6 +445,18 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     }
   }
 
+  validateForfeit() {
+    if (this.leftTeam.forfeitLoss && this.rightTeam.forfeitLoss) {
+      this.modalBottomValidation.addValidationMsg(
+        MatchValidationType.DoubleForfeit,
+        ValidationStatuses.Info,
+        'This game will be recorded as "not played" and won\'t count as a win, loss, or tie for either team',
+      );
+    } else {
+      this.modalBottomValidation.clearMsgType(MatchValidationType.DoubleForfeit);
+    }
+  }
+
   suppressMessageType(type: MatchValidationType) {
     this.modalBottomValidation.suppressMessageType(type);
   }
@@ -416,4 +464,8 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   unSuppressMessageType(type: MatchValidationType) {
     this.modalBottomValidation.unSuppressMessageType(type);
   }
+}
+
+export function otherTeam(whichTeam: LeftOrRight): LeftOrRight {
+  return whichTeam === 'left' ? 'right' : 'left';
 }
