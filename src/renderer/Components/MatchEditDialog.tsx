@@ -86,7 +86,7 @@ function MatchEditDialogCore() {
           <Box
             fontSize={14}
             sx={{
-              height: 475,
+              minHeight: 475,
               '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
             }}
           >
