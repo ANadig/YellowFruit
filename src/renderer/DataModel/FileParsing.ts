@@ -596,7 +596,10 @@ export default class FileParser {
     const yfExtraData = (baseObj as IYftFileMatch).YfData;
 
     const yfMatch = new Match();
-    yfMatch.tossupsRead = qbjMatch.tossupsRead || this.tourn.scoringRules.regulationTossupCount;
+    yfMatch.tossupsRead = qbjMatch.tossupsRead;
+    if (yfMatch.tossupsRead === undefined && !this.tourn.scoringRules.timed) {
+      yfMatch.tossupsRead = this.tourn.scoringRules.regulationTossupCount;
+    }
     yfMatch.coPhaseQbjIds = this.parseMatchCarryoverPhasesStart(qbjMatch.carryoverPhases as IIndeterminateQbj[]);
     yfMatch.overtimeTossupsRead = qbjMatch.overtimeTossupsRead || 0;
     yfMatch.tiebreaker = qbjMatch.tiebreaker || false;
@@ -611,6 +614,8 @@ export default class FileParser {
     const [leftTeam, rightTeam] = this.parseMatchMatchTeams(qbjMatch.matchTeams as IIndeterminateQbj[]);
     yfMatch.leftTeam = leftTeam;
     yfMatch.rightTeam = rightTeam;
+
+    if (yfMatch.isForfeit()) yfMatch.tossupsRead = undefined;
 
     yfMatch.modalBottomValidation = new MatchValidationCollection();
     yfMatch.modalBottomValidation.addFromFileObjects(yfExtraData.otherValidation);
