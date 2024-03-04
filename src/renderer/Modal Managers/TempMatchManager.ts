@@ -266,9 +266,18 @@ export class TempMatchManager {
 
   setForfeit(whichTeam: LeftOrRight, isForfeit: boolean) {
     this.tempMatch.setForfeit(whichTeam, isForfeit);
-    this.tempMatch.leftTeam.points = undefined;
-    this.tempMatch.rightTeam.points = undefined;
-    this.tempMatch.tossupsRead = undefined;
+    if (isForfeit) {
+      this.tempMatch.leftTeam.points = undefined;
+      this.tempMatch.rightTeam.points = undefined;
+      this.tempMatch.tossupsRead = undefined;
+    } else {
+      if (this.tempMatch.leftTeam.matchPlayers.length === 0 && this.tempMatch.leftTeam.team) {
+        this.setTeam('left', this.tempMatch.leftTeam.team);
+      }
+      if (this.tempMatch.rightTeam.matchPlayers.length === 0 && this.tempMatch.rightTeam.team) {
+        this.setTeam('right', this.tempMatch.rightTeam.team);
+      }
+    }
     this.tempMatch.validateForfeit();
     this.tempMatch.validateTotalTuh(this.tournament.scoringRules);
     this.dataChangedReactCallback();
