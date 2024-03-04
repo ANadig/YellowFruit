@@ -23,7 +23,7 @@
   text-decoration: underline;
 }
 
-/* This is hacky but actually dynamically sizing the iframe is a headache due to cross-frame scripting guardrails */
+/* This is hacky, but actually dynamically sizing the iframe is a headache due to cross-frame scripting guardrails */
 .stat-report-iframe {
   height: 500px;
 }

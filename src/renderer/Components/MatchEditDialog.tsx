@@ -26,7 +26,7 @@ import { DragIndicator } from '@mui/icons-material';
 import { MatchEditModalContext } from '../Modal Managers/TempMatchManager';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import { hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { YfCssClasses, hotkeyFormat } from '../Utils/GeneralReactUtils';
 import { ValidationStatuses } from '../DataModel/Interfaces';
 import { LeftOrRight } from '../Utils/UtilTypes';
 import { MatchPlayer } from '../DataModel/MatchPlayer';
@@ -487,7 +487,12 @@ function PlayerRow(props: IPlayerRowProps) {
         }}
         onDragLeave={(e) => e.preventDefault()}
       >
-        <DragIndicator fontSize="small" color="action" sx={{ verticalAlign: 'text-bottom' }} />
+        <DragIndicator
+          className={YfCssClasses.Draggable}
+          fontSize="small"
+          color="action"
+          sx={{ verticalAlign: 'text-bottom' }}
+        />
         {playerName}
       </Grid>
       <Grid xs={7}>
