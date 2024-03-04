@@ -195,6 +195,21 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return this.rounds.find((rd) => rd.number === roundNo);
   }
 
+  findMatchBetweenTeams(team1: Team, team2: Team) {
+    for (const round of this.rounds) {
+      const match = round.findMatchBetweenTeams(team1, team2);
+      if (match) return match;
+    }
+    return undefined;
+  }
+
+  getRoundNoOfMatch(match: Match) {
+    for (const round of this.rounds) {
+      if (round.matches.includes(match)) return round.number;
+    }
+    return undefined;
+  }
+
   addMatch(match: Match, roundNo: number) {
     const round = this.getRound(roundNo);
     if (!round) return;

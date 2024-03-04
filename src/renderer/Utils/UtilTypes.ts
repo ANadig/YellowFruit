@@ -5,6 +5,8 @@ import { Team } from '../DataModel/Team';
 
 export type LeftOrRight = 'left' | 'right';
 
+export type wlt = 'win' | 'loss' | 'tie';
+
 /** Dummy object representing a lack of a date */
 export class NullDate extends Date {
   static nullStr = 'Yft Null Date';

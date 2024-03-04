@@ -22,6 +22,7 @@ import YfCard from './YfCard';
 import { Match } from '../DataModel/Match';
 import { Phase } from '../DataModel/Phase';
 import { Round } from '../DataModel/Round';
+import GamesViewByPool from './GamesPagePoolView';
 
 // Defines the order the buttons should be in
 const viewList = ['By Round', 'By Pool'];
@@ -53,7 +54,7 @@ export default function GamesPage() {
         </CardContent>
       </Card>
       {curView === 0 && <GamesViewByRound />}
-      {curView === 1 && <span>1</span>}
+      {curView === 1 && <GamesViewByPool />}
     </>
   );
 }

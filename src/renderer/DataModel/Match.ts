@@ -16,7 +16,7 @@ import MatchValidationMessage, {
   MatchValidationType,
 } from './MatchValidationMessage';
 // eslint-disable-next-line import/no-cycle
-import { LeftOrRight } from '../Utils/UtilTypes';
+import { LeftOrRight, wlt } from '../Utils/UtilTypes';
 import AnswerType from './AnswerType';
 import { ScoringRules } from './ScoringRules';
 import { MatchPlayer } from './MatchPlayer';
@@ -221,6 +221,20 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     }
   }
 
+  /** Given a number of tossups heard, fill in that number for the first x players of each team,
+   *  according to tournament settings, as long as no player has a tossups heard value yet.
+   */
+  fillInTossupsHeard(numPlayers: number, tossupsHeard: number) {
+    for (const mt of [this.leftTeam, this.rightTeam]) {
+      if (!mt.matchPlayers.find((mp) => mp.tossupsHeard !== undefined)) {
+        for (let i = 0; i < numPlayers; i++) {
+          if (i >= mt.matchPlayers.length) break;
+          mt.matchPlayers[i].tossupsHeard = tossupsHeard;
+        }
+      }
+    }
+  }
+
   clearTeam(whichTeam: LeftOrRight) {
     if (whichTeam === 'left') this.leftTeam = new MatchTeam();
     else {
@@ -231,6 +245,11 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   getMatchTeam(whichTeam: LeftOrRight) {
     if (whichTeam === 'left') return this.leftTeam;
     return this.rightTeam;
+  }
+
+  getOpponent(whichTeam: LeftOrRight) {
+    if (whichTeam === 'left') return this.rightTeam;
+    return this.leftTeam;
   }
 
   setTeamScore(whichTeam: LeftOrRight, points: number | undefined) {
@@ -245,6 +264,44 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
   isForfeit() {
     return this.leftTeam.forfeitLoss || this.rightTeam.forfeitLoss;
+  }
+
+  /** The score in a format like "W 355-200", from the perspective of the team pass as the parameter */
+  getShortScore(team: Team) {
+    let whichTeam: LeftOrRight | null = null;
+    if (this.leftTeam.team === team) {
+      whichTeam = 'left';
+    }
+    if (this.rightTeam.team === team) {
+      whichTeam = 'right';
+    }
+    if (!whichTeam) return '';
+    const thisTeam = this.getMatchTeam(whichTeam);
+    const opponent = this.getOpponent(whichTeam);
+    if (thisTeam.forfeitLoss && opponent.forfeitLoss) return 'Not played';
+    if (thisTeam.forfeitLoss) return 'L (forfeit)';
+    if (opponent.forfeitLoss) return 'W (forfeit)';
+    const pts = thisTeam.points;
+    const oppPts = opponent.points;
+    if (pts === undefined || oppPts === undefined) return '';
+    if (pts > oppPts) return `W ${pts}-${oppPts}`;
+    if (pts < oppPts) return `L ${oppPts}-${pts}`;
+    return `T ${pts}-${oppPts}`;
+  }
+
+  /** Did this team win, lose, tie, or none of those (if double forfeit or invalid data) */
+  getResult(whichTeam: LeftOrRight): wlt | null {
+    const matchTeam = this.getMatchTeam(whichTeam);
+    const otherMatchTeam = this.getOpponent(whichTeam);
+    if (matchTeam.forfeitLoss && !otherMatchTeam.forfeitLoss) return 'loss';
+    if (otherMatchTeam.forfeitLoss && !matchTeam.forfeitLoss) return 'win';
+    if (matchTeam.forfeitLoss && otherMatchTeam.forfeitLoss) return null;
+
+    if (matchTeam.points === undefined || otherMatchTeam.points === undefined) return null;
+
+    if (matchTeam.points > otherMatchTeam.points) return 'win';
+    if (matchTeam.points < otherMatchTeam.points) return 'loss';
+    return 'tie';
   }
 
   getErrorMessages(ignoreHidden: boolean = false): string[] {

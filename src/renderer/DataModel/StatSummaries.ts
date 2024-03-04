@@ -1,14 +1,12 @@
 /** Data structures that hold compiled stats to be used stat reports */
 
 import { LeftOrRight } from '../Utils/UtilTypes';
-import { Match, otherTeam } from './Match';
+import { Match } from './Match';
 import { Phase } from './Phase';
 import { PlayerAnswerCount } from './PlayerAnswerCount';
 import { Pool } from './Pool';
 import Registration from './Registration';
 import { Team } from './Team';
-
-export type wlt = 'win' | 'loss' | 'tie';
 
 export class PhaseStandings {
   phase: Phase;
@@ -211,16 +209,16 @@ export class PoolTeamStats {
   }
 
   addMatchTeam(match: Match, whichTeam: LeftOrRight) {
-    const matchTeam = match.getMatchTeam(whichTeam);
-    const result = getResult(match, whichTeam);
     this.tuhTotal += match.tossupsRead || 0;
     this.tuhRegulation += (match.tossupsRead || 0) - (match.overtimeTossupsRead || 0);
+    const result = match.getResult(whichTeam);
     if (result === 'win') this.wins++;
     else if (result === 'loss') this.losses++;
     else if (result === 'tie') this.ties++;
 
     if (match.isForfeit()) return;
 
+    const matchTeam = match.getMatchTeam(whichTeam);
     this.totalPoints += matchTeam.points || 0;
     this.bonusPoints += matchTeam.getBonusPoints();
     this.bonusesHeard += matchTeam.getBonusesHeard();
@@ -247,19 +245,4 @@ export class PoolTeamStats {
       tc.number += answerCount.number || 0;
     }
   }
-}
-
-/** Did this team win, lose, tie, or none of those (if double forfeit or invalid data) */
-function getResult(match: Match, whichTeam: LeftOrRight): wlt | null {
-  const matchTeam = match.getMatchTeam(whichTeam);
-  const otherMatchTeam = match.getMatchTeam(otherTeam(whichTeam));
-  if (matchTeam.forfeitLoss && !otherMatchTeam.forfeitLoss) return 'loss';
-  if (otherMatchTeam.forfeitLoss && !matchTeam.forfeitLoss) return 'win';
-  if (matchTeam.forfeitLoss && otherMatchTeam.forfeitLoss) return null;
-
-  if (matchTeam.points === undefined || otherMatchTeam.points === undefined) return null;
-
-  if (matchTeam.points > otherMatchTeam.points) return 'win';
-  if (matchTeam.points < otherMatchTeam.points) return 'loss';
-  return 'tie';
 }

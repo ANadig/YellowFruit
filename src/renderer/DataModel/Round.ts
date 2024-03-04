@@ -3,6 +3,7 @@ import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { IQbjMatch, Match } from './Match';
 import { IQbjPacket, Packet } from './Packet';
 import { QbjTypeNames } from './QbjEnums';
+import { Team } from './Team';
 
 export interface IQbjRound extends IQbjObject {
   /** The name of the round. Possibly numerical; possibly something like "Preliminary Tiebreaker" */
@@ -75,6 +76,18 @@ export class Round implements IQbjRound, IYftDataModelObject {
     const yftFileObj = { YfData: yfData, ...qbjObject };
 
     return yftFileObj;
+  }
+
+  findMatchBetweenTeams(team1: Team, team2: Team) {
+    for (const match of this.matches) {
+      if (
+        (match.leftTeam.team === team1 && match.rightTeam.team === team2) ||
+        (match.rightTeam.team === team1 && match.leftTeam.team === team2)
+      ) {
+        return match;
+      }
+    }
+    return undefined;
   }
 }
 

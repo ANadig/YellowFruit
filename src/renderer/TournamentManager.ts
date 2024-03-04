@@ -533,7 +533,12 @@ export class TournamentManager {
     this.matchModalManager.openModal(undefined, round);
   }
 
-  openMatchEditModalExistingMatch(match: Match, roundNo: number) {
+  openMatchModalNewMatchForTeams(team1: Team, team2: Team) {
+    this.matchModalManager.tournament = this.tournament;
+    this.matchModalManager.openModal(undefined, undefined, team1, team2);
+  }
+
+  openMatchEditModalExistingMatch(match: Match, roundNo?: number) {
     this.matchModalManager.openModal(match, roundNo);
     this.matchBeingModified = match;
   }

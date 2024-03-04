@@ -182,6 +182,7 @@ function RoundField() {
       fullWidth
       variant="outlined"
       size="small"
+      autoFocus={roundNo === ''}
       error={!!err}
       helperText={err || ' '}
       value={roundNo}
@@ -254,6 +255,7 @@ const TuhTotalField = forwardRef((props: {}, ref) => {
   const [valStatus] = useSubscription(thisMatch.totalTuhFieldValidation.status);
   const [valMsg] = useSubscription(thisMatch.totalTuhFieldValidation.message);
   const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
+  const [roundNo] = useSubscription(modalManager.round?.toString() || '');
 
   const handleBlur = () => {
     const valToUse = modalManager.setTotalTuh(tuh);
@@ -269,7 +271,7 @@ const TuhTotalField = forwardRef((props: {}, ref) => {
       fullWidth
       variant="outlined"
       size="small"
-      autoFocus={thisTournament.scoringRules.timed}
+      autoFocus={thisTournament.scoringRules.timed && roundNo !== ''}
       disabled={forfeit}
       error={valStatus === ValidationStatuses.Error}
       helperText={valMsg || ' '}
@@ -296,6 +298,7 @@ function TeamSelect(props: ITeamSelectProps) {
   const modalManager = useContext(MatchEditModalContext);
   const [team, setTeam] = useSubscription(modalManager.getSelectedTeam(whichTeam)?.name || teamSelectNullOption);
   const [inputValue, setInputValue] = useState('');
+  const [roundNo] = useSubscription(modalManager.round?.toString() || '');
 
   const handleChange = (val: string) => {
     setTeam(val);
@@ -329,8 +332,12 @@ function TeamSelect(props: ITeamSelectProps) {
       options={options}
       isOptionEqualToValue={isOptionEqualToValue}
       renderInput={(params) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <TextField {...params} size="small" autoFocus={whichTeam === 'left' && !thisTournament.scoringRules.timed} />
+        <TextField
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...params}
+          size="small"
+          autoFocus={whichTeam === 'left' && !thisTournament.scoringRules.timed && roundNo !== ''}
+        />
       )}
     />
   );

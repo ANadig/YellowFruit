@@ -37,7 +37,6 @@ export class TempMatchManager {
   }
 
   reset() {
-    this.tempMatch = NullObjects.nullMatch;
     delete this.roundFieldError;
   }
 
@@ -61,6 +60,7 @@ export class TempMatchManager {
       if (rightTeam) this.setTeam('right', rightTeam);
     }
 
+    if (this.round !== undefined) this.validateRoundNo();
     this.dataChangedReactCallback();
   }
 
@@ -185,6 +185,9 @@ export class TempMatchManager {
       this.tempMatch.tossupsRead = undefined;
     } else {
       this.tempMatch.tossupsRead = parsed;
+    }
+    if (this.tempMatch.tossupsRead !== undefined) {
+      this.tempMatch.fillInTossupsHeard(this.tournament.scoringRules.maximumPlayersPerTeam, this.tempMatch.tossupsRead);
     }
     this.tempMatch.validateTotalTuh(this.tournament.scoringRules);
     this.tempMatch.validateTotalBuzzes();
