@@ -83,6 +83,10 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
     answerCount.number = count;
   }
 
+  wasActive() {
+    return this.tossupsHeard !== undefined && this.tossupsHeard > 0;
+  }
+
   getTotalBuzzes(positiveOnly: boolean = false) {
     let totalBuzzes = 0;
     this.answerCounts.forEach((ac) => {

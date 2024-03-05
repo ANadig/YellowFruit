@@ -80,6 +80,7 @@ export class TempMatchManager {
 
   /** Transfer data from temp objects to real objects */
   saveExistingMatch(targetMatch: Match) {
+    this.tempMatch.clearInactivePlayers();
     if (!!this.round && !!this.originalRoundOpened && this.round !== this.originalRoundOpened) {
       this.tournament.deleteMatch(targetMatch, this.originalRoundOpened);
       this.tournament.addMatch(targetMatch, this.round);
@@ -89,6 +90,7 @@ export class TempMatchManager {
 
   saveNewMatch() {
     if (this.round === undefined) return;
+    this.tempMatch.clearInactivePlayers();
     this.tournament.addMatch(this.tempMatch, this.round);
   }
 

@@ -138,9 +138,19 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
   getPlayerList() {
     const players: Player[] = [];
     this.matchPlayers.forEach((mp) => {
-      if (mp.tossupsHeard && mp.tossupsHeard > 0) players.push(mp.player);
+      if (mp.wasActive()) players.push(mp.player);
     });
     return players;
+  }
+
+  /** Remove MatchPlayers with no tossups heard */
+  clearInactivePlayers() {
+    for (let i = this.matchPlayers.length - 1; i >=0; i--) {
+      const mp = this.matchPlayers[i];
+      if (!mp.wasActive() && mp.points === 0) {
+        this.matchPlayers.splice(i, 1);
+      }
+    }
   }
 
   /** The sum of all player tossups heard values */

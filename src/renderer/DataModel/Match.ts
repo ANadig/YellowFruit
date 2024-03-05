@@ -235,6 +235,11 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     }
   }
 
+  clearInactivePlayers() {
+    this.leftTeam.clearInactivePlayers();
+    this.rightTeam.clearInactivePlayers();
+  }
+
   clearTeam(whichTeam: LeftOrRight) {
     if (whichTeam === 'left') this.leftTeam = new MatchTeam();
     else {

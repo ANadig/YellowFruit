@@ -119,10 +119,8 @@ export class Team implements IQbjTeam, IYftDataModelObject {
           newlyAddedPlayers.push(tempPlayer.makeCopy());
         }
       });
-      console.log(tempTeam.players);
-      console.log(newlyAddedPlayers);
       // remove players that were just deleted
-      for (let i = this.players.length - 1; i > 0; i--) {
+      for (let i = this.players.length - 1; i >= 0; i--) {
         if (!tempTeam.players.find((tempPlayer) => tempPlayer.sourcePlayer === this.players[i])) {
           this.players.splice(i, 1);
         }
