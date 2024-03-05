@@ -3,6 +3,8 @@ import Registration from '../DataModel/Registration';
 import { Team } from '../DataModel/Team';
 import { nextAlphabetLetter, teamGetNameAndLetter } from '../Utils/GeneralUtils';
 import { NullObjects } from '../Utils/UtilTypes';
+import { Player } from '../DataModel/Player';
+import Tournament, { NullTournament } from '../DataModel/Tournament';
 
 export class TempTeamManager {
   /** The registration whose team is being edited */
@@ -11,11 +13,18 @@ export class TempTeamManager {
   /** The team being edited */
   tempTeam: Team = NullObjects.nullTeam;
 
+  tournament: Tournament = NullTournament;
+
   modalIsOpen: boolean = false;
 
   errorDialogIsOpen: boolean = false;
 
   errorDialogContents: string[] = [];
+
+  teamHasPlayed: boolean = false;
+
+  /** Which players on this team have played, ever? */
+  playersWithGameData: Player[] = [];
 
   dataChangedReactCallback: () => void;
 
@@ -49,6 +58,8 @@ export class TempTeamManager {
 
     if (team) {
       this.loadTeam(team);
+      this.teamHasPlayed = this.tournament.teamHasPlayedAnyGame(team);
+      this.playersWithGameData = this.tournament.getPlayersWithData(team);
     } else {
       this.createBlankTeam(letter);
     }
@@ -60,7 +71,9 @@ export class TempTeamManager {
 
   /** Returns true if we can save the data */
   preSaveValidation() {
-    this.tempTeam.removeNullPlayers();
+    if (!this.teamHasPlayed) {
+      this.tempTeam.removeNullPlayers();
+    }
     this.tempRegistration.validateAll();
     this.tempTeam.validateAll();
     const errs = this.tempRegistration.getErrorMessages().concat(this.tempTeam.getErrorMessages());
@@ -173,7 +186,7 @@ export class TempTeamManager {
   /** Transfer data from temp objects to real objects */
   saveTeam(targetReg: Registration, targetTeam: Team) {
     this.saveRegistration(targetReg);
-    targetTeam.copyFromTeam(this.tempTeam);
+    targetTeam.copyFromTeam(this.tempTeam, 'restoreSource');
   }
 
   changeTeamName(name: string) {
@@ -238,7 +251,7 @@ export class TempTeamManager {
     if (!player) return;
 
     player.name = trimmedName;
-    player.validateName();
+    player.validateName(this.teamHasPlayed && !!player.sourcePlayer);
     this.tempTeam.validatePlayerUniqueness();
     this.dataChangedReactCallback();
   }
@@ -259,6 +272,11 @@ export class TempTeamManager {
 
   changePlayerD2(playerIdx: number, checked: boolean) {
     this.tempTeam.players[playerIdx].isD2 = checked;
+    this.dataChangedReactCallback();
+  }
+
+  deletePlayer(playerIdx: number) {
+    this.tempTeam.players.splice(playerIdx, 1);
     this.dataChangedReactCallback();
   }
 

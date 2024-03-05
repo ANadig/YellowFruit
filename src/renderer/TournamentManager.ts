@@ -101,6 +101,7 @@ export class TournamentManager {
 
   private newTournament() {
     this.tournament = new Tournament();
+    this.modalManagersSetTournament();
     this.filePath = null;
     this.displayName = '';
     this.unsavedData = false;
@@ -130,6 +131,7 @@ export class TournamentManager {
 
     this.filePath = filePath as string;
     this.tournament = loadedTournament;
+    this.modalManagersSetTournament();
     this.displayName = this.tournament.name || '';
     this.unsavedData = false;
     this.setWindowTitle();
@@ -223,6 +225,11 @@ export class TournamentManager {
   onFinishInAppStatReport() {
     this.inAppStatReportGenerated = new Date();
     this.onDataChanged(true);
+  }
+
+  modalManagersSetTournament() {
+    this.teamModalManager.tournament = this.tournament;
+    this.matchModalManager.tournament = this.tournament;
   }
 
   // #region Functions for changing the data from the UI
@@ -529,12 +536,10 @@ export class TournamentManager {
   }
 
   openMatchModalNewMatchForRound(round: number) {
-    this.matchModalManager.tournament = this.tournament;
     this.matchModalManager.openModal(undefined, round);
   }
 
   openMatchModalNewMatchForTeams(team1: Team, team2: Team) {
-    this.matchModalManager.tournament = this.tournament;
     this.matchModalManager.openModal(undefined, undefined, team1, team2);
   }
 

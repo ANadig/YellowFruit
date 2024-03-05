@@ -153,6 +153,9 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
     18: ['grad'],
   };
 
+  /** Player that this player was copied from. Used while editing teams. */
+  sourcePlayer?: Player;
+
   constructor(name: string) {
     this.name = name;
     this.idNumber = Player.idCounter++;
@@ -161,18 +164,19 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
     this.yearStringValidation = makeEmptyValidator();
   }
 
-  makeCopy(): Player {
+  makeCopy(logSource: boolean = false): Player {
     const copy = new Player('');
-    copy.copyFromPlayer(this);
+    copy.copyFromPlayer(this, logSource);
     return copy;
   }
 
-  copyFromPlayer(source: Player) {
+  copyFromPlayer(source: Player, logSource: boolean = false) {
     this.name = source.name;
     this.yearString = source.yearString;
     this.idNumber = source.idNumber;
     this.isUG = source.isUG;
     this.isD2 = source.isD2;
+    if (logSource) this.sourcePlayer = source;
   }
 
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjPlayer {
@@ -195,18 +199,26 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
     return makeQbjRefPointer(this.id);
   }
 
-  validateAll() {
-    this.validateName();
+  validateAll(nameIsRequired: boolean) {
+    this.validateName(nameIsRequired);
     this.validateYearString();
   }
 
-  validateName() {
-    if (this.name.length > Player.nameMaxLength) {
+  validateName(nameIsRequired: boolean) {
+    if (nameIsRequired && this.name === '') {
+      this.nameValidation.status = ValidationStatuses.Error;
+      this.nameValidation.message = 'Name is required';
+    } else if (this.name.length > Player.nameMaxLength) {
       this.nameValidation.status = ValidationStatuses.Error;
       this.nameValidation.message = `Maximum allowed length is ${Player.nameMaxLength} characters.`;
     } else {
       this.nameValidation = makeEmptyValidator();
     }
+  }
+
+  /** Mark this player as invalid because they don't have a name but should */
+  setNameRequiredError() {
+    this.nameValidation.status = ValidationStatuses.Error;
   }
 
   validateYearString() {

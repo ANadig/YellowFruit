@@ -6,6 +6,7 @@ import { QbjTypeNames } from './QbjEnums';
 import { Team } from './Team';
 import { makeQbjRefPointer } from './QbjUtils';
 import { Match } from './Match';
+import { Player } from './Player';
 
 export enum PhaseTypes {
   /** The first phase of a tournament */
@@ -178,6 +179,24 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
       if (pool.includesTeam(team)) return pool;
     }
     return undefined;
+  }
+
+  teamHasPlayedAnyGames(team: Team) {
+    for (const rd of this.rounds) {
+      if (rd.teamHasPlayedIn(team)) return true;
+    }
+    return false;
+  }
+
+  getPlayersWithData(team: Team) {
+    const players: Player[] = [];
+    for (const rd of this.rounds) {
+      const inThisRound = rd.getPlayersWithData(team);
+      inThisRound.forEach((player) => {
+        if (!players.includes(player)) players.push(player);
+      });
+    }
+    return players;
   }
 
   removeTeam(team: Team) {

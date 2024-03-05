@@ -2,6 +2,7 @@ import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 // eslint-disable-next-line import/no-cycle
 import { IQbjMatch, Match } from './Match';
 import { IQbjPacket, Packet } from './Packet';
+import { Player } from './Player';
 import { QbjTypeNames } from './QbjEnums';
 import { Team } from './Team';
 
@@ -76,6 +77,24 @@ export class Round implements IQbjRound, IYftDataModelObject {
     const yftFileObj = { YfData: yfData, ...qbjObject };
 
     return yftFileObj;
+  }
+
+  teamHasPlayedIn(team: Team) {
+    return !!this.matches.find((m) => m.leftTeam.team === team || m.rightTeam.team === team);
+  }
+
+  getPlayersWithData(team: Team) {
+    const players: Player[] = [];
+    for (const m of this.matches) {
+      for (const mt of [m.leftTeam, m.rightTeam]) {
+        if (mt.team !== team) continue;
+        const inThisMatch = mt.getPlayerList();
+        inThisMatch.forEach((player) => {
+          if (!players.includes(player)) players.push(player);
+        });
+      }
+    }
+    return players;
   }
 
   findMatchBetweenTeams(team1: Team, team2: Team) {

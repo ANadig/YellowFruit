@@ -1,3 +1,4 @@
+/* eslint-disable prefer-destructuring */
 import {
   Dialog,
   DialogTitle,
@@ -21,11 +22,12 @@ import {
   ClickAwayListener,
   MenuItem,
   MenuList,
+  IconButton,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import React, { ReactElement, forwardRef, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { ArrowDropDown } from '@mui/icons-material';
+import { ArrowDropDown, Delete } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { TeamEditModalContext } from '../Modal Managers/TempTeamManager';
@@ -369,6 +371,8 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
   const [playerYear, setPlayerYear] = useSubscription(player?.yearString || '');
   const [playerIsUG, setPlayerIsUG] = useSubscription(player?.isUG || false);
   const [playerIsD2, setPlayerIsD2] = useSubscription(player?.isD2 || false);
+  const playerHasPlayed = !!player?.sourcePlayer && modalManager.playersWithGameData.includes(player?.sourcePlayer);
+  const teamHasPlayed = modalManager.teamHasPlayed;
 
   const [nameValidationStatus] = useSubscription(player?.nameValidation.status);
   const [nameValidationMsg] = useSubscription(player?.nameValidation.message);
@@ -398,7 +402,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
 
   return (
     <Grid container spacing={1}>
-      <Grid xs={6}>
+      <Grid xs={5} md={6}>
         <TextField
           placeholder="Player Name"
           fullWidth
@@ -449,6 +453,13 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
             extraSpace={warningExists}
             control={<Checkbox checked={playerIsD2} onChange={(e) => handleD2Change(e.target.checked)} />}
           />
+        </Grid>
+      )}
+      {teamHasPlayed && player?.sourcePlayer && (
+        <Grid xs={1}>
+          <IconButton disabled={playerHasPlayed} onClick={() => modalManager.deletePlayer(rowIdx)}>
+            <Delete />
+          </IconButton>
         </Grid>
       )}
     </Grid>

@@ -4,6 +4,7 @@ import { NullDate, NullObjects } from '../Utils/UtilTypes';
 import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { Match } from './Match';
 import { IQbjPhase, Phase, PhaseTypes } from './Phase';
+import { Player } from './Player';
 import { Pool } from './Pool';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import { IQbjRanking, Ranking } from './Ranking';
@@ -329,6 +330,25 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       }
     }
     return undefined;
+  }
+
+  teamHasPlayedAnyGame(team: Team) {
+    for (const ph of this.phases) {
+      if (ph.teamHasPlayedAnyGames(team)) return true;
+    }
+    return false;
+  }
+
+  /** Which players on this team have played, ever? */
+  getPlayersWithData(team: Team) {
+    const players: Player[] = [];
+    for (const ph of this.phases) {
+      const inThisRound = ph.getPlayersWithData(team);
+      inThisRound.forEach((player) => {
+        if (!players.includes(player)) players.push(player);
+      });
+    }
+    return players;
   }
 
   setStandardSchedule(sched: StandardSchedule) {

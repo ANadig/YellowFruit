@@ -130,6 +130,7 @@ interface ITeamListItemProps {
 function TeamListItem(props: ITeamListItemProps) {
   const { registration, team, isLastForReg } = props;
   const tournManager = useContext(TournamentContext);
+  const hasPlayed = tournManager.tournament.teamHasPlayedAnyGame(team);
 
   let nextLetter = '';
   if (isLastForReg) nextLetter = team.letter === '' ? 'B' : nextAlphabetLetter(team.letter);
@@ -154,10 +155,12 @@ function TeamListItem(props: ITeamListItemProps) {
               <Edit />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Delete team">
-            <IconButton onClick={() => tournManager.tryDeleteTeam(registration, team)}>
-              <Delete />
-            </IconButton>
+          <Tooltip title={hasPlayed ? 'You cannot delete a team for which games have been entered' : 'Delete team'}>
+            <span>
+              <IconButton disabled={hasPlayed} onClick={() => tournManager.tryDeleteTeam(registration, team)}>
+                <Delete />
+              </IconButton>
+            </span>
           </Tooltip>
         </Box>
       </Grid>

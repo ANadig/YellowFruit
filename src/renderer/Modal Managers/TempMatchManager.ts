@@ -74,6 +74,8 @@ export class TempMatchManager {
 
   private loadMatch(match: Match) {
     this.tempMatch = match.makeCopy();
+    this.tempMatch.leftTeam.addNewPlayers(this.tournament.scoringRules.answerTypes);
+    this.tempMatch.rightTeam.addNewPlayers(this.tournament.scoringRules.answerTypes);
   }
 
   /** Transfer data from temp objects to real objects */

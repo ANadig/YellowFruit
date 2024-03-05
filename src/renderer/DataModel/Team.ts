@@ -86,18 +86,49 @@ export class Team implements IQbjTeam, IYftDataModelObject {
 
   makeCopy(): Team {
     const copy = new Team('');
-    copy.copyFromTeam(this);
+    copy.copyFromTeam(this, 'temp');
     return copy;
   }
 
-  copyFromTeam(source: Team) {
+  /**
+   * Copy another team's data into this object.
+   * @param source Team to copy
+   * @param playerType 'temp' means create new Player objects that are copies of source's.
+   *                   'restoreSource' means we are copying a temp team *back* into a real team,
+   *                   so we also need to copy the temp players back into the real players.
+   */
+  copyFromTeam(source: Team, playerType: 'temp' | 'restoreSource') {
     this.name = source.name;
-    this.players = source.players.map((pl) => pl.makeCopy());
     this.ranks = source.ranks;
     this.letter = source.letter;
     this.isJV = source.isJV;
     this.isUG = source.isUG;
     this.isD2 = source.isD2;
+    if (playerType === 'temp') {
+      this.players = source.players.map((pl) => pl.makeCopy(true));
+    } else {
+      /** Copy the temp team's players' data back into this team's player objects, rather than replacing
+       * them with new objects, which would break references in MatchPlayer objects */
+      const tempTeam = source;
+      const newlyAddedPlayers: Player[] = [];
+      tempTeam.players.forEach((tempPlayer) => {
+        const origPlayer = tempPlayer.sourcePlayer;
+        if (origPlayer) {
+          origPlayer.copyFromPlayer(tempPlayer);
+        } else if(tempPlayer.name !== '') {
+          newlyAddedPlayers.push(tempPlayer.makeCopy());
+        }
+      });
+      console.log(tempTeam.players);
+      console.log(newlyAddedPlayers);
+      // remove players that were just deleted
+      for (let i = this.players.length - 1; i > 0; i--) {
+        if (!tempTeam.players.find((tempPlayer) => tempPlayer.sourcePlayer === this.players[i])) {
+          this.players.splice(i, 1);
+        }
+      }
+      this.players = this.players.concat(newlyAddedPlayers);
+    }
   }
 
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjTeam {

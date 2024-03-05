@@ -2,6 +2,7 @@ import AnswerType from './AnswerType';
 import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject, ValidationStatuses } from './Interfaces';
 import { MatchPlayer, IQbjMatchPlayer } from './MatchPlayer';
 import MatchValidationMessage, { MatchValidationCollection, MatchValidationType } from './MatchValidationMessage';
+import { Player } from './Player';
 import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
 import { ScoringRules } from './ScoringRules';
 import { IQbjTeam, Team } from './Team';
@@ -119,6 +120,27 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     };
     const yftFileObj: IYftFileMatchTeam = { YfData: yfData, ...qbjObject };
     return yftFileObj;
+  }
+
+  /** For each players on the roster that don't have a MatchPlayer object, make one */
+  addNewPlayers(answerTypes: AnswerType[]) {
+    if (!this.team) return;
+    const newMatchPlayers: MatchPlayer[] = [];
+    for (const player of this.team.players) {
+      if (!this.matchPlayers.find((mp) => mp.player === player)) {
+        newMatchPlayers.push(new MatchPlayer(player, answerTypes));
+      }
+    }
+    this.matchPlayers = this.matchPlayers.concat(newMatchPlayers);
+  }
+
+  /** The list of players who played in this match */
+  getPlayerList() {
+    const players: Player[] = [];
+    this.matchPlayers.forEach((mp) => {
+      if (mp.tossupsHeard && mp.tossupsHeard > 0) players.push(mp.player);
+    });
+    return players;
   }
 
   /** The sum of all player tossups heard values */
