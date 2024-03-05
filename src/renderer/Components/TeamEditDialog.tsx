@@ -390,6 +390,14 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
     setPlayerName(newName);
   };
 
+  const handlePlayerNameBlur = () => {
+    if (playerName !== '') {
+      modalManager.changePlayerName(rowIdx, playerName);
+    } else if (!teamHasPlayed && rowIdx < modalManager.tempTeam.players.length - 1) {
+      modalManager.deletePlayer(rowIdx);
+    }
+  }
+
   const handleUgChange = (checked: boolean) => {
     setPlayerIsUG(checked);
     modalManager.changePlayerUG(rowIdx, checked);
@@ -413,9 +421,9 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
           helperText={getHelperText(nameValidationMsg, warningExists)}
           value={playerName}
           onChange={(e) => handlePlayerNameChange(e.target.value)}
-          onBlur={() => modalManager.changePlayerName(rowIdx, playerName)}
+          onBlur={handlePlayerNameBlur}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') modalManager.changePlayerName(rowIdx, playerName);
+            if (e.key === 'Enter') handlePlayerNameBlur();
           }}
         />
       </Grid>
