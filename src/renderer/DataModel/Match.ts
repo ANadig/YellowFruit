@@ -290,7 +290,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     const oppPts = opponent.points;
     if (pts === undefined || oppPts === undefined) return '';
     if (pts > oppPts) return `W ${pts}-${oppPts}`;
-    if (pts < oppPts) return `L ${oppPts}-${pts}`;
+    if (pts < oppPts) return `L ${pts}-${oppPts}`;
     return `T ${pts}-${oppPts}`;
   }
 
