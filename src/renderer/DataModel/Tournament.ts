@@ -105,6 +105,8 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   stats: PhaseStandings[] = [];
 
+  hasMatchData: boolean = false;
+
   constructor(name?: string) {
     if (name) {
       this.name = name;
@@ -332,11 +334,16 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return undefined;
   }
 
-  teamHasPlayedAnyGame(team: Team) {
+  teamHasPlayedAnyMatch(team: Team) {
     for (const ph of this.phases) {
-      if (ph.teamHasPlayedAnyGames(team)) return true;
+      if (ph.teamHasPlayedAnyMatches(team)) return true;
     }
     return false;
+  }
+
+  /** Determine whether any matches have been entered */
+  calcHasMatchData() {
+    this.hasMatchData = this.getPrelimPhase()?.anyMatchesExist() || false;
   }
 
   /** Which players on this team have played, ever? */

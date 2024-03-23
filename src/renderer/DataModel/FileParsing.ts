@@ -81,6 +81,7 @@ export default class FileParser {
       this.tourn.trackDiv2 = yfExtraData.trackDiv2 || false;
     }
 
+    this.tourn.calcHasMatchData();
     return this.tourn;
   }
 

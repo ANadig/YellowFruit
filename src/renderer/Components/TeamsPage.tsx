@@ -130,7 +130,7 @@ interface ITeamListItemProps {
 function TeamListItem(props: ITeamListItemProps) {
   const { registration, team, isLastForReg } = props;
   const tournManager = useContext(TournamentContext);
-  const hasPlayed = tournManager.tournament.teamHasPlayedAnyGame(team);
+  const hasPlayed = tournManager.tournament.teamHasPlayedAnyMatch(team);
 
   let nextLetter = '';
   if (isLastForReg) nextLetter = team.letter === '' ? 'B' : nextAlphabetLetter(team.letter);

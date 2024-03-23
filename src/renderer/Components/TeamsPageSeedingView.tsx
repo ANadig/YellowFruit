@@ -2,6 +2,7 @@
 import Grid from '@mui/material/Unstable_Grid2';
 import { useContext, useState } from 'react';
 import {
+  Alert,
   Box,
   Divider,
   IconButton,
@@ -15,7 +16,7 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
-import { ArrowDropDown, ArrowDropUp } from '@mui/icons-material';
+import { ArrowDropDown, ArrowDropUp, Lock } from '@mui/icons-material';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -23,8 +24,18 @@ import { Team } from '../DataModel/Team';
 import { YfCssClasses } from '../Utils/GeneralReactUtils';
 
 export default function SeedingView() {
+  const tournManager = useContext(TournamentContext);
+  const [readOnly] = useSubscription(tournManager.tournament.hasMatchData);
+
   return (
     <Grid container spacing={2}>
+      {readOnly && (
+        <Grid xs={12}>
+          <Alert variant="filled" severity="info" icon={<Lock />}>
+            Seeds are read-only
+          </Alert>
+        </Grid>
+      )}
       <Grid xs={12} sm={6} md={4}>
         <SeedList />
       </Grid>
@@ -42,14 +53,15 @@ function SeedList() {
   const thisTournament = tournManager.tournament;
   const [seedList] = useSubscription(thisTournament.seeds);
   const [expectedNumTeams] = useSubscription(thisTournament.getExpectedNumberOfTeams());
+  const [readOnly] = useSubscription(thisTournament.hasMatchData);
 
   const listItems = seedList.map((tm, idx) => (
     <SeedListItem
       key={idx + 1}
       team={tm}
       seedNo={idx + 1}
-      canMoveUp={idx > 0}
-      canMoveDown={idx + 1 < seedList.length}
+      canMoveUp={idx > 0 && !readOnly}
+      canMoveDown={idx + 1 < seedList.length && !readOnly}
     />
   ));
   if (expectedNumTeams !== null) {
@@ -86,13 +98,14 @@ function SeedListItem(props: ISeedListItemProps) {
   const tournManager = useContext(TournamentContext);
   const [beingDraggedOn, setIsBeingDraggedOn] = useState(false);
 
+  const canDrag = canMoveUp || canMoveDown;
   const str = team === null ? '' : team.name;
   const ptrEventsForInteractiveChld = beingDraggedOn ? 'none' : 'auto';
 
   return (
     <div
       className={YfCssClasses.DropTarget}
-      draggable={team !== null}
+      draggable={canDrag}
       onDragStart={(e) => e.dataTransfer.setData(seedListItemDragKey, seedNo.toString())}
       onDragEnter={(e) => {
         e.preventDefault();
@@ -128,7 +141,7 @@ function SeedListItem(props: ISeedListItemProps) {
         }
       >
         <ListItemText
-          className={team !== null ? YfCssClasses.Draggable : undefined}
+          className={canDrag ? YfCssClasses.Draggable : undefined}
           sx={{ pointerEvents: ptrEventsForInteractiveChld }}
         >{`${seedNo}. ${str}`}</ListItemText>
       </ListItem>
@@ -141,6 +154,7 @@ function PoolView() {
   const thisTournament = tournManager.tournament;
   const [seedList] = useSubscription(thisTournament.seeds);
   const [phase] = useSubscription(thisTournament.getPrelimPhase());
+  const [readOnly] = useSubscription(thisTournament.hasMatchData);
 
   if (!phase) return null;
 
@@ -158,7 +172,12 @@ function PoolView() {
               </TableHead>
               <TableBody>
                 {pool.seeds.map((seedNo) => (
-                  <PoolViewTableRow key={seedNo} seedNo={seedNo} team={seedList[seedNo - 1] || null} />
+                  <PoolViewTableRow
+                    key={seedNo}
+                    seedNo={seedNo}
+                    team={seedList[seedNo - 1] || null}
+                    canDrag={!readOnly}
+                  />
                 ))}
               </TableBody>
             </Table>
@@ -172,18 +191,19 @@ function PoolView() {
 interface IPoolViewTableRowProps {
   seedNo: number;
   team: Team | null;
+  canDrag: boolean;
 }
 
 const poolViewItemDragKey = 'PoolSeedItem';
 
 function PoolViewTableRow(props: IPoolViewTableRowProps) {
-  const { seedNo, team } = props;
+  const { seedNo, team, canDrag } = props;
   const tournManager = useContext(TournamentContext);
 
   return (
     <TableRow
-      className={team !== null ? YfCssClasses.Draggable : undefined}
-      draggable={team !== null}
+      className={canDrag ? YfCssClasses.Draggable : undefined}
+      draggable={canDrag}
       onDragStart={(e) => e.dataTransfer.setData(poolViewItemDragKey, seedNo.toString())}
       onDragEnter={(e) => e.preventDefault()}
       onDragOver={(e) => e.preventDefault()}

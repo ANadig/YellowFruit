@@ -181,9 +181,16 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return undefined;
   }
 
-  teamHasPlayedAnyGames(team: Team) {
+  teamHasPlayedAnyMatches(team: Team) {
     for (const rd of this.rounds) {
       if (rd.teamHasPlayedIn(team)) return true;
+    }
+    return false;
+  }
+
+  anyMatchesExist() {
+    for (const rd of this.rounds) {
+      if (rd.anyMatchesExist()) return true;
     }
     return false;
   }

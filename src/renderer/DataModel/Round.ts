@@ -83,6 +83,10 @@ export class Round implements IQbjRound, IYftDataModelObject {
     return !!this.matches.find((m) => m.leftTeam.team === team || m.rightTeam.team === team);
   }
 
+  anyMatchesExist() {
+    return this.matches.length > 0;
+  }
+
   getPlayersWithData(team: Team) {
     const players: Player[] = [];
     for (const m of this.matches) {

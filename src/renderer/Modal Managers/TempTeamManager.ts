@@ -58,7 +58,7 @@ export class TempTeamManager {
 
     if (team) {
       this.loadTeam(team);
-      this.teamHasPlayed = this.tournament.teamHasPlayedAnyGame(team);
+      this.teamHasPlayed = this.tournament.teamHasPlayedAnyMatch(team);
       this.playersWithGameData = this.tournament.getPlayersWithData(team);
     } else {
       this.createBlankTeam(letter);

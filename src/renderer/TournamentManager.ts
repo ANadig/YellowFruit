@@ -447,6 +447,7 @@ export class TournamentManager {
 
   deleteMatch(match: Match, roundNo: number) {
     this.tournament.deleteMatch(match, roundNo);
+    this.tournament.calcHasMatchData();
     this.onDataChanged();
   }
 
@@ -561,6 +562,7 @@ export class TournamentManager {
       this.matchModalManager.saveNewMatch();
     }
     this.matchEditModalReset(stayOpen);
+    this.tournament.calcHasMatchData();
     this.onDataChanged();
   }
 
