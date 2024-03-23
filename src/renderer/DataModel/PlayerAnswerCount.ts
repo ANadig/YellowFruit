@@ -1,5 +1,5 @@
 import AnswerType, { IQbjAnswerType } from './AnswerType';
-import { IQbjObject, IQbjRefPointer, IYftDataModelObject, ValidationStatuses } from './Interfaces';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject } from './Interfaces';
 import MatchValidationMessage, { MatchValidationType } from './MatchValidationMessage';
 
 export interface IQbjPlayerAnswerCount extends IQbjObject {

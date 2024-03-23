@@ -519,8 +519,12 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     }
   }
 
-  suppressMessageType(type: MatchValidationType) {
-    this.modalBottomValidation.suppressMessageType(type);
+  suppressMessageType(type: MatchValidationType, whichTeam?: LeftOrRight) {
+    if (whichTeam) {
+      this.getMatchTeam(whichTeam).suppressMessageType(type);
+    } else {
+      this.modalBottomValidation.suppressMessageType(type);
+    }
   }
 
   unSuppressMessageType(type: MatchValidationType) {

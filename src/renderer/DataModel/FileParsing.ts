@@ -618,7 +618,7 @@ export default class FileParser {
     if (yfMatch.isForfeit()) yfMatch.tossupsRead = undefined;
 
     yfMatch.modalBottomValidation = new MatchValidationCollection();
-    yfMatch.modalBottomValidation.addFromFileObjects(yfExtraData.otherValidation);
+    yfMatch.modalBottomValidation.addFromFileObjects(yfExtraData.otherValidation || []);
 
     yfMatch.validateAll(this.tourn.scoringRules);
     return yfMatch;
@@ -658,6 +658,9 @@ export default class FileParser {
     yfMatchTeam.lightningPoints = qbjMatchTeam.lightningPoints;
     yfMatchTeam.matchPlayers = this.parseMatchTeamMatchPlayers(qbjMatchTeam.matchPlayers as IIndeterminateQbj[]);
     // TODO: overtime stuff
+
+    yfMatchTeam.modalBottomValidation = new MatchValidationCollection();
+    yfMatchTeam.modalBottomValidation.addFromFileObjects(yfExtraData.validation || []);
 
     return yfMatchTeam;
   }

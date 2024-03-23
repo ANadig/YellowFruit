@@ -1,7 +1,11 @@
 import AnswerType from './AnswerType';
 import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject, ValidationStatuses } from './Interfaces';
 import { MatchPlayer, IQbjMatchPlayer } from './MatchPlayer';
-import MatchValidationMessage, { MatchValidationCollection, MatchValidationType } from './MatchValidationMessage';
+import MatchValidationMessage, {
+  IYftFileMatchValidationMsg,
+  MatchValidationCollection,
+  MatchValidationType,
+} from './MatchValidationMessage';
 import { Player } from './Player';
 import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
 import { ScoringRules } from './ScoringRules';
@@ -34,6 +38,7 @@ export interface IYftFileMatchTeam extends IQbjMatchTeam, IYftFileObject {
 /** Additional info not in qbj but needed for a .yft file */
 interface IMatchTeamExtraData {
   overTimeBuzzes?: IQbjPlayerAnswerCount[];
+  validation: IYftFileMatchValidationMsg[];
 }
 
 /** One team's performance in one game */
@@ -68,9 +73,9 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return ary;
   }
 
-  static minimumValidScore = -99999;
+  static readonly minimumValidScore = -99999;
 
-  static maximumValidScore = 99999;
+  static readonly maximumValidScore = 99999;
 
   constructor(t?: Team, answerTypes?: AnswerType[]) {
     if (t) {
@@ -117,6 +122,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
     const yfData: IMatchTeamExtraData = {
       overTimeBuzzes: this.overTimeBuzzes?.map((ac) => ac.toFileObject()),
+      validation: this.modalBottomValidation.toFileObject(),
     };
     const yftFileObj: IYftFileMatchTeam = { YfData: yfData, ...qbjObject };
     return yftFileObj;
@@ -145,7 +151,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   /** Remove MatchPlayers with no tossups heard */
   clearInactivePlayers() {
-    for (let i = this.matchPlayers.length - 1; i >=0; i--) {
+    for (let i = this.matchPlayers.length - 1; i >= 0; i--) {
       const mp = this.matchPlayers[i];
       if (!mp.wasActive() && mp.points === 0) {
         this.matchPlayers.splice(i, 1);
@@ -302,6 +308,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
         MatchValidationType.BonusDivisorMismatch,
         ValidationStatuses.Warning,
         `Bonus points are not divisible by ${scoringRules.bonusDivisor}`,
+        true,
       );
     } else {
       this.clearValidationMessage(MatchValidationType.BonusDivisorMismatch);
@@ -320,6 +327,10 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   clearValidationMessage(type: MatchValidationType) {
     this.modalBottomValidation.clearMsgType(type);
+  }
+
+  suppressMessageType(type: MatchValidationType) {
+    this.modalBottomValidation.suppressMessageType(type);
   }
 }
 

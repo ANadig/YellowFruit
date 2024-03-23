@@ -628,20 +628,22 @@ function ValidationSection() {
   return (
     <>
       {validators.map((v) => (
-        <ValidationMessage key={v.type} validator={v} />
+        <ValidationMessage key={v.type} validator={v} whichTeam={null} />
       ))}
-      {!forfeit && leftTeamValidators.map((v) => <ValidationMessage key={v.message} validator={v} />)}
-      {!forfeit && rightTeamValidators.map((v) => <ValidationMessage key={v.message} validator={v} />)}
+      {!forfeit && leftTeamValidators.map((v) => <ValidationMessage key={v.message} validator={v} whichTeam="left" />)}
+      {!forfeit &&
+        rightTeamValidators.map((v) => <ValidationMessage key={v.message} validator={v} whichTeam="right" />)}
     </>
   );
 }
 
 interface IValidationMessageProps {
   validator: MatchValidationMessage;
+  whichTeam: LeftOrRight | null;
 }
 
 function ValidationMessage(props: IValidationMessageProps) {
-  const { validator } = props;
+  const { validator, whichTeam } = props;
   const modalManager = useContext(MatchEditModalContext);
   const [type] = useSubscription(validator?.type);
   const [status] = useSubscription(validator?.status);
@@ -655,7 +657,7 @@ function ValidationMessage(props: IValidationMessageProps) {
 
   const suppressSelf = () => {
     if (type === undefined) return;
-    modalManager.suppressValidationMessage(type);
+    modalManager.suppressValidationMessage(type, whichTeam || undefined);
   };
 
   return (

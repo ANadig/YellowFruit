@@ -290,8 +290,8 @@ export class TempMatchManager {
     this.dataChangedReactCallback();
   }
 
-  suppressValidationMessage(type: MatchValidationType) {
-    this.tempMatch.suppressMessageType(type);
+  suppressValidationMessage(type: MatchValidationType, whichTeam?: LeftOrRight) {
+    this.tempMatch.suppressMessageType(type, whichTeam);
     this.dataChangedReactCallback();
   }
 
