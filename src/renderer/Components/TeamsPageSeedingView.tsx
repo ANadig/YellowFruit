@@ -31,7 +31,7 @@ export default function SeedingView() {
     <Grid container spacing={2}>
       {readOnly && (
         <Grid xs={12}>
-          <Alert variant="filled" severity="info" icon={<Lock />}>
+          <Alert variant="filled" severity="info" icon={<Lock fontSize="small" />}>
             Seeds are read-only
           </Alert>
         </Grid>
