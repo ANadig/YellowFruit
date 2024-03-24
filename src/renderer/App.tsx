@@ -66,7 +66,10 @@ function TournamentEditor() {
   const [activePage, setactivePage] = useState(ApplicationPages.General);
 
   useEffect(() => {
-    if (activePage === ApplicationPages.StatReport) {
+    if (
+      activePage === ApplicationPages.StatReport ||
+      (activePage === ApplicationPages.Teams && mgr.currentTeamsPageView === 2)
+    ) {
       mgr.generateInAppStatReport();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -23,11 +23,18 @@ import SeedingView from './TeamsPageSeedingView';
 import StandingsView from './TeamsPageStandingsView';
 
 // Defines the order the buttons should be in
-const viewList = ['Registration', 'Seeding', 'Standings'];
+const viewList = ['Registration', 'Prelim Seeding', 'Standings / Rebracket'];
 
 function TeamsPage() {
   const tournManager = useContext(TournamentContext);
   const [curView] = useSubscription(tournManager.currentTeamsPageView);
+
+  const setView = (whichPage: number) => {
+    if (whichPage === 2) {
+      tournManager.generateInAppStatReport();
+    }
+    tournManager.setTeamsPageView(whichPage);
+  };
 
   return (
     <>
@@ -40,7 +47,7 @@ function TeamsPage() {
             value={curView}
             onChange={(e, newValue) => {
               if (newValue === null) return;
-              tournManager.setTeamsPageView(newValue);
+              setView(newValue);
             }}
           >
             {viewList.map((val, idx) => (
@@ -66,6 +73,7 @@ function RegistrationView() {
   const [expectedNumTeams] = useSubscription(thisTournament.getExpectedNumberOfTeams());
 
   const teamTotDisp = numberOfTeamsDisplay(numberOfTeams, expectedNumTeams);
+  const cantAddMoreTeams = expectedNumTeams !== null && numberOfTeams >= expectedNumTeams;
 
   return (
     <Card>
@@ -78,7 +86,7 @@ function RegistrationView() {
             <Button
               variant="contained"
               sx={{ float: 'right' }}
-              disabled={expectedNumTeams !== null && numberOfTeams >= expectedNumTeams}
+              disabled={cantAddMoreTeams}
               startIcon={<AddCircle />}
               onClick={() => tournManager.openTeamEditModalNewTeam()}
             >
@@ -92,7 +100,7 @@ function RegistrationView() {
               {registrations.map((reg, idx) => (
                 <div key={reg.name}>
                   {idx !== 0 && <Divider />}
-                  <RegistrationList registration={reg} />
+                  <RegistrationList registration={reg} cantAddMoreTeams={cantAddMoreTeams} />
                 </div>
               ))}
             </Stack>
@@ -105,17 +113,24 @@ function RegistrationView() {
 
 interface IRegistrationListProps {
   registration: Registration;
+  cantAddMoreTeams: boolean;
 }
 
 /** The list of teams within one Registration object */
 function RegistrationList(props: IRegistrationListProps) {
-  const { registration } = props;
+  const { registration, cantAddMoreTeams } = props;
   const [teams] = useSubscription(registration.teams);
 
   return teams.map((team, idx) => (
     <div key={team.name}>
       {idx !== 0 && <Divider />}
-      <TeamListItem key={team.name} registration={registration} team={team} isLastForReg={idx === teams.length - 1} />
+      <TeamListItem
+        key={team.name}
+        registration={registration}
+        team={team}
+        isLastForReg={idx === teams.length - 1}
+        cantAddMoreTeams={cantAddMoreTeams}
+      />
     </div>
   ));
 }
@@ -125,10 +140,11 @@ interface ITeamListItemProps {
   team: Team;
   /** Is this the last team in the registration? e.g. C team with no D, E, etc teams */
   isLastForReg: boolean;
+  cantAddMoreTeams: boolean;
 }
 
 function TeamListItem(props: ITeamListItemProps) {
-  const { registration, team, isLastForReg } = props;
+  const { registration, team, isLastForReg, cantAddMoreTeams } = props;
   const tournManager = useContext(TournamentContext);
   const hasPlayed = tournManager.tournament.teamHasPlayedAnyMatch(team);
 
@@ -143,7 +159,7 @@ function TeamListItem(props: ITeamListItemProps) {
       </Grid>
       <Grid xs={3}>
         <Box sx={{ float: 'right' }}>
-          {nextLetter && (
+          {nextLetter && !cantAddMoreTeams && (
             <Tooltip title={`Add ${nextLetter} team`}>
               <IconButton onClick={() => tournManager.startNextTeamForRegistration(registration, nextLetter)}>
                 <CopyAll />

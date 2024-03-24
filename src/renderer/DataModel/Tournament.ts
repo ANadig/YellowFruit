@@ -204,6 +204,18 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.find((phase) => phase.phaseType === PhaseTypes.Prelim);
   }
 
+  /** Get that playoff phase that the given phase feeds into */
+  getNextPhase(phase: Phase): Phase | undefined {
+    const idx = this.phases.indexOf(phase);
+    if (idx === -1) return undefined;
+
+    let searchIdx = idx + 1;
+    while (searchIdx < this.phases.length && this.phases[searchIdx].phaseType !== PhaseTypes.Playoff) {
+      searchIdx++;
+    }
+    return this.phases[searchIdx];
+  }
+
   whichPhaseIsRoundIn(roundNo: number): Phase | undefined {
     return this.phases.find((phase) => phase.includesRound(roundNo));
   }

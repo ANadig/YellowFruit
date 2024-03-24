@@ -44,23 +44,25 @@ function oneStandingsTable(poolStats: PoolStats, tournament: Tournament, anyTies
 
 function standingsHeader(tournament: Tournament, anyTiesExist: boolean) {
   const cells: string[] = [];
-  cells.push(tdTag({ bold: true }, 'Rank'));
-  cells.push(tdTag({ bold: true }, 'Team'));
+  cells.push(tdTag({ bold: true, width: '3%' }, 'Rank'));
+  cells.push(tdTag({ bold: true, width: '20%' }, 'Team'));
   if (tournament.trackSmallSchool) cells.push(tdTag({ bold: true }, 'SS'));
   if (tournament.trackJV) cells.push(tdTag({ bold: true }, 'JV'));
   if (tournament.trackUG) cells.push(tdTag({ bold: true }, 'UG'));
   if (tournament.trackDiv2) cells.push(tdTag({ bold: true }, 'D2'));
-  cells.push(tdTag({ bold: true, align: 'right' }, 'W'));
-  cells.push(tdTag({ bold: true, align: 'right' }, 'L'));
-  if (anyTiesExist) cells.push(tdTag({ bold: true, align: 'right' }, 'T'));
+  cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'W'));
+  cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'L'));
+  if (anyTiesExist) cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'T'));
   cells.push(tdTag({ bold: true, align: 'right' }, 'Pct'));
-  cells.push(tdTag({ bold: true, align: 'right' }, `PP${tournament.scoringRules.regulationTossupCount}TUH`));
+  cells.push(
+    tdTag({ bold: true, align: 'right', width: '8%' }, `PP${tournament.scoringRules.regulationTossupCount}TUH`),
+  );
   tournament.scoringRules.answerTypes.forEach((ansType) =>
     cells.push(tdTag({ bold: true, align: 'right' }, ansType.value.toString())),
   );
   cells.push(tdTag({ bold: true, align: 'right' }, 'TUH'));
   cells.push(tdTag({ bold: true, align: 'right' }, 'PPB'));
-  cells.push(tdTag({ bold: true }, 'Advance'));
+  cells.push(tdTag({ bold: true }, 'Would Advance'));
 
   return trTag(cells);
 }
@@ -106,7 +108,7 @@ function standingsRow(teamStats: PoolTeamStats, tournament: Tournament, anyTiesE
 }
 
 function advancementTierDisplay(teamStats: PoolTeamStats) {
-  if (teamStats.advancementIsAmbiguous) return unicodeHTML('2754');
+  if (teamStats.recordTieForAdvancement) return unicodeHTML('2754');
   if (teamStats.advanceToTier === undefined) return mDashHtml;
   return `Tier ${teamStats.advanceToTier}`;
 }
@@ -170,15 +172,16 @@ function trTag(tdTags: string[]) {
   return `<tr>\n${tdTags.join('\n')}\n</tr>`;
 }
 
-type tdAttributes = { align?: string; bold?: boolean; title?: string; style?: string };
+type tdAttributes = { align?: string; bold?: boolean; title?: string; style?: string; width?: string };
 
 /** <td> tag (table cell) */
 function tdTag(attributes: tdAttributes, contents: string) {
   const align = makeAttribute(attributes, 'align');
   const title = makeAttribute(attributes, 'title');
   const style = makeAttribute(attributes, 'style');
+  const width = makeAttribute(attributes, 'width');
   const innerText = attributes.bold ? genericTag('b', contents) : contents;
-  return `<td ${align} ${title} ${style}>${innerText}</td>`;
+  return `<td ${align} ${title} ${style} ${width}>${innerText}</td>`;
 }
 
 function h1Tag(contents: string) {

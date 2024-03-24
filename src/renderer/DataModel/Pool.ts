@@ -165,6 +165,11 @@ export class Pool implements IQbjPool, IYftDataModelObject {
     if (!aoWithRank) return undefined;
     return aoWithRank.tier;
   }
+
+  /** The 1-indexed seed number assigned to a team of this rank within the pool. Return -1 if the rank is out of bounds */
+  getSeedForRank(rank: number): number {
+    return this.seeds[rank - 1] || -1;
+  }
 }
 
 /**

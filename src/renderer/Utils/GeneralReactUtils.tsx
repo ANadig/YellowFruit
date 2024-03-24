@@ -1,3 +1,5 @@
+import { Button, styled } from '@mui/material';
+
 export enum YfCssClasses {
   HotkeyUnderline = 'yf-hotkey-underline',
   DropTarget = 'drop-target',
@@ -24,3 +26,9 @@ export function hotkeyFormat(caption: string) {
     </span>
   );
 }
+
+export const LinkButton = styled(Button)(({ theme }) => ({
+  textTransform: 'none',
+  padding: 0,
+  ...theme.typography.body2,
+}));

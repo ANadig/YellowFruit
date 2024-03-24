@@ -28,7 +28,7 @@ export class PhaseStandings {
     }
     for (const pool of this.pools) {
       pool.sortTeams();
-      pool.rankSortedTeams(true);
+      pool.rankSortedTeams();
       if (!this.anyTiesExist && pool.getAnyTiesExist()) {
         this.anyTiesExist = true;
       }
@@ -79,7 +79,7 @@ export class PoolStats {
   }
 
   /** Assuming teams are sorted already, determine their ranks and the tiers they would advance to */
-  rankSortedTeams(sameRecordTies: boolean = false, startingRank: number = 1) {
+  rankSortedTeams(startingRank: number = 1) {
     let prevWinPct = 2;
     let teamsSoFar = 0;
     let prevRank = startingRank - 1;
@@ -87,7 +87,7 @@ export class PoolStats {
     for (const oneTeam of this.poolTeams) {
       teamsSoFar++;
       const thisWinPct = oneTeam.getWinPct();
-      if (sameRecordTies && thisWinPct === prevWinPct) {
+      if (thisWinPct === prevWinPct || (Number.isNaN(thisWinPct) && Number.isNaN(prevWinPct))) {
         const tiedRank = `${prevRank.toString()}=`;
         oneTeam.rank = tiedRank;
         if (prevTeam) prevTeam.rank = tiedRank;
@@ -95,13 +95,14 @@ export class PoolStats {
         oneTeam.rank = teamsSoFar.toString();
         prevRank = teamsSoFar;
       }
-      // caller is responsible for revising tier assignments if ties should be broken at the buzzer.
+      // provisional rebracketing info, assuming for now that teams are correctly ordered
       oneTeam.advanceToTier = this.pool.getTierThatRankAdvancesTo(teamsSoFar);
+      oneTeam.currentSeed = this.pool.getSeedForRank(teamsSoFar);
       prevWinPct = thisWinPct;
       prevTeam = oneTeam;
     }
 
-    if (sameRecordTies) this.advancementTiersHandleTies();
+    this.advancementTiersHandleTies();
   }
 
   /** Assuming teams have been assigned provisional tiers, remove them if we'd actually want to play a tiebreaker to figure this out */
@@ -109,12 +110,9 @@ export class PoolStats {
     let prevTeam = this.poolTeams[0];
     for (let i = 1; i < this.poolTeams.length; i++) {
       const oneTeam = this.poolTeams[i];
-      if (!prevTeam) {
-        prevTeam = oneTeam;
-        continue;
-      }
       if (oneTeam.needsTiebreakerWith(prevTeam)) {
-        oneTeam.advancementIsAmbiguous = true;
+        oneTeam.recordTieForAdvancement = true;
+        oneTeam.ppgTieForAdvancement = oneTeam.getPtsPerRegTuh() === prevTeam.getPtsPerRegTuh();
       }
       prevTeam = oneTeam;
     }
@@ -122,12 +120,9 @@ export class PoolStats {
     prevTeam = this.poolTeams[this.poolTeams.length - 1];
     for (let i = this.poolTeams.length - 2; i >= 0; i--) {
       const oneTeam = this.poolTeams[i];
-      if (!prevTeam) {
-        prevTeam = oneTeam;
-        continue;
-      }
       if (oneTeam.needsTiebreakerWith(prevTeam)) {
-        oneTeam.advancementIsAmbiguous = true;
+        oneTeam.recordTieForAdvancement = true;
+        oneTeam.ppgTieForAdvancement = oneTeam.getPtsPerRegTuh() === prevTeam.getPtsPerRegTuh();
       }
       prevTeam = oneTeam;
     }
@@ -153,9 +148,16 @@ export class PoolTeamStats {
 
   rank: string = '';
 
+  /** Seed team is in right now, for the purposes for rebracketing (not the seed they started with) */
+  currentSeed?: number;
+
   advanceToTier?: number;
 
-  advancementIsAmbiguous: boolean = false;
+  /** Does this team have the same record as another, such that a tiebreaker might be needed (if not using PPG)? */
+  recordTieForAdvancement: boolean = false;
+
+  /** Does this team have the same record AND ppg as another, such that the user definitely needs to intervene to break the tie? */
+  ppgTieForAdvancement: boolean = false;
 
   wins: number = 0;
 
@@ -192,9 +194,20 @@ export class PoolTeamStats {
     return wins / (this.wins + this.losses + this.ties);
   }
 
+  getWinPctString() {
+    const pct = this.getWinPct();
+    if (Number.isNaN(pct)) return '-';
+    return pct.toFixed(3).toString();
+  }
+
   /** Points per non-overtime tossup heard. Is NaN if tossups heard is zero! */
   getPtsPerRegTuh() {
     return this.totalPoints / this.tuhRegulation;
+  }
+
+  getPtsPerRegTuhString(regTuCount: number) {
+    if (this.totalPoints === 0) return '-';
+    return (this.getPtsPerRegTuh() * regTuCount).toFixed(1);
   }
 
   /** PPB. Is NaN if bonuses heard is zero! */
@@ -202,10 +215,16 @@ export class PoolTeamStats {
     return this.bonusPoints / this.bonusesHeard;
   }
 
+  getPtsPerBonusString() {
+    const ppb = this.getPtsPerBonus();
+    if (Number.isNaN(ppb)) return '-';
+    return ppb.toFixed(2).toString();
+  }
+
   /** Do we need a tiebreaker with this team to determine where they advance to? */
   needsTiebreakerWith(other: PoolTeamStats) {
     if (this.rank !== other.rank) return false;
-    return this.advanceToTier !== other.advanceToTier || other.advancementIsAmbiguous;
+    return this.advanceToTier !== other.advanceToTier || other.recordTieForAdvancement;
   }
 
   addMatchTeam(match: Match, whichTeam: LeftOrRight) {
