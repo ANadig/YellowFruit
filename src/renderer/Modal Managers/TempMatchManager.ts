@@ -7,6 +7,7 @@ import { Phase } from '../DataModel/Phase';
 import { MatchValidationType } from '../DataModel/MatchValidationMessage';
 import { MatchPlayer } from '../DataModel/MatchPlayer';
 import { PlayerAnswerCount } from '../DataModel/PlayerAnswerCount';
+import { textFieldChanged } from '../Utils/GeneralUtils';
 
 export class TempMatchManager {
   /** The Match being edited */
@@ -251,6 +252,7 @@ export class TempMatchManager {
   }
 
   setPlayerTuh(mPlayer: MatchPlayer, val: string): number | undefined {
+    if (!textFieldChanged(mPlayer.tossupsHeard?.toString() || '', val)) return mPlayer.tossupsHeard;
     const parsed = parseInt(val, 10);
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
     mPlayer.tossupsHeard = valToSave;
@@ -262,6 +264,7 @@ export class TempMatchManager {
   }
 
   setPlayerAnswerCount(aCount: PlayerAnswerCount, val: string): number | undefined {
+    if (!textFieldChanged(aCount.number?.toString() || '', val)) return aCount.number;
     const parsed = parseInt(val, 10);
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
     aCount.number = valToSave;
