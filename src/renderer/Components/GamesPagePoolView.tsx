@@ -107,7 +107,9 @@ function MatrixCell(props: IMatrixCellProps) {
   }
 
   const editExisting = () => {
-    const roundNo = phase.getRoundNoOfMatch(match);
+    const roundNo = match.carryoverPhases.includes(phase)
+      ? tournManager.tournament.getRoundNoOfMatch(match)
+      : phase.getRoundNoOfMatch(match);
     tournManager.openMatchEditModalExistingMatch(match, roundNo);
   };
 

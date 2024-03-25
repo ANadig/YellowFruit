@@ -443,6 +443,15 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       if (!pastPhase.hasAnyCarryover()) break;
     }
   }
+
+  /** Find the round number of this match, if we don't already know what phase it's in */
+  getRoundNoOfMatch(match: Match) {
+    for (const phase of this.phases) {
+      const roundNo = phase.getRoundNoOfMatch(match);
+      if (roundNo !== undefined) return roundNo;
+    }
+    return undefined;
+  }
   //
 }
 
