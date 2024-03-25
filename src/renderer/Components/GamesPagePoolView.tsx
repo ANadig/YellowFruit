@@ -1,7 +1,7 @@
-import { IconButton, Stack, Table, TableBody, TableCell, TableContainer, TableRow } from '@mui/material';
+import { IconButton, Stack, Table, TableBody, TableCell, TableContainer, TableRow, Tooltip } from '@mui/material';
 import { useContext } from 'react';
 import Grid from '@mui/material/Unstable_Grid2';
-import { Add, Edit } from '@mui/icons-material';
+import { Add, Edit, Shuffle } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import YfCard from './YfCard';
 import { Phase } from '../DataModel/Phase';
@@ -106,10 +106,10 @@ function MatrixCell(props: IMatrixCellProps) {
     );
   }
 
+  const isCarryover = match.carryoverPhases.includes(phase);
+
   const editExisting = () => {
-    const roundNo = match.carryoverPhases.includes(phase)
-      ? tournManager.tournament.getRoundNoOfMatch(match)
-      : phase.getRoundNoOfMatch(match);
+    const roundNo = isCarryover ? tournManager.tournament.getRoundNoOfMatch(match) : phase.getRoundNoOfMatch(match);
     tournManager.openMatchEditModalExistingMatch(match, roundNo);
   };
 
@@ -119,6 +119,12 @@ function MatrixCell(props: IMatrixCellProps) {
       <IconButton size="small" onClick={editExisting}>
         <Edit />
       </IconButton>
+      &nbsp;
+      {isCarryover && (
+        <Tooltip title="Crossover" placement="right">
+          <Shuffle color="secondary" sx={{ verticalAlign: 'text-bottom' }} />
+        </Tooltip>
+      )}
     </TableCell>
   );
 }
