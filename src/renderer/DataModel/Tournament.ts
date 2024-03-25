@@ -84,6 +84,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   registrations: Registration[] = [];
 
+  /** Phases (prelims, playoffs, etc) of the tournament. In YellowFruit, these must always be in chronological order! */
   phases: Phase[] = [];
 
   rankings: Ranking[] = [];
@@ -222,6 +223,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   getPlayoffPhases() {
     return this.phases.filter((ph) => ph.phaseType === PhaseTypes.Playoff);
+  }
+
+  /** "Real" phases with pool play, as oppsed to tiebreakers or finals */
+  getFullPhases() {
+    return this.phases.filter((ph) => ph.phaseType === PhaseTypes.Prelim || ph.phaseType === PhaseTypes.Playoff);
   }
 
   findPhaseByName(str: string) {
@@ -392,6 +398,52 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     if (!phase) return;
     phase.deleteMatch(match, roundNo);
   }
+
+  findMatchBetweenTeams(team1: Team, team2: Team, phase: Phase) {
+    const matchInThisPhase = phase.findMatchBetweenTeams(team1, team2);
+    if (matchInThisPhase) return matchInThisPhase;
+
+    if (!phase.shouldLookForCarryover(team1, team2)) return undefined;
+
+    const fullPhases = this.getFullPhases();
+    for (let phaseIdx = fullPhases.indexOf(phase) - 1; phaseIdx >= 0; phaseIdx--) {
+      const pastPhase = fullPhases[phaseIdx];
+
+      const matchInPastPhase = pastPhase.findMatchBetweenTeams(team1, team2, phase);
+      if (matchInPastPhase) return matchInPastPhase;
+
+      // If this phase doesn't carry over from previous ones, no need to go further back
+      // (I'm not aware of any formats where phase A carries over to phase C but phase B doesn't)
+      if (!pastPhase.hasAnyCarryover()) break;
+    }
+
+    return undefined;
+  }
+
+  /** Carry over matches from previous phases to this one */
+  carryOverMatches(nextPhase: Phase, teams: Team[]) {
+    if (!nextPhase.hasAnyCarryover()) return;
+
+    const fullPhases = this.getFullPhases();
+    for (let phaseIdx = fullPhases.indexOf(nextPhase) - 1; phaseIdx >= 0; phaseIdx--) {
+      const pastPhase = fullPhases[phaseIdx];
+
+      for (let i = 0; i < teams.length - 1; i++) {
+        for (let j = i + 1; j < teams.length; j++) {
+          const team1 = teams[i];
+          const team2 = teams[j];
+          if (!nextPhase.shouldLookForCarryover(team1, team2)) continue;
+          if (!pastPhase.teamsAreInSamePool(team1, team2)) continue;
+          const match = pastPhase.findMatchBetweenTeams(team1, team2);
+          if (match) match.addCarryoverPhase(nextPhase);
+        }
+      }
+      // If this phase doesn't carry over from previous ones, no need to go further back
+      // (I'm not aware of any formats where phase A carries over to phase C but phase B doesn't)
+      if (!pastPhase.hasAnyCarryover()) break;
+    }
+  }
+  //
 }
 
 export const NullTournament = new Tournament('Null Tournament');

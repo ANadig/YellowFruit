@@ -19,6 +19,9 @@ import { Match } from './DataModel/Match';
 import { generateStandingsPage } from './DataModel/HTMLReports';
 import { StatReportHtmlPage } from '../SharedUtils';
 import { StatReportFileNames, StatReportPages } from './Enums';
+import { Pool } from './DataModel/Pool';
+import { PoolStats } from './DataModel/StatSummaries';
+import { Phase } from './DataModel/Phase';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -448,6 +451,29 @@ export class TournamentManager {
   deleteMatch(match: Match, roundNo: number) {
     this.tournament.deleteMatch(match, roundNo);
     this.tournament.calcHasMatchData();
+    this.onDataChanged();
+  }
+
+  addTeamtoPlayoffPool(team: Team, pool: Pool, phase: Phase) {
+    pool.addTeam(team);
+    this.tournament.carryOverMatches(
+      phase,
+      pool.poolTeams.map((pt) => pt.team),
+    );
+    this.onDataChanged();
+  }
+
+  /** Take the teams from one pool, and add them to the pools they've been calculated (or overridden) to be in */
+  rebracketPool(poolStats: PoolStats, curPhase: Phase, nextPhase: Phase) {
+    for (const ptStats of poolStats.poolTeams) {
+      if (!ptStats.currentSeed) continue;
+      if (nextPhase.findPoolWithTeam(ptStats.team)) continue; // already rebracketed
+      nextPhase.findPoolWithSeed(ptStats.currentSeed)?.addTeam(ptStats.team);
+    }
+    this.tournament.carryOverMatches(
+      nextPhase,
+      poolStats.poolTeams.map((ptStats) => ptStats.team),
+    );
     this.onDataChanged();
   }
 

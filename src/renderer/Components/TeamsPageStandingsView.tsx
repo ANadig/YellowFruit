@@ -8,34 +8,55 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Card,
   CardContent,
   Tooltip,
   IconButton,
+  Stack,
 } from '@mui/material';
-import { Create, Error, Warning } from '@mui/icons-material';
+import { Create, Done, Error, Warning } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { PoolTeamStats } from '../DataModel/StatSummaries';
 import { Phase } from '../DataModel/Phase';
 import { LinkButton } from '../Utils/GeneralReactUtils';
+import YfCard from './YfCard';
 
 export default function StandingsView() {
   const tournManager = useContext(TournamentContext);
-  const thisTournament = tournManager.tournament;
-  const [phase] = useSubscription(thisTournament.getPrelimPhase());
+  const phases = tournManager.tournament.getFullPhases();
   const [updateTime] = useSubscription(tournManager.inAppStatReportGenerated);
+
+  if (phases.length === 0) return null;
+
+  return (
+    <div key={updateTime.toISOString()}>
+      <Stack spacing={2}>
+        {phases.map((ph) => (
+          <PhaseStandings key={ph.name} phase={ph} />
+        ))}
+      </Stack>
+    </div>
+  );
+}
+
+interface IPhaseStandingsProps {
+  phase: Phase;
+}
+
+function PhaseStandings(props: IPhaseStandingsProps) {
+  const { phase } = props;
+  const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
+  const nextPhase = thisTournament.getNextPhase(phase);
   const regulationTossupCount = thisTournament.scoringRules.regulationTossupCount;
 
-  if (!phase) return null;
+  if (!nextPhase) return null; // no rebracketing to do!
 
   const phaseStats = thisTournament.stats.find((ps) => ps.phase === phase);
   if (!phaseStats) return null;
 
-  const nextPhase = thisTournament.getNextPhase(phase);
-
   return (
-    <Card key={updateTime.toISOString()}>
+    <YfCard title={phase.name}>
       <CardContent>
         <Grid
           container
@@ -70,10 +91,19 @@ export default function StandingsView() {
                       {nextPhase && <TableCell width="4%" />}
                       {nextPhase && <TableCell>Advance To</TableCell>}
                       {nextPhase && (
-                        <TableCell>
-                          <LinkButton size="small" variant="text">
-                            Confirm All
-                          </LinkButton>
+                        <TableCell align="center">
+                          <Tooltip
+                            placement="left"
+                            title={`Place all of this pool's teams into the ${nextPhase.name} pools as shown`}
+                          >
+                            <LinkButton
+                              size="small"
+                              variant="text"
+                              onClick={() => tournManager.rebracketPool(poolStats, phaseStats.phase, nextPhase)}
+                            >
+                              Confirm All
+                            </LinkButton>
+                          </Tooltip>
                         </TableCell>
                       )}
                     </TableRow>
@@ -92,13 +122,7 @@ export default function StandingsView() {
                         <TableCell align="right">{ptStats.currentSeed}</TableCell>
                         {nextPhase && <TableCell>{getAdvancementIcon(ptStats)}</TableCell>}
                         {nextPhase && <AdvanceToCell ptStats={ptStats} nextPhase={nextPhase} />}
-                        {nextPhase && (
-                          <TableCell>
-                            <LinkButton size="small" variant="text">
-                              Confirm
-                            </LinkButton>
-                          </TableCell>
-                        )}
+                        {nextPhase && <ConfirmationCell ptStats={ptStats} nextPhase={nextPhase} />}
                       </TableRow>
                     ))}
                   </TableBody>
@@ -108,7 +132,7 @@ export default function StandingsView() {
           ))}
         </Grid>
       </CardContent>
-    </Card>
+    </YfCard>
   );
 }
 
@@ -121,12 +145,56 @@ function AdvanceToCell(props: IAdvanceToCellProps) {
   const { ptStats, nextPhase } = props;
   if (!ptStats.advanceToTier || !ptStats.currentSeed) return null;
 
+  const confirmedPool = nextPhase.findPoolWithTeam(ptStats.team);
+  const poolToShow = confirmedPool || nextPhase.findPoolWithSeed(ptStats.currentSeed);
+  if (!poolToShow) return null;
+
+  const tier = poolToShow.position;
+
   return (
     <TableCell>
-      {`Tier ${ptStats.advanceToTier} - ${nextPhase.findPoolWithSeed(ptStats.currentSeed)?.name}`}
-      <IconButton size="small">
-        <Create />
-      </IconButton>
+      {`Tier ${tier} - ${poolToShow.name}`}
+      <Tooltip placement="right" title="Change assignment">
+        <IconButton size="small">
+          <Create />
+        </IconButton>
+      </Tooltip>
+    </TableCell>
+  );
+}
+
+interface IConfirmationCellProps {
+  ptStats: PoolTeamStats;
+  nextPhase: Phase;
+}
+
+function ConfirmationCell(props: IConfirmationCellProps) {
+  const { ptStats, nextPhase } = props;
+  const tournManager = useContext(TournamentContext);
+  const alreadyConfirmed = !!nextPhase.findPoolWithTeam(ptStats.team);
+
+  if (alreadyConfirmed) {
+    return (
+      <TableCell align="center">
+        <Done color="success" />
+      </TableCell>
+    );
+  }
+
+  if (!ptStats.currentSeed) return null;
+
+  const confirm = () => {
+    if (!ptStats.currentSeed) return;
+    const pool = nextPhase.findPoolWithSeed(ptStats.currentSeed);
+    if (!pool) return;
+    tournManager.addTeamtoPlayoffPool(ptStats.team, pool, nextPhase);
+  };
+
+  return (
+    <TableCell align="center">
+      <LinkButton size="small" variant="text" onClick={confirm}>
+        Confirm
+      </LinkButton>
     </TableCell>
   );
 }

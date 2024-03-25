@@ -3,7 +3,6 @@ import { useContext } from 'react';
 import Grid from '@mui/material/Unstable_Grid2';
 import { Add, Edit } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
-import useSubscription from '../Utils/CustomHooks';
 import YfCard from './YfCard';
 import { Phase } from '../DataModel/Phase';
 import { Pool } from '../DataModel/Pool';
@@ -11,7 +10,7 @@ import { Team } from '../DataModel/Team';
 
 export default function GamesViewByPool() {
   const tournManager = useContext(TournamentContext);
-  const [phases] = useSubscription(tournManager.tournament.phases);
+  const phases = tournManager.tournament.getFullPhases();
 
   return (
     <Stack spacing={2} sx={{ '& .MuiSvgIcon-root': { fontSize: '1rem' } }}>
@@ -96,7 +95,7 @@ function MatrixCell(props: IMatrixCellProps) {
   if (team === opponent) {
     return <TableCell sx={{ backgroundColor: 'lightgray' }} />;
   }
-  const match = phase.findMatchBetweenTeams(team, opponent);
+  const match = tournManager.tournament.findMatchBetweenTeams(team, opponent, phase);
   if (!match) {
     return (
       <TableCell align="center">

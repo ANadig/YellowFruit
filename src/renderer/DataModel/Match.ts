@@ -271,6 +271,11 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return this.leftTeam.forfeitLoss || this.rightTeam.forfeitLoss;
   }
 
+  addCarryoverPhase(phase: Phase) {
+    if (this.carryoverPhases.includes(phase)) return;
+    this.carryoverPhases.push(phase);
+  }
+
   /** The score in a format like "W 355-200", from the perspective of the team pass as the parameter */
   getShortScore(team: Team) {
     let whichTeam: LeftOrRight | null = null;

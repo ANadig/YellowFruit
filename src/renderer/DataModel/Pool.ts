@@ -38,7 +38,7 @@ export interface IQbjPool extends IQbjObject {
   name: string;
   /** Further info about the pool */
   description?: string;
-  /** The position/rank of this Pool among all Pool objects used for its Phase. Need not be unique (e.g. in the case of parallel pools) */
+  /** The position/rank/tier of this Pool among all Pool objects used for its Phase. Need not be unique (e.g. in the case of parallel pools) */
   position?: number;
   /** The assignments of teams to pools for this phase */
   poolTeams?: IQbjPoolTeam[];

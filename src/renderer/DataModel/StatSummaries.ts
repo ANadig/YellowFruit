@@ -5,6 +5,7 @@ import { Match } from './Match';
 import { Phase } from './Phase';
 import { PlayerAnswerCount } from './PlayerAnswerCount';
 import { Pool } from './Pool';
+import { PoolTeam } from './PoolTeam';
 import Registration from './Registration';
 import { Team } from './Team';
 
@@ -59,7 +60,7 @@ export class PoolStats {
 
   constructor(pool: Pool) {
     this.pool = pool;
-    this.poolTeams = pool.poolTeams.map((pt) => new PoolTeamStats(pt.team));
+    this.poolTeams = pool.poolTeams.map((pt) => new PoolTeamStats(pt));
   }
 
   sortTeams() {
@@ -146,6 +147,8 @@ export class PoolTeamStats {
 
   team: Team;
 
+  poolTeam: PoolTeam;
+
   rank: string = '';
 
   /** Seed team is in right now, for the purposes for rebracketing (not the seed they started with) */
@@ -185,8 +188,9 @@ export class PoolTeamStats {
 
   lightningPoints: number = 0;
 
-  constructor(team: Team) {
-    this.team = team;
+  constructor(poolTeam: PoolTeam) {
+    this.poolTeam = poolTeam;
+    this.team = poolTeam.team;
   }
 
   getWinPct() {

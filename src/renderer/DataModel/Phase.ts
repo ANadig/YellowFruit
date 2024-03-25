@@ -181,6 +181,31 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return undefined;
   }
 
+  teamsAreInSamePool(team1: Team, team2: Team) {
+    return !!this.getSharedPool(team1, team2);
+  }
+
+  /** Do we potentially need to carry over matches from previous phases between these teams? */
+  shouldLookForCarryover(team1: Team, team2: Team) {
+    const sharedPool = this.getSharedPool(team1, team2);
+    if (!sharedPool) return false;
+    return sharedPool.hasCarryover;
+  }
+
+  /** if the two teams are in the same pool, return that pool */
+  private getSharedPool(team1: Team, team2: Team) {
+    const pool1 = this.findPoolWithTeam(team1);
+    const pool2 = this.findPoolWithTeam(team2);
+    if (!pool1 || !pool2) return undefined;
+    if (pool1 === pool2) return pool1;
+    return undefined;
+  }
+
+  /** Do any pools in this phase carry over matches from the previous one? */
+  hasAnyCarryover() {
+    return !!this.pools.find((pool) => pool.hasCarryover);
+  }
+
   teamHasPlayedAnyMatches(team: Team) {
     for (const rd of this.rounds) {
       if (rd.teamHasPlayedIn(team)) return true;
@@ -221,10 +246,12 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return this.rounds.find((rd) => rd.number === roundNo);
   }
 
-  findMatchBetweenTeams(team1: Team, team2: Team) {
+  findMatchBetweenTeams(team1: Team, team2: Team, carryoverPhase?: Phase) {
     for (const round of this.rounds) {
       const match = round.findMatchBetweenTeams(team1, team2);
-      if (match) return match;
+      if (match && (!carryoverPhase || match.carryoverPhases.includes(carryoverPhase))) {
+        return match;
+      }
     }
     return undefined;
   }

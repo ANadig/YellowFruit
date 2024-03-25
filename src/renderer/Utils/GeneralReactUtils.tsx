@@ -27,6 +27,7 @@ export function hotkeyFormat(caption: string) {
   );
 }
 
+/** Styling for a minimal button that looks like a link */
 export const LinkButton = styled(Button)(({ theme }) => ({
   textTransform: 'none',
   padding: 0,
