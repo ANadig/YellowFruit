@@ -1,4 +1,4 @@
-import { IQbjObject, IQbjRefPointer, IYftDataModelObject } from './Interfaces';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
 import { IQbjTeam, Team } from './Team';
 
@@ -10,10 +10,23 @@ export interface IQbjPoolTeam extends IQbjObject {
   position?: number;
 }
 
+/** Pool object as written to a .yft file */
+export interface IYftFilePoolTeam extends IQbjPoolTeam, IYftFileObject {
+  YfData: IPoolTeamExtraData;
+}
+
+/** Additional info not in qbj but needed for a .yft file */
+interface IPoolTeamExtraData {
+  didNotAdvance?: boolean;
+}
+
 export class PoolTeam implements IQbjPoolTeam, IYftDataModelObject {
   team: Team;
 
   position?: number;
+
+  /** Explicitly denote that this team didn't advance to the next phase */
+  didNotAdvance?: boolean;
 
   get id() {
     return `PoolTeam_${this.team.name}`;
@@ -33,6 +46,11 @@ export class PoolTeam implements IQbjPoolTeam, IYftDataModelObject {
     if (isTopLevel) qbjObject.type = QbjTypeNames.PoolTeam;
     if (isReferenced) qbjObject.id = this.id;
 
-    return qbjObject;
+    if (qbjOnly) return qbjObject;
+
+    const yfData: IPoolTeamExtraData = { didNotAdvance: this.didNotAdvance };
+    const yftFileObj = { YfData: yfData, ...qbjObject };
+
+    return yftFileObj;
   }
 }

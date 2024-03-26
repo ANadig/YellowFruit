@@ -1,5 +1,5 @@
 /* eslint-disable prefer-destructuring */
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import Grid from '@mui/material/Unstable_Grid2';
 import {
   TableContainer,
@@ -70,13 +70,16 @@ function PhaseStandings(props: IPhaseStandingsProps) {
   const phaseStats = thisTournament.stats.find((ps) => ps.phase === phase);
   if (!phaseStats) return null;
 
-  const launchOverrideForm = (team: Team, initPool: Pool) => {
+  const launchOverrideForm = (team: Team, initPool?: Pool) => {
     setTeamBeingEdited(team);
-    setTeamEditInitPool(initPool);
+    setTeamEditInitPool(initPool || null);
     setPoolOverrideFormOpen(true);
   };
 
-  const closeOverrideForm = (saveData: boolean) => {
+  const closeOverrideForm = (saveData: boolean, newPool?: Pool) => {
+    if (saveData && teamBeingEdited) {
+      tournManager.overridePlayoffPoolAssignment(teamBeingEdited, nextPhase, newPool);
+    }
     setTeamBeingEdited(null);
     setTeamEditInitPool(null);
     setPoolOverrideFormOpen(false);
@@ -127,7 +130,7 @@ function PhaseStandings(props: IPhaseStandingsProps) {
                               <LinkButton
                                 size="small"
                                 variant="text"
-                                onClick={() => tournManager.rebracketPool(poolStats, phaseStats.phase, nextPhase)}
+                                onClick={() => tournManager.rebracketPool(poolStats, nextPhase)}
                               >
                                 Confirm All
                               </LinkButton>
@@ -172,7 +175,7 @@ function PhaseStandings(props: IPhaseStandingsProps) {
         phase={nextPhase}
         team={teamBeingEdited}
         initialPool={teamEditInitPool}
-        handleAccept={() => closeOverrideForm(true)}
+        handleAccept={(p?: Pool) => closeOverrideForm(true, p)}
         handleCancel={() => closeOverrideForm(false)}
       />
     </>
@@ -182,22 +185,21 @@ function PhaseStandings(props: IPhaseStandingsProps) {
 interface IAdvanceToCellProps {
   ptStats: PoolTeamStats;
   nextPhase: Phase;
-  launchOverrideForm: (team: Team, initPool: Pool) => void;
+  launchOverrideForm: (team: Team, initPool?: Pool) => void;
 }
 
 function AdvanceToCell(props: IAdvanceToCellProps) {
   const { ptStats, nextPhase, launchOverrideForm } = props;
-  if (!ptStats.advanceToTier || !ptStats.currentSeed) return null;
+  if (!ptStats.currentSeed) return null;
 
   const confirmedPool = nextPhase.findPoolWithTeam(ptStats.team);
-  const poolToShow = confirmedPool || nextPhase.findPoolWithSeed(ptStats.currentSeed);
-  if (!poolToShow) return null;
-
-  const tier = poolToShow.position;
+  let poolToShow = confirmedPool || nextPhase.findPoolWithSeed(ptStats.currentSeed);
+  if (ptStats.poolTeam.didNotAdvance) poolToShow = undefined;
+  const dispText = poolToShow ? `Tier ${poolToShow.position} - ${poolToShow.name}` : 'None';
 
   return (
     <TableCell>
-      {`Tier ${tier} - ${poolToShow.name}`}
+      {dispText}
       <Tooltip placement="right" title="Change assignment">
         <IconButton size="small" onClick={() => launchOverrideForm(ptStats.team, poolToShow)}>
           <Create />
@@ -215,7 +217,7 @@ interface IConfirmationCellProps {
 function ConfirmationCell(props: IConfirmationCellProps) {
   const { ptStats, nextPhase } = props;
   const tournManager = useContext(TournamentContext);
-  const alreadyConfirmed = !!nextPhase.findPoolWithTeam(ptStats.team);
+  const alreadyConfirmed = !!nextPhase.findPoolWithTeam(ptStats.team) || ptStats.poolTeam.didNotAdvance;
 
   if (alreadyConfirmed) {
     return (
@@ -271,20 +273,22 @@ interface IPoolOverrideDialogProps {
 function PoolOverrideDialog(props: IPoolOverrideDialogProps) {
   const { isOpen, phase, team, initialPool, handleAccept, handleCancel } = props;
   const noneOption = 'none-pool-radio-option';
-  const [poolOption, setPoolOption] = useSubscription(initialPool?.name || '');
+  const [poolOption, setPoolOption] = useState(initialPool?.name || noneOption);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => setPoolOption(initialPool?.name || noneOption), [isOpen]);
 
   const closeWindow = (saveData: boolean) => {
-    setPoolOption('');
     if (saveData) {
       if (poolOption === noneOption) {
         handleAccept();
       } else {
-        const pool = phase.pools.find((p) => p.name === poolOption);
+        const pool = phase.findPoolByName(poolOption);
         handleAccept(pool);
       }
     } else {
       handleCancel();
     }
+    setPoolOption('');
   };
 
   useHotkeys('alt+a', () => closeWindow(true), { enabled: isOpen, enableOnFormTags: true });

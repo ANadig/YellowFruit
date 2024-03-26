@@ -454,17 +454,18 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
-  addTeamtoPlayoffPool(team: Team, pool: Pool, phase: Phase) {
+  addTeamtoPlayoffPool(team: Team, pool: Pool, nextPhase: Phase) {
     pool.addTeam(team);
     this.tournament.carryOverMatches(
-      phase,
+      nextPhase,
       pool.poolTeams.map((pt) => pt.team),
     );
+    this.tournament.getPrevFullPhase(nextPhase)?.markTeamDidNotAdvance(team, false);
     this.onDataChanged();
   }
 
   /** Take the teams from one pool, and add them to the pools they've been calculated (or overridden) to be in */
-  rebracketPool(poolStats: PoolStats, curPhase: Phase, nextPhase: Phase) {
+  rebracketPool(poolStats: PoolStats, nextPhase: Phase) {
     for (const ptStats of poolStats.poolTeams) {
       if (!ptStats.currentSeed) continue;
       if (nextPhase.findPoolWithTeam(ptStats.team)) continue; // already rebracketed
@@ -474,6 +475,27 @@ export class TournamentManager {
       nextPhase,
       poolStats.poolTeams.map((ptStats) => ptStats.team),
     );
+    this.onDataChanged();
+  }
+
+  /**
+   * Put a team in the the specified pool, removing them from a different pool if needed
+   * @param team team to move
+   * @param nextPhase phase to put the team in
+   * @param newPool pool to put the team in; if undefined, just remove the team from their existing pool
+   */
+  overridePlayoffPoolAssignment(team: Team, nextPhase: Phase, newPool?: Pool) {
+    const curPool = nextPhase.findPoolWithTeam(team);
+    if (curPool && curPool === newPool) return;
+
+    this.tournament.clearCarryoverMatches(team, nextPhase);
+    if (curPool) curPool.removeTeam(team);
+    if (newPool) {
+      this.addTeamtoPlayoffPool(team, newPool, nextPhase);
+    } else {
+      this.tournament.getPrevFullPhase(nextPhase)?.markTeamDidNotAdvance(team, true);
+    }
+
     this.onDataChanged();
   }
 

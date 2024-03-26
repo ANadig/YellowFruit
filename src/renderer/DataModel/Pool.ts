@@ -156,7 +156,11 @@ export class Pool implements IQbjPool, IYftDataModelObject {
 
   /** Is this team in this pool? */
   includesTeam(team: Team) {
-    return !!this.poolTeams.find((pt) => pt.team === team);
+    return !!this.getPoolTeam(team);
+  }
+
+  getPoolTeam(team: Team) {
+    return this.poolTeams.find((pt) => pt.team === team);
   }
 
   /** Given a rank, which numbered tier does that rank advance to? */

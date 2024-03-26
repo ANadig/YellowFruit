@@ -146,6 +146,11 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return makeQbjRefPointer(this.id);
   }
 
+  /** Is this a normal prelim/playoff phase? */
+  isFullPhase() {
+    return this.phaseType === PhaseTypes.Prelim || this.phaseType === PhaseTypes.Playoff;
+  }
+
   resetPools() {
     for (const pool of this.pools) {
       pool.clearTeams();
@@ -179,6 +184,10 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
       if (pool.includesTeam(team)) return pool;
     }
     return undefined;
+  }
+
+  findPoolByName(name: string) {
+    return this.pools.find((p) => p.name === name);
   }
 
   teamsAreInSamePool(team1: Team, team2: Team) {
@@ -273,5 +282,24 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     const round = this.getRound(roundNo);
     if (!round) return;
     round.matches = round.matches.filter((m) => m !== match);
+  }
+
+  clearCarryoverPhase(team: Team, playoffPhase: Phase) {
+    for (const rd of this.rounds) {
+      for (const match of rd.findMatchesWithTeam(team)) {
+        match.removeCarryoverPhase(playoffPhase);
+      }
+    }
+  }
+
+  /** Explicitly not that this team doesn't move to the next phase */
+  markTeamDidNotAdvance(team: Team, val: boolean) {
+    for (const pool of this.pools) {
+      const pt = pool.getPoolTeam(team);
+      if (pt) {
+        pt.didNotAdvance = val;
+        return;
+      }
+    }
   }
 }

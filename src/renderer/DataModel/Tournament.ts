@@ -227,11 +227,21 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   /** "Real" phases with pool play, as oppsed to tiebreakers or finals */
   getFullPhases() {
-    return this.phases.filter((ph) => ph.phaseType === PhaseTypes.Prelim || ph.phaseType === PhaseTypes.Playoff);
+    return this.phases.filter((ph) => ph.isFullPhase());
   }
 
   findPhaseByName(str: string) {
     return this.phases.find((ph) => ph.name === str);
+  }
+
+  /** Get the prelim or playoff phase that preceded this one */
+  getPrevFullPhase(phase: Phase): Phase | undefined {
+    let idx = this.phases.indexOf(phase) - 1;
+    while (idx >= -1 && !this.phases[idx].isFullPhase()) {
+      idx--;
+    }
+    if (idx === -1) return undefined;
+    return this.phases[idx];
   }
 
   findPoolWithTeam(team: Team, roundNo: number): Pool | undefined {
@@ -412,7 +422,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       const matchInPastPhase = pastPhase.findMatchBetweenTeams(team1, team2, phase);
       if (matchInPastPhase) return matchInPastPhase;
 
-      // If this phase doesn't carry over from previous ones, no need to go further back
+      // No need to go further back
       // (I'm not aware of any formats where phase A carries over to phase C but phase B doesn't)
       if (!pastPhase.hasAnyCarryover()) break;
     }
@@ -438,8 +448,20 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
           if (match) match.addCarryoverPhase(nextPhase);
         }
       }
-      // If this phase doesn't carry over from previous ones, no need to go further back
+      // No need to go further back
       // (I'm not aware of any formats where phase A carries over to phase C but phase B doesn't)
+      if (!pastPhase.hasAnyCarryover()) break;
+    }
+  }
+
+  clearCarryoverMatches(team: Team, playoffPhase: Phase) {
+    if (!playoffPhase.hasAnyCarryover()) return;
+
+    const fullPhases = this.getFullPhases();
+    for (let phaseIdx = fullPhases.indexOf(playoffPhase) - 1; phaseIdx >= 0; phaseIdx--) {
+      const pastPhase = fullPhases[phaseIdx];
+      pastPhase.clearCarryoverPhase(team, playoffPhase);
+
       if (!pastPhase.hasAnyCarryover()) break;
     }
   }

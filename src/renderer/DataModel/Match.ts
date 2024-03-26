@@ -276,6 +276,10 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.carryoverPhases.push(phase);
   }
 
+  removeCarryoverPhase(phase: Phase) {
+    this.carryoverPhases = this.carryoverPhases.filter((ph) => ph !== phase);
+  }
+
   /** The score in a format like "W 355-200", from the perspective of the team pass as the parameter */
   getShortScore(team: Team) {
     let whichTeam: LeftOrRight | null = null;

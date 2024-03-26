@@ -12,7 +12,7 @@ import { IQbjPhase, IYftFilePhase, Phase, PhaseTypes } from './Phase';
 import { IQbjPlayer, IYftFilePlayer, Player } from './Player';
 import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
 import { IQbjPool, IYftFilePool, Pool } from './Pool';
-import { IQbjPoolTeam, PoolTeam } from './PoolTeam';
+import { IQbjPoolTeam, IYftFilePoolTeam, PoolTeam } from './PoolTeam';
 import { getBaseQbjObject, isQbjRefPointer } from './QbjUtils';
 import Registration, { IQbjRegistration, IYftFileRegistration } from './Registration';
 import { IQbjRound, IYftFileRound, Round, sortRounds } from './Round';
@@ -306,10 +306,12 @@ export default class FileParser {
       throw new Error(`Team ${name} doesn't have any players.`);
     }
     yfTeam.players = yfPlayers;
-    yfTeam.letter = this.parseTeamLetter(yfExtraData.letter, name);
-    yfTeam.isJV = yfExtraData.isJV || false;
-    yfTeam.isUG = yfExtraData.isUG || false;
-    yfTeam.isD2 = yfExtraData.isD2 || false;
+    if (yfExtraData) {
+      yfTeam.letter = this.parseTeamLetter(yfExtraData.letter, name);
+      yfTeam.isJV = yfExtraData.isJV || false;
+      yfTeam.isUG = yfExtraData.isUG || false;
+      yfTeam.isD2 = yfExtraData.isD2 || false;
+    }
 
     if (qbjTeam.id) this.teamsById[qbjTeam.id] = yfTeam;
 
@@ -359,8 +361,8 @@ export default class FileParser {
       }
       yfPlayer.yearString = yearStringFromNumericYear;
     }
-    yfPlayer.isUG = yfExtraData.isUG || false;
-    yfPlayer.isD2 = yfExtraData.isD2 || false;
+    yfPlayer.isUG = yfExtraData?.isUG || false;
+    yfPlayer.isD2 = yfExtraData?.isD2 || false;
 
     if (qbjPlayer.id) this.playersById[qbjPlayer.id] = yfPlayer;
 
@@ -523,10 +525,12 @@ export default class FileParser {
     if (description) yftPool.description = description;
     if (!yfExtraData) return yftPool;
 
-    yftPool.roundRobins = yfExtraData.roundRobins;
-    yftPool.seeds = yfExtraData.seeds;
-    yftPool.hasCarryover = yfExtraData.hasCarryover;
-    yftPool.autoAdvanceRules = yfExtraData.autoAdvanceRules;
+    if (yfExtraData) {
+      yftPool.roundRobins = yfExtraData.roundRobins;
+      yftPool.seeds = yfExtraData.seeds;
+      yftPool.hasCarryover = yfExtraData.hasCarryover;
+      yftPool.autoAdvanceRules = yfExtraData.autoAdvanceRules;
+    }
     yftPool.poolTeams = this.parsePoolPoolTeams(qbjPool);
     // TODO: feeder pools?
 
@@ -549,6 +553,8 @@ export default class FileParser {
     if (baseObj === null) return null;
 
     const qbjPoolTeam = baseObj as IQbjPoolTeam;
+    const yfExtraData = (baseObj as IYftFilePoolTeam).YfData;
+
     const team = this.getYfObjectFromId(qbjPoolTeam.team as IIndeterminateQbj, this.teamsById);
     if (!team) {
       throw new Error(`Pool ${this.currentPool?.name} contains a PoolTeam that doesn't refer to a valid Team.`);
@@ -556,6 +562,7 @@ export default class FileParser {
 
     const yfPoolTeam = new PoolTeam(team);
     yfPoolTeam.position = qbjPoolTeam.position;
+    yfPoolTeam.didNotAdvance = yfExtraData?.didNotAdvance;
 
     return yfPoolTeam;
   }
@@ -619,7 +626,7 @@ export default class FileParser {
     if (yfMatch.isForfeit()) yfMatch.tossupsRead = undefined;
 
     yfMatch.modalBottomValidation = new MatchValidationCollection();
-    yfMatch.modalBottomValidation.addFromFileObjects(yfExtraData.otherValidation || []);
+    yfMatch.modalBottomValidation.addFromFileObjects(yfExtraData?.otherValidation || []);
 
     yfMatch.validateAll(this.tourn.scoringRules);
     return yfMatch;
@@ -661,7 +668,7 @@ export default class FileParser {
     // TODO: overtime stuff
 
     yfMatchTeam.modalBottomValidation = new MatchValidationCollection();
-    yfMatchTeam.modalBottomValidation.addFromFileObjects(yfExtraData.validation || []);
+    yfMatchTeam.modalBottomValidation.addFromFileObjects(yfExtraData?.validation || []);
 
     return yfMatchTeam;
   }
