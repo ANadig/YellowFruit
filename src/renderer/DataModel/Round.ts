@@ -32,7 +32,7 @@ interface IRoundExtraData {
 
 /** One round of games */
 export class Round implements IQbjRound, IYftDataModelObject {
-  /** In YF everything should have a numerical round even though this isn't in the schema */
+  /** Number for ordering. For normal rounds, an interger. For tiebreakers/finals, might not be */
   number: number;
 
   private _name?: string;
@@ -58,8 +58,9 @@ export class Round implements IQbjRound, IYftDataModelObject {
     return `Round_${this.name}`;
   }
 
-  constructor(roundNo: number) {
+  constructor(roundNo: number, name?: string) {
     this.number = roundNo;
+    if (name) this.name = name;
   }
 
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjRound {
@@ -77,6 +78,10 @@ export class Round implements IQbjRound, IYftDataModelObject {
     const yftFileObj = { YfData: yfData, ...qbjObject };
 
     return yftFileObj;
+  }
+
+  displayName(forceNumeric: boolean): string {
+    return this._name && !forceNumeric ? this._name : `Round ${this.number}`;
   }
 
   teamHasPlayedIn(team: Team) {
@@ -121,6 +126,14 @@ export class Round implements IQbjRound, IYftDataModelObject {
       }
     }
     return undefined;
+  }
+
+  addMatch(match: Match) {
+    this.matches.push(match);
+  }
+
+  deleteMatch(match: Match) {
+    this.matches = this.matches.filter((m) => m !== match);
   }
 }
 

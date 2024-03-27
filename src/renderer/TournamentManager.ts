@@ -22,6 +22,7 @@ import { StatReportFileNames, StatReportPages } from './Enums';
 import { Pool } from './DataModel/Pool';
 import { PoolStats } from './DataModel/StatSummaries';
 import { Phase } from './DataModel/Phase';
+import { Round } from './DataModel/Round';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -402,6 +403,26 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  addTiebreakerAfter(phase: Phase) {
+    this.tournament.addTiebreakerAfter(phase);
+    this.onDataChanged();
+  }
+
+  deletePhase(phase: Phase) {
+    this.tournament.deletePhase(phase);
+    this.onDataChanged();
+  }
+
+  forcePhaseToBeNumeric(phase: Phase) {
+    this.tournament.forcePhaseToBeNumeric(phase);
+    this.onDataChanged();
+  }
+
+  undoForcePhaseToBeNumeric(phase: Phase) {
+    this.tournament.undoForcePhaseToBeNumeric(phase);
+    this.onDataChanged();
+  }
+
   tryDeleteTeam(reg: Registration, team: Team) {
     this.genericModalManager.open('Delete Team', `Are you sure you want to delete ${team.name}?`, 'No', 'Yes', () =>
       this.deleteTeam(reg, team),
@@ -442,14 +463,14 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
-  tryDeleteMatch(match: Match, roundNo: number) {
+  tryDeleteMatch(match: Match, round: Round) {
     this.genericModalManager.open('Delete Game', 'Are you sure you want to delete this game?', 'No', 'Yes', () =>
-      this.deleteMatch(match, roundNo),
+      this.deleteMatch(match, round),
     );
   }
 
-  deleteMatch(match: Match, roundNo: number) {
-    this.tournament.deleteMatch(match, roundNo);
+  deleteMatch(match: Match, round: Round) {
+    round.deleteMatch(match);
     this.tournament.calcHasMatchData();
     this.onDataChanged();
   }
@@ -584,7 +605,7 @@ export class TournamentManager {
     }
   }
 
-  openMatchModalNewMatchForRound(round: number) {
+  openMatchModalNewMatchForRound(round: Round) {
     this.matchModalManager.openModal(undefined, round);
   }
 
@@ -592,8 +613,8 @@ export class TournamentManager {
     this.matchModalManager.openModal(undefined, undefined, team1, team2);
   }
 
-  openMatchEditModalExistingMatch(match: Match, roundNo?: number) {
-    this.matchModalManager.openModal(match, roundNo);
+  openMatchEditModalExistingMatch(match: Match, round: Round) {
+    this.matchModalManager.openModal(match, round);
     this.matchBeingModified = match;
   }
 

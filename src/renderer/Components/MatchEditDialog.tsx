@@ -165,7 +165,7 @@ function MatchEditDialogCore() {
 
 function RoundField() {
   const modalManager = useContext(MatchEditModalContext);
-  const [roundNo, setRoundNo] = useSubscription(modalManager.round?.toString() || '');
+  const [roundNo, setRoundNo] = useSubscription(modalManager.roundNumber?.toString() || '');
   const [err] = useSubscription(modalManager.roundFieldError);
 
   const handleBlur = () => {
@@ -197,7 +197,7 @@ function RoundField() {
 
 function MainPhaseField() {
   const modalManager = useContext(MatchEditModalContext);
-  const [phaseName] = useSubscription(modalManager.getMainPhaseName());
+  const [phaseName] = useSubscription(modalManager.phase?.name || '');
 
   return (
     <TextField
@@ -255,7 +255,7 @@ const TuhTotalField = forwardRef((props: {}, ref) => {
   const [valStatus] = useSubscription(thisMatch.totalTuhFieldValidation.status);
   const [valMsg] = useSubscription(thisMatch.totalTuhFieldValidation.message);
   const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
-  const [roundNo] = useSubscription(modalManager.round?.toString() || '');
+  const [roundNo] = useSubscription(modalManager.roundNumber?.toString() || '');
 
   const handleBlur = () => {
     const valToUse = modalManager.setTotalTuh(tuh);
@@ -298,7 +298,7 @@ function TeamSelect(props: ITeamSelectProps) {
   const modalManager = useContext(MatchEditModalContext);
   const [team, setTeam] = useSubscription(modalManager.getSelectedTeam(whichTeam)?.name || teamSelectNullOption);
   const [inputValue, setInputValue] = useState('');
-  const [roundNo] = useSubscription(modalManager.round?.toString() || '');
+  const [roundNo] = useSubscription(modalManager.roundNumber?.toString() || '');
 
   const handleChange = (val: string) => {
     setTeam(val);

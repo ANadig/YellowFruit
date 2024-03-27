@@ -8,6 +8,7 @@ import { MatchValidationType } from '../DataModel/MatchValidationMessage';
 import { MatchPlayer } from '../DataModel/MatchPlayer';
 import { PlayerAnswerCount } from '../DataModel/PlayerAnswerCount';
 import { textFieldChanged } from '../Utils/GeneralUtils';
+import { Round } from '../DataModel/Round';
 
 export class TempMatchManager {
   /** The Match being edited */
@@ -16,13 +17,19 @@ export class TempMatchManager {
   tournament: Tournament = NullTournament;
 
   /** Round number of the match being edited */
-  round?: number;
+  roundNumber?: number;
+
+  /** round containing the match being edited */
+  round?: Round;
 
   /** The round the match belonged to at the time the user opened it */
-  originalRoundOpened?: number;
+  originalRoundOpened?: Round;
 
   /** Error to print next to the round field */
   roundFieldError?: string;
+
+  /** Which phase the match currently belongs to based on its round (ignoring carryover */
+  phase?: Phase;
 
   modalIsOpen: boolean = false;
 
@@ -48,20 +55,21 @@ export class TempMatchManager {
    * @param leftTeam Team to pre-populate in the left slot
    * @param rightTeam Team to pre-populate in the right slot
    */
-  openModal(match?: Match, round?: number, leftTeam?: Team, rightTeam?: Team) {
+  openModal(match?: Match, round?: Round, leftTeam?: Team, rightTeam?: Team) {
     this.modalIsOpen = true;
+    this.round = round;
+    if (round) this.phase = this.tournament.whichPhaseIsRoundIn(round);
+    this.roundNumber = this.phase?.usesNumericRounds() ? round?.number : undefined;
     if (match) {
       this.loadMatch(match);
-      this.round = round;
       this.originalRoundOpened = round;
     } else {
       this.createBlankMatch();
-      this.round = round;
       if (leftTeam) this.setTeam('left', leftTeam);
       if (rightTeam) this.setTeam('right', rightTeam);
     }
 
-    if (this.round !== undefined) this.validateRoundNo();
+    if (this.roundNumber !== undefined) this.validateRoundNo();
     this.dataChangedReactCallback();
   }
 
@@ -83,7 +91,7 @@ export class TempMatchManager {
   saveExistingMatch(targetMatch: Match) {
     this.tempMatch.clearInactivePlayers();
     if (!!this.round && !!this.originalRoundOpened && this.round !== this.originalRoundOpened) {
-      this.tournament.deleteMatch(targetMatch, this.originalRoundOpened);
+      this.originalRoundOpened.deleteMatch(targetMatch);
       this.tournament.addMatch(targetMatch, this.round);
     }
     targetMatch.copyFromMatch(this.tempMatch);
@@ -128,15 +136,16 @@ export class TempMatchManager {
     const parsed = parseInt(val, 10);
     if (Number.isNaN(parsed)) {
       if (val === '') {
-        this.round = undefined;
+        this.roundNumber = undefined;
       } // else don't change it (revert to last valid value)
     } else {
-      this.round = parsed;
+      this.roundNumber = parsed;
       this.removeBadCarryoverPhase();
     }
+    this.setPhaseAndRound();
     this.validateRoundNo();
     this.dataChangedReactCallback();
-    return this.round;
+    return this.roundNumber;
   }
 
   /** If the match's round is listed in its carryover phases, remove that phase from the list */
@@ -148,11 +157,15 @@ export class TempMatchManager {
   }
 
   validateRoundNo() {
-    if (this.round === undefined) {
+    if (this.phase && !this.phase.usesNumericRounds()) {
+      delete this.roundFieldError;
+      return;
+    }
+    if (this.roundNumber === undefined && !this.round) {
       this.roundFieldError = 'Round number is required';
       return;
     }
-    if (!this.tournament.whichPhaseIsRoundIn(this.round)) {
+    if (!this.round) {
       this.roundFieldError = 'This round number is not a part of any Phase';
       return;
     }
@@ -160,11 +173,11 @@ export class TempMatchManager {
     this.validateTeamPools(false);
   }
 
-  getMainPhaseName() {
-    if (this.round === undefined) return '';
-    const phase = this.tournament.whichPhaseIsRoundIn(this.round);
-    if (!phase) return '';
-    return phase.name;
+  /** Find Phase and Round objects, given the current round number */
+  setPhaseAndRound() {
+    if (this.roundNumber === undefined) return;
+    this.phase = this.tournament.whichPhaseIsRoundNumberIn(this.roundNumber);
+    this.round = this.phase?.getRound(this.roundNumber);
   }
 
   getAvailableCarryOverPhases() {

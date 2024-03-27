@@ -82,7 +82,12 @@ function GamesForPhaseByRound(props: IGamesForPhaseByRoundProps) {
   return (
     <YfCard title={phase.name}>
       {phase.rounds.map((round) => (
-        <SingleRound key={round.name} round={round} expanded={false} />
+        <SingleRound
+          key={round.name}
+          round={round}
+          expanded={false}
+          forceNumericDisplay={phase.forceNumericRounds || false}
+        />
       ))}
     </YfCard>
   );
@@ -91,21 +96,22 @@ function GamesForPhaseByRound(props: IGamesForPhaseByRoundProps) {
 interface ISingleRoundProps {
   round: Round;
   expanded: boolean;
+  forceNumericDisplay: boolean;
 }
 
 function SingleRound(props: ISingleRoundProps) {
-  const { round, expanded: expandedProp } = props;
+  const { round, expanded: expandedProp, forceNumericDisplay } = props;
   const tournManager = useContext(TournamentContext);
   const [expanded, setExpanded] = useState(expandedProp);
 
-  const newMatchForRound = (roundNo: number) => {
-    tournManager.openMatchModalNewMatchForRound(roundNo);
+  const newMatchForRound = () => {
+    tournManager.openMatchModalNewMatchForRound(round);
   };
 
   return (
     <Accordion expanded={expanded} onChange={() => setExpanded(!expanded)}>
       <AccordionSummary expandIcon={<ExpandMore />}>
-        <Typography sx={{ width: '33%', flexShrink: 0 }}>{`Round ${round.number}`}</Typography>
+        <Typography sx={{ width: '33%', flexShrink: 0 }}>{round.displayName(forceNumericDisplay)}</Typography>
         <Typography sx={{ width: '62%', color: 'text.secondary' }}>{`${round.matches.length} games`}</Typography>
         <Tooltip placement="left" title="Add a game to this round">
           <IconButton
@@ -113,7 +119,7 @@ function SingleRound(props: ISingleRoundProps) {
             sx={{ p: 0 }}
             onClick={(e) => {
               e.stopPropagation();
-              newMatchForRound(round.number);
+              newMatchForRound();
             }}
           >
             <AddCircle />
@@ -126,7 +132,7 @@ function SingleRound(props: ISingleRoundProps) {
             {round.matches.map((m, idx) => (
               <div key={m.id}>
                 {idx !== 0 && <Divider />}
-                <MatchListItem match={m} roundNo={round.number} />
+                <MatchListItem match={m} round={round} />
               </div>
             ))}
           </Box>
@@ -138,11 +144,11 @@ function SingleRound(props: ISingleRoundProps) {
 
 interface IMatchListItemProps {
   match: Match;
-  roundNo: number;
+  round: Round;
 }
 
 function MatchListItem(props: IMatchListItemProps) {
-  const { match, roundNo } = props;
+  const { match, round } = props;
   const tournManager = useContext(TournamentContext);
 
   return (
@@ -156,12 +162,12 @@ function MatchListItem(props: IMatchListItemProps) {
       <Grid xs={3}>
         <Box sx={{ float: 'right' }}>
           <Tooltip title="Edit game">
-            <IconButton onClick={() => tournManager.openMatchEditModalExistingMatch(match, roundNo)}>
+            <IconButton onClick={() => tournManager.openMatchEditModalExistingMatch(match, round)}>
               <Edit />
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete game">
-            <IconButton onClick={() => tournManager.tryDeleteMatch(match, roundNo)}>
+            <IconButton onClick={() => tournManager.tryDeleteMatch(match, round)}>
               <Delete />
             </IconButton>
           </Tooltip>

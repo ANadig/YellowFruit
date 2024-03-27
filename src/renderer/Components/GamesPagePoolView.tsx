@@ -109,8 +109,9 @@ function MatrixCell(props: IMatrixCellProps) {
   const isCarryover = match.carryoverPhases.includes(phase);
 
   const editExisting = () => {
-    const roundNo = isCarryover ? tournManager.tournament.getRoundNoOfMatch(match) : phase.getRoundNoOfMatch(match);
-    tournManager.openMatchEditModalExistingMatch(match, roundNo);
+    const round = isCarryover ? tournManager.tournament.getRoundOfMatch(match) : phase.getRoundOfMatch(match);
+    if (!round) return;
+    tournManager.openMatchEditModalExistingMatch(match, round);
   };
 
   return (

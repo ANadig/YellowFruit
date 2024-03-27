@@ -96,6 +96,12 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
 
   pools: Pool[] = [];
 
+  /** If this is a tiebreaker or final, give its rounds numeric names. For a tournament where Prelims are 1-5,
+   *  tiebreaker is 6, and playoffs start in round 7, this property would be true for the tiebreaker phase. If instead
+   *  playoffs started round 6, this property would be false and the tiebreaker round would be non-numeric.
+   */
+  forceNumericRounds?: boolean;
+
   /** How do we use wild cards to populate different tiers in the next phase? Empty array means no wildcards. */
   wildCardAdvancementRules: IWildCardAdvancementRule[] = [];
 
@@ -113,7 +119,9 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     this.tiers = tiers;
     this.code = code;
     for (let i = firstRound; i <= lastRound; i++) {
-      this.rounds.push(new Round(i));
+      let roundName: string | undefined;
+      if (type === PhaseTypes.Tiebreaker) roundName = name;
+      this.rounds.push(new Round(i, roundName));
     }
   }
 
@@ -149,6 +157,23 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   /** Is this a normal prelim/playoff phase? */
   isFullPhase() {
     return this.phaseType === PhaseTypes.Prelim || this.phaseType === PhaseTypes.Playoff;
+  }
+
+  usesNumericRounds() {
+    return this.isFullPhase() || this.forceNumericRounds;
+  }
+
+  lastRoundNumber(): number {
+    return this.rounds[this.rounds.length - 1]?.number || 0;
+  }
+
+  /** Adjust round numbers so that they start at the given number and go up from there */
+  reassignRoundNumbers(startingRound: number) {
+    let curRoundNo = startingRound;
+    for (const rd of this.rounds) {
+      rd.number = curRoundNo;
+      curRoundNo++;
+    }
   }
 
   resetPools() {
@@ -247,7 +272,11 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     }
   }
 
-  includesRound(roundNo: number): boolean {
+  includesRound(round: Round): boolean {
+    return this.rounds.includes(round);
+  }
+
+  includesRoundNumber(roundNo: number): boolean {
     return this.getRound(roundNo) !== undefined;
   }
 
@@ -265,17 +294,11 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return undefined;
   }
 
-  getRoundNoOfMatch(match: Match) {
+  getRoundOfMatch(match: Match) {
     for (const round of this.rounds) {
-      if (round.matches.includes(match)) return round.number;
+      if (round.matches.includes(match)) return round;
     }
     return undefined;
-  }
-
-  addMatch(match: Match, roundNo: number) {
-    const round = this.getRound(roundNo);
-    if (!round) return;
-    round.matches.push(match);
   }
 
   deleteMatch(match: Match, roundNo: number) {

@@ -5,7 +5,10 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
+  Checkbox,
   Divider,
+  FormControlLabel,
+  FormGroup,
   List,
   ListItem,
   ListItemButton,
@@ -18,6 +21,7 @@ import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
 import { Phase, PhaseTypes } from '../DataModel/Phase';
 import { Pool, advOpportunityDisplay } from '../DataModel/Pool';
+import { LinkButton } from '../Utils/GeneralReactUtils';
 
 export default function ScheduleDetailCard() {
   const tournManager = useContext(TournamentContext);
@@ -33,7 +37,7 @@ export default function ScheduleDetailCard() {
               {`${phase.code}. ${phase.name} ${phaseRoundDisplay(phase)}`}
             </AccordionSummary>
             <AccordionDetails>
-              <PhaseEditor phase={phase} />
+              {phase.isFullPhase() ? <PhaseEditor phase={phase} /> : <MinorPhaseSection phase={phase} />}
             </AccordionDetails>
           </Accordion>
         ))}
@@ -51,8 +55,9 @@ function PhaseEditor(props: IPhaseEditorProps) {
   const [selectedPoolIdx, setSelectedPoolIdx] = useState(0);
   const selectedPool = phase.pools[selectedPoolIdx];
   const showTiers = phase.phaseType === PhaseTypes.Playoff;
-  // const tournManager = useContext(TournamentContext);
-  // const thisTournament = tournManager.tournament;
+  const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
+  const canAddTB = !thisTournament.hasTiebreakerAfter(phase);
 
   if (phase.pools === undefined) {
     return <span>Pools object is undefined for this phase</span>;
@@ -95,14 +100,53 @@ function PhaseEditor(props: IPhaseEditorProps) {
             )}
           </List>
         </Box>
+        {canAddTB && (
+          <LinkButton onClick={() => tournManager.addTiebreakerAfter(phase)}>Add tiebreaker stage</LinkButton>
+        )}
       </Grid>
     </Grid>
+  );
+}
+
+interface IMinoPhaseSectionProps {
+  phase: Phase;
+}
+
+/** A minimal section for a tiebreaker or finals phase */
+function MinorPhaseSection(props: IMinoPhaseSectionProps) {
+  const { phase } = props;
+  const tournManager = useContext(TournamentContext);
+  const [usesNumeric, setUsesNumeric] = useSubscription(phase.forceNumericRounds || false);
+
+  const handleUsesNumericChange = (checked: boolean) => {
+    setUsesNumeric(checked);
+    if (checked) {
+      tournManager.forcePhaseToBeNumeric(phase);
+    } else {
+      tournManager.undoForcePhaseToBeNumeric(phase);
+    }
+  };
+
+  return (
+    <>
+      <FormGroup>
+        <FormControlLabel
+          control={
+            <Checkbox size="small" checked={usesNumeric} onChange={(e) => handleUsesNumericChange(e.target.checked)} />
+          }
+          label="Uses numeric round"
+          sx={{ width: 'fit-content' }}
+        />
+      </FormGroup>
+      <LinkButton onClick={() => tournManager.deletePhase(phase)}>Delete stage</LinkButton>
+    </>
   );
 }
 
 function phaseRoundDisplay(phase: Phase) {
   const { rounds } = phase;
   if (rounds.length === 0) return '';
+  if (!phase.usesNumericRounds()) return '';
   if (rounds.length === 1) return `(Round ${rounds[0].number})`;
 
   return `(Rounds ${rounds[0].number} to ${rounds[rounds.length - 1].number})`;

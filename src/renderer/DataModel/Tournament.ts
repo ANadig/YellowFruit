@@ -9,6 +9,7 @@ import { Pool } from './Pool';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
 import { IQbjRanking, Ranking } from './Ranking';
 import Registration, { IQbjRegistration } from './Registration';
+import { Round } from './Round';
 import { CommonRuleSets, IQbjScoringRules, ScoringRules } from './ScoringRules';
 import StandardSchedule from './StandardSchedule';
 import { PhaseStandings } from './StatSummaries';
@@ -217,8 +218,12 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases[searchIdx];
   }
 
-  whichPhaseIsRoundIn(roundNo: number): Phase | undefined {
-    return this.phases.find((phase) => phase.includesRound(roundNo));
+  whichPhaseIsRoundIn(round: Round): Phase | undefined {
+    return this.phases.find((phase) => phase.includesRound(round));
+  }
+
+  whichPhaseIsRoundNumberIn(roundNo: number): Phase | undefined {
+    return this.phases.find((phase) => phase.includesRoundNumber(roundNo));
   }
 
   getPlayoffPhases() {
@@ -244,8 +249,71 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases[idx];
   }
 
-  findPoolWithTeam(team: Team, roundNo: number): Pool | undefined {
-    const phase = this.whichPhaseIsRoundIn(roundNo);
+  addTiebreakerAfter(phase: Phase) {
+    const idx = this.phases.indexOf(phase);
+    if (idx === -1) return;
+
+    const lastRd = phase.lastRoundNumber();
+    const tbPhase = new Phase(
+      PhaseTypes.Tiebreaker,
+      lastRd + 0.5,
+      lastRd + 0.5,
+      1,
+      `${phase.code}T`,
+      `${phase.name} Tiebreakers`,
+    );
+    this.phases.splice(idx + 1, 0, tbPhase);
+  }
+
+  /** Is there a tiebreaker phase immediately after this phase? */
+  hasTiebreakerAfter(phase: Phase) {
+    const idx = this.phases.indexOf(phase);
+    if (idx === -1 || idx === this.phases.length - 1) return false;
+
+    return this.phases[idx + 1].phaseType === PhaseTypes.Tiebreaker;
+  }
+
+  deletePhase(phase: Phase) {
+    const idx = this.phases.indexOf(phase);
+    if (idx === -1) return;
+    this.phases.splice(idx, 1);
+  }
+
+  forcePhaseToBeNumeric(phase: Phase) {
+    if (phase.usesNumericRounds()) return;
+
+    const lastRoundNo = this.getPrevFullPhase(phase)?.lastRoundNumber();
+    if (!lastRoundNo) return;
+    phase.forceNumericRounds = true;
+    this.reassignRoundNumbers(phase);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  undoForcePhaseToBeNumeric(phase: Phase) {
+    if (phase.isFullPhase()) return;
+    phase.forceNumericRounds = false;
+    this.reassignRoundNumbers(phase);
+    phase.reassignRoundNumbers(phase.rounds[0].number + 0.5); // for consistency, put back our fractional pseudo round number
+  }
+
+  /** Find the last round of the given phase, and line up the round numbers in subsequent phases based on that */
+  reassignRoundNumbers(startingWithPhase: Phase) {
+    const prevPhase = this.getPrevFullPhase(startingWithPhase);
+    if (!prevPhase) return;
+
+    let lastRoundNo = prevPhase.lastRoundNumber();
+    const startIdx = this.phases.indexOf(prevPhase) + 1;
+    if (startIdx < 1) return;
+    for (let i = startIdx; i < this.phases.length; i++) {
+      if (this.phases[i].usesNumericRounds()) {
+        this.phases[i].reassignRoundNumbers(lastRoundNo + 1);
+        lastRoundNo = this.phases[i].lastRoundNumber();
+      }
+    }
+  }
+
+  findPoolWithTeam(team: Team, round: Round): Pool | undefined {
+    const phase = this.whichPhaseIsRoundIn(round);
     if (!phase) return undefined;
     return phase.findPoolWithTeam(team);
   }
@@ -396,17 +464,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.getPrelimPhase()?.setTeamList(this.seeds);
   }
 
-  addMatch(match: Match, roundNo: number) {
-    const phase = this.whichPhaseIsRoundIn(roundNo);
+  addMatch(match: Match, round: Round) {
+    const phase = this.whichPhaseIsRoundIn(round);
     if (!phase) return;
 
-    phase.addMatch(match, roundNo);
-  }
-
-  deleteMatch(match: Match, roundNo: number) {
-    const phase = this.whichPhaseIsRoundIn(roundNo);
-    if (!phase) return;
-    phase.deleteMatch(match, roundNo);
+    round.addMatch(match);
   }
 
   findMatchBetweenTeams(team1: Team, team2: Team, phase: Phase) {
@@ -467,10 +529,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   }
 
   /** Find the round number of this match, if we don't already know what phase it's in */
-  getRoundNoOfMatch(match: Match) {
+  getRoundOfMatch(match: Match) {
     for (const phase of this.phases) {
-      const roundNo = phase.getRoundNoOfMatch(match);
-      if (roundNo !== undefined) return roundNo;
+      const round = phase.getRoundOfMatch(match);
+      if (round) return round;
     }
     return undefined;
   }
