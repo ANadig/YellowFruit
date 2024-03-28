@@ -1,7 +1,7 @@
 import { IconButton, Stack, Table, TableBody, TableCell, TableContainer, TableRow, Tooltip } from '@mui/material';
 import { useContext } from 'react';
 import Grid from '@mui/material/Unstable_Grid2';
-import { Add, Edit, Shuffle } from '@mui/icons-material';
+import { Add, Edit, JoinRight } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import YfCard from './YfCard';
 import { Phase } from '../DataModel/Phase';
@@ -122,8 +122,8 @@ function MatrixCell(props: IMatrixCellProps) {
       </IconButton>
       &nbsp;
       {isCarryover && (
-        <Tooltip title="Crossover" placement="right">
-          <Shuffle color="secondary" sx={{ verticalAlign: 'text-bottom' }} />
+        <Tooltip title="Carryover" placement="right">
+          <JoinRight color="secondary" sx={{ verticalAlign: 'text-bottom' }} />
         </Tooltip>
       )}
     </TableCell>
