@@ -66,18 +66,17 @@ function TournamentEditor() {
   const [activePage, setactivePage] = useState(ApplicationPages.General);
 
   useEffect(() => {
-    if (
-      activePage === ApplicationPages.StatReport ||
-      (activePage === ApplicationPages.Teams && mgr.currentTeamsPageView === 2)
-    ) {
-      mgr.generateInAppStatReport();
+    if (activePage === ApplicationPages.StatReport) {
+      mgr.generateInAppHtmlReport();
+    } else if (activePage === ApplicationPages.Teams && mgr.currentTeamsPageView === 2) {
+      mgr.compileStats();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mgr, mgr.tournament]);
 
   const changePage = (page: ApplicationPages) => {
     if (page === ApplicationPages.StatReport) {
-      mgr.generateInAppStatReport();
+      mgr.generateInAppHtmlReport();
     }
     setactivePage(page);
   };

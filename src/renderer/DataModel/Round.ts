@@ -28,6 +28,7 @@ export interface IYftFileRound extends IQbjRound, IYftFileObject {
 /** Additional info not in qbj but needed for a .yft file */
 interface IRoundExtraData {
   number: number;
+  nonNumericName?: string;
 }
 
 /** One round of games */
@@ -74,7 +75,7 @@ export class Round implements IQbjRound, IYftDataModelObject {
 
     if (qbjOnly) return qbjObject;
 
-    const yfData: IRoundExtraData = { number: this.number };
+    const yfData: IRoundExtraData = { number: this.number, nonNumericName: this._name };
     const yftFileObj = { YfData: yfData, ...qbjObject };
 
     return yftFileObj;

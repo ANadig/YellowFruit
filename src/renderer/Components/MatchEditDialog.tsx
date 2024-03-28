@@ -165,8 +165,10 @@ function MatchEditDialogCore() {
 
 function RoundField() {
   const modalManager = useContext(MatchEditModalContext);
+  const [round] = useSubscription(modalManager.round);
   const [roundNo, setRoundNo] = useSubscription(modalManager.roundNumber?.toString() || '');
   const [err] = useSubscription(modalManager.roundFieldError);
+  const [disabled] = useSubscription(!!round && !modalManager.phase?.usesNumericRounds());
 
   const handleBlur = () => {
     const newRoundNo = modalManager.setRoundNo(roundNo);
@@ -182,7 +184,8 @@ function RoundField() {
       fullWidth
       variant="outlined"
       size="small"
-      autoFocus={roundNo === ''}
+      autoFocus={roundNo === '' && !disabled}
+      disabled={disabled}
       error={!!err}
       helperText={err || ' '}
       value={roundNo}
@@ -201,7 +204,7 @@ function MainPhaseField() {
 
   return (
     <TextField
-      label="Phase"
+      label="Stage"
       fullWidth
       variant="outlined"
       size="small"
@@ -225,9 +228,9 @@ function CarryoverPhaseSelect() {
 
   return (
     <FormControl sx={{ minWidth: 200 }} size="small">
-      <InputLabel>Carryover Phases</InputLabel>
+      <InputLabel>Carryover Stages</InputLabel>
       <Select
-        label="Carryover Phases"
+        label="Carryover Stages"
         multiple
         fullWidth
         value={coPhases}
@@ -255,7 +258,7 @@ const TuhTotalField = forwardRef((props: {}, ref) => {
   const [valStatus] = useSubscription(thisMatch.totalTuhFieldValidation.status);
   const [valMsg] = useSubscription(thisMatch.totalTuhFieldValidation.message);
   const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
-  const [roundNo] = useSubscription(modalManager.roundNumber?.toString() || '');
+  const [roundExists] = useSubscription(!!modalManager.round);
 
   const handleBlur = () => {
     const valToUse = modalManager.setTotalTuh(tuh);
@@ -271,7 +274,7 @@ const TuhTotalField = forwardRef((props: {}, ref) => {
       fullWidth
       variant="outlined"
       size="small"
-      autoFocus={thisTournament.scoringRules.timed && roundNo !== ''}
+      autoFocus={thisTournament.scoringRules.timed && roundExists}
       disabled={forfeit}
       error={valStatus === ValidationStatuses.Error}
       helperText={valMsg || ' '}

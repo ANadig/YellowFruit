@@ -444,6 +444,7 @@ export default class FileParser {
 
     const yftPhase = new Phase(phaseType, firstRound, lastRound, tiers, code, name);
     yftPhase.description = description || '';
+    if (yfExtraData) yftPhase.forceNumericRounds = yfExtraData.forceNumericRounds;
     this.addRoundsFromFile(yftPhase, rounds, firstRound, lastRound);
     yftPhase.pools = this.parsePhasePools(qbjPhase);
     // TODO: wildcard stuff
@@ -581,6 +582,7 @@ export default class FileParser {
       return yftRound;
     }
     const yftRound = new Round(roundNumber);
+    if (yfExtraData?.nonNumericName) yftRound.name = yfExtraData.nonNumericName;
     yftRound.matches = this.parseRoundMatches(qbjRound);
     return yftRound;
   }

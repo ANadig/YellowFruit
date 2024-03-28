@@ -1,5 +1,7 @@
 import { getAlphabetLetter } from '../Utils/GeneralUtils';
 import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
+// eslint-disable-next-line import/no-cycle
+import { Match } from './Match';
 import { IQbjPoolTeam, PoolTeam } from './PoolTeam';
 import { QbjTypeNames } from './QbjEnums';
 import { Team } from './Team';
@@ -173,6 +175,15 @@ export class Pool implements IQbjPool, IYftDataModelObject {
   /** The 1-indexed seed number assigned to a team of this rank within the pool. Return -1 if the rank is out of bounds */
   getSeedForRank(rank: number): number {
     return this.seeds[rank - 1] || -1;
+  }
+
+  /** Is at least one of the match's teams in this pool? */
+  matchIsRelevant(match: Match) {
+    const leftTeam = match.leftTeam.team;
+    const rightTeam = match.rightTeam.team;
+    if (leftTeam && this.includesTeam(leftTeam)) return true;
+    if (rightTeam && this.includesTeam(rightTeam)) return true;
+    return false;
   }
 }
 

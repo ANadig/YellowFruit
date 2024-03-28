@@ -218,7 +218,12 @@ export class TournamentManager {
     // this.makeToast('Data saved');
   }
 
-  generateInAppStatReport() {
+  compileStats() {
+    this.tournament.compileStats();
+    this.onFinishInAppStatReport();
+  }
+
+  generateInAppHtmlReport() {
     this.tournament.compileStats();
     const reports: StatReportHtmlPage[] = [
       { fileName: StatReportFileNames[StatReportPages.Standings], contents: generateStandingsPage(this.tournament) },
@@ -482,6 +487,7 @@ export class TournamentManager {
       pool.poolTeams.map((pt) => pt.team),
     );
     this.tournament.getPrevFullPhase(nextPhase)?.markTeamDidNotAdvance(team, false);
+    this.compileStats();
     this.onDataChanged();
   }
 
@@ -496,6 +502,7 @@ export class TournamentManager {
       nextPhase,
       poolStats.poolTeams.map((ptStats) => ptStats.team),
     );
+    this.compileStats();
     this.onDataChanged();
   }
 
@@ -517,6 +524,7 @@ export class TournamentManager {
       this.tournament.getPrevFullPhase(nextPhase)?.markTeamDidNotAdvance(team, true);
     }
 
+    this.compileStats();
     this.onDataChanged();
   }
 

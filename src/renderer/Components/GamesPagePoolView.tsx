@@ -106,7 +106,7 @@ function MatrixCell(props: IMatrixCellProps) {
     );
   }
 
-  const isCarryover = match.carryoverPhases.includes(phase);
+  const isCarryover = match.carryoverPhases.length > 0;
 
   const editExisting = () => {
     const round = isCarryover ? tournManager.tournament.getRoundOfMatch(match) : phase.getRoundOfMatch(match);

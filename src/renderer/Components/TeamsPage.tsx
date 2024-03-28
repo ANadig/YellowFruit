@@ -31,7 +31,7 @@ function TeamsPage() {
 
   const setView = (whichPage: number) => {
     if (whichPage === 2) {
-      tournManager.generateInAppStatReport();
+      tournManager.compileStats();
     }
     tournManager.setTeamsPageView(whichPage);
   };

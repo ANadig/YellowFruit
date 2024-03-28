@@ -76,6 +76,7 @@ interface IPhaseExtraData {
   tiers: number;
   wildCardAdvancementRules?: IWildCardAdvancementRule[];
   wildCardRankingMethod?: WildCardRankingRules;
+  forceNumericRounds?: boolean;
 }
 
 export class Phase implements IQbjPhase, IYftDataModelObject {
@@ -144,6 +145,7 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
       tiers: this.tiers,
       wildCardAdvancementRules: this.wildCardAdvancementRules,
       wildCardRankingMethod: this.wildCardRankingMethod,
+      forceNumericRounds: this.forceNumericRounds,
     };
     const yftFileObj = { YfData: yfData, ...qbjObject };
 
@@ -238,6 +240,16 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   /** Do any pools in this phase carry over matches from the previous one? */
   hasAnyCarryover() {
     return !!this.pools.find((pool) => pool.hasCarryover);
+  }
+
+  getAllMatches(): Match[] {
+    return this.rounds.map((rd) => rd.matches).flat();
+  }
+
+  /** Find the matches that involve at least one team in the given pool */
+  getMatchesForPool(pool: Pool) {
+    const allMatches = this.getAllMatches();
+    return allMatches.filter((match) => pool.matchIsRelevant(match));
   }
 
   teamHasPlayedAnyMatches(team: Team) {

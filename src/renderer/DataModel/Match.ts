@@ -280,6 +280,20 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.carryoverPhases = this.carryoverPhases.filter((ph) => ph !== phase);
   }
 
+  /** String of the format "Central def. Washington" */
+  getWinnerLoserString() {
+    const leftScore = this.leftTeam.points;
+    const rightScore = this.rightTeam.points;
+    if (leftScore === undefined || rightScore === undefined) return '';
+
+    const leftName = this.leftTeam.team?.name;
+    const rightName = this.rightTeam.team?.name;
+    if (leftScore === rightScore) return `${leftName} tied ${rightName}`;
+    const winner = leftScore > rightScore ? leftName : rightName;
+    const loser = leftScore > rightScore ? rightName : leftName;
+    return `${winner} def. ${loser}`;
+  }
+
   /** The score in a format like "W 355-200", from the perspective of the team pass as the parameter */
   getShortScore(team: Team) {
     let whichTeam: LeftOrRight | null = null;

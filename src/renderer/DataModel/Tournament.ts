@@ -206,8 +206,18 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.find((phase) => phase.phaseType === PhaseTypes.Prelim);
   }
 
+  /** Get the prelim or playoff phase that preceded this one */
+  getPrevFullPhase(phase: Phase): Phase | undefined {
+    let idx = this.phases.indexOf(phase) - 1;
+    while (idx >= -1 && !this.phases[idx].isFullPhase()) {
+      idx--;
+    }
+    if (idx === -1) return undefined;
+    return this.phases[idx];
+  }
+
   /** Get that playoff phase that the given phase feeds into */
-  getNextPhase(phase: Phase): Phase | undefined {
+  getNextFullPhase(phase: Phase): Phase | undefined {
     const idx = this.phases.indexOf(phase);
     if (idx === -1) return undefined;
 
@@ -239,16 +249,6 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.find((ph) => ph.name === str);
   }
 
-  /** Get the prelim or playoff phase that preceded this one */
-  getPrevFullPhase(phase: Phase): Phase | undefined {
-    let idx = this.phases.indexOf(phase) - 1;
-    while (idx >= -1 && !this.phases[idx].isFullPhase()) {
-      idx--;
-    }
-    if (idx === -1) return undefined;
-    return this.phases[idx];
-  }
-
   addTiebreakerAfter(phase: Phase) {
     const idx = this.phases.indexOf(phase);
     if (idx === -1) return;
@@ -267,10 +267,16 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   /** Is there a tiebreaker phase immediately after this phase? */
   hasTiebreakerAfter(phase: Phase) {
-    const idx = this.phases.indexOf(phase);
+    return !!this.getTiebreakerPhaseFor(phase);
+  }
+
+  getTiebreakerPhaseFor(fullPhase: Phase) {
+    const idx = this.phases.indexOf(fullPhase);
     if (idx === -1 || idx === this.phases.length - 1) return false;
 
-    return this.phases[idx + 1].phaseType === PhaseTypes.Tiebreaker;
+    const nextPhase = this.phases[idx + 1];
+    if (nextPhase.phaseType === PhaseTypes.Tiebreaker) return nextPhase;
+    return undefined;
   }
 
   deletePhase(phase: Phase) {
@@ -279,21 +285,21 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.phases.splice(idx, 1);
   }
 
-  forcePhaseToBeNumeric(phase: Phase) {
-    if (phase.usesNumericRounds()) return;
+  forcePhaseToBeNumeric(tbOrFinalsPhase: Phase) {
+    if (tbOrFinalsPhase.usesNumericRounds()) return;
 
-    const lastRoundNo = this.getPrevFullPhase(phase)?.lastRoundNumber();
+    const lastRoundNo = this.getPrevFullPhase(tbOrFinalsPhase)?.lastRoundNumber();
     if (!lastRoundNo) return;
-    phase.forceNumericRounds = true;
-    this.reassignRoundNumbers(phase);
+    tbOrFinalsPhase.forceNumericRounds = true;
+    this.reassignRoundNumbers(tbOrFinalsPhase);
   }
 
   // eslint-disable-next-line class-methods-use-this
-  undoForcePhaseToBeNumeric(phase: Phase) {
-    if (phase.isFullPhase()) return;
-    phase.forceNumericRounds = false;
-    this.reassignRoundNumbers(phase);
-    phase.reassignRoundNumbers(phase.rounds[0].number + 0.5); // for consistency, put back our fractional pseudo round number
+  undoForcePhaseToBeNumeric(tbOrFinalsPhase: Phase) {
+    if (tbOrFinalsPhase.isFullPhase()) return;
+    tbOrFinalsPhase.forceNumericRounds = false;
+    this.reassignRoundNumbers(tbOrFinalsPhase);
+    tbOrFinalsPhase.reassignRoundNumbers(tbOrFinalsPhase.rounds[0].number + 0.5); // for consistency, put back our fractional pseudo round number
   }
 
   /** Find the last round of the given phase, and line up the round numbers in subsequent phases based on that */

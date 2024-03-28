@@ -45,6 +45,8 @@ export class TempMatchManager {
   }
 
   reset() {
+    delete this.round;
+    delete this.phase;
     delete this.roundFieldError;
   }
 
@@ -181,8 +183,11 @@ export class TempMatchManager {
   }
 
   getAvailableCarryOverPhases() {
+    if (this.phase && !this.phase.isFullPhase()) return [];
+
     const playoffPhases = this.tournament.getPlayoffPhases();
     if (this.round === undefined) return playoffPhases;
+
     const curPhase = this.tournament.whichPhaseIsRoundIn(this.round);
     return playoffPhases.filter((ph) => ph !== curPhase);
   }

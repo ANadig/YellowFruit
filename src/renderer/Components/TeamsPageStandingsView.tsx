@@ -21,8 +21,10 @@ import {
   Radio,
   Button,
   DialogActions,
+  Typography,
+  Box,
 } from '@mui/material';
-import { Create, Done, Error, Warning } from '@mui/icons-material';
+import { Create, Done, Edit, Error, Warning } from '@mui/icons-material';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -32,6 +34,7 @@ import { LinkButton, hotkeyFormat } from '../Utils/GeneralReactUtils';
 import YfCard from './YfCard';
 import { Pool } from '../DataModel/Pool';
 import { Team } from '../DataModel/Team';
+import { Match } from '../DataModel/Match';
 
 export default function StandingsView() {
   const tournManager = useContext(TournamentContext);
@@ -62,10 +65,9 @@ function PhaseStandings(props: IPhaseStandingsProps) {
   const [teamEditInitPool, setTeamEditInitPool] = useState<Pool | null>(null);
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
-  const nextPhase = thisTournament.getNextPhase(phase);
+  const nextPhase = thisTournament.getNextFullPhase(phase);
+  const tbPhase = thisTournament.getTiebreakerPhaseFor(phase);
   const regulationTossupCount = thisTournament.scoringRules.regulationTossupCount;
-
-  if (!nextPhase) return null; // no rebracketing to do!
 
   const phaseStats = thisTournament.stats.find((ps) => ps.phase === phase);
   if (!phaseStats) return null;
@@ -77,6 +79,7 @@ function PhaseStandings(props: IPhaseStandingsProps) {
   };
 
   const closeOverrideForm = (saveData: boolean, newPool?: Pool) => {
+    if (!nextPhase) return;
     if (saveData && teamBeingEdited) {
       tournManager.overridePlayoffPoolAssignment(teamBeingEdited, nextPhase, newPool);
     }
@@ -165,19 +168,22 @@ function PhaseStandings(props: IPhaseStandingsProps) {
                     </TableBody>
                   </Table>
                 </TableContainer>
+                {tbPhase && <TiebreakerInfo tbPhase={tbPhase} pool={poolStats.pool} />}
               </Grid>
             ))}
           </Grid>
         </CardContent>
       </YfCard>
-      <PoolOverrideDialog
-        isOpen={poolOverrideFormOpen}
-        phase={nextPhase}
-        team={teamBeingEdited}
-        initialPool={teamEditInitPool}
-        handleAccept={(p?: Pool) => closeOverrideForm(true, p)}
-        handleCancel={() => closeOverrideForm(false)}
-      />
+      {nextPhase && (
+        <PoolOverrideDialog
+          isOpen={poolOverrideFormOpen}
+          phase={nextPhase}
+          team={teamBeingEdited}
+          initialPool={teamEditInitPool}
+          handleAccept={(p?: Pool) => closeOverrideForm(true, p)}
+          handleCancel={() => closeOverrideForm(false)}
+        />
+      )}
     </>
   );
 }
@@ -259,6 +265,51 @@ function getAdvancementIcon(ptStats: PoolTeamStats) {
       </Tooltip>
     );
   return null;
+}
+
+interface ITiebreakerInfoProps {
+  tbPhase: Phase;
+  pool: Pool;
+}
+
+function TiebreakerInfo(props: ITiebreakerInfoProps) {
+  const { tbPhase, pool } = props;
+  const tournManager = useContext(TournamentContext);
+  const matches = tbPhase.getMatchesForPool(pool);
+  const round = tbPhase.rounds[0]; // Assume tiebreaker phases only have one round
+
+  const newMatchForRound = () => {
+    tournManager.openMatchModalNewMatchForRound(round);
+  };
+
+  const editExisting = (match: Match) => {
+    tournManager.openMatchEditModalExistingMatch(match, tbPhase.rounds[0]);
+  };
+
+  if (matches.length === 0) {
+    return (
+      <LinkButton sx={{ marginTop: 1, mx: 2 }} onClick={newMatchForRound}>
+        Add tiebreaker game
+      </LinkButton>
+    );
+  }
+
+  return (
+    <Box sx={{ marginTop: 1, mx: 2 }}>
+      <Typography variant="subtitle2">Tiebreakers</Typography>
+      <Box typography="body2">
+        {matches.map((match) => (
+          <div key={match.id}>
+            {match.getWinnerLoserString()}{' '}
+            <IconButton size="small" onClick={() => editExisting(match)}>
+              <Edit />
+            </IconButton>
+          </div>
+        ))}
+      </Box>
+      <LinkButton onClick={newMatchForRound}>Add tiebreaker game</LinkButton>
+    </Box>
+  );
 }
 
 interface IPoolOverrideDialogProps {
