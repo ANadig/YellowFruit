@@ -3,7 +3,7 @@ import { LeftOrRight, NullObjects } from '../Utils/UtilTypes';
 import { Match } from '../DataModel/Match';
 import { Team } from '../DataModel/Team';
 import Tournament, { NullTournament } from '../DataModel/Tournament';
-import { Phase } from '../DataModel/Phase';
+import { Phase, PhaseTypes } from '../DataModel/Phase';
 import { MatchValidationType } from '../DataModel/MatchValidationMessage';
 import { MatchPlayer } from '../DataModel/MatchPlayer';
 import { PlayerAnswerCount } from '../DataModel/PlayerAnswerCount';
@@ -28,7 +28,7 @@ export class TempMatchManager {
   /** Error to print next to the round field */
   roundFieldError?: string;
 
-  /** Which phase the match currently belongs to based on its round (ignoring carryover */
+  /** Which phase the match currently belongs to based on its round (ignoring carryover) */
   phase?: Phase;
 
   modalIsOpen: boolean = false;
@@ -71,6 +71,7 @@ export class TempMatchManager {
       if (rightTeam) this.setTeam('right', rightTeam);
     }
 
+    if (this.phase?.phaseType === PhaseTypes.Tiebreaker) this.tempMatch.tiebreaker = true;
     if (this.roundNumber !== undefined) this.validateRoundNo();
     this.dataChangedReactCallback();
   }
