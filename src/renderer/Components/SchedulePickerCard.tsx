@@ -33,6 +33,7 @@ export default function SchedulePickerCard() {
   const [selectedTemplate, setSelectedTemplate] = useState<ScheduleTemplates | string>('');
   const [previewedSchedule, setPreviewedSchedule] = useState<StandardSchedule | null>(null);
   const [numTeamsRegistered] = useSubscription(tournManager.tournament.getNumberOfTeams());
+  const readOnly = tournManager.tournament.hasMatchData;
 
   const handleSizeChange = (val: number | string) => {
     setSize(val);
@@ -60,7 +61,12 @@ export default function SchedulePickerCard() {
       <Stack sx={{ marginTop: 2 }} spacing={2}>
         <FormControl sx={{ maxWidth: 300 }} size="small">
           <InputLabel>{sizeSelectLabel}</InputLabel>
-          <Select label={sizeSelectLabel} value={size} onChange={(e) => handleSizeChange(e.target.value)}>
+          <Select
+            label={sizeSelectLabel}
+            disabled={readOnly}
+            value={size}
+            onChange={(e) => handleSizeChange(e.target.value)}
+          >
             {sizesWithTemplates.map((val) => (
               <MenuItem key={val} value={val} disabled={val < numTeamsRegistered}>{`${val} Teams`}</MenuItem>
             ))}
