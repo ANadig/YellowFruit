@@ -117,7 +117,7 @@ function MinorPhaseSection(props: IMinoPhaseSectionProps) {
   const { phase } = props;
   const tournManager = useContext(TournamentContext);
   const [usesNumeric, setUsesNumeric] = useSubscription(phase.forceNumericRounds || false);
-  const readOnly = phase.anyMatchesExist();
+  const matchesExist = phase.anyMatchesExist();
 
   const handleUsesNumericChange = (checked: boolean) => {
     setUsesNumeric(checked);
@@ -133,18 +133,13 @@ function MinorPhaseSection(props: IMinoPhaseSectionProps) {
       <FormGroup>
         <FormControlLabel
           control={
-            <Checkbox
-              size="small"
-              checked={usesNumeric}
-              disabled={readOnly}
-              onChange={(e) => handleUsesNumericChange(e.target.checked)}
-            />
+            <Checkbox size="small" checked={usesNumeric} onChange={(e) => handleUsesNumericChange(e.target.checked)} />
           }
           label="Uses numeric round"
           sx={{ width: 'fit-content' }}
         />
       </FormGroup>
-      <LinkButton disabled={readOnly} onClick={() => tournManager.deletePhase(phase)}>
+      <LinkButton disabled={matchesExist} onClick={() => tournManager.deletePhase(phase)}>
         Delete stage
       </LinkButton>
     </>
