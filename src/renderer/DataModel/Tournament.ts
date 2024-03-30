@@ -1,6 +1,8 @@
 import { sumReduce } from '../Utils/GeneralUtils';
 // eslint-disable-next-line import/no-cycle
 import { NullDate, NullObjects } from '../Utils/UtilTypes';
+// eslint-disable-next-line import/no-cycle
+import HtmlReportGenerator from './HTMLReports';
 import { IQbjObject, IQbjRefPointer, IYftDataModelObject, IYftFileObject } from './Interfaces';
 import { Match } from './Match';
 import { IQbjPhase, Phase, PhaseTypes } from './Phase';
@@ -109,12 +111,15 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   hasMatchData: boolean = false;
 
+  htmlGenerator: HtmlReportGenerator;
+
   constructor(name?: string) {
     if (name) {
       this.name = name;
     }
     this.tournamentSite = new TournamentSite();
     this.scoringRules = new ScoringRules(CommonRuleSets.NaqtUntimed);
+    this.htmlGenerator = new HtmlReportGenerator(this);
   }
 
   toFileObject(qbjOnly = false, isTopLevel = true, isReferenced = false): IQbjTournament {
@@ -150,11 +155,15 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   compileStats() {
     this.stats = [];
     this.phases.forEach((p) => {
-      if (p.phaseType === PhaseTypes.Prelim || p.phaseType === PhaseTypes.Playoff) {
-        this.stats.push(new PhaseStandings(p));
+      if (p.isFullPhase()) {
+        this.stats.push(new PhaseStandings(p, this.getCarryoverMatches(p)));
       }
     });
     this.stats.forEach((phaseSt) => phaseSt.compileStats());
+  }
+
+  makeHtmlStandings() {
+    return this.htmlGenerator.generateStandingsPage();
   }
 
   /** Set the scoring rules for this tournament */
@@ -209,7 +218,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** Get the prelim or playoff phase that preceded this one */
   getPrevFullPhase(phase: Phase): Phase | undefined {
     let idx = this.phases.indexOf(phase) - 1;
-    while (idx >= -1 && !this.phases[idx].isFullPhase()) {
+    while (idx >= -1 && !this.phases[idx]?.isFullPhase()) {
       idx--;
     }
     if (idx === -1) return undefined;
@@ -272,7 +281,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   getTiebreakerPhaseFor(fullPhase: Phase) {
     const idx = this.phases.indexOf(fullPhase);
-    if (idx === -1 || idx === this.phases.length - 1) return false;
+    if (idx === -1 || idx === this.phases.length - 1) return undefined;
 
     const nextPhase = this.phases[idx + 1];
     if (nextPhase.phaseType === PhaseTypes.Tiebreaker) return nextPhase;
@@ -541,6 +550,17 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       if (round) return round;
     }
     return undefined;
+  }
+
+  getCarryoverMatches(playoffPhase: Phase): Match[] {
+    if (playoffPhase.phaseType !== PhaseTypes.Playoff) return [];
+    let matches: Match[] = [];
+    let curPhase = this.getPrevFullPhase(playoffPhase);
+    while (curPhase !== undefined) {
+      matches = matches.concat(curPhase.getCarryoverMatches(playoffPhase));
+      curPhase = this.getPrevFullPhase(curPhase);
+    }
+    return matches;
   }
   //
 }

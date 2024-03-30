@@ -144,6 +144,10 @@ export class Pool implements IQbjPool, IYftDataModelObject {
     }
   }
 
+  hasAnyTeams() {
+    return this.poolTeams.length > 0;
+  }
+
   addTeam(team: Team) {
     this.poolTeams.push(new PoolTeam(team));
   }

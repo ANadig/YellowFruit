@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-cycle
 import { IQbjRound, Round } from './Round';
 import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
+// eslint-disable-next-line import/no-cycle
 import { IQbjPool, Pool } from './Pool';
 import { QbjTypeNames } from './QbjEnums';
 import { Team } from './Team';
@@ -221,6 +222,14 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return !!this.getSharedPool(team1, team2);
   }
 
+  /** Have any teams been assigned to any pool in this phase yet? */
+  anyTeamsAssigned() {
+    for (const pool of this.pools) {
+      if (pool.hasAnyTeams()) return true;
+    }
+    return false;
+  }
+
   /** Do we potentially need to carry over matches from previous phases between these teams? */
   shouldLookForCarryover(team1: Team, team2: Team) {
     const sharedPool = this.getSharedPool(team1, team2);
@@ -244,6 +253,11 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
 
   getAllMatches(): Match[] {
     return this.rounds.map((rd) => rd.matches).flat();
+  }
+
+  /** Get the matches carried over from this phase to the given playoff phase */
+  getCarryoverMatches(playoffPhase: Phase) {
+    return this.rounds.map((rd) => rd.getCarryoverMatches(playoffPhase)).flat();
   }
 
   /** Find the matches that involve at least one team in the given pool */

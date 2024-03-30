@@ -14,11 +14,14 @@ export class PhaseStandings {
 
   pools: PoolStats[] = [];
 
+  carryoverMatches: Match[];
+
   anyTiesExist: boolean = false;
 
-  constructor(phase: Phase) {
+  constructor(phase: Phase, carryoverMatches: Match[]) {
     this.phase = phase;
     this.pools = phase.pools.map((pool) => new PoolStats(pool));
+    this.carryoverMatches = carryoverMatches;
   }
 
   compileStats() {
@@ -26,6 +29,9 @@ export class PhaseStandings {
       for (const match of round.matches) {
         this.addMatchToStats(match);
       }
+    }
+    for (const match of this.carryoverMatches) {
+      this.addMatchToStats(match);
     }
     for (const pool of this.pools) {
       pool.sortTeams();

@@ -16,7 +16,6 @@ import { collectRefTargets } from './DataModel/QbjUtils2';
 import FileParser from './DataModel/FileParsing';
 import { TempMatchManager } from './Modal Managers/TempMatchManager';
 import { Match } from './DataModel/Match';
-import { generateStandingsPage } from './DataModel/HTMLReports';
 import { StatReportHtmlPage } from '../SharedUtils';
 import { StatReportFileNames, StatReportPages } from './Enums';
 import { Pool } from './DataModel/Pool';
@@ -226,7 +225,7 @@ export class TournamentManager {
   generateInAppHtmlReport() {
     this.tournament.compileStats();
     const reports: StatReportHtmlPage[] = [
-      { fileName: StatReportFileNames[StatReportPages.Standings], contents: generateStandingsPage(this.tournament) },
+      { fileName: StatReportFileNames[StatReportPages.Standings], contents: this.tournament.makeHtmlStandings() },
     ];
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.ShowInAppStatReport, reports);
   }

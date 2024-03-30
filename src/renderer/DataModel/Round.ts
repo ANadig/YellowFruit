@@ -2,6 +2,8 @@ import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 // eslint-disable-next-line import/no-cycle
 import { IQbjMatch, Match } from './Match';
 import { IQbjPacket, Packet } from './Packet';
+// eslint-disable-next-line import/no-cycle
+import { Phase } from './Phase';
 import { Player } from './Player';
 import { QbjTypeNames } from './QbjEnums';
 import { Team } from './Team';
@@ -127,6 +129,11 @@ export class Round implements IQbjRound, IYftDataModelObject {
       }
     }
     return undefined;
+  }
+
+  /** Get the matches carried over into the given playoff phase */
+  getCarryoverMatches(playoffPhase: Phase) {
+    return this.matches.filter((m) => m.carryoverPhases.includes(playoffPhase));
   }
 
   addMatch(match: Match) {

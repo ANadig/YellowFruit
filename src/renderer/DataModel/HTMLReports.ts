@@ -1,117 +1,168 @@
+/* eslint-disable class-methods-use-this */
 /* eslint-disable no-useless-concat */
 import { StatReportPages, StatReportPageOrder, StatReportFileNames } from '../Enums';
-import { PoolStats, PoolTeamStats } from './StatSummaries';
+import { Phase } from './Phase';
+import { Pool } from './Pool';
+import { PhaseStandings, PoolStats, PoolTeamStats } from './StatSummaries';
+// eslint-disable-next-line import/no-cycle
 import Tournament from './Tournament';
 
+export default class HtmlReportGenerator {
+  tournament: Tournament;
+
+  constructor(tourn: Tournament) {
+    this.tournament = tourn;
+  }
+
+  generateStandingsPage() {
+    const title = 'Team Standings';
+    const htmlHeader = getHtmlHeader(title);
+    const topLinks = getTopLinks();
+    const mainHeader = genericTag('h1', title);
+    const style = getPageStyle();
+    const content = this.getStandingsHtml();
+
+    const body = genericTag('BODY', topLinks, mainHeader, style, content, madeWithYellowFruit());
+    return genericTag('HTML', htmlHeader, body);
+  }
+
+  // generateIndividualsPage() {
+  //   return '';
+  // }
+
+  /** The actual data of the Standings page */
+  private getStandingsHtml() {
+    const sections: string[] = [];
+    const prelims = this.tournament.stats[0];
+    if (!prelims) return '';
+
+    for (let i = this.tournament.stats.length - 1; i >= 0; i--) {
+      const phaseStats = this.tournament.stats[i];
+      if (!phaseStats.phase.anyTeamsAssigned()) continue;
+
+      const header = headerWithDivider(phaseStats.phase.name);
+      sections.push(`${header}\n${this.standingsForOnePhase(phaseStats)}`);
+    }
+    return sections.join('\n');
+  }
+
+  private standingsForOnePhase(phaseStandings: PhaseStandings) {
+    const tables: string[] = [];
+    const nextPhase = this.tournament.getNextFullPhase(phaseStandings.phase);
+    const tbPhase = this.tournament.getTiebreakerPhaseFor(phaseStandings.phase);
+
+    for (const onePool of phaseStandings.pools) {
+      const header = genericTag('h3', onePool.pool.name);
+      tables.push(`${header}\n${this.oneStandingsTable(onePool, phaseStandings.anyTiesExist, tbPhase, nextPhase)}`);
+    }
+    return tables.join('\n') + lineBreak;
+  }
+
+  private oneStandingsTable(poolStats: PoolStats, anyTiesExist: boolean, tbPhase?: Phase, nextPhase?: Phase) {
+    const rows = [this.standingsHeader(anyTiesExist, nextPhase)];
+    for (const teamStats of poolStats.poolTeams) {
+      rows.push(this.standingsRow(teamStats, anyTiesExist, nextPhase));
+    }
+    return `${tableTag(rows, undefined, '100%')}\n${this.tiebreakerList(tbPhase, poolStats.pool)}`;
+  }
+
+  private standingsHeader(anyTiesExist: boolean, nextPhase?: Phase) {
+    const cells: string[] = [];
+    cells.push(tdTag({ bold: true, width: '3%' }, 'Rank'));
+    cells.push(tdTag({ bold: true, width: '20%' }, 'Team'));
+    if (this.tournament.trackSmallSchool) cells.push(tdTag({ bold: true }, 'SS'));
+    if (this.tournament.trackJV) cells.push(tdTag({ bold: true }, 'JV'));
+    if (this.tournament.trackUG) cells.push(tdTag({ bold: true }, 'UG'));
+    if (this.tournament.trackDiv2) cells.push(tdTag({ bold: true }, 'D2'));
+    cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'W'));
+    cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'L'));
+    if (anyTiesExist) cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'T'));
+    cells.push(tdTag({ bold: true, align: 'right' }, 'Pct'));
+    cells.push(
+      tdTag({ bold: true, align: 'right', width: '8%' }, `PP${this.tournament.scoringRules.regulationTossupCount}TUH`),
+    );
+    this.tournament.scoringRules.answerTypes.forEach((ansType) =>
+      cells.push(tdTag({ bold: true, align: 'right' }, ansType.value.toString())),
+    );
+    cells.push(tdTag({ bold: true, align: 'right' }, 'TUH'));
+    cells.push(tdTag({ bold: true, align: 'right' }, 'PPB'));
+    if (nextPhase?.anyTeamsAssigned()) {
+      cells.push(tdTag({ bold: true }, 'Advanced To'));
+    } else if (nextPhase) {
+      cells.push(tdTag({ bold: true }, 'Would Advance'));
+    }
+
+    return trTag(cells);
+  }
+
+  private standingsRow(teamStats: PoolTeamStats, anyTiesExist: boolean, nextPhase?: Phase) {
+    const cells: string[] = [];
+    cells.push(tdTag({}, teamStats.rank));
+    cells.push(tdTag({}, teamStats.team.name));
+    if (this.tournament.trackSmallSchool) {
+      const isSS = this.tournament.findRegistrationByTeam(teamStats.team)?.isSmallSchool;
+      cells.push(tdTag({}, isSS ? 'SS' : ''));
+    }
+    if (this.tournament.trackJV) cells.push(tdTag({}, teamStats.team.isJV ? 'JV' : ''));
+    if (this.tournament.trackUG) cells.push(tdTag({}, teamStats.team.isUG ? 'UG' : ''));
+    if (this.tournament.trackDiv2) cells.push(tdTag({}, teamStats.team.isD2 ? 'D2' : ''));
+    cells.push(tdTag({ align: 'right' }, teamStats.wins.toString()));
+    cells.push(tdTag({ align: 'right' }, teamStats.losses.toString()));
+    if (anyTiesExist) cells.push(tdTag({ align: 'right' }, teamStats.ties.toString()));
+
+    const pct = teamStats.getWinPct();
+    const pctStr = Number.isNaN(pct) ? mDashHtml : pct.toFixed(3).toString();
+    cells.push(tdTag({ align: 'right' }, pctStr));
+
+    const ppgStr =
+      teamStats.totalPoints === 0
+        ? mDashHtml
+        : (teamStats.getPtsPerRegTuh() * this.tournament.scoringRules.regulationTossupCount).toFixed(1);
+    cells.push(tdTag({ align: 'right' }, ppgStr));
+
+    this.tournament.scoringRules.answerTypes.forEach((at) => {
+      const answerCount = teamStats.tossupCounts.find((ac) => ac.answerType.value === at.value);
+      cells.push(tdTag({ align: 'right' }, answerCount?.number?.toString() || '0'));
+    });
+    cells.push(tdTag({ align: 'right' }, teamStats.tuhRegulation.toString()));
+
+    const ppb = teamStats.getPtsPerBonus();
+    const ppbStr = Number.isNaN(ppb) ? mDashHtml : ppb.toFixed(2);
+    cells.push(tdTag({ align: 'right' }, ppbStr));
+
+    if (nextPhase?.anyTeamsAssigned()) {
+      cells.push(tdTag({}, this.definiteAdvancementTierDisplay(teamStats, nextPhase)));
+    } else if (nextPhase) {
+      cells.push(tdTag({}, this.provisionalAdvancementTierDisplay(teamStats)));
+    }
+
+    return trTag(cells);
+  }
+
+  private provisionalAdvancementTierDisplay(teamStats: PoolTeamStats) {
+    if (teamStats.recordTieForAdvancement) return unicodeHTML('2754');
+    if (teamStats.advanceToTier === undefined) return mDashHtml;
+    return `Tier ${teamStats.advanceToTier}`;
+  }
+
+  private definiteAdvancementTierDisplay(teamStats: PoolTeamStats, nextPhase: Phase) {
+    if (teamStats.poolTeam.didNotAdvance) return 'None';
+    return nextPhase.findPoolWithTeam(teamStats.team)?.name || '';
+  }
+
+  private tiebreakerList(tbPhase: Phase | undefined, pool: Pool) {
+    if (!tbPhase) return '';
+    const matches = tbPhase.getMatchesForPool(pool);
+    if (matches.length === 0) return '';
+    const title = genericTag('span', 'Tiebreakers:');
+    const list = unorderedList(matches.map((m) => m.getWinnerLoserString()));
+    return genericTagWithAttributes('div', [classAttribute(cssClasses.smallText)], title, list);
+  }
+}
+
+const lineBreak = '<br/>';
 const mDashHtml = '&mdash;';
-
-export function generateStandingsPage(tournament: Tournament) {
-  const title = 'Team Standings';
-  const htmlHeader = getHtmlHeader(title);
-  const topLinks = getTopLinks();
-  const mainHeader = h1Tag(title);
-  const style = getPageStyle();
-  const content = getStandingsHtml(tournament);
-
-  const body = genericTag('BODY', topLinks, mainHeader, style, content, madeWithYellowFruit());
-  return genericTag('HTML', htmlHeader, body);
-}
-
-export function generateIndividualsPage() {
-  return '';
-}
-
-/** The actual data of the Standings page */
-function getStandingsHtml(tournament: Tournament) {
-  const tables: string[] = [];
-  const prelims = tournament.stats[0];
-  if (!prelims) return '';
-
-  for (const onePool of prelims.pools) {
-    const header = genericTag('h2', onePool.pool.name);
-    tables.push(`${header}\n${oneStandingsTable(onePool, tournament, prelims.anyTiesExist)}`);
-  }
-  return tables.join('\n');
-}
-
-function oneStandingsTable(poolStats: PoolStats, tournament: Tournament, anyTiesExist: boolean) {
-  const rows = [standingsHeader(tournament, anyTiesExist)];
-  for (const teamStats of poolStats.poolTeams) {
-    rows.push(standingsRow(teamStats, tournament, anyTiesExist));
-  }
-  return tableTag(rows, undefined, '100%');
-}
-
-function standingsHeader(tournament: Tournament, anyTiesExist: boolean) {
-  const cells: string[] = [];
-  cells.push(tdTag({ bold: true, width: '3%' }, 'Rank'));
-  cells.push(tdTag({ bold: true, width: '20%' }, 'Team'));
-  if (tournament.trackSmallSchool) cells.push(tdTag({ bold: true }, 'SS'));
-  if (tournament.trackJV) cells.push(tdTag({ bold: true }, 'JV'));
-  if (tournament.trackUG) cells.push(tdTag({ bold: true }, 'UG'));
-  if (tournament.trackDiv2) cells.push(tdTag({ bold: true }, 'D2'));
-  cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'W'));
-  cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'L'));
-  if (anyTiesExist) cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'T'));
-  cells.push(tdTag({ bold: true, align: 'right' }, 'Pct'));
-  cells.push(
-    tdTag({ bold: true, align: 'right', width: '8%' }, `PP${tournament.scoringRules.regulationTossupCount}TUH`),
-  );
-  tournament.scoringRules.answerTypes.forEach((ansType) =>
-    cells.push(tdTag({ bold: true, align: 'right' }, ansType.value.toString())),
-  );
-  cells.push(tdTag({ bold: true, align: 'right' }, 'TUH'));
-  cells.push(tdTag({ bold: true, align: 'right' }, 'PPB'));
-  cells.push(tdTag({ bold: true }, 'Would Advance'));
-
-  return trTag(cells);
-}
-
-function standingsRow(teamStats: PoolTeamStats, tournament: Tournament, anyTiesExist: boolean) {
-  const cells: string[] = [];
-  cells.push(tdTag({}, teamStats.rank));
-  cells.push(tdTag({}, teamStats.team.name));
-  if (tournament.trackSmallSchool) {
-    const isSS = tournament.findRegistrationByTeam(teamStats.team)?.isSmallSchool;
-    cells.push(tdTag({}, isSS ? 'SS' : ''));
-  }
-  if (tournament.trackJV) cells.push(tdTag({}, teamStats.team.isJV ? 'JV' : ''));
-  if (tournament.trackUG) cells.push(tdTag({}, teamStats.team.isUG ? 'UG' : ''));
-  if (tournament.trackDiv2) cells.push(tdTag({}, teamStats.team.isD2 ? 'D2' : ''));
-  cells.push(tdTag({ align: 'right' }, teamStats.wins.toString()));
-  cells.push(tdTag({ align: 'right' }, teamStats.losses.toString()));
-  if (anyTiesExist) cells.push(tdTag({ align: 'right' }, teamStats.ties.toString()));
-
-  const pct = teamStats.getWinPct();
-  const pctStr = Number.isNaN(pct) ? mDashHtml : pct.toFixed(3).toString();
-  cells.push(tdTag({ align: 'right' }, pctStr));
-
-  const ppgStr =
-    teamStats.totalPoints === 0
-      ? mDashHtml
-      : (teamStats.getPtsPerRegTuh() * tournament.scoringRules.regulationTossupCount).toFixed(1);
-  cells.push(tdTag({ align: 'right' }, ppgStr));
-
-  tournament.scoringRules.answerTypes.forEach((at) => {
-    const answerCount = teamStats.tossupCounts.find((ac) => ac.answerType.value === at.value);
-    cells.push(tdTag({ align: 'right' }, answerCount?.number?.toString() || '0'));
-  });
-  cells.push(tdTag({ align: 'right' }, teamStats.tuhRegulation.toString()));
-
-  const ppb = teamStats.getPtsPerBonus();
-  const ppbStr = Number.isNaN(ppb) ? mDashHtml : ppb.toFixed(2);
-  cells.push(tdTag({ align: 'right' }, ppbStr));
-
-  cells.push(tdTag({}, advancementTierDisplay(teamStats)));
-
-  return trTag(cells);
-}
-
-function advancementTierDisplay(teamStats: PoolTeamStats) {
-  if (teamStats.recordTieForAdvancement) return unicodeHTML('2754');
-  if (teamStats.advanceToTier === undefined) return mDashHtml;
-  return `Tier ${teamStats.advanceToTier}`;
-}
+const nbsp = '&nbsp;';
 
 const StatReportPageTitles = {
   [StatReportPages.Standings]: 'Standings',
@@ -120,6 +171,12 @@ const StatReportPageTitles = {
   [StatReportPages.TeamDetails]: 'Team Detail',
   [StatReportPages.PlayerDetails]: 'Player Detail',
   [StatReportPages.RoundReport]: 'Round Report',
+};
+
+const cssClasses = {
+  headerAndDivider: 'headerAndDivider',
+  inlineDivider: 'inlineDivider',
+  smallText: 'smallText',
 };
 
 /** Header at the top of the html document */
@@ -137,7 +194,23 @@ function getPageStyle() {
   );
   const td = cssSelector('td', { attr: 'padding', val: '5px' });
   const zebra = cssSelector('tr:nth-child(even)', { attr: 'background-color', val: '#f2f2f2' });
-  return genericTag('style', body, table, td, zebra);
+  const headerAndDivider = cssSelector(
+    `.${cssClasses.headerAndDivider}`,
+    { attr: 'display', val: 'flex' },
+    { attr: 'flex-direction', val: 'row' },
+    { attr: 'margin', val: '18 0' },
+  );
+  const phaseH2 = cssSelector(`.${cssClasses.headerAndDivider} h2`, { attr: 'margin', val: '0' });
+  const inlineDivider = cssSelector(
+    `.${cssClasses.inlineDivider}`,
+    { attr: 'flex-grow', val: '1' },
+    { attr: 'height', val: '1px' },
+    { attr: 'background-color', val: '#9f9f9f' },
+    { attr: 'align-self', val: 'center' },
+  );
+  const smallText = cssSelector(`.${cssClasses.smallText}`, { attr: 'font-size', val: '10pt' });
+  const ul = cssSelector('ul', { attr: 'margin', val: '0' });
+  return genericTag('style', body, table, td, zebra, headerAndDivider, inlineDivider, ul, smallText, phaseH2);
 }
 
 // 'table {\n  border-spacing: 0;\n  border-collapse: collapse;\n}\n'
@@ -176,16 +249,12 @@ type tdAttributes = { align?: string; bold?: boolean; title?: string; style?: st
 
 /** <td> tag (table cell) */
 function tdTag(attributes: tdAttributes, contents: string) {
-  const align = makeAttribute(attributes, 'align');
-  const title = makeAttribute(attributes, 'title');
-  const style = makeAttribute(attributes, 'style');
-  const width = makeAttribute(attributes, 'width');
+  const align = makeAttributeFromObj(attributes, 'align');
+  const title = makeAttributeFromObj(attributes, 'title');
+  const style = makeAttributeFromObj(attributes, 'style');
+  const width = makeAttributeFromObj(attributes, 'width');
   const innerText = attributes.bold ? genericTag('b', contents) : contents;
   return `<td ${align} ${title} ${style} ${width}>${innerText}</td>`;
-}
-
-function h1Tag(contents: string) {
-  return `<h1>${contents}</h1>`;
 }
 
 /** Put contents inside a tag of the given type */
@@ -193,10 +262,33 @@ function genericTag(tag: string, ...contents: string[]) {
   return `<${tag}>\n${contents.join('\n')}\n</${tag}>`;
 }
 
-function makeAttribute(obj: any, attrName: string) {
+function genericTagWithAttributes(tag: string, attr: string[], ...contents: string[]) {
+  return `<${tag} ${attr.join(' ')}>\n${contents.join('\n')}\n</${tag}>`;
+}
+
+function headerWithDivider(text: string) {
+  const header = genericTag('h2', text + nbsp);
+  const divider = genericTagWithAttributes('div', [classAttribute(cssClasses.inlineDivider)]);
+  return genericTagWithAttributes('div', [classAttribute(cssClasses.headerAndDivider)], header, divider);
+}
+
+function unorderedList(items: string[]) {
+  const liTags = items.map((itm) => genericTag('li', itm));
+  return genericTag('ul', liTags.join('\n'));
+}
+
+function makeAttributeFromObj(obj: any, attrName: string) {
   const val = obj[attrName];
   if (val === undefined) return '';
+  return makeAttribute(attrName, val);
+}
+
+function makeAttribute(attrName: string, val: string) {
   return `${attrName}="${val}"`;
+}
+
+function classAttribute(className: string) {
+  return makeAttribute('class', className);
 }
 
 function madeWithYellowFruit(yfVersion?: string) {
