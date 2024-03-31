@@ -49,12 +49,14 @@ export class TempMatchManager {
     this.dataChangedReactCallback = () => {};
   }
 
+  /** Clean up miscellaneous fields that shouldn't carry over to the next session */
   reset() {
     delete this.round;
     delete this.phase;
     delete this.roundFieldError;
     delete this.originalRoundOpened;
     delete this.originalMatchLoaded;
+    this.otFieldsEnabledOverride = false;
   }
 
   /**
@@ -298,7 +300,7 @@ export class TempMatchManager {
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
     this.tempMatch.setTeamScore(whichTeam, valToSave);
     this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
-    this.tempMatch.validateOvertimeScoreMath();
+    this.tempMatch.validateOvertimeScoreMath(this.tournament.scoringRules);
     this.dataChangedReactCallback();
     return valToSave;
   }
@@ -325,7 +327,7 @@ export class TempMatchManager {
       this.tempMatch.validateOvertimeBuzzes();
       this.tempMatch.leftTeam.validateOvertimeBuzzes();
       this.tempMatch.rightTeam.validateOvertimeBuzzes();
-      this.tempMatch.validateOvertimeScoreMath();
+      this.tempMatch.validateOvertimeScoreMath(this.tournament.scoringRules);
     } else {
       this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
       this.tempMatch.validateTotalBuzzes();
@@ -373,7 +375,7 @@ export class TempMatchManager {
     }
     this.tempMatch.validateOvertimeTuhField(this.tournament.scoringRules);
     this.tempMatch.validateTotalAndOtTuhRelationship(this.tournament.scoringRules);
-    this.tempMatch.validateOvertimeScoreMath();
+    this.tempMatch.validateOvertimeScoreMath(this.tournament.scoringRules);
   }
 
   /** Allow the tossup value fields to immediately become enabled when a value changes, so that tab order works */

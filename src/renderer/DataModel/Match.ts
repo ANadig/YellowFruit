@@ -359,7 +359,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.validateOvertimeTuhField(scoringRules);
     this.validateTotalAndOtTuhRelationship(scoringRules);
     this.validateOvertimeBuzzes();
-    this.validateOvertimeScoreMath();
+    this.validateOvertimeScoreMath(scoringRules);
   }
 
   validateTotalTuh(scoringRules: ScoringRules) {
@@ -635,12 +635,13 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.modalBottomValidation.clearMsgType(MatchValidationType.TotalOtBuzzesExceedsTuh);
   }
 
-  validateOvertimeScoreMath() {
+  validateOvertimeScoreMath(scoringRules: ScoringRules) {
     if (
       this.leftTeam.points === undefined ||
       this.rightTeam.points === undefined ||
       this.overtimeTossupsRead === undefined ||
-      this.overtimeTossupsRead === 0
+      this.overtimeTossupsRead === 0 ||
+      scoringRules.overtimeIncludesBonuses
     ) {
       this.modalBottomValidation.clearMsgType(MatchValidationType.OtButRegScoreNotTied);
     } else {
