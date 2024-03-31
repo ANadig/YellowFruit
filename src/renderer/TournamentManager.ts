@@ -684,6 +684,14 @@ export class TournamentManager {
     this.onDataChanged(!shouldSave);
   }
 
+  reorderPools(phase: Phase, positionDraggedStr: string, positionDroppedOn: number) {
+    const posDragInt = parseInt(positionDraggedStr, 10);
+    if (Number.isNaN(posDragInt)) return;
+
+    phase.reorderPools(posDragInt, positionDroppedOn);
+    this.onDataChanged();
+  }
+
   // #endregion
 
   /** Should be called anytime the user modifies something */

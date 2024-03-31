@@ -352,4 +352,19 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
       }
     }
   }
+
+  reorderPools(positionDragged: number, positionDroppedOn: number) {
+    if (
+      positionDragged === positionDroppedOn ||
+      positionDragged < 0 ||
+      positionDragged >= this.pools.length ||
+      positionDroppedOn < 0 ||
+      positionDroppedOn > this.pools.length
+    ) {
+      return;
+    }
+
+    const [poolToMove] = this.pools.splice(positionDragged, 1);
+    this.pools.splice(positionDroppedOn, 0, poolToMove);
+  }
 }

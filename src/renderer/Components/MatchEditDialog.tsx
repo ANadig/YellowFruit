@@ -436,7 +436,7 @@ function PlayerGrid(props: IPlayerGridProps) {
           <b>Pts</b>
         </Grid>
       </Grid>
-      {matchTeam.matchPlayers.map((mp) => (
+      {matchTeam.matchPlayers.map((mp, idx) => (
         <Grid
           key={mp.player.name}
           container
@@ -444,7 +444,7 @@ function PlayerGrid(props: IPlayerGridProps) {
           columnSpacing={1}
           sx={{ '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 } }}
         >
-          <PlayerRow matchPlayer={mp} whichTeam={whichTeam} />
+          <PlayerRow matchPlayer={mp} whichTeam={whichTeam} rowNumber={idx} />
         </Grid>
       ))}
       {!matchTeam.team && <Box sx={{ py: 13 }} />}
@@ -475,10 +475,11 @@ const playerRowDragKey = 'MatchPlayerRow';
 interface IPlayerRowProps {
   matchPlayer: MatchPlayer;
   whichTeam: LeftOrRight;
+  rowNumber: number;
 }
 
 function PlayerRow(props: IPlayerRowProps) {
-  const { matchPlayer, whichTeam } = props;
+  const { matchPlayer, whichTeam, rowNumber } = props;
   const modalManager = useContext(MatchEditModalContext);
   const [playerName] = useSubscription(matchPlayer?.player.name);
   const [tuh, setTuh] = useSubscription(matchPlayer?.tossupsHeard?.toString() || '');
@@ -501,12 +502,12 @@ function PlayerRow(props: IPlayerRowProps) {
       <Grid
         xs
         draggable
-        onDragStart={(e) => e.dataTransfer.setData(dragKey, playerName)}
+        onDragStart={(e) => e.dataTransfer.setData(dragKey, rowNumber.toString())}
         onDragEnter={(e) => e.preventDefault()}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();
-          modalManager.reorderMatchPlayers(whichTeam, e.dataTransfer.getData(dragKey), matchPlayer);
+          modalManager.reorderMatchPlayers(whichTeam, e.dataTransfer.getData(dragKey), rowNumber);
         }}
         onDragLeave={(e) => e.preventDefault()}
       >

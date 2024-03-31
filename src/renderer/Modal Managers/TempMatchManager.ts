@@ -389,15 +389,24 @@ export class TempMatchManager {
     this.dataChangedReactCallback();
   }
 
-  reorderMatchPlayers(whichTeam: LeftOrRight, nameOfPlayerDropped: string, playerDroppedOn: MatchPlayer) {
-    if (nameOfPlayerDropped === '') return;
+  reorderMatchPlayers(whichTeam: LeftOrRight, positionDraggedStr: string, positionDroppedOn: number) {
+    const posDragInt = parseInt(positionDraggedStr, 10);
+    if (Number.isNaN(posDragInt)) return;
     const matchTeam = this.tempMatch.getMatchTeam(whichTeam);
-    const posToMove = matchTeam.matchPlayers.findIndex((mp) => mp.player.name === nameOfPlayerDropped);
-    const newPosition = matchTeam.matchPlayers.findIndex((mp) => mp === playerDroppedOn);
-    if (posToMove === newPosition || posToMove === -1 || newPosition === -1) return;
+    // const posToMove = matchTeam.matchPlayers.findIndex((mp) => mp.player.name === nameOfPlayerDropped);
+    // const newPosition = matchTeam.matchPlayers.findIndex((mp) => mp === playerDroppedOn);
+    if (
+      posDragInt === positionDroppedOn ||
+      posDragInt < 0 ||
+      positionDroppedOn < 0 ||
+      posDragInt >= matchTeam.matchPlayers.length ||
+      positionDroppedOn >= matchTeam.matchPlayers.length
+    ) {
+      return;
+    }
 
-    const [playerToMove] = matchTeam.matchPlayers.splice(posToMove, 1);
-    matchTeam.matchPlayers.splice(newPosition, 0, playerToMove);
+    const [playerToMove] = matchTeam.matchPlayers.splice(posDragInt, 1);
+    matchTeam.matchPlayers.splice(positionDroppedOn, 0, playerToMove);
     this.dataChangedReactCallback();
   }
 

@@ -31,10 +31,10 @@ export default function ScheduleDetailCard() {
 
   return (
     <YfCard title="Schedule Detail">
-      <List sx={{ '& .MuiIconButton-root': { py: 0 } }}>
+      <List>
         {phases.map((phase) => (
           <Accordion key={phase.code} defaultExpanded>
-            <AccordionSummary expandIcon={<ExpandMore />}>
+            <AccordionSummary expandIcon={<ExpandMore />} sx={{ '& .MuiIconButton-root': { py: 0, px: 0.5, mx: 1 } }}>
               <PhaseTitle phase={phase} />
               <IconButton
                 size="small"
@@ -86,6 +86,7 @@ function PhaseEditor(props: IPhaseEditorProps) {
   const thisTournament = tournManager.tournament;
   const canAddTB = !thisTournament.hasTiebreakerAfter(phase);
   const canAddFinals = thisTournament.isLastFullPhase(phase);
+  const dragKey = `pools-${phase.name}`;
 
   if (phase.pools === undefined) {
     return <span>Pools object is undefined for this phase</span>;
@@ -109,6 +110,15 @@ function PhaseEditor(props: IPhaseEditorProps) {
               <div key={pool.name}>
                 {idx !== 0 && <Divider />}
                 <ListItem
+                  draggable
+                  onDragStart={(e) => e.dataTransfer.setData(dragKey, idx.toString())}
+                  onDragEnter={(e) => e.preventDefault()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    tournManager.reorderPools(phase, e.dataTransfer.getData(dragKey), idx);
+                  }}
+                  onDragLeave={(e) => e.preventDefault()}
                   disableGutters
                   secondaryAction={
                     <IconButton
