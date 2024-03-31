@@ -196,7 +196,8 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     }
     const winner = rightPts > leftPts ? this.rightTeam : this.leftTeam;
     const loser = winner === this.leftTeam ? this.rightTeam : this.leftTeam;
-    return `${winner.team?.name} ${winner.points}, ${loser.team?.name} ${loser.points}`;
+    const ot = this.overtimeTossupsRead ? ' (OT)' : '';
+    return `${winner.team?.name} ${winner.points}, ${loser.team?.name} ${loser.points}${ot}`;
   }
 
   listCarryoverPhases() {
@@ -576,11 +577,11 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   }
 
   validateTotalAndOtTuhRelationship(scoringRules: ScoringRules) {
-    if (this.tossupsRead === undefined || this.overtimeTossupsRead === undefined) {
+    if (this.tossupsRead === undefined) {
       this.modalBottomValidation.clearMsgType(MatchValidationType.RegulationTuhNotStandard);
       return;
     }
-    const regulationTuh = this.tossupsRead - this.overtimeTossupsRead;
+    const regulationTuh = this.tossupsRead - (this.overtimeTossupsRead || 0);
     if (regulationTuh > scoringRules.maximumRegulationTossupCount) {
       this.modalBottomValidation.addValidationMsg(
         MatchValidationType.RegulationTuhNotStandard,

@@ -115,7 +115,7 @@ export default class HtmlReportGenerator {
     cells.push(tdTag({ align: 'right' }, pctStr));
 
     const ppgStr =
-      teamStats.totalPoints === 0
+      teamStats.totalPointsForPPG === 0
         ? mDashHtml
         : (teamStats.getPtsPerRegTuh() * this.tournament.scoringRules.regulationTossupCount).toFixed(1);
     cells.push(tdTag({ align: 'right' }, ppgStr));

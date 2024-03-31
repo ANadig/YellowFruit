@@ -217,6 +217,14 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return [bonusPoints.toString(), bonusesHeard.toString(), ppbStr];
   }
 
+  /** Total points minus points scored in overtime without bonuses */
+  getPointsForPPG(scoringRules: ScoringRules): number {
+    if (!scoringRules.useBonuses || scoringRules.overtimeIncludesBonuses) {
+      return this.points || 0;
+    }
+    return (this.points || 0) - this.getOvertimePoints();
+  }
+
   /** Number of tossups answered with no bonuses. In YF, this means overtime */
   getCorrectTossupsWithoutBonuses(): number {
     let total = 0;

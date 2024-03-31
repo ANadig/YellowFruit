@@ -183,6 +183,9 @@ export class PoolTeamStats {
 
   totalPoints: number = 0;
 
+  /** The number of points, minus points scored on overtime TUs that didn't have bonuses */
+  totalPointsForPPG: number = 0;
+
   tossupCounts: PlayerAnswerCount[] = [];
 
   bonusesHeard: number = 0;
@@ -216,11 +219,11 @@ export class PoolTeamStats {
 
   /** Points per non-overtime tossup heard. Is NaN if tossups heard is zero! */
   getPtsPerRegTuh() {
-    return this.totalPoints / this.tuhRegulation;
+    return this.totalPointsForPPG / this.tuhRegulation;
   }
 
   getPtsPerRegTuhString(regTuCount: number) {
-    if (this.totalPoints === 0) return '-';
+    if (this.totalPointsForPPG === 0) return '-';
     return (this.getPtsPerRegTuh() * regTuCount).toFixed(1);
   }
 
@@ -253,6 +256,7 @@ export class PoolTeamStats {
 
     const matchTeam = match.getMatchTeam(whichTeam);
     this.totalPoints += matchTeam.points || 0;
+    this.totalPointsForPPG += matchTeam.getPointsForPPG(this.scoringRules);
     this.bonusPoints += matchTeam.getBonusPoints();
     this.bonusesHeard += matchTeam.getBonusesHeard(this.scoringRules);
     this.lightningPoints += matchTeam.lightningPoints || 0;
