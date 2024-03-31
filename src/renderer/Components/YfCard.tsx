@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import React from 'react';
 
 interface IYfCardProps {
-  title: string;
+  title: React.JSX.Element | string;
 }
 
 /** Generic card with a title */

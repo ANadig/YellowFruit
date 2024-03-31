@@ -396,7 +396,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
     } else if (!teamHasPlayed && rowIdx < modalManager.tempTeam.players.length - 1) {
       modalManager.deletePlayer(rowIdx);
     }
-  }
+  };
 
   const handleUgChange = (checked: boolean) => {
     setPlayerIsUG(checked);

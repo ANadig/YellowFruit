@@ -9,13 +9,14 @@ import {
   Divider,
   FormControlLabel,
   FormGroup,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
   Typography,
 } from '@mui/material';
-import { ExpandMore } from '@mui/icons-material';
+import { Edit, ExpandMore } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
@@ -30,10 +31,21 @@ export default function ScheduleDetailCard() {
 
   return (
     <YfCard title="Schedule Detail">
-      <List>
+      <List sx={{ '& .MuiIconButton-root': { py: 0 } }}>
         {phases.map((phase) => (
           <Accordion key={phase.code} defaultExpanded>
-            <AccordionSummary expandIcon={<ExpandMore />}>{phaseHeaderString(phase)}</AccordionSummary>
+            <AccordionSummary expandIcon={<ExpandMore />}>
+              <PhaseTitle phase={phase} />
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  tournManager.openPhaseModal(phase);
+                }}
+              >
+                <Edit />
+              </IconButton>
+            </AccordionSummary>
             <AccordionDetails>
               {phase.isFullPhase() ? <PhaseEditor phase={phase} /> : <MinorPhaseSection phase={phase} />}
             </AccordionDetails>
@@ -41,6 +53,23 @@ export default function ScheduleDetailCard() {
         ))}
       </List>
     </YfCard>
+  );
+}
+
+interface IPhaseTitleProps {
+  phase: Phase;
+}
+
+function PhaseTitle(props: IPhaseTitleProps) {
+  const { phase } = props;
+  const [phaseName] = useSubscription(phase.name);
+
+  return (
+    <>
+      {phase.phaseType === PhaseTypes.Finals ? '' : `${phase.code}. `}
+      {phaseName}&nbsp;
+      {phaseRoundDisplay(phase)}
+    </>
   );
 }
 
@@ -145,11 +174,6 @@ function MinorPhaseSection(props: IMinoPhaseSectionProps) {
       </LinkButton>
     </>
   );
-}
-
-function phaseHeaderString(phase: Phase) {
-  const code = phase.phaseType === PhaseTypes.Finals ? '' : `${phase.code}. `;
-  return `${code}${phase.name} ${phaseRoundDisplay(phase)}`;
 }
 
 function phaseRoundDisplay(phase: Phase) {
