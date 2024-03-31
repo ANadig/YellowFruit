@@ -2,14 +2,14 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
-import { PhaseEditModalContext } from '../Modal Managers/TempPhaseManager';
 import useSubscription from '../Utils/CustomHooks';
 import { hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { PoolEditModalContext } from '../Modal Managers/TempPoolManager';
 
-export default function PhaseEditDialog() {
+export default function PoolEditDialog() {
   const tournManager = useContext(TournamentContext);
   const [, setUpdateNeeded] = useState({}); // set this object to a new object whenever we want to force a re-render
-  const [mgr] = useState(tournManager.phaseModalManager);
+  const [mgr] = useState(tournManager.poolModalManager);
   useEffect(() => {
     mgr.dataChangedReactCallback = () => {
       setUpdateNeeded({});
@@ -17,26 +17,26 @@ export default function PhaseEditDialog() {
   }, [mgr]);
 
   return (
-    <PhaseEditModalContext.Provider value={mgr}>
-      <PhaseEditDialogCore />
-    </PhaseEditModalContext.Provider>
+    <PoolEditModalContext.Provider value={mgr}>
+      <PoolEditDialogCore />
+    </PoolEditModalContext.Provider>
   );
 }
 
-function PhaseEditDialogCore() {
+function PoolEditDialogCore() {
   const tournManager = useContext(TournamentContext);
-  const modalManager = useContext(PhaseEditModalContext);
+  const modalManager = useContext(PoolEditModalContext);
   const [isOpen] = useSubscription(modalManager.modalIsOpen);
   const [hasErrors] = useSubscription(modalManager.hasAnyErrors());
   const acceptButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleAccept = () => {
     acceptButtonRef.current?.focus();
-    tournManager.closePhaseModal(true);
+    tournManager.closePoolModal(true);
   };
 
   const handleCancel = () => {
-    tournManager.closePhaseModal(false);
+    tournManager.closePoolModal(false);
   };
 
   useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });
@@ -44,9 +44,9 @@ function PhaseEditDialogCore() {
 
   return (
     <Dialog open={isOpen} fullWidth maxWidth="sm" onClose={handleCancel}>
-      <DialogTitle>Edit Stage</DialogTitle>
+      <DialogTitle>Edit Pool</DialogTitle>
       <DialogContent>
-        <PhaseNameField />
+        <PoolNameField />
       </DialogContent>
       <DialogActions>
         <Button variant="outlined" onClick={handleCancel}>
@@ -60,13 +60,13 @@ function PhaseEditDialogCore() {
   );
 }
 
-function PhaseNameField() {
-  const modalManager = useContext(PhaseEditModalContext);
-  const [name, setName] = useSubscription(modalManager.phaseName);
-  const [error] = useSubscription(modalManager.phaseNameError);
+function PoolNameField() {
+  const modalManager = useContext(PoolEditModalContext);
+  const [name, setName] = useSubscription(modalManager.poolName);
+  const [error] = useSubscription(modalManager.poolNameError);
 
   const onBlur = () => {
-    modalManager.setPhaseName(name);
+    modalManager.setPoolName(name);
   };
 
   return (

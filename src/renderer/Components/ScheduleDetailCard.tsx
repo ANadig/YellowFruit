@@ -94,17 +94,41 @@ function PhaseEditor(props: IPhaseEditorProps) {
   return (
     <Grid container spacing={2}>
       <Grid xs={4}>
-        <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+        <Box
+          sx={{
+            marginTop: 1,
+            border: 1,
+            borderRadius: 1,
+            borderColor: 'lightgray',
+            '& .MuiListItem-root': { p: 0 },
+            '& .MuiSvgIcon-root': { fontSize: '1.2rem' },
+          }}
+        >
           <List dense sx={{ py: 0 }}>
             {phase.pools.map((pool, idx) => (
               <div key={pool.name}>
                 {idx !== 0 && <Divider />}
-                <ListItemButton selected={idx === selectedPoolIdx} onClick={() => setSelectedPoolIdx(idx)}>
-                  <ListItemText
-                    primary={pool.name}
-                    secondary={`${showTiers ? `Tier ${pool.position} | ` : ''}${pool.size} Teams`}
-                  />
-                </ListItemButton>
+                <ListItem
+                  disableGutters
+                  secondaryAction={
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        tournManager.openPoolModal(phase, pool);
+                      }}
+                    >
+                      <Edit />
+                    </IconButton>
+                  }
+                >
+                  <ListItemButton selected={idx === selectedPoolIdx} onClick={() => setSelectedPoolIdx(idx)}>
+                    <ListItemText
+                      primary={pool.name}
+                      secondary={`${showTiers ? `Tier ${pool.position} | ` : ''}${pool.size} Teams`}
+                    />
+                  </ListItemButton>
+                </ListItem>
               </div>
             ))}
           </List>

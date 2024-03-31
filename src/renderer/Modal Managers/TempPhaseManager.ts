@@ -53,6 +53,7 @@ export default class TempPhaseManager {
     this.lowestPossibleRound = roundLowerBound || 1;
     this.highestPossibleRound = roundUpperBound || 999;
     this.otherPhaseNames = otherPhaseNames;
+    this.validateAll();
     this.dataChangedReactCallback();
   }
 

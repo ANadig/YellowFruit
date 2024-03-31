@@ -25,6 +25,7 @@ import MatchEditDialog from './Components/MatchEditDialog';
 import StatReportPage from './Components/StatReportPage';
 import { ApplicationPages } from './Enums';
 import PhaseEditDialog from './Components/PhaseEditDialog';
+import PoolEditDialog from './Components/PoolEditDialog';
 
 window.electron.ipcRenderer.removeAllListeners();
 const tournManager = new TournamentManager();
@@ -92,6 +93,7 @@ function TournamentEditor() {
       <TeamEditDialog />
       <MatchEditDialog />
       <PhaseEditDialog />
+      <PoolEditDialog />
     </>
   );
 }

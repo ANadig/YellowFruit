@@ -23,6 +23,7 @@ import { PoolStats } from './DataModel/StatSummaries';
 import { Phase } from './DataModel/Phase';
 import { Round } from './DataModel/Round';
 import TempPhaseManager from './Modal Managers/TempPhaseManager';
+import TempPoolManager from './Modal Managers/TempPoolManager';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -67,6 +68,8 @@ export class TournamentManager {
 
   phaseModalManager: TempPhaseManager;
 
+  poolModalManager: TempPoolManager;
+
   /** When did we last update the stat report? */
   inAppStatReportGenerated: Date;
 
@@ -82,6 +85,7 @@ export class TournamentManager {
     this.teamModalManager = new TempTeamManager();
     this.matchModalManager = new TempMatchManager();
     this.phaseModalManager = new TempPhaseManager();
+    this.poolModalManager = new TempPoolManager();
     this.inAppStatReportGenerated = new Date();
   }
 
@@ -667,6 +671,16 @@ export class TournamentManager {
 
   closePhaseModal(shouldSave: boolean) {
     this.phaseModalManager.closeModal(shouldSave);
+    this.onDataChanged(!shouldSave);
+  }
+
+  openPoolModal(phase: Phase, pool: Pool) {
+    const otherNames = phase.pools.filter((pl) => pl !== pool).map((pl) => pl.name);
+    this.poolModalManager.openModal(pool, otherNames);
+  }
+
+  closePoolModal(shouldSave: boolean) {
+    this.poolModalManager.closeModal(shouldSave);
     this.onDataChanged(!shouldSave);
   }
 
