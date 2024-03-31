@@ -558,10 +558,11 @@ interface IPlayerAnswerCountFieldProps {
   /** The xs attribute (# columns) for the grid element */
   xs: number;
   outlinedStyle?: boolean;
+  disabled?: boolean;
 }
 
 function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
-  const { answerCount, xs, outlinedStyle, isOvertimeStats } = props;
+  const { answerCount, xs, outlinedStyle, isOvertimeStats, disabled } = props;
   const modalManager = useContext(MatchEditModalContext);
   const [count, setCount] = useSubscription(answerCount.number?.toString() || '');
   const [invalid] = useSubscription(answerCount.validation.status === ValidationStatuses.Error);
@@ -577,10 +578,11 @@ function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
         type="number"
         inputProps={{ min: 0 }}
         fullWidth
-        label={outlinedStyle ? answerCount.answerType.value : undefined}
+        label={isOvertimeStats ? answerCount.answerType.value : undefined}
         variant={outlinedStyle ? 'outlined' : 'standard'}
         size="small"
-        hiddenLabel={!outlinedStyle}
+        hiddenLabel={!isOvertimeStats}
+        disabled={disabled}
         error={invalid}
         value={count}
         onChange={(e) => setCount(e.target.value)}
@@ -647,6 +649,11 @@ function OvertimeTuReadField() {
   const modalManager = useContext(MatchEditModalContext);
   const [otTUH, setOtTUH] = useSubscription(modalManager.tempMatch.overtimeTossupsRead?.toString() || '');
 
+  const handleChange = (val: string) => {
+    setOtTUH(val);
+    modalManager.enableOtFieldsOverride(val !== '' && parseInt(val, 10) !== 0);
+  };
+
   const handleBlur = () => {
     const valToUse = modalManager.setOtTuhRead(otTUH);
     setOtTUH(valToUse?.toString() || '');
@@ -654,19 +661,19 @@ function OvertimeTuReadField() {
 
   return (
     <Grid container columnSpacing={1}>
-      <Grid xs={4} sx={{ paddingTop: 1.5, textAlign: 'right' }}>
+      <Grid xs={4} sx={{ paddingTop: 2.4, textAlign: 'right' }}>
         Overtime:
       </Grid>
-      <Grid xs={8}>
+      <Grid xs={8} sx={{ '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 } }}>
         <TextField
           type="number"
           inputProps={{ min: 0 }}
           label="TU Read"
           fullWidth
-          variant="outlined"
+          variant="standard"
           size="small"
           value={otTUH}
-          onChange={(e) => setOtTUH(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleBlur();
@@ -687,17 +694,16 @@ function OvertimeBuzzesRow(props: IOverTimeRowProps) {
   const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
   const [otTUH] = useSubscription(modalManager.tempMatch.overtimeTossupsRead);
   const [otBuzzes] = useSubscription(matchTeam.overTimeBuzzes);
-
-  if (otTUH === undefined || otTUH === 0) return null;
-  if (!matchTeam.team) return null;
+  const [overrideEnable] = useSubscription(modalManager.otFieldsEnabledOverride);
+  const disabled = !overrideEnable && (otTUH === undefined || otTUH === 0 || !matchTeam.team);
 
   return (
-    <Grid container columnSpacing={1}>
-      <Grid xs sx={{ paddingTop: 1.5, textAlign: 'right' }}>
-        {matchTeam.team.name}
+    <Grid container columnSpacing={1} sx={{ '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 } }}>
+      <Grid xs sx={{ paddingTop: 2.4, textAlign: 'right', color: disabled ? 'rgba(0, 0, 0, 0.38)' : undefined }}>
+        {matchTeam.team?.name || ''}
       </Grid>
       {otBuzzes.map((ac) => (
-        <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} xs={2} outlinedStyle isOvertimeStats />
+        <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} xs={2} isOvertimeStats disabled={disabled} />
       ))}
     </Grid>
   );

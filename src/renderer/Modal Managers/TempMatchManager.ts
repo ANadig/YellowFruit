@@ -40,6 +40,8 @@ export class TempMatchManager {
 
   errorDialogContents: string[] = [];
 
+  otFieldsEnabledOverride: boolean = false;
+
   dataChangedReactCallback: () => void;
 
   constructor(tourn?: Tournament) {
@@ -351,13 +353,20 @@ export class TempMatchManager {
     this.dataChangedReactCallback();
   }
 
-  setOtTuhRead(val: string): number | undefined {
+  setOtTuhRead(val: string, noValidation: boolean = false): number | undefined {
     if (!textFieldChanged(this.tempMatch.overtimeTossupsRead?.toString() || '', val)) {
       return this.tempMatch.overtimeTossupsRead;
     }
     const parsed = parseInt(val, 10);
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
-    this.tempMatch.overtimeTossupsRead = valToSave;
+    if (!noValidation) this.validateOtTuhRead(valToSave);
+    if (valToSave === undefined || valToSave === 0) this.otFieldsEnabledOverride = false;
+    this.dataChangedReactCallback();
+
+    return valToSave;
+  }
+
+  validateOtTuhRead(valToSave: number | undefined) {
     if (valToSave === 0 || valToSave === undefined) {
       this.tempMatch.leftTeam.clearOvertimeBuzzes();
       this.tempMatch.rightTeam.clearOvertimeBuzzes();
@@ -365,8 +374,12 @@ export class TempMatchManager {
     this.tempMatch.validateOvertimeTuhField(this.tournament.scoringRules);
     this.tempMatch.validateTotalAndOtTuhRelationship(this.tournament.scoringRules);
     this.tempMatch.validateOvertimeScoreMath();
+  }
+
+  /** Allow the tossup value fields to immediately become enabled when a value changes, so that tab order works */
+  enableOtFieldsOverride(enabled: boolean) {
+    this.otFieldsEnabledOverride = enabled;
     this.dataChangedReactCallback();
-    return valToSave;
   }
 
   suppressValidationMessage(type: MatchValidationType, whichTeam?: LeftOrRight) {
