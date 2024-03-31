@@ -554,19 +554,20 @@ function gridColumnsForAnswerCountField(numAnswerTypes: number) {
 
 interface IPlayerAnswerCountFieldProps {
   answerCount: PlayerAnswerCount;
+  isOvertimeStats?: boolean;
   /** The xs attribute (# columns) for the grid element */
   xs: number;
   outlinedStyle?: boolean;
 }
 
 function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
-  const { answerCount, xs, outlinedStyle } = props;
+  const { answerCount, xs, outlinedStyle, isOvertimeStats } = props;
   const modalManager = useContext(MatchEditModalContext);
   const [count, setCount] = useSubscription(answerCount.number?.toString() || '');
   const [invalid] = useSubscription(answerCount.validation.status === ValidationStatuses.Error);
 
   const handleBlur = () => {
-    const valToUse = modalManager.setAnswerCount(answerCount, count);
+    const valToUse = modalManager.setAnswerCount(answerCount, count, isOvertimeStats);
     setCount(valToUse?.toString() || '');
   };
 
@@ -600,7 +601,7 @@ function BonusDisplay(props: IBonusDisplayProps) {
   const { whichTeam } = props;
   const modalManager = useContext(MatchEditModalContext);
   const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
-  const [bonusPoints, bonusesHeard, ppb] = matchTeam.getBonusStats();
+  const [bonusPoints, bonusesHeard, ppb] = matchTeam.getBonusStats(modalManager.tournament.scoringRules);
   const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
 
   if (matchTeam.team === undefined || forfeit) {
@@ -696,7 +697,7 @@ function OvertimeBuzzesRow(props: IOverTimeRowProps) {
         {matchTeam.team.name}
       </Grid>
       {otBuzzes.map((ac) => (
-        <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} xs={2} outlinedStyle />
+        <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} xs={2} outlinedStyle isOvertimeStats />
       ))}
     </Grid>
   );

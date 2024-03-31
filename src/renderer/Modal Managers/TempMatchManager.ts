@@ -216,6 +216,7 @@ export class TempMatchManager {
     this.tempMatch.validateTotalTuh(this.tournament.scoringRules);
     this.tempMatch.validateTotalBuzzes();
     this.tempMatch.validateAllMatchPlayersTuh(this.tournament.scoringRules);
+    this.tempMatch.validateTotalAndOtTuhRelationship(this.tournament.scoringRules);
     this.dataChangedReactCallback();
     return this.tempMatch.tossupsRead;
   }
@@ -266,6 +267,7 @@ export class TempMatchManager {
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
     this.tempMatch.setTeamScore(whichTeam, valToSave);
     this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
+    this.tempMatch.validateOvertimeScoreMath();
     this.dataChangedReactCallback();
     return valToSave;
   }
@@ -283,13 +285,20 @@ export class TempMatchManager {
   }
 
   /** This is used for both individual players and team-level overtime buzz data */
-  setAnswerCount(aCount: PlayerAnswerCount, val: string): number | undefined {
+  setAnswerCount(aCount: PlayerAnswerCount, val: string, isOvertimeBuzzes?: boolean): number | undefined {
     if (!textFieldChanged(aCount.number?.toString() || '', val)) return aCount.number;
     const parsed = parseInt(val, 10);
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
     aCount.number = valToSave;
-    this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
-    this.tempMatch.validateTotalBuzzes();
+    if (isOvertimeBuzzes) {
+      this.tempMatch.validateOvertimeBuzzes();
+      this.tempMatch.leftTeam.validateOvertimeBuzzes();
+      this.tempMatch.rightTeam.validateOvertimeBuzzes();
+      this.tempMatch.validateOvertimeScoreMath();
+    } else {
+      this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
+      this.tempMatch.validateTotalBuzzes();
+    }
     this.dataChangedReactCallback();
     return valToSave;
   }
@@ -324,7 +333,9 @@ export class TempMatchManager {
       this.tempMatch.leftTeam.clearOvertimeBuzzes();
       this.tempMatch.rightTeam.clearOvertimeBuzzes();
     }
-    // validation goes here
+    this.tempMatch.validateOvertimeTuhField(this.tournament.scoringRules);
+    this.tempMatch.validateTotalAndOtTuhRelationship(this.tournament.scoringRules);
+    this.tempMatch.validateOvertimeScoreMath();
     this.dataChangedReactCallback();
     return valToSave;
   }

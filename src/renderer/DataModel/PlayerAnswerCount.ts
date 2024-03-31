@@ -51,7 +51,7 @@ export class PlayerAnswerCount implements IQbjPlayerAnswerCount, IYftDataModelOb
 
   /**
    * Validate whether the current value is vaguely reasonable
-   * @param playerName Player's name, to which the error message is appended.
+   * @param playerName Player's name (or some other label), to which the error message is appended.
    */
   validateAll(playerName: string) {
     if (!this.numberIsValid()) {

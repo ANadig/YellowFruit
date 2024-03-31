@@ -188,12 +188,13 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return total;
   }
 
-  getBonusesHeard(): number {
+  getBonusesHeard(scoringRules: ScoringRules): number {
     let tot = 0;
     this.matchPlayers.forEach((mp) => {
       tot += mp.getTotalBuzzes(true);
     });
-    return tot;
+    if (scoringRules.overtimeIncludesBonuses) return tot;
+    return tot - this.getNumOvertimeBuzzes(true);
   }
 
   getBonusPoints(): number {
@@ -202,15 +203,15 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     );
   }
 
-  getPointsPerBonus(): number | undefined {
-    const bHeard = this.getBonusesHeard();
+  getPointsPerBonus(scoringRules: ScoringRules): number | undefined {
+    const bHeard = this.getBonusesHeard(scoringRules);
     if (bHeard === 0) return undefined;
     return this.getBonusPoints() / bHeard;
   }
 
-  getBonusStats(): [string, string, string] {
+  getBonusStats(scoringRules: ScoringRules): [string, string, string] {
     const bonusPoints = this.getBonusPoints();
-    const bonusesHeard = this.getBonusesHeard();
+    const bonusesHeard = this.getBonusesHeard(scoringRules);
     const ppb = bonusPoints / bonusesHeard;
     const ppbStr = !Number.isFinite(ppb) ? '--' : ppb.toFixed(2).toString();
     return [bonusPoints.toString(), bonusesHeard.toString(), ppbStr];
@@ -219,7 +220,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
   /** Number of tossups answered with no bonuses. In YF, this means overtime */
   getCorrectTossupsWithoutBonuses(): number {
     let total = 0;
-    for (const ac of this.overTimeBuzzes || []) {
+    for (const ac of this.overTimeBuzzes) {
       if (ac.points > 0) {
         total += ac.number || 0;
       }
@@ -230,8 +231,17 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
   /** Number of tossups answered with no bonuses. In YF, this means overtime */
   getOvertimePoints(): number {
     let total = 0;
-    for (const ac of this.overTimeBuzzes || []) {
+    for (const ac of this.overTimeBuzzes) {
       total += ac.points;
+    }
+    return total;
+  }
+
+  /** The number of buzzes recorded for this team in overtime */
+  getNumOvertimeBuzzes(positiveOnly: boolean = false): number {
+    let total = 0;
+    for (const ac of this.overTimeBuzzes) {
+      if (!positiveOnly || ac.answerType.value > 0) total += ac.number || 0;
     }
     return total;
   }
@@ -261,6 +271,9 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     this.matchPlayers.forEach((mp) => {
       errs = errs.concat(mp.getErrorMessages());
     });
+    this.overTimeBuzzes.forEach((ac) => {
+      errs = errs.concat(ac.getErrorMessages());
+    });
     return errs;
   }
 
@@ -268,6 +281,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     this.validateTotalPoints();
     this.validateAnswerCounts();
     this.validateBonusPoints(scoringRules);
+    this.validateOvertimeBuzzes();
   }
 
   clearValidation() {
@@ -299,7 +313,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   validateBonusPoints(scoringRules: ScoringRules) {
     const bonusPoints = this.getBonusPoints();
-    const bonusesHeard = this.getBonusesHeard();
+    const bonusesHeard = this.getBonusesHeard(scoringRules);
     const ppb = bonusPoints / bonusesHeard;
     const maxPpb = scoringRules.maximumBonusScore;
     if (bonusPoints < 0) {
@@ -331,6 +345,12 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       );
     } else {
       this.clearValidationMessage(MatchValidationType.BonusDivisorMismatch);
+    }
+  }
+
+  validateOvertimeBuzzes() {
+    for (const ac of this.overTimeBuzzes) {
+      ac.validateAll(`${this.team?.name || ''} Overtime tossups`);
     }
   }
 

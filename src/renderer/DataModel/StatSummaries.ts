@@ -7,6 +7,7 @@ import { PlayerAnswerCount } from './PlayerAnswerCount';
 import { Pool } from './Pool';
 import { PoolTeam } from './PoolTeam';
 import Registration from './Registration';
+import { ScoringRules } from './ScoringRules';
 import { Team } from './Team';
 
 export class PhaseStandings {
@@ -18,9 +19,9 @@ export class PhaseStandings {
 
   anyTiesExist: boolean = false;
 
-  constructor(phase: Phase, carryoverMatches: Match[]) {
+  constructor(phase: Phase, carryoverMatches: Match[], rules: ScoringRules) {
     this.phase = phase;
-    this.pools = phase.pools.map((pool) => new PoolStats(pool));
+    this.pools = phase.pools.map((pool) => new PoolStats(pool, rules));
     this.carryoverMatches = carryoverMatches;
   }
 
@@ -64,9 +65,9 @@ export class PoolStats {
 
   poolTeams: PoolTeamStats[] = [];
 
-  constructor(pool: Pool) {
+  constructor(pool: Pool, rules: ScoringRules) {
     this.pool = pool;
-    this.poolTeams = pool.poolTeams.map((pt) => new PoolTeamStats(pt));
+    this.poolTeams = pool.poolTeams.map((pt) => new PoolTeamStats(pt, rules));
   }
 
   sortTeams() {
@@ -194,9 +195,12 @@ export class PoolTeamStats {
 
   lightningPoints: number = 0;
 
-  constructor(poolTeam: PoolTeam) {
+  scoringRules: ScoringRules;
+
+  constructor(poolTeam: PoolTeam, rules: ScoringRules) {
     this.poolTeam = poolTeam;
     this.team = poolTeam.team;
+    this.scoringRules = rules;
   }
 
   getWinPct() {
@@ -250,7 +254,7 @@ export class PoolTeamStats {
     const matchTeam = match.getMatchTeam(whichTeam);
     this.totalPoints += matchTeam.points || 0;
     this.bonusPoints += matchTeam.getBonusPoints();
-    this.bonusesHeard += matchTeam.getBonusesHeard();
+    this.bonusesHeard += matchTeam.getBonusesHeard(this.scoringRules);
     this.lightningPoints += matchTeam.lightningPoints || 0;
 
     for (const matchPlayer of matchTeam.matchPlayers) {

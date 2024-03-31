@@ -21,6 +21,11 @@ export enum MatchValidationType {
   BonusPointsTooHigh = 'BonusPointsTooHigh',
   BonusDivisorMismatch = 'BonusDivisorMismatch',
   DoubleForfeit = 'DoubleForfeit',
+  InvalidOvertimeTuh = 'InvalidOvertimeTuh',
+  OtButRegScoreNotTied = 'OtButRegScoreNotTied',
+  RegulationTuhNotStandard = 'RegulationTuhNotStandard',
+  TotalOtBuzzesExceedsTuh = 'TotalOtBuzzesExceedsTuh',
+  OtTuhLessThanMinimum = 'OtTuhLessThanMinimum',
 }
 
 export interface IYftFileMatchValidationMsg {

@@ -156,7 +156,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.stats = [];
     this.phases.forEach((p) => {
       if (p.isFullPhase()) {
-        this.stats.push(new PhaseStandings(p, this.getCarryoverMatches(p)));
+        this.stats.push(new PhaseStandings(p, this.getCarryoverMatches(p), this.scoringRules));
       }
     });
     this.stats.forEach((phaseSt) => phaseSt.compileStats());

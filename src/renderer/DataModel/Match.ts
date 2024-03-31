@@ -97,6 +97,9 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   /** Validation directly associated with the total TUH field */
   totalTuhFieldValidation: MatchValidationMessage;
 
+  /** Validation directly associated with the overtime TUH field */
+  overtimeTuhFieldValidation: MatchValidationMessage;
+
   /** Any other messages that should go at the bottom of the modal rather than a specific field */
   modalBottomValidation: MatchValidationCollection;
 
@@ -115,6 +118,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.rightTeam = new MatchTeam(rightTeam, answerTypes);
 
     this.totalTuhFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidTotalTuh);
+    this.overtimeTuhFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidOvertimeTuh);
     this.modalBottomValidation = new MatchValidationCollection();
   }
 
@@ -139,7 +143,8 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.serial = source.serial;
     this.notes = source.notes;
 
-    this.totalTuhFieldValidation = source.totalTuhFieldValidation;
+    this.totalTuhFieldValidation = source.totalTuhFieldValidation.makeCopy();
+    this.overtimeTuhFieldValidation = source.overtimeTuhFieldValidation.makeCopy();
     this.modalBottomValidation = source.modalBottomValidation.makeCopy();
   }
 
@@ -350,6 +355,10 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.validateTotalBuzzes();
     this.validateAllMatchPlayersTuh(scoringRules);
     this.validateForfeit();
+    this.validateOvertimeTuhField(scoringRules);
+    this.validateTotalAndOtTuhRelationship(scoringRules);
+    this.validateOvertimeBuzzes();
+    this.validateOvertimeScoreMath();
   }
 
   validateTotalTuh(scoringRules: ScoringRules) {
@@ -539,6 +548,99 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       );
     } else {
       this.modalBottomValidation.clearMsgType(MatchValidationType.DoubleForfeit);
+    }
+  }
+
+  validateOvertimeTuhField(scoringRules: ScoringRules) {
+    if (this.overtimeTossupsRead === undefined || this.overtimeTossupsRead === 0) {
+      this.overtimeTuhFieldValidation.setOk();
+      this.modalBottomValidation.clearMsgType(MatchValidationType.OtTuhLessThanMinimum);
+      return;
+    }
+    if (this.overtimeTossupsRead < 0 || this.overtimeTossupsRead > 999) {
+      this.overtimeTuhFieldValidation.setError('Overtime tossups read is invalid');
+      return;
+    }
+    this.overtimeTuhFieldValidation.setOk();
+
+    if (this.overtimeTossupsRead < scoringRules.minimumOvertimeQuestionCount) {
+      this.modalBottomValidation.addValidationMsg(
+        MatchValidationType.OtTuhLessThanMinimum,
+        ValidationStatuses.Warning,
+        `Overtime tossups heard is less than the minimum of ${scoringRules.minimumOvertimeQuestionCount}`,
+        true,
+      );
+    } else {
+      this.modalBottomValidation.clearMsgType(MatchValidationType.OtTuhLessThanMinimum);
+    }
+  }
+
+  validateTotalAndOtTuhRelationship(scoringRules: ScoringRules) {
+    if (this.tossupsRead === undefined || this.overtimeTossupsRead === undefined) {
+      this.modalBottomValidation.clearMsgType(MatchValidationType.RegulationTuhNotStandard);
+      return;
+    }
+    const regulationTuh = this.tossupsRead - this.overtimeTossupsRead;
+    if (regulationTuh > scoringRules.maximumRegulationTossupCount) {
+      this.modalBottomValidation.addValidationMsg(
+        MatchValidationType.RegulationTuhNotStandard,
+        ValidationStatuses.Error,
+        `Tossups read in regulation is ${regulationTuh}, but the maximum allowed is ${scoringRules.maximumRegulationTossupCount}`,
+      );
+      return;
+    }
+    if (!scoringRules.timed && !this.tiebreaker && regulationTuh < scoringRules.regulationTossupCount) {
+      this.modalBottomValidation.addValidationMsg(
+        MatchValidationType.RegulationTuhNotStandard,
+        ValidationStatuses.Warning,
+        `Tossups read in regulation is ${regulationTuh}, which is less than the standard number of ${scoringRules.maximumRegulationTossupCount}`,
+        true,
+      );
+    } else {
+      this.modalBottomValidation.clearMsgType(MatchValidationType.RegulationTuhNotStandard);
+    }
+  }
+
+  validateOvertimeBuzzes() {
+    if (this.overtimeTossupsRead === undefined) {
+      this.modalBottomValidation.clearMsgType(MatchValidationType.TotalOtBuzzesExceedsTuh);
+      return;
+    }
+    if (
+      this.leftTeam.getNumOvertimeBuzzes(true) + this.rightTeam.getNumOvertimeBuzzes(true) >
+      this.overtimeTossupsRead
+    ) {
+      this.modalBottomValidation.addValidationMsg(
+        MatchValidationType.TotalOtBuzzesExceedsTuh,
+        ValidationStatuses.Error,
+        `More tossups were converted than read in overtime`,
+      );
+      return;
+    }
+    this.modalBottomValidation.clearMsgType(MatchValidationType.TotalOtBuzzesExceedsTuh);
+  }
+
+  validateOvertimeScoreMath() {
+    if (
+      this.leftTeam.points === undefined ||
+      this.rightTeam.points === undefined ||
+      this.overtimeTossupsRead === undefined ||
+      this.overtimeTossupsRead === 0
+    ) {
+      this.modalBottomValidation.clearMsgType(MatchValidationType.OtButRegScoreNotTied);
+    } else {
+      const leftTeamRegScore = this.leftTeam.points - this.leftTeam.getOvertimePoints();
+      const rightTeamRegScore = this.rightTeam.points - this.rightTeam.getOvertimePoints();
+      if (leftTeamRegScore !== rightTeamRegScore) {
+        this.modalBottomValidation.addValidationMsg(
+          MatchValidationType.OtButRegScoreNotTied,
+          ValidationStatuses.Warning,
+          "Game went to overtime but the score wasn't tied after regulation, based on each team's overtime stats",
+          true,
+        );
+      } else {
+        this.modalBottomValidation.clearMsgType(MatchValidationType.OtButRegScoreNotTied);
+      }
     }
   }
 
