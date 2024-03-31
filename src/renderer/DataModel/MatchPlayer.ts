@@ -2,7 +2,7 @@ import AnswerType from './AnswerType';
 import { IQbjObject, IQbjRefPointer, IYftDataModelObject } from './Interfaces';
 import MatchValidationMessage, { MatchValidationType } from './MatchValidationMessage';
 import { Player, IQbjPlayer } from './Player';
-import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
+import { IQbjPlayerAnswerCount, PlayerAnswerCount, sortAnswerCounts } from './PlayerAnswerCount';
 
 export interface IQbjMatchPlayer extends IQbjObject {
   /** Which player this is referring to */
@@ -93,6 +93,10 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
       if (ac.answerType.value > 0 || !positiveOnly) totalBuzzes += ac.number || 0;
     });
     return totalBuzzes;
+  }
+
+  sortAnswerCounts() {
+    sortAnswerCounts(this.answerCounts);
   }
 
   getErrorMessages() {

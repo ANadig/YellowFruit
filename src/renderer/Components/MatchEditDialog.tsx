@@ -1,3 +1,4 @@
+/* eslint-disable react/require-default-props */
 import { useContext, useState, useEffect, useMemo, forwardRef, useRef } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import {
@@ -126,17 +127,27 @@ function MatchEditDialogCore() {
                 <PlayerGrid whichTeam="right" />
               </Grid>
               {/** fourth row */}
-              <Grid xs={6} md={5}>
+              <Grid xs={6} md={5} sx={{ marginBottom: 3 }}>
                 <BonusDisplay whichTeam="left" />
               </Grid>
               <Grid xs={6} md={1}>
                 <ForfeitControl whichTeam="left" />
               </Grid>
-              <Grid xs={6} md={5}>
+              <Grid xs={6} md={5} sx={{ marginBottom: 3 }}>
                 <BonusDisplay whichTeam="right" />
               </Grid>
               <Grid xs={6} md={1}>
                 <ForfeitControl whichTeam="right" />
+              </Grid>
+              {/** fifth row */}
+              <Grid xs={3} lg={2}>
+                <OvertimeTuReadField />
+              </Grid>
+              <Grid xs={9} lg={5}>
+                <OvertimeBuzzesRow whichTeam="left" />
+              </Grid>
+              <Grid xs={9} lg={5} xsOffset={3} lgOffset={0}>
+                <OvertimeBuzzesRow whichTeam="right" />
               </Grid>
             </Grid>
           </Box>
@@ -270,7 +281,7 @@ const TuhTotalField = forwardRef((props: {}, ref) => {
       inputRef={ref}
       type="number"
       inputProps={{ min: 1 }}
-      label="TU Heard (incl. OT)"
+      label="TU Read (incl. OT)"
       fullWidth
       variant="outlined"
       size="small"
@@ -400,6 +411,7 @@ function PlayerGrid(props: IPlayerGridProps) {
   const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
   const [thisTeamForfeit] = useSubscription(matchTeam.forfeitLoss);
   const [otherTeamForfeit] = useSubscription(modalManager.tempMatch.getMatchTeam(otherTeam(whichTeam)).forfeitLoss);
+  const numColumns = gridColumnsForAnswerCountField(thisTournament.scoringRules.answerTypes.length);
 
   if (thisTeamForfeit || otherTeamForfeit) {
     let text = 'Forfeit';
@@ -412,15 +424,15 @@ function PlayerGrid(props: IPlayerGridProps) {
     <Box sx={{ '& .MuiGrid2-container': { my: 2 } }}>
       <Grid container columns={48} columnSpacing={1}>
         <Grid xs />
-        <Grid xs={7}>
+        <Grid xs={numColumns}>
           <b>TUH</b>
         </Grid>
         {thisTournament.scoringRules.answerTypes.map((at) => (
-          <Grid key={at.value} xs={7}>
+          <Grid key={at.value} xs={numColumns}>
             <b>{at.shortLabel}</b>
           </Grid>
         ))}
-        <Grid xs={7}>
+        <Grid xs={numColumns}>
           <b>Pts</b>
         </Grid>
       </Grid>
@@ -481,6 +493,7 @@ function PlayerRow(props: IPlayerRowProps) {
     setTuh(valToUse?.toString() || '');
   };
 
+  const numColumns = gridColumnsForAnswerCountField(answerCounts.length);
   const dragKey = `${playerRowDragKey}-${whichTeam}`;
 
   return (
@@ -505,7 +518,7 @@ function PlayerRow(props: IPlayerRowProps) {
         />
         {playerName}
       </Grid>
-      <Grid xs={7}>
+      <Grid xs={numColumns}>
         <TextField
           type="number"
           inputProps={{ min: 0 }}
@@ -523,9 +536,9 @@ function PlayerRow(props: IPlayerRowProps) {
         />
       </Grid>
       {answerCounts.map((ac) => (
-        <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} />
+        <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} xs={numColumns} />
       ))}
-      <Grid xs={7}>
+      <Grid xs={numColumns}>
         {/** Don't use the MUI disabled property, which makes the text gray and hard to read */}
         <TextField fullWidth variant="standard" size="small" hiddenLabel inputProps={{ disabled: true }} value={pts} />
       </Grid>
@@ -533,30 +546,40 @@ function PlayerRow(props: IPlayerRowProps) {
   );
 }
 
+function gridColumnsForAnswerCountField(numAnswerTypes: number) {
+  if (numAnswerTypes <= 3) return 7;
+  if (numAnswerTypes === 4) return 6;
+  return 5;
+}
+
 interface IPlayerAnswerCountFieldProps {
   answerCount: PlayerAnswerCount;
+  /** The xs attribute (# columns) for the grid element */
+  xs: number;
+  outlinedStyle?: boolean;
 }
 
 function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
-  const { answerCount } = props;
+  const { answerCount, xs, outlinedStyle } = props;
   const modalManager = useContext(MatchEditModalContext);
   const [count, setCount] = useSubscription(answerCount.number?.toString() || '');
   const [invalid] = useSubscription(answerCount.validation.status === ValidationStatuses.Error);
 
   const handleBlur = () => {
-    const valToUse = modalManager.setPlayerAnswerCount(answerCount, count);
+    const valToUse = modalManager.setAnswerCount(answerCount, count);
     setCount(valToUse?.toString() || '');
   };
 
   return (
-    <Grid xs={7}>
+    <Grid xs={xs}>
       <TextField
         type="number"
         inputProps={{ min: 0 }}
         fullWidth
-        variant="standard"
+        label={outlinedStyle ? answerCount.answerType.value : undefined}
+        variant={outlinedStyle ? 'outlined' : 'standard'}
         size="small"
-        hiddenLabel
+        hiddenLabel={!outlinedStyle}
         error={invalid}
         value={count}
         onChange={(e) => setCount(e.target.value)}
@@ -616,6 +639,66 @@ function ForfeitControl(props: IForfeitControlProps) {
         control={<Checkbox size="small" checked={isForfeit} onChange={(e) => handleChange(e.target.checked)} />}
       />
     </Box>
+  );
+}
+
+function OvertimeTuReadField() {
+  const modalManager = useContext(MatchEditModalContext);
+  const [otTUH, setOtTUH] = useSubscription(modalManager.tempMatch.overtimeTossupsRead?.toString() || '');
+
+  const handleBlur = () => {
+    const valToUse = modalManager.setOtTuhRead(otTUH);
+    setOtTUH(valToUse?.toString() || '');
+  };
+
+  return (
+    <Grid container columnSpacing={1}>
+      <Grid xs={4} sx={{ paddingTop: 1.5, textAlign: 'right' }}>
+        Overtime:
+      </Grid>
+      <Grid xs={8}>
+        <TextField
+          type="number"
+          inputProps={{ min: 0 }}
+          label="TU Read"
+          fullWidth
+          variant="outlined"
+          size="small"
+          value={otTUH}
+          onChange={(e) => setOtTUH(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleBlur();
+          }}
+        />
+      </Grid>
+    </Grid>
+  );
+}
+
+interface IOverTimeRowProps {
+  whichTeam: LeftOrRight;
+}
+
+function OvertimeBuzzesRow(props: IOverTimeRowProps) {
+  const { whichTeam } = props;
+  const modalManager = useContext(MatchEditModalContext);
+  const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
+  const [otTUH] = useSubscription(modalManager.tempMatch.overtimeTossupsRead);
+  const [otBuzzes] = useSubscription(matchTeam.overTimeBuzzes);
+
+  if (otTUH === undefined || otTUH === 0) return null;
+  if (!matchTeam.team) return null;
+
+  return (
+    <Grid container columnSpacing={1}>
+      <Grid xs sx={{ paddingTop: 1.5, textAlign: 'right' }}>
+        {matchTeam.team.name}
+      </Grid>
+      {otBuzzes.map((ac) => (
+        <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} xs={2} outlinedStyle />
+      ))}
+    </Grid>
   );
 }
 

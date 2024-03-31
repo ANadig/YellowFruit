@@ -60,7 +60,7 @@ interface IMatchExtraData {
 export class Match implements IQbjMatch, IYftDataModelObject {
   tossupsRead?: number;
 
-  overtimeTossupsRead: number = 0;
+  overtimeTossupsRead?: number;
 
   location?: string;
 

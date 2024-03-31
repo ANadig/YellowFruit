@@ -7,7 +7,7 @@ import MatchValidationMessage, {
   MatchValidationType,
 } from './MatchValidationMessage';
 import { Player } from './Player';
-import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
+import { IQbjPlayerAnswerCount, PlayerAnswerCount, sortAnswerCounts } from './PlayerAnswerCount';
 import { ScoringRules } from './ScoringRules';
 import { IQbjTeam, Team } from './Team';
 
@@ -50,7 +50,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
   points?: number;
 
   /** What the team scored in overtime. Note that we don't actually track which player made this buzzes */
-  overTimeBuzzes?: PlayerAnswerCount[];
+  overTimeBuzzes: PlayerAnswerCount[] = [];
 
   bonusBouncebackPoints?: number;
 
@@ -82,6 +82,9 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       this.team = t;
       this.matchPlayers = t.players.map((pl) => new MatchPlayer(pl, answerTypes));
     }
+    for (const aType of answerTypes || []) {
+      this.overTimeBuzzes.push(new PlayerAnswerCount(aType));
+    }
     this.totalScoreFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidTeamScore);
     this.modalBottomValidation = new MatchValidationCollection();
   }
@@ -99,7 +102,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     this.points = source.points;
     this.bonusBouncebackPoints = source.bonusBouncebackPoints;
     this.lightningPoints = source.lightningPoints;
-    this.overTimeBuzzes = source.overTimeBuzzes?.slice(); // TODO: deep copy
+    this.overTimeBuzzes = source.overTimeBuzzes.map((ac) => ac.makeCopy());
     this.totalScoreFieldValidation = source.totalScoreFieldValidation.makeCopy();
     this.modalBottomValidation = source.modalBottomValidation.makeCopy();
   }
@@ -231,6 +234,22 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       total += ac.points;
     }
     return total;
+  }
+
+  setOvertimeAnswerCount(answerType: AnswerType, count: number | undefined) {
+    const answerCount = this.overTimeBuzzes.find((ac) => ac.answerType === answerType);
+    if (!answerCount) return;
+    answerCount.number = count;
+  }
+
+  clearOvertimeBuzzes() {
+    for (const ac of this.overTimeBuzzes) {
+      delete ac.number;
+    }
+  }
+
+  sortOvertimeBuzzes() {
+    sortAnswerCounts(this.overTimeBuzzes);
   }
 
   getErrorMessages(ignoreHidden: boolean = false): string[] {

@@ -74,3 +74,8 @@ export class PlayerAnswerCount implements IQbjPlayerAnswerCount, IYftDataModelOb
     return 0 <= this.number && this.number <= PlayerAnswerCount.maximumValue;
   }
 }
+
+/** Sort a list of answer counts. Descending order of point value, meaning powers first, negs last */
+export function sortAnswerCounts(ary: PlayerAnswerCount[]) {
+  ary.sort((a, b) => b.answerType.value - a.answerType.value);
+}

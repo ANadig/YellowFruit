@@ -303,7 +303,6 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.reassignRoundNumbers(tbOrFinalsPhase);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   undoForcePhaseToBeNumeric(tbOrFinalsPhase: Phase) {
     if (tbOrFinalsPhase.isFullPhase()) return;
     tbOrFinalsPhase.forceNumericRounds = false;

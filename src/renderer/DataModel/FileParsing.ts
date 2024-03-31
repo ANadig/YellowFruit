@@ -611,7 +611,7 @@ export default class FileParser {
       yfMatch.tossupsRead = this.tourn.scoringRules.regulationTossupCount;
     }
     yfMatch.coPhaseQbjIds = this.parseMatchCarryoverPhasesStart(qbjMatch.carryoverPhases as IIndeterminateQbj[]);
-    yfMatch.overtimeTossupsRead = qbjMatch.overtimeTossupsRead || 0;
+    yfMatch.overtimeTossupsRead = qbjMatch.overtimeTossupsRead;
     yfMatch.tiebreaker = qbjMatch.tiebreaker || false;
 
     yfMatch.location = qbjMatch.location;
@@ -667,7 +667,12 @@ export default class FileParser {
     yfMatchTeam.bonusBouncebackPoints = qbjMatchTeam.bonusBouncebackPoints;
     yfMatchTeam.lightningPoints = qbjMatchTeam.lightningPoints;
     yfMatchTeam.matchPlayers = this.parseMatchTeamMatchPlayers(qbjMatchTeam.matchPlayers as IIndeterminateQbj[]);
-    // TODO: overtime stuff
+    for (const otAC of yfExtraData?.overTimeBuzzes || []) {
+      const tempAnswerCount = this.parsePlayerAnswerCount(otAC as IIndeterminateQbj);
+      if (!tempAnswerCount) continue;
+      yfMatchTeam.setOvertimeAnswerCount(tempAnswerCount.answerType, tempAnswerCount.number);
+    }
+    yfMatchTeam.sortOvertimeBuzzes();
 
     yfMatchTeam.modalBottomValidation = new MatchValidationCollection();
     yfMatchTeam.modalBottomValidation.addFromFileObjects(yfExtraData?.validation || []);
@@ -699,11 +704,12 @@ export default class FileParser {
     const yfMatchPlayer = new MatchPlayer(player, this.tourn.scoringRules.answerTypes);
     yfMatchPlayer.tossupsHeard = dropZero(qbjMatchPlayer.tossupsHeard);
     for (const pac of qbjMatchPlayer.answerCounts) {
-      const tempAnswerType = this.parsePlayerAnswerCount(pac as IIndeterminateQbj);
-      if (!tempAnswerType) continue;
-      yfMatchPlayer.setAnswerCount(tempAnswerType.answerType, tempAnswerType.number);
+      const tempAnswerCount = this.parsePlayerAnswerCount(pac as IIndeterminateQbj);
+      if (!tempAnswerCount) continue;
+      yfMatchPlayer.setAnswerCount(tempAnswerCount.answerType, tempAnswerCount.number);
     }
 
+    yfMatchPlayer.sortAnswerCounts();
     return yfMatchPlayer;
   }
 

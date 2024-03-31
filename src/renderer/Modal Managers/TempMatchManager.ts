@@ -282,7 +282,8 @@ export class TempMatchManager {
     return valToSave;
   }
 
-  setPlayerAnswerCount(aCount: PlayerAnswerCount, val: string): number | undefined {
+  /** This is used for both individual players and team-level overtime buzz data */
+  setAnswerCount(aCount: PlayerAnswerCount, val: string): number | undefined {
     if (!textFieldChanged(aCount.number?.toString() || '', val)) return aCount.number;
     const parsed = parseInt(val, 10);
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
@@ -310,6 +311,22 @@ export class TempMatchManager {
     this.tempMatch.validateForfeit();
     this.tempMatch.validateTotalTuh(this.tournament.scoringRules);
     this.dataChangedReactCallback();
+  }
+
+  setOtTuhRead(val: string): number | undefined {
+    if (!textFieldChanged(this.tempMatch.overtimeTossupsRead?.toString() || '', val)) {
+      return this.tempMatch.overtimeTossupsRead;
+    }
+    const parsed = parseInt(val, 10);
+    const valToSave = Number.isNaN(parsed) ? undefined : parsed;
+    this.tempMatch.overtimeTossupsRead = valToSave;
+    if (valToSave === 0 || valToSave === undefined) {
+      this.tempMatch.leftTeam.clearOvertimeBuzzes();
+      this.tempMatch.rightTeam.clearOvertimeBuzzes();
+    }
+    // validation goes here
+    this.dataChangedReactCallback();
+    return valToSave;
   }
 
   suppressValidationMessage(type: MatchValidationType, whichTeam?: LeftOrRight) {
