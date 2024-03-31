@@ -428,6 +428,20 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.modalBottomValidation.clearMsgType(MatchValidationType.TeamsNotInSamePool);
   }
 
+  setAlreadyPlayedInRdValidation(valid: boolean, message: string, unSuppress: boolean) {
+    if (unSuppress) this.modalBottomValidation.clearMsgType(MatchValidationType.TeamAlreadyPlayedInRound);
+    if (!valid) {
+      this.modalBottomValidation.addValidationMsg(
+        MatchValidationType.TeamAlreadyPlayedInRound,
+        ValidationStatuses.Warning,
+        message,
+        true,
+      );
+      return;
+    }
+    this.modalBottomValidation.clearMsgType(MatchValidationType.TeamsNotInSamePool);
+  }
+
   /** Validate the team-level stats for both teams */
   validateMatchTeams(scoringRules: ScoringRules) {
     if (this.isForfeit()) {

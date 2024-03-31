@@ -14,6 +14,9 @@ export class TempMatchManager {
   /** The Match being edited */
   tempMatch: Match = NullObjects.nullMatch;
 
+  /** The match from which tempMatch was copied, if an existing match was reopened */
+  originalMatchLoaded?: Match;
+
   tournament: Tournament = NullTournament;
 
   /** Round number of the match being edited */
@@ -48,6 +51,8 @@ export class TempMatchManager {
     delete this.round;
     delete this.phase;
     delete this.roundFieldError;
+    delete this.originalRoundOpened;
+    delete this.originalMatchLoaded;
   }
 
   /**
@@ -64,6 +69,7 @@ export class TempMatchManager {
     this.roundNumber = this.phase?.usesNumericRounds() ? round?.number : undefined;
     if (match) {
       this.loadMatch(match);
+      this.originalMatchLoaded = match;
       this.originalRoundOpened = round;
     } else {
       this.createBlankMatch();
@@ -73,6 +79,7 @@ export class TempMatchManager {
 
     if (this.phase?.phaseType === PhaseTypes.Tiebreaker) this.tempMatch.tiebreaker = true;
     if (this.roundNumber !== undefined) this.validateRoundNo();
+    if (this.originalMatchLoaded) this.validateHaveTeamsPlayedInRound(false);
     this.dataChangedReactCallback();
   }
 
@@ -147,6 +154,7 @@ export class TempMatchManager {
     }
     this.setPhaseAndRound();
     this.validateRoundNo();
+    this.validateHaveTeamsPlayedInRound(true);
     this.dataChangedReactCallback();
     return this.roundNumber;
   }
@@ -239,6 +247,7 @@ export class TempMatchManager {
 
     this.setTeam(whichTeam, matchingTeam, oldScore);
     this.tempMatch.validateTeams();
+    this.validateHaveTeamsPlayedInRound(true);
     this.validateTeamPools(true);
     this.dataChangedReactCallback();
   }
@@ -260,6 +269,26 @@ export class TempMatchManager {
       }
     }
     this.tempMatch.setSamePoolValidation(valid, unSuppress);
+  }
+
+  validateHaveTeamsPlayedInRound(unSuppress: boolean) {
+    const leftTeam = this.tempMatch.leftTeam.team;
+    const rightTeam = this.tempMatch.rightTeam.team;
+    if (!this.round || (this.phase && !this.phase.isFullPhase())) {
+      this.tempMatch.setAlreadyPlayedInRdValidation(true, '', unSuppress);
+      return;
+    }
+    const leftHasPlayed = leftTeam ? this.round.teamHasPlayedIn(leftTeam, this.originalMatchLoaded) : false;
+    const rightHasPlayed = rightTeam ? this.round.teamHasPlayedIn(rightTeam, this.originalMatchLoaded) : false;
+    let message = '';
+    if (leftHasPlayed && rightHasPlayed) {
+      message = 'Both teams have already played a game in this round';
+    } else if (leftHasPlayed) {
+      message = `${leftTeam?.name} has already played a game in this round`;
+    } else if (rightHasPlayed) {
+      message = `${rightTeam?.name} has already played a game in this round`;
+    }
+    this.tempMatch.setAlreadyPlayedInRdValidation(message === '', message, unSuppress);
   }
 
   setTeamScore(whichTeam: LeftOrRight, val: string): number | undefined {

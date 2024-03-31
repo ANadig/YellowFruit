@@ -87,8 +87,8 @@ export class Round implements IQbjRound, IYftDataModelObject {
     return this._name && !forceNumeric ? this._name : `Round ${this.number}`;
   }
 
-  teamHasPlayedIn(team: Team) {
-    return !!this.matches.find((m) => m.leftTeam.team === team || m.rightTeam.team === team);
+  teamHasPlayedIn(team: Team, matchToIgnore?: Match) {
+    return !!this.matches.find((m) => m !== matchToIgnore && (m.leftTeam.team === team || m.rightTeam.team === team));
   }
 
   anyMatchesExist() {

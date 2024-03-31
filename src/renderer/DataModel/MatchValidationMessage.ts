@@ -26,6 +26,7 @@ export enum MatchValidationType {
   RegulationTuhNotStandard = 'RegulationTuhNotStandard',
   TotalOtBuzzesExceedsTuh = 'TotalOtBuzzesExceedsTuh',
   OtTuhLessThanMinimum = 'OtTuhLessThanMinimum',
+  TeamAlreadyPlayedInRound = 'TeamAlreadyPlayedInRound',
 }
 
 export interface IYftFileMatchValidationMsg {
