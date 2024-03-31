@@ -41,6 +41,9 @@ export default class TempPhaseManager {
     delete this.originalPhaseOpened;
     delete this.firstRound;
     delete this.lastRound;
+    this.phaseNameError = '';
+    this.firstRoundError = '';
+    this.lastRoundError = '';
   }
 
   openModal(phase: Phase, otherPhaseNames: string[], roundLowerBound?: number, roundUpperBound?: number) {
@@ -55,6 +58,9 @@ export default class TempPhaseManager {
 
   closeModal(shouldSave: boolean) {
     if (shouldSave) {
+      this.validateAll();
+      if (this.hasAnyErrors()) return;
+
       this.saveData();
     }
     this.modalIsOpen = false;
