@@ -33,9 +33,7 @@ export default function ScheduleDetailCard() {
       <List>
         {phases.map((phase) => (
           <Accordion key={phase.code} defaultExpanded>
-            <AccordionSummary expandIcon={<ExpandMore />}>
-              {`${phase.code}. ${phase.name} ${phaseRoundDisplay(phase)}`}
-            </AccordionSummary>
+            <AccordionSummary expandIcon={<ExpandMore />}>{phaseHeaderString(phase)}</AccordionSummary>
             <AccordionDetails>
               {phase.isFullPhase() ? <PhaseEditor phase={phase} /> : <MinorPhaseSection phase={phase} />}
             </AccordionDetails>
@@ -58,6 +56,7 @@ function PhaseEditor(props: IPhaseEditorProps) {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
   const canAddTB = !thisTournament.hasTiebreakerAfter(phase);
+  const canAddFinals = thisTournament.isLastFullPhase(phase);
 
   if (phase.pools === undefined) {
     return <span>Pools object is undefined for this phase</span>;
@@ -103,6 +102,8 @@ function PhaseEditor(props: IPhaseEditorProps) {
         {canAddTB && (
           <LinkButton onClick={() => tournManager.addTiebreakerAfter(phase)}>Add tiebreaker stage</LinkButton>
         )}
+        <br />
+        {canAddFinals && <LinkButton onClick={() => tournManager.addFinalsPhase()}>Add finals stage</LinkButton>}
       </Grid>
     </Grid>
   );
@@ -144,6 +145,11 @@ function MinorPhaseSection(props: IMinoPhaseSectionProps) {
       </LinkButton>
     </>
   );
+}
+
+function phaseHeaderString(phase: Phase) {
+  const code = phase.phaseType === PhaseTypes.Finals ? '' : `${phase.code}. `;
+  return `${code}${phase.name} ${phaseRoundDisplay(phase)}`;
 }
 
 function phaseRoundDisplay(phase: Phase) {

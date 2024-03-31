@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-useless-concat */
 import { StatReportPages, StatReportPageOrder, StatReportFileNames } from '../Enums';
-import { Phase } from './Phase';
+import { Phase, PhaseTypes } from './Phase';
 import { Pool } from './Pool';
 import { PhaseStandings, PoolStats, PoolTeamStats } from './StatSummaries';
 // eslint-disable-next-line import/no-cycle
@@ -35,6 +35,8 @@ export default class HtmlReportGenerator {
     const sections: string[] = [];
     const prelims = this.tournament.stats[0];
     if (!prelims) return '';
+
+    sections.push(this.finalsList().join('\n'));
 
     for (let i = this.tournament.stats.length - 1; i >= 0; i--) {
       const phaseStats = this.tournament.stats[i];
@@ -150,11 +152,19 @@ export default class HtmlReportGenerator {
     return nextPhase.findPoolWithTeam(teamStats.team)?.name || '';
   }
 
-  private tiebreakerList(tbPhase: Phase | undefined, pool: Pool) {
-    if (!tbPhase) return '';
-    const matches = tbPhase.getMatchesForPool(pool);
+  private finalsList() {
+    return this.tournament.getFinalsPhases().map((ph) => {
+      const matchList = this.tiebreakerList(ph);
+      if (matchList === '') return '';
+      return `${headerWithDivider(ph.name)}\n${matchList}`;
+    });
+  }
+
+  private tiebreakerList(tbOrFinalsPhase: Phase | undefined, pool?: Pool) {
+    if (!tbOrFinalsPhase) return '';
+    const matches = tbOrFinalsPhase.getMatchesForPool(pool);
     if (matches.length === 0) return '';
-    const title = genericTag('span', 'Tiebreakers:');
+    const title = tbOrFinalsPhase.phaseType === PhaseTypes.Tiebreaker ? genericTag('span', 'Tiebreakers:') : '';
     const list = unorderedList(matches.map((m) => m.getWinnerLoserString()));
     return genericTagWithAttributes('div', [classAttribute(cssClasses.smallText)], title, list);
   }

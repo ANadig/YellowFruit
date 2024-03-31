@@ -237,6 +237,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases[searchIdx];
   }
 
+  isLastFullPhase(phase: Phase) {
+    return phase.isFullPhase() && this.getNextFullPhase(phase) === undefined;
+  }
+
   whichPhaseIsRoundIn(round: Round): Phase | undefined {
     return this.phases.find((phase) => phase.includesRound(round));
   }
@@ -254,8 +258,20 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.filter((ph) => ph.isFullPhase());
   }
 
+  getFinalsPhases() {
+    return this.phases.filter((ph) => ph.phaseType === PhaseTypes.Finals);
+  }
+
   findPhaseByName(str: string) {
     return this.phases.find((ph) => ph.name === str);
+  }
+
+  lastPhaseCodeNo(): number {
+    for (let i = this.phases.length - 1; i >= 0; i--) {
+      const ph = this.phases[i];
+      if (ph.phaseType !== PhaseTypes.Tiebreaker) return parseInt(ph.code, 10);
+    }
+    return 0;
   }
 
   addTiebreakerAfter(phase: Phase) {
@@ -288,10 +304,23 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return undefined;
   }
 
+  addFinalsPhase() {
+    const roundNumber = this.phases[this.phases.length - 1].lastRoundNumber() + 1;
+    this.phases.push(
+      new Phase(PhaseTypes.Finals, roundNumber, roundNumber, 1, (this.lastPhaseCodeNo() + 1).toString()),
+    );
+  }
+
   deletePhase(phase: Phase) {
     const idx = this.phases.indexOf(phase);
     if (idx === -1) return;
+
+    const nextPhase = this.phases[idx + 1];
+
     this.phases.splice(idx, 1);
+    if (nextPhase) {
+      this.reassignRoundNumbers(nextPhase);
+    }
   }
 
   forcePhaseToBeNumeric(tbOrFinalsPhase: Phase) {

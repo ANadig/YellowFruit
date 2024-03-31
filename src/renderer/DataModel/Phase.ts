@@ -122,7 +122,7 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     this.code = code;
     for (let i = firstRound; i <= lastRound; i++) {
       let roundName: string | undefined;
-      if (type === PhaseTypes.Tiebreaker) roundName = name;
+      if (type === PhaseTypes.Tiebreaker || type === PhaseTypes.Finals) roundName = this.name;
       this.rounds.push(new Round(i, roundName));
     }
   }
@@ -260,9 +260,10 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return this.rounds.map((rd) => rd.getCarryoverMatches(playoffPhase)).flat();
   }
 
-  /** Find the matches that involve at least one team in the given pool */
-  getMatchesForPool(pool: Pool) {
+  /** Find the matches that involve at least one team in the given pool. If no pool is passed, all matches are returned */
+  getMatchesForPool(pool?: Pool) {
     const allMatches = this.getAllMatches();
+    if (!pool) return allMatches;
     return allMatches.filter((match) => pool.matchIsRelevant(match));
   }
 

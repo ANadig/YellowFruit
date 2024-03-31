@@ -427,6 +427,11 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  addFinalsPhase() {
+    this.tournament.addFinalsPhase();
+    this.onDataChanged();
+  }
+
   tryDeleteTeam(reg: Registration, team: Team) {
     this.genericModalManager.open('Delete Team', `Are you sure you want to delete ${team.name}?`, 'No', 'Yes', () =>
       this.deleteTeam(reg, team),

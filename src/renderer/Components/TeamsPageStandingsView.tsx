@@ -1,3 +1,4 @@
+/* eslint-disable react/require-default-props */
 /* eslint-disable prefer-destructuring */
 import { useContext, useEffect, useState } from 'react';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -29,7 +30,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { PoolTeamStats } from '../DataModel/StatSummaries';
-import { Phase } from '../DataModel/Phase';
+import { Phase, PhaseTypes } from '../DataModel/Phase';
 import { LinkButton, hotkeyFormat } from '../Utils/GeneralReactUtils';
 import YfCard from './YfCard';
 import { Pool } from '../DataModel/Pool';
@@ -97,6 +98,10 @@ function PhaseStandings(props: IPhaseStandingsProps) {
             spacing={2}
             sx={{ '& .MuiSvgIcon-root': { fontSize: '1rem' }, '& .MuiIconButton-root': { py: 0 } }}
           >
+            {thisTournament.isLastFullPhase(phase) &&
+              thisTournament
+                .getFinalsPhases()
+                .map((ph) => <TiebreakerOrFinalsInfo key={ph.code} tbOrFinalsPhase={ph} />)}
             {phaseStats.pools.map((poolStats) => (
               <Grid key={poolStats.pool.name} xs={12}>
                 <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
@@ -168,7 +173,7 @@ function PhaseStandings(props: IPhaseStandingsProps) {
                     </TableBody>
                   </Table>
                 </TableContainer>
-                {tbPhase && <TiebreakerInfo tbPhase={tbPhase} pool={poolStats.pool} />}
+                {tbPhase && <TiebreakerOrFinalsInfo tbOrFinalsPhase={tbPhase} pool={poolStats.pool} />}
               </Grid>
             ))}
           </Grid>
@@ -267,36 +272,37 @@ function getAdvancementIcon(ptStats: PoolTeamStats) {
   return null;
 }
 
-interface ITiebreakerInfoProps {
-  tbPhase: Phase;
-  pool: Pool;
+interface ITiebreakerOrFinalsInfoProps {
+  tbOrFinalsPhase: Phase;
+  pool?: Pool;
 }
 
-function TiebreakerInfo(props: ITiebreakerInfoProps) {
-  const { tbPhase, pool } = props;
+function TiebreakerOrFinalsInfo(props: ITiebreakerOrFinalsInfoProps) {
+  const { tbOrFinalsPhase, pool } = props;
   const tournManager = useContext(TournamentContext);
-  const matches = tbPhase.getMatchesForPool(pool);
-  const round = tbPhase.rounds[0]; // Assume tiebreaker phases only have one round
+  const matches = tbOrFinalsPhase.getMatchesForPool(pool);
+  const round = tbOrFinalsPhase.rounds[0]; // Assume tiebreaker phases only have one round
+  const isFinals = tbOrFinalsPhase.phaseType === PhaseTypes.Finals;
 
   const newMatchForRound = () => {
     tournManager.openMatchModalNewMatchForRound(round);
   };
 
   const editExisting = (match: Match) => {
-    tournManager.openMatchEditModalExistingMatch(match, tbPhase.rounds[0]);
+    tournManager.openMatchEditModalExistingMatch(match, tbOrFinalsPhase.rounds[0]);
   };
 
   if (matches.length === 0) {
     return (
       <LinkButton sx={{ marginTop: 1, mx: 2 }} onClick={newMatchForRound}>
-        Add tiebreaker game
+        Add {isFinals ? 'finals' : 'tiebreaker'} game
       </LinkButton>
     );
   }
 
   return (
-    <Box sx={{ marginTop: 1, mx: 2 }}>
-      <Typography variant="subtitle2">Tiebreakers</Typography>
+    <Box sx={{ marginTop: isFinals ? 0 : 1, mx: 2 }}>
+      <Typography variant="subtitle2">{isFinals ? 'Finals' : 'Tiebreakers'}</Typography>
       <Box typography="body2">
         {matches.map((match) => (
           <div key={match.id}>
@@ -307,7 +313,7 @@ function TiebreakerInfo(props: ITiebreakerInfoProps) {
           </div>
         ))}
       </Box>
-      <LinkButton onClick={newMatchForRound}>Add tiebreaker game</LinkButton>
+      <LinkButton onClick={newMatchForRound}>Add {isFinals ? 'finals' : 'tiebreaker'} game</LinkButton>
     </Box>
   );
 }

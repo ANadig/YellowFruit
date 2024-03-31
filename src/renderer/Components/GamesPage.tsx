@@ -103,6 +103,7 @@ function SingleRound(props: ISingleRoundProps) {
   const { round, expanded: expandedProp, forceNumericDisplay } = props;
   const tournManager = useContext(TournamentContext);
   const [expanded, setExpanded] = useState(expandedProp);
+  const numMatches = round.matches.length;
 
   const newMatchForRound = () => {
     tournManager.openMatchModalNewMatchForRound(round);
@@ -112,7 +113,9 @@ function SingleRound(props: ISingleRoundProps) {
     <Accordion expanded={expanded} onChange={() => setExpanded(!expanded)}>
       <AccordionSummary expandIcon={<ExpandMore />}>
         <Typography sx={{ width: '33%', flexShrink: 0 }}>{round.displayName(forceNumericDisplay)}</Typography>
-        <Typography sx={{ width: '62%', color: 'text.secondary' }}>{`${round.matches.length} games`}</Typography>
+        <Typography sx={{ width: '62%', color: 'text.secondary' }}>
+          {numMatches === 1 ? '1 game' : `${numMatches} games`}
+        </Typography>
         <Tooltip placement="left" title="Add a game to this round">
           <IconButton
             size="small"
