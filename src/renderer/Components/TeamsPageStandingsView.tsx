@@ -135,7 +135,7 @@ function PhaseStandings(props: IPhaseStandingsProps) {
                         </TableCell>
                         <TableCell align="right">{`PP${regulationTossupCount}`}</TableCell>
                         <TableCell align="right">PPB</TableCell>
-                        <TableCell width="10%">{nextPhase ? 'Seed' : 'Final Rank'}</TableCell>
+                        <TableCell align="right">{nextPhase ? 'Seed' : 'Final Rank'}</TableCell>
                         {nextPhase && <TableCell width="4%" />}
                         {nextPhase && <TableCell>Advance To</TableCell>}
                         {nextPhase && (

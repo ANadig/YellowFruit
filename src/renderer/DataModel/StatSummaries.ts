@@ -24,7 +24,7 @@ export class PhaseStandings {
 
   constructor(phase: Phase, carryoverMatches: Match[], rules: ScoringRules, yieldsFinalRanks: boolean = false) {
     this.phase = phase;
-    this.pools = phase.pools.map((pool) => new PoolStats(pool, rules, yieldsFinalRanks));
+    this.pools = phase.pools.map((pool) => new PoolStats(pool, rules));
     this.carryoverMatches = carryoverMatches;
     this.yieldsFinalRanks = yieldsFinalRanks;
   }
@@ -86,12 +86,9 @@ export class PoolStats {
 
   poolTeams: PoolTeamStats[] = [];
 
-  yieldsFinalRanks: boolean = false;
-
-  constructor(pool: Pool, rules: ScoringRules, yieldsFinalRanks: boolean = false) {
+  constructor(pool: Pool, rules: ScoringRules) {
     this.pool = pool;
     this.poolTeams = pool.poolTeams.map((pt) => new PoolTeamStats(pt, rules));
-    this.yieldsFinalRanks = yieldsFinalRanks;
   }
 
   sortTeams() {
@@ -142,7 +139,7 @@ export class PoolStats {
     let prevTeam = this.poolTeams[0];
     for (let i = 1; i < this.poolTeams.length; i++) {
       const oneTeam = this.poolTeams[i];
-      if (oneTeam.needsTiebreakerWith(prevTeam, this.yieldsFinalRanks)) {
+      if (oneTeam.needsTiebreakerWith(prevTeam)) {
         oneTeam.recordTieForAdvancement = true;
         oneTeam.ppgTieForAdvancement = oneTeam.getPtsPerRegTuh() === prevTeam.getPtsPerRegTuh();
       }
@@ -152,7 +149,7 @@ export class PoolStats {
     prevTeam = this.poolTeams[this.poolTeams.length - 1];
     for (let i = this.poolTeams.length - 2; i >= 0; i--) {
       const oneTeam = this.poolTeams[i];
-      if (oneTeam.needsTiebreakerWith(prevTeam, this.yieldsFinalRanks)) {
+      if (oneTeam.needsTiebreakerWith(prevTeam)) {
         oneTeam.recordTieForAdvancement = true;
         oneTeam.ppgTieForAdvancement = oneTeam.getPtsPerRegTuh() === prevTeam.getPtsPerRegTuh();
       }
@@ -173,18 +170,17 @@ export class PoolStats {
   }
 
   calculateFinalRanks(startingRank: number) {
-    let prevWasTied = false;
-    let prevRank = -1;
-    let teamsSoFar = 0;
-    for (const ptStats of this.poolTeams) {
-      const curIsTied = ptStats.recordTieForAdvancement;
-      if (prevWasTied && curIsTied) {
-        ptStats.finalRankCalculated = prevRank;
+    let prevTeam = this.poolTeams[0];
+    prevTeam.finalRankCalculated = startingRank;
+    let teamsSoFar = 1;
+    for (let i = 1; i < this.poolTeams.length; i++) {
+      const oneTeam = this.poolTeams[i];
+      if (prevTeam.rank === oneTeam.rank) {
+        oneTeam.finalRankCalculated = prevTeam.finalRankCalculated;
       } else {
-        ptStats.finalRankCalculated = startingRank + teamsSoFar;
+        oneTeam.finalRankCalculated = startingRank + teamsSoFar;
       }
-      prevRank = ptStats.finalRankCalculated;
-      prevWasTied = curIsTied;
+      prevTeam = oneTeam;
       teamsSoFar++;
     }
   }
@@ -284,9 +280,8 @@ export class PoolTeamStats {
   }
 
   /** Do we need a tiebreaker with this team to determine where they advance to? */
-  needsTiebreakerWith(other: PoolTeamStats, ignoreTiers: boolean = false) {
+  needsTiebreakerWith(other: PoolTeamStats) {
     if (this.rank !== other.rank) return false;
-    if (ignoreTiers) return true;
     return this.advanceToTier !== other.advanceToTier || other.recordTieForAdvancement;
   }
 

@@ -62,13 +62,15 @@ function RankEditDialogCore() {
 }
 
 function RankField() {
+  const tournManager = useContext(TournamentContext);
   const modalManager = useContext(RankEditModalContext);
   const [rank, setRank] = useSubscription(modalManager.rank?.toString() || '');
   const [error] = useSubscription(modalManager.rankError);
 
-  const onBlur = () => {
+  const onBlur = (tryToClose: boolean = false) => {
     const valToSave = modalManager.setRank(rank);
     setRank(valToSave?.toString() || '');
+    if (tryToClose) tournManager.closeRankModal(true);
   };
 
   return (
@@ -83,9 +85,9 @@ function RankField() {
       helperText={error || ' '}
       value={rank}
       onChange={(e) => setRank(e.target.value)}
-      onBlur={onBlur}
+      onBlur={() => onBlur()}
       onKeyDown={(e) => {
-        if (e.key === 'Enter') onBlur();
+        if (e.key === 'Enter') onBlur(true);
       }}
     />
   );
