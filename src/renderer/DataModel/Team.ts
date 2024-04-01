@@ -11,6 +11,7 @@ import { IQbjPlayer, Player } from './Player';
 import { QbjTypeNames } from './QbjEnums';
 import { makeQbjRefPointer } from './QbjUtils';
 import { IQbjRank, Rank } from './Rank';
+import { OverallRanking } from './Ranking';
 
 export interface IQbjTeam extends IQbjObject {
   /** name of the team */
@@ -40,6 +41,7 @@ export class Team implements IQbjTeam, IYftDataModelObject {
 
   players: Player[];
 
+  /** Unused at this time. See overallRank property */
   ranks?: Rank[];
 
   get id(): string {
@@ -57,6 +59,8 @@ export class Team implements IQbjTeam, IYftDataModelObject {
 
   /** Is this team considered "division 2"? */
   isD2: boolean = false;
+
+  overallRank: Rank;
 
   /** Disallow creating teams with more than this many players on the roster */
   static maxPlayers = 30;
@@ -78,6 +82,7 @@ export class Team implements IQbjTeam, IYftDataModelObject {
   constructor(name: string) {
     this.name = name;
     this.players = [];
+    this.overallRank = new Rank(OverallRanking);
 
     this.playerListValidation = makeEmptyValidator();
     this.letterValidation = makeEmptyValidator();
@@ -115,7 +120,7 @@ export class Team implements IQbjTeam, IYftDataModelObject {
         const origPlayer = tempPlayer.sourcePlayer;
         if (origPlayer) {
           origPlayer.copyFromPlayer(tempPlayer);
-        } else if(tempPlayer.name !== '') {
+        } else if (tempPlayer.name !== '') {
           newlyAddedPlayers.push(tempPlayer.makeCopy());
         }
       });
@@ -133,7 +138,7 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     const qbjObject: IQbjTeam = {
       name: this.name,
       players: this.players.map((plr) => plr.toFileObject(qbjOnly, false, true)),
-      ranks: this.ranks?.map((rk) => rk.toFileObject(qbjOnly, false, false, this.name)),
+      ranks: [this.overallRank.toFileObject(qbjOnly, false, false, this.name)],
     };
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.Team;
@@ -166,6 +171,19 @@ export class Team implements IQbjTeam, IYftDataModelObject {
 
     this.letter = 'A';
     this.name = this.name.concat(' A');
+  }
+
+  /** Return the numeric rank, if the user has assigned one */
+  getOverallRank() {
+    return this.overallRank.position;
+  }
+
+  setOverallRank(position: number) {
+    this.overallRank.position = position;
+  }
+
+  clearOverallRank() {
+    this.overallRank.position = undefined;
   }
 
   validateAll() {

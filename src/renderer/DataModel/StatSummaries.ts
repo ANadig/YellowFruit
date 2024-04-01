@@ -17,12 +17,16 @@ export class PhaseStandings {
 
   carryoverMatches: Match[];
 
+  yieldsFinalRanks: boolean = false;
+
+  /** Did any matches end in a tie? */
   anyTiesExist: boolean = false;
 
-  constructor(phase: Phase, carryoverMatches: Match[], rules: ScoringRules) {
+  constructor(phase: Phase, carryoverMatches: Match[], rules: ScoringRules, yieldsFinalRanks: boolean = false) {
     this.phase = phase;
-    this.pools = phase.pools.map((pool) => new PoolStats(pool, rules));
+    this.pools = phase.pools.map((pool) => new PoolStats(pool, rules, yieldsFinalRanks));
     this.carryoverMatches = carryoverMatches;
+    this.yieldsFinalRanks = yieldsFinalRanks;
   }
 
   compileStats() {
@@ -41,6 +45,7 @@ export class PhaseStandings {
         this.anyTiesExist = true;
       }
     }
+    if (this.yieldsFinalRanks) this.assignFinalRanks();
   }
 
   private addMatchToStats(match: Match) {
@@ -58,6 +63,22 @@ export class PhaseStandings {
     }
     return undefined;
   }
+
+  /** Our best guess of what the final ranks should be */
+  private assignFinalRanks() {
+    let teamsSoFar = 0;
+    for (let tier = 1; ; tier++) {
+      const poolsInTier = this.pools.filter((pStats) => pStats.pool.position === tier);
+      if (poolsInTier.length === 0) break;
+
+      let teamsInTier = 0;
+      for (const pool of poolsInTier) {
+        pool.calculateFinalRanks(teamsSoFar + 1);
+        teamsInTier += pool.poolTeams.length;
+      }
+      teamsSoFar += teamsInTier;
+    }
+  }
 }
 
 export class PoolStats {
@@ -65,9 +86,12 @@ export class PoolStats {
 
   poolTeams: PoolTeamStats[] = [];
 
-  constructor(pool: Pool, rules: ScoringRules) {
+  yieldsFinalRanks: boolean = false;
+
+  constructor(pool: Pool, rules: ScoringRules, yieldsFinalRanks: boolean = false) {
     this.pool = pool;
     this.poolTeams = pool.poolTeams.map((pt) => new PoolTeamStats(pt, rules));
+    this.yieldsFinalRanks = yieldsFinalRanks;
   }
 
   sortTeams() {
@@ -118,7 +142,7 @@ export class PoolStats {
     let prevTeam = this.poolTeams[0];
     for (let i = 1; i < this.poolTeams.length; i++) {
       const oneTeam = this.poolTeams[i];
-      if (oneTeam.needsTiebreakerWith(prevTeam)) {
+      if (oneTeam.needsTiebreakerWith(prevTeam, this.yieldsFinalRanks)) {
         oneTeam.recordTieForAdvancement = true;
         oneTeam.ppgTieForAdvancement = oneTeam.getPtsPerRegTuh() === prevTeam.getPtsPerRegTuh();
       }
@@ -128,7 +152,7 @@ export class PoolStats {
     prevTeam = this.poolTeams[this.poolTeams.length - 1];
     for (let i = this.poolTeams.length - 2; i >= 0; i--) {
       const oneTeam = this.poolTeams[i];
-      if (oneTeam.needsTiebreakerWith(prevTeam)) {
+      if (oneTeam.needsTiebreakerWith(prevTeam, this.yieldsFinalRanks)) {
         oneTeam.recordTieForAdvancement = true;
         oneTeam.ppgTieForAdvancement = oneTeam.getPtsPerRegTuh() === prevTeam.getPtsPerRegTuh();
       }
@@ -147,6 +171,23 @@ export class PoolStats {
     }
     return false;
   }
+
+  calculateFinalRanks(startingRank: number) {
+    let prevWasTied = false;
+    let prevRank = -1;
+    let teamsSoFar = 0;
+    for (const ptStats of this.poolTeams) {
+      const curIsTied = ptStats.recordTieForAdvancement;
+      if (prevWasTied && curIsTied) {
+        ptStats.finalRankCalculated = prevRank;
+      } else {
+        ptStats.finalRankCalculated = startingRank + teamsSoFar;
+      }
+      prevRank = ptStats.finalRankCalculated;
+      prevWasTied = curIsTied;
+      teamsSoFar++;
+    }
+  }
 }
 
 export class PoolTeamStats {
@@ -157,6 +198,10 @@ export class PoolTeamStats {
   poolTeam: PoolTeam;
 
   rank: string = '';
+
+  finalRankCalculated?: number;
+
+  finalRankTie: boolean = false;
 
   /** Seed team is in right now, for the purposes for rebracketing (not the seed they started with) */
   currentSeed?: number;
@@ -239,8 +284,9 @@ export class PoolTeamStats {
   }
 
   /** Do we need a tiebreaker with this team to determine where they advance to? */
-  needsTiebreakerWith(other: PoolTeamStats) {
+  needsTiebreakerWith(other: PoolTeamStats, ignoreTiers: boolean = false) {
     if (this.rank !== other.rank) return false;
+    if (ignoreTiers) return true;
     return this.advanceToTier !== other.advanceToTier || other.recordTieForAdvancement;
   }
 

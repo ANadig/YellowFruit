@@ -9,7 +9,7 @@ import { IQbjPhase, Phase, PhaseTypes } from './Phase';
 import { Player } from './Player';
 import { Pool } from './Pool';
 import { QbjAudience, QbjContent, QbjLevel, QbjTypeNames } from './QbjEnums';
-import { IQbjRanking, Ranking } from './Ranking';
+import { IQbjRanking, OverallRanking, Ranking } from './Ranking';
 import Registration, { IQbjRegistration } from './Registration';
 import { Round } from './Round';
 import { CommonRuleSets, IQbjScoringRules, ScoringRules } from './ScoringRules';
@@ -111,6 +111,8 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   hasMatchData: boolean = false;
 
+  finalRankingsReady: boolean = false;
+
   htmlGenerator: HtmlReportGenerator;
 
   constructor(name?: string) {
@@ -129,6 +131,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       questionSet: this.questionSet || undefined,
       registrations: this.registrations.map((reg) => reg.toFileObject(qbjOnly)),
       phases: this.phases.map((ph) => ph.toFileObject(qbjOnly, false, true)),
+      rankings: [OverallRanking.toFileObject(qbjOnly, false, true)],
     };
     if (isTopLevel) qbjObject.type = QbjTypeNames.Tournament;
     if (isReferenced) qbjObject.id = 'Tournament';
@@ -154,9 +157,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   compileStats() {
     this.stats = [];
+    const lastPhase = this.getLastFullPhase();
+    if (!lastPhase) return;
     this.phases.forEach((p) => {
       if (p.isFullPhase()) {
-        this.stats.push(new PhaseStandings(p, this.getCarryoverMatches(p), this.scoringRules));
+        this.stats.push(new PhaseStandings(p, this.getCarryoverMatches(p), this.scoringRules, p === lastPhase));
       }
     });
     this.stats.forEach((phaseSt) => phaseSt.compileStats());
@@ -235,6 +240,15 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       searchIdx++;
     }
     return this.phases[searchIdx];
+  }
+
+  getLastFullPhase() {
+    let idx = this.phases.length - 1;
+    while (idx >= -1 && !this.phases[idx]?.isFullPhase()) {
+      idx--;
+    }
+    if (idx === -1) return undefined;
+    return this.phases[idx];
   }
 
   isLastFullPhase(phase: Phase) {

@@ -24,6 +24,7 @@ import { Phase } from './DataModel/Phase';
 import { Round } from './DataModel/Round';
 import TempPhaseManager from './Modal Managers/TempPhaseManager';
 import TempPoolManager from './Modal Managers/TempPoolManager';
+import TempRankManager from './Modal Managers/TempRankManager';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -70,6 +71,8 @@ export class TournamentManager {
 
   poolModalManager: TempPoolManager;
 
+  rankModalManager: TempRankManager;
+
   /** When did we last update the stat report? */
   inAppStatReportGenerated: Date;
 
@@ -86,6 +89,7 @@ export class TournamentManager {
     this.matchModalManager = new TempMatchManager();
     this.phaseModalManager = new TempPhaseManager();
     this.poolModalManager = new TempPoolManager();
+    this.rankModalManager = new TempRankManager();
     this.inAppStatReportGenerated = new Date();
   }
 
@@ -684,11 +688,25 @@ export class TournamentManager {
     this.onDataChanged(!shouldSave);
   }
 
+  openRankModal(team: Team) {
+    this.rankModalManager.openModal(team);
+  }
+
+  closeRankModal(shouldSave: boolean) {
+    this.rankModalManager.closeModal(shouldSave);
+    this.onDataChanged(!shouldSave);
+  }
+
   reorderPools(phase: Phase, positionDraggedStr: string, positionDroppedOn: number) {
     const posDragInt = parseInt(positionDraggedStr, 10);
     if (Number.isNaN(posDragInt)) return;
 
     phase.reorderPools(posDragInt, positionDroppedOn);
+    this.onDataChanged();
+  }
+
+  setFinalRankingsReady(ready: boolean) {
+    this.tournament.finalRankingsReady = ready;
     this.onDataChanged();
   }
 

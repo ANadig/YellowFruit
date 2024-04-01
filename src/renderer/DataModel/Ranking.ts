@@ -1,5 +1,6 @@
 import { IQbjObject, IYftDataModelObject } from './Interfaces';
 import { QbjTypeNames } from './QbjEnums';
+import { makeQbjRefPointer } from './QbjUtils';
 
 /** A kind of ranking that teams might be ranked by, such as "JV" or "Small school" */
 export interface IQbjRanking extends IQbjObject {
@@ -29,4 +30,10 @@ export class Ranking implements IQbjRanking, IYftDataModelObject {
 
     return qbjObject;
   }
+
+  toRefPointer() {
+    return makeQbjRefPointer(this.id);
+  }
 }
+
+export const OverallRanking = new Ranking('Overall');

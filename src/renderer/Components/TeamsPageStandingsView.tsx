@@ -24,6 +24,7 @@ import {
   DialogActions,
   Typography,
   Box,
+  Checkbox,
 } from '@mui/material';
 import { Create, Done, Edit, Error, Warning } from '@mui/icons-material';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -98,10 +99,18 @@ function PhaseStandings(props: IPhaseStandingsProps) {
             spacing={2}
             sx={{ '& .MuiSvgIcon-root': { fontSize: '1rem' }, '& .MuiIconButton-root': { py: 0 } }}
           >
-            {thisTournament.isLastFullPhase(phase) &&
-              thisTournament
-                .getFinalsPhases()
-                .map((ph) => <TiebreakerOrFinalsInfo key={ph.code} tbOrFinalsPhase={ph} />)}
+            {thisTournament.isLastFullPhase(phase) && (
+              <>
+                <Grid xs={6}>
+                  {thisTournament.getFinalsPhases().map((ph) => (
+                    <TiebreakerOrFinalsInfo key={ph.code} tbOrFinalsPhase={ph} />
+                  ))}
+                </Grid>
+                <Grid xs={6} sx={{ textAlign: 'right', '& .MuiSvgIcon-root': { fontSize: '1.5rem' } }}>
+                  <ConfirmFinalRanksCheckbox />
+                </Grid>
+              </>
+            )}
             {phaseStats.pools.map((poolStats) => (
               <Grid key={poolStats.pool.name} xs={12}>
                 <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
@@ -126,7 +135,7 @@ function PhaseStandings(props: IPhaseStandingsProps) {
                         </TableCell>
                         <TableCell align="right">{`PP${regulationTossupCount}`}</TableCell>
                         <TableCell align="right">PPB</TableCell>
-                        <TableCell align="right">Seed</TableCell>
+                        <TableCell width="10%">{nextPhase ? 'Seed' : 'Final Rank'}</TableCell>
                         {nextPhase && <TableCell width="4%" />}
                         {nextPhase && <TableCell>Advance To</TableCell>}
                         {nextPhase && (
@@ -158,7 +167,11 @@ function PhaseStandings(props: IPhaseStandingsProps) {
                           <TableCell align="right">{ptStats.getWinPctString()}</TableCell>
                           <TableCell align="right">{ptStats.getPtsPerRegTuhString(regulationTossupCount)}</TableCell>
                           <TableCell align="right">{ptStats.getPtsPerBonusString()}</TableCell>
-                          <TableCell align="right">{ptStats.currentSeed}</TableCell>
+                          {nextPhase ? (
+                            <TableCell align="right">{ptStats.currentSeed}</TableCell>
+                          ) : (
+                            <FinalRankCell ptStats={ptStats} />
+                          )}
                           {nextPhase && <TableCell>{getAdvancementIcon(ptStats)}</TableCell>}
                           {nextPhase && (
                             <AdvanceToCell
@@ -315,6 +328,44 @@ function TiebreakerOrFinalsInfo(props: ITiebreakerOrFinalsInfoProps) {
       </Box>
       <LinkButton onClick={newMatchForRound}>Add {isFinals ? 'finals' : 'tiebreaker'} game</LinkButton>
     </Box>
+  );
+}
+
+function ConfirmFinalRanksCheckbox() {
+  const tournManager = useContext(TournamentContext);
+  const [checked, setChecked] = useSubscription(tournManager.tournament.finalRankingsReady);
+
+  const onChanged = (val: boolean) => {
+    setChecked(val);
+    tournManager.setFinalRankingsReady(val);
+  };
+
+  return (
+    <FormControlLabel
+      control={<Checkbox value={checked} onChange={(e) => onChanged(e.target.checked)} />}
+      label="Final rankings ready to publish"
+    />
+  );
+}
+
+interface IFinalRankCellProps {
+  ptStats: PoolTeamStats;
+}
+
+function FinalRankCell(props: IFinalRankCellProps) {
+  const { ptStats } = props;
+  const tournManager = useContext(TournamentContext);
+  const [explicitRank] = useSubscription(ptStats.team.getOverallRank());
+
+  if (!explicitRank && !ptStats.finalRankCalculated) return null;
+
+  return (
+    <TableCell align="right">
+      {explicitRank || ptStats.finalRankCalculated}&emsp;
+      <IconButton size="small" onClick={() => tournManager.openRankModal(ptStats.team)}>
+        <Edit />
+      </IconButton>
+    </TableCell>
   );
 }
 
