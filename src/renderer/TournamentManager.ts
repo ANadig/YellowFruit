@@ -694,6 +694,7 @@ export class TournamentManager {
 
   closeRankModal(shouldSave: boolean) {
     this.rankModalManager.closeModal(shouldSave);
+    if (shouldSave) this.tournament.reSortStandingsByFinalRank();
     this.onDataChanged(!shouldSave);
   }
 

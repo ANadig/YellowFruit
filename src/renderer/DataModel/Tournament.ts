@@ -167,6 +167,12 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.stats.forEach((phaseSt) => phaseSt.compileStats());
   }
 
+  reSortStandingsByFinalRank() {
+    const playoffStats = this.stats[this.stats.length - 1];
+    if (!playoffStats?.yieldsFinalRanks) return;
+    playoffStats.sortByFinalRank();
+  }
+
   makeHtmlStandings() {
     return this.htmlGenerator.generateStandingsPage();
   }

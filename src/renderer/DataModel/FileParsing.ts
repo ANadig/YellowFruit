@@ -14,6 +14,8 @@ import { IQbjPlayerAnswerCount, PlayerAnswerCount } from './PlayerAnswerCount';
 import { IQbjPool, IYftFilePool, Pool } from './Pool';
 import { IQbjPoolTeam, IYftFilePoolTeam, PoolTeam } from './PoolTeam';
 import { getBaseQbjObject, isQbjRefPointer } from './QbjUtils';
+import { IQbjRank } from './Rank';
+import { IQbjRanking, OverallRanking, Ranking } from './Ranking';
 import Registration, { IQbjRegistration, IYftFileRegistration } from './Registration';
 import { IQbjRound, IYftFileRound, Round, sortRounds } from './Round';
 import { IQbjScoringRules, IYftFileScoringRules, ScoringRules } from './ScoringRules';
@@ -313,6 +315,9 @@ export default class FileParser {
       yfTeam.isD2 = yfExtraData.isD2 || false;
     }
 
+    const overallRankNo = this.parseTeamOverallRank((qbjTeam.ranks as IIndeterminateQbj[]) || []);
+    if (overallRankNo) yfTeam.setOverallRank(overallRankNo);
+
     if (qbjTeam.id) this.teamsById[qbjTeam.id] = yfTeam;
 
     return yfTeam;
@@ -390,6 +395,19 @@ export default class FileParser {
       seedList.push(team);
     }
     return seedList;
+  }
+
+  parseTeamOverallRank(ary: IIndeterminateQbj[]): number | undefined {
+    for (const obj of ary) {
+      const baseObj = getBaseQbjObject(obj, this.refTargets);
+      if (baseObj === null) continue;
+
+      const qbjRank = baseObj as IQbjRank;
+      if ((qbjRank.ranking as IQbjRefPointer)?.$ref !== OverallRanking.id) continue;
+
+      return qbjRank.position;
+    }
+    return undefined;
   }
 
   parsePhaseList(ary: IIndeterminateQbj[]): Phase[] {
@@ -749,6 +767,17 @@ export default class FileParser {
       const phaseObj = this.getYfObjectFromId(ptr, this.phasesById);
       if (phaseObj) match.carryoverPhases.push(phaseObj);
     }
+  }
+
+  /** unused right now */
+  parseRanking(obj: IIndeterminateQbj): Ranking | null {
+    const baseObj = getBaseQbjObject(obj, this.refTargets);
+    if (baseObj === null) return null;
+
+    const qbjRanking = baseObj as IQbjRanking;
+
+    const yfRanking = new Ranking(qbjRanking.name || '');
+    return yfRanking;
   }
 
   /** Assuming we've already loaded the requisite objects, find the YF object referred to by this qbj object */

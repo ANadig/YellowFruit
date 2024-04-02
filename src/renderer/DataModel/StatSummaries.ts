@@ -45,7 +45,10 @@ export class PhaseStandings {
         this.anyTiesExist = true;
       }
     }
-    if (this.yieldsFinalRanks) this.assignFinalRanks();
+    if (this.yieldsFinalRanks) {
+      this.assignFinalRanks();
+      this.sortByFinalRank();
+    }
   }
 
   private addMatchToStats(match: Match) {
@@ -78,6 +81,10 @@ export class PhaseStandings {
       }
       teamsSoFar += teamsInTier;
     }
+  }
+
+  sortByFinalRank() {
+    this.pools.forEach((ps) => ps.sortByFinalRank());
   }
 }
 
@@ -183,6 +190,14 @@ export class PoolStats {
       prevTeam = oneTeam;
       teamsSoFar++;
     }
+  }
+
+  sortByFinalRank() {
+    this.poolTeams.sort((a, b) => {
+      const aRank = a.team.getOverallRank() || a.finalRankCalculated || 9999;
+      const bRank = b.team.getOverallRank() || b.finalRankCalculated || 9999;
+      return aRank - bRank;
+    });
   }
 }
 
