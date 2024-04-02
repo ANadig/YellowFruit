@@ -81,6 +81,7 @@ export default class FileParser {
       this.tourn.trackJV = yfExtraData.trackJV || false;
       this.tourn.trackUG = yfExtraData.trackUG || false;
       this.tourn.trackDiv2 = yfExtraData.trackDiv2 || false;
+      this.tourn.finalRankingsReady = yfExtraData.finalRankingsReady || false;
     }
 
     this.tourn.calcHasMatchData();

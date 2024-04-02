@@ -235,7 +235,7 @@ export class TournamentManager {
   }
 
   generateInAppHtmlReport() {
-    this.tournament.compileStats();
+    this.tournament.compileStats(true);
     const reports: StatReportHtmlPage[] = [
       { fileName: StatReportFileNames[StatReportPages.Standings], contents: this.tournament.makeHtmlStandings() },
     ];
@@ -544,6 +544,20 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  reorderPools(phase: Phase, positionDraggedStr: string, positionDroppedOn: number) {
+    const posDragInt = parseInt(positionDraggedStr, 10);
+    if (Number.isNaN(posDragInt)) return;
+
+    phase.reorderPools(posDragInt, positionDroppedOn);
+    this.onDataChanged();
+  }
+
+  setFinalRankingsReady(ready: boolean) {
+    this.tournament.finalRankingsReady = ready;
+    this.tournament.confirmFinalRankings();
+    this.onDataChanged();
+  }
+
   // #endregion
 
   // #region Functions for handling temporary data used by dialogs
@@ -696,19 +710,6 @@ export class TournamentManager {
     this.rankModalManager.closeModal(shouldSave);
     if (shouldSave) this.tournament.reSortStandingsByFinalRank();
     this.onDataChanged(!shouldSave);
-  }
-
-  reorderPools(phase: Phase, positionDraggedStr: string, positionDroppedOn: number) {
-    const posDragInt = parseInt(positionDraggedStr, 10);
-    if (Number.isNaN(posDragInt)) return;
-
-    phase.reorderPools(posDragInt, positionDroppedOn);
-    this.onDataChanged();
-  }
-
-  setFinalRankingsReady(ready: boolean) {
-    this.tournament.finalRankingsReady = ready;
-    this.onDataChanged();
   }
 
   // #endregion

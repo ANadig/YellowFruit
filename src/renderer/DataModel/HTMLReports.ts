@@ -36,14 +36,26 @@ export default class HtmlReportGenerator {
     const prelims = this.tournament.stats[0];
     if (!prelims) return '';
 
+    if (this.tournament.finalRankingsReady) {
+      const header = headerWithDivider('Final Rankings');
+      sections.push(`${header}\n${this.cumulativeStandingsTable()}`);
+    }
+
     sections.push(this.finalsList().join('\n'));
 
+    let printedPhaseCount = 0;
     for (let i = this.tournament.stats.length - 1; i >= 0; i--) {
       const phaseStats = this.tournament.stats[i];
       if (!phaseStats.phase.anyTeamsAssigned()) continue;
 
+      printedPhaseCount++;
       const header = headerWithDivider(phaseStats.phase.name);
       sections.push(`${header}\n${this.standingsForOnePhase(phaseStats)}`);
+    }
+
+    if (printedPhaseCount > 1 && !this.tournament.finalRankingsReady) {
+      const header = headerWithDivider('Cumulative');
+      sections.push(`${header}\n${this.cumulativeStandingsTable(true)}`);
     }
     return sections.join('\n');
   }
@@ -68,10 +80,25 @@ export default class HtmlReportGenerator {
     return `${tableTag(rows, undefined, '100%')}\n${this.tiebreakerList(tbPhase, poolStats.pool)}`;
   }
 
-  private standingsHeader(anyTiesExist: boolean, nextPhase?: Phase) {
+  private cumulativeStandingsTable(omitRank: boolean = false) {
+    const stats = this.tournament.cumulativeStats;
+    if (!stats) return '';
+    const rows = [this.standingsHeader(stats.anyTiesExist, undefined, true, omitRank)];
+    for (const teamStats of stats.teamStats) {
+      rows.push(this.standingsRow(teamStats, stats.anyTiesExist, undefined, true, omitRank));
+    }
+    return tableTag(rows, undefined, '75%');
+  }
+
+  private standingsHeader(
+    anyTiesExist: boolean,
+    nextPhase?: Phase,
+    cumulative: boolean = false,
+    omitRank: boolean = false,
+  ) {
     const cells: string[] = [];
-    cells.push(tdTag({ bold: true, width: '3%' }, 'Rank'));
-    cells.push(tdTag({ bold: true, width: '20%' }, 'Team'));
+    if (!omitRank) cells.push(tdTag({ bold: true, width: '3%' }, 'Rank'));
+    cells.push(tdTag({ bold: true, width: cumulative ? '' : '20%' }, 'Team'));
     if (this.tournament.trackSmallSchool) cells.push(tdTag({ bold: true }, 'SS'));
     if (this.tournament.trackJV) cells.push(tdTag({ bold: true }, 'JV'));
     if (this.tournament.trackUG) cells.push(tdTag({ bold: true }, 'UG'));
@@ -79,7 +106,7 @@ export default class HtmlReportGenerator {
     cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'W'));
     cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'L'));
     if (anyTiesExist) cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'T'));
-    cells.push(tdTag({ bold: true, align: 'right' }, 'Pct'));
+    if (!cumulative) cells.push(tdTag({ bold: true, align: 'right' }, 'Pct'));
     cells.push(
       tdTag({ bold: true, align: 'right', width: '8%' }, `PP${this.tournament.scoringRules.regulationTossupCount}TUH`),
     );
@@ -97,9 +124,17 @@ export default class HtmlReportGenerator {
     return trTag(cells);
   }
 
-  private standingsRow(teamStats: PoolTeamStats, anyTiesExist: boolean, nextPhase?: Phase) {
+  private standingsRow(
+    teamStats: PoolTeamStats,
+    anyTiesExist: boolean,
+    nextPhase?: Phase,
+    cumulative: boolean = false,
+    omitRank: boolean = false,
+  ) {
     const cells: string[] = [];
-    cells.push(tdTag({}, teamStats.rank));
+    if (!omitRank && cumulative) cells.push(tdTag({}, teamStats.team.getOverallRankString()));
+    else if (!omitRank && !cumulative) cells.push(tdTag({}, teamStats.rank));
+
     cells.push(tdTag({}, teamStats.team.name));
     if (this.tournament.trackSmallSchool) {
       const isSS = this.tournament.findRegistrationByTeam(teamStats.team)?.isSmallSchool;
@@ -112,9 +147,11 @@ export default class HtmlReportGenerator {
     cells.push(tdTag({ align: 'right' }, teamStats.losses.toString()));
     if (anyTiesExist) cells.push(tdTag({ align: 'right' }, teamStats.ties.toString()));
 
-    const pct = teamStats.getWinPct();
-    const pctStr = Number.isNaN(pct) ? mDashHtml : pct.toFixed(3).toString();
-    cells.push(tdTag({ align: 'right' }, pctStr));
+    if (!cumulative) {
+      const pct = teamStats.getWinPct();
+      const pctStr = Number.isNaN(pct) ? mDashHtml : pct.toFixed(3).toString();
+      cells.push(tdTag({ align: 'right' }, pctStr));
+    }
 
     const ppgStr =
       teamStats.totalPointsForPPG === 0

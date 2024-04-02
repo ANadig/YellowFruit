@@ -14,7 +14,7 @@ import Registration, { IQbjRegistration } from './Registration';
 import { Round } from './Round';
 import { CommonRuleSets, IQbjScoringRules, ScoringRules } from './ScoringRules';
 import StandardSchedule from './StandardSchedule';
-import { PhaseStandings } from './StatSummaries';
+import { AggregateStandings, PhaseStandings } from './StatSummaries';
 import { Team } from './Team';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 
@@ -70,6 +70,7 @@ interface ITournamentExtraData {
   trackJV: boolean;
   trackUG: boolean;
   trackDiv2: boolean;
+  finalRankingsReady?: boolean;
 }
 
 /** YellowFruit implementation of the Tournament object */
@@ -108,6 +109,9 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   trackDiv2: boolean = false;
 
   stats: PhaseStandings[] = [];
+
+  /** ungrouped dump of all teams with all the games they've played  */
+  cumulativeStats?: AggregateStandings;
 
   hasMatchData: boolean = false;
 
@@ -149,13 +153,14 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       trackJV: this.trackJV,
       trackUG: this.trackUG,
       trackDiv2: this.trackDiv2,
+      finalRankingsReady: this.finalRankingsReady,
     };
     const yftFileObj = { YfData: metadata, ...qbjObject };
 
     return yftFileObj;
   }
 
-  compileStats() {
+  compileStats(getAggregate: boolean = false) {
     this.stats = [];
     const lastPhase = this.getLastFullPhase();
     if (!lastPhase) return;
@@ -165,6 +170,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       }
     });
     this.stats.forEach((phaseSt) => phaseSt.compileStats());
+    if (getAggregate) {
+      this.cumulativeStats = new AggregateStandings(this.getListOfAllTeams(), this.phases, this.scoringRules);
+      if (this.finalRankingsReady) this.cumulativeStats.sortTeamsByFinalRank();
+      else this.cumulativeStats.sortTeamsByPPB();
+    }
   }
 
   reSortStandingsByFinalRank() {
@@ -276,6 +286,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** "Real" phases with pool play, as oppsed to tiebreakers or finals */
   getFullPhases() {
     return this.phases.filter((ph) => ph.isFullPhase());
+  }
+
+  /** The list of tiebreaker and finals phases */
+  getMinorPhases() {
+    return this.phases.filter((ph) => !ph.isFullPhase());
   }
 
   getFinalsPhases() {
@@ -609,6 +624,18 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       curPhase = this.getPrevFullPhase(curPhase);
     }
     return matches;
+  }
+
+  confirmFinalRankings() {
+    if (this.stats.length === 0) return;
+    for (const poolStats of this.stats[this.stats.length - 1].pools) {
+      for (const ptStats of poolStats.poolTeams) {
+        const { team } = ptStats;
+        if (team.getOverallRank()) continue;
+
+        if (ptStats.finalRankCalculated) team.setOverallRank(ptStats.finalRankCalculated);
+      }
+    }
   }
   //
 }

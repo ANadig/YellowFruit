@@ -10,6 +10,70 @@ import Registration from './Registration';
 import { ScoringRules } from './ScoringRules';
 import { Team } from './Team';
 
+/** One big list of the cumulative stats for all teams */
+export class AggregateStandings {
+  teamStats: PoolTeamStats[];
+
+  anyTiesExist: boolean = false;
+
+  constructor(teams: Team[], phases: Phase[], scoringRules: ScoringRules) {
+    this.teamStats = teams.map((tm) => new PoolTeamStats(new PoolTeam(tm), scoringRules));
+
+    for (const phase of phases) {
+      for (const round of phase.rounds) {
+        for (const match of round.matches) {
+          this.addMatchToStats(match);
+        }
+        // we have to do this from scratch rather than adding together existing phases stats
+        // in order to avoid double-counting carryover matches
+      }
+    }
+    this.calcAnyTiesExist();
+  }
+
+  private addMatchToStats(match: Match) {
+    const leftTeamStats = this.findPoolTeam(match.leftTeam.team);
+    leftTeamStats?.addMatchTeam(match, 'left');
+    const rightTeamStats = this.findPoolTeam(match.rightTeam.team);
+    rightTeamStats?.addMatchTeam(match, 'right');
+  }
+
+  private findPoolTeam(team: Team | undefined): PoolTeamStats | undefined {
+    if (!team) return undefined;
+    return this.teamStats.find((ptStats) => ptStats.team === team);
+  }
+
+  sortTeamsByPPB() {
+    this.teamStats.sort(AggregateStandings.ppbCompare);
+  }
+
+  static ppbCompare(a: PoolTeamStats, b: PoolTeamStats) {
+    let aPpb = a.getPtsPerBonus();
+    let bPpb = b.getPtsPerBonus();
+    if (Number.isNaN(aPpb)) aPpb = -9999999;
+    if (Number.isNaN(bPpb)) bPpb = -9999999;
+    return bPpb - aPpb;
+  }
+
+  sortTeamsByFinalRank() {
+    this.teamStats.sort((a, b) => {
+      const aRank = a.team.getOverallRank() || 9999;
+      const bRank = b.team.getOverallRank() || 9999;
+      if (aRank !== bRank) return aRank - bRank;
+      return AggregateStandings.ppbCompare(a, b);
+    });
+  }
+
+  private calcAnyTiesExist() {
+    for (const pt of this.teamStats) {
+      if (pt.ties > 0) {
+        this.anyTiesExist = true;
+        return;
+      }
+    }
+  }
+}
+
 export class PhaseStandings {
   phase: Phase;
 
@@ -177,6 +241,7 @@ export class PoolStats {
   }
 
   calculateFinalRanks(startingRank: number) {
+    if (this.poolTeams.length === 0) return;
     let prevTeam = this.poolTeams[0];
     prevTeam.finalRankCalculated = startingRank;
     let teamsSoFar = 1;
@@ -336,6 +401,25 @@ export class PoolTeamStats {
       tc.number = answerCount.number;
     } else {
       tc.number += answerCount.number || 0;
+    }
+  }
+
+  /** Add another set of stats to this one */
+  addOtherStats(other: PoolTeamStats) {
+    this.wins += other.wins;
+    this.losses += other.losses;
+    this.ties += other.ties;
+    this.tuhTotal += other.tuhTotal;
+    this.tuhRegulation += other.tuhRegulation;
+    this.totalPoints += other.totalPoints;
+    this.totalPointsForPPG += other.totalPointsForPPG;
+    this.bonusesHeard += other.bonusesHeard;
+    this.bonusPoints += other.bonusPoints;
+    this.bounceBackPoints += other.bounceBackPoints;
+    this.bounceBackPartsHeard += other.bounceBackPartsHeard;
+    this.lightningPoints += other.lightningPoints;
+    for (const ac of other.tossupCounts) {
+      this.addAnswerCount(ac);
     }
   }
 }

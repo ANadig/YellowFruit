@@ -342,7 +342,7 @@ function ConfirmFinalRanksCheckbox() {
 
   return (
     <FormControlLabel
-      control={<Checkbox value={checked} onChange={(e) => onChanged(e.target.checked)} />}
+      control={<Checkbox checked={checked} onChange={(e) => onChanged(e.target.checked)} />}
       label="Final rankings ready to publish"
     />
   );

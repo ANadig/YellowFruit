@@ -178,6 +178,10 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     return this.overallRank.position;
   }
 
+  getOverallRankString() {
+    return this.getOverallRank()?.toString() || '';
+  }
+
   setOverallRank(position: number) {
     this.overallRank.position = position;
   }
