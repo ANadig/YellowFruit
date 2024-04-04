@@ -693,10 +693,9 @@ function OvertimeBuzzesRow(props: IOverTimeRowProps) {
   const { whichTeam } = props;
   const modalManager = useContext(MatchEditModalContext);
   const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
-  const [otTUH] = useSubscription(modalManager.tempMatch.overtimeTossupsRead);
   const [otBuzzes] = useSubscription(matchTeam.overTimeBuzzes);
   const [overrideEnable] = useSubscription(modalManager.otFieldsEnabledOverride);
-  const disabled = !overrideEnable && (otTUH === undefined || otTUH === 0 || !matchTeam.team);
+  const disabled = !overrideEnable;
 
   return (
     <Grid container columnSpacing={1} sx={{ '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 } }}>

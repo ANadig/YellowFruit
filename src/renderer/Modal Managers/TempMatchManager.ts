@@ -75,6 +75,7 @@ export class TempMatchManager {
       this.loadMatch(match);
       this.originalMatchLoaded = match;
       this.originalRoundOpened = round;
+      this.otFieldsEnabledOverride = match.overtimeTossupsRead !== undefined && match.overtimeTossupsRead !== 0;
     } else {
       this.createBlankMatch();
       if (leftTeam) this.setTeam('left', leftTeam);
@@ -355,27 +356,24 @@ export class TempMatchManager {
     this.dataChangedReactCallback();
   }
 
-  setOtTuhRead(val: string, noValidation: boolean = false): number | undefined {
+  setOtTuhRead(val: string): number | undefined {
     if (!textFieldChanged(this.tempMatch.overtimeTossupsRead?.toString() || '', val)) {
       return this.tempMatch.overtimeTossupsRead;
     }
     const parsed = parseInt(val, 10);
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
-    if (!noValidation) this.validateOtTuhRead(valToSave);
-    if (valToSave === undefined || valToSave === 0) this.otFieldsEnabledOverride = false;
-    this.dataChangedReactCallback();
-
-    return valToSave;
-  }
-
-  validateOtTuhRead(valToSave: number | undefined) {
+    this.tempMatch.overtimeTossupsRead = valToSave;
     if (valToSave === 0 || valToSave === undefined) {
       this.tempMatch.leftTeam.clearOvertimeBuzzes();
       this.tempMatch.rightTeam.clearOvertimeBuzzes();
+      this.otFieldsEnabledOverride = false;
     }
     this.tempMatch.validateOvertimeTuhField(this.tournament.scoringRules);
     this.tempMatch.validateTotalAndOtTuhRelationship(this.tournament.scoringRules);
     this.tempMatch.validateOvertimeScoreMath(this.tournament.scoringRules);
+    this.dataChangedReactCallback();
+
+    return valToSave;
   }
 
   /** Allow the tossup value fields to immediately become enabled when a value changes, so that tab order works */
