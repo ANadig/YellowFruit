@@ -268,6 +268,11 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     mt.points = points;
   }
 
+  setBouncebackPoints(whichTeam: LeftOrRight, points: number | undefined) {
+    const mt = this.getMatchTeam(whichTeam);
+    mt.bonusBouncebackPoints = points;
+  }
+
   setForfeit(whichTeam: LeftOrRight, isForfeit: boolean) {
     const mt = this.getMatchTeam(whichTeam);
     mt.forfeitLoss = isForfeit;
@@ -284,6 +289,22 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
   removeCarryoverPhase(phase: Phase) {
     this.carryoverPhases = this.carryoverPhases.filter((ph) => ph !== phase);
+  }
+
+  getBouncebackPartsHeard(whichTeam: LeftOrRight, scoringRules: ScoringRules): number {
+    if (!scoringRules.canCalculateBounceBackPartsHeard()) return Number.NaN;
+    const otherMT = this.getOpponent(whichTeam);
+    const availPts = otherMT.getBonusesHeard(scoringRules) * scoringRules.maximumBonusScore - otherMT.getBonusPoints();
+    return availPts / (scoringRules.pointsPerBonusPart || 10);
+  }
+
+  /** Tuple of [bounceback parts heard, bounceback conversion percentage] */
+  getBouncebackStats(whichTeam: LeftOrRight, scoringRules: ScoringRules): [string, string] {
+    const bbPartsHrd = this.getBouncebackPartsHeard(whichTeam, scoringRules);
+    if (Number.isNaN(bbPartsHrd)) return ['-', '-'];
+    const partsConverted =
+      (this.getMatchTeam(whichTeam).bonusBouncebackPoints || 0) / (scoringRules.pointsPerBonusPart || 10);
+    return [bbPartsHrd.toString(), ((100 * partsConverted) / bbPartsHrd).toFixed(0).toString()];
   }
 
   /** String of the format "Central def. Washington" */

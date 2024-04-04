@@ -120,10 +120,28 @@ function MatchEditDialogCore() {
                 <TeamScoreField whichTeam="right" />
               </Grid>
               {/** third row */}
-              <Grid xs={12} md={6}>
+              <Grid
+                xs={12}
+                md={6}
+                sx={{
+                  backgroundColor: 'whitesmoke',
+                  marginBottom: 3,
+                  borderTopLeftRadius: '8px',
+                  borderBottomLeftRadius: '8px',
+                }}
+              >
                 <PlayerGrid whichTeam="left" />
               </Grid>
-              <Grid xs={12} md={6}>
+              <Grid
+                xs={12}
+                md={6}
+                sx={{
+                  backgroundColor: 'whitesmoke',
+                  marginBottom: 3,
+                  borderTopRightRadius: '8px',
+                  borderBottomRightRadius: '8px',
+                }}
+              >
                 <PlayerGrid whichTeam="right" />
               </Grid>
               {/** fourth row */}
@@ -140,13 +158,20 @@ function MatchEditDialogCore() {
                 <ForfeitControl whichTeam="right" />
               </Grid>
               {/** fifth row */}
-              <Grid xs={3} lg={2}>
+              <Grid xs={6}>
+                <BounceBackRow whichTeam="left" />
+              </Grid>
+              <Grid xs={6}>
+                <BounceBackRow whichTeam="right" />
+              </Grid>
+              {/** sixth row */}
+              <Grid xs={3} lg={2} sx={{ marginTop: 3, paddingLeft: 2.5 }}>
                 <OvertimeTuReadField />
               </Grid>
-              <Grid xs={9} lg={5}>
+              <Grid xs={9} lg={5} sx={{ marginTop: 3 }}>
                 <OvertimeBuzzesRow whichTeam="left" />
               </Grid>
-              <Grid xs={9} lg={5} xsOffset={3} lgOffset={0}>
+              <Grid xs={9} lg={5} xsOffset={3} lgOffset={0} sx={{ marginTop: 3 }}>
                 <OvertimeBuzzesRow whichTeam="right" />
               </Grid>
             </Grid>
@@ -350,7 +375,12 @@ function TeamSelect(props: ITeamSelectProps) {
           // eslint-disable-next-line react/jsx-props-no-spreading
           {...params}
           size="small"
-          autoFocus={whichTeam === 'left' && !thisTournament.scoringRules.timed && roundNo !== ''}
+          autoFocus={
+            whichTeam === 'left' &&
+            !thisTournament.scoringRules.timed &&
+            roundNo !== '' &&
+            !modalManager.originalMatchLoaded
+          }
         />
       )}
     />
@@ -573,13 +603,16 @@ function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
     setCount(valToUse?.toString() || '');
   };
 
+  let label;
+  if (isOvertimeStats) label = disabled ? ' ' : `« ${answerCount.answerType.value} »`;
+
   return (
     <Grid xs={xs}>
       <TextField
         type="number"
         inputProps={{ min: 0 }}
         fullWidth
-        label={isOvertimeStats ? answerCount.answerType.value : undefined}
+        label={label}
         variant={outlinedStyle ? 'outlined' : 'standard'}
         size="small"
         hiddenLabel={!isOvertimeStats}
@@ -613,7 +646,7 @@ function BonusDisplay(props: IBonusDisplayProps) {
 
   return (
     <span>
-      &emsp;&nbsp;Bonuses:&emsp;{`${bonusPoints} points`}&emsp;|&emsp;{`${bonusesHeard} heard`}&emsp;|&emsp;
+      &emsp;&nbsp;<b>Bonuses:</b>&emsp;{`${bonusPoints} points`}&emsp;|&emsp;{`${bonusesHeard} heard`}&emsp;|&emsp;
       {`${ppb} ppb`}
     </span>
   );
@@ -642,6 +675,53 @@ function ForfeitControl(props: IForfeitControlProps) {
         label="Forfeit"
         control={<Checkbox size="small" checked={isForfeit} onChange={(e) => handleChange(e.target.checked)} />}
       />
+    </Box>
+  );
+}
+
+interface IBounceBackRowProps {
+  whichTeam: LeftOrRight;
+}
+
+function BounceBackRow(props: IBounceBackRowProps) {
+  const { whichTeam } = props;
+  const modalManager = useContext(MatchEditModalContext);
+  const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
+  const rules = modalManager.tournament.scoringRules;
+  const [bbPts, setBbPts] = useSubscription(matchTeam.bonusBouncebackPoints?.toString() || '');
+  const divisor = rules.bonusDivisor;
+  const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
+  const [partsHrd, conversionPct] = modalManager.tempMatch.getBouncebackStats(whichTeam, rules);
+
+  if (!modalManager.tournament.scoringRules.bonusesBounceBack || matchTeam === undefined || forfeit) return null;
+
+  const handleBlur = () => {
+    const valToUse = modalManager.setBouncebackPoints(whichTeam, bbPts);
+    setBbPts(valToUse?.toString() || '');
+  };
+
+  return (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 } }}>
+      <div>
+        &emsp;&nbsp;<b>Bouncebacks:</b>&emsp;
+      </div>
+      <TextField
+        sx={{ width: '6ch' }}
+        type="number"
+        inputProps={{ min: 0, step: divisor }}
+        fullWidth
+        variant="standard"
+        size="small"
+        value={bbPts}
+        onChange={(e) => setBbPts(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleBlur();
+        }}
+      />
+      <div>
+        pts&emsp;|&emsp;{`${partsHrd} parts heard`}&emsp;|&emsp;{`${conversionPct}% success rate`}
+      </div>
     </Box>
   );
 }

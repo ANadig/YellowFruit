@@ -376,6 +376,15 @@ export class TempMatchManager {
     return valToSave;
   }
 
+  setBouncebackPoints(whichTeam: LeftOrRight, val: string): number | undefined {
+    const parsed = parseInt(val, 10);
+    const valToSave = Number.isNaN(parsed) ? undefined : parsed;
+    this.tempMatch.setBouncebackPoints(whichTeam, valToSave);
+    this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
+    this.dataChangedReactCallback();
+    return valToSave;
+  }
+
   /** Allow the tossup value fields to immediately become enabled when a value changes, so that tab order works */
   enableOtFieldsOverride(enabled: boolean) {
     this.otFieldsEnabledOverride = enabled;
@@ -391,8 +400,6 @@ export class TempMatchManager {
     const posDragInt = parseInt(positionDraggedStr, 10);
     if (Number.isNaN(posDragInt)) return;
     const matchTeam = this.tempMatch.getMatchTeam(whichTeam);
-    // const posToMove = matchTeam.matchPlayers.findIndex((mp) => mp.player.name === nameOfPlayerDropped);
-    // const newPosition = matchTeam.matchPlayers.findIndex((mp) => mp === playerDroppedOn);
     if (
       posDragInt === positionDroppedOn ||
       posDragInt < 0 ||

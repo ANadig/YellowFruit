@@ -263,4 +263,8 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
   static validateMinOvertimeTuCount(val: number) {
     return 1 <= val && val <= 100;
   }
+
+  canCalculateBounceBackPartsHeard() {
+    return this.pointsPerBonusPart !== undefined && this.minimumPartsPerBonus === this.maximumPartsPerBonus;
+  }
 }

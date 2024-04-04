@@ -201,6 +201,8 @@ export default class FileParser {
       );
     }
     yftScoringRules.bonusDivisor = bonusDivisor;
+
+    yftScoringRules.bonusesBounceBack = sourceQbj.bonusesBounceBack || false;
   }
 
   parseScoringRulesMaxPlayers(sourceQbj: IQbjScoringRules, yftScoringRules: ScoringRules) {

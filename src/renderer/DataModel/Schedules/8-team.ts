@@ -1,4 +1,4 @@
-/** Standard schedules for 7-team tournaments */
+/** Standard schedules for 8-team tournaments */
 
 import { Phase, PhaseTypes } from '../Phase';
 import { Pool, setAutoAdvanceRules } from '../Pool';
