@@ -61,6 +61,8 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   totalScoreFieldValidation: MatchValidationMessage;
 
+  bouncebackFieldValidation: MatchValidationMessage;
+
   /** Any other messages that should go at the bottom of the modal rather than a specific field */
   modalBottomValidation: MatchValidationCollection;
 
@@ -86,6 +88,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       this.overTimeBuzzes.push(new PlayerAnswerCount(aType));
     }
     this.totalScoreFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidTeamScore);
+    this.bouncebackFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidBouncebackPoints);
     this.modalBottomValidation = new MatchValidationCollection();
   }
 
@@ -104,6 +107,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     this.lightningPoints = source.lightningPoints;
     this.overTimeBuzzes = source.overTimeBuzzes.map((ac) => ac.makeCopy());
     this.totalScoreFieldValidation = source.totalScoreFieldValidation.makeCopy();
+    this.bouncebackFieldValidation = source.bouncebackFieldValidation.makeCopy();
     this.modalBottomValidation = source.modalBottomValidation.makeCopy();
   }
 
@@ -275,6 +279,9 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     if (this.totalScoreFieldValidation.status === ValidationStatuses.Error) {
       errs.push(`${this.team?.name || 'Total'} score: ${this.totalScoreFieldValidation.message}`);
     }
+    if (this.bouncebackFieldValidation.status === ValidationStatuses.Error) {
+      errs.push(`${this.team?.name || ''} Bounceback points: ${this.bouncebackFieldValidation.message}`);
+    }
     errs = errs.concat(this.modalBottomValidation.getErrorMessages(ignoreHidden));
     this.matchPlayers.forEach((mp) => {
       errs = errs.concat(mp.getErrorMessages());
@@ -287,6 +294,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   validateAll(scoringRules: ScoringRules) {
     this.validateTotalPoints();
+    this.validateBouncebackPoints();
     this.validateAnswerCounts();
     this.validateBonusPoints(scoringRules);
     this.validateOvertimeBuzzes();
@@ -313,6 +321,18 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       return;
     }
     this.totalScoreFieldValidation.setOk();
+  }
+
+  validateBouncebackPoints() {
+    if (this.bonusBouncebackPoints === undefined) {
+      this.bouncebackFieldValidation.setOk();
+      return;
+    }
+    if (this.bonusBouncebackPoints < 0 || this.bonusBouncebackPoints > 9999) {
+      this.bouncebackFieldValidation.setError('Invalid number');
+      return;
+    }
+    this.bouncebackFieldValidation.setOk();
   }
 
   validateAnswerCounts() {

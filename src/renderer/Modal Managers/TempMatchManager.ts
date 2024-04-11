@@ -302,6 +302,7 @@ export class TempMatchManager {
     this.tempMatch.setTeamScore(whichTeam, valToSave);
     this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
     this.tempMatch.validateOvertimeScoreMath(this.tournament.scoringRules);
+    this.tempMatch.validateBouncebackConversion(this.tournament.scoringRules);
     this.dataChangedReactCallback();
     return valToSave;
   }
@@ -332,6 +333,7 @@ export class TempMatchManager {
     } else {
       this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
       this.tempMatch.validateTotalBuzzes();
+      this.tempMatch.validateBouncebackConversion(this.tournament.scoringRules);
     }
     this.dataChangedReactCallback();
     return valToSave;
@@ -381,6 +383,7 @@ export class TempMatchManager {
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
     this.tempMatch.setBouncebackPoints(whichTeam, valToSave);
     this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
+    this.tempMatch.validateBouncebackConversion(this.tournament.scoringRules);
     this.dataChangedReactCallback();
     return valToSave;
   }

@@ -271,6 +271,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   setBouncebackPoints(whichTeam: LeftOrRight, points: number | undefined) {
     const mt = this.getMatchTeam(whichTeam);
     mt.bonusBouncebackPoints = points;
+    mt.validateBouncebackPoints();
   }
 
   setForfeit(whichTeam: LeftOrRight, isForfeit: boolean) {
@@ -298,13 +299,19 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return availPts / (scoringRules.pointsPerBonusPart || 10);
   }
 
-  /** Tuple of [bounceback parts heard, bounceback conversion percentage] */
-  getBouncebackStats(whichTeam: LeftOrRight, scoringRules: ScoringRules): [string, string] {
-    const bbPartsHrd = this.getBouncebackPartsHeard(whichTeam, scoringRules);
-    if (Number.isNaN(bbPartsHrd)) return ['-', '-'];
+  getBouncebackConvPct(whichTeam: LeftOrRight, scoringRules: ScoringRules, bbPartsHrd?: number) {
+    const heard = bbPartsHrd !== undefined ? bbPartsHrd : this.getBouncebackPartsHeard(whichTeam, scoringRules);
+    if (Number.isNaN(heard)) return 0;
     const partsConverted =
       (this.getMatchTeam(whichTeam).bonusBouncebackPoints || 0) / (scoringRules.pointsPerBonusPart || 10);
-    return [bbPartsHrd.toString(), ((100 * partsConverted) / bbPartsHrd).toFixed(0).toString()];
+    return Math.round((100 * partsConverted) / heard);
+  }
+
+  /** Tuple of [bounceback parts heard, bounceback conversion percentage] */
+  getBouncebackStatsString(whichTeam: LeftOrRight, scoringRules: ScoringRules): [string, string] {
+    const bbPartsHrd = this.getBouncebackPartsHeard(whichTeam, scoringRules);
+    if (Number.isNaN(bbPartsHrd)) return ['-', '-'];
+    return [bbPartsHrd.toString(), this.getBouncebackConvPct(whichTeam, scoringRules, bbPartsHrd).toString()];
   }
 
   /** String of the format "Central def. Washington" */
@@ -381,6 +388,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.validateTotalAndOtTuhRelationship(scoringRules);
     this.validateOvertimeBuzzes();
     this.validateOvertimeScoreMath(scoringRules);
+    this.validateBouncebackConversion(scoringRules);
   }
 
   validateTotalTuh(scoringRules: ScoringRules) {
@@ -678,6 +686,30 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       } else {
         this.modalBottomValidation.clearMsgType(MatchValidationType.OtButRegScoreNotTied);
       }
+    }
+  }
+
+  validateBouncebackConversion(scoringRules: ScoringRules) {
+    if (!scoringRules.bonusesBounceBack) return;
+    const leftPct = this.getBouncebackConvPct('left', scoringRules);
+    const rightPct = this.getBouncebackConvPct('right', scoringRules);
+    if (!Number.isNaN(leftPct) && leftPct > 100) {
+      this.leftTeam.addValidationMessage(
+        MatchValidationType.BouncebackConvOver100,
+        ValidationStatuses.Error,
+        'Bounceback conversion is greater than 100%',
+      );
+    } else {
+      this.leftTeam.clearValidationMessage(MatchValidationType.BouncebackConvOver100);
+    }
+    if (!Number.isNaN(rightPct) && rightPct > 100) {
+      this.rightTeam.addValidationMessage(
+        MatchValidationType.BouncebackConvOver100,
+        ValidationStatuses.Error,
+        'Bounceback conversion is greater than 100%',
+      );
+    } else {
+      this.rightTeam.clearValidationMessage(MatchValidationType.BouncebackConvOver100);
     }
   }
 

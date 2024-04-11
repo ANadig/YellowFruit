@@ -691,7 +691,8 @@ function BounceBackRow(props: IBounceBackRowProps) {
   const [bbPts, setBbPts] = useSubscription(matchTeam.bonusBouncebackPoints?.toString() || '');
   const divisor = rules.bonusDivisor;
   const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
-  const [partsHrd, conversionPct] = modalManager.tempMatch.getBouncebackStats(whichTeam, rules);
+  const [partsHrd, conversionPct] = modalManager.tempMatch.getBouncebackStatsString(whichTeam, rules);
+  const [invalid] = useSubscription(matchTeam.bouncebackFieldValidation.isError());
 
   if (!modalManager.tournament.scoringRules.bonusesBounceBack || matchTeam === undefined || forfeit) return null;
 
@@ -712,6 +713,7 @@ function BounceBackRow(props: IBounceBackRowProps) {
         fullWidth
         variant="standard"
         size="small"
+        error={invalid}
         value={bbPts}
         onChange={(e) => setBbPts(e.target.value)}
         onBlur={handleBlur}

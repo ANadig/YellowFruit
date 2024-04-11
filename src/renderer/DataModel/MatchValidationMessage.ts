@@ -27,6 +27,8 @@ export enum MatchValidationType {
   TotalOtBuzzesExceedsTuh = 'TotalOtBuzzesExceedsTuh',
   OtTuhLessThanMinimum = 'OtTuhLessThanMinimum',
   TeamAlreadyPlayedInRound = 'TeamAlreadyPlayedInRound',
+  InvalidBouncebackPoints = 'InvalidBouncebackPoints',
+  BouncebackConvOver100 = 'BouncebackConvOver100',
 }
 
 export interface IYftFileMatchValidationMsg {
