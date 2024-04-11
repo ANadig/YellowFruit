@@ -115,6 +115,9 @@ export default class HtmlReportGenerator {
     );
     cells.push(tdTag({ bold: true, align: 'right' }, 'TUH'));
     cells.push(tdTag({ bold: true, align: 'right' }, 'PPB'));
+    if (this.tournament.scoringRules.bonusesBounceBack) {
+      cells.push(tdTag({ bold: true, align: 'right' }, 'BB%'));
+    }
     if (nextPhase?.anyTeamsAssigned()) {
       cells.push(tdTag({ bold: true }, 'Advanced To'));
     } else if (nextPhase) {
@@ -168,6 +171,12 @@ export default class HtmlReportGenerator {
     const ppb = teamStats.getPtsPerBonus();
     const ppbStr = Number.isNaN(ppb) ? mDashHtml : ppb.toFixed(2);
     cells.push(tdTag({ align: 'right' }, ppbStr));
+
+    if (this.tournament.scoringRules.bonusesBounceBack) {
+      const bbConv = teamStats.getBouncebackConvPctString();
+      const bbConvStr = bbConv === '-' ? mDashHtml : bbConv;
+      cells.push(tdTag({ align: 'right' }, bbConvStr));
+    }
 
     if (nextPhase?.anyTeamsAssigned()) {
       cells.push(tdTag({}, this.definiteAdvancementTierDisplay(teamStats, nextPhase)));

@@ -313,9 +313,12 @@ export class PoolTeamStats {
 
   bonusPoints: number = 0;
 
+  /** currently unused */
   bounceBackPoints: number = 0;
 
   bounceBackPartsHeard: number = 0;
+
+  bounceBackPartsConverted: number = 0;
 
   lightningPoints: number = 0;
 
@@ -359,6 +362,17 @@ export class PoolTeamStats {
     return ppb.toFixed(2).toString();
   }
 
+  getBouncebackConvPct() {
+    if (!this.scoringRules.canCalculateBounceBackPartsHeard()) return Number.NaN;
+    return Math.round((100 * this.bounceBackPartsConverted) / this.bounceBackPartsHeard);
+  }
+
+  getBouncebackConvPctString() {
+    const bbConv = this.getBouncebackConvPct();
+    if (Number.isNaN(bbConv)) return '-';
+    return `${bbConv}%`;
+  }
+
   /** Do we need a tiebreaker with this team to determine where they advance to? */
   needsTiebreakerWith(other: PoolTeamStats) {
     if (this.rank !== other.rank) return false;
@@ -380,6 +394,11 @@ export class PoolTeamStats {
     this.totalPointsForPPG += matchTeam.getPointsForPPG(this.scoringRules);
     this.bonusPoints += matchTeam.getBonusPoints();
     this.bonusesHeard += matchTeam.getBonusesHeard(this.scoringRules);
+    if (this.scoringRules.bonusesBounceBack) {
+      this.bounceBackPartsConverted +=
+        (matchTeam.bonusBouncebackPoints || 0) / (this.scoringRules.pointsPerBonusPart || 10);
+      this.bounceBackPartsHeard += match.getBouncebackPartsHeard(whichTeam, this.scoringRules) || 0;
+    }
     this.lightningPoints += matchTeam.lightningPoints || 0;
 
     for (const matchPlayer of matchTeam.matchPlayers) {
@@ -417,6 +436,7 @@ export class PoolTeamStats {
     this.bonusPoints += other.bonusPoints;
     this.bounceBackPoints += other.bounceBackPoints;
     this.bounceBackPartsHeard += other.bounceBackPartsHeard;
+    this.bounceBackPartsConverted += other.bounceBackPartsConverted;
     this.lightningPoints += other.lightningPoints;
     for (const ac of other.tossupCounts) {
       this.addAnswerCount(ac);
