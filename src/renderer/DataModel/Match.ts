@@ -310,7 +310,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   /** Tuple of [bounceback parts heard, bounceback conversion percentage] */
   getBouncebackStatsString(whichTeam: LeftOrRight, scoringRules: ScoringRules): [string, string] {
     const bbPartsHrd = this.getBouncebackPartsHeard(whichTeam, scoringRules);
-    if (Number.isNaN(bbPartsHrd)) return ['-', '-'];
+    if (Number.isNaN(bbPartsHrd) || bbPartsHrd === 0) return ['-', '-'];
     return [bbPartsHrd.toString(), this.getBouncebackConvPct(whichTeam, scoringRules, bbPartsHrd).toString()];
   }
 
