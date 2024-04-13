@@ -7,7 +7,7 @@ export enum IpcRendToMain {
   /** Set the title of the electron window */
   setWindowTitle = 'setWindowTitle',
   /** Send contents of the preview stat reports */
-  ShowInAppStatReport = 'ShowInAppStatReport',
+  WriteInAppStatReport = 'ShowInAppStatReport',
   /** Retrieve the directory containing the in-app stat report */
   GetAppDataStatReportPath = 'GetAppDataStatReportPath',
 }

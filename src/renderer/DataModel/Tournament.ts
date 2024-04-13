@@ -160,7 +160,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return yftFileObj;
   }
 
-  compileStats(getAggregate: boolean = false) {
+  compileStats(fullReport: boolean = false) {
     this.stats = [];
     const lastPhase = this.getLastFullPhase();
     if (!lastPhase) return;
@@ -170,21 +170,27 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       }
     });
     this.stats.forEach((phaseSt) => phaseSt.compileStats());
-    if (getAggregate) {
+    if (fullReport) {
       this.cumulativeStats = new AggregateStandings(this.getListOfAllTeams(), this.phases, this.scoringRules);
       if (this.finalRankingsReady) this.cumulativeStats.sortTeamsByFinalRank();
       else this.cumulativeStats.sortTeamsByPPB();
+
+      this.stats.find((phSt) => phSt.phase.phaseType === PhaseTypes.Prelim)?.compileIndividualStats();
     }
   }
 
   reSortStandingsByFinalRank() {
     const playoffStats = this.stats[this.stats.length - 1];
     if (!playoffStats?.yieldsFinalRanks) return;
-    playoffStats.sortByFinalRank();
+    playoffStats.sortTeamsByFinalRank();
   }
 
   makeHtmlStandings() {
     return this.htmlGenerator.generateStandingsPage();
+  }
+
+  makeHtmlIndividuals() {
+    return this.htmlGenerator.generateIndividualsPage();
   }
 
   /** Set the scoring rules for this tournament */

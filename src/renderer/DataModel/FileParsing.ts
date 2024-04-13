@@ -76,7 +76,7 @@ export default class FileParser {
 
     if (yfExtraData) {
       this.tourn.seeds = this.parseSeedList(yfExtraData.seeds);
-      this.tourn.trackPlayerYear = yfExtraData.trackPlayerYear || true;
+      this.tourn.trackPlayerYear = yfExtraData.trackPlayerYear ?? true;
       this.tourn.trackSmallSchool = yfExtraData.trackSmallSchool || false;
       this.tourn.trackJV = yfExtraData.trackJV || false;
       this.tourn.trackUG = yfExtraData.trackUG || false;

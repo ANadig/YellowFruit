@@ -3,7 +3,7 @@
 import { StatReportPages, StatReportPageOrder, StatReportFileNames } from '../Enums';
 import { Phase, PhaseTypes } from './Phase';
 import { Pool } from './Pool';
-import { PhaseStandings, PoolStats, PoolTeamStats } from './StatSummaries';
+import { PhaseStandings, PlayerStats, PoolStats, PoolTeamStats } from './StatSummaries';
 // eslint-disable-next-line import/no-cycle
 import Tournament from './Tournament';
 
@@ -14,21 +14,29 @@ export default class HtmlReportGenerator {
     this.tournament = tourn;
   }
 
-  generateStandingsPage() {
-    const title = 'Team Standings';
+  /**
+   * The entire contents of one html document
+   * @param title Title of the top header of the page
+   * @param data  html contents of the page's data
+   */
+  private generateHtmlPage(title: string, data: string) {
     const htmlHeader = getHtmlHeader(title);
     const topLinks = getTopLinks();
     const mainHeader = genericTag('h1', title);
     const style = getPageStyle();
-    const content = this.getStandingsHtml();
 
-    const body = genericTag('BODY', topLinks, mainHeader, style, content, madeWithYellowFruit());
+    const body = genericTag('BODY', topLinks, mainHeader, style, data, madeWithYellowFruit());
     return genericTag('HTML', htmlHeader, body);
   }
 
-  // generateIndividualsPage() {
-  //   return '';
-  // }
+  /** The entire contents of the standings html document */
+  generateStandingsPage() {
+    return this.generateHtmlPage('Team Standings', this.getStandingsHtml());
+  }
+
+  generateIndividualsPage() {
+    return this.generateHtmlPage('Individuals', this.getIndividualsHtml());
+  }
 
   /** The actual data of the Standings page */
   private getStandingsHtml() {
@@ -66,7 +74,7 @@ export default class HtmlReportGenerator {
     const tbPhase = this.tournament.getTiebreakerPhaseFor(phaseStandings.phase);
 
     for (const onePool of phaseStandings.pools) {
-      const header = genericTag('h3', onePool.pool.name);
+      const header = phaseStandings.pools.length > 1 ? genericTag('h3', onePool.pool.name) : '';
       tables.push(`${header}\n${this.oneStandingsTable(onePool, phaseStandings.anyTiesExist, tbPhase, nextPhase)}`);
     }
     return tables.join('\n') + lineBreak;
@@ -213,6 +221,76 @@ export default class HtmlReportGenerator {
     const title = tbOrFinalsPhase.phaseType === PhaseTypes.Tiebreaker ? genericTag('span', 'Tiebreakers:') : '';
     const list = unorderedList(matches.map((m) => m.getWinnerLoserString()));
     return genericTagWithAttributes('div', [classAttribute(cssClasses.smallText)], title, list);
+  }
+
+  /** The actual data of the individuals page */
+  private getIndividualsHtml() {
+    const sections: string[] = [];
+    const prelims = this.tournament.stats[0];
+    if (!prelims) return '';
+
+    const prelimsHeader = headerWithDivider(prelims.phase.name);
+    sections.push(`${prelimsHeader}\n${this.individualsTable(prelims.players)}`);
+
+    if (this.tournament.stats.length > 1 && this.tournament.cumulativeStats) {
+      const aggregateHeader = headerWithDivider('All Games');
+      sections.push(`${aggregateHeader}\n${this.individualsTable(this.tournament.cumulativeStats.players, true)}`);
+    }
+
+    return sections.join('\n');
+  }
+
+  private individualsTable(players: PlayerStats[], skipRankCol: boolean = false) {
+    const rows = [this.individualsHeader(skipRankCol)];
+    for (const playerStats of players) {
+      if (playerStats.tossupsHeard === 0) continue;
+      rows.push(this.individualsRow(playerStats, skipRankCol));
+    }
+    return tableTag(rows, undefined, '80%');
+  }
+
+  private individualsHeader(skipRankCol: boolean = false) {
+    const cells: string[] = [];
+    if (!skipRankCol) cells.push(tdTag({ bold: true, width: '3%' }, 'Rank'));
+    cells.push(tdTag({ bold: true }, 'Player'));
+    if (this.tournament.trackPlayerYear) cells.push(tdTag({ bold: true }, 'Year/Grade'));
+    if (this.tournament.trackUG) cells.push(tdTag({ bold: true }, 'UG'));
+    if (this.tournament.trackDiv2) cells.push(tdTag({ bold: true }, 'D2'));
+    cells.push(tdTag({ bold: true }, 'Team'));
+    cells.push(tdTag({ bold: true, align: 'right' }, 'GP'));
+    this.tournament.scoringRules.answerTypes.forEach((ansType) =>
+      cells.push(tdTag({ bold: true, align: 'right' }, ansType.value.toString())),
+    );
+    cells.push(tdTag({ bold: true, align: 'right' }, 'TUH'));
+    cells.push(tdTag({ bold: true, align: 'right' }, `PP${this.tournament.scoringRules.regulationTossupCount}TUH`));
+
+    return trTag(cells);
+  }
+
+  private individualsRow(playerStats: PlayerStats, skipRankCol: boolean = false) {
+    const cells: string[] = [];
+    if (!skipRankCol) cells.push(tdTag({}, playerStats.rank + (playerStats.rankTie ? '=' : '')));
+    cells.push(tdTag({}, playerStats.player.name));
+    if (this.tournament.trackPlayerYear) cells.push(tdTag({}, playerStats.player.yearString));
+    if (this.tournament.trackUG) cells.push(tdTag({}, playerStats.player.isUG ? 'UG' : ''));
+    if (this.tournament.trackDiv2) cells.push(tdTag({}, playerStats.player.isD2 ? 'D2' : ''));
+    cells.push(tdTag({}, playerStats.team.name));
+    cells.push(tdTag({ align: 'right' }, playerStats.gamesPlayed.toFixed(1)));
+    this.tournament.scoringRules.answerTypes.forEach((at) => {
+      const answerCount = playerStats.tossupCounts.find((ac) => ac.answerType.value === at.value);
+      cells.push(tdTag({ align: 'right' }, answerCount?.number?.toString() || '0'));
+    });
+    cells.push(tdTag({ align: 'right' }, playerStats.tossupsHeard.toString()));
+
+    const pptuh = playerStats.getPptuh();
+    cells.push(
+      tdTag(
+        { align: 'right' },
+        pptuh !== undefined ? (pptuh * this.tournament.scoringRules.regulationTossupCount).toFixed(2) : mDashHtml,
+      ),
+    );
+
+    return trTag(cells);
   }
 }
 

@@ -1,8 +1,12 @@
 /** Data structures that hold compiled stats to be used stat reports */
 
+import { sumReduce } from '../Utils/GeneralUtils';
 import { LeftOrRight } from '../Utils/UtilTypes';
 import { Match } from './Match';
+import { MatchPlayer } from './MatchPlayer';
+import { MatchTeam } from './MatchTeam';
 import { Phase } from './Phase';
+import { Player } from './Player';
 import { PlayerAnswerCount } from './PlayerAnswerCount';
 import { Pool } from './Pool';
 import { PoolTeam } from './PoolTeam';
@@ -14,24 +18,31 @@ import { Team } from './Team';
 export class AggregateStandings {
   teamStats: PoolTeamStats[];
 
+  players: PlayerStats[] = [];
+
   anyTiesExist: boolean = false;
+
+  scoringRules: ScoringRules;
 
   constructor(teams: Team[], phases: Phase[], scoringRules: ScoringRules) {
     this.teamStats = teams.map((tm) => new PoolTeamStats(new PoolTeam(tm), scoringRules));
+    this.scoringRules = scoringRules;
 
     for (const phase of phases) {
       for (const round of phase.rounds) {
         for (const match of round.matches) {
-          this.addMatchToStats(match);
+          this.addMatchToTeamStats(match);
+          this.addMatchToIndividualStats(match);
         }
-        // we have to do this from scratch rather than adding together existing phases stats
+        // we have to do this from scratch rather than adding together existing phases' stats
         // in order to avoid double-counting carryover matches
       }
     }
     this.calcAnyTiesExist();
+    this.sortPlayersByPptuh();
   }
 
-  private addMatchToStats(match: Match) {
+  private addMatchToTeamStats(match: Match) {
     const leftTeamStats = this.findPoolTeam(match.leftTeam.team);
     leftTeamStats?.addMatchTeam(match, 'left');
     const rightTeamStats = this.findPoolTeam(match.rightTeam.team);
@@ -72,12 +83,43 @@ export class AggregateStandings {
       }
     }
   }
+
+  private addMatchToIndividualStats(match: Match) {
+    this.addMatchTeamToIndividualStats(match.leftTeam, match.tossupsRead ?? 0);
+    this.addMatchTeamToIndividualStats(match.rightTeam, match.tossupsRead ?? 0);
+  }
+
+  private addMatchTeamToIndividualStats(mt: MatchTeam, tossupsRead: number) {
+    if (!mt.team) return;
+    for (const mp of mt.matchPlayers) {
+      let playerStats = this.players.find((pStats) => pStats.player === mp.player);
+      if (!playerStats) {
+        playerStats = new PlayerStats(mp.player, mt.team, this.scoringRules);
+        this.players.push(playerStats);
+      }
+      playerStats.addMatchPlayer(mp, tossupsRead);
+    }
+  }
+
+  private sortPlayersByPptuh() {
+    this.players.sort((a, b) => {
+      const aPptuh = a.getPptuh() ?? -999999;
+      const bPptuh = b.getPptuh() ?? -999999;
+      if (aPptuh === bPptuh) {
+        if (aPptuh > 0) return b.tossupsHeard - a.tossupsHeard;
+        return a.tossupsHeard - b.tossupsHeard;
+      }
+      return bPptuh - aPptuh;
+    });
+  }
 }
 
 export class PhaseStandings {
   phase: Phase;
 
   pools: PoolStats[] = [];
+
+  players: PlayerStats[] = [];
 
   carryoverMatches: Match[];
 
@@ -86,21 +128,24 @@ export class PhaseStandings {
   /** Did any matches end in a tie? */
   anyTiesExist: boolean = false;
 
+  scoringRules: ScoringRules;
+
   constructor(phase: Phase, carryoverMatches: Match[], rules: ScoringRules, yieldsFinalRanks: boolean = false) {
     this.phase = phase;
     this.pools = phase.pools.map((pool) => new PoolStats(pool, rules));
     this.carryoverMatches = carryoverMatches;
     this.yieldsFinalRanks = yieldsFinalRanks;
+    this.scoringRules = rules;
   }
 
   compileStats() {
     for (const round of this.phase.rounds) {
       for (const match of round.matches) {
-        this.addMatchToStats(match);
+        this.addMatchToTeamStats(match);
       }
     }
     for (const match of this.carryoverMatches) {
-      this.addMatchToStats(match);
+      this.addMatchToTeamStats(match);
     }
     for (const pool of this.pools) {
       pool.sortTeams();
@@ -110,12 +155,12 @@ export class PhaseStandings {
       }
     }
     if (this.yieldsFinalRanks) {
-      this.assignFinalRanks();
-      this.sortByFinalRank();
+      this.assignFinalTeamRanks();
+      this.sortTeamsByFinalRank();
     }
   }
 
-  private addMatchToStats(match: Match) {
+  private addMatchToTeamStats(match: Match) {
     const leftTeamStats = this.findPoolTeam(match.leftTeam.team);
     leftTeamStats?.addMatchTeam(match, 'left');
     const rightTeamStats = this.findPoolTeam(match.rightTeam.team);
@@ -132,7 +177,7 @@ export class PhaseStandings {
   }
 
   /** Our best guess of what the final ranks should be */
-  private assignFinalRanks() {
+  private assignFinalTeamRanks() {
     let teamsSoFar = 0;
     for (let tier = 1; ; tier++) {
       const poolsInTier = this.pools.filter((pStats) => pStats.pool.position === tier);
@@ -147,8 +192,71 @@ export class PhaseStandings {
     }
   }
 
-  sortByFinalRank() {
+  sortTeamsByFinalRank() {
     this.pools.forEach((ps) => ps.sortByFinalRank());
+  }
+
+  compileIndividualStats() {
+    for (const round of this.phase.rounds) {
+      for (const match of round.matches) {
+        this.addMatchToIndividualStats(match);
+      }
+    }
+    for (const match of this.carryoverMatches) {
+      this.addMatchToIndividualStats(match);
+    }
+    this.sortPlayersByPptuh();
+    this.assignIndividualRanks();
+  }
+
+  private addMatchToIndividualStats(match: Match) {
+    this.addMatchTeamToIndividualStats(match.leftTeam, match.tossupsRead ?? 0);
+    this.addMatchTeamToIndividualStats(match.rightTeam, match.tossupsRead ?? 0);
+  }
+
+  private addMatchTeamToIndividualStats(mt: MatchTeam, tossupsRead: number) {
+    if (!mt.team) return;
+    for (const mp of mt.matchPlayers) {
+      let playerStats = this.players.find((pStats) => pStats.player === mp.player);
+      if (!playerStats) {
+        playerStats = new PlayerStats(mp.player, mt.team, this.scoringRules);
+        this.players.push(playerStats);
+      }
+      playerStats.addMatchPlayer(mp, tossupsRead);
+    }
+  }
+
+  private sortPlayersByPptuh() {
+    this.players.sort((a, b) => {
+      const aPptuh = a.getPptuh() ?? -999999;
+      const bPptuh = b.getPptuh() ?? -999999;
+      if (aPptuh === bPptuh) {
+        if (aPptuh > 0) return b.tossupsHeard - a.tossupsHeard;
+        return a.tossupsHeard - b.tossupsHeard;
+      }
+      return bPptuh - aPptuh;
+    });
+  }
+
+  private assignIndividualRanks() {
+    let prevRank = 0;
+    let playersSoFar = 0;
+    let prevPptuh = 9999999;
+    let prevPlayer;
+    for (const onePlayer of this.players) {
+      playersSoFar++;
+      const curPptuh = onePlayer.getPptuh() ?? -999999;
+      if (curPptuh === prevPptuh) {
+        onePlayer.rank = prevRank.toString();
+        onePlayer.rankTie = true;
+        if (prevPlayer) prevPlayer.rankTie = true;
+      } else {
+        onePlayer.rank = playersSoFar.toString();
+        prevRank = playersSoFar;
+      }
+      prevPptuh = curPptuh;
+      prevPlayer = onePlayer;
+    }
   }
 }
 
@@ -440,6 +548,63 @@ export class PoolTeamStats {
     this.lightningPoints += other.lightningPoints;
     for (const ac of other.tossupCounts) {
       this.addAnswerCount(ac);
+    }
+  }
+}
+
+export class PlayerStats {
+  player: Player;
+
+  rank: string = '';
+
+  rankTie: boolean = false;
+
+  team: Team;
+
+  gamesPlayed: number = 0;
+
+  tossupCounts: PlayerAnswerCount[] = [];
+
+  tossupsHeard: number = 0;
+
+  constructor(p: Player, team: Team, scoringRules: ScoringRules) {
+    this.player = p;
+    this.team = team;
+    this.tossupCounts = scoringRules.answerTypes.map((at) => new PlayerAnswerCount(at, 0));
+  }
+
+  getTotalPoints() {
+    return sumReduce(this.tossupCounts.map((ac) => ac.points));
+  }
+
+  /** Points per tossup heard. Is undefined if no tossups heard! */
+  getPptuh() {
+    if (this.tossupsHeard === 0) return undefined;
+    return this.getTotalPoints() / this.tossupsHeard;
+  }
+
+  addMatchPlayer(mp: MatchPlayer, tossupsRead: number) {
+    if (mp.tossupsHeard === undefined || mp.tossupsHeard === 0) {
+      return;
+    }
+
+    this.gamesPlayed += mp.tossupsHeard / tossupsRead;
+    this.tossupsHeard += mp.tossupsHeard;
+    for (const ac of mp.answerCounts) {
+      this.addAnswerCount(ac);
+    }
+  }
+
+  private addAnswerCount(answerCount: PlayerAnswerCount) {
+    const tc = this.tossupCounts.find((ac) => ac.answerType.value === answerCount.answerType.value);
+    if (!tc) {
+      this.tossupCounts.push(new PlayerAnswerCount(answerCount.answerType, answerCount.number));
+      return;
+    }
+    if (tc.number === undefined) {
+      tc.number = answerCount.number;
+    } else {
+      tc.number += answerCount.number || 0;
     }
   }
 }

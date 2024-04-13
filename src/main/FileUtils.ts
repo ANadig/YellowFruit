@@ -2,7 +2,7 @@ import path from 'path';
 import { app, BrowserWindow, IpcMainEvent, dialog } from 'electron';
 import fs from 'fs';
 import { IpcMainToRend } from '../IPCChannels';
-import { StatReportHtmlPage } from '../SharedUtils';
+import { StatReportHtmlPage, statReportProtocol } from '../SharedUtils';
 
 export function newYftFile(mainWindow: BrowserWindow) {
   mainWindow.webContents.send(IpcMainToRend.newTournament);
@@ -91,4 +91,13 @@ function writeInAppStatReportFile(reports: StatReportHtmlPage[], idx: number, wi
       window.webContents.send(IpcMainToRend.GeneratedInAppStatReport);
     }
   });
+}
+
+export function parseStatReportPath(url: string) {
+  const str = url.replace(`${statReportProtocol}://`, '');
+
+  if (str.search(/\.html\/.+/) === -1) return str;
+  // links in the iframe try to take to, e.g. "standings.html/individuals.html" instead of
+  // "individuals.html", so we need to remove the first page name before the slash
+  return str.replace(/^.*\.html\//, '');
 }
