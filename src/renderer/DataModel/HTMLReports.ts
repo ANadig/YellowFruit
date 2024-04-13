@@ -347,8 +347,6 @@ function getPageStyle() {
   return genericTag('style', body, table, td, zebra, headerAndDivider, inlineDivider, ul, smallText, phaseH2);
 }
 
-// 'table {\n  border-spacing: 0;\n  border-collapse: collapse;\n}\n'
-
 /**
  * The links at the top of every page of the report
  */

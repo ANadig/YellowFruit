@@ -21,6 +21,7 @@ import {
   AlertColor,
   Autocomplete,
   FormControlLabel,
+  Paper,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { DragIndicator } from '@mui/icons-material';
@@ -120,29 +121,15 @@ function MatchEditDialogCore() {
                 <TeamScoreField whichTeam="right" />
               </Grid>
               {/** third row */}
-              <Grid
-                xs={12}
-                md={6}
-                sx={{
-                  backgroundColor: 'whitesmoke',
-                  marginBottom: 3,
-                  borderTopLeftRadius: '8px',
-                  borderBottomLeftRadius: '8px',
-                }}
-              >
-                <PlayerGrid whichTeam="left" />
+              <Grid xs={12} md={6} sx={{ marginBottom: 3 }}>
+                <Paper elevation={4} sx={{ p: 1, marginRight: 1 }}>
+                  <PlayerGrid whichTeam="left" />
+                </Paper>
               </Grid>
-              <Grid
-                xs={12}
-                md={6}
-                sx={{
-                  backgroundColor: 'whitesmoke',
-                  marginBottom: 3,
-                  borderTopRightRadius: '8px',
-                  borderBottomRightRadius: '8px',
-                }}
-              >
-                <PlayerGrid whichTeam="right" />
+              <Grid xs={12} md={6} sx={{ marginBottom: 3 }}>
+                <Paper elevation={4} sx={{ p: 1, marginLeft: 1 }}>
+                  <PlayerGrid whichTeam="right" />
+                </Paper>
               </Grid>
               {/** fourth row */}
               <Grid xs={6} md={5} sx={{ marginBottom: 3 }}>
@@ -641,12 +628,12 @@ function BonusDisplay(props: IBonusDisplayProps) {
   const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
 
   if (matchTeam.team === undefined || forfeit) {
-    return <span>&emsp;&nbsp;Bonuses:&emsp;&mdash; points&emsp;|&emsp;&mdash; heard&emsp;|&emsp;&mdash; ppb</span>;
+    return <span>&emsp;&nbsp;Bonuses:&emsp;&mdash; pts&emsp;|&emsp;&mdash; heard&emsp;|&emsp;&mdash; ppb</span>;
   }
 
   return (
     <span>
-      &emsp;&nbsp;<b>Bonuses:</b>&emsp;{`${bonusPoints} points`}&emsp;|&emsp;{`${bonusesHeard} heard`}&emsp;|&emsp;
+      &emsp;&nbsp;<b>Bonuses:</b>&emsp;{`${bonusPoints} pts`}&emsp;|&emsp;{`${bonusesHeard} heard`}&emsp;|&emsp;
       {`${ppb} ppb`}
     </span>
   );

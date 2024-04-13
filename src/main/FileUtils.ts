@@ -97,7 +97,7 @@ export function parseStatReportPath(url: string) {
   const str = url.replace(`${statReportProtocol}://`, '');
 
   if (str.search(/\.html\/.+/) === -1) return str;
-  // links in the iframe try to take to, e.g. "standings.html/individuals.html" instead of
+  // links in the iframe try to take you to, e.g. "standings.html/individuals.html" instead of
   // "individuals.html", so we need to remove the first page name before the slash
   return str.replace(/^.*\.html\//, '');
 }
