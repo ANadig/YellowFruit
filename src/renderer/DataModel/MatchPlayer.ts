@@ -141,5 +141,3 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
     }
   }
 }
-
-export default MatchPlayer;

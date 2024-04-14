@@ -49,6 +49,12 @@ export class PlayerAnswerCount implements IQbjPlayerAnswerCount, IYftDataModelOb
     return qbjObject;
   }
 
+  addToCount(numToAdd: number | undefined) {
+    if (numToAdd === undefined) return;
+    if (this.number === undefined) this.number = numToAdd;
+    else this.number += numToAdd;
+  }
+
   /**
    * Validate whether the current value is vaguely reasonable
    * @param playerName Player's name (or some other label), to which the error message is appended.

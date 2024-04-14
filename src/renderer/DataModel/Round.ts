@@ -100,7 +100,7 @@ export class Round implements IQbjRound, IYftDataModelObject {
     for (const m of this.matches) {
       for (const mt of [m.leftTeam, m.rightTeam]) {
         if (mt.team !== team) continue;
-        const inThisMatch = mt.getPlayerList();
+        const inThisMatch = mt.getActivePlayerList();
         inThisMatch.forEach((player) => {
           if (!players.includes(player)) players.push(player);
         });

@@ -6,7 +6,6 @@ import MatchValidationMessage, {
   MatchValidationCollection,
   MatchValidationType,
 } from './MatchValidationMessage';
-import { Player } from './Player';
 import { IQbjPlayerAnswerCount, PlayerAnswerCount, sortAnswerCounts } from './PlayerAnswerCount';
 import { ScoringRules } from './ScoringRules';
 import { IQbjTeam, Team } from './Team';
@@ -147,13 +146,18 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     this.matchPlayers = this.matchPlayers.concat(newMatchPlayers);
   }
 
-  /** The list of players who played in this match */
-  getPlayerList() {
-    const players: Player[] = [];
+  /** The list of Player objects who played in this match */
+  getActivePlayerList() {
+    return this.getActiveMatchPlayers().map((mp) => mp.player);
+  }
+
+  /** The list of MatchPlayer objects who played in this match */
+  getActiveMatchPlayers() {
+    const mps: MatchPlayer[] = [];
     this.matchPlayers.forEach((mp) => {
-      if (mp.wasActive()) players.push(mp.player);
+      if (mp.wasActive()) mps.push(mp);
     });
-    return players;
+    return mps;
   }
 
   /** Remove MatchPlayers with no tossups heard */
@@ -181,6 +185,22 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       totalBuzzes += mp.getTotalBuzzes(positiveOnly);
     });
     return totalBuzzes;
+  }
+
+  /** Get the total numbers of 15s, 10s, etc. for the team  */
+  getAnswerCounts() {
+    const teamAnswerCounts: PlayerAnswerCount[] = [];
+    for (const mp of this.matchPlayers) {
+      for (const playerAC of mp.answerCounts) {
+        let teamCount = teamAnswerCounts.find((ac) => ac.answerType === playerAC.answerType);
+        if (!teamCount) {
+          teamCount = new PlayerAnswerCount(playerAC.answerType);
+          teamAnswerCounts.push(teamCount);
+        }
+        teamCount.addToCount(playerAC.number);
+      }
+    }
+    return teamAnswerCounts;
   }
 
   /** Number of points scored on tossups */
@@ -213,6 +233,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return this.getBonusPoints() / bHeard;
   }
 
+  /** [bonus points, bonuses heard, ppb] */
   getBonusStats(scoringRules: ScoringRules): [string, string, string] {
     const bonusPoints = this.getBonusPoints();
     const bonusesHeard = this.getBonusesHeard(scoringRules);
@@ -400,5 +421,3 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     this.modalBottomValidation.suppressMessageType(type);
   }
 }
-
-export default MatchTeam;

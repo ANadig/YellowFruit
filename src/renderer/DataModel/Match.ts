@@ -328,7 +328,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return `${winner} def. ${loser}`;
   }
 
-  /** The score in a format like "W 355-200", from the perspective of the team pass as the parameter */
+  /** The score in a format like "W 355-200", from the perspective of the team passed as the parameter */
   getShortScore(team: Team) {
     let whichTeam: LeftOrRight | null = null;
     if (this.leftTeam.team === team) {

@@ -1,8 +1,13 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-useless-concat */
 import { StatReportPages, StatReportPageOrder, StatReportFileNames } from '../Enums';
+import { LeftOrRight } from '../Utils/UtilTypes';
+import { Match } from './Match';
+import { MatchPlayer } from './MatchPlayer';
+import { MatchTeam } from './MatchTeam';
 import { Phase, PhaseTypes } from './Phase';
 import { Pool } from './Pool';
+import { Round } from './Round';
 import { PhaseStandings, PlayerStats, PoolStats, PoolTeamStats } from './StatSummaries';
 // eslint-disable-next-line import/no-cycle
 import Tournament from './Tournament';
@@ -36,6 +41,10 @@ export default class HtmlReportGenerator {
 
   generateIndividualsPage() {
     return this.generateHtmlPage('Individuals', this.getIndividualsHtml());
+  }
+
+  generateScoreboardPage() {
+    return this.generateHtmlPage('Scoreboard', this.getScoreboardHtml());
   }
 
   /** The actual data of the Standings page */
@@ -292,6 +301,159 @@ export default class HtmlReportGenerator {
 
     return trTag(cells);
   }
+
+  getScoreboardHtml() {
+    const rounds: string[] = [];
+    for (const phase of this.tournament.phases) {
+      for (const round of phase.rounds) {
+        if (round.matches.length > 0) rounds.push(this.oneRoundOfBoxScores(round, phase));
+      }
+    }
+    return rounds.join('\n');
+  }
+
+  private oneRoundOfBoxScores(round: Round, phase: Phase) {
+    const segments: string[] = [];
+    if (round.number !== 1) segments.push('<br /><br />');
+    let title = round.displayName(false);
+    if (phase.isFullPhase()) title += ` - ${phase.name}`;
+    segments.push(headerWithDivider(title));
+    for (const match of round.matches) {
+      segments.push(this.boxScore(match));
+    }
+    return segments.join('\n');
+  }
+
+  private boxScore(match: Match) {
+    const segments: string[] = [];
+    segments.push(genericTag('h3', match.getScoreString()));
+    if (match.isForfeit()) return segments.join('\n');
+
+    if (match.carryoverPhases.length > 0) {
+      segments.push(
+        genericTagWithAttributes(
+          'p',
+          [classAttribute(cssClasses.smallText)],
+          `Carries over to: ${match.carryoverPhases.map((ph) => ph.name).join(', ')}`,
+        ),
+      );
+    }
+    let tuReadStr = `Tossups read: ${match.tossupsRead ?? 'unknown'}`;
+    if (match.overtimeTossupsRead) tuReadStr += ` (${match.overtimeTossupsRead} in OT)`;
+    segments.push(genericTagWithAttributes('p', [classAttribute(cssClasses.smallText)], tuReadStr));
+
+    const leftTable = this.boxScoreTableOneTeam(match.leftTeam);
+    const rightTable = this.boxScoreTableOneTeam(match.rightTeam);
+    segments.push(
+      genericTagWithAttributes('div', [classAttribute(cssClasses.boxScoreTableContainer)], leftTable, rightTable),
+    );
+
+    if (this.tournament.scoringRules.useBonuses) {
+      segments.push('<br />');
+      segments.push(this.boxScoreBonusTable(match));
+    }
+    if (this.tournament.scoringRules.bonusesBounceBack) segments.push(this.boxScoreBouncebackTable(match));
+    return segments.join('\n');
+  }
+
+  private boxScoreTableOneTeam(matchTeam: MatchTeam) {
+    const rows = [this.boxScoreTableHeader(matchTeam.team?.name ?? '')];
+    for (const mp of matchTeam.getActiveMatchPlayers()) {
+      rows.push(this.boxScoreOneMatchPlayer(mp));
+    }
+    rows.push(this.boxScoreTotalRow(matchTeam));
+    return tableTag(rows, undefined, '35%');
+  }
+
+  private boxScoreTableHeader(teamName: string) {
+    const cells: string[] = [];
+    cells.push(tdTag({ bold: true }, teamName));
+    cells.push(tdTag({ bold: true, align: 'right' }, 'TUH'));
+    this.tournament.scoringRules.answerTypes.forEach((at) => {
+      cells.push(tdTag({ bold: true, align: 'right' }, at.value.toString() || '??'));
+    });
+    cells.push(tdTag({ bold: true, align: 'right' }, 'Tot'));
+    return trTag(cells);
+  }
+
+  private boxScoreOneMatchPlayer(matchPlayer: MatchPlayer) {
+    const cells: string[] = [];
+    cells.push(tdTag({}, matchPlayer.player.name));
+    cells.push(tdTag({ align: 'right' }, matchPlayer.tossupsHeard?.toString() ?? '0'));
+    this.tournament.scoringRules.answerTypes.forEach((at) => {
+      const answerCount = matchPlayer.answerCounts.find((ac) => ac.answerType.value === at.value);
+      cells.push(tdTag({ align: 'right' }, answerCount?.number?.toString() ?? '0'));
+    });
+    cells.push(tdTag({ align: 'right' }, matchPlayer.points.toString()));
+    return trTag(cells);
+  }
+
+  private boxScoreTotalRow(matchTeam: MatchTeam) {
+    const cells = [tdTag({ bold: true }, 'Total')];
+    cells.push(tdTag({}, ''));
+    const answerCounts = matchTeam.getAnswerCounts();
+    this.tournament.scoringRules.answerTypes.forEach((at) => {
+      const answerCount = answerCounts.find((ac) => ac.answerType.value === at.value);
+      cells.push(tdTag({ bold: true, align: 'right' }, answerCount?.number?.toString() ?? '0'));
+    });
+    cells.push(tdTag({ bold: true, align: 'right' }, matchTeam.getTossupPoints().toString()));
+    return tableFooter(cells);
+  }
+
+  private boxScoreBonusTable(match: Match) {
+    const rows: string[] = [];
+    rows.push(this.boxScoreBonusTableHeader());
+    rows.push(this.boxScoreBonusTableRow(match.leftTeam));
+    rows.push(this.boxScoreBonusTableRow(match.rightTeam));
+    return tableTag(rows, undefined, '50%');
+  }
+
+  private boxScoreBonusTableHeader() {
+    const cells: string[] = [];
+    cells.push(tdTag({ bold: true, width: '40%' }, 'Bonuses'));
+    cells.push(tdTag({ bold: true, align: 'right', width: '20%' }, 'Heard'));
+    cells.push(tdTag({ bold: true, align: 'right', width: '20%' }, 'Pts'));
+    cells.push(tdTag({ bold: true, align: 'right', width: '20%' }, 'PPB'));
+    return trTag(cells);
+  }
+
+  private boxScoreBonusTableRow(matchTeam: MatchTeam) {
+    const cells: string[] = [];
+    const [pts, heard, ppb] = matchTeam.getBonusStats(this.tournament.scoringRules);
+    cells.push(tdTag({}, matchTeam.team?.name ?? ''));
+    cells.push(tdTag({ align: 'right' }, heard));
+    cells.push(tdTag({ align: 'right' }, pts));
+    cells.push(tdTag({ align: 'right' }, ppb));
+    return trTag(cells);
+  }
+
+  private boxScoreBouncebackTable(match: Match) {
+    const rows: string[] = [];
+    rows.push(this.boxScoreBouncebackTableHeader());
+    rows.push(this.boxScoreBouncebackTableRow(match, 'left'));
+    rows.push(this.boxScoreBouncebackTableRow(match, 'right'));
+    return tableTag(rows, undefined, '50%');
+  }
+
+  private boxScoreBouncebackTableHeader() {
+    const cells: string[] = [];
+    cells.push(tdTag({ bold: true, width: '40%' }, 'Bouncebacks'));
+    cells.push(tdTag({ bold: true, align: 'right', width: '20%' }, 'Parts Heard'));
+    cells.push(tdTag({ bold: true, align: 'right', width: '20%' }, 'Pts'));
+    cells.push(tdTag({ bold: true, align: 'right', width: '20%' }, 'Success%'));
+    return trTag(cells);
+  }
+
+  private boxScoreBouncebackTableRow(match: Match, whichTeam: LeftOrRight) {
+    const cells: string[] = [];
+    const [heard, rate] = match.getBouncebackStatsString(whichTeam, this.tournament.scoringRules);
+    const matchTeam = match.getMatchTeam(whichTeam);
+    cells.push(tdTag({}, matchTeam.team?.name ?? ''));
+    cells.push(tdTag({ align: 'right' }, heard));
+    cells.push(tdTag({ align: 'right' }, matchTeam.bonusBouncebackPoints?.toString() ?? '0'));
+    cells.push(tdTag({ align: 'right' }, `${rate}%`));
+    return trTag(cells);
+  }
 }
 
 const lineBreak = '<br/>';
@@ -311,6 +473,8 @@ const cssClasses = {
   headerAndDivider: 'headerAndDivider',
   inlineDivider: 'inlineDivider',
   smallText: 'smallText',
+  boxScoreTableContainer: 'boxScoreTable',
+  pseudoTFoot: 'pseudoTFoot',
 };
 
 /** Header at the top of the html document */
@@ -344,8 +508,34 @@ function getPageStyle() {
   );
   const smallText = cssSelector(`.${cssClasses.smallText}`, { attr: 'font-size', val: '10pt' });
   const ul = cssSelector('ul', { attr: 'margin', val: '0' });
-  return genericTag('style', body, table, td, zebra, headerAndDivider, inlineDivider, ul, smallText, phaseH2);
+  const boxScoreTableContainer = cssSelector(
+    `.${cssClasses.boxScoreTableContainer}`,
+    { attr: 'display', val: 'flex' },
+    { attr: 'gap', val: '15px' },
+    { attr: 'align-items', val: 'flex-start' },
+  );
+  const pseudoFooter = cssSelector(
+    `.${cssClasses.pseudoTFoot}`,
+    { attr: 'border-top', val: '1px solid #909090' },
+    { attr: 'background-color', val: '#ffffff !important' },
+  );
+  return genericTag(
+    'style',
+    body,
+    table,
+    td,
+    zebra,
+    headerAndDivider,
+    inlineDivider,
+    ul,
+    smallText,
+    phaseH2,
+    boxScoreTableContainer,
+    pseudoFooter,
+  );
 }
+
+// '.pseudo-tfoot {\n border-top: 1px solid #909090;\n background-color: #ffffff !important;\n}\n' +
 
 /**
  * The links at the top of every page of the report
@@ -375,6 +565,11 @@ function tableTag(trTags: string[], border?: string, width?: string) {
 /** A <tr> tag: table row containing <td>s */
 function trTag(tdTags: string[]) {
   return `<tr>\n${tdTags.join('\n')}\n</tr>`;
+}
+
+/** A tr tag with the special footer class */
+function tableFooter(tdTags: string[]) {
+  return `<tr class=${cssClasses.pseudoTFoot}>\n${tdTags.join('\n')}\n</tr>`;
 }
 
 type tdAttributes = { align?: string; bold?: boolean; title?: string; style?: string; width?: string };

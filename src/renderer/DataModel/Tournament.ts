@@ -193,6 +193,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.htmlGenerator.generateIndividualsPage();
   }
 
+  makeHtmlScoreboard() {
+    return this.htmlGenerator.generateScoreboardPage();
+  }
+
   /** Set the scoring rules for this tournament */
   applyRuleSet(rules: CommonRuleSets): void {
     this.scoringRules = new ScoringRules(rules);

@@ -239,6 +239,7 @@ export class TournamentManager {
     const reports: StatReportHtmlPage[] = [
       { fileName: StatReportFileNames[StatReportPages.Standings], contents: this.tournament.makeHtmlStandings() },
       { fileName: StatReportFileNames[StatReportPages.Individuals], contents: this.tournament.makeHtmlIndividuals() },
+      { fileName: StatReportFileNames[StatReportPages.Scoreboard], contents: this.tournament.makeHtmlScoreboard() },
     ];
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.WriteInAppStatReport, reports);
   }
