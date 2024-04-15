@@ -264,7 +264,21 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
     return 1 <= val && val <= 100;
   }
 
-  canCalculateBounceBackPartsHeard() {
+  /** Assume anything more than 10 is a power */
+  hasPowers() {
+    return !!this.answerTypes.find((at) => at.isPower);
+  }
+
+  hasNegs() {
+    return !!this.answerTypes.find((at) => at.isNeg);
+  }
+
+  /** Are the bonuses here always the same number of parts for the same number of points? */
+  bonusesAreRegular() {
     return this.pointsPerBonusPart !== undefined && this.minimumPartsPerBonus === this.maximumPartsPerBonus;
+  }
+
+  canCalculateBounceBackPartsHeard() {
+    return this.bonusesAreRegular();
   }
 }

@@ -43,6 +43,14 @@ class AnswerType implements IQbjAnswerType, IYftDataModelObject {
     this._shortLabel = str;
   }
 
+  get isPower() {
+    return this.value > 10;
+  }
+
+  get isNeg() {
+    return this.value < 0;
+  }
+
   get id(): string {
     return `AnswerType_${this.label}`;
   }

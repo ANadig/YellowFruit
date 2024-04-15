@@ -241,6 +241,11 @@ export class TournamentManager {
       { fileName: StatReportFileNames[StatReportPages.Individuals], contents: this.tournament.makeHtmlIndividuals() },
       { fileName: StatReportFileNames[StatReportPages.Scoreboard], contents: this.tournament.makeHtmlScoreboard() },
       { fileName: StatReportFileNames[StatReportPages.TeamDetails], contents: this.tournament.makeHtmlTeamDetail() },
+      {
+        fileName: StatReportFileNames[StatReportPages.PlayerDetails],
+        contents: this.tournament.makeHtmlPlayerDetail(),
+      },
+      { fileName: StatReportFileNames[StatReportPages.RoundReport], contents: this.tournament.makeHtmlRoundReport() },
     ];
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.WriteInAppStatReport, reports);
   }

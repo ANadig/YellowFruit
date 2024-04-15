@@ -8,7 +8,15 @@ import { MatchTeam } from './MatchTeam';
 import { Phase, PhaseTypes } from './Phase';
 import { Pool } from './Pool';
 import { Round } from './Round';
-import { PhaseStandings, PlayerStats, PoolStats, PoolTeamStats, TeamStatsMatchResult } from './StatSummaries';
+import {
+  PhaseStandings,
+  PlayerDetailMatchResult,
+  PlayerStats,
+  PoolStats,
+  PoolTeamStats,
+  RoundStats,
+  TeamDetailMatchResult,
+} from './StatSummaries';
 import { Team } from './Team';
 // eslint-disable-next-line import/no-cycle
 import Tournament from './Tournament';
@@ -51,6 +59,14 @@ export default class HtmlReportGenerator {
 
   generateTeamDetailPage() {
     return this.generateHtmlPage('Team Detail', this.getTeamDetailHtml());
+  }
+
+  generatePlayerDetailPage() {
+    return this.generateHtmlPage('Player Detail', this.getPlayerDetailHtml());
+  }
+
+  generateRoundReportPage() {
+    return this.generateHtmlPage('Round Report', this.getRoundReportHtml());
   }
 
   /** The actual data of the Standings page */
@@ -516,7 +532,7 @@ export default class HtmlReportGenerator {
     return trTag(cells);
   }
 
-  private teamDetailMatchTableRow(result: TeamStatsMatchResult, omitPhase: boolean = false) {
+  private teamDetailMatchTableRow(result: TeamDetailMatchResult, omitPhase: boolean = false) {
     const cells: string[] = [];
     const matchTeam = result.match.getMatchTeam(result.whichTeam);
     const opponent = result.match.getOpponent(result.whichTeam);
@@ -631,6 +647,175 @@ export default class HtmlReportGenerator {
     );
 
     return trTag(cells);
+  }
+
+  private getPlayerDetailHtml() {
+    if (!this.tournament.cumulativeStats) return '';
+
+    const playerListCopy = this.tournament.cumulativeStats.players.slice();
+    playerListCopy.sort((a, b) => {
+      const aTeam = a.team.name.toLocaleUpperCase();
+      const bTeam = b.team.name.toLocaleUpperCase();
+      if (aTeam < bTeam) return -1;
+      if (aTeam > bTeam) return 1;
+      const aPlName = a.player.name.toLocaleUpperCase();
+      const bPlName = b.player.name.toLocaleUpperCase();
+      if (aPlName < bPlName) return -1;
+      if (aPlName > bPlName) return 1;
+      return 0;
+    });
+
+    return playerListCopy.map((pStats) => this.playerDetailOnePlayer(pStats)).join('\n');
+  }
+
+  private playerDetailOnePlayer(playerStats: PlayerStats) {
+    const segments = [];
+    segments.push(genericTag('h2', `${playerStats.player.name}, ${playerStats.team.name}`));
+    segments.push(this.playerDetailTable(playerStats));
+    return segments.join('\n');
+  }
+
+  private playerDetailTable(playerStats: PlayerStats) {
+    const omitPhaseCol = this.tournament.getFullPhases().length < 2;
+    const rows = [this.playerDetailTableHeader(omitPhaseCol)];
+    for (const result of playerStats.matches) {
+      rows.push(this.playerDetailTableRow(result, omitPhaseCol));
+    }
+    rows.push(this.playerDetailTableFooter(playerStats, omitPhaseCol));
+    return tableTag(rows, undefined, '80%');
+  }
+
+  private playerDetailTableHeader(omitPhase: boolean = false) {
+    const cells: string[] = [];
+    cells.push(tdTag({ bold: true, width: '5%' }, 'Round'));
+    if (!omitPhase) cells.push(tdTag({ bold: true, width: '15%' }, 'Stage'));
+    cells.push(stdTdHeader('Opponent'));
+    cells.push(stdTdHeader('')); // win/loss
+    cells.push(stdTdHeader('Score'));
+    cells.push(stdTdHeader('GP', true));
+    this.pushTossupValueHeaders(cells);
+    cells.push(stdTdHeader('TUH', true));
+    cells.push(stdTdHeader('Pts', true));
+    return trTag(cells);
+  }
+
+  private playerDetailTableRow(result: PlayerDetailMatchResult, omitPhase: boolean = false) {
+    const cells: string[] = [];
+    const matchTeam = result.match.getMatchTeam(result.whichTeam);
+    const opponent = result.match.getOpponent(result.whichTeam);
+    const forf = result.match.isForfeit();
+    if (!matchTeam.team) return trTag([]);
+
+    cells.push(textCell(result.phase?.usesNumericRounds() ? result.round.number.toString() : ''));
+    if (!omitPhase) cells.push(textCell(result.phase?.name ?? ''));
+    cells.push(textCell(opponent.team?.name ?? ''));
+    cells.push(textCell(result.match.getResultDisplay(result.whichTeam)));
+    cells.push(textCell(result.match.getScoreOnly(result.whichTeam)));
+    const gamesPlayed = (result.matchPlayer.tossupsHeard ?? 0) / (result.match.tossupsRead ?? 0);
+    cells.push(numericCell(forf ? '' : gamesPlayed.toFixed(1)));
+
+    this.tournament.scoringRules.answerTypes.forEach((at) => {
+      if (forf) {
+        cells.push(numericCell(''));
+        return;
+      }
+      const answerCount = result.matchPlayer.answerCounts.find((ac) => ac.answerType.value === at.value);
+      cells.push(numericCell(answerCount?.number?.toString() ?? '0'));
+    });
+
+    cells.push(numericCell(forf ? '' : result.matchPlayer.tossupsHeard?.toString() ?? ''));
+    cells.push(numericCell(forf ? '' : result.matchPlayer.points.toString()));
+    return trTag(cells);
+  }
+
+  private playerDetailTableFooter(playerStats: PlayerStats, omitPhase: boolean = false) {
+    const cells: string[] = [];
+    cells.push(textCell('')); // round
+    if (!omitPhase) cells.push(textCell(''));
+    cells.push(stdTdHeader('Total')); // underneath opponent col
+    cells.push(textCell('')); // result
+    cells.push(textCell('')); // score
+    cells.push(stdTdHeader(playerStats.gamesPlayed.toFixed(1), true));
+    this.tournament.scoringRules.answerTypes.forEach((at) => {
+      const answerCount = playerStats.tossupCounts.find((ac) => ac.answerType.value === at.value);
+      cells.push(stdTdHeader(answerCount?.number?.toString() || '0', true));
+    });
+    cells.push(stdTdHeader(playerStats.tossupsHeard.toString(), true));
+    cells.push(stdTdHeader(playerStats.getTotalPoints().toString(), true));
+    return tableFooter(cells);
+  }
+
+  private getRoundReportHtml() {
+    if (!this.tournament.cumulativeStats) return '';
+
+    const omitPhaseCol = this.tournament.getFullPhases().length < 2;
+    const rows = [this.roundReportTableHeader(omitPhaseCol)];
+    for (const roundStats of this.tournament.cumulativeStats.rounds) {
+      rows.push(this.roundReportTableRow(roundStats, omitPhaseCol));
+    }
+    rows.push(this.roundReportTableFooter(this.tournament.cumulativeStats.roundReportTotalStats, omitPhaseCol));
+    return tableTag(rows, undefined, '100%');
+  }
+
+  private roundReportTableHeader(omitPhase: boolean = false) {
+    const cells: string[] = [];
+    cells.push(stdTdHeader('Round'));
+    if (!omitPhase) cells.push(tdTag({ bold: true, width: '15%' }, 'Stage'));
+    cells.push(stdTdHeader('Games', true));
+    cells.push(stdTdHeader(`Pts/Team/${this.tournament.scoringRules.regulationTossupCount}TUH`, true));
+    if (this.tournament.scoringRules.hasPowers()) cells.push(stdTdHeader('TU Powered', true));
+    cells.push(stdTdHeader('TU Converted', true));
+    if (this.tournament.scoringRules.hasNegs()) {
+      cells.push(stdTdHeader(`Negs/Team/${this.tournament.scoringRules.regulationTossupCount}TUH`, true));
+    }
+    if (this.tournament.scoringRules.useBonuses) cells.push(stdTdHeader('PPB', true));
+    if (this.tournament.scoringRules.bonusesBounceBack) {
+      cells.push(stdTdHeader('BB%', true));
+      cells.push(stdTdHeader('Bonus%', true));
+    }
+    return trTag(cells);
+  }
+
+  private roundReportTableRow(stats: RoundStats, omitPhase: boolean = false) {
+    const cells: string[] = [];
+    cells.push(textCell(stats.phase?.usesNumericRounds() ? stats.round.number.toString() : ''));
+    if (!omitPhase) cells.push(textCell(stats.phase?.name ?? ''));
+    cells.push(numericCell(stats.games.toString()));
+    cells.push(numericCell(stats.getPointsPerXTuh().toFixed(1)));
+    if (this.tournament.scoringRules.hasPowers()) cells.push(numericCell(`${stats.getPowerPct().toFixed(0)}%`));
+    cells.push(numericCell(`${stats.getTossupConversionPct().toFixed(0)}%`));
+    if (this.tournament.scoringRules.hasNegs()) {
+      cells.push(numericCell(stats.getNegsPerXTuh().toFixed(1)));
+    }
+    if (this.tournament.scoringRules.useBonuses) cells.push(numericCell(stats.getPointsPerBonus().toFixed(2)));
+    if (this.tournament.scoringRules.bonusesBounceBack) {
+      cells.push(numericCell(`${stats.getBounceBackConvPct().toFixed(0)}%`));
+      cells.push(numericCell(`${stats.getTotalBonusConvPct().toFixed(0)}%`));
+    }
+    return trTag(cells);
+  }
+
+  private roundReportTableFooter(tournTotals: RoundStats, omitPhase: boolean = false) {
+    const cells: string[] = [];
+    cells.push(stdTdHeader('Total'));
+    if (!omitPhase) cells.push(stdTdHeader(tournTotals.phase?.name ?? ''));
+    cells.push(stdTdHeader(tournTotals.games.toString(), true));
+    cells.push(stdTdHeader(tournTotals.getPointsPerXTuh().toFixed(1), true));
+    if (this.tournament.scoringRules.hasPowers()) {
+      cells.push(stdTdHeader(`${tournTotals.getPowerPct().toFixed(0)}%`, true));
+    }
+    cells.push(stdTdHeader(`${tournTotals.getTossupConversionPct().toFixed(0)}%`, true));
+    if (this.tournament.scoringRules.hasNegs()) {
+      cells.push(stdTdHeader(tournTotals.getNegsPerXTuh().toFixed(1), true));
+    }
+    if (this.tournament.scoringRules.useBonuses) {
+      cells.push(stdTdHeader(tournTotals.getPointsPerBonus().toFixed(2), true));
+    }
+    if (this.tournament.scoringRules.bonusesBounceBack) {
+      cells.push(stdTdHeader(`${tournTotals.getBounceBackConvPct().toFixed(0)}%`, true));
+      cells.push(stdTdHeader(`${tournTotals.getTotalBonusConvPct().toFixed(0)}%`, true));
+    }
+    return tableFooter(cells);
   }
 
   private pushTossupValueHeaders(cells: string[]) {
