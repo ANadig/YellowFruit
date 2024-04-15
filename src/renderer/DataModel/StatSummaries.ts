@@ -10,7 +10,7 @@ import { Player } from './Player';
 import { PlayerAnswerCount } from './PlayerAnswerCount';
 import { Pool } from './Pool';
 import { PoolTeam } from './PoolTeam';
-import Registration from './Registration';
+import { Round } from './Round';
 import { ScoringRules } from './ScoringRules';
 import { Team } from './Team';
 
@@ -31,7 +31,7 @@ export class AggregateStandings {
     for (const phase of phases) {
       for (const round of phase.rounds) {
         for (const match of round.matches) {
-          this.addMatchToTeamStats(match);
+          this.addMatchToTeamStats(match, round, phase);
           this.addMatchToIndividualStats(match);
         }
         // we have to do this from scratch rather than adding together existing phases' stats
@@ -42,11 +42,11 @@ export class AggregateStandings {
     this.sortPlayersByPptuh();
   }
 
-  private addMatchToTeamStats(match: Match) {
+  private addMatchToTeamStats(match: Match, round: Round, phase: Phase) {
     const leftTeamStats = this.findPoolTeam(match.leftTeam.team);
-    leftTeamStats?.addMatchTeam(match, 'left');
+    leftTeamStats?.addMatchTeam(match, 'left', round, phase);
     const rightTeamStats = this.findPoolTeam(match.rightTeam.team);
-    rightTeamStats?.addMatchTeam(match, 'right');
+    rightTeamStats?.addMatchTeam(match, 'right', round, phase);
   }
 
   private findPoolTeam(team: Team | undefined): PoolTeamStats | undefined {
@@ -374,9 +374,14 @@ export class PoolStats {
   }
 }
 
-export class PoolTeamStats {
-  registration?: Registration;
+export interface TeamStatsMatchResult {
+  match: Match;
+  whichTeam: LeftOrRight;
+  round: Round;
+  phase?: Phase;
+}
 
+export class PoolTeamStats {
   team: Team;
 
   poolTeam: PoolTeam;
@@ -430,12 +435,21 @@ export class PoolTeamStats {
 
   lightningPoints: number = 0;
 
+  matches: TeamStatsMatchResult[] = [];
+
   scoringRules: ScoringRules;
 
   constructor(poolTeam: PoolTeam, rules: ScoringRules) {
     this.poolTeam = poolTeam;
     this.team = poolTeam.team;
     this.scoringRules = rules;
+  }
+
+  /** A string like "5-2", or "5-2-1" if there are ties */
+  getRecord() {
+    const wl = `${this.wins}-${this.losses}`;
+    if (this.ties === 0) return wl;
+    return `${wl}-${this.ties}`;
   }
 
   getWinPct() {
@@ -451,6 +465,9 @@ export class PoolTeamStats {
 
   /** Points per non-overtime tossup heard. Is NaN if tossups heard is zero! */
   getPtsPerRegTuh() {
+    if (this.scoringRules.overtimeIncludesBonuses) {
+      return this.totalPointsForPPG / this.tuhTotal;
+    }
     return this.totalPointsForPPG / this.tuhRegulation;
   }
 
@@ -487,7 +504,8 @@ export class PoolTeamStats {
     return this.advanceToTier !== other.advanceToTier || other.recordTieForAdvancement;
   }
 
-  addMatchTeam(match: Match, whichTeam: LeftOrRight) {
+  addMatchTeam(match: Match, whichTeam: LeftOrRight, round?: Round, phase?: Phase) {
+    if (round) this.matches.push({ match, whichTeam, round, phase });
     this.tuhTotal += match.tossupsRead || 0;
     this.tuhRegulation += (match.tossupsRead || 0) - (match.overtimeTossupsRead || 0);
     const result = match.getResult(whichTeam);

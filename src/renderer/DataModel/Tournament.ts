@@ -197,6 +197,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.htmlGenerator.generateScoreboardPage();
   }
 
+  makeHtmlTeamDetail() {
+    return this.htmlGenerator.generateTeamDetailPage();
+  }
+
   /** Set the scoring rules for this tournament */
   applyRuleSet(rules: CommonRuleSets): void {
     this.scoringRules = new ScoringRules(rules);
@@ -398,6 +402,14 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
         lastRoundNo = this.phases[i].lastRoundNumber();
       }
     }
+  }
+
+  /** Do any of the phases in this tournament carry over games to a subsequent phase? */
+  hasAnyCarryover() {
+    for (const ph of this.getFullPhases()) {
+      if (ph.hasAnyCarryover()) return true;
+    }
+    return false;
   }
 
   findPoolWithTeam(team: Team, round: Round): Pool | undefined {

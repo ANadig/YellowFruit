@@ -83,7 +83,7 @@ export class Round implements IQbjRound, IYftDataModelObject {
     return yftFileObj;
   }
 
-  displayName(forceNumeric: boolean): string {
+  displayName(forceNumeric: boolean = false): string {
     return this._name && !forceNumeric ? this.name : `Round ${this.number}`;
   }
 

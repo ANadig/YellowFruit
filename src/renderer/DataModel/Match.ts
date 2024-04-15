@@ -310,7 +310,8 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   /** Tuple of [bounceback parts heard, bounceback conversion percentage] */
   getBouncebackStatsString(whichTeam: LeftOrRight, scoringRules: ScoringRules): [string, string] {
     const bbPartsHrd = this.getBouncebackPartsHeard(whichTeam, scoringRules);
-    if (Number.isNaN(bbPartsHrd) || bbPartsHrd === 0) return ['-', '-'];
+    if (Number.isNaN(bbPartsHrd)) return ['-', '-'];
+    if (bbPartsHrd === 0) return ['0', '-'];
     return [bbPartsHrd.toString(), this.getBouncebackConvPct(whichTeam, scoringRules, bbPartsHrd).toString()];
   }
 
@@ -338,17 +339,35 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       whichTeam = 'right';
     }
     if (!whichTeam) return '';
+    const resultDisp = this.getResultDisplay(whichTeam);
+    const score = this.getScoreOnly(whichTeam);
+    if (resultDisp === '') return score;
+    if (this.isForfeit()) return `${resultDisp} (${score})`;
+    return `${resultDisp} ${score}`;
+  }
+
+  getScoreOnly(whichTeam: LeftOrRight) {
     const thisTeam = this.getMatchTeam(whichTeam);
     const opponent = this.getOpponent(whichTeam);
     if (thisTeam.forfeitLoss && opponent.forfeitLoss) return 'Not played';
-    if (thisTeam.forfeitLoss) return 'L (forfeit)';
-    if (opponent.forfeitLoss) return 'W (forfeit)';
+    if (this.isForfeit()) return 'Forfeit';
     const pts = thisTeam.points;
     const oppPts = opponent.points;
-    if (pts === undefined || oppPts === undefined) return '';
-    if (pts > oppPts) return `W ${pts}-${oppPts}`;
-    if (pts < oppPts) return `L ${pts}-${oppPts}`;
-    return `T ${pts}-${oppPts}`;
+    return `${pts}-${oppPts}`;
+  }
+
+  /** 'W', 'L', or 'T' */
+  getResultDisplay(whichTeam: LeftOrRight) {
+    switch (this.getResult(whichTeam)) {
+      case 'win':
+        return 'W';
+      case 'loss':
+        return 'L';
+      case 'tie':
+        return 'T';
+      default:
+        return '';
+    }
   }
 
   /** Did this team win, lose, tie, or none of those (if double forfeit or invalid data) */
