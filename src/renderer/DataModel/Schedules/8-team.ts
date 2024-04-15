@@ -68,7 +68,7 @@ export class Sched8Teams10Rounds implements StandardSchedule {
 }
 
 export class Sched8Teams13Rounds implements StandardSchedule {
-  static fullName = '8 Teams - Round Robin, Then 4/4 Split (double round robin)';
+  static fullName = '8 Teams - Round Robin, Then 4/4 Split with Double Round Robin';
 
   static shortName = '13 Rounds';
 

@@ -1,5 +1,5 @@
-import { IQbjObject, IYftDataModelObject } from "./Interfaces";
-import { QbjTypeNames } from "./QbjEnums";
+import { IQbjObject, IYftDataModelObject } from './Interfaces';
+import { QbjTypeNames } from './QbjEnums';
 
 enum PacketRoles {
   Regular = 'regular',

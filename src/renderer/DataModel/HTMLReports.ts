@@ -28,21 +28,6 @@ export default class HtmlReportGenerator {
     this.tournament = tourn;
   }
 
-  /**
-   * The entire contents of one html document
-   * @param title Title of the top header of the page
-   * @param data  html contents of the page's data
-   */
-  private generateHtmlPage(title: string, data: string) {
-    const htmlHeader = getHtmlHeader(title);
-    const topLinks = getTopLinks();
-    const mainHeader = genericTag('h1', title);
-    const style = getPageStyle();
-
-    const body = genericTag('BODY', topLinks, mainHeader, style, data, madeWithYellowFruit());
-    return genericTag('HTML', htmlHeader, body);
-  }
-
   // Public functions for generating entire pages
 
   generateStandingsPage() {
@@ -67,6 +52,21 @@ export default class HtmlReportGenerator {
 
   generateRoundReportPage() {
     return this.generateHtmlPage('Round Report', this.getRoundReportHtml());
+  }
+
+  /**
+   * The entire contents of one html document
+   * @param title Title of the top header of the page
+   * @param data  html contents of the page's data
+   */
+  private generateHtmlPage(title: string, data: string) {
+    const htmlHeader = getHtmlHeader(title);
+    const topLinks = getTopLinks();
+    const mainHeader = genericTag('h1', title);
+    const style = getPageStyle();
+
+    const body = genericTag('BODY', topLinks, mainHeader, style, data, madeWithYellowFruit());
+    return genericTag('HTML', htmlHeader, body);
   }
 
   /** The actual data of the Standings page */
