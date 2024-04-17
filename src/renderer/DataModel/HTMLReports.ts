@@ -6,6 +6,7 @@ import { Match } from './Match';
 import { MatchPlayer } from './MatchPlayer';
 import { MatchTeam } from './MatchTeam';
 import { Phase, PhaseTypes } from './Phase';
+import { Player } from './Player';
 import { Pool } from './Pool';
 import { Round } from './Round';
 import {
@@ -62,7 +63,7 @@ export default class HtmlReportGenerator {
   private generateHtmlPage(title: string, data: string) {
     const htmlHeader = getHtmlHeader(title);
     const topLinks = getTopLinks();
-    const mainHeader = genericTag('h1', title);
+    const mainHeader = genericTagWithAttributes('h1', [id(topAnchorID)], title);
     const style = getPageStyle();
 
     const body = genericTag('BODY', topLinks, mainHeader, style, data, madeWithYellowFruit());
@@ -76,7 +77,7 @@ export default class HtmlReportGenerator {
     if (!prelims) return '';
 
     if (this.tournament.finalRankingsReady) {
-      const header = headerWithDivider('Final Rankings');
+      const header = headerWithDivider('Final Rankings', true);
       sections.push(`${header}\n${this.cumulativeStandingsTable()}`);
     }
 
@@ -88,7 +89,10 @@ export default class HtmlReportGenerator {
       if (!phaseStats.phase.anyTeamsAssigned()) continue;
 
       printedPhaseCount++;
-      const header = headerWithDivider(phaseStats.phase.name);
+      const header = headerWithDivider(
+        phaseStats.phase.name,
+        !this.tournament.finalRankingsReady && printedPhaseCount === 1,
+      );
       sections.push(`${header}\n${this.standingsForOnePhase(phaseStats)}`);
     }
 
@@ -175,7 +179,7 @@ export default class HtmlReportGenerator {
     if (!omitRank && cumulative) cells.push(tdTag({}, teamStats.team.getOverallRankString()));
     else if (!omitRank && !cumulative) cells.push(tdTag({}, teamStats.rank));
 
-    cells.push(tdTag({}, teamStats.team.name));
+    cells.push(textCell(teamDetailLink(teamStats.team)));
     if (this.tournament.trackSmallSchool) {
       const isSS = this.tournament.findRegistrationByTeam(teamStats.team)?.isSmallSchool;
       cells.push(tdTag({}, isSS ? 'SS' : ''));
@@ -260,7 +264,7 @@ export default class HtmlReportGenerator {
     const prelims = this.tournament.stats[0];
     if (!prelims) return '';
 
-    const prelimsHeader = headerWithDivider(prelims.phase.name);
+    const prelimsHeader = headerWithDivider(prelims.phase.name, true);
     sections.push(`${prelimsHeader}\n${this.individualsTable(prelims.players)}`);
 
     if (this.tournament.stats.length > 1 && this.tournament.cumulativeStats) {
@@ -299,11 +303,11 @@ export default class HtmlReportGenerator {
   private individualsRow(playerStats: PlayerStats, skipRankCol: boolean = false) {
     const cells: string[] = [];
     if (!skipRankCol) cells.push(tdTag({}, playerStats.rank + (playerStats.rankTie ? '=' : '')));
-    cells.push(tdTag({}, playerStats.player.name));
+    cells.push(textCell(playerDetailLink(playerStats.player, playerStats.team)));
     if (this.tournament.trackPlayerYear) cells.push(tdTag({}, playerStats.player.yearString));
     if (this.tournament.trackUG) cells.push(tdTag({}, playerStats.player.isUG ? 'UG' : ''));
     if (this.tournament.trackDiv2) cells.push(tdTag({}, playerStats.player.isD2 ? 'D2' : ''));
-    cells.push(tdTag({}, playerStats.team.name));
+    cells.push(textCell(teamDetailLink(playerStats.team)));
     cells.push(tdTag({ align: 'right' }, playerStats.gamesPlayed.toFixed(1)));
     this.tournament.scoringRules.answerTypes.forEach((at) => {
       const answerCount = playerStats.tossupCounts.find((ac) => ac.answerType.value === at.value);
@@ -324,12 +328,28 @@ export default class HtmlReportGenerator {
 
   getScoreboardHtml() {
     const rounds: string[] = [];
+    const tocItems: string[] = [];
     for (const phase of this.tournament.phases) {
+      let phaseHasGames = false;
       for (const round of phase.rounds) {
-        if (round.matches.length > 0) rounds.push(this.oneRoundOfBoxScores(round, phase));
+        if (round.matches.length > 0) {
+          rounds.push(this.oneRoundOfBoxScores(round, phase));
+          if (!phaseHasGames) {
+            phaseHasGames = true;
+            if (phase.usesNumericRounds()) {
+              tocItems.push(phase.name);
+            } else {
+              tocItems.push(scoreboardRoundLink(round, phase.name));
+            }
+          }
+          if (phase.usesNumericRounds()) {
+            tocItems.push(`${nbsp}${nbsp}${scoreboardRoundLink(round, round.displayName(true))}`);
+          }
+        }
       }
     }
-    return rounds.join('\n');
+    const toc = genericTagWithAttributes('div', [classAttribute(cssClasses.floatingTOC)], unorderedList(tocItems));
+    return `${toc}\n${rounds.join('\n')}`;
   }
 
   private oneRoundOfBoxScores(round: Round, phase: Phase) {
@@ -337,7 +357,8 @@ export default class HtmlReportGenerator {
     if (round.number !== 1) segments.push('<br /><br />');
     let title = round.displayName(false);
     if (phase.isFullPhase()) title += ` - ${phase.name}`;
-    segments.push(headerWithDivider(title));
+    segments.push(genericTagWithAttributes('div', [id(roundLinkId(round))]));
+    segments.push(headerWithDivider(title, round.number === 1));
     for (const match of round.matches) {
       segments.push(this.boxScore(match));
     }
@@ -346,6 +367,7 @@ export default class HtmlReportGenerator {
 
   private boxScore(match: Match) {
     const segments: string[] = [];
+    segments.push(genericTagWithAttributes('div', [id(matchLinkId(match))]));
     segments.push(genericTag('h3', match.getScoreString()));
     if (match.isForfeit()) return segments.join('\n');
 
@@ -490,7 +512,7 @@ export default class HtmlReportGenerator {
 
   private teamDetailOneTeam(teamStats: PoolTeamStats) {
     const segments = [];
-    segments.push(genericTag('h2', teamStats.team.name));
+    segments.push(genericTagWithAttributes('h2', [id(teamDetailLinkId(teamStats.team))], teamStats.team.name));
     segments.push(this.teamDetailMatchTable(teamStats));
     segments.push('<br />');
     segments.push(this.teamDetailPlayerTable(teamStats.team));
@@ -537,16 +559,16 @@ export default class HtmlReportGenerator {
     const matchTeam = result.match.getMatchTeam(result.whichTeam);
     const opponent = result.match.getOpponent(result.whichTeam);
     const forf = result.match.isForfeit();
-    if (!matchTeam.team) return trTag([]);
+    if (!matchTeam.team || !opponent.team) return trTag([]);
 
     cells.push(textCell(result.phase?.usesNumericRounds() ? result.round.number.toString() : ''));
     if (!omitPhase) cells.push(textCell(result.phase?.name ?? ''));
     if (!omitPhase && this.tournament.hasAnyCarryover()) {
       cells.push(textCell(result.match.carryoverPhases.map((ph) => ph.name).join(', ')));
     }
-    cells.push(textCell(opponent.team?.name ?? ''));
+    cells.push(textCell(teamDetailLink(opponent.team)));
     cells.push(textCell(result.match.getResultDisplay(result.whichTeam)));
-    cells.push(textCell(result.match.getScoreOnly(result.whichTeam)));
+    cells.push(textCell(scoreboardMatchLink(result.match, result.match.getScoreOnly(result.whichTeam))));
 
     const answerCounts = matchTeam.getAnswerCounts();
     this.tournament.scoringRules.answerTypes.forEach((at) => {
@@ -628,7 +650,7 @@ export default class HtmlReportGenerator {
 
   private teamDetailPlayerTableRow(playerStats: PlayerStats) {
     const cells: string[] = [];
-    cells.push(textCell(playerStats.player.name));
+    cells.push(textCell(playerDetailLink(playerStats.player, playerStats.team)));
     if (this.tournament.trackPlayerYear) cells.push(textCell(playerStats.player.yearString));
     if (this.tournament.trackUG) cells.push(textCell(playerStats.player.isUG ? 'UG' : ''));
     if (this.tournament.trackDiv2) cells.push(textCell(playerStats.player.isD2 ? 'D2' : ''));
@@ -670,7 +692,8 @@ export default class HtmlReportGenerator {
 
   private playerDetailOnePlayer(playerStats: PlayerStats) {
     const segments = [];
-    segments.push(genericTag('h2', `${playerStats.player.name}, ${playerStats.team.name}`));
+    const anchorId = id(playerDetailLinkId(playerStats.player, playerStats.team));
+    segments.push(genericTagWithAttributes('h2', [anchorId], `${playerStats.player.name}, ${playerStats.team.name}`));
     segments.push(this.playerDetailTable(playerStats));
     return segments.join('\n');
   }
@@ -704,13 +727,13 @@ export default class HtmlReportGenerator {
     const matchTeam = result.match.getMatchTeam(result.whichTeam);
     const opponent = result.match.getOpponent(result.whichTeam);
     const forf = result.match.isForfeit();
-    if (!matchTeam.team) return trTag([]);
+    if (!matchTeam.team || !opponent.team) return trTag([]);
 
     cells.push(textCell(result.phase?.usesNumericRounds() ? result.round.number.toString() : ''));
     if (!omitPhase) cells.push(textCell(result.phase?.name ?? ''));
-    cells.push(textCell(opponent.team?.name ?? ''));
+    cells.push(textCell(teamDetailLink(opponent.team)));
     cells.push(textCell(result.match.getResultDisplay(result.whichTeam)));
-    cells.push(textCell(result.match.getScoreOnly(result.whichTeam)));
+    cells.push(textCell(scoreboardMatchLink(result.match, result.match.getScoreOnly(result.whichTeam))));
     const gamesPlayed = (result.matchPlayer.tossupsHeard ?? 0) / (result.match.tossupsRead ?? 0);
     cells.push(numericCell(forf ? '' : gamesPlayed.toFixed(1)));
 
@@ -778,8 +801,16 @@ export default class HtmlReportGenerator {
 
   private roundReportTableRow(stats: RoundStats, omitPhase: boolean = false) {
     const cells: string[] = [];
-    cells.push(textCell(stats.phase?.usesNumericRounds() ? stats.round.number.toString() : ''));
-    if (!omitPhase) cells.push(textCell(stats.phase?.name ?? ''));
+    cells.push(
+      textCell(stats.phase?.usesNumericRounds() ? scoreboardRoundLink(stats.round, stats.round.number.toString()) : ''),
+    );
+    if (!omitPhase) {
+      if (stats.phase && !stats.phase.usesNumericRounds()) {
+        cells.push(textCell(scoreboardRoundLink(stats.phase.rounds[0], stats.phase.name)));
+      } else {
+        cells.push(textCell(stats.phase?.name ?? ''));
+      }
+    }
     cells.push(numericCell(stats.games.toString()));
     cells.push(numericCell(stats.getPointsPerXTuh().toFixed(1)));
     if (this.tournament.scoringRules.hasPowers()) cells.push(numericCell(`${stats.getPowerPct().toFixed(0)}%`));
@@ -844,7 +875,55 @@ const cssClasses = {
   smallText: 'smallText',
   boxScoreTableContainer: 'boxScoreTable',
   pseudoTFoot: 'pseudoTFoot',
+  floatingTOC: 'floatingTOC',
 };
+
+const topAnchorID = '#top';
+
+/** id HTML attribute */
+function id(val: string) {
+  return `id=${val}`;
+}
+
+function scoreboardRoundLink(round: Round, text: string) {
+  const href = `${StatReportFileNames[StatReportPages.Scoreboard]}#${roundLinkId(round)}`;
+  return aTag(href, text);
+}
+
+function roundLinkId(round: Round) {
+  return `Round-${round.number}`;
+}
+
+function scoreboardMatchLink(match: Match, text: string) {
+  const href = `${StatReportFileNames[StatReportPages.Scoreboard]}#${matchLinkId(match)}`;
+  return aTag(href, text);
+}
+
+function matchLinkId(match: Match) {
+  return `Match-${match.id}`;
+}
+
+function teamDetailLink(team: Team) {
+  const href = `${StatReportFileNames[StatReportPages.TeamDetails]}#${teamDetailLinkId(team)}`;
+  return aTag(href, team.name);
+}
+
+function teamDetailLinkId(team: Team) {
+  return alphaOnly(team.name);
+}
+
+function playerDetailLink(player: Player, team: Team) {
+  const href = `${StatReportFileNames[StatReportPages.PlayerDetails]}#${playerDetailLinkId(player, team)}`;
+  return aTag(href, player.name);
+}
+
+function playerDetailLinkId(player: Player, team: Team) {
+  return `${alphaOnly(team.name)}-${alphaOnly(player.name)}`;
+}
+
+function alphaOnly(str: string) {
+  return str.replace(/\W/g, '');
+}
 
 /** Header at the top of the html document */
 function getHtmlHeader(pageTitle: string) {
@@ -888,6 +967,24 @@ function getPageStyle() {
     { attr: 'border-top', val: '1px solid #909090' },
     { attr: 'background-color', val: '#ffffff !important' },
   );
+  const floatingTOC = cssSelector(
+    `.${cssClasses.floatingTOC}`,
+    { attr: 'top', val: '45px' },
+    { attr: 'position', val: 'sticky' },
+    { attr: 'float', val: 'right' },
+    { attr: 'margin-top', val: '5px' },
+    { attr: 'margin-right', val: '10px' },
+    { attr: 'padding-right', val: '5px' },
+    { attr: 'background-color', val: '#cccccc' },
+    { attr: 'box-shadow', val: '4px 4px 7px #999999' },
+    { attr: 'line-height', val: '1.5' },
+  );
+  const ulNoBullets = cssSelector(
+    `.${cssClasses.floatingTOC} ul`,
+    { attr: 'list-style-type', val: 'none' },
+    { attr: 'padding-inline-start', val: '20px' },
+    { attr: 'font-size', val: '11pt' },
+  );
   return genericTag(
     'style',
     body,
@@ -901,6 +998,8 @@ function getPageStyle() {
     phaseH2,
     boxScoreTableContainer,
     pseudoFooter,
+    floatingTOC,
+    ulNoBullets,
   );
 }
 
@@ -973,10 +1072,23 @@ function genericTagWithAttributes(tag: string, attr: string[], ...contents: stri
   return `<${tag} ${attr.join(' ')}>\n${contents.join('\n')}\n</${tag}>`;
 }
 
-function headerWithDivider(text: string) {
+function headerWithDivider(text: string, noTopLink: boolean = false) {
   const header = genericTag('h2', text + nbsp);
   const divider = genericTagWithAttributes('div', [classAttribute(cssClasses.inlineDivider)]);
-  return genericTagWithAttributes('div', [classAttribute(cssClasses.headerAndDivider)], header, divider);
+  if (noTopLink) return genericTagWithAttributes('div', [classAttribute(cssClasses.headerAndDivider)], header, divider);
+
+  const topLink = aTag(
+    topAnchorID,
+    genericTagWithAttributes('span', [classAttribute(cssClasses.smallText)], `${unicodeHTML('2191')}Top`),
+  );
+  return genericTagWithAttributes(
+    'div',
+    [classAttribute(cssClasses.headerAndDivider)],
+    header,
+    divider,
+    genericTag('span', nbsp),
+    topLink,
+  );
 }
 
 function unorderedList(items: string[]) {

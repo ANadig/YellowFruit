@@ -93,10 +93,16 @@ function writeInAppStatReportFile(reports: StatReportHtmlPage[], idx: number, wi
   });
 }
 
+/** Take the special URL passed from the renderer process, and convert into the actual file name that we need to load */
 export function parseStatReportPath(url: string) {
-  const str = url.replace(`${statReportProtocol}://`, '');
+  let str = url.replace(`${statReportProtocol}://`, '');
+  // Remove the #<anchor> at the end. Otherwise electron will attempt to load a file with that
+  // exact name. Somehow, the iframe still magically scrolls to the anchor.
+  str = str.replace(/#.*$/, '');
 
+  // if it just ends with ".html/", we're good
   if (str.search(/\.html\/.+/) === -1) return str;
+
   // links in the iframe try to take you to, e.g. "standings.html/individuals.html" instead of
   // "individuals.html", so we need to remove the first page name before the slash
   return str.replace(/^.*\.html\//, '');
