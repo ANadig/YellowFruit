@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-useless-concat */
 import { StatReportPages, StatReportPageOrder, StatReportFileNames } from '../Enums';
-import { LeftOrRight } from '../Utils/UtilTypes';
+import { LeftOrRight, NullObjects } from '../Utils/UtilTypes';
 import { Match } from './Match';
 import { MatchPlayer } from './MatchPlayer';
 import { MatchTeam } from './MatchTeam';
@@ -76,6 +76,8 @@ export default class HtmlReportGenerator {
     const prelims = this.tournament.stats[0];
     if (!prelims) return '';
 
+    sections.push(this.generalMetaData());
+
     if (this.tournament.finalRankingsReady) {
       const header = headerWithDivider('Final Rankings', true);
       sections.push(`${header}\n${this.cumulativeStandingsTable()}`);
@@ -101,6 +103,21 @@ export default class HtmlReportGenerator {
       sections.push(`${header}\n${this.cumulativeStandingsTable(true)}`);
     }
     return sections.join('\n');
+  }
+
+  private generalMetaData() {
+    const firstLineSegments: string[] = [];
+    if (this.tournament.name) firstLineSegments.push(genericTag('span', this.tournament.name));
+    if (this.tournament.startDate !== NullObjects.nullDate) {
+      firstLineSegments.push(genericTag('span', this.tournament.startDate.toDateString()));
+    }
+    if (this.tournament.tournamentSite.name) {
+      firstLineSegments.push(genericTag('span', this.tournament.tournamentSite.name));
+    }
+    if (this.tournament.questionSet) {
+      firstLineSegments.push(genericTag('span', `Question set: ${this.tournament.questionSet}`));
+    }
+    return firstLineSegments.join(genericTag('span', `${emsp}|${emsp}`));
   }
 
   private standingsForOnePhase(phaseStandings: PhaseStandings) {
@@ -859,6 +876,7 @@ export default class HtmlReportGenerator {
 const lineBreak = '<br/>';
 const mDashHtml = '&mdash;';
 const nbsp = '&nbsp;';
+const emsp = '&emsp;';
 
 const StatReportPageTitles = {
   [StatReportPages.Standings]: 'Standings',
