@@ -110,8 +110,6 @@ export default class HtmlReportGenerator {
     if (this.tournament.name) firstLineSegments.push(genericTag('span', this.tournament.name));
     if (this.tournament.startDate !== NullObjects.nullDate) {
       const sDate = this.tournament.startDate.toDateString();
-      console.log(this.tournament.startDate);
-      console.log(this.tournament.endDate);
       if (this.tournament.endDate !== NullObjects.nullDate) {
         firstLineSegments.push(genericTag('span', `${sDate} ${ndash} ${this.tournament.endDate.toDateString()}`));
       } else {
@@ -806,19 +804,20 @@ export default class HtmlReportGenerator {
 
   private roundReportTableHeader(omitPhase: boolean = false) {
     const cells: string[] = [];
+    const columnWidth = omitPhase ? '11%' : '10%';
     cells.push(stdTdHeader('Round'));
-    if (!omitPhase) cells.push(tdTag({ bold: true, width: '15%' }, 'Stage'));
-    cells.push(stdTdHeader('Games', true));
-    cells.push(stdTdHeader(`Pts/Team/${this.tournament.scoringRules.regulationTossupCount}TUH`, true));
-    if (this.tournament.scoringRules.hasPowers()) cells.push(stdTdHeader('TU Powered', true));
-    cells.push(stdTdHeader('TU Converted', true));
+    if (!omitPhase) cells.push(stdTdHeader('Stage', false, '15%'));
+    cells.push(stdTdHeader('Games', true, '10%'));
+    cells.push(stdTdHeader(`Pts/Team/${this.tournament.scoringRules.regulationTossupCount}TUH`, true, columnWidth));
+    if (this.tournament.scoringRules.hasPowers()) cells.push(stdTdHeader('TU Powered', true, columnWidth));
+    cells.push(stdTdHeader('TU Converted', true, columnWidth));
     if (this.tournament.scoringRules.hasNegs()) {
-      cells.push(stdTdHeader(`Negs/Team/${this.tournament.scoringRules.regulationTossupCount}TUH`, true));
+      cells.push(stdTdHeader(`Negs/Team/${this.tournament.scoringRules.regulationTossupCount}TUH`, true, columnWidth));
     }
-    if (this.tournament.scoringRules.useBonuses) cells.push(stdTdHeader('PPB', true));
+    if (this.tournament.scoringRules.useBonuses) cells.push(stdTdHeader('PPB', true, columnWidth));
     if (this.tournament.scoringRules.bonusesBounceBack) {
-      cells.push(stdTdHeader('BB%', true));
-      cells.push(stdTdHeader('Bonus%', true));
+      cells.push(stdTdHeader('BB%', true, columnWidth));
+      cells.push(stdTdHeader('Bonus%', true, columnWidth));
     }
     return trTag(cells);
   }
@@ -1064,9 +1063,11 @@ function tableFooter(tdTags: string[]) {
   return `<tr class=${cssClasses.pseudoTFoot}>\n${tdTags.join('\n')}\n</tr>`;
 }
 
-function stdTdHeader(contents: string, rightAlign: boolean = false) {
-  if (rightAlign) return tdTag({ bold: true, align: 'right' }, contents);
-  return tdTag({ bold: true }, contents);
+function stdTdHeader(contents: string, rightAlign?: boolean, width?: string) {
+  const props: tdAttributes = { bold: true };
+  if (rightAlign) props.align = 'right';
+  if (width) props.width = width;
+  return tdTag(props, contents);
 }
 
 function textCell(contents: string) {
