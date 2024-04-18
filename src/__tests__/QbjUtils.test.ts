@@ -1,17 +1,15 @@
 import { expect, test } from 'vitest';
-import {
-  collectRefTargets,
-  collectRefTargetsScoringRules,
-  collectRefTargetsTournament,
-  getBaseQbjObject,
-  isQbjRefPointer,
-  makeQbjRefPointer,
-} from '../renderer/DataModel/QbjUtils';
+import { getBaseQbjObject, isQbjRefPointer, makeQbjRefPointer } from '../renderer/DataModel/QbjUtils';
 import { IQbjTournamentSite, TournamentSite } from '../renderer/DataModel/TournamentSite';
 import { IIndeterminateQbj } from '../renderer/DataModel/Interfaces';
 import { QbjTypeNames } from '../renderer/DataModel/QbjEnums';
 import { IQbjScoringRules } from '../renderer/DataModel/ScoringRules';
 import { IQbjTournament } from '../renderer/DataModel/Tournament';
+import {
+  collectRefTargets,
+  collectRefTargetsScoringRules,
+  collectRefTargetsTournament,
+} from '../renderer/DataModel/QbjUtils2';
 
 test('isQbjRefPointer01', () => {
   const obj = { $ref: 'someId' };

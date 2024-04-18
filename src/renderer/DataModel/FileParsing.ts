@@ -362,7 +362,7 @@ export default class FileParser {
     if (yearStr) {
       yfPlayer.yearString = yearStr;
     } else {
-      const yearStringFromNumericYear = this.parsePlayerYear(year);
+      const yearStringFromNumericYear = parsePlayerYear(year);
       if (yearStringFromNumericYear === undefined) {
         throw new Error(
           `Player ${yfPlayer.name} on team ${teamName} has an invalid Year attribute (must be between -1 and 18)`,
@@ -376,15 +376,6 @@ export default class FileParser {
     if (qbjPlayer.id) this.playersById[qbjPlayer.id] = yfPlayer;
 
     return yfPlayer;
-  }
-
-  // only exporting so I can unit test
-  /** Translate Qbj numeric year to YF string representation. Returns undefined if invalid. */
-  parsePlayerYear(yearFromFile: number | undefined): string | undefined {
-    if (yearFromFile === undefined) return '';
-    if (yearFromFile < -1 || 18 < yearFromFile) return undefined;
-    if (yearFromFile === -1) return '';
-    return Player.yearAbbrevs[yearFromFile as unknown as keyof typeof Player.yearAbbrevs];
   }
 
   parseSeedList(seedsFromFile: IQbjRefPointer[]): Team[] {
@@ -796,6 +787,15 @@ export default class FileParser {
 
     return dict[id];
   }
+}
+
+// only exporting so I can unit test
+/** Translate Qbj numeric year to YF string representation. Returns undefined if invalid. */
+export function parsePlayerYear(yearFromFile: number | undefined): string | undefined {
+  if (yearFromFile === undefined) return '';
+  if (yearFromFile < -1 || 18 < yearFromFile) return undefined;
+  if (yearFromFile === -1) return '';
+  return Player.yearAbbrevs[yearFromFile as unknown as keyof typeof Player.yearAbbrevs];
 }
 
 /** Returns true if suppliedValue isn't an integer between the given bounds */

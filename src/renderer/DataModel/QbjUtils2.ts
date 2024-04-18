@@ -3,6 +3,7 @@ import { IQbjPhase } from './Phase';
 import { IQbjPool } from './Pool';
 import { QbjTypeNames } from './QbjEnums';
 import { IQbjRank } from './Rank';
+import { IQbjRanking } from './Ranking';
 import { IQbjRegistration } from './Registration';
 import { IQbjScoringRules } from './ScoringRules';
 import { IQbjTeam } from './Team';
@@ -102,7 +103,8 @@ export function collectRefTargetsTeam(team: IQbjTeam) {
 export function collectRefTargetsRank(rank: IQbjRank) {
   const dict: IRefTargetDict = {};
   if (!rank.ranking) return dict;
-  const { ranking } = rank;
+  let { ranking } = rank;
+  ranking = ranking as IQbjRanking;
   if (ranking.id) dict[ranking.id] = ranking;
   return dict;
 }
