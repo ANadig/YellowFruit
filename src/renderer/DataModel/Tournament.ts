@@ -28,7 +28,7 @@ export interface IQbjTournament extends IQbjObject {
   /** Free-text name of the tournament */
   name: string;
   /** An abbreviated version of the tournament's name */
-  short_name?: string;
+  shortName?: string;
   /** Where the tournament happened */
   tournamentSite?: IQbjTournamentSite;
   /** Validation rules for scoring matches in this tournament */

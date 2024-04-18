@@ -25,6 +25,7 @@ import { Round } from './DataModel/Round';
 import TempPhaseManager from './Modal Managers/TempPhaseManager';
 import TempPoolManager from './Modal Managers/TempPoolManager';
 import TempRankManager from './Modal Managers/TempRankManager';
+import { convertFormatQbjToYf, convertFormatYfToQbj } from './DataModel/FileConversion';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -139,6 +140,7 @@ export class TournamentManager {
 
     if (objFromFile.length < 1) return;
 
+    convertFormatQbjToYf(objFromFile);
     const loadedTournament = this.loadTournamentFromQbjObjects(objFromFile);
     if (loadedTournament === null) {
       return;
@@ -182,7 +184,7 @@ export class TournamentManager {
 
   /** Is this a property in a JSON file that we should try to parse a date from? */
   static isNameOfDateField(key: string) {
-    return key === 'startDate' || key === 'endDate';
+    return key === 'startDate' || key === 'endDate' || key === 'start_date' || key === 'end_date';
   }
 
   private static getTournamentFromQbjFile(fileObj: IQbjWholeFile): IQbjTournament | null {
@@ -211,6 +213,7 @@ export class TournamentManager {
     }
 
     const wholeFileObj = [this.tournament.toFileObject(false, true)];
+    convertFormatYfToQbj(wholeFileObj);
 
     const fileContents = JSON.stringify(wholeFileObj, (key, value) => {
       if (TournamentManager.isNameOfDateField(key)) {
