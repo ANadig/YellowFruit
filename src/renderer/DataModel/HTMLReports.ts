@@ -109,7 +109,14 @@ export default class HtmlReportGenerator {
     const firstLineSegments: string[] = [];
     if (this.tournament.name) firstLineSegments.push(genericTag('span', this.tournament.name));
     if (this.tournament.startDate !== NullObjects.nullDate) {
-      firstLineSegments.push(genericTag('span', this.tournament.startDate.toDateString()));
+      const sDate = this.tournament.startDate.toDateString();
+      console.log(this.tournament.startDate);
+      console.log(this.tournament.endDate);
+      if (this.tournament.endDate !== NullObjects.nullDate) {
+        firstLineSegments.push(genericTag('span', `${sDate} ${ndash} ${this.tournament.endDate.toDateString()}`));
+      } else {
+        firstLineSegments.push(genericTag('span', sDate));
+      }
     }
     if (this.tournament.tournamentSite.name) {
       firstLineSegments.push(genericTag('span', this.tournament.tournamentSite.name));
@@ -877,6 +884,7 @@ const lineBreak = '<br/>';
 const mDashHtml = '&mdash;';
 const nbsp = '&nbsp;';
 const emsp = '&emsp;';
+const ndash = '&ndash;';
 
 const StatReportPageTitles = {
   [StatReportPages.Standings]: 'Standings',

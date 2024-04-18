@@ -182,7 +182,7 @@ export class TournamentManager {
 
   /** Is this a property in a JSON file that we should try to parse a date from? */
   static isNameOfDateField(key: string) {
-    return key === 'startDate'; // additional fields in QBJ files aren't used or stored in YF
+    return key === 'startDate' || key === 'endDate';
   }
 
   private static getTournamentFromQbjFile(fileObj: IQbjWholeFile): IQbjTournament | null {
@@ -304,6 +304,15 @@ export class TournamentManager {
       return;
     }
     this.tournament.startDate = validDateOrNull === null ? NullObjects.nullDate : validDateOrNull.toDate();
+    this.onDataChanged();
+  }
+
+  setTournamentEndDate(dateFromUser: Dayjs | null) {
+    const validDateOrNull = dateFromUser?.isValid() ? dateFromUser : null;
+    if (!dateFieldChanged(dayjs(this.tournament.endDate), validDateOrNull)) {
+      return;
+    }
+    this.tournament.endDate = validDateOrNull === null ? NullObjects.nullDate : validDateOrNull.toDate();
     this.onDataChanged();
   }
 

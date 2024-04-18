@@ -86,6 +86,8 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   startDate: Date = NullObjects.nullDate;
 
+  endDate: Date = NullObjects.nullDate;
+
   registrations: Registration[] = [];
 
   /** Phases (prelims, playoffs, etc) of the tournament. In YellowFruit, these must always be in chronological order! */
@@ -132,6 +134,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     const qbjObject: IQbjTournament = {
       name: this.name || Tournament.placeholderName,
       startDate: !NullDate.isNullDate(this.startDate) ? this.startDate : undefined,
+      endDate: !NullDate.isNullDate(this.endDate) ? this.endDate : undefined,
       questionSet: this.questionSet || undefined,
       registrations: this.registrations.map((reg) => reg.toFileObject(qbjOnly)),
       phases: this.phases.map((ph) => ph.toFileObject(qbjOnly, false, true)),

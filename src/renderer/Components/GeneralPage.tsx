@@ -30,8 +30,10 @@ function GeneralInfoCard() {
   const thisTournament = tournManager.tournament;
   const [tournName, setTournName] = useSubscription(thisTournament.name);
   const [location, setLocation] = useSubscription(thisTournament.tournamentSite.name);
-  const initialDateVal = NullDate.isNullDate(thisTournament.startDate) ? null : dayjs(thisTournament.startDate);
-  const [date, setDate] = useSubscription(initialDateVal);
+  const initialStartDateVal = NullDate.isNullDate(thisTournament.startDate) ? null : dayjs(thisTournament.startDate);
+  const initialEndDateVal = NullDate.isNullDate(thisTournament.endDate) ? null : dayjs(thisTournament.endDate);
+  const [startDate, setStartDate] = useSubscription(initialStartDateVal);
+  const [endDate, setEndDate] = useSubscription(initialEndDateVal);
 
   return (
     <YfCard title="General">
@@ -62,11 +64,20 @@ function GeneralInfoCard() {
         />
         <Box sx={{ '& .MuiInputBase-root': { height: '40px' }, '& .MuiFormLabel-root': { marginTop: '-7px' } }}>
           <DatePicker
+            sx={{ marginRight: 2 }}
             label="Date"
-            value={date}
+            value={startDate}
             onChange={(newValue) => {
-              setDate(newValue);
+              setStartDate(newValue);
               tournManager.setTournamentStartDate(newValue);
+            }}
+          />
+          <DatePicker
+            label="End Date (if multi-day)"
+            value={endDate}
+            onChange={(newValue) => {
+              setEndDate(newValue);
+              tournManager.setTournamentEndDate(newValue);
             }}
           />
         </Box>

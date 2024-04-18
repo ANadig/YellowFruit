@@ -61,6 +61,7 @@ export default class FileParser {
 
     if (obj.name && obj.name !== Tournament.placeholderName) this.tourn.name = obj.name;
     if (obj.startDate) this.tourn.startDate = obj.startDate;
+    if (obj.endDate) this.tourn.endDate = obj.endDate;
     if (obj.questionSet) this.tourn.questionSet = obj.questionSet;
 
     const site = obj.tournamentSite;
