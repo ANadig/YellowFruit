@@ -98,7 +98,7 @@ export default class HtmlReportGenerator {
       sections.push(`${header}\n${this.standingsForOnePhase(phaseStats)}`);
     }
 
-    if (printedPhaseCount > 1 && !this.tournament.finalRankingsReady) {
+    if (this.tournament.numberOfPhasesWithStats() > 1 && !this.tournament.finalRankingsReady) {
       const header = headerWithDivider('Cumulative');
       sections.push(`${header}\n${this.cumulativeStandingsTable(true)}`);
     }
@@ -289,7 +289,7 @@ export default class HtmlReportGenerator {
     const prelimsHeader = headerWithDivider(prelims.phase.name, true);
     sections.push(`${prelimsHeader}\n${this.individualsTable(prelims.players)}`);
 
-    if (this.tournament.stats.length > 1 && this.tournament.cumulativeStats) {
+    if (this.tournament.numberOfPhasesWithStats() > 1 && this.tournament.cumulativeStats) {
       const aggregateHeader = headerWithDivider('All Games');
       sections.push(`${aggregateHeader}\n${this.individualsTable(this.tournament.cumulativeStats.players, true)}`);
     }
@@ -793,7 +793,7 @@ export default class HtmlReportGenerator {
   private getRoundReportHtml() {
     if (!this.tournament.cumulativeStats) return '';
 
-    const omitPhaseCol = this.tournament.phases.length < 2;
+    const omitPhaseCol = this.tournament.numberOfPhasesWithStats() < 2;
     const rows = [this.roundReportTableHeader(omitPhaseCol)];
     for (const roundStats of this.tournament.cumulativeStats.rounds) {
       rows.push(this.roundReportTableRow(roundStats, omitPhaseCol));

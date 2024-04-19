@@ -560,6 +560,14 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.hasMatchData = this.getPrelimPhase()?.anyMatchesExist() || false;
   }
 
+  numberOfPhasesWithStats() {
+    let num = 0;
+    for (const phase of this.phases) {
+      if (phase.anyMatchesExist()) num++;
+    }
+    return num;
+  }
+
   /** Which players on this team have played, ever? */
   getPlayersWithData(team: Team) {
     const players: Player[] = [];
