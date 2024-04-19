@@ -12,6 +12,7 @@ function MaxPlayersSettingsCard() {
   const tournManager = useContext(TournamentContext);
   const thisTournamentRules = tournManager.tournament.scoringRules;
   const [numPlayers, setNumPlayers] = useSubscription(thisTournamentRules.maximumPlayersPerTeam.toString());
+  const readOnly = tournManager.tournament.hasMatchData;
 
   const numPlayersIsValid = () => {
     if (numPlayers === '') return false;
@@ -36,7 +37,7 @@ function MaxPlayersSettingsCard() {
         sx={{ marginTop: 1, width: '13ch' }}
         size="small"
         type="number"
-        inputProps={{ min: 1 }}
+        inputProps={{ min: 1, disabled: readOnly }}
         label="Max Per Team"
         value={numPlayers}
         error={!numPlayersIsValid()}

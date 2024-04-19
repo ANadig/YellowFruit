@@ -11,6 +11,7 @@ const ruleSets = [CommonRuleSets.NaqtUntimed, CommonRuleSets.NaqtTimed, CommonRu
 function StandardRuleSetCard() {
   const tournManager = useContext(TournamentContext);
   const [ruleSet, setRuleSet] = useSubscription(tournManager.tournament.standardRuleSet ?? '');
+  const readOnly = tournManager.tournament.hasMatchData;
 
   return (
     <YfCard title="Standard Rule Sets">
@@ -18,6 +19,7 @@ function StandardRuleSetCard() {
         size="small"
         color="primary"
         exclusive
+        disabled={readOnly}
         value={ruleSet}
         onChange={(e, newValue) => {
           if (newValue === null) return;

@@ -26,6 +26,7 @@ function RoundLengthSettingsCard() {
   const [numTus, setNumTus] = useSubscription(thisTournamentRules.maximumRegulationTossupCount.toString());
   const [numTusLabel, setNumTusLabel] = useState(getTuFieldLabel(thisTournamentRules.timed));
   const [numTusHelpText, setNumTusHelpText] = useState(getTuFieldHelpText(thisTournamentRules.timed));
+  const readOnly = tournManager.tournament.hasMatchData;
 
   const handleTimedRoundsChange = (e: ChangeEvent<HTMLInputElement>) => {
     setTimedRoundsChecked(e.target.checked);
@@ -57,14 +58,14 @@ function RoundLengthSettingsCard() {
       <FormGroup>
         <FormControlLabel
           label="Timed Rounds"
-          control={<Switch checked={timedRoundsChecked} onChange={handleTimedRoundsChange} />}
+          control={<Switch disabled={readOnly} checked={timedRoundsChecked} onChange={handleTimedRoundsChange} />}
         />
       </FormGroup>
       <TextField
         sx={{ marginTop: 1, width: '13ch' }}
         size="small"
         type="number"
-        inputProps={{ min: 1 }}
+        inputProps={{ min: 1, disabled: readOnly }}
         label={numTusLabel}
         value={numTus}
         error={!tuNumberIsValid()}

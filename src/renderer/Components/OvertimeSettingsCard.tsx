@@ -12,6 +12,7 @@ function OvertimeSettingsCard() {
   const [minTossups, setMinTossups] = useSubscription(thisTournamentRules.minimumOvertimeQuestionCount.toString());
   const [otUseBonuses, setOtUseBonuses] = useSubscription(thisTournamentRules.overtimeIncludesBonuses);
   const [minTossupsVisible, setMinTossupsVisible] = useSubscription(!suddenDeath);
+  const readOnly = tournManager.tournament.hasMatchData;
 
   const handleSuddenDeathChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSuddenDeath(e.target.checked);
@@ -57,7 +58,7 @@ function OvertimeSettingsCard() {
       <FormGroup>
         <FormControlLabel
           label="Sudden Death"
-          control={<Switch checked={suddenDeath} onChange={handleSuddenDeathChange} />}
+          control={<Switch checked={suddenDeath} disabled={readOnly} onChange={handleSuddenDeathChange} />}
         />
       </FormGroup>
       {minTossupsVisible && (
@@ -65,7 +66,7 @@ function OvertimeSettingsCard() {
           sx={{ marginTop: 1, marginLeft: 6, width: '13ch' }}
           size="small"
           type="number"
-          inputProps={{ min: 1 }}
+          inputProps={{ min: 1, disabled: readOnly }}
           label="Min Toss-Ups"
           value={minTossups}
           error={!numPlayersIsValid()}
@@ -79,7 +80,7 @@ function OvertimeSettingsCard() {
       <FormGroup>
         <FormControlLabel
           label="Use Bonuses"
-          control={<Switch checked={otUseBonuses} onChange={handleUseBonusChange} />}
+          control={<Switch checked={otUseBonuses} disabled={readOnly} onChange={handleUseBonusChange} />}
         />
       </FormGroup>
     </YfCard>

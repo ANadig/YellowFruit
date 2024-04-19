@@ -33,6 +33,8 @@ function TossupSettingsCard() {
   const thisTournament = tournManager.tournament;
   const [customPtValFormOpen, setCustomPtValFormOpen] = useState(false);
   const [activeAnswerTypes, setAnswerTypes] = useSubscription(thisTournament.scoringRules?.answerTypes);
+  const readOnly = tournManager.tournament.hasMatchData;
+
   if (!activeAnswerTypes) return null;
 
   const canAddMoreValues = activeAnswerTypes.length < ScoringRules.maximumAnswerTypes;
@@ -68,15 +70,20 @@ function TossupSettingsCard() {
   return (
     <YfCard title="Toss-Ups">
       <Typography variant="subtitle2">Point values</Typography>
-      <ActivePointValueList answerTypes={activeAnswerTypes} deleteItem={deleteAnswerType} />
+      <ActivePointValueList answerTypes={activeAnswerTypes} deleteItem={deleteAnswerType} allDisabled={readOnly} />
       {canAddMoreValues && <Typography variant="subtitle2">Add more point values</Typography>}
       {canAddMoreValues && (
         <Box sx={{ py: 1 }}>
-          <AvailableStandardPtValuesList pointValues={pointValuesForChips} addPointValue={addAnswerType} />
+          <AvailableStandardPtValuesList
+            pointValues={pointValuesForChips}
+            addPointValue={addAnswerType}
+            disabled={readOnly}
+          />
           <Chip
             key="custom"
             sx={{ marginBottom: 1 }}
             label="Custom..."
+            disabled={readOnly}
             onDelete={() => setCustomPtValFormOpen(true)}
             deleteIcon={<Add />}
           />
@@ -98,10 +105,11 @@ function TossupSettingsCard() {
 interface IActivePointValueListProps {
   answerTypes: AnswerType[];
   deleteItem: (pointValue: number) => void;
+  allDisabled: boolean;
 }
 
 function ActivePointValueList(props: IActivePointValueListProps) {
-  const { answerTypes, deleteItem } = props;
+  const { answerTypes, deleteItem, allDisabled } = props;
 
   const positivePtValues = answerTypes.filter((aType) => {
     return aType.value > 0;
@@ -123,7 +131,7 @@ function ActivePointValueList(props: IActivePointValueListProps) {
                 <span>
                   <IconButton
                     sx={{ '&:hover': { backgroundColor: 'transparent' } }}
-                    disabled={disableDelete}
+                    disabled={disableDelete || allDisabled}
                     onClick={() => deleteItem(answerType.value)}
                   >
                     <Delete />
@@ -141,16 +149,18 @@ function ActivePointValueList(props: IActivePointValueListProps) {
 interface IAvailableStandardPtValuesListProps {
   pointValues: number[];
   addPointValue: (pointValue: number) => void;
+  disabled: boolean;
 }
 
 function AvailableStandardPtValuesList(props: IAvailableStandardPtValuesListProps) {
-  const { pointValues, addPointValue } = props;
+  const { pointValues, addPointValue, disabled } = props;
 
   return pointValues.map((value) => (
     <Chip
       key={value}
       sx={{ marginRight: 1, marginBottom: 1 }}
       label={`${value} pts`}
+      disabled={disabled}
       onDelete={() => addPointValue(value)}
       deleteIcon={<Add />}
     />

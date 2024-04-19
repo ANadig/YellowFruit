@@ -25,6 +25,7 @@ function BonusSettingsCard() {
   const [useBonuses, setUseBonuses] = useSubscription(thisTournamentRules.useBonuses);
   const [bonusesBounce, setBonusesBounce] = useSubscription(thisTournamentRules.bonusesBounceBack);
   const [advancedExpanded, setAdvancedExpanded] = useState(false);
+  const readOnly = tournManager.tournament.hasMatchData;
 
   const handleUseBonusesChange = (e: ChangeEvent<HTMLInputElement>) => {
     setUseBonuses(e.target.checked);
@@ -44,10 +45,15 @@ function BonusSettingsCard() {
   return (
     <YfCard title="Bonuses">
       <FormGroup>
-        <FormControlLabel label="Bonuses" control={<Switch checked={useBonuses} onChange={handleUseBonusesChange} />} />
+        <FormControlLabel
+          label="Bonuses"
+          control={<Switch disabled={readOnly} checked={useBonuses} onChange={handleUseBonusesChange} />}
+        />
         <FormControlLabel
           label="Bouncebacks"
-          control={<Switch disabled={!useBonuses} checked={bonusesBounce} onChange={handleBonusesBounceChange} />}
+          control={
+            <Switch disabled={readOnly || !useBonuses} checked={bonusesBounce} onChange={handleBonusesBounceChange} />
+          }
         />
       </FormGroup>
       {useBonuses && (
@@ -81,6 +87,7 @@ function AdvancedBonusSection() {
   const [maxBonusParts, setMaxBonusParts] = useSubscription(thisTournamentRules.maximumPartsPerBonus.toString());
   const [ptsPerPart, setPtsPerPart] = useSubscription(thisTournamentRules.pointsPerBonusPart?.toString() || '');
   const [divisor, setDivisor] = useSubscription(thisTournamentRules.bonusDivisor.toString());
+  const readOnly = tournManager.tournament.hasMatchData;
 
   const handleMaxBonusScoreChange = (value: string) => {
     const deflt = ptsPerPart !== '' ? parseInt(ptsPerPart, 10) * parseInt(maxBonusParts, 10) : 30;
@@ -144,7 +151,7 @@ function AdvancedBonusSection() {
           label="Max bonus score"
           required
           value={maxBonusScore}
-          disabled={ptsPerPart !== ''}
+          disabled={readOnly || ptsPerPart !== ''}
           minValue={1}
           maxValue={1000}
           onChange={setMaxBonusScore}
@@ -154,7 +161,7 @@ function AdvancedBonusSection() {
           label="Min parts per bonus"
           required
           value={minBonusParts}
-          disabled={false}
+          disabled={readOnly}
           minValue={1}
           maxValue={parseInt(maxBonusParts, 10)}
           onChange={setMinBonusParts}
@@ -164,7 +171,7 @@ function AdvancedBonusSection() {
           label="Max parts per bonus"
           required
           value={maxBonusParts}
-          disabled={false}
+          disabled={readOnly}
           minValue={parseInt(minBonusParts, 10)}
           maxValue={1000}
           onChange={setMaxBonusParts}
@@ -174,7 +181,7 @@ function AdvancedBonusSection() {
           label="Pts per bonus part"
           required={false}
           value={ptsPerPart}
-          disabled={false}
+          disabled={readOnly}
           minValue={1}
           maxValue={1000}
           onChange={setPtsPerPart}
@@ -184,7 +191,7 @@ function AdvancedBonusSection() {
           label="Divisor"
           required
           value={divisor}
-          disabled={ptsPerPart !== ''}
+          disabled={readOnly || ptsPerPart !== ''}
           minValue={1}
           maxValue={parseInt(maxBonusScore, 10)}
           onChange={setDivisor}
