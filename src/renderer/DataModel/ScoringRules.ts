@@ -4,10 +4,9 @@ import { QbjTypeNames } from './QbjEnums';
 
 /** Common match formats to standardly implement */
 export enum CommonRuleSets {
-  NaqtUntimed,
-  NaqtTimed,
-  Acf,
-  Pace,
+  NaqtUntimed = 'NaqtUntimed',
+  NaqtTimed = 'NaqtTimed',
+  Acf = 'Acf',
 }
 
 /**
@@ -149,7 +148,6 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
   applyRuleSet(ruleSet: CommonRuleSets) {
     const ten = new AnswerType(10);
     const power15 = new AnswerType(15);
-    const power20 = new AnswerType(20);
     const neg = new AnswerType(-5);
 
     switch (ruleSet) {
@@ -160,14 +158,6 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
         this.useBonuses = true;
         this.bonusesBounceBack = false;
         this.answerTypes = [ten, neg];
-        break;
-      case CommonRuleSets.Pace:
-        this.timed = false;
-        this.maximumRegulationTossupCount = 20;
-        this.minimumOvertimeQuestionCount = 1;
-        this.useBonuses = true;
-        this.bonusesBounceBack = true;
-        this.answerTypes = [power20, ten];
         break;
       case CommonRuleSets.NaqtTimed:
         this.timed = true;
@@ -238,8 +228,6 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
     switch (ruleSet) {
       case CommonRuleSets.Acf:
         return 'ACF';
-      case CommonRuleSets.Pace:
-        return 'PACE NSC';
       case CommonRuleSets.NaqtTimed:
         return 'NAQT (timed)';
       case CommonRuleSets.NaqtUntimed:

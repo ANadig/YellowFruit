@@ -1,13 +1,16 @@
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { useState } from 'react';
+import { useContext } from 'react';
 import YfCard from './YfCard';
 import { CommonRuleSets, ScoringRules } from '../DataModel/ScoringRules';
+import { TournamentContext } from '../TournamentManager';
+import useSubscription from '../Utils/CustomHooks';
 
 // Defines the order the buttons should be in
-const ruleSets = [CommonRuleSets.NaqtUntimed, CommonRuleSets.NaqtTimed, CommonRuleSets.Acf, CommonRuleSets.Pace];
+const ruleSets = [CommonRuleSets.NaqtUntimed, CommonRuleSets.NaqtTimed, CommonRuleSets.Acf];
 
 function StandardRuleSetCard() {
-  const [ruleSet, setRuleSet] = useState('');
+  const tournManager = useContext(TournamentContext);
+  const [ruleSet, setRuleSet] = useSubscription(tournManager.tournament.standardRuleSet ?? '');
 
   return (
     <YfCard title="Standard Rule Sets">
@@ -19,6 +22,7 @@ function StandardRuleSetCard() {
         onChange={(e, newValue) => {
           if (newValue === null) return;
           setRuleSet(newValue);
+          tournManager.applStdRuleSet(newValue);
         }}
       >
         {ruleSets.map((val) => (

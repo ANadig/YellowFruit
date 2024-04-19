@@ -84,6 +84,8 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   scoringRules: ScoringRules;
 
+  standardRuleSet?: CommonRuleSets;
+
   startDate: Date = NullObjects.nullDate;
 
   endDate: Date = NullObjects.nullDate;
@@ -214,7 +216,12 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   /** Set the scoring rules for this tournament */
   applyRuleSet(rules: CommonRuleSets): void {
-    this.scoringRules = new ScoringRules(rules);
+    this.scoringRules.applyRuleSet(rules);
+    this.standardRuleSet = rules;
+  }
+
+  clearStdRuleSet() {
+    delete this.standardRuleSet;
   }
 
   /** The total number of teams that currently exist. */

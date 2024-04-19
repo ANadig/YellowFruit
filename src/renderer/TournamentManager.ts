@@ -26,6 +26,7 @@ import TempPhaseManager from './Modal Managers/TempPhaseManager';
 import TempPoolManager from './Modal Managers/TempPoolManager';
 import TempRankManager from './Modal Managers/TempRankManager';
 import { convertFormatQbjToYf, convertFormatYfToQbj } from './DataModel/FileConversion';
+import { CommonRuleSets } from './DataModel/ScoringRules';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -354,13 +355,20 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  applStdRuleSet(ruleSet: CommonRuleSets) {
+    this.tournament.applyRuleSet(ruleSet);
+    this.onDataChanged();
+  }
+
   setAnswerTypes(answerTypes: AnswerType[]) {
     this.tournament.scoringRules.answerTypes = answerTypes;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
   setTimedRoundSetting(checked: boolean) {
     this.tournament.scoringRules.timed = checked;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
@@ -369,68 +377,80 @@ export class TournamentManager {
       return;
     }
     this.tournament.scoringRules.maximumRegulationTossupCount = numTus;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
   setUseBonuses(checked: boolean) {
     this.tournament.scoringRules.useBonuses = checked;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
   setBonusesBounceBack(checked: boolean) {
     this.tournament.scoringRules.bonusesBounceBack = checked;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
   setMaxBonusScore(val: number) {
     if (this.tournament.scoringRules.maximumBonusScore === val) return;
     this.tournament.scoringRules.maximumBonusScore = val;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
   setMinPartsPerBonus(val: number) {
     if (this.tournament.scoringRules.minimumPartsPerBonus === val) return;
     this.tournament.scoringRules.minimumPartsPerBonus = val;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
   setMaxPartsPerBonus(val: number) {
     if (this.tournament.scoringRules.maximumPartsPerBonus === val) return;
     this.tournament.scoringRules.maximumPartsPerBonus = val;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
   setPtsPerBonusPart(val: number | undefined) {
     if (this.tournament.scoringRules.pointsPerBonusPart === val) return;
     this.tournament.scoringRules.pointsPerBonusPart = val;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
   setBonusDivisor(val: number) {
     if (this.tournament.scoringRules.bonusDivisor === val) return;
     this.tournament.scoringRules.bonusDivisor = val;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
   setMaxPlayers(val: number) {
     if (this.tournament.scoringRules.maximumPlayersPerTeam === val) return;
     this.tournament.scoringRules.maximumPlayersPerTeam = val;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
   setMinOverTimeTossupCount(val: number) {
     if (this.tournament.scoringRules.minimumOvertimeQuestionCount === val) return;
     this.tournament.scoringRules.minimumOvertimeQuestionCount = val;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
   setOvertimeUsesBonuses(checked: boolean) {
     this.tournament.scoringRules.overtimeIncludesBonuses = checked;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 
   setUseLightning(checked: boolean) {
     this.tournament.scoringRules.lightningCountPerTeam = checked ? 1 : 0;
+    this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }
 

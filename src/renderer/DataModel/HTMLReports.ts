@@ -590,7 +590,7 @@ export default class HtmlReportGenerator {
     }
     cells.push(textCell(teamDetailLink(opponent.team)));
     cells.push(textCell(result.match.getResultDisplay(result.whichTeam)));
-    cells.push(textCell(scoreboardMatchLink(result.match, result.match.getScoreOnly(result.whichTeam))));
+    cells.push(textCell(scoreboardMatchLink(result.match, result.match.getScoreOnly(result.whichTeam, true))));
 
     const answerCounts = matchTeam.getAnswerCounts();
     this.tournament.scoringRules.answerTypes.forEach((at) => {
@@ -755,7 +755,7 @@ export default class HtmlReportGenerator {
     if (!omitPhase) cells.push(textCell(result.phase?.name ?? ''));
     cells.push(textCell(teamDetailLink(opponent.team)));
     cells.push(textCell(result.match.getResultDisplay(result.whichTeam)));
-    cells.push(textCell(scoreboardMatchLink(result.match, result.match.getScoreOnly(result.whichTeam))));
+    cells.push(textCell(scoreboardMatchLink(result.match, result.match.getScoreOnly(result.whichTeam, true))));
     const gamesPlayed = (result.matchPlayer.tossupsHeard ?? 0) / (result.match.tossupsRead ?? 0);
     cells.push(numericCell(forf ? '' : gamesPlayed.toFixed(1)));
 

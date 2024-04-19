@@ -346,14 +346,15 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return `${resultDisp} ${score}`;
   }
 
-  getScoreOnly(whichTeam: LeftOrRight) {
+  getScoreOnly(whichTeam: LeftOrRight, showOT: boolean = false) {
     const thisTeam = this.getMatchTeam(whichTeam);
     const opponent = this.getOpponent(whichTeam);
     if (thisTeam.forfeitLoss && opponent.forfeitLoss) return 'Not played';
     if (this.isForfeit()) return 'Forfeit';
     const pts = thisTeam.points;
     const oppPts = opponent.points;
-    return `${pts}-${oppPts}`;
+    const ot = showOT && !!this.overtimeTossupsRead ? ' (OT)' : '';
+    return `${pts}-${oppPts}${ot}`;
   }
 
   /** 'W', 'L', or 'T' */
