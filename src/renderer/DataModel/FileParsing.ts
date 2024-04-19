@@ -76,6 +76,7 @@ export default class FileParser {
     if (phases) this.tourn.phases = this.parsePhaseList(phases as IIndeterminateQbj[]);
 
     if (yfExtraData) {
+      this.tourn.standardRuleSet = yfExtraData.standardRuleSet;
       this.tourn.seeds = this.parseSeedList(yfExtraData.seeds);
       this.tourn.trackPlayerYear = yfExtraData.trackPlayerYear ?? true;
       this.tourn.trackSmallSchool = yfExtraData.trackSmallSchool || false;

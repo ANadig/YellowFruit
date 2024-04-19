@@ -64,6 +64,7 @@ export interface IYftFileTournament extends IQbjTournament, IYftFileObject {
 interface ITournamentExtraData {
   /** Version of this software used to write the file */
   YfVersion: string;
+  standardRuleSet?: CommonRuleSets;
   seeds: IQbjRefPointer[];
   trackPlayerYear: boolean;
   trackSmallSchool: boolean;
@@ -152,6 +153,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
     const metadata: ITournamentExtraData = {
       YfVersion: '4.0.0',
+      standardRuleSet: this.standardRuleSet,
       seeds: this.seeds.map((team) => team.toRefPointer()),
       trackPlayerYear: this.trackPlayerYear,
       trackSmallSchool: this.trackSmallSchool,

@@ -24,7 +24,7 @@ function RoundLengthSettingsCard() {
   const thisTournamentRules = tournManager.tournament.scoringRules;
   const [timedRoundsChecked, setTimedRoundsChecked] = useSubscription(thisTournamentRules.timed);
   const [numTus, setNumTus] = useSubscription(thisTournamentRules.maximumRegulationTossupCount.toString());
-  const [numTusLabel, setNumTusLabel] = useState(getTuFieldLabel(thisTournamentRules.timed));
+  const [numTusLabel, setNumTusLabel] = useSubscription(getTuFieldLabel(thisTournamentRules.timed));
   const [numTusHelpText, setNumTusHelpText] = useState(getTuFieldHelpText(thisTournamentRules.timed));
   const readOnly = tournManager.tournament.hasMatchData;
 
