@@ -17,6 +17,8 @@ export class Sched4TeamsTripleRR implements StandardSchedule {
 
   readonly rooms = 2;
 
+  readonly minGames = 9;
+
   phases: Phase[];
 
   constructor() {
@@ -42,6 +44,8 @@ export class Sched4TeamsQuadRR implements StandardSchedule {
   readonly rebracketAfter = [];
 
   readonly rooms = 2;
+
+  readonly minGames = 12;
 
   phases: Phase[];
 

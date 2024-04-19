@@ -17,6 +17,8 @@ export class Sched8TeamsSingleRR implements StandardSchedule {
 
   readonly rooms = 4;
 
+  readonly minGames = 7;
+
   phases: Phase[];
 
   constructor() {
@@ -41,6 +43,8 @@ export class Sched8Teams10Rounds implements StandardSchedule {
   readonly rebracketAfter = [7];
 
   readonly rooms = 4;
+
+  readonly minGames = 10;
 
   phases: Phase[];
 
@@ -79,6 +83,8 @@ export class Sched8Teams13Rounds implements StandardSchedule {
   readonly rebracketAfter = [7];
 
   readonly rooms = 4;
+
+  readonly minGames = 13;
 
   phases: Phase[];
 
@@ -120,6 +126,8 @@ export class Sched8TeamsDoubleRR implements StandardSchedule {
   readonly rebracketAfter = [];
 
   readonly rooms = 4;
+
+  readonly minGames = 14;
 
   phases: Phase[];
 

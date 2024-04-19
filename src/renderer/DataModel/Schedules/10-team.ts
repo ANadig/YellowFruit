@@ -18,6 +18,8 @@ export class Sched10TeamsSingleRR implements StandardSchedule {
 
   readonly rooms = 5;
 
+  readonly minGames = 9;
+
   phases: Phase[];
 
   constructor() {
