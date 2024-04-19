@@ -793,7 +793,7 @@ export default class HtmlReportGenerator {
   private getRoundReportHtml() {
     if (!this.tournament.cumulativeStats) return '';
 
-    const omitPhaseCol = this.tournament.getFullPhases().length < 2;
+    const omitPhaseCol = this.tournament.phases.length < 2;
     const rows = [this.roundReportTableHeader(omitPhaseCol)];
     for (const roundStats of this.tournament.cumulativeStats.rounds) {
       rows.push(this.roundReportTableRow(roundStats, omitPhaseCol));
