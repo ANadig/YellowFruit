@@ -2,6 +2,7 @@ import { getAlphabetLetter } from '../Utils/GeneralUtils';
 import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 // eslint-disable-next-line import/no-cycle
 import { Match } from './Match';
+// eslint-disable-next-line import/no-cycle
 import { IQbjPoolTeam, PoolTeam } from './PoolTeam';
 import { QbjTypeNames } from './QbjEnums';
 import { Team } from './Team';

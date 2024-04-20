@@ -1,5 +1,6 @@
 import { Sched10TeamsSingleRR } from './Schedules/10-team';
 import { Sched24Teams11Rounds2Phases, Sched24Teams11Rounds3Phases } from './Schedules/24-team';
+import { Sched30Teams11Rounds2PPlusF } from './Schedules/30-team';
 import { Sched4TeamsTripleRR, Sched4TeamsQuadRR } from './Schedules/4-team';
 import { Sched5Teams13Rounds, Sched5TeamsDoubleRR } from './Schedules/5-team';
 import { Sched6Teams13RoundsSplit33, Sched6Teams13RoundsSplit42, Sched6TeamsDoubleRR } from './Schedules/6-team';
@@ -13,7 +14,7 @@ import {
 } from './Schedules/9-team';
 import StandardSchedule from './StandardSchedule';
 
-export const sizesWithTemplates = [4, 5, 6, 7, 8, 9, 10, 24];
+export const sizesWithTemplates = [4, 5, 6, 7, 8, 9, 10, 24, 30];
 
 export enum ScheduleTemplates {
   $4teamsTripleRR,
@@ -38,6 +39,7 @@ export enum ScheduleTemplates {
   $10TeamsSingleRR,
   $24teams11rounds2phases,
   $24teams11rounds3phases,
+  $30Teams11Rounds2PPlusF,
 }
 
 export function makeSchedule(template: ScheduleTemplates): StandardSchedule | null {
@@ -94,6 +96,9 @@ export function makeSchedule(template: ScheduleTemplates): StandardSchedule | nu
       return new Sched24Teams11Rounds2Phases();
     case ScheduleTemplates.$24teams11rounds3phases:
       return new Sched24Teams11Rounds3Phases();
+    // 30
+    case ScheduleTemplates.$30Teams11Rounds2PPlusF:
+      return new Sched30Teams11Rounds2PPlusF();
     default:
       return null;
   }
@@ -157,6 +162,9 @@ export function getTemplateShortName(template: ScheduleTemplates) {
       return Sched24Teams11Rounds2Phases.shortName;
     case ScheduleTemplates.$24teams11rounds3phases:
       return Sched24Teams11Rounds3Phases.shortName;
+    // 30
+    case ScheduleTemplates.$30Teams11Rounds2PPlusF:
+      return Sched30Teams11Rounds2PPlusF.shortName;
     default:
       return '';
   }
@@ -201,6 +209,8 @@ export function getTemplateList(size: number | string) {
       return [ScheduleTemplates.$10TeamsSingleRR];
     case 24:
       return [ScheduleTemplates.$24teams11rounds2phases, ScheduleTemplates.$24teams11rounds3phases];
+    case 30:
+      return [ScheduleTemplates.$30Teams11Rounds2PPlusF];
     default:
       return [];
   }

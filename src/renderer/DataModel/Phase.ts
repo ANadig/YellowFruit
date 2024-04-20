@@ -4,6 +4,7 @@ import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
 // eslint-disable-next-line import/no-cycle
 import { IQbjPool, Pool } from './Pool';
 import { QbjTypeNames } from './QbjEnums';
+// eslint-disable-next-line import/no-cycle
 import { Team } from './Team';
 import { makeQbjRefPointer } from './QbjUtils';
 import { Match } from './Match';
@@ -38,11 +39,11 @@ function defaultPhaseName(type: PhaseTypes) {
 /** When a phase uses wild card advancement (as opposed to set numbers of teams advancing from each pool),
  *  How do rank wild card teams?
  */
-enum WildCardRankingRules {
+export enum WildCardRankingRules {
   /** Rank within the team's pool, then PPB. e.g. prioritize all 3rd place teams over all 4th place teams. */
-  RankThenPPB,
-  /** Strictly by PPB, without regard to record/rank */
-  PpbOnly,
+  RankThenPPB = 'RankThenPPB',
+  /** Record in the pool, then PPB. e.g. prioritizes all 3-2 teams over all 2-3 teams regardless of what rank they are in the pool */
+  RecordThanPPB = 'RecordThanPPB',
 }
 
 interface IWildCardAdvancementRule {
