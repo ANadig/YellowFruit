@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
 import Tournament from '../renderer/DataModel/Tournament';
-import { convertFormatQbjToYf, convertFormatYfToQbj } from '../renderer/DataModel/FileConversion';
+import { snakeCaseToCamelCase, camelCaseToSnakeCase } from '../renderer/DataModel/CaseConversion';
 
 test('yfToQbj01', () => {
   const tourn = new Tournament();
   tourn.questionSet = 'test question set';
   const fileObj = tourn.toFileObject() as any;
-  convertFormatYfToQbj(fileObj);
+  camelCaseToSnakeCase(fileObj);
 
   expect(fileObj.question_set).toBe(tourn.questionSet);
   expect(fileObj.scoring_rules).toBeDefined();
@@ -19,7 +19,7 @@ test('yfToQbj02', () => {
   const tourn = new Tournament();
   tourn.questionSet = 'test question set';
   const fileObj = tourn.toFileObject() as any;
-  convertFormatYfToQbj(fileObj);
+  camelCaseToSnakeCase(fileObj);
 
   expect(fileObj.scoring_rules.maximum_bonus_score).toBe(30);
 });
@@ -28,12 +28,12 @@ test('yfToQbj01', () => {
   const tourn = new Tournament();
   tourn.questionSet = 'test question set';
   const fileObj = tourn.toFileObject() as any;
-  convertFormatYfToQbj(fileObj);
+  camelCaseToSnakeCase(fileObj);
 
   expect(fileObj.question_set).toBe(tourn.questionSet);
   expect(fileObj.scoring_rules).toBeDefined();
 
-  convertFormatQbjToYf(fileObj);
+  snakeCaseToCamelCase(fileObj);
 
   expect(fileObj.questionSet).toBe(tourn.questionSet);
   expect(fileObj.scoringRules).toBeDefined();
@@ -46,11 +46,11 @@ test('yfToQbj02', () => {
   const tourn = new Tournament();
   tourn.questionSet = 'test question set';
   const fileObj = tourn.toFileObject() as any;
-  convertFormatYfToQbj(fileObj);
+  camelCaseToSnakeCase(fileObj);
 
   expect(fileObj.scoring_rules.maximum_bonus_score).toBe(30);
 
-  convertFormatQbjToYf(fileObj);
+  snakeCaseToCamelCase(fileObj);
 
   expect(fileObj.scoringRules.maximumBonusScore).toBe(30);
 });

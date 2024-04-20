@@ -1,4 +1,4 @@
-export function convertFormatYfToQbj(obj: any) {
+export function camelCaseToSnakeCase(obj: any) {
   if (typeof obj !== 'object') return;
 
   obj.short_name = obj.shortName;
@@ -128,11 +128,11 @@ export function convertFormatYfToQbj(obj: any) {
   delete obj.categoryGroup;
 
   for (const prop in obj) {
-    if (typeof obj[prop] === 'object') convertFormatYfToQbj(obj[prop]);
+    if (typeof obj[prop] === 'object') camelCaseToSnakeCase(obj[prop]);
   }
 }
 
-export function convertFormatQbjToYf(obj: any) {
+export function snakeCaseToCamelCase(obj: any) {
   if (typeof obj !== 'object') return;
 
   obj.shortName = obj.short_name;
@@ -262,6 +262,6 @@ export function convertFormatQbjToYf(obj: any) {
   delete obj.category_group;
 
   for (const prop in obj) {
-    if (typeof obj[prop] === 'object') convertFormatQbjToYf(obj[prop]);
+    if (typeof obj[prop] === 'object') snakeCaseToCamelCase(obj[prop]);
   }
 }

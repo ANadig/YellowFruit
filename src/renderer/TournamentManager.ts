@@ -4,8 +4,7 @@ import Tournament, { IQbjTournament, IYftFileTournament } from './DataModel/Tour
 import { dateFieldChanged, textFieldChanged } from './Utils/GeneralUtils';
 import { NullObjects } from './Utils/UtilTypes';
 import { IpcMainToRend, IpcRendToMain } from '../IPCChannels';
-import { IQbjObject, IQbjWholeFile, IRefTargetDict } from './DataModel/Interfaces';
-import { QbjTypeNames } from './DataModel/QbjEnums';
+import { IQbjWholeFile, IRefTargetDict } from './DataModel/Interfaces';
 import AnswerType from './DataModel/AnswerType';
 import StandardSchedule from './DataModel/StandardSchedule';
 import { Team } from './DataModel/Team';
@@ -25,8 +24,9 @@ import { Round } from './DataModel/Round';
 import TempPhaseManager from './Modal Managers/TempPhaseManager';
 import TempPoolManager from './Modal Managers/TempPoolManager';
 import TempRankManager from './Modal Managers/TempRankManager';
-import { convertFormatQbjToYf, convertFormatYfToQbj } from './DataModel/FileConversion';
+import { snakeCaseToCamelCase, camelCaseToSnakeCase } from './DataModel/CaseConversion';
 import { CommonRuleSets } from './DataModel/ScoringRules';
+import { findTournamentObject, qbjFileValidVersion } from './DataModel/QbjUtils';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -129,7 +129,7 @@ export class TournamentManager {
 
   /** Parse file contents and load tournament for editing */
   private openYftFile(filePath: string, fileContents: string) {
-    let objFromFile: IQbjObject[] = [];
+    let objFromFile: IQbjWholeFile | null = null;
     try {
       objFromFile = JSON.parse(fileContents, (key, value) => {
         if (TournamentManager.isNameOfDateField(key)) return dayjs(value).toDate(); // must be ISO 8601 format
@@ -139,9 +139,9 @@ export class TournamentManager {
       this.openGenericModal('Invalid File', 'This file does not contain valid JSON.');
     }
 
-    if (objFromFile.length < 1) return;
+    if (!objFromFile) return;
 
-    convertFormatQbjToYf(objFromFile);
+    snakeCaseToCamelCase(objFromFile);
     const loadedTournament = this.loadTournamentFromQbjObjects(objFromFile);
     if (loadedTournament === null) {
       return;
@@ -157,8 +157,17 @@ export class TournamentManager {
   }
 
   /** Given an array of Qbj/Yft objects, parse them and create a tournament from the info */
-  loadTournamentFromQbjObjects(objFromFile: IQbjObject[]): Tournament | null {
-    const tournamentObj = TournamentManager.findTournamentObject(objFromFile);
+  loadTournamentFromQbjObjects(objFromFile: IQbjWholeFile): Tournament | null {
+    if (!qbjFileValidVersion(objFromFile)) {
+      this.openGenericModal('Invalid File', "This file doesn't use a supported version of the tournament schema.");
+      return null;
+    }
+    const objectList = objFromFile.objects;
+    if (!objectList) {
+      this.openGenericModal('Invalid File', "This file doesn't contain any tournament schema objects.");
+      return null;
+    }
+    const tournamentObj = findTournamentObject(objectList);
     if (tournamentObj === null) {
       this.openGenericModal('Invalid File', 'This file doesn\'t contain a "Tournament" object.');
       return null;
@@ -166,7 +175,7 @@ export class TournamentManager {
 
     let refTargets: IRefTargetDict = {};
     try {
-      refTargets = collectRefTargets(objFromFile);
+      refTargets = collectRefTargets(objectList);
     } catch (err: any) {
       this.openGenericModal('Invalid File', err.message);
     }
@@ -190,14 +199,7 @@ export class TournamentManager {
 
   private static getTournamentFromQbjFile(fileObj: IQbjWholeFile): IQbjTournament | null {
     if (!fileObj.objects) return null;
-    return this.findTournamentObject(fileObj.objects);
-  }
-
-  private static findTournamentObject(objects: IQbjObject[]): IQbjTournament | null {
-    for (const obj of objects) {
-      if (obj.type === QbjTypeNames.Tournament) return obj as IQbjTournament;
-    }
-    return null;
+    return findTournamentObject(fileObj.objects);
   }
 
   /** Save the tournament to the given file and switch context to that file */
@@ -213,8 +215,9 @@ export class TournamentManager {
       return;
     }
 
-    const wholeFileObj = [this.tournament.toFileObject(false, true)];
-    convertFormatYfToQbj(wholeFileObj);
+    const wholeFileObj: IQbjWholeFile = { version: '2.1.1', objects: [this.tournament.toFileObject(false, true)] };
+    // const wholeFileObj = [this.tournament.toFileObject(false, true)];
+    camelCaseToSnakeCase(wholeFileObj);
 
     const fileContents = JSON.stringify(wholeFileObj, (key, value) => {
       if (TournamentManager.isNameOfDateField(key)) {
