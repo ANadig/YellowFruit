@@ -1,3 +1,5 @@
+// QBJ schema uses a different case for property names than the internal YF data structures do
+
 export function camelCaseToSnakeCase(obj: any) {
   if (typeof obj !== 'object') return;
 

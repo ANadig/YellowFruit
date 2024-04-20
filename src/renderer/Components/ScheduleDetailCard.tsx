@@ -7,20 +7,24 @@ import {
   Box,
   Checkbox,
   Divider,
+  FormControl,
   FormControlLabel,
   FormGroup,
+  FormLabel,
   IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
+  Radio,
+  RadioGroup,
   Typography,
 } from '@mui/material';
 import { Edit, ExpandMore } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
-import { Phase, PhaseTypes } from '../DataModel/Phase';
+import { Phase, PhaseTypes, WildCardRankingRules } from '../DataModel/Phase';
 import { Pool, advOpportunityDisplay } from '../DataModel/Pool';
 import { LinkButton } from '../Utils/GeneralReactUtils';
 
@@ -80,7 +84,10 @@ interface IPhaseEditorProps {
 function PhaseEditor(props: IPhaseEditorProps) {
   const { phase } = props;
   const [selectedPoolIdx, setSelectedPoolIdx] = useState(0);
+  const [wcRankValue, setWcRankValue] = useSubscription(phase.wildCardRankingMethod);
+
   const selectedPool = phase.pools[selectedPoolIdx];
+  const wcRules = phase.wildCardAdvancementRules;
   const showTiers = phase.phaseType === PhaseTypes.Playoff;
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
@@ -92,8 +99,35 @@ function PhaseEditor(props: IPhaseEditorProps) {
     return <span>Pools object is undefined for this phase</span>;
   }
 
+  const handleWcRankMethodChange = (val: WildCardRankingRules) => {
+    setWcRankValue(val);
+  };
+  const thenPPB = thisTournament.scoringRules.useBonuses ? ', then PPB' : '';
+
   return (
     <Grid container spacing={2}>
+      {wcRules.length > 0 && (
+        <Grid xs={12} typography="body2">
+          <FormControl>
+            <FormLabel>Cross-Pool Ranking Method</FormLabel>
+            <RadioGroup
+              value={wcRankValue}
+              onChange={(e) => handleWcRankMethodChange(e.target.value as WildCardRankingRules)}
+            >
+              <FormControlLabel
+                value={WildCardRankingRules.RankThenPPB}
+                control={<Radio size="small" />}
+                label={`Rank within pool${thenPPB}`}
+              />
+              <FormControlLabel
+                value={WildCardRankingRules.RecordThanPPB}
+                control={<Radio size="small" />}
+                label={`Record${thenPPB}`}
+              />
+            </RadioGroup>
+          </FormControl>
+        </Grid>
+      )}
       <Grid xs={4}>
         <Box
           sx={{
@@ -158,6 +192,7 @@ function PhaseEditor(props: IPhaseEditorProps) {
                 {selectedPool.autoAdvanceRules.map((ao) => (
                   <ListItem key={ao.tier}>{advOpportunityDisplay(ao)}</ListItem>
                 ))}
+                {wcRules.length > 0 && <ListItem>Other ranks advance based on cross-pool ranking method</ListItem>}
               </>
             )}
           </List>
