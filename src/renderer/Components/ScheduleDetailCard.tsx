@@ -24,7 +24,7 @@ import { Edit, ExpandMore } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
-import { Phase, PhaseTypes, WildCardRankingRules } from '../DataModel/Phase';
+import { Phase, PhaseTypes, WildCardRankingMethod } from '../DataModel/Phase';
 import { Pool, advOpportunityDisplay } from '../DataModel/Pool';
 import { LinkButton } from '../Utils/GeneralReactUtils';
 
@@ -99,28 +99,29 @@ function PhaseEditor(props: IPhaseEditorProps) {
     return <span>Pools object is undefined for this phase</span>;
   }
 
-  const handleWcRankMethodChange = (val: WildCardRankingRules) => {
+  const handleWcRankMethodChange = (val: WildCardRankingMethod) => {
     setWcRankValue(val);
+    tournManager.setPhaseWCRankMethod(phase, val);
   };
   const thenPPB = thisTournament.scoringRules.useBonuses ? ', then PPB' : '';
 
   return (
     <Grid container spacing={2}>
       {wcRules.length > 0 && (
-        <Grid xs={12} typography="body2">
+        <Grid xs={12} sx={{ '& .MuiFormControlLabel-label': { typography: 'body2' }, '& .MuiRadio-root': { py: 0.5 } }}>
           <FormControl>
-            <FormLabel>Cross-Pool Ranking Method</FormLabel>
+            <FormLabel>Cross-Pool (Wild Card) Ranking Method</FormLabel>
             <RadioGroup
               value={wcRankValue}
-              onChange={(e) => handleWcRankMethodChange(e.target.value as WildCardRankingRules)}
+              onChange={(e) => handleWcRankMethodChange(e.target.value as WildCardRankingMethod)}
             >
               <FormControlLabel
-                value={WildCardRankingRules.RankThenPPB}
+                value={WildCardRankingMethod.RankThenPPB}
                 control={<Radio size="small" />}
                 label={`Rank within pool${thenPPB}`}
               />
               <FormControlLabel
-                value={WildCardRankingRules.RecordThanPPB}
+                value={WildCardRankingMethod.RecordThanPPB}
                 control={<Radio size="small" />}
                 label={`Record${thenPPB}`}
               />
