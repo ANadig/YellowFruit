@@ -5,7 +5,7 @@ import { Pool, setAutoAdvanceRules } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
 export class Sched5TeamsDoubleRR implements StandardSchedule {
-  static fullName = '5 Teams - Double Round Robin';
+  readonly fullName = '5 Teams - Double Round Robin';
 
   static shortName = 'Double Round Robin';
 
@@ -33,7 +33,7 @@ export class Sched5TeamsDoubleRR implements StandardSchedule {
 }
 
 export class Sched5Teams13Rounds implements StandardSchedule {
-  static fullName = '5 Teams - Double Round Robin, Then 3/2 Split';
+  readonly fullName = '5 Teams - Double Round Robin, Then 3/2 Split';
 
   static shortName = '13 Rounds';
 

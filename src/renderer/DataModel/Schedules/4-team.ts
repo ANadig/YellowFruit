@@ -5,7 +5,7 @@ import { Pool } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
 export class Sched4TeamsTripleRR implements StandardSchedule {
-  static fullName = '4 Teams - Triple Round Robin';
+  readonly fullName = '4 Teams - Triple Round Robin';
 
   static shortName = 'Triple Round Robin';
 
@@ -33,7 +33,7 @@ export class Sched4TeamsTripleRR implements StandardSchedule {
 }
 
 export class Sched4TeamsQuadRR implements StandardSchedule {
-  static fullName = '4 Teams - Quadruple Round Robin';
+  readonly fullName = '4 Teams - Quadruple Round Robin';
 
   static shortName = 'Quadruple Round Robin';
 

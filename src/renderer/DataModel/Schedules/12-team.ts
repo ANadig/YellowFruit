@@ -5,7 +5,7 @@ import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
 export class Sched12Teams8Rounds implements StandardSchedule {
-  static fullName = '12 Teams - 2 Pools of 6, Then 2 Pools of 6';
+  readonly fullName = '12 Teams - 2 Pools of 6, Then 2 Pools of 6';
 
   static shortName = '8 Rounds';
 
@@ -44,7 +44,7 @@ export class Sched12Teams8Rounds implements StandardSchedule {
 }
 
 export class Sched12Teams9Rounds implements StandardSchedule {
-  static fullName = '12 Teams - 2 Pools of 6, Then a Pool of 8 and a Pool of 4';
+  readonly fullName = '12 Teams - 2 Pools of 6, Then a Pool of 8 and a Pool of 4';
 
   static shortName = '9 Rounds';
 
@@ -83,7 +83,7 @@ export class Sched12Teams9Rounds implements StandardSchedule {
 }
 
 export class Sched12Teams10Rounds implements StandardSchedule {
-  static fullName = '12 Teams - 2 Pools of 6, Then 2 Pools of 6 With No Carryover';
+  readonly fullName = '12 Teams - 2 Pools of 6, Then 2 Pools of 6 With No Carryover';
 
   static shortName = '10 Rounds';
 
@@ -122,7 +122,7 @@ export class Sched12Teams10Rounds implements StandardSchedule {
 }
 
 export class Sched12TeamsSingleRR implements StandardSchedule {
-  static fullName = '12 Teams - Single Round Robin';
+  readonly fullName = '12 Teams - Single Round Robin';
 
   static shortName = 'Single Round Robin';
 
@@ -149,7 +149,7 @@ export class Sched12TeamsSingleRR implements StandardSchedule {
 }
 
 export class Sched12Teams14Rounds implements StandardSchedule {
-  static fullName = '12 Teams - Full Round Robin, Then 3 Pools of 4';
+  readonly fullName = '12 Teams - Full Round Robin, Then 3 Pools of 4';
 
   static shortName = '14 Rounds';
 

@@ -6,7 +6,7 @@ import StandardSchedule from '../StandardSchedule';
 
 // eslint-disable-next-line import/prefer-default-export
 export class Sched30Teams11Rounds2PPlusF implements StandardSchedule {
-  static fullName = '30 Teams - 5 Pools of 6 Teams, then 5 Pools of 6 Teams with Parallel Top Pools, then ';
+  readonly fullName = '30 Teams - 5 Pools of 6 Teams, then 5 Pools of 6 Teams with Parallel Top Pools, then ';
 
   static shortName = '11 Rounds (2 Stages, then Finals)';
 

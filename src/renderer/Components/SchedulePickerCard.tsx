@@ -91,7 +91,7 @@ export default function SchedulePickerCard() {
       {previewedSchedule && (
         <>
           <Typography variant="subtitle2" sx={{ marginTop: 3 }}>
-            About this schedule:
+            {previewedSchedule.fullName}
           </Typography>
           <List dense>
             <ListItem>
