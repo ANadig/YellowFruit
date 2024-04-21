@@ -1,4 +1,4 @@
-/** Standard schedules for 24-team tournaments */
+/** Standard schedules for 30-team tournaments */
 
 import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, snakeSeed } from '../Pool';

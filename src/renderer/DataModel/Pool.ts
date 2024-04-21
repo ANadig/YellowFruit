@@ -211,7 +211,7 @@ export class Pool implements IQbjPool, IYftDataModelObject {
  * @param nameStarter first part of the name for each pool; e.g. pass in "Prelim " to get "Prelim 1", "Prelim 2", etc.
  *  (you must include a space if you want one)
  * @param autoQualChunks in order, the number of teams qualifying for each subequent tier. e.g. [2, 2, 1]. You must
- * include zeroes for any phase the pool does not send teams to, e.g. [0, 0, 3, 3] for lower playoff pools that populate
+ * include zeroes for any tier the pool does not send teams to, e.g. [0, 0, 3, 3] for lower playoff pools that populate
  * the bottom two of four superplayoff pools
  * @param hasCarryOver does these pools carry over matches from the previous phase?
  * if the top 2 teams go to the top tier, next 2 to the middle, and last 1 to the bottom
