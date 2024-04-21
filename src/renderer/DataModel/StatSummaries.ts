@@ -529,12 +529,13 @@ export class PoolTeamStats {
     return pct.toFixed(3).toString();
   }
 
+  getCorrectTuh() {
+    return this.scoringRules.overtimeIncludesBonuses ? this.tuhTotal : this.tuhRegulation;
+  }
+
   /** Points per non-overtime tossup heard. Is NaN if tossups heard is zero! */
   getPtsPerRegTuh() {
-    if (this.scoringRules.overtimeIncludesBonuses) {
-      return this.totalPointsForPPG / this.tuhTotal;
-    }
-    return this.totalPointsForPPG / this.tuhRegulation;
+    return this.totalPointsForPPG / this.getCorrectTuh();
   }
 
   getPtsPerRegTuhString(regTuCount: number) {

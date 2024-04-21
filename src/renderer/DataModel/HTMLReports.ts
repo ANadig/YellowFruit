@@ -9,6 +9,8 @@ import { Phase, PhaseTypes } from './Phase';
 import { Player } from './Player';
 import { Pool } from './Pool';
 import { Round } from './Round';
+// eslint-disable-next-line import/no-cycle
+import { StatTypes, columnName, columnTooltip } from './StatReportDataTypes';
 import {
   PhaseStandings,
   PlayerDetailMatchResult,
@@ -162,29 +164,27 @@ export default class HtmlReportGenerator {
     omitRank: boolean = false,
   ) {
     const cells: string[] = [];
-    if (!omitRank) cells.push(tdTag({ bold: true, width: '3%' }, 'Rank'));
+    if (!omitRank) cells.push(stdTdHeader('Rank', false, '3%'));
     cells.push(tdTag({ bold: true, width: cumulative ? '' : '20%' }, 'Team'));
-    if (this.tournament.trackSmallSchool) cells.push(tdTag({ bold: true }, 'SS'));
-    if (this.tournament.trackJV) cells.push(tdTag({ bold: true }, 'JV'));
-    if (this.tournament.trackUG) cells.push(tdTag({ bold: true }, 'UG'));
-    if (this.tournament.trackDiv2) cells.push(tdTag({ bold: true }, 'D2'));
-    cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'W'));
-    cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'L'));
-    if (anyTiesExist) cells.push(tdTag({ bold: true, align: 'right', width: '3%' }, 'T'));
-    if (!cumulative) cells.push(tdTag({ bold: true, align: 'right' }, 'Pct'));
-    cells.push(
-      tdTag({ bold: true, align: 'right', width: '8%' }, `PP${this.tournament.scoringRules.regulationTossupCount}TUH`),
-    );
+    if (this.tournament.trackSmallSchool) cells.push(stdTdHeader(this.abbr(StatTypes.div2)));
+    if (this.tournament.trackJV) cells.push(stdTdHeader(this.abbr(StatTypes.juniorVarsity)));
+    if (this.tournament.trackUG) cells.push(stdTdHeader(this.abbr(StatTypes.undergrad)));
+    if (this.tournament.trackDiv2) cells.push(stdTdHeader(this.abbr(StatTypes.div2)));
+    cells.push(stdTdHeader(this.abbr(StatTypes.wins), true, '3%'));
+    cells.push(stdTdHeader(this.abbr(StatTypes.losses), true, '3%'));
+    if (anyTiesExist) cells.push(stdTdHeader(this.abbr(StatTypes.ties), true, '3%'));
+    if (!cumulative) cells.push(stdTdHeader(this.abbr(StatTypes.winPct), true));
+    cells.push(stdTdHeader(this.abbr(StatTypes.pointsPerXTuhTmStandings), true, '8%'));
     this.pushTossupValueHeaders(cells);
-    cells.push(tdTag({ bold: true, align: 'right' }, 'TUH'));
-    cells.push(tdTag({ bold: true, align: 'right' }, 'PPB'));
+    cells.push(stdTdHeader(this.abbr(StatTypes.tuhTmStandings), true));
+    cells.push(stdTdHeader(this.abbr(StatTypes.ppb), true));
     if (this.tournament.scoringRules.bonusesBounceBack) {
-      cells.push(tdTag({ bold: true, align: 'right' }, 'BB%'));
+      cells.push(stdTdHeader(this.abbr(StatTypes.bbPct), true));
     }
     if (nextPhase?.anyTeamsAssigned()) {
-      cells.push(tdTag({ bold: true }, 'Advanced To'));
+      cells.push(stdTdHeader(this.abbr(StatTypes.advancedTo)));
     } else if (nextPhase) {
-      cells.push(tdTag({ bold: true }, 'Would Advance'));
+      cells.push(stdTdHeader(this.abbr(StatTypes.wouldAdvance)));
     }
 
     return trTag(cells);
@@ -229,7 +229,7 @@ export default class HtmlReportGenerator {
       const answerCount = teamStats.tossupCounts.find((ac) => ac.answerType.value === at.value);
       cells.push(tdTag({ align: 'right' }, answerCount?.number?.toString() || '0'));
     });
-    cells.push(tdTag({ align: 'right' }, teamStats.tuhRegulation.toString()));
+    cells.push(tdTag({ align: 'right' }, teamStats.getCorrectTuh().toString()));
 
     if (this.tournament.scoringRules.useBonuses) {
       const ppb = teamStats.getPtsPerBonus();
@@ -311,13 +311,13 @@ export default class HtmlReportGenerator {
     if (!skipRankCol) cells.push(tdTag({ bold: true, width: '3%' }, 'Rank'));
     cells.push(stdTdHeader('Player'));
     if (this.tournament.trackPlayerYear) cells.push(stdTdHeader('Year/Grade'));
-    if (this.tournament.trackUG) cells.push(stdTdHeader('UG'));
-    if (this.tournament.trackDiv2) cells.push(stdTdHeader('D2'));
+    if (this.tournament.trackUG) cells.push(stdTdHeader(this.abbr(StatTypes.undergrad)));
+    if (this.tournament.trackDiv2) cells.push(stdTdHeader(this.abbr(StatTypes.div2)));
     cells.push(stdTdHeader('Team'));
-    cells.push(stdTdHeader('GP', true));
+    cells.push(stdTdHeader(this.abbr(StatTypes.gamesPlayed), true));
     this.pushTossupValueHeaders(cells);
-    cells.push(stdTdHeader('TUH', true));
-    cells.push(stdTdHeader(`PP${this.tournament.scoringRules.regulationTossupCount}TUH`, true));
+    cells.push(stdTdHeader(this.abbr(StatTypes.tuh), true));
+    cells.push(stdTdHeader(this.abbr(StatTypes.pointsPerXTuh), true));
 
     return trTag(cells);
   }
@@ -562,16 +562,16 @@ export default class HtmlReportGenerator {
     cells.push(stdTdHeader('')); // win/loss
     cells.push(stdTdHeader('Score'));
     this.pushTossupValueHeaders(cells);
-    cells.push(stdTdHeader('TUH', true));
+    cells.push(stdTdHeader(this.abbr(StatTypes.tuh), true));
     if (this.tournament.scoringRules.useBonuses) {
-      cells.push(stdTdHeader('BHrd', true));
-      cells.push(stdTdHeader('BPts', true));
-      cells.push(stdTdHeader('PPB', true));
+      cells.push(stdTdHeader(this.abbr(StatTypes.bonusesHrd), true));
+      cells.push(stdTdHeader(this.abbr(StatTypes.bonusPts), true));
+      cells.push(stdTdHeader(this.abbr(StatTypes.ppb), true));
     }
     if (this.tournament.scoringRules.bonusesBounceBack) {
-      cells.push(stdTdHeader('BBHrd', true));
-      cells.push(stdTdHeader('BBPts', true));
-      cells.push(stdTdHeader('BB%', true));
+      cells.push(stdTdHeader(this.abbr(StatTypes.bbHrd), true));
+      cells.push(stdTdHeader(this.abbr(StatTypes.bbPts), true));
+      cells.push(stdTdHeader(this.abbr(StatTypes.bbPct), true));
     }
     return trTag(cells);
   }
@@ -661,12 +661,12 @@ export default class HtmlReportGenerator {
     const cells: string[] = [];
     cells.push(stdTdHeader('Player'));
     if (this.tournament.trackPlayerYear) cells.push(stdTdHeader('Year/Grade'));
-    if (this.tournament.trackUG) cells.push(stdTdHeader('UG'));
-    if (this.tournament.trackDiv2) cells.push(stdTdHeader('D2'));
-    cells.push(stdTdHeader('GP', true));
+    if (this.tournament.trackUG) cells.push(stdTdHeader(this.abbr(StatTypes.undergrad)));
+    if (this.tournament.trackDiv2) cells.push(stdTdHeader(this.abbr(StatTypes.div2)));
+    cells.push(stdTdHeader(this.abbr(StatTypes.gamesPlayed), true));
     this.pushTossupValueHeaders(cells);
-    cells.push(stdTdHeader('TUH', true));
-    cells.push(stdTdHeader(`PP${this.tournament.scoringRules.regulationTossupCount}TUH`, true));
+    cells.push(stdTdHeader(this.abbr(StatTypes.tuh), true));
+    cells.push(stdTdHeader(this.abbr(StatTypes.pointsPerXTuh), true));
     return trTag(cells);
   }
 
@@ -737,9 +737,9 @@ export default class HtmlReportGenerator {
     cells.push(stdTdHeader('Opponent'));
     cells.push(stdTdHeader('')); // win/loss
     cells.push(stdTdHeader('Score'));
-    cells.push(stdTdHeader('GP', true));
+    cells.push(stdTdHeader(this.abbr(StatTypes.gamesPlayed), true));
     this.pushTossupValueHeaders(cells);
-    cells.push(stdTdHeader('TUH', true));
+    cells.push(stdTdHeader(this.abbr(StatTypes.tuh), true));
     cells.push(stdTdHeader('Pts', true));
     return trTag(cells);
   }
@@ -808,16 +808,18 @@ export default class HtmlReportGenerator {
     cells.push(stdTdHeader('Round'));
     if (!omitPhase) cells.push(stdTdHeader('Stage', false, '15%'));
     cells.push(stdTdHeader('Games', true, '10%'));
-    cells.push(stdTdHeader(`Pts/Team/${this.tournament.scoringRules.regulationTossupCount}TUH`, true, columnWidth));
-    if (this.tournament.scoringRules.hasPowers()) cells.push(stdTdHeader('TU Powered', true, columnWidth));
-    cells.push(stdTdHeader('TU Converted', true, columnWidth));
-    if (this.tournament.scoringRules.hasNegs()) {
-      cells.push(stdTdHeader(`Negs/Team/${this.tournament.scoringRules.regulationTossupCount}TUH`, true, columnWidth));
+    cells.push(stdTdHeader(this.abbr(StatTypes.rrPtsPerTeamPerXTuh), true, columnWidth));
+    if (this.tournament.scoringRules.hasPowers()) {
+      cells.push(stdTdHeader(this.abbr(StatTypes.rrPowerPct), true, columnWidth));
     }
-    if (this.tournament.scoringRules.useBonuses) cells.push(stdTdHeader('PPB', true, columnWidth));
+    cells.push(stdTdHeader(this.abbr(StatTypes.rrTuConvPct), true, columnWidth));
+    if (this.tournament.scoringRules.hasNegs()) {
+      cells.push(stdTdHeader(this.abbr(StatTypes.rrNegPct), true, columnWidth));
+    }
+    if (this.tournament.scoringRules.useBonuses) cells.push(stdTdHeader(this.abbr(StatTypes.rrPPB), true, columnWidth));
     if (this.tournament.scoringRules.bonusesBounceBack) {
-      cells.push(stdTdHeader('BB%', true, columnWidth));
-      cells.push(stdTdHeader('Bonus%', true, columnWidth));
+      cells.push(stdTdHeader(this.abbr(StatTypes.rrBbPct), true, columnWidth));
+      cells.push(stdTdHeader(this.abbr(StatTypes.rrBonusPct), true, columnWidth));
     }
     return trTag(cells);
   }
@@ -876,6 +878,13 @@ export default class HtmlReportGenerator {
     this.tournament.scoringRules.answerTypes.forEach((at) => {
       cells.push(stdTdHeader(at.value.toString() || '??', true));
     });
+  }
+
+  private abbr(stat: StatTypes) {
+    const text = columnName(stat, this.tournament);
+    const tooltip = columnTooltip(stat, this.tournament);
+    if (tooltip === '') return text;
+    return genericTagWithAttributes('abbr', [`title="${tooltip}"`], text);
   }
 }
 
