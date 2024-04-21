@@ -1,4 +1,5 @@
 import { Sched10Teams12Rounds433, Sched10Teams12Rounds442, Sched10TeamsSingleRR } from './Schedules/10-team';
+import { Sched11TeamsSingleRR } from './Schedules/11-team';
 import { Sched24Teams11Rounds2Phases, Sched24Teams11Rounds3Phases } from './Schedules/24-team';
 import { Sched30Teams11Rounds2PPlusF } from './Schedules/30-team';
 import { Sched4TeamsTripleRR, Sched4TeamsQuadRR } from './Schedules/4-team';
@@ -14,7 +15,7 @@ import {
 } from './Schedules/9-team';
 import StandardSchedule from './StandardSchedule';
 
-export const sizesWithTemplates = [4, 5, 6, 7, 8, 9, 10, 24, 30];
+export const sizesWithTemplates = [4, 5, 6, 7, 8, 9, 10, 11, 24, 30];
 
 export enum ScheduleTemplates {
   $4teamsTripleRR,
@@ -25,13 +26,13 @@ export enum ScheduleTemplates {
   $6teams13RoundsSplit33,
   $6teams13RoundsSplit42,
   $7teamsSingleRR,
-  $7Teams10Rounds,
-  $7Teams13Rounds,
-  $7TeamsDoubleRR,
-  $8TeamsSingleRR,
-  $8Teams10Rounds,
-  $8Teams13Rounds,
-  $8TeamsDoubleRR,
+  $7teams10rounds,
+  $7teams13rounds,
+  $7teamsDoubleRR,
+  $8teamsSingleRR,
+  $8teams10rounds,
+  $8teams13rounds,
+  $8teamsDoubleRR,
   $9TeamsSingleRR,
   $9Teams12RoundsSplit333,
   $9Teams12RoundsSplit432,
@@ -39,9 +40,10 @@ export enum ScheduleTemplates {
   $10TeamsSingleRR,
   $10teams12rounds433,
   $10teams12rounds442,
+  $11teamsSingleRR,
   $24teams11rounds2phases,
   $24teams11rounds3phases,
-  $30Teams11Rounds2PPlusF,
+  $30teams11rounds2PPlusF,
 }
 
 export function makeSchedule(template: ScheduleTemplates): StandardSchedule | null {
@@ -66,20 +68,20 @@ export function makeSchedule(template: ScheduleTemplates): StandardSchedule | nu
     // 7
     case ScheduleTemplates.$7teamsSingleRR:
       return new Sched7TeamsSingleRR();
-    case ScheduleTemplates.$7Teams10Rounds:
+    case ScheduleTemplates.$7teams10rounds:
       return new Sched7Teams10Rounds();
-    case ScheduleTemplates.$7Teams13Rounds:
+    case ScheduleTemplates.$7teams13rounds:
       return new Sched7Teams13Rounds();
-    case ScheduleTemplates.$7TeamsDoubleRR:
+    case ScheduleTemplates.$7teamsDoubleRR:
       return new Sched7TeamsDoubleRR();
     // 8
-    case ScheduleTemplates.$8TeamsSingleRR:
+    case ScheduleTemplates.$8teamsSingleRR:
       return new Sched8TeamsSingleRR();
-    case ScheduleTemplates.$8Teams10Rounds:
+    case ScheduleTemplates.$8teams10rounds:
       return new Sched8Teams10Rounds();
-    case ScheduleTemplates.$8Teams13Rounds:
+    case ScheduleTemplates.$8teams13rounds:
       return new Sched8Teams13Rounds();
-    case ScheduleTemplates.$8TeamsDoubleRR:
+    case ScheduleTemplates.$8teamsDoubleRR:
       return new Sched8TeamsDoubleRR();
     // 9
     case ScheduleTemplates.$9TeamsSingleRR:
@@ -97,13 +99,16 @@ export function makeSchedule(template: ScheduleTemplates): StandardSchedule | nu
       return new Sched10Teams12Rounds433();
     case ScheduleTemplates.$10teams12rounds442:
       return new Sched10Teams12Rounds442();
+    // 11
+    case ScheduleTemplates.$11teamsSingleRR:
+      return new Sched11TeamsSingleRR();
     // 24
     case ScheduleTemplates.$24teams11rounds2phases:
       return new Sched24Teams11Rounds2Phases();
     case ScheduleTemplates.$24teams11rounds3phases:
       return new Sched24Teams11Rounds3Phases();
     // 30
-    case ScheduleTemplates.$30Teams11Rounds2PPlusF:
+    case ScheduleTemplates.$30teams11rounds2PPlusF:
       return new Sched30Teams11Rounds2PPlusF();
     default:
       return null;
@@ -136,20 +141,20 @@ export function getTemplateShortName(template: ScheduleTemplates) {
     // 7
     case ScheduleTemplates.$7teamsSingleRR:
       return Sched7TeamsSingleRR.shortName;
-    case ScheduleTemplates.$7Teams10Rounds:
+    case ScheduleTemplates.$7teams10rounds:
       return Sched7Teams10Rounds.shortName;
-    case ScheduleTemplates.$7Teams13Rounds:
+    case ScheduleTemplates.$7teams13rounds:
       return Sched7Teams13Rounds.shortName;
-    case ScheduleTemplates.$7TeamsDoubleRR:
+    case ScheduleTemplates.$7teamsDoubleRR:
       return Sched7TeamsDoubleRR.shortName;
     // 8
-    case ScheduleTemplates.$8TeamsSingleRR:
+    case ScheduleTemplates.$8teamsSingleRR:
       return Sched8TeamsSingleRR.shortName;
-    case ScheduleTemplates.$8Teams10Rounds:
+    case ScheduleTemplates.$8teams10rounds:
       return Sched8Teams10Rounds.shortName;
-    case ScheduleTemplates.$8Teams13Rounds:
+    case ScheduleTemplates.$8teams13rounds:
       return Sched8Teams13Rounds.shortName;
-    case ScheduleTemplates.$8TeamsDoubleRR:
+    case ScheduleTemplates.$8teamsDoubleRR:
       return Sched8TeamsDoubleRR.shortName;
     // 9
     case ScheduleTemplates.$9TeamsSingleRR:
@@ -167,13 +172,16 @@ export function getTemplateShortName(template: ScheduleTemplates) {
       return Sched10Teams12Rounds433.shortName;
     case ScheduleTemplates.$10teams12rounds442:
       return Sched10Teams12Rounds442.shortName;
+    // 11
+    case ScheduleTemplates.$11teamsSingleRR:
+      return Sched11TeamsSingleRR.shortName;
     // 24
     case ScheduleTemplates.$24teams11rounds2phases:
       return Sched24Teams11Rounds2Phases.shortName;
     case ScheduleTemplates.$24teams11rounds3phases:
       return Sched24Teams11Rounds3Phases.shortName;
     // 30
-    case ScheduleTemplates.$30Teams11Rounds2PPlusF:
+    case ScheduleTemplates.$30teams11rounds2PPlusF:
       return Sched30Teams11Rounds2PPlusF.shortName;
     default:
       return '';
@@ -197,16 +205,16 @@ export function getTemplateList(size: number | string) {
     case 7:
       return [
         ScheduleTemplates.$7teamsSingleRR,
-        ScheduleTemplates.$7Teams10Rounds,
-        ScheduleTemplates.$7Teams13Rounds,
-        ScheduleTemplates.$7TeamsDoubleRR,
+        ScheduleTemplates.$7teams10rounds,
+        ScheduleTemplates.$7teams13rounds,
+        ScheduleTemplates.$7teamsDoubleRR,
       ];
     case 8:
       return [
-        ScheduleTemplates.$8TeamsSingleRR,
-        ScheduleTemplates.$8Teams10Rounds,
-        ScheduleTemplates.$8Teams13Rounds,
-        ScheduleTemplates.$8TeamsDoubleRR,
+        ScheduleTemplates.$8teamsSingleRR,
+        ScheduleTemplates.$8teams10rounds,
+        ScheduleTemplates.$8teams13rounds,
+        ScheduleTemplates.$8teamsDoubleRR,
       ];
     case 9:
       return [
@@ -221,10 +229,12 @@ export function getTemplateList(size: number | string) {
         ScheduleTemplates.$10teams12rounds433,
         ScheduleTemplates.$10teams12rounds442,
       ];
+    case 11:
+      return [ScheduleTemplates.$11teamsSingleRR];
     case 24:
       return [ScheduleTemplates.$24teams11rounds2phases, ScheduleTemplates.$24teams11rounds3phases];
     case 30:
-      return [ScheduleTemplates.$30Teams11Rounds2PPlusF];
+      return [ScheduleTemplates.$30teams11rounds2PPlusF];
     default:
       return [];
   }
