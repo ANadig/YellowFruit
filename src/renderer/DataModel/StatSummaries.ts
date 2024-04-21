@@ -240,7 +240,7 @@ export class PhaseStandings {
 
       let teamsInTier = 0;
       for (const pool of poolsInTier) {
-        pool.calculateFinalRanks(teamsSoFar + 1);
+        pool.calculateFinalRanks(teamsSoFar + 1, poolsInTier.length);
         teamsInTier += pool.poolTeams.length;
       }
       teamsSoFar += teamsInTier;
@@ -404,11 +404,16 @@ export class PoolStats {
     return false;
   }
 
-  calculateFinalRanks(startingRank: number) {
+  /**
+   * Fugure out what we think final ranks should be based on the stats we have
+   * @param startingRank highest possible rank in this pool
+   * @param step How much to increment the rank by for each subsequent team; this should be the number of parallel pools in this pool's tier
+   */
+  calculateFinalRanks(startingRank: number, step: number = 1) {
     if (this.poolTeams.length === 0) return;
     let prevTeam = this.poolTeams[0];
     prevTeam.finalRankCalculated = startingRank;
-    let teamsSoFar = 1;
+    let teamsSoFar = step;
     for (let i = 1; i < this.poolTeams.length; i++) {
       const oneTeam = this.poolTeams[i];
       if (prevTeam.rank === oneTeam.rank) {
@@ -417,7 +422,7 @@ export class PoolStats {
         oneTeam.finalRankCalculated = startingRank + teamsSoFar;
       }
       prevTeam = oneTeam;
-      teamsSoFar++;
+      teamsSoFar += step;
     }
   }
 
