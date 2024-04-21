@@ -11,7 +11,7 @@ import { Team } from './DataModel/Team';
 import Registration from './DataModel/Registration';
 import { TempTeamManager } from './Modal Managers/TempTeamManager';
 import { GenericModalManager } from './Modal Managers/GenericModalManager';
-import { collectRefTargets } from './DataModel/QbjUtils2';
+import { collectRefTargets, findTournamentObject } from './DataModel/QbjUtils2';
 import FileParser from './DataModel/FileParsing';
 import { TempMatchManager } from './Modal Managers/TempMatchManager';
 import { Match } from './DataModel/Match';
@@ -19,14 +19,14 @@ import { StatReportHtmlPage } from '../SharedUtils';
 import { StatReportFileNames, StatReportPages } from './Enums';
 import { Pool } from './DataModel/Pool';
 import { PoolStats } from './DataModel/StatSummaries';
-import { Phase } from './DataModel/Phase';
+import { Phase, WildCardRankingMethod } from './DataModel/Phase';
 import { Round } from './DataModel/Round';
 import TempPhaseManager from './Modal Managers/TempPhaseManager';
 import TempPoolManager from './Modal Managers/TempPoolManager';
 import TempRankManager from './Modal Managers/TempRankManager';
 import { snakeCaseToCamelCase, camelCaseToSnakeCase } from './DataModel/CaseConversion';
 import { CommonRuleSets } from './DataModel/ScoringRules';
-import { findTournamentObject, qbjFileValidVersion } from './DataModel/QbjUtils';
+import { qbjFileValidVersion } from './DataModel/QbjUtils';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -179,7 +179,6 @@ export class TournamentManager {
     } catch (err: any) {
       this.openGenericModal('Invalid File', err.message);
     }
-    console.log(refTargets);
 
     const parser = new FileParser(refTargets);
     let loadedTournament: Tournament | null = null;
@@ -459,6 +458,11 @@ export class TournamentManager {
 
   setStandardSchedule(sched: StandardSchedule) {
     this.tournament.setStandardSchedule(sched);
+    this.onDataChanged();
+  }
+
+  setPhaseWCRankMethod(phase: Phase, method: WildCardRankingMethod) {
+    phase.wildCardRankingMethod = method;
     this.onDataChanged();
   }
 

@@ -1,11 +1,11 @@
-/** Data structures that hold compiled stats to be used stat reports */
+/** Data structures that hold compiled stats to be used in stat reports */
 
 import { sumReduce } from '../Utils/GeneralUtils';
 import { LeftOrRight } from '../Utils/UtilTypes';
 import { Match } from './Match';
 import { MatchPlayer } from './MatchPlayer';
 import { MatchTeam } from './MatchTeam';
-import { Phase } from './Phase';
+import { Phase, WildCardRankingMethod } from './Phase';
 import { Player } from './Player';
 import { PlayerAnswerCount } from './PlayerAnswerCount';
 import { Pool } from './Pool';
@@ -163,6 +163,7 @@ export class PhaseStandings {
         this.anyTiesExist = true;
       }
     }
+    this.assignWildCardSeeds();
     if (this.yieldsFinalRanks) {
       this.assignFinalTeamRanks();
       this.sortTeamsByFinalRank();
@@ -183,6 +184,51 @@ export class PhaseStandings {
       if (pt) return pt;
     }
     return undefined;
+  }
+
+  private assignWildCardSeeds() {
+    let curSeed = this.phase.topWildCardSeed;
+    if (curSeed === undefined) return;
+
+    const teamsToSeed = this.listOfAllTeams().filter((pt) => pt.currentSeed && curSeed && pt.currentSeed >= curSeed);
+    this.sortWildCardTeams(teamsToSeed);
+    for (const oneTeam of teamsToSeed) {
+      oneTeam.currentSeed = curSeed;
+      oneTeam.advanceToTier = this.phase.getTierThatWCSeedAdvancesTo(curSeed);
+      curSeed++;
+    }
+  }
+
+  private sortWildCardTeams(teamsToSeed: PoolTeamStats[]) {
+    teamsToSeed.sort((a, b) => {
+      if (this.phase.wildCardRankingMethod === WildCardRankingMethod.RankThenPPB) {
+        const aRank = a.rawRank ?? 99999;
+        const bRank = b.rawRank ?? 99999;
+        if (aRank !== bRank) return aRank - bRank;
+      } else if (this.phase.wildCardRankingMethod === WildCardRankingMethod.RecordThanPPB) {
+        let aWinPct = a.getWinPct();
+        let bWinPct = b.getWinPct();
+        if (Number.isNaN(aWinPct)) aWinPct = -1;
+        if (Number.isNaN(bWinPct)) bWinPct = -1;
+        if (aWinPct !== bWinPct) return bWinPct - aWinPct;
+      }
+
+      let aPpb = a.getPtsPerBonus();
+      let bPpb = b.getPtsPerBonus();
+      if (Number.isNaN(aPpb)) aPpb = -9999999;
+      if (Number.isNaN(bPpb)) bPpb = -9999999;
+      return bPpb - aPpb;
+    });
+  }
+
+  private listOfAllTeams() {
+    const teams: PoolTeamStats[] = [];
+    for (const pool of this.pools) {
+      for (const pt of pool.poolTeams) {
+        teams.push(pt);
+      }
+    }
+    return teams;
   }
 
   /** Our best guess of what the final ranks should be */
@@ -303,6 +349,7 @@ export class PoolStats {
     let prevTeam;
     for (const oneTeam of this.poolTeams) {
       teamsSoFar++;
+      oneTeam.rawRank = teamsSoFar;
       const thisWinPct = oneTeam.getWinPct();
       if (thisWinPct === prevWinPct || (Number.isNaN(thisWinPct) && Number.isNaN(prevWinPct))) {
         const tiedRank = `${prevRank.toString()}=`;
@@ -395,7 +442,11 @@ export class PoolTeamStats {
 
   poolTeam: PoolTeam;
 
+  /** The rank for display in the stat report, which might indclude a tie indicator, like "3=" */
   rank: string = '';
+
+  /** The unique rank within the pool, that doesn't care about ties */
+  rawRank: number = 0;
 
   finalRankCalculated?: number;
 
@@ -511,6 +562,7 @@ export class PoolTeamStats {
   /** Do we need a tiebreaker with this team to determine where they advance to? */
   needsTiebreakerWith(other: PoolTeamStats) {
     if (this.rank !== other.rank) return false;
+    if (this.advanceToTier === undefined && other.advanceToTier === undefined) return false;
     return this.advanceToTier !== other.advanceToTier || other.recordTieForAdvancement;
   }
 

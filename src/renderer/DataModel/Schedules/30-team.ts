@@ -30,8 +30,8 @@ export class Sched30Teams11Rounds2PPlusF implements StandardSchedule {
     // Playoffs: 4 tiers, with 2 pools in the top
     const playoffTopPools = makePoolSet(2, 6, 1, 'Playoffs 1', []);
     const place13 = new Pool(6, 2, '13th Place');
-    const place19 = new Pool(6, 3, '9th Place');
-    const place25 = new Pool(6, 4, '17th Place');
+    const place19 = new Pool(6, 3, '19th Place');
+    const place25 = new Pool(6, 4, '25th Place');
 
     snakeSeed(playoffTopPools, 1, 12);
     place13.setSeedRange(13, 18);
@@ -45,6 +45,7 @@ export class Sched30Teams11Rounds2PPlusF implements StandardSchedule {
       { tier: 3, numberOfTeams: 6 },
       { tier: 4, numberOfTeams: 6 },
     ];
+    prelims.topWildCardSeed = 11;
     const playoffs = new Phase(PhaseTypes.Playoff, 6, 10, 4, '2');
     const finals = new Phase(PhaseTypes.Finals, 11, 11, 1, '3');
 

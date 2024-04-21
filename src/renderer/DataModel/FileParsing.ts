@@ -459,9 +459,12 @@ export default class FileParser {
     const yftPhase = new Phase(phaseType, firstRound, lastRound, tiers, code, name);
     yftPhase.description = description || '';
     if (yfExtraData) yftPhase.forceNumericRounds = yfExtraData.forceNumericRounds;
+    if (yfExtraData?.wildCardRankingMethod) yftPhase.wildCardRankingMethod = yfExtraData.wildCardRankingMethod;
+    yftPhase.wildCardAdvancementRules = yfExtraData?.wildCardAdvancementRules ?? [];
+    yftPhase.topWildCardSeed = yfExtraData?.topWildCardSeed;
+
     this.addRoundsFromFile(yftPhase, rounds, firstRound, lastRound);
     yftPhase.pools = this.parsePhasePools(qbjPhase);
-    // TODO: wildcard stuff
 
     if (qbjPhase.id) this.phasesById[qbjPhase.id] = yftPhase; // we need this before we parse rounds
 
@@ -547,7 +550,6 @@ export default class FileParser {
       yftPool.autoAdvanceRules = yfExtraData.autoAdvanceRules;
     }
     yftPool.poolTeams = this.parsePoolPoolTeams(qbjPool);
-    // TODO: feeder pools?
 
     return yftPool;
   }

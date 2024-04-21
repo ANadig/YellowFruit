@@ -75,10 +75,10 @@ export class Sched24Teams11Rounds3Phases implements StandardSchedule {
     snakeSeed(playoffTopPools, 1, 12);
     snakeSeed(playoffBottomPools, 13, 24);
 
-    playoffBottomPools[0].feederPools = [prelimPools[0], prelimPools[3]];
-    playoffBottomPools[1].feederPools = [prelimPools[1], prelimPools[2]];
-    playoffBottomPools[0].feederPools = [prelimPools[0], prelimPools[3]];
-    playoffBottomPools[1].feederPools = [prelimPools[1], prelimPools[2]];
+    // playoffBottomPools[0].feederPools = [prelimPools[0], prelimPools[3]];
+    // playoffBottomPools[1].feederPools = [prelimPools[1], prelimPools[2]];
+    // playoffBottomPools[0].feederPools = [prelimPools[0], prelimPools[3]];
+    // playoffBottomPools[1].feederPools = [prelimPools[1], prelimPools[2]];
 
     // Superplayoffs: 4 tiers, each with one pool of 6
     const championship = new Pool(6, 1, 'Championship', true);

@@ -1,7 +1,4 @@
 import { IIndeterminateQbj, IQbjObject, IQbjRefPointer, IQbjWholeFile, IRefTargetDict } from './Interfaces';
-import { QbjTypeNames } from './QbjEnums';
-// eslint-disable-next-line import/no-cycle
-import { IQbjTournament } from './Tournament';
 
 export function makeQbjRefPointer($ref: string): IQbjRefPointer {
   return { $ref };
@@ -18,13 +15,6 @@ export function qbjFileValidVersion(obj: IQbjWholeFile) {
   const { version } = obj;
   if (!version) return false;
   return validQbjVersions.includes(version);
-}
-
-export function findTournamentObject(objects: IQbjObject[]): IQbjTournament | null {
-  for (const obj of objects) {
-    if (obj.type === QbjTypeNames.Tournament) return obj as IQbjTournament;
-  }
-  return null;
 }
 
 /** Returns the given object, or the object it points to if it's a ref pointer */

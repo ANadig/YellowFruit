@@ -13,6 +13,13 @@ import { IQbjScoringRules } from './ScoringRules';
 import { IQbjTeam } from './Team';
 import { IQbjTournament } from './Tournament';
 
+export function findTournamentObject(objects: IQbjObject[]): IQbjTournament | null {
+  for (const obj of objects) {
+    if (obj.type === QbjTypeNames.Tournament) return obj as IQbjTournament;
+  }
+  return null;
+}
+
 /** Parse a file and collect all the objects that have an 'id' property */
 export function collectRefTargets(objectList: IQbjObject[]): IRefTargetDict {
   const dict: IRefTargetDict = {};

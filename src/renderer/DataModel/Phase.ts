@@ -39,10 +39,10 @@ function defaultPhaseName(type: PhaseTypes) {
 /** When a phase uses wild card advancement (as opposed to set numbers of teams advancing from each pool),
  *  How do rank wild card teams?
  */
-export enum WildCardRankingRules {
+export enum WildCardRankingMethod {
   /** Rank within the team's pool, then PPB. e.g. prioritize all 3rd place teams over all 4th place teams. */
   RankThenPPB = 'RankThenPPB',
-  /** Record in the pool, then PPB. e.g. prioritizes all 3-2 teams over all 2-3 teams regardless of what rank they are in the pool */
+  /** Record in the pool, then PPB. e.g. prioritize all 3-2 teams over all 2-3 teams regardless of what rank they are in the pool */
   RecordThanPPB = 'RecordThanPPB',
 }
 
@@ -77,7 +77,8 @@ interface IPhaseExtraData {
   code: string;
   tiers: number;
   wildCardAdvancementRules?: IWildCardAdvancementRule[];
-  wildCardRankingMethod?: WildCardRankingRules;
+  wildCardRankingMethod?: WildCardRankingMethod;
+  topWildCardSeed?: number;
   forceNumericRounds?: boolean;
 }
 
@@ -109,7 +110,12 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   wildCardAdvancementRules: IWildCardAdvancementRule[] = [];
 
   /** How do we rank wild card teams to determine who has priority? */
-  wildCardRankingMethod: WildCardRankingRules = WildCardRankingRules.RankThenPPB;
+  wildCardRankingMethod: WildCardRankingMethod = WildCardRankingMethod.RankThenPPB;
+
+  /** Starting with this seed, seeding for the next phase is determined cross-pool rather than ranks in a specific
+   *  pool guaranteeing advancement to a specific place.
+   */
+  topWildCardSeed?: number;
 
   get id(): string {
     return `Phase_${this.name}`;
@@ -147,6 +153,7 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
       tiers: this.tiers,
       wildCardAdvancementRules: this.wildCardAdvancementRules,
       wildCardRankingMethod: this.wildCardRankingMethod,
+      topWildCardSeed: this.topWildCardSeed,
       forceNumericRounds: this.forceNumericRounds,
     };
     const yftFileObj = { YfData: yfData, ...qbjObject };
@@ -217,6 +224,17 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
 
   findPoolByName(name: string) {
     return this.pools.find((p) => p.name === name);
+  }
+
+  getTierThatWCSeedAdvancesTo(seed: number) {
+    if (this.topWildCardSeed === undefined) return undefined;
+    const wcRank = seed - this.topWildCardSeed + 1;
+    let count = 0;
+    for (const oneRule of this.wildCardAdvancementRules) {
+      count += oneRule.numberOfTeams;
+      if (count >= wcRank) return oneRule.tier;
+    }
+    return undefined;
   }
 
   teamsAreInSamePool(team1: Team, team2: Team) {

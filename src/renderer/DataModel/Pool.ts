@@ -87,6 +87,13 @@ export class Pool implements IQbjPool, IYftDataModelObject {
    */
   seeds: number[] = [];
 
+  /**
+   * Wild card positions that advance to this pool. For example, if this is a top playoff bracket where
+   * the last team in is the top wild card, this field would be [1]. If this is a consolation bracket with
+   * wild cards 3 through 8, this field would be [3, 4, 5, 6, 7, 8]
+   */
+  // wildCardPositions: number[] = [];
+
   /** Does this pool carry over games from the previous phase? */
   hasCarryover: boolean = false;
 
@@ -170,16 +177,20 @@ export class Pool implements IQbjPool, IYftDataModelObject {
     return this.poolTeams.find((pt) => pt.team === team);
   }
 
-  /** Given a rank, which numbered tier does that rank advance to? */
+  /** Given a rank, which numbered tier does that rank advance tom if any? Returns undefined if
+   *  the rank advances based on wild card rules.
+   */
   getTierThatRankAdvancesTo(rank: number): number | undefined {
     const aoWithRank = this.autoAdvanceRules.find((ao) => ao.ranksThatAdvance.includes(rank));
     if (!aoWithRank) return undefined;
     return aoWithRank.tier;
   }
 
-  /** The 1-indexed seed number assigned to a team of this rank within the pool. Return -1 if the rank is out of bounds */
-  getSeedForRank(rank: number): number {
-    return this.seeds[rank - 1] || -1;
+  /** The 1-indexed seed number assigned to a team of this rank within the pool. Return -1 if the
+   * rank is out of bounds (including if the rank advances based on wild card rules)
+   */
+  getSeedForRank(rank: number): number | undefined {
+    return this.seeds[rank - 1] ?? undefined;
   }
 
   /** Is at least one of the match's teams in this pool? */
