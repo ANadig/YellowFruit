@@ -374,7 +374,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   addFinalsPhase() {
     const roundNumber = this.phases[this.phases.length - 1].lastRoundNumber() + 1;
-    this.phases.push(new Phase(PhaseTypes.Finals, roundNumber, roundNumber, (this.lastPhaseCodeNo() + 1).toString()));
+    const numFinalsAlready = this.getFinalsPhases().length;
+    const phaseName = numFinalsAlready > 0 ? `Finals (${numFinalsAlready + 1})` : undefined;
+    this.phases.push(
+      new Phase(PhaseTypes.Finals, roundNumber, roundNumber, (this.lastPhaseCodeNo() + 1).toString(), phaseName),
+    );
   }
 
   deletePhase(phase: Phase) {
