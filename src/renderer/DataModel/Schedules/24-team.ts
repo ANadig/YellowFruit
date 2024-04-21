@@ -35,8 +35,8 @@ export class Sched24Teams11Rounds2Phases implements StandardSchedule {
     place9.setSeedRange(9, 16);
     place17.setSeedRange(17, 24);
 
-    const prelims = new Phase(PhaseTypes.Prelim, 1, 5, 1, '1');
-    const playoffs = new Phase(PhaseTypes.Playoff, 6, 11, 3, '2');
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 6, 11, '2');
 
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place9, place17];
@@ -91,9 +91,9 @@ export class Sched24Teams11Rounds3Phases implements StandardSchedule {
     place13.setSeedRange(13, 18);
     place19.setSeedRange(19, 24);
 
-    const prelims = new Phase(PhaseTypes.Prelim, 1, 5, 1, '1');
-    const playoffs = new Phase(PhaseTypes.Playoff, 6, 8, 2, '2');
-    const superPlayoffs = new Phase(PhaseTypes.Playoff, 9, 11, 4, '3', 'Superplayoffs');
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 6, 8, '2');
+    const superPlayoffs = new Phase(PhaseTypes.Playoff, 9, 11, '3', 'Superplayoffs');
 
     prelims.pools = prelimPools;
     playoffs.pools = playoffTopPools.concat(playoffBottomPools);

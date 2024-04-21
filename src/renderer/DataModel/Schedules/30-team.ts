@@ -38,7 +38,7 @@ export class Sched30Teams11Rounds2PPlusF implements StandardSchedule {
     place19.setSeedRange(19, 24);
     place25.setSeedRange(25, 30);
 
-    const prelims = new Phase(PhaseTypes.Prelim, 1, 5, 1, '1');
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
     prelims.wildCardAdvancementRules = [
       { tier: 1, numberOfTeams: 2 },
       { tier: 2, numberOfTeams: 6 },
@@ -46,8 +46,8 @@ export class Sched30Teams11Rounds2PPlusF implements StandardSchedule {
       { tier: 4, numberOfTeams: 6 },
     ];
     prelims.topWildCardSeed = 11;
-    const playoffs = new Phase(PhaseTypes.Playoff, 6, 10, 4, '2');
-    const finals = new Phase(PhaseTypes.Finals, 11, 11, 1, '3');
+    const playoffs = new Phase(PhaseTypes.Playoff, 6, 10, '2');
+    const finals = new Phase(PhaseTypes.Finals, 11, 11, '3');
 
     prelims.pools = prelimPools;
     playoffs.pools = playoffTopPools.concat([place13, place19, place25]);

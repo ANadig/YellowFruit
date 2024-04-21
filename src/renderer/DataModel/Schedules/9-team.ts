@@ -25,7 +25,7 @@ export class Sched9TeamsSingleRR implements StandardSchedule {
     const rrPool = new Pool(9, 1, 'Round Robin');
     rrPool.setSeedRange(1, 9);
 
-    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 9, 1, '1', 'Round Robin');
+    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 9, '1', 'Round Robin');
     roundRobin.pools = [rrPool];
     this.phases = [roundRobin];
   }
@@ -63,8 +63,8 @@ export class Sched9Teams12Rounds333 implements StandardSchedule {
     place4.setSeedRange(4, 6);
     place7.setSeedRange(7, 9);
 
-    const prelims = new Phase(PhaseTypes.Prelim, 1, 9, 1, '1');
-    const playoffs = new Phase(PhaseTypes.Playoff, 10, 12, 3, '2');
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 9, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 10, 12, '2');
 
     prelims.pools = [rrPool];
     playoffs.pools = [championship, place4, place7];
@@ -107,8 +107,8 @@ export class Sched9Teams12Rounds432 implements StandardSchedule {
 
     place8.roundRobins = 2;
 
-    const prelims = new Phase(PhaseTypes.Prelim, 1, 9, 1, '1');
-    const playoffs = new Phase(PhaseTypes.Playoff, 10, 12, 3, '2');
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 9, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 10, 12, '2');
 
     prelims.pools = [rrPool];
     playoffs.pools = [championship, place5, place8];
@@ -147,8 +147,8 @@ export class Sched9Teams14Rounds implements StandardSchedule {
     championship.setSeedRange(1, 5);
     place6.setSeedRange(6, 9);
 
-    const prelims = new Phase(PhaseTypes.Prelim, 1, 9, 1, '1');
-    const playoffs = new Phase(PhaseTypes.Playoff, 10, 14, 2, '2');
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 9, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 10, 14, '2');
 
     prelims.pools = [rrPool];
     playoffs.pools = [championship, place6];

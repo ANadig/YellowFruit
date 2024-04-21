@@ -451,12 +451,11 @@ export default class FileParser {
 
     const phaseType = yfExtraData ? yfExtraData.phaseType : assumedPhaseType;
     const rounds = this.parsePhaseRounds(qbjPhase, fallbackRoundStart);
-    const tiers = yfExtraData ? yfExtraData.tiers : 1;
     const code = yfExtraData ? yfExtraData.code : fallbackCode;
     const firstRound = rounds[0].number;
     const lastRound = rounds[rounds.length - 1].number;
 
-    const yftPhase = new Phase(phaseType, firstRound, lastRound, tiers, code, name);
+    const yftPhase = new Phase(phaseType, firstRound, lastRound, code, name);
     yftPhase.description = description || '';
     if (yfExtraData) yftPhase.forceNumericRounds = yfExtraData.forceNumericRounds;
     if (yfExtraData?.wildCardRankingMethod) yftPhase.wildCardRankingMethod = yfExtraData.wildCardRankingMethod;

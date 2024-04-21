@@ -352,7 +352,6 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       PhaseTypes.Tiebreaker,
       lastRd + 0.5,
       lastRd + 0.5,
-      1,
       `${phase.code}T`,
       `${phase.name} Tiebreakers`,
     );
@@ -375,9 +374,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   addFinalsPhase() {
     const roundNumber = this.phases[this.phases.length - 1].lastRoundNumber() + 1;
-    this.phases.push(
-      new Phase(PhaseTypes.Finals, roundNumber, roundNumber, 1, (this.lastPhaseCodeNo() + 1).toString()),
-    );
+    this.phases.push(new Phase(PhaseTypes.Finals, roundNumber, roundNumber, (this.lastPhaseCodeNo() + 1).toString()));
   }
 
   deletePhase(phase: Phase) {

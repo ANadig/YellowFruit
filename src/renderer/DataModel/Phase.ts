@@ -75,7 +75,6 @@ export interface IYftFilePhase extends IQbjPhase, IYftFileObject {
 interface IPhaseExtraData {
   phaseType: PhaseTypes;
   code: string;
-  tiers: number;
   wildCardAdvancementRules?: IWildCardAdvancementRule[];
   wildCardRankingMethod?: WildCardRankingMethod;
   topWildCardSeed?: number;
@@ -94,7 +93,7 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   code: string = '';
 
   /** The number of tiers. Should be consistent with the position property of the pools in this phase */
-  tiers: number = 1;
+  // tiers: number = 1;
 
   rounds: Round[];
 
@@ -121,11 +120,10 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return `Phase_${this.name}`;
   }
 
-  constructor(type: PhaseTypes, firstRound: number, lastRound: number, tiers: number, code: string, name?: string) {
+  constructor(type: PhaseTypes, firstRound: number, lastRound: number, code: string, name?: string) {
     this.phaseType = type;
     this.name = name || defaultPhaseName(type);
     this.rounds = [];
-    this.tiers = tiers;
     this.code = code;
     for (let i = firstRound; i <= lastRound; i++) {
       let roundName: string | undefined;
@@ -150,7 +148,6 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     const yfData: IPhaseExtraData = {
       phaseType: this.phaseType,
       code: this.code,
-      tiers: this.tiers,
       wildCardAdvancementRules: this.wildCardAdvancementRules,
       wildCardRankingMethod: this.wildCardRankingMethod,
       topWildCardSeed: this.topWildCardSeed,

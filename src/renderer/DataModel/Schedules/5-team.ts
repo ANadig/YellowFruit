@@ -26,7 +26,7 @@ export class Sched5TeamsDoubleRR implements StandardSchedule {
     rrPool.setSeedRange(1, 5);
     rrPool.roundRobins = 2;
 
-    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 10, 1, '1', 'Round Robin');
+    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 10, '1', 'Round Robin');
     roundRobin.pools = [rrPool];
     this.phases = [roundRobin];
   }
@@ -64,8 +64,8 @@ export class Sched5Teams13Rounds implements StandardSchedule {
     place4.setSeedRange(4, 5);
     place4.roundRobins = 2;
 
-    const prelims = new Phase(PhaseTypes.Prelim, 1, 10, 1, '1');
-    const playoffs = new Phase(PhaseTypes.Playoff, 11, 13, 2, '2');
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 10, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 11, 13, '2');
 
     prelims.pools = [rrPool];
     playoffs.pools = [championship, place4];
