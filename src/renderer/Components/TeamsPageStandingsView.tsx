@@ -296,6 +296,7 @@ function TiebreakerOrFinalsInfo(props: ITiebreakerOrFinalsInfoProps) {
   const matches = tbOrFinalsPhase.getMatchesForPool(pool);
   const round = tbOrFinalsPhase.rounds[0]; // Assume tiebreaker phases only have one round
   const isFinals = tbOrFinalsPhase.phaseType === PhaseTypes.Finals;
+  const multFinalsPhases = tournManager.tournament.getFinalsPhases().length > 1;
 
   const newMatchForRound = () => {
     tournManager.openMatchModalNewMatchForRound(round);
@@ -305,17 +306,21 @@ function TiebreakerOrFinalsInfo(props: ITiebreakerOrFinalsInfoProps) {
     tournManager.openMatchEditModalExistingMatch(match, tbOrFinalsPhase.rounds[0]);
   };
 
+  const buttonLabel = `Add ${isFinals ? 'finals' : 'tiebreaker'} game${
+    isFinals && multFinalsPhases && ` - ${tbOrFinalsPhase.name}`
+  }`;
+
   if (matches.length === 0) {
     return (
       <LinkButton sx={{ marginTop: 1, mx: 2 }} onClick={newMatchForRound}>
-        Add {isFinals ? 'finals' : 'tiebreaker'} game
+        {buttonLabel}
       </LinkButton>
     );
   }
 
   return (
     <Box sx={{ marginTop: isFinals ? 0 : 1, mx: 2 }}>
-      <Typography variant="subtitle2">{isFinals ? 'Finals' : 'Tiebreakers'}</Typography>
+      <Typography variant="subtitle2">{isFinals ? tbOrFinalsPhase.name : 'Tiebreakers'}</Typography>
       <Box typography="body2">
         {matches.map((match) => (
           <div key={match.id}>
@@ -326,7 +331,7 @@ function TiebreakerOrFinalsInfo(props: ITiebreakerOrFinalsInfoProps) {
           </div>
         ))}
       </Box>
-      <LinkButton onClick={newMatchForRound}>Add {isFinals ? 'finals' : 'tiebreaker'} game</LinkButton>
+      <LinkButton onClick={newMatchForRound}>{buttonLabel}</LinkButton>
     </Box>
   );
 }
