@@ -98,6 +98,9 @@ export default function SchedulePickerCard() {
               <ListItemText>Rounds: {previewedSchedule.rounds}</ListItemText>
             </ListItem>
             <ListItem>
+              <ListItemText>Minimum games: {previewedSchedule.minGames}</ListItemText>
+            </ListItem>
+            <ListItem>
               <ListItemText>Rooms: {previewedSchedule.rooms}</ListItemText>
             </ListItem>
             <ListItem>

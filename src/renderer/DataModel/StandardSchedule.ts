@@ -8,8 +8,10 @@ export default interface StandardSchedule {
   shortName?: string;
   /** How many teams the schedule is for */
   size: number;
-  /** How many rounds (not including finals or TBs) this schedule lasts */
+  /** How many rounds (typically not including finals or TBs) this schedule lasts */
   rounds: number;
+  /** All teams get at least this many games */
+  minGames: number;
   /** After which rounds is there a pause for rebracketing? */
   rebracketAfter: number[];
   /** How many simultaneous rooms this schedule uses */
