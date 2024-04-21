@@ -181,23 +181,9 @@ function PhaseEditor(props: IPhaseEditorProps) {
       </Grid>
       <Grid xs={8}>
         <Typography sx={{ marginTop: 1 }} variant="subtitle2">
-          {selectedPool.name}
+          {selectedPool?.name}
         </Typography>
-        <Box typography="body2">
-          <List dense>
-            <ListItem disableGutters>{roundRobinDisplay(selectedPool)}</ListItem>
-            <ListItem disableGutters>Seeds {selectedPool.seeds.join(', ')}</ListItem>
-            {selectedPool.autoAdvanceRules.length > 0 && (
-              <>
-                <ListItem disableGutters>Advancement:</ListItem>
-                {selectedPool.autoAdvanceRules.map((ao) => (
-                  <ListItem key={ao.tier}>{advOpportunityDisplay(ao)}</ListItem>
-                ))}
-                {wcRules.length > 0 && <ListItem>Other ranks advance based on cross-pool ranking method</ListItem>}
-              </>
-            )}
-          </List>
-        </Box>
+        {selectedPool && <PoolDetail selectedPool={selectedPool} hasWildCardAdvancement={wcRules.length > 0} />}
         {canAddTB && (
           <LinkButton onClick={() => tournManager.addTiebreakerAfter(phase)}>Add tiebreaker stage</LinkButton>
         )}
@@ -205,6 +191,33 @@ function PhaseEditor(props: IPhaseEditorProps) {
         {canAddFinals && <LinkButton onClick={() => tournManager.addFinalsPhase()}>Add finals stage</LinkButton>}
       </Grid>
     </Grid>
+  );
+}
+
+interface IPoolDetailProps {
+  selectedPool: Pool;
+  hasWildCardAdvancement: boolean;
+}
+
+function PoolDetail(props: IPoolDetailProps) {
+  const { selectedPool, hasWildCardAdvancement } = props;
+
+  return (
+    <Box typography="body2">
+      <List dense>
+        <ListItem disableGutters>{roundRobinDisplay(selectedPool)}</ListItem>
+        <ListItem disableGutters>Seeds {selectedPool.seeds.join(', ')}</ListItem>
+        {selectedPool.autoAdvanceRules.length > 0 && (
+          <>
+            <ListItem disableGutters>Advancement:</ListItem>
+            {selectedPool.autoAdvanceRules.map((ao) => (
+              <ListItem key={ao.tier}>{advOpportunityDisplay(ao)}</ListItem>
+            ))}
+            {hasWildCardAdvancement && <ListItem>Other ranks advance based on cross-pool ranking method</ListItem>}
+          </>
+        )}
+      </List>
+    </Box>
   );
 }
 
