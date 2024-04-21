@@ -235,6 +235,7 @@ export function makePoolSet(
 }
 
 export function setAutoAdvanceRules(pool: Pool, autoQualChunks: number[]) {
+  pool.autoAdvanceRules = [];
   let tier = 0;
   let curRank = 1;
   for (const c of autoQualChunks) {
