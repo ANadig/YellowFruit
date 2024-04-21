@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { Phase } from '../DataModel/Phase';
+import { Phase, PhaseTypes } from '../DataModel/Phase';
 
 export default class TempPhaseManager {
   /** The phase being edited */
@@ -72,6 +72,9 @@ export default class TempPhaseManager {
   saveData() {
     if (!this.originalPhaseOpened) return;
     this.originalPhaseOpened.name = this.phaseName;
+    if (this.originalPhaseOpened.phaseType === PhaseTypes.Finals && !this.originalPhaseOpened.forceNumericRounds) {
+      this.originalPhaseOpened.rounds[0].name = this.phaseName;
+    }
   }
 
   hasAnyErrors() {
