@@ -142,7 +142,7 @@ export default class HtmlReportGenerator {
     for (const teamStats of poolStats.poolTeams) {
       rows.push(this.standingsRow(teamStats, anyTiesExist, nextPhase));
     }
-    return `${tableTag(rows, undefined, '100%')}\n${this.tiebreakerList(tbPhase, poolStats.pool)}`;
+    return `${tableTag(rows, undefined, '100%')}\n${this.tbOrFinalsMatchList(tbPhase, poolStats.pool)}`;
   }
 
   private cumulativeStandingsTable(omitRank: boolean = false) {
@@ -265,13 +265,13 @@ export default class HtmlReportGenerator {
 
   private finalsList() {
     return this.tournament.getFinalsPhases().map((ph) => {
-      const matchList = this.tiebreakerList(ph);
+      const matchList = this.tbOrFinalsMatchList(ph);
       if (matchList === '') return '';
       return `${headerWithDivider(ph.name)}\n${matchList}`;
     });
   }
 
-  private tiebreakerList(tbOrFinalsPhase: Phase | undefined, pool?: Pool) {
+  private tbOrFinalsMatchList(tbOrFinalsPhase: Phase | undefined, pool?: Pool) {
     if (!tbOrFinalsPhase) return '';
     const matches = tbOrFinalsPhase.getMatchesForPool(pool);
     if (matches.length === 0) return '';
