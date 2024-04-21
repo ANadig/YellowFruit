@@ -276,7 +276,7 @@ export default class HtmlReportGenerator {
     const matches = tbOrFinalsPhase.getMatchesForPool(pool);
     if (matches.length === 0) return '';
     const title = tbOrFinalsPhase.phaseType === PhaseTypes.Tiebreaker ? genericTag('span', 'Tiebreakers:') : '';
-    const list = unorderedList(matches.map((m) => m.getWinnerLoserString()));
+    const list = unorderedList(matches.map((m) => `${m.getWinnerLoserString()} (${scoreboardMatchLink(m, 'box')})`));
     return genericTagWithAttributes('div', [classAttribute(cssClasses.smallText)], title, list);
   }
 
