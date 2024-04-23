@@ -1,10 +1,16 @@
 {
+  "version": "4.0.0",
   "description": "Quiz bowl statkeeping application",
   "author": {
     "name": "Andrew Nadig"
   },
   "name": "yellowfruit",
   "main": "./src/main/main.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ANadig/YellowFruit"
+  },
+  "license": "UNLICENSED",
   "scripts": {
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
     "build:dll": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts",
