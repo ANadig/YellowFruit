@@ -1,0 +1,53 @@
+/*
+ * @NOTE: Prepend a `~` to css file paths that are in your node_modules
+ *        See https://github.com/webpack-contrib/sass-loader#imports
+ */
+
+ body {
+  background-color: #f4f4f4 !important;
+ }
+
+.drop-target * {
+  pointer-events: none;
+}
+
+.yf-draggable {
+  cursor: grab;
+}
+
+.yf-draggable:active {
+  cursor: grabbing;
+}
+
+.yf-hotkey-underline {
+  text-decoration: underline;
+}
+
+/* This is hacky, but actually dynamically sizing the iframe is a headache due to cross-frame scripting guardrails */
+.stat-report-iframe {
+  height: 500px;
+}
+
+@media screen and (min-height: 720px) {
+  .stat-report-iframe {
+    height: 600px;
+  }
+}
+
+@media screen and (min-height: 820px) {
+  .stat-report-iframe {
+    height: 700px;
+  }
+}
+
+@media screen and (min-height: 920px) {
+  .stat-report-iframe {
+    height: 800px;
+  }
+}
+
+@media screen and (min-height: 1020px) {
+  .stat-report-iframe {
+    height: 900px;
+  }
+}

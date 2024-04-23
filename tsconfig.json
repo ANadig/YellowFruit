@@ -1,9 +1,18 @@
 {
-  "include": ["process/ts/*"],
   "compilerOptions": {
-    "target": "ES5",
-    "jsx": "react",
+    "incremental": true,
+    "target": "es2022",
+    "module": "commonjs",
+    "lib": ["dom", "es2022"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "allowJs": true,
-    "moduleResolution": "node"
-  }
+    "outDir": ".erb/dll"
+  },
+  "exclude": ["test", "release/build", "release/app/dist", ".erb/dll"]
 }
