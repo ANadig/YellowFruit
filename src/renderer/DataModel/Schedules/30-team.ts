@@ -28,7 +28,7 @@ export class Sched30Teams11Rounds2PPlusF implements StandardSchedule {
     snakeSeed(prelimPools, 1, 30);
 
     // Playoffs: 4 tiers, with 2 pools in the top
-    const playoffTopPools = makePoolSet(2, 6, 1, 'Playoffs 1', []);
+    const playoffTopPools = makePoolSet(2, 6, 1, 'Championship ', []);
     const place13 = new Pool(6, 2, '13th Place');
     const place19 = new Pool(6, 3, '19th Place');
     const place25 = new Pool(6, 4, '25th Place');
