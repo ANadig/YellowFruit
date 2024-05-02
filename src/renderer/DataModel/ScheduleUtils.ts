@@ -38,6 +38,12 @@ import {
   Sched20Teams14Rounds,
   Sched20Teams9Rounds,
 } from './Schedules/20-team';
+import {
+  Sched21Teams11Rounds,
+  Sched21Teams12Rounds,
+  Sched21Teams14Rounds,
+  Sched21Teams14RoundsNoCO,
+} from './Schedules/21-team';
 import { Sched24Teams11Rounds2Phases, Sched24Teams11Rounds3Phases } from './Schedules/24-team';
 import { Sched30Teams11Rounds2PPlusF } from './Schedules/30-team';
 import { Sched4TeamsTripleRR, Sched4TeamsQuadRR } from './Schedules/4-team';
@@ -53,7 +59,7 @@ import {
 } from './Schedules/9-team';
 import StandardSchedule from './StandardSchedule';
 
-export const sizesWithTemplates = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 24, 30];
+export const sizesWithTemplates = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 24, 30];
 
 export enum ScheduleTemplates {
   $4teamsTripleRR,
@@ -114,6 +120,10 @@ export enum ScheduleTemplates {
   $20teams12rounds,
   $20teams13rounds,
   $20teams14rounds,
+  $21teams11rounds,
+  $21teams12rounds,
+  $21teams14roundsCO,
+  $21teams14roundsNoCO,
   $24teams11rounds2phases,
   $24teams11rounds3phases,
   $30teams11rounds2PPlusF,
@@ -254,6 +264,15 @@ export function makeSchedule(template: ScheduleTemplates): StandardSchedule | nu
       return new Sched20Teams13Rounds();
     case ScheduleTemplates.$20teams14rounds:
       return new Sched20Teams14Rounds();
+    // 21
+    case ScheduleTemplates.$21teams11rounds:
+      return new Sched21Teams11Rounds();
+    case ScheduleTemplates.$21teams12rounds:
+      return new Sched21Teams12Rounds();
+    case ScheduleTemplates.$21teams14roundsCO:
+      return new Sched21Teams14Rounds();
+    case ScheduleTemplates.$21teams14roundsNoCO:
+      return new Sched21Teams14RoundsNoCO();
     // 24
     case ScheduleTemplates.$24teams11rounds2phases:
       return new Sched24Teams11Rounds2Phases();
@@ -406,6 +425,15 @@ export function getTemplateShortName(template: ScheduleTemplates) {
       return Sched20Teams13Rounds.shortName;
     case ScheduleTemplates.$20teams14rounds:
       return Sched20Teams14Rounds.shortName;
+    // 21
+    case ScheduleTemplates.$21teams11rounds:
+      return Sched21Teams11Rounds.shortName;
+    case ScheduleTemplates.$21teams12rounds:
+      return Sched21Teams12Rounds.shortName;
+    case ScheduleTemplates.$21teams14roundsCO:
+      return Sched21Teams14Rounds.shortName;
+    case ScheduleTemplates.$21teams14roundsNoCO:
+      return Sched21Teams14RoundsNoCO.shortName;
     // 24
     case ScheduleTemplates.$24teams11rounds2phases:
       return Sched24Teams11Rounds2Phases.shortName;
@@ -520,6 +548,13 @@ export function getTemplateList(size: number | string) {
         ScheduleTemplates.$20teams12rounds,
         ScheduleTemplates.$20teams13rounds,
         ScheduleTemplates.$20teams14rounds,
+      ];
+    case 21:
+      return [
+        ScheduleTemplates.$21teams11rounds,
+        ScheduleTemplates.$21teams12rounds,
+        ScheduleTemplates.$21teams14roundsCO,
+        ScheduleTemplates.$21teams14roundsNoCO,
       ];
     case 24:
       return [ScheduleTemplates.$24teams11rounds2phases, ScheduleTemplates.$24teams11rounds3phases];
