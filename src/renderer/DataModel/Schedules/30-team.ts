@@ -4,7 +4,6 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-// eslint-disable-next-line import/prefer-default-export
 export class Sched30Teams11Rounds2PPlusF implements StandardSchedule {
   readonly fullName = '30 Teams - 5 Pools of 6 Teams, then 5 Pools of 6 Teams with Parallel Top Pools';
 
@@ -52,5 +51,44 @@ export class Sched30Teams11Rounds2PPlusF implements StandardSchedule {
     playoffs.pools = playoffTopPools.concat([place13, place19, place25]);
 
     this.phases = [prelims, playoffs, finals];
+  }
+}
+
+export class Sched30Teams13Rounds6to10 implements StandardSchedule {
+  readonly fullName = '27 Teams - Pools of 6, then Playoff Pools of 10';
+
+  static shortName = '13 Rounds (prelim pools of 6)';
+
+  readonly size = 30;
+
+  readonly rounds = 13;
+
+  readonly rebracketAfter = [5];
+
+  readonly rooms = 15;
+
+  readonly minGames = 13;
+
+  phases: Phase[];
+
+  constructor() {
+    const prelimPools = makePoolSet(5, 6, 1, 'Prelim ', [2, 2, 2]);
+    snakeSeed(prelimPools, 1, 30);
+
+    const championship = new Pool(10, 1, 'Championship', true);
+    const place11 = new Pool(10, 2, '11th Place', true);
+    const place21 = new Pool(10, 3, '21st Place', true);
+
+    championship.setSeedRange(1, 10);
+    place11.setSeedRange(11, 20);
+    place21.setSeedRange(21, 30);
+
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 6, 13, '2');
+
+    prelims.pools = prelimPools;
+    playoffs.pools = [championship, place11, place21];
+
+    this.phases = [prelims, playoffs];
   }
 }

@@ -1,10 +1,9 @@
 /** Standard schedules for 28-team tournaments */
 
 import { Phase, PhaseTypes } from '../Phase';
-import { Pool, makePoolSet, snakeSeed } from '../Pool';
+import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-// eslint-disable-next-line import/prefer-default-export
 export class Sched28Teams11Rounds2PPlusF implements StandardSchedule {
   readonly fullName = '28 Teams - Pools of 5 or 6 Teams, then Pools of 5 or 6 with Parallel Top Pools';
 
@@ -52,5 +51,48 @@ export class Sched28Teams11Rounds2PPlusF implements StandardSchedule {
     playoffs.pools = playoffTopPools.concat([place13, place19, place24]);
 
     this.phases = [prelims, playoffs, finals];
+  }
+}
+
+export class Sched28Teams13Rounds6to10 implements StandardSchedule {
+  readonly fullName = '28 Teams - Pools of 5 or 6, then Playoff Pools of 10/10/8';
+
+  static shortName = '13 Rounds (prelim pools of 5/6)';
+
+  readonly size = 28;
+
+  readonly rounds = 13;
+
+  readonly rebracketAfter = [5];
+
+  readonly rooms = 14;
+
+  readonly minGames = 11;
+
+  phases: Phase[];
+
+  constructor() {
+    const prelimPools = makePoolSet(5, 6, 1, 'Prelim ', [2, 2, 2]);
+    prelimPools[0].size = 5;
+    prelimPools[1].size = 5;
+    setAutoAdvanceRules(prelimPools[0], [2, 2, 1]);
+    setAutoAdvanceRules(prelimPools[1], [2, 2, 1]);
+    snakeSeed(prelimPools, 1, 28);
+
+    const championship = new Pool(10, 1, 'Championship', true);
+    const place11 = new Pool(10, 2, '11th Place', true);
+    const place21 = new Pool(8, 3, '21st Place', false);
+
+    championship.setSeedRange(1, 10);
+    place11.setSeedRange(11, 20);
+    place21.setSeedRange(21, 28);
+
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 6, 13, '2');
+
+    prelims.pools = prelimPools;
+    playoffs.pools = [championship, place11, place21];
+
+    this.phases = [prelims, playoffs];
   }
 }
