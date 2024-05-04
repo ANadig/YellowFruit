@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { getBaseQbjObject, isQbjRefPointer, makeQbjRefPointer } from '../renderer/DataModel/QbjUtils';
 import { IQbjTournamentSite, TournamentSite } from '../renderer/DataModel/TournamentSite';
-import { IIndeterminateQbj } from '../renderer/DataModel/Interfaces';
+import { IIndeterminateQbj, IRefTargetDict } from '../renderer/DataModel/Interfaces';
 import { QbjTypeNames } from '../renderer/DataModel/QbjEnums';
 import { IQbjScoringRules } from '../renderer/DataModel/ScoringRules';
 import { IQbjTournament } from '../renderer/DataModel/Tournament';
@@ -76,9 +76,10 @@ test('collectRefTargetsTournament01', () => {
   const rules: IQbjScoringRules = { name: 'therules', answerTypes: [aTypeTen] };
   const site: IQbjTournamentSite = { id: 'tsite', name: 'sitename' };
   const tourn: IQbjTournament = { name: 'tname', scoringRules: rules, tournamentSite: site };
+  const dict: IRefTargetDict = {};
 
   const expectedDict = { atype_ten: aTypeTen, tsite: site };
-  const dict = collectRefTargetsTournament(tourn);
+  collectRefTargetsTournament(tourn, dict);
   expect(dict).toMatchObject(expectedDict);
 });
 
@@ -86,8 +87,9 @@ test('collectRefTargetsScoringRules01', () => {
   const aTypeTen = { value: 10, id: 'atype_ten' };
   const aTypes = [aTypeTen];
   const rules: IQbjScoringRules = { name: 'therules', answerTypes: aTypes };
+  const dict: IRefTargetDict = {};
 
   const expectedDict = { atype_ten: aTypeTen };
-  const dict = collectRefTargetsScoringRules(rules);
+  collectRefTargetsScoringRules(rules, dict);
   expect(dict).toMatchObject(expectedDict);
 });
