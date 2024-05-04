@@ -307,7 +307,7 @@ function TiebreakerOrFinalsInfo(props: ITiebreakerOrFinalsInfoProps) {
   };
 
   const buttonLabel = `Add ${isFinals ? 'finals' : 'tiebreaker'} game${
-    isFinals && multFinalsPhases && ` - ${tbOrFinalsPhase.name}`
+    isFinals && multFinalsPhases ? ` - ${tbOrFinalsPhase.name}` : ''
   }`;
 
   if (matches.length === 0) {
