@@ -52,7 +52,7 @@ export class Sched25Teams10RoundsTop2Parallel implements StandardSchedule {
 
   readonly size = 25;
 
-  readonly rounds = 10;
+  readonly rounds = 11;
 
   readonly rebracketAfter = [5];
 

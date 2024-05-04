@@ -11,7 +11,7 @@ export class Sched24Teams8Rounds implements StandardSchedule {
 
   readonly size = 24;
 
-  readonly rounds = 8;
+  readonly rounds = 9;
 
   readonly rebracketAfter = [5];
 

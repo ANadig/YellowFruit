@@ -70,6 +70,10 @@ import {
   Sched24Teams9Rounds,
 } from './Schedules/24-team';
 import { Sched25Teams10Rounds, Sched25Teams10RoundsTop2Parallel } from './Schedules/25-team';
+import { Sched26Teams11RoundsNoWC, Sched26Teams11RoundsWC } from './Schedules/26-team';
+import { Sched27Teams11Rounds2PPlusF } from './Schedules/27-team';
+import { Sched28Teams11Rounds2PPlusF } from './Schedules/28-team';
+import { Sched29Teams11Rounds2PPlusF } from './Schedules/29-team';
 import { Sched30Teams11Rounds2PPlusF } from './Schedules/30-team';
 import { Sched4TeamsTripleRR, Sched4TeamsQuadRR } from './Schedules/4-team';
 import { Sched5Teams13Rounds, Sched5TeamsDoubleRR } from './Schedules/5-team';
@@ -85,7 +89,7 @@ import {
 import StandardSchedule from './StandardSchedule';
 
 export const sizesWithTemplates = [
-  4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 30,
+  4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
 ];
 
 export enum ScheduleTemplates {
@@ -172,7 +176,12 @@ export enum ScheduleTemplates {
   $24teams14rounds,
   $25teams10rounds,
   $25teams10roundsTop2parallel,
-  $30teams11rounds2PPlusF,
+  $26teams11roundsWC,
+  $26teams11roundsNoWC,
+  $27teams10roundsPlusF,
+  $28teams10roundsPlusF,
+  $29teams10roundsPlusF,
+  $30teams10roundsPlusF,
 }
 
 export function makeSchedule(template: ScheduleTemplates): StandardSchedule | null {
@@ -365,8 +374,22 @@ export function makeSchedule(template: ScheduleTemplates): StandardSchedule | nu
       return new Sched25Teams10Rounds();
     case ScheduleTemplates.$25teams10roundsTop2parallel:
       return new Sched25Teams10RoundsTop2Parallel();
+    // 26
+    case ScheduleTemplates.$26teams11roundsWC:
+      return new Sched26Teams11RoundsWC();
+    case ScheduleTemplates.$26teams11roundsNoWC:
+      return new Sched26Teams11RoundsNoWC();
+    // 27
+    case ScheduleTemplates.$27teams10roundsPlusF:
+      return new Sched27Teams11Rounds2PPlusF();
+    // 28
+    case ScheduleTemplates.$28teams10roundsPlusF:
+      return new Sched28Teams11Rounds2PPlusF();
+    // 29
+    case ScheduleTemplates.$29teams10roundsPlusF:
+      return new Sched29Teams11Rounds2PPlusF();
     // 30
-    case ScheduleTemplates.$30teams11rounds2PPlusF:
+    case ScheduleTemplates.$30teams10roundsPlusF:
       return new Sched30Teams11Rounds2PPlusF();
     default:
       return null;
@@ -563,8 +586,22 @@ export function getTemplateShortName(template: ScheduleTemplates) {
       return Sched25Teams10Rounds.shortName;
     case ScheduleTemplates.$25teams10roundsTop2parallel:
       return Sched25Teams10RoundsTop2Parallel.shortName;
+    // 26
+    case ScheduleTemplates.$26teams11roundsWC:
+      return Sched26Teams11RoundsWC.shortName;
+    case ScheduleTemplates.$26teams11roundsNoWC:
+      return Sched26Teams11RoundsNoWC.shortName;
+    // 27
+    case ScheduleTemplates.$27teams10roundsPlusF:
+      return Sched27Teams11Rounds2PPlusF.shortName;
+    // 28
+    case ScheduleTemplates.$28teams10roundsPlusF:
+      return Sched28Teams11Rounds2PPlusF.shortName;
+    // 29
+    case ScheduleTemplates.$29teams10roundsPlusF:
+      return Sched29Teams11Rounds2PPlusF.shortName;
     // 30
-    case ScheduleTemplates.$30teams11rounds2PPlusF:
+    case ScheduleTemplates.$30teams10roundsPlusF:
       return Sched30Teams11Rounds2PPlusF.shortName;
     default:
       return '';
@@ -710,8 +747,16 @@ export function getTemplateList(size: number | string) {
       ];
     case 25:
       return [ScheduleTemplates.$25teams10rounds, ScheduleTemplates.$25teams10roundsTop2parallel];
+    case 26:
+      return [ScheduleTemplates.$26teams11roundsWC, ScheduleTemplates.$26teams11roundsNoWC];
+    case 27:
+      return [ScheduleTemplates.$27teams10roundsPlusF];
+    case 28:
+      return [ScheduleTemplates.$28teams10roundsPlusF];
+    case 29:
+      return [ScheduleTemplates.$29teams10roundsPlusF];
     case 30:
-      return [ScheduleTemplates.$30teams11rounds2PPlusF];
+      return [ScheduleTemplates.$30teams10roundsPlusF];
     default:
       return [];
   }
