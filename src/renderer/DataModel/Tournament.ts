@@ -584,7 +584,8 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   }
 
   setStandardSchedule(sched: StandardSchedule) {
-    this.phases = sched.phases;
+    if (!sched.constructPhases) return; // TODO: remove
+    this.phases = sched.constructPhases();
     this.distributeSeeds();
   }
 

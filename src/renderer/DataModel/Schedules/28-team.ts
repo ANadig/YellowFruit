@@ -4,24 +4,15 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export class Sched28Teams11Rounds2PPlusF implements StandardSchedule {
-  readonly fullName = '28 Teams - Pools of 5 or 6 Teams, then Pools of 5 or 6 with Parallel Top Pools';
-
-  static shortName = '11 Rounds (2 Stages, then Finals)';
-
-  readonly size = 28;
-
-  readonly rounds = 11;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 13;
-
-  readonly minGames = 8;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched28Teams11Rounds2PPlusF: StandardSchedule = {
+  fullName: '28 Teams - Pools of 5 or 6 Teams, then Pools of 5 or 6 with Parallel Top Pools',
+  shortName: '11 Rounds (2 Stages, then Finals)',
+  size: 28,
+  rounds: 11,
+  rebracketAfter: [5],
+  rooms: 13,
+  minGames: 8,
+  constructPhases: () => {
     const prelimPools = makePoolSet(5, 6, 1, 'Prelim ', [2]);
     prelimPools[0].size = 5;
     prelimPools[1].size = 5;
@@ -50,28 +41,19 @@ export class Sched28Teams11Rounds2PPlusF implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = playoffTopPools.concat([place13, place19, place24]);
 
-    this.phases = [prelims, playoffs, finals];
-  }
-}
+    return [prelims, playoffs, finals];
+  },
+};
 
-export class Sched28Teams13Rounds6to10 implements StandardSchedule {
-  readonly fullName = '28 Teams - Pools of 5 or 6, then Playoff Pools of 10/10/8';
-
-  static shortName = '13 Rounds (prelim pools of 5/6)';
-
-  readonly size = 28;
-
-  readonly rounds = 13;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 14;
-
-  readonly minGames = 11;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched28Teams13Rounds6to10: StandardSchedule = {
+  fullName: '28 Teams - Pools of 5 or 6, then Playoff Pools of 10/10/8',
+  shortName: '13 Rounds (prelim pools of 5/6)',
+  size: 28,
+  rounds: 13,
+  rebracketAfter: [5],
+  rooms: 14,
+  minGames: 11,
+  constructPhases: () => {
     const prelimPools = makePoolSet(5, 6, 1, 'Prelim ', [2, 2, 2]);
     prelimPools[0].size = 5;
     prelimPools[1].size = 5;
@@ -93,6 +75,6 @@ export class Sched28Teams13Rounds6to10 implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place11, place21];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};

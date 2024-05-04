@@ -4,24 +4,15 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export class Sched26Teams11RoundsWC implements StandardSchedule {
-  readonly fullName = '26 Teams - Pools of 5 or 6 Teams, then 10/6/5/5 split';
-
-  static shortName = '10 Rounds + Finals (wild card)';
-
-  readonly size = 26;
-
-  readonly rounds = 11;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 11;
-
-  readonly minGames = 8;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched26Teams11RoundsWC: StandardSchedule = {
+  fullName: '26 Teams - Pools of 5 or 6 Teams, then 10/6/5/5 split',
+  shortName: '10 Rounds + Finals (wild card)',
+  size: 26,
+  rounds: 11,
+  rebracketAfter: [5],
+  rooms: 11,
+  minGames: 8,
+  constructPhases: () => {
     const prelimPools = makePoolSet(5, 6, 1, 'Prelim ', [2, 1]);
     prelimPools[0].size = 5;
     prelimPools[1].size = 5;
@@ -51,28 +42,19 @@ export class Sched26Teams11RoundsWC implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = playoffTopPools.concat([place11, place17, place22]);
 
-    this.phases = [prelims, playoffs, finals];
-  }
-}
+    return [prelims, playoffs, finals];
+  },
+};
 
-export class Sched26Teams11RoundsNoWC implements StandardSchedule {
-  readonly fullName = '26 Teams - Pools of 5 or 6 Teams, then 10/5/5/6 split';
-
-  static shortName = '10 Rounds + Finals (6 in bottom pool)';
-
-  readonly size = 25;
-
-  readonly rounds = 11;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 11;
-
-  readonly minGames = 8;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched26Teams11RoundsNoWC: StandardSchedule = {
+  fullName: '26 Teams - Pools of 5 or 6 Teams, then 10/5/5/6 split',
+  shortName: '10 Rounds + Finals (6 in bottom pool)',
+  size: 25,
+  rounds: 11,
+  rebracketAfter: [5],
+  rooms: 11,
+  minGames: 8,
+  constructPhases: () => {
     // This is a 25-team schedule with an extra team at the bottom
     const prelimPools = makePoolSet(5, 5, 1, 'Prelim ', [2, 1, 1, 1]);
     prelimPools[4].size = 6;
@@ -96,6 +78,6 @@ export class Sched26Teams11RoundsNoWC implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = playoffTopPools.concat([place11, place16, place21]);
 
-    this.phases = [prelims, playoffs, finals];
-  }
-}
+    return [prelims, playoffs, finals];
+  },
+};

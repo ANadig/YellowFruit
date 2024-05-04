@@ -4,52 +4,34 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, setAutoAdvanceRules } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export class Sched5TeamsDoubleRR implements StandardSchedule {
-  readonly fullName = '5 Teams - Double Round Robin';
-
-  static shortName = 'Double Round Robin';
-
-  readonly size = 5;
-
-  readonly rounds = 10;
-
-  readonly rebracketAfter = [];
-
-  readonly rooms = 2;
-
-  readonly minGames = 8;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched5TeamsDoubleRR: StandardSchedule = {
+  fullName: '5 Teams - Double Round Robin',
+  shortName: 'Double Round Robin',
+  size: 5,
+  rounds: 10,
+  rebracketAfter: [],
+  rooms: 2,
+  minGames: 8,
+  constructPhases: () => {
     const rrPool = new Pool(5, 1, 'Round Robin');
     rrPool.setSeedRange(1, 5);
     rrPool.roundRobins = 2;
 
     const roundRobin = new Phase(PhaseTypes.Prelim, 1, 10, '1', 'Round Robin');
     roundRobin.pools = [rrPool];
-    this.phases = [roundRobin];
-  }
-}
+    return [roundRobin];
+  },
+};
 
-export class Sched5Teams13Rounds implements StandardSchedule {
-  readonly fullName = '5 Teams - Double Round Robin, Then 3/2 Split';
-
-  static shortName = '13 Rounds';
-
-  readonly size = 5;
-
-  readonly rounds = 13;
-
-  readonly rebracketAfter = [10];
-
-  readonly rooms = 2;
-
-  readonly minGames = 10;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched5Teams13Rounds: StandardSchedule = {
+  fullName: '5 Teams - Double Round Robin, Then 3/2 Split',
+  shortName: '13 Rounds',
+  size: 5,
+  rounds: 13,
+  rebracketAfter: [10],
+  rooms: 2,
+  minGames: 10,
+  constructPhases: () => {
     // Prelims: double round robin
     const rrPool = new Pool(5, 1, 'Prelims');
     rrPool.setSeedRange(1, 5);
@@ -70,6 +52,6 @@ export class Sched5Teams13Rounds implements StandardSchedule {
     prelims.pools = [rrPool];
     playoffs.pools = [championship, place4];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};

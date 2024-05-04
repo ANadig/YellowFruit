@@ -4,24 +4,16 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export class Sched19Teams11Rounds implements StandardSchedule {
-  readonly fullName = '19 Teams - Pools of 10 and 9, then Playoff Pools of 4/4/4/4/3';
+export const Sched19Teams11Rounds: StandardSchedule = {
+  fullName: '19 Teams - Pools of 10 and 9, then Playoff Pools of 4/4/4/4/3',
+  shortName: '11 Rounds',
+  size: 19,
+  rounds: 11,
+  rebracketAfter: [9],
+  rooms: 9,
+  minGames: 10,
 
-  static shortName = '11 Rounds';
-
-  readonly size = 19;
-
-  readonly rounds = 11;
-
-  readonly rebracketAfter = [9];
-
-  readonly rooms = 9;
-
-  readonly minGames = 10;
-
-  phases: Phase[];
-
-  constructor() {
+  constructPhases: () => {
     const prelimPools = makePoolSet(2, 10, 1, 'Prelim ', [2, 2, 2, 2, 2]);
     prelimPools[0].size = 9;
     setAutoAdvanceRules(prelimPools[0], [2, 2, 2, 2, 1]);
@@ -45,28 +37,20 @@ export class Sched19Teams11Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place5, place9, place13, place17];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched19Teams12Rounds implements StandardSchedule {
-  readonly fullName = '19 Teams - Pools of 10 and 9, then Playoff Pools of 6/6/4/3';
+export const Sched19Teams12Rounds: StandardSchedule = {
+  fullName: '19 Teams - Pools of 10 and 9, then Playoff Pools of 6/6/4/3',
+  shortName: '12 Rounds',
+  size: 20,
+  rounds: 12,
+  rebracketAfter: [9],
+  rooms: 9,
+  minGames: 10,
 
-  static shortName = '12 Rounds';
-
-  readonly size = 20;
-
-  readonly rounds = 12;
-
-  readonly rebracketAfter = [9];
-
-  readonly rooms = 9;
-
-  readonly minGames = 10;
-
-  phases: Phase[];
-
-  constructor() {
+  constructPhases: () => {
     const prelimPools = makePoolSet(2, 10, 1, 'Prelim ', [3, 3, 2, 2]);
     prelimPools[0].size = 9;
     setAutoAdvanceRules(prelimPools[0], [3, 3, 2, 1]);
@@ -88,28 +72,20 @@ export class Sched19Teams12Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place7, place13, place17];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched19Teams13Rounds implements StandardSchedule {
-  readonly fullName = '19 Teams - Pools of 10 and 9, then Playoff Pools of 8/6/5';
+export const Sched19Teams13Rounds: StandardSchedule = {
+  fullName: '19 Teams - Pools of 10 and 9, then Playoff Pools of 8/6/5',
+  shortName: '13 Rounds',
+  size: 20,
+  rounds: 13,
+  rebracketAfter: [9],
+  rooms: 9,
+  minGames: 11,
 
-  static shortName = '13 Rounds';
-
-  readonly size = 20;
-
-  readonly rounds = 13;
-
-  readonly rebracketAfter = [9];
-
-  readonly rooms = 9;
-
-  readonly minGames = 11;
-
-  phases: Phase[];
-
-  constructor() {
+  constructPhases: () => {
     const prelimPools = makePoolSet(2, 10, 1, 'Prelim ', [4, 3, 3]);
     prelimPools[0].size = 9;
     setAutoAdvanceRules(prelimPools[0], [4, 3, 2]);
@@ -129,28 +105,20 @@ export class Sched19Teams13Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place9, place15];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched19Teams14Rounds implements StandardSchedule {
-  readonly fullName = '19 Teams - Pools of 10 and 9, then Playoff Pools of 10 and 9';
+export const Sched19Teams14Rounds: StandardSchedule = {
+  fullName: '19 Teams - Pools of 10 and 9, then Playoff Pools of 10 and 9',
+  shortName: '14 Rounds',
+  size: 20,
+  rounds: 14,
+  rebracketAfter: [9],
+  rooms: 9,
+  minGames: 13,
 
-  static shortName = '14 Rounds';
-
-  readonly size = 20;
-
-  readonly rounds = 14;
-
-  readonly rebracketAfter = [9];
-
-  readonly rooms = 9;
-
-  readonly minGames = 13;
-
-  phases: Phase[];
-
-  constructor() {
+  constructPhases: () => {
     const prelimPools = makePoolSet(2, 10, 1, 'Prelim ', [5, 5]);
     prelimPools[0].size = 9;
     setAutoAdvanceRules(prelimPools[0], [5, 4]);
@@ -168,6 +136,6 @@ export class Sched19Teams14Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place11];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};

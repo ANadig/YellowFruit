@@ -4,24 +4,15 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export class Sched27Teams11Rounds2PPlusF implements StandardSchedule {
-  readonly fullName = '27 Teams - Pools of 5 or 6 Teams, then Pools of 5 or 6 with Parallel Top Pools';
-
-  static shortName = '11 Rounds (2 Stages, then Finals)';
-
-  readonly size = 27;
-
-  readonly rounds = 11;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 12;
-
-  readonly minGames = 8;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched27Teams11Rounds2PPlusF: StandardSchedule = {
+  fullName: '27 Teams - Pools of 5 or 6 Teams, then Pools of 5 or 6 with Parallel Top Pools',
+  shortName: '11 Rounds (2 Stages, then Finals)',
+  size: 27,
+  rounds: 11,
+  rebracketAfter: [5],
+  rooms: 12,
+  minGames: 8,
+  constructPhases: () => {
     const prelimPools = makePoolSet(5, 6, 1, 'Prelim ', [2]);
     prelimPools[0].size = 5;
     prelimPools[1].size = 5;
@@ -51,28 +42,19 @@ export class Sched27Teams11Rounds2PPlusF implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = playoffTopPools.concat([place13, place18, place23]);
 
-    this.phases = [prelims, playoffs, finals];
-  }
-}
+    return [prelims, playoffs, finals];
+  },
+};
 
-export class Sched27Teams13Rounds9to6 implements StandardSchedule {
-  readonly fullName = '27 Teams - 3 Pools of 9 Teams, then Playoff Pools of 6/6/6/6/3';
-
-  static shortName = '13 Rounds (prelim pools of 9)';
-
-  readonly size = 27;
-
-  readonly rounds = 13;
-
-  readonly rebracketAfter = [9];
-
-  readonly rooms = 13;
-
-  readonly minGames = 10;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched27Teams13Rounds9to6: StandardSchedule = {
+  fullName: '27 Teams - 3 Pools of 9 Teams, then Playoff Pools of 6/6/6/6/3',
+  shortName: '13 Rounds (prelim pools of 9)',
+  size: 27,
+  rounds: 13,
+  rebracketAfter: [9],
+  rooms: 13,
+  minGames: 10,
+  constructPhases: () => {
     const prelimPools = makePoolSet(3, 9, 1, 'Prelim ', [2, 2, 2, 2, 1]);
     snakeSeed(prelimPools, 1, 27);
 
@@ -94,28 +76,19 @@ export class Sched27Teams13Rounds9to6 implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place7, place13, place19, place25];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched27Teams13Rounds6to10 implements StandardSchedule {
-  readonly fullName = '27 Teams - Pools of 5 or 6, then Playoff Pools of 10/10/7';
-
-  static shortName = '13 Rounds (prelim pools of 5/6)';
-
-  readonly size = 27;
-
-  readonly rounds = 13;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 13;
-
-  readonly minGames = 10;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched27Teams13Rounds6to10: StandardSchedule = {
+  fullName: '27 Teams - Pools of 5 or 6, then Playoff Pools of 10/10/7',
+  shortName: '13 Rounds (prelim pools of 5/6)',
+  size: 27,
+  rounds: 13,
+  rebracketAfter: [5],
+  rooms: 13,
+  minGames: 10,
+  constructPhases: () => {
     const prelimPools = makePoolSet(5, 6, 1, 'Prelim ', [2, 2, 2]);
     prelimPools[0].size = 5;
     prelimPools[1].size = 5;
@@ -139,6 +112,6 @@ export class Sched27Teams13Rounds6to10 implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place11, place21];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};

@@ -2,24 +2,15 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export class Sched25Teams10Rounds implements StandardSchedule {
-  readonly fullName = '25 Teams - 5 Pools of 5, then 5 Pools of 5';
-
-  static shortName = '10 Rounds';
-
-  readonly size = 25;
-
-  readonly rounds = 10;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 10;
-
-  readonly minGames = 8;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched25Teams10Rounds: StandardSchedule = {
+  fullName: '25 Teams - 5 Pools of 5, then 5 Pools of 5',
+  shortName: '10 Rounds',
+  size: 25,
+  rounds: 10,
+  rebracketAfter: [5],
+  rooms: 10,
+  minGames: 8,
+  constructPhases: () => {
     const prelimPools = makePoolSet(5, 5, 1, 'Prelim ', [1, 1, 1, 1, 1]);
     snakeSeed(prelimPools, 1, 25);
 
@@ -41,28 +32,19 @@ export class Sched25Teams10Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place6, place11, place16, place21];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched25Teams10RoundsTop2Parallel implements StandardSchedule {
-  readonly fullName = '25 Teams - 5 Pools of 5, then 5 Pools of 5 (2 Parallel Top Pools)';
-
-  static shortName = '10 Rounds + Finals (Parallel Top Pools)';
-
-  readonly size = 25;
-
-  readonly rounds = 11;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 10;
-
-  readonly minGames = 8;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched25Teams10RoundsTop2Parallel: StandardSchedule = {
+  fullName: '25 Teams - 5 Pools of 5, then 5 Pools of 5 (2 Parallel Top Pools)',
+  shortName: '10 Rounds + Finals (Parallel Top Pools)',
+  size: 25,
+  rounds: 11,
+  rebracketAfter: [5],
+  rooms: 10,
+  minGames: 8,
+  constructPhases: () => {
     const prelimPools = makePoolSet(5, 5, 1, 'Prelim ', [2, 1, 1, 1]);
     snakeSeed(prelimPools, 1, 25);
 
@@ -83,6 +65,6 @@ export class Sched25Teams10RoundsTop2Parallel implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = playoffTopPools.concat([place11, place16, place21]);
 
-    this.phases = [prelims, playoffs, finals];
-  }
-}
+    return [prelims, playoffs, finals];
+  },
+};

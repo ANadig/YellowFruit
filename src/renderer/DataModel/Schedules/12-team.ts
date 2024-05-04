@@ -4,24 +4,15 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export class Sched12Teams8Rounds implements StandardSchedule {
-  readonly fullName = '12 Teams - 2 Pools of 6, Then 2 Pools of 6';
-
-  static shortName = '8 Rounds';
-
-  readonly size = 12;
-
-  readonly rounds = 8;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 6;
-
-  readonly minGames = 8;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched12Teams8Rounds: StandardSchedule = {
+  fullName: '12 Teams - 2 Pools of 6, Then 2 Pools of 6',
+  shortName: '8 Rounds',
+  size: 12,
+  rounds: 8,
+  rebracketAfter: [5],
+  rooms: 6,
+  minGames: 8,
+  constructPhases: () => {
     // Prelim: 2 pools of 6
     const prelimPools = makePoolSet(2, 6, 1, 'Prelim ', [3, 3]);
     snakeSeed(prelimPools, 1, 12);
@@ -39,28 +30,19 @@ export class Sched12Teams8Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place7];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched12Teams9Rounds implements StandardSchedule {
-  readonly fullName = '12 Teams - 2 Pools of 6, Then a Pool of 8 and a Pool of 4';
-
-  static shortName = '9 Rounds';
-
-  readonly size = 12;
-
-  readonly rounds = 9;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 6;
-
-  readonly minGames = 8;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched12Teams9Rounds: StandardSchedule = {
+  fullName: '12 Teams - 2 Pools of 6, Then a Pool of 8 and a Pool of 4',
+  shortName: '9 Rounds',
+  size: 12,
+  rounds: 9,
+  rebracketAfter: [5],
+  rooms: 6,
+  minGames: 8,
+  constructPhases: () => {
     // Prelim: 2 pools of 6
     const prelimPools = makePoolSet(2, 6, 1, 'Prelim ', [4, 2]);
     snakeSeed(prelimPools, 1, 12);
@@ -78,28 +60,19 @@ export class Sched12Teams9Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place9];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched12Teams10Rounds implements StandardSchedule {
-  readonly fullName = '12 Teams - 2 Pools of 6, Then 2 Pools of 6 With No Carryover';
-
-  static shortName = '10 Rounds';
-
-  readonly size = 12;
-
-  readonly rounds = 10;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 6;
-
-  readonly minGames = 10;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched12Teams10Rounds: StandardSchedule = {
+  fullName: '12 Teams - 2 Pools of 6, Then 2 Pools of 6 With No Carryover',
+  shortName: '10 Rounds',
+  size: 12,
+  rounds: 10,
+  rebracketAfter: [5],
+  rooms: 6,
+  minGames: 10,
+  constructPhases: () => {
     // Prelim: 2 pools of 6
     const prelimPools = makePoolSet(2, 6, 1, 'Prelim ', [3, 3]);
     snakeSeed(prelimPools, 1, 12);
@@ -117,55 +90,37 @@ export class Sched12Teams10Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place7];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched12TeamsSingleRR implements StandardSchedule {
-  readonly fullName = '12 Teams - Single Round Robin';
-
-  static shortName = 'Single Round Robin';
-
-  readonly size = 12;
-
-  readonly rounds = 11;
-
-  readonly rebracketAfter = [];
-
-  readonly rooms = 6;
-
-  readonly minGames = 11;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched12TeamsSingleRR: StandardSchedule = {
+  fullName: '12 Teams - Single Round Robin',
+  shortName: 'Single Round Robin',
+  size: 12,
+  rounds: 11,
+  rebracketAfter: [],
+  rooms: 6,
+  minGames: 11,
+  constructPhases: () => {
     const rrPool = new Pool(12, 1, 'Round Robin');
     rrPool.setSeedRange(1, 12);
 
     const roundRobin = new Phase(PhaseTypes.Prelim, 1, 11, '1', 'Round Robin');
     roundRobin.pools = [rrPool];
-    this.phases = [roundRobin];
-  }
-}
+    return [roundRobin];
+  },
+};
 
-export class Sched12Teams14Rounds implements StandardSchedule {
-  readonly fullName = '12 Teams - Full Round Robin, Then 3 Pools of 4';
-
-  static shortName = '14 Rounds';
-
-  readonly size = 12;
-
-  readonly rounds = 14;
-
-  readonly rebracketAfter = [11];
-
-  readonly rooms = 6;
-
-  readonly minGames = 14;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched12Teams14Rounds: StandardSchedule = {
+  fullName: '12 Teams - Full Round Robin, Then 3 Pools of 4',
+  shortName: '14 Rounds',
+  size: 12,
+  rounds: 14,
+  rebracketAfter: [11],
+  rooms: 6,
+  minGames: 14,
+  constructPhases: () => {
     // Prelim: 2 pools of 6
     const rrPool = new Pool(12, 1, 'Round Robin');
     rrPool.setSeedRange(1, 12);
@@ -186,6 +141,6 @@ export class Sched12Teams14Rounds implements StandardSchedule {
     prelims.pools = [rrPool];
     playoffs.pools = [championship, place5, place9];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};

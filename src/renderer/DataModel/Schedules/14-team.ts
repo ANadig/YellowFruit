@@ -4,24 +4,15 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export class Sched14Teams10Rounds implements StandardSchedule {
-  readonly fullName = '14 Teams - 2 Pools of 7, Then Pools of 6, 4, and 4';
-
-  static shortName = '10 Rounds';
-
-  readonly size = 14;
-
-  readonly rounds = 10;
-
-  readonly rebracketAfter = [7];
-
-  readonly rooms = 7;
-
-  readonly minGames = 9;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched14Teams10Rounds: StandardSchedule = {
+  fullName: '14 Teams - 2 Pools of 7, Then Pools of 6, 4, and 4',
+  shortName: '10 Rounds',
+  size: 14,
+  rounds: 10,
+  rebracketAfter: [7],
+  rooms: 7,
+  minGames: 9,
+  constructPhases: () => {
     // Prelim: 2 pools of 7
     const prelimPools = makePoolSet(2, 7, 1, 'Prelim ', [3, 2, 2]);
     snakeSeed(prelimPools, 1, 14);
@@ -41,28 +32,19 @@ export class Sched14Teams10Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place7, place11];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched14Teams11Rounds implements StandardSchedule {
-  readonly fullName = '14 Teams - 2 Pools of 7, Then Top 8/Bottom 6 with Carryover';
-
-  static shortName = '11 Rounds';
-
-  readonly size = 14;
-
-  readonly rounds = 11;
-
-  readonly rebracketAfter = [7];
-
-  readonly rooms = 7;
-
-  readonly minGames = 9;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched14Teams11Rounds: StandardSchedule = {
+  fullName: '14 Teams - 2 Pools of 7, Then Top 8/Bottom 6 with Carryover',
+  shortName: '11 Rounds',
+  size: 14,
+  rounds: 11,
+  rebracketAfter: [7],
+  rooms: 7,
+  minGames: 9,
+  constructPhases: () => {
     // Prelim: 2 pools of 7
     const prelimPools = makePoolSet(2, 7, 1, 'Prelim ', [4, 3]);
     snakeSeed(prelimPools, 1, 14);
@@ -80,28 +62,19 @@ export class Sched14Teams11Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place9];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched14Teams12Rounds implements StandardSchedule {
-  readonly fullName = '14 Teams - 2 Pools of 7, Then Top 6 (full RR)/Bottom 8';
-
-  static shortName = '12 Rounds';
-
-  readonly size = 14;
-
-  readonly rounds = 12;
-
-  readonly rebracketAfter = [7];
-
-  readonly rooms = 7;
-
-  readonly minGames = 10;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched14Teams12Rounds: StandardSchedule = {
+  fullName: '14 Teams - 2 Pools of 7, Then Top 6 (full RR)/Bottom 8',
+  shortName: '12 Rounds',
+  size: 14,
+  rounds: 12,
+  rebracketAfter: [7],
+  rooms: 7,
+  minGames: 10,
+  constructPhases: () => {
     // Prelim: 2 pools of 7
     const prelimPools = makePoolSet(2, 7, 1, 'Prelim ', [3, 4]);
     snakeSeed(prelimPools, 1, 14);
@@ -119,33 +92,24 @@ export class Sched14Teams12Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place7];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched14TeamsSingleRR implements StandardSchedule {
-  readonly fullName = '14 Teams - Single Round Robin';
-
-  static shortName = 'Single Round Robin';
-
-  readonly size = 14;
-
-  readonly rounds = 13;
-
-  readonly rebracketAfter = [];
-
-  readonly rooms = 7;
-
-  readonly minGames = 13;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched14TeamsSingleRR: StandardSchedule = {
+  fullName: '14 Teams - Single Round Robin',
+  shortName: 'Single Round Robin',
+  size: 14,
+  rounds: 13,
+  rebracketAfter: [],
+  rooms: 7,
+  minGames: 13,
+  constructPhases: () => {
     const rrPool = new Pool(14, 1, 'Round Robin');
     rrPool.setSeedRange(1, 14);
 
     const roundRobin = new Phase(PhaseTypes.Prelim, 1, 13, '1', 'Round Robin');
     roundRobin.pools = [rrPool];
-    this.phases = [roundRobin];
-  }
-}
+    return [roundRobin];
+  },
+};

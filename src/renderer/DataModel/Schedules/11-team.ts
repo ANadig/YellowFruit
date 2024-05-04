@@ -4,24 +4,15 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export class Sched11Teams8Rounds implements StandardSchedule {
-  readonly fullName = '11 Teams - Pools of 5 and 6, then Pools of 6 and 5';
-
-  static shortName = '8 Rounds';
-
-  readonly size = 11;
-
-  readonly rounds = 8;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 5;
-
-  readonly minGames = 7;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched11Teams8Rounds: StandardSchedule = {
+  fullName: '11 Teams - Pools of 5 and 6, then Playoff Pools of 6/5',
+  shortName: '8 Rounds',
+  size: 11,
+  rounds: 8,
+  rebracketAfter: [5],
+  rooms: 5,
+  minGames: 7,
+  constructPhases: () => {
     // Prelim: Make 2 pools of 6 then subtract one
     const prelimPools = makePoolSet(2, 6, 1, 'Prelim ', [3, 3]);
     prelimPools[0].size = 5;
@@ -41,33 +32,24 @@ export class Sched11Teams8Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place7];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched11TeamsSingleRR implements StandardSchedule {
-  readonly fullName = '11 Teams - Single Round Robin';
-
-  static shortName = 'Single Round Robin';
-
-  readonly size = 11;
-
-  readonly rounds = 11;
-
-  readonly rebracketAfter = [];
-
-  readonly rooms = 5;
-
-  readonly minGames = 10;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched11TeamsSingleRR: StandardSchedule = {
+  fullName: '11 Teams - Single Round Robin',
+  shortName: 'Single Round Robin',
+  size: 11,
+  rounds: 11,
+  rebracketAfter: [],
+  rooms: 5,
+  minGames: 10,
+  constructPhases: () => {
     const rrPool = new Pool(11, 1, 'Round Robin');
     rrPool.setSeedRange(1, 11);
 
     const roundRobin = new Phase(PhaseTypes.Prelim, 1, 11, '1', 'Round Robin');
     roundRobin.pools = [rrPool];
-    this.phases = [roundRobin];
-  }
-}
+    return [roundRobin];
+  },
+};

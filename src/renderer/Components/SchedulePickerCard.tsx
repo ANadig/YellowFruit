@@ -13,13 +13,7 @@ import {
 } from '@mui/material';
 import { AutoAwesome } from '@mui/icons-material';
 import YfCard from './YfCard';
-import {
-  ScheduleTemplates,
-  getTemplateList,
-  getTemplateShortName,
-  makeSchedule,
-  sizesWithTemplates,
-} from '../DataModel/ScheduleUtils';
+import { getTemplateList, sizesWithTemplates, getStdSchedule } from '../DataModel/ScheduleUtils';
 import StandardSchedule from '../DataModel/StandardSchedule';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -30,24 +24,24 @@ const templateSelectLabel = 'Template';
 export default function SchedulePickerCard() {
   const tournManager = useContext(TournamentContext);
   const [size, setSize] = useState<number | string>('');
-  const [selectedTemplate, setSelectedTemplate] = useState<ScheduleTemplates | string>('');
+  const [selectedTemplateName, setSelectedTemplateName] = useState<string>('');
   const [previewedSchedule, setPreviewedSchedule] = useState<StandardSchedule | null>(null);
   const [numTeamsRegistered] = useSubscription(tournManager.tournament.getNumberOfTeams());
   const readOnly = tournManager.tournament.hasMatchData;
 
   const handleSizeChange = (val: number | string) => {
     setSize(val);
-    setSelectedTemplate('');
+    setSelectedTemplateName('');
     setPreviewedSchedule(null);
   };
 
-  const handleTemplateChange = (val: ScheduleTemplates | string) => {
-    setSelectedTemplate(val);
+  const handleTemplateChange = (val: string) => {
+    setSelectedTemplateName(val);
     let newSched: StandardSchedule | null = null;
-    if (typeof val === 'string') {
+    if (val === '') {
       newSched = null;
     } else {
-      newSched = makeSchedule(val);
+      newSched = getStdSchedule(val, size);
     }
     setPreviewedSchedule(newSched);
   };
@@ -76,13 +70,13 @@ export default function SchedulePickerCard() {
           <InputLabel>{templateSelectLabel}</InputLabel>
           <Select
             label={templateSelectLabel}
-            value={selectedTemplate}
+            value={selectedTemplateName}
             disabled={size === ''}
             onChange={(e) => handleTemplateChange(e.target.value)}
           >
             {getTemplateList(size).map((tmpl) => (
-              <MenuItem key={tmpl} value={tmpl}>
-                {getTemplateShortName(tmpl)}
+              <MenuItem key={tmpl.shortName} value={tmpl.shortName}>
+                {tmpl.shortName}
               </MenuItem>
             ))}
           </Select>

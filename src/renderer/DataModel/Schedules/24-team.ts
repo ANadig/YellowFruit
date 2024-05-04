@@ -4,24 +4,15 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export class Sched24Teams8Rounds implements StandardSchedule {
-  readonly fullName = '24 Teams - 4 Pools of 6 Teams, Then 6 Pools of 4 Teams (Top 2 Parallel)';
-
-  static shortName = '8 Rounds + Finals';
-
-  readonly size = 24;
-
-  readonly rounds = 9;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 12;
-
-  readonly minGames = 8;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched24Teams8Rounds: StandardSchedule = {
+  fullName: '24 Teams - 4 Pools of 6 Teams, Then 6 Pools of 4 Teams (Top 2 Parallel)',
+  shortName: '8 Rounds + Finals',
+  size: 24,
+  rounds: 9,
+  rebracketAfter: [5],
+  rooms: 12,
+  minGames: 8,
+  constructPhases: () => {
     const prelimPools = makePoolSet(4, 6, 1, 'Prelim ', [2, 1, 1, 1, 1]);
     snakeSeed(prelimPools, 1, 24);
 
@@ -45,29 +36,19 @@ export class Sched24Teams8Rounds implements StandardSchedule {
     playoffs.pools = playoffTopPools.concat([place9, place13, place17, place21]);
     const finals = new Phase(PhaseTypes.Finals, 9, 9, '3');
 
-    this.phases = [prelims, playoffs, finals];
-  }
-}
+    return [prelims, playoffs, finals];
+  },
+};
 
-export class Sched24Teams9Rounds implements StandardSchedule {
-  readonly fullName =
-    '24 Teams - 4 Pools of 6 Teams, Then 3 Sets of 2 Parallel Pools of 4 Teams, Then 6 Pools of 4 Teams';
-
-  static shortName = '9 Rounds';
-
-  readonly size = 24;
-
-  readonly rounds = 9;
-
-  readonly rebracketAfter = [5, 7];
-
-  readonly rooms = 12;
-
-  readonly minGames = 9;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched24Teams9Rounds: StandardSchedule = {
+  fullName: '24 Teams - 4 Pools of 6 Teams, Then 3 Sets of 2 Parallel Pools of 4 Teams, Then 6 Pools of 4 Teams',
+  shortName: '9 Rounds',
+  size: 24,
+  rounds: 9,
+  rebracketAfter: [5, 7],
+  rooms: 12,
+  minGames: 9,
+  constructPhases: () => {
     const prelimPools = makePoolSet(4, 6, 1, 'Prelim ', [2, 2, 2]);
     snakeSeed(prelimPools, 1, 24);
 
@@ -101,29 +82,19 @@ export class Sched24Teams9Rounds implements StandardSchedule {
     playoffs.pools = [playoffTopPools, playoffMiddlePools, playoffBottomPools].flat();
     superPlayoffs.pools = [championship, place5, place9, place13, place17, place21];
 
-    this.phases = [prelims, playoffs, superPlayoffs];
-  }
-}
+    return [prelims, playoffs, superPlayoffs];
+  },
+};
 
-export class Sched24Teams10Rounds implements StandardSchedule {
-  readonly fullName =
-    '24 Teams - 4 Pools of 6 Teams, Then 2 Sets of 2 Parallel Pools of 6 Teams, Then 6 Pools of 4 Teams';
-
-  static shortName = '10 Rounds';
-
-  readonly size = 24;
-
-  readonly rounds = 10;
-
-  readonly rebracketAfter = [5, 8];
-
-  readonly rooms = 12;
-
-  readonly minGames = 10;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched24Teams10Rounds: StandardSchedule = {
+  fullName: '24 Teams - 4 Pools of 6 Teams, Then 2 Sets of 2 Parallel Pools of 6 Teams, Then 6 Pools of 4 Teams',
+  shortName: '10 Rounds',
+  size: 24,
+  rounds: 10,
+  rebracketAfter: [5, 8],
+  rooms: 12,
+  minGames: 10,
+  constructPhases: () => {
     const prelimPools = makePoolSet(4, 6, 1, 'Prelim ', [3, 3]);
     snakeSeed(prelimPools, 1, 24);
 
@@ -155,28 +126,19 @@ export class Sched24Teams10Rounds implements StandardSchedule {
     playoffs.pools = playoffTopPools.concat(playoffBottomPools);
     superPlayoffs.pools = [championship, place5, place9, place13, place17, place21];
 
-    this.phases = [prelims, playoffs, superPlayoffs];
-  }
-}
+    return [prelims, playoffs, superPlayoffs];
+  },
+};
 
-export class Sched24Teams11Rounds2Phases5Prelim implements StandardSchedule {
-  readonly fullName = '24 Teams - 4 Pools of 6 Teams, Then 3 Pools of 8 Teams';
-
-  static shortName = '11 Rounds (2 Stages; 5 Prelim Rounds)';
-
-  readonly size = 24;
-
-  readonly rounds = 11;
-
-  readonly rebracketAfter = [5];
-
-  readonly rooms = 12;
-
-  readonly minGames = 11;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched24Teams11Rounds2Phases5Prelim: StandardSchedule = {
+  fullName: '24 Teams - 4 Pools of 6 Teams, Then 3 Pools of 8 Teams',
+  shortName: '11 Rounds (2 Stages; 5 Prelim Rounds)',
+  size: 24,
+  rounds: 11,
+  rebracketAfter: [5],
+  rooms: 12,
+  minGames: 11,
+  constructPhases: () => {
     // Prelim: 4 pools of 6
     const prelimPools = makePoolSet(4, 6, 1, 'Prelim ', [2, 2, 2]);
     snakeSeed(prelimPools, 1, 24);
@@ -196,28 +158,19 @@ export class Sched24Teams11Rounds2Phases5Prelim implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place9, place17];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched24Teams11Rounds2Phases7Prelim implements StandardSchedule {
-  readonly fullName = '24 Teams - Pools of 8, then Playoff Pools of 6';
-
-  static shortName = '11 Rounds (2 Stages; 7 Prelim Rounds)';
-
-  readonly size = 24;
-
-  readonly rounds = 11;
-
-  readonly rebracketAfter = [7];
-
-  readonly rooms = 12;
-
-  readonly minGames = 11;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched24Teams11Rounds2Phases7Prelim: StandardSchedule = {
+  fullName: '24 Teams - Pools of 8, then Playoff Pools of 6',
+  shortName: '11 Rounds (2 Stages; 7 Prelim Rounds)',
+  size: 24,
+  rounds: 11,
+  rebracketAfter: [7],
+  rooms: 12,
+  minGames: 11,
+  constructPhases: () => {
     const prelimPools = makePoolSet(3, 8, 1, 'Prelim ', [2, 2, 2, 2]);
     snakeSeed(prelimPools, 1, 24);
 
@@ -237,29 +190,19 @@ export class Sched24Teams11Rounds2Phases7Prelim implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place7, place13, place19];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
 
-export class Sched24Teams11Rounds3Phases implements StandardSchedule {
-  readonly fullName =
-    '24 Teams - 4 Pools of 6 Teams, Then 2 Sets of 2 Parallel Pools of 6 Teams, Then 4 Pools of 6 Teams';
-
-  static shortName = '11 Rounds (3 Stages)';
-
-  readonly size = 24;
-
-  readonly rounds = 11;
-
-  readonly rebracketAfter = [5, 8];
-
-  readonly rooms = 12;
-
-  readonly minGames = 11;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched24Teams11Rounds3Phases: StandardSchedule = {
+  fullName: '24 Teams - 4 Pools of 6 Teams, Then 2 Sets of 2 Parallel Pools of 6 Teams, Then 4 Pools of 6 Teams',
+  shortName: '11 Rounds (3 Stages)',
+  size: 24,
+  rounds: 11,
+  rebracketAfter: [5, 8],
+  rooms: 12,
+  minGames: 11,
+  constructPhases: () => {
     // Prelim: 4 pools of 6
     const prelimPools = makePoolSet(4, 6, 1, 'Prelim ', [3, 3]);
     snakeSeed(prelimPools, 1, 24);
@@ -290,28 +233,19 @@ export class Sched24Teams11Rounds3Phases implements StandardSchedule {
     playoffs.pools = playoffTopPools.concat(playoffBottomPools);
     superPlayoffs.pools = [championship, place7, place13, place19];
 
-    this.phases = [prelims, playoffs, superPlayoffs];
-  }
-}
+    return [prelims, playoffs, superPlayoffs];
+  },
+};
 
-export class Sched24Teams14Rounds implements StandardSchedule {
-  readonly fullName = '24 Teams - Pools of 8, then Playoff Pools of 9/9/6';
-
-  static shortName = '14 Rounds';
-
-  readonly size = 24;
-
-  readonly rounds = 14;
-
-  readonly rebracketAfter = [7];
-
-  readonly rooms = 12;
-
-  readonly minGames = 12;
-
-  phases: Phase[];
-
-  constructor() {
+export const Sched24Teams14Rounds: StandardSchedule = {
+  fullName: '24 Teams - Pools of 8, then Playoff Pools of 9/9/6',
+  shortName: '14 Rounds',
+  size: 24,
+  rounds: 14,
+  rebracketAfter: [7],
+  rooms: 12,
+  minGames: 12,
+  constructPhases: () => {
     const prelimPools = makePoolSet(3, 8, 1, 'Prelim ', [3, 3, 2]);
     snakeSeed(prelimPools, 1, 24);
 
@@ -329,6 +263,6 @@ export class Sched24Teams14Rounds implements StandardSchedule {
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place10, place19];
 
-    this.phases = [prelims, playoffs];
-  }
-}
+    return [prelims, playoffs];
+  },
+};
