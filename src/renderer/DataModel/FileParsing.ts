@@ -460,7 +460,6 @@ export default class FileParser {
     if (yfExtraData) yftPhase.forceNumericRounds = yfExtraData.forceNumericRounds;
     if (yfExtraData?.wildCardRankingMethod) yftPhase.wildCardRankingMethod = yfExtraData.wildCardRankingMethod;
     yftPhase.wildCardAdvancementRules = yfExtraData?.wildCardAdvancementRules ?? [];
-    yftPhase.topWildCardSeed = yfExtraData?.topWildCardSeed;
 
     this.addRoundsFromFile(yftPhase, rounds, firstRound, lastRound);
     yftPhase.pools = this.parsePhasePools(qbjPhase);

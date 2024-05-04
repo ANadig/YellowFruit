@@ -82,7 +82,6 @@ export class Sched21Teams12Rounds implements StandardSchedule {
       { tier: 3, numberOfTeams: 5 },
       { tier: 4, numberOfTeams: 5 },
     ];
-    prelims.topWildCardSeed = 7;
     const playoffs = new Phase(PhaseTypes.Playoff, 8, 12, '2');
 
     prelims.pools = prelimPools;

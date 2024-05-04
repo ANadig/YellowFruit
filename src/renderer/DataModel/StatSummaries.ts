@@ -187,8 +187,8 @@ export class PhaseStandings {
   }
 
   private assignWildCardSeeds() {
-    let curSeed = this.phase.topWildCardSeed;
-    if (curSeed === undefined) return;
+    if (!this.phase.hasWildCards()) return;
+    let curSeed = this.phase.getTopWildCardSeed();
 
     const teamsToSeed = this.listOfAllTeams().filter((pt) => pt.currentSeed && curSeed && pt.currentSeed >= curSeed);
     this.sortWildCardTeams(teamsToSeed);

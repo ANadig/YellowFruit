@@ -9,6 +9,7 @@ import { Team } from './Team';
 import { makeQbjRefPointer } from './QbjUtils';
 import { Match } from './Match';
 import { Player } from './Player';
+import { sumReduce } from '../Utils/GeneralUtils';
 
 export enum PhaseTypes {
   /** The first phase of a tournament */
@@ -111,11 +112,6 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   /** How do we rank wild card teams to determine who has priority? */
   wildCardRankingMethod: WildCardRankingMethod = WildCardRankingMethod.RankThenPPB;
 
-  /** Starting with this seed, seeding for the next phase is determined cross-pool rather than ranks in a specific
-   *  pool guaranteeing advancement to a specific place.
-   */
-  topWildCardSeed?: number;
-
   get id(): string {
     return `Phase_${this.name}`;
   }
@@ -150,7 +146,6 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
       code: this.code,
       wildCardAdvancementRules: this.wildCardAdvancementRules,
       wildCardRankingMethod: this.wildCardRankingMethod,
-      topWildCardSeed: this.topWildCardSeed,
       forceNumericRounds: this.forceNumericRounds,
     };
     const yftFileObj = { YfData: yfData, ...qbjObject };
@@ -223,15 +218,31 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return this.pools.find((p) => p.name === name);
   }
 
+  hasWildCards() {
+    return this.wildCardAdvancementRules.length > 0;
+  }
+
   getTierThatWCSeedAdvancesTo(seed: number) {
-    if (this.topWildCardSeed === undefined) return undefined;
-    const wcRank = seed - this.topWildCardSeed + 1;
+    if (!this.hasWildCards()) return undefined;
+    const wcRank = seed - this.getTopWildCardSeed() + 1;
     let count = 0;
     for (const oneRule of this.wildCardAdvancementRules) {
       count += oneRule.numberOfTeams;
       if (count >= wcRank) return oneRule.tier;
     }
     return undefined;
+  }
+
+  /** Starting with this seed, seeding for the next phase is determined cross-pool rather than ranks in a specific
+   *  pool guaranteeing advancement to a specific place.
+   */
+  getTopWildCardSeed() {
+    if (!this.hasWildCards()) return 0;
+    let numAutoAdv = 0;
+    for (const pool of this.pools) {
+      numAutoAdv += sumReduce(pool.autoAdvanceRules.map((r) => r.ranksThatAdvance.length));
+    }
+    return numAutoAdv + 1;
   }
 
   teamsAreInSamePool(team1: Team, team2: Team) {

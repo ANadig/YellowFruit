@@ -45,7 +45,6 @@ export class Sched30Teams11Rounds2PPlusF implements StandardSchedule {
       { tier: 3, numberOfTeams: 6 },
       { tier: 4, numberOfTeams: 6 },
     ];
-    prelims.topWildCardSeed = 11;
     const playoffs = new Phase(PhaseTypes.Playoff, 6, 10, '2');
     const finals = new Phase(PhaseTypes.Finals, 11, 11, '3');
 
