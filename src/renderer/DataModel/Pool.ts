@@ -146,6 +146,7 @@ export class Pool implements IQbjPool, IYftDataModelObject {
 
   /** Set this pool's seeds to the given range of numbers */
   setSeedRange(firstSeed: number, lastSeed: number) {
+    if (firstSeed > lastSeed) return;
     this.seeds = [];
     for (let i = firstSeed; i <= lastSeed; i++) {
       this.seeds.push(i);
