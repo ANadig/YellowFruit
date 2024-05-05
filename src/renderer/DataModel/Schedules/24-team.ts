@@ -60,19 +60,12 @@ export const Sched24Teams9Rounds: StandardSchedule = {
     snakeSeed(playoffMiddlePools, 9, 16);
     snakeSeed(playoffBottomPools, 17, 24);
 
-    const championship = new Pool(4, 1, 'Championship', true);
-    const place5 = new Pool(4, 2, '5th Place', true);
-    const place9 = new Pool(4, 3, '9th Place', true);
-    const place13 = new Pool(4, 4, '13th Place', true);
-    const place17 = new Pool(4, 5, '17th Place', true);
-    const place21 = new Pool(4, 6, '21st Place', true);
-
-    championship.setSeedRange(1, 4);
-    place5.setSeedRange(5, 8);
-    place9.setSeedRange(9, 12);
-    place13.setSeedRange(13, 16);
-    place17.setSeedRange(17, 20);
-    place21.setSeedRange(21, 24);
+    const championship = new Pool(4, 1, 'Championship', true, 1, 4);
+    const place5 = new Pool(4, 2, '5th Place', true, 5, 8);
+    const place9 = new Pool(4, 3, '9th Place', true, 9, 12);
+    const place13 = new Pool(4, 4, '13th Place', true, 13, 16);
+    const place17 = new Pool(4, 5, '17th Place', true, 17, 20);
+    const place21 = new Pool(4, 6, '21st Place', true, 21, 24);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 6, 7, '2');
