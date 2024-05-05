@@ -6,7 +6,7 @@ import StandardSchedule from '../StandardSchedule';
 
 export const Sched32Teams8Rounds: StandardSchedule = {
   fullName: '32 Teams - Card System, then 3 Playoff Rounds',
-  shortName: '8 Rounds',
+  shortName: '8 Rounds + Finals',
   size: 32,
   rounds: 8,
   rebracketAfter: [5],
@@ -94,9 +94,9 @@ export const Sched32Teams9Rounds: StandardSchedule = {
   },
 };
 
-export const Sched32Teams10Rounds: StandardSchedule = {
+export const Sched32Teams10Rounds8to4: StandardSchedule = {
   fullName: '32 Teams - 4 Pools of 8, then 8 Pools of 4 (Top 2 Parallel)',
-  shortName: '10 Rounds + Finals',
+  shortName: '10 Rounds + Finals (Prelim Pools of 8)',
   size: 32,
   rounds: 10,
   rebracketAfter: [7],
@@ -128,8 +128,50 @@ export const Sched32Teams10Rounds: StandardSchedule = {
   },
 };
 
+export const Sched32Teams10Rounds6to6: StandardSchedule = {
+  fullName: '32 Teams - Pools of 5 or 6 Teams, then Pools of 5 or 6 Teams with Parallel Top Pools',
+  shortName: '10 Rounds + Finals (Prelim Pools of 5/6)',
+  size: 32,
+  rounds: 10,
+  rebracketAfter: [5],
+  rooms: 14,
+  minGames: 8,
+  constructPhases: () => {
+    const prelimPools = makePoolSet(6, 6, 1, 'Prelim ', [2]);
+    prelimPools[0].size = 5;
+    prelimPools[1].size = 5;
+    prelimPools[2].size = 5;
+    prelimPools[3].size = 5;
+    snakeSeed(prelimPools, 1, 32);
+
+    const playoffTopPools = makePoolSet(2, 6, 1, 'Championship ', []);
+    const place13 = new Pool(5, 2, '13th Place', false, 13, 17);
+    const place19 = new Pool(5, 3, '18th Place', false, 18, 22);
+    const place24 = new Pool(5, 4, '23th Place', false, 23, 27);
+    const place29 = new Pool(5, 5, '28th Place', false, 28, 32);
+
+    playoffTopPools[0].seeds = [1, 4, 5, 7, 10, 11]; // not a normal snake seed to avoid rematches
+    playoffTopPools[1].seeds = [2, 3, 6, 8, 9, 12];
+
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
+    prelims.wildCardAdvancementRules = [
+      { tier: 2, numberOfTeams: 5 },
+      { tier: 3, numberOfTeams: 5 },
+      { tier: 4, numberOfTeams: 5 },
+      { tier: 5, numberOfTeams: 5 },
+    ];
+    const playoffs = new Phase(PhaseTypes.Playoff, 6, 10, '2');
+    const finals = new Phase(PhaseTypes.Finals, 11, 11, '3');
+
+    prelims.pools = prelimPools;
+    playoffs.pools = playoffTopPools.concat([place13, place19, place24, place29]);
+
+    return [prelims, playoffs, finals];
+  },
+};
+
 export const Sched32Teams11Rounds8to4to4: StandardSchedule = {
-  fullName: '32 Teams - 4 Pools of 8, then 8 Pools of 4, then 8 Pools of 4)',
+  fullName: '32 Teams - 4 Pools of 8, then 8 Pools of 4, then 8 Pools of 4',
   shortName: '11 Rounds (Prelim Pools of 8)',
   size: 32,
   rounds: 11,

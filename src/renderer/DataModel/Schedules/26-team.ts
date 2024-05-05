@@ -4,7 +4,7 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export const Sched26Teams11RoundsWC: StandardSchedule = {
+export const Sched26Teams10RoundsWC: StandardSchedule = {
   fullName: '26 Teams - Pools of 5 or 6 Teams, then 10/6/5/5 split',
   shortName: '10 Rounds + Finals (wild card)',
   size: 26,
@@ -21,14 +21,11 @@ export const Sched26Teams11RoundsWC: StandardSchedule = {
     snakeSeed(prelimPools, 1, 26);
 
     const playoffTopPools = makePoolSet(2, 5, 1, 'Championship ', []);
-    const place11 = new Pool(6, 2, '11th Place');
-    const place17 = new Pool(5, 3, '17th Place');
-    const place22 = new Pool(5, 4, '22nd Place');
+    const place11 = new Pool(6, 2, '11th Place', false, 11, 16);
+    const place17 = new Pool(5, 3, '17th Place', false, 17, 21);
+    const place22 = new Pool(5, 4, '22nd Place', false, 22, 26);
 
     snakeSeed(playoffTopPools, 1, 10);
-    place11.setSeedRange(11, 16);
-    place17.setSeedRange(17, 21);
-    place22.setSeedRange(22, 26);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
     prelims.wildCardAdvancementRules = [
@@ -46,7 +43,7 @@ export const Sched26Teams11RoundsWC: StandardSchedule = {
   },
 };
 
-export const Sched26Teams11RoundsNoWC: StandardSchedule = {
+export const Sched26Teams10RoundsNoWC: StandardSchedule = {
   fullName: '26 Teams - Pools of 5 or 6 Teams, then 10/5/5/6 split',
   shortName: '10 Rounds + Finals (6 in bottom pool)',
   size: 25,
@@ -62,14 +59,11 @@ export const Sched26Teams11RoundsNoWC: StandardSchedule = {
     snakeSeed(prelimPools, 1, 26);
 
     const playoffTopPools = makePoolSet(2, 5, 1, 'Playoffs 1', [], false);
-    const place11 = new Pool(5, 2, '11th Place', false);
-    const place16 = new Pool(5, 3, '16th Place', false);
-    const place21 = new Pool(6, 4, '21st Place', false);
+    const place11 = new Pool(5, 2, '11th Place', false, 11, 15);
+    const place16 = new Pool(5, 3, '16th Place', false, 16, 20);
+    const place21 = new Pool(6, 4, '21st Place', false, 21, 26);
 
     snakeSeed(playoffTopPools, 1, 10);
-    place11.setSeedRange(11, 15);
-    place16.setSeedRange(16, 20);
-    place21.setSeedRange(21, 26);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 6, 10, '2');

@@ -4,9 +4,9 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export const Sched30Teams11Rounds2PPlusF: StandardSchedule = {
+export const Sched30Teams10RoundsPlusF: StandardSchedule = {
   fullName: '30 Teams - 5 Pools of 6 Teams, then 5 Pools of 6 Teams with Parallel Top Pools',
-  shortName: '11 Rounds (2 Stages) + Finals',
+  shortName: '10 Rounds (2 Stages) + Finals',
   size: 30,
   rounds: 10,
   rebracketAfter: [5],

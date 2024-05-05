@@ -4,9 +4,9 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-export const Sched28Teams10RoundsPlusF: StandardSchedule = {
+export const Sched28Teams10Rounds7to4: StandardSchedule = {
   fullName: '28 Teams - 4 Pools of 7 Teams, then 7 Pools of 4 (Top 2 Parallel)',
-  shortName: '10 Rounds + Finals',
+  shortName: '10 Rounds + Finals (Prelim Pools of 7)',
   size: 28,
   rounds: 10,
   rebracketAfter: [7],
@@ -36,9 +36,9 @@ export const Sched28Teams10RoundsPlusF: StandardSchedule = {
   },
 };
 
-export const Sched28Teams11Rounds2PPlusF: StandardSchedule = {
+export const Sched28Teams10Rounds6to6: StandardSchedule = {
   fullName: '28 Teams - Pools of 5 or 6 Teams, then Pools of 5 or 6 with Parallel Top Pools',
-  shortName: '11 Rounds (2 Stages) + Finals',
+  shortName: '10 Rounds + Finals (Prelim Pools of 5/6)',
   size: 28,
   rounds: 10,
   rebracketAfter: [5],

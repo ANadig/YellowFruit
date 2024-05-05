@@ -70,24 +70,28 @@ import {
   Sched24Teams9Rounds,
 } from './Schedules/24-team';
 import { Sched25Teams10Rounds, Sched25Teams10RoundsTop2Parallel } from './Schedules/25-team';
-import { Sched26Teams11RoundsNoWC, Sched26Teams11RoundsWC } from './Schedules/26-team';
+import { Sched26Teams10RoundsNoWC, Sched26Teams10RoundsWC } from './Schedules/26-team';
 import {
-  Sched27Teams11Rounds2PPlusF,
+  Sched27Teams10RoundsPlusF,
   Sched27Teams13Rounds6to10,
   Sched27Teams13Rounds9to6,
   Sched27Teams16Rounds,
 } from './Schedules/27-team';
-import { Sched28Teams10RoundsPlusF, Sched28Teams11Rounds2PPlusF, Sched28Teams13Rounds6to10 } from './Schedules/28-team';
+import { Sched28Teams10Rounds7to4, Sched28Teams10Rounds6to6, Sched28Teams13Rounds6to10 } from './Schedules/28-team';
 import { Sched29Teams11Rounds2PPlusF, Sched29Teams13Rounds6to10 } from './Schedules/29-team';
-import { Sched30Teams11Rounds2PPlusF, Sched30Teams13Rounds6to10, Sched30Teams13Rounds8to8 } from './Schedules/30-team';
+import { Sched30Teams10RoundsPlusF, Sched30Teams13Rounds6to10, Sched30Teams13Rounds8to8 } from './Schedules/30-team';
 import { Sched31Teams11Rounds, Sched31Teams13Rounds, Sched31Teams9Rounds } from './Schedules/31-team';
 import {
-  Sched32Teams10Rounds,
+  Sched32Teams10Rounds6to6,
+  Sched32Teams10Rounds8to4,
   Sched32Teams11Rounds8to4to4,
   Sched32Teams13Rounds,
   Sched32Teams8Rounds,
   Sched32Teams9Rounds,
 } from './Schedules/32-team';
+import { Sched33Teams10RoundsPlusF } from './Schedules/33-team';
+import { Sched34Teams10RoundsPlusF } from './Schedules/34-team';
+import { Sched36Teams10Rounds, Sched36Teams10RoundsPlusF } from './Schedules/36-team';
 import { Sched4TeamsTripleRR, Sched4TeamsQuadRR } from './Schedules/4-team';
 import { Sched5Teams13Rounds, Sched5TeamsDoubleRR } from './Schedules/5-team';
 import { Sched6Teams13RoundsSplit33, Sched6Teams13RoundsSplit42, Sched6TeamsDoubleRR } from './Schedules/6-team';
@@ -101,7 +105,8 @@ import {
 } from './Schedules/9-team';
 
 export const sizesWithTemplates = [
-  4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+  4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
+  36,
 ];
 
 export function getStdSchedule(shortName: string, size: number | string) {
@@ -199,25 +204,32 @@ export function getTemplateList(size: number | string) {
     case 25:
       return [Sched25Teams10Rounds, Sched25Teams10RoundsTop2Parallel];
     case 26:
-      return [Sched26Teams11RoundsWC, Sched26Teams11RoundsNoWC];
+      return [Sched26Teams10RoundsWC, Sched26Teams10RoundsNoWC];
     case 27:
-      return [Sched27Teams11Rounds2PPlusF, Sched27Teams13Rounds6to10, Sched27Teams13Rounds9to6, Sched27Teams16Rounds];
+      return [Sched27Teams10RoundsPlusF, Sched27Teams13Rounds6to10, Sched27Teams13Rounds9to6, Sched27Teams16Rounds];
     case 28:
-      return [Sched28Teams10RoundsPlusF, Sched28Teams11Rounds2PPlusF, Sched28Teams13Rounds6to10];
+      return [Sched28Teams10Rounds7to4, Sched28Teams10Rounds6to6, Sched28Teams13Rounds6to10];
     case 29:
       return [Sched29Teams11Rounds2PPlusF, Sched29Teams13Rounds6to10];
     case 30:
-      return [Sched30Teams11Rounds2PPlusF, Sched30Teams13Rounds6to10, Sched30Teams13Rounds8to8];
+      return [Sched30Teams10RoundsPlusF, Sched30Teams13Rounds6to10, Sched30Teams13Rounds8to8];
     case 31:
       return [Sched31Teams9Rounds, Sched31Teams11Rounds, Sched31Teams13Rounds];
     case 32:
       return [
         Sched32Teams8Rounds,
         Sched32Teams9Rounds,
-        Sched32Teams10Rounds,
+        Sched32Teams10Rounds8to4,
+        Sched32Teams10Rounds6to6,
         Sched32Teams11Rounds8to4to4,
         Sched32Teams13Rounds,
       ];
+    case 33:
+      return [Sched33Teams10RoundsPlusF];
+    case 34:
+      return [Sched34Teams10RoundsPlusF];
+    case 36:
+      return [Sched36Teams10RoundsPlusF, Sched36Teams10Rounds];
     default:
       return [];
   }
