@@ -380,11 +380,11 @@ export default class HtmlReportGenerator {
     let title = round.displayName(false);
     if (phase.isFullPhase()) title += ` - ${phase.name}`;
     segments.push(genericTagWithAttributes('div', [id(roundLinkId(round))]));
-    segments.push(headerWithDivider(title, round.number === 1));
+    segments.push(headerWithDivider(title, round.number === 1, true));
     for (const match of round.matches) {
       segments.push(this.boxScore(match));
     }
-    return segments.join('\n');
+    return genericTag('div', segments.join('\n'));
   }
 
   private boxScore(match: Match) {
@@ -905,6 +905,7 @@ const StatReportPageTitles = {
 
 const cssClasses = {
   headerAndDivider: 'headerAndDivider',
+  stickyHeader: 'scoreboardRoundHeader',
   inlineDivider: 'inlineDivider',
   smallText: 'smallText',
   boxScoreTableContainer: 'boxScoreTable',
@@ -980,6 +981,13 @@ function getPageStyle() {
     { attr: 'flex-direction', val: 'row' },
     { attr: 'margin', val: '18 0' },
   );
+  const scoreboardRoundHeader = cssSelector(
+    `.${cssClasses.stickyHeader}`,
+    { attr: 'position', val: 'sticky' },
+    { attr: 'top', val: '0' },
+    { attr: 'background-color', val: 'white' },
+    { attr: 'padding-bottom', val: '10px' },
+  );
   const phaseH2 = cssSelector(`.${cssClasses.headerAndDivider} h2`, { attr: 'margin', val: '0' });
   const inlineDivider = cssSelector(
     `.${cssClasses.inlineDivider}`,
@@ -1012,6 +1020,7 @@ function getPageStyle() {
     { attr: 'background-color', val: '#cccccc' },
     { attr: 'box-shadow', val: '4px 4px 7px #999999' },
     { attr: 'line-height', val: '1.5' },
+    { attr: 'z-index', val: '99' },
   );
   const ulNoBullets = cssSelector(
     `.${cssClasses.floatingTOC} ul`,
@@ -1026,6 +1035,7 @@ function getPageStyle() {
     td,
     zebra,
     headerAndDivider,
+    scoreboardRoundHeader,
     inlineDivider,
     ul,
     smallText,
@@ -1108,23 +1118,19 @@ function genericTagWithAttributes(tag: string, attr: string[], ...contents: stri
   return `<${tag} ${attr.join(' ')}>\n${contents.join('\n')}\n</${tag}>`;
 }
 
-function headerWithDivider(text: string, noTopLink: boolean = false) {
+function headerWithDivider(text: string, noTopLink: boolean = false, sticky: boolean = false) {
   const header = genericTag('h2', text + nbsp);
   const divider = genericTagWithAttributes('div', [classAttribute(cssClasses.inlineDivider)]);
-  if (noTopLink) return genericTagWithAttributes('div', [classAttribute(cssClasses.headerAndDivider)], header, divider);
+  const attrs = sticky
+    ? classAttribute(cssClasses.headerAndDivider, cssClasses.stickyHeader)
+    : classAttribute(cssClasses.headerAndDivider);
+  if (noTopLink) return genericTagWithAttributes('div', [attrs], header, divider);
 
   const topLink = aTag(
     topAnchorID,
     genericTagWithAttributes('span', [classAttribute(cssClasses.smallText)], `${unicodeHTML('2191')}Top`),
   );
-  return genericTagWithAttributes(
-    'div',
-    [classAttribute(cssClasses.headerAndDivider)],
-    header,
-    divider,
-    genericTag('span', nbsp),
-    topLink,
-  );
+  return genericTagWithAttributes('div', [attrs], header, divider, genericTag('span', nbsp), topLink);
 }
 
 function unorderedList(items: string[]) {
@@ -1142,8 +1148,8 @@ function makeAttribute(attrName: string, val: string) {
   return `${attrName}="${val}"`;
 }
 
-function classAttribute(className: string) {
-  return makeAttribute('class', className);
+function classAttribute(...classNames: string[]) {
+  return makeAttribute('class', classNames.join(' '));
 }
 
 function madeWithYellowFruit(yfVersion?: string) {
