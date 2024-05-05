@@ -59,3 +59,49 @@ export const Sched31Teams9Rounds: StandardSchedule = {
     return [prelims, playoffs1, playoffs2, playoffs3];
   },
 };
+
+export const Sched31Teams11Rounds: StandardSchedule = {
+  fullName: '32 Teams - Pools of 7 or 8, then Pools of 3 or 4, then Pools of 3 or 4',
+  shortName: '11 Rounds',
+  size: 31,
+  rounds: 11,
+  rebracketAfter: [7, 9],
+  rooms: 15,
+  minGames: 10,
+  constructPhases: () => {
+    const prelimPools = makePoolSet(4, 8, 1, 'Prelim ', [2, 2, 2, 2]);
+    prelimPools[0].size = 7;
+    setAutoAdvanceRules(prelimPools[0], [2, 2, 2, 1]);
+    snakeSeed(prelimPools, 1, 31);
+
+    const playoffTier1Pools = makePoolSet(2, 4, 1, 'Playoff 1', [2, 2, 0, 0, 0, 0, 0, 0], true);
+    const playoffTier2Pools = makePoolSet(2, 4, 2, 'Playoff 2', [0, 0, 2, 2, 0, 0, 0, 0], true);
+    const playoffTier3Pools = makePoolSet(2, 4, 3, 'Playoff 3', [0, 0, 0, 0, 2, 2, 0, 0], true);
+    const playoffTier4Pools = makePoolSet(2, 4, 4, 'Playoff 4', [0, 0, 0, 0, 0, 0, 2, 2], true);
+    playoffTier4Pools[0].size = 3;
+    setAutoAdvanceRules(playoffTier4Pools[0], [0, 0, 0, 0, 0, 0, 2, 1]);
+    snakeSeed(playoffTier1Pools, 1, 8);
+    snakeSeed(playoffTier2Pools, 9, 16);
+    snakeSeed(playoffTier3Pools, 17, 24);
+    snakeSeed(playoffTier4Pools, 25, 31);
+
+    const championship = new Pool(4, 1, 'Championship', true, 1, 4);
+    const place5 = new Pool(4, 2, '5th Place', true, 5, 8);
+    const place9 = new Pool(4, 3, '9th Place', true, 9, 12);
+    const place13 = new Pool(4, 4, '13th Place', true, 13, 16);
+    const place17 = new Pool(4, 5, '17th Place', true, 17, 20);
+    const place21 = new Pool(4, 6, '21st Place', true, 21, 24);
+    const place25 = new Pool(4, 7, '25th Place', true, 25, 28);
+    const place29 = new Pool(3, 8, '29th Place', true, 29, 31);
+
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 8, 9, '2');
+    const superplayoffs = new Phase(PhaseTypes.Playoff, 10, 11, '3');
+
+    prelims.pools = prelimPools;
+    playoffs.pools = [playoffTier1Pools, playoffTier2Pools, playoffTier3Pools, playoffTier4Pools].flat();
+    superplayoffs.pools = [championship, place5, place9, place13, place17, place21, place25, place29];
+
+    return [prelims, playoffs, superplayoffs];
+  },
+};
