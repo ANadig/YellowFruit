@@ -40,7 +40,7 @@ export const Sched25Teams10RoundsTop2Parallel: StandardSchedule = {
   fullName: '25 Teams - 5 Pools of 5, then 5 Pools of 5 (2 Parallel Top Pools)',
   shortName: '10 Rounds + Finals (Parallel Top Pools)',
   size: 25,
-  rounds: 11,
+  rounds: 10,
   rebracketAfter: [5],
   rooms: 10,
   minGames: 8,

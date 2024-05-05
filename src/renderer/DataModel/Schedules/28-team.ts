@@ -8,7 +8,7 @@ export const Sched28Teams10RoundsPlusF: StandardSchedule = {
   fullName: '28 Teams - 4 Pools of 7 Teams, then 7 Pools of 4 (Top 2 Parallel)',
   shortName: '10 Rounds + Finals',
   size: 28,
-  rounds: 11,
+  rounds: 10,
   rebracketAfter: [7],
   rooms: 14,
   minGames: 9,
@@ -38,9 +38,9 @@ export const Sched28Teams10RoundsPlusF: StandardSchedule = {
 
 export const Sched28Teams11Rounds2PPlusF: StandardSchedule = {
   fullName: '28 Teams - Pools of 5 or 6 Teams, then Pools of 5 or 6 with Parallel Top Pools',
-  shortName: '11 Rounds (2 Stages, then Finals)',
+  shortName: '11 Rounds (2 Stages) + Finals',
   size: 28,
-  rounds: 11,
+  rounds: 10,
   rebracketAfter: [5],
   rooms: 13,
   minGames: 8,

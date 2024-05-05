@@ -6,9 +6,9 @@ import StandardSchedule from '../StandardSchedule';
 
 export const Sched27Teams11Rounds2PPlusF: StandardSchedule = {
   fullName: '27 Teams - Pools of 5 or 6 Teams, then Pools of 5 or 6 with Parallel Top Pools',
-  shortName: '11 Rounds (2 Stages, then Finals)',
+  shortName: '10 Rounds (2 Stages) + Finals',
   size: 27,
-  rounds: 11,
+  rounds: 10,
   rebracketAfter: [5],
   rooms: 12,
   minGames: 8,

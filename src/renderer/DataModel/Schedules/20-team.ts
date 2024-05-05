@@ -8,7 +8,7 @@ export const Sched20Teams9Rounds: StandardSchedule = {
   fullName: '20 Teams - 5 Pools of 4 Teams, then 5 Pools of 4 Teams with Parallel Top Pools',
   shortName: '8 Rounds + Finals',
   size: 20,
-  rounds: 9,
+  rounds: 8,
   rebracketAfter: [5],
   rooms: 10,
   minGames: 7,
