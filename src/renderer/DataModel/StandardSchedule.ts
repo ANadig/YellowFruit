@@ -4,7 +4,8 @@ import { Phase } from './Phase';
 export default interface StandardSchedule {
   /** Description of the schedule */
   fullName: string;
-  /** Shorter description for drop-down menu (omits the number of teams) */
+  /** Shorter description for drop-down menu (omits the number of teams).
+   *  Also used as the unique key for the schedule, within the set of schedules of its size */
   shortName: string;
   /** How many teams the schedule is for */
   size: number;

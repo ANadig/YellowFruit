@@ -115,3 +115,33 @@ export const Sched27Teams13Rounds6to10: StandardSchedule = {
     return [prelims, playoffs];
   },
 };
+
+export const Sched27Teams16Rounds: StandardSchedule = {
+  fullName: '27 Teams - 3 Pools of 9 Teams, then 3 Pools of 9 Teams',
+  shortName: '16 Rounds',
+  size: 27,
+  rounds: 16,
+  rebracketAfter: [9],
+  rooms: 12,
+  minGames: 14,
+  constructPhases: () => {
+    const prelimPools = makePoolSet(3, 9, 1, 'Prelim ', [3, 3, 3]);
+    snakeSeed(prelimPools, 1, 27);
+
+    const championship = new Pool(9, 1, 'Championship', true);
+    const place10 = new Pool(9, 2, '10th Place', true);
+    const place19 = new Pool(9, 3, '19th Place', true);
+
+    championship.setSeedRange(1, 9);
+    place10.setSeedRange(10, 18);
+    place19.setSeedRange(19, 27);
+
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 9, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 10, 16, '2');
+
+    prelims.pools = prelimPools;
+    playoffs.pools = [championship, place10, place19];
+
+    return [prelims, playoffs];
+  },
+};

@@ -71,8 +71,13 @@ import {
 } from './Schedules/24-team';
 import { Sched25Teams10Rounds, Sched25Teams10RoundsTop2Parallel } from './Schedules/25-team';
 import { Sched26Teams11RoundsNoWC, Sched26Teams11RoundsWC } from './Schedules/26-team';
-import { Sched27Teams11Rounds2PPlusF, Sched27Teams13Rounds6to10, Sched27Teams13Rounds9to6 } from './Schedules/27-team';
-import { Sched28Teams11Rounds2PPlusF, Sched28Teams13Rounds6to10 } from './Schedules/28-team';
+import {
+  Sched27Teams11Rounds2PPlusF,
+  Sched27Teams13Rounds6to10,
+  Sched27Teams13Rounds9to6,
+  Sched27Teams16Rounds,
+} from './Schedules/27-team';
+import { Sched28Teams10RoundsPlusF, Sched28Teams11Rounds2PPlusF, Sched28Teams13Rounds6to10 } from './Schedules/28-team';
 import { Sched29Teams11Rounds2PPlusF, Sched29Teams13Rounds6to10 } from './Schedules/29-team';
 import { Sched30Teams11Rounds2PPlusF, Sched30Teams13Rounds6to10 } from './Schedules/30-team';
 import { Sched4TeamsTripleRR, Sched4TeamsQuadRR } from './Schedules/4-team';
@@ -188,9 +193,9 @@ export function getTemplateList(size: number | string) {
     case 26:
       return [Sched26Teams11RoundsWC, Sched26Teams11RoundsNoWC];
     case 27:
-      return [Sched27Teams11Rounds2PPlusF, Sched27Teams13Rounds6to10, Sched27Teams13Rounds9to6];
+      return [Sched27Teams11Rounds2PPlusF, Sched27Teams13Rounds6to10, Sched27Teams13Rounds9to6, Sched27Teams16Rounds];
     case 28:
-      return [Sched28Teams11Rounds2PPlusF, Sched28Teams13Rounds6to10];
+      return [Sched28Teams10RoundsPlusF, Sched28Teams11Rounds2PPlusF, Sched28Teams13Rounds6to10];
     case 29:
       return [Sched29Teams11Rounds2PPlusF, Sched29Teams13Rounds6to10];
     case 30:

@@ -16,7 +16,7 @@ export const Sched24Teams8Rounds: StandardSchedule = {
     const prelimPools = makePoolSet(4, 6, 1, 'Prelim ', [2, 1, 1, 1, 1]);
     snakeSeed(prelimPools, 1, 24);
 
-    const playoffTopPools = makePoolSet(2, 4, 1, 'Playoffs 1', [], false);
+    const playoffTopPools = makePoolSet(2, 4, 1, 'Championship ', [], false);
     const place9 = new Pool(4, 2, '9th Place');
     const place13 = new Pool(4, 3, '13th Place');
     const place17 = new Pool(4, 4, '17th Place');

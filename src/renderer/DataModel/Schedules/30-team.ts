@@ -46,7 +46,7 @@ export const Sched30Teams11Rounds2PPlusF: StandardSchedule = {
 };
 
 export const Sched30Teams13Rounds6to10: StandardSchedule = {
-  fullName: '27 Teams - Pools of 6, then Playoff Pools of 10',
+  fullName: '30 Teams - Pools of 6, then Playoff Pools of 10',
   shortName: '13 Rounds (prelim pools of 6)',
   size: 30,
   rounds: 13,

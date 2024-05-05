@@ -112,11 +112,19 @@ export class Pool implements IQbjPool, IYftDataModelObject {
     return `Pool_${this.name}`;
   }
 
-  constructor(size: number, position: number, name?: string, hasCarryOver?: boolean) {
+  constructor(
+    size: number,
+    position: number,
+    name?: string,
+    hasCarryOver?: boolean,
+    firstSeed?: number,
+    lastSeed?: number,
+  ) {
     this.position = position;
     this.size = size;
     this.hasCarryover = hasCarryOver ?? false;
     if (name) this.name = name;
+    if (firstSeed && lastSeed) this.setSeedRange(firstSeed, lastSeed);
   }
 
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjPool {
