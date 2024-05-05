@@ -4,6 +4,47 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
+export const Sched32Teams8Rounds: StandardSchedule = {
+  fullName: '32 Teams - Card System, then 3 Playoff Rounds',
+  shortName: '8 Rounds',
+  size: 32,
+  rounds: 8,
+  rebracketAfter: [5],
+  rooms: 16,
+  minGames: 8,
+  constructPhases: () => {
+    const prelimPool = new Pool(32, 1, 'Card System', false, 1, 32);
+    prelimPool.roundRobins = 0;
+
+    const playoffTopPools = makePoolSet(2, 4, 1, 'Championship ', []);
+    snakeSeed(playoffTopPools, 1, 8);
+    const place9 = new Pool(4, 2, '9th Place', false, 9, 12);
+    const place13 = new Pool(4, 3, '13th Place', false, 13, 16);
+    const place17 = new Pool(4, 4, '17th Place', false, 17, 20);
+    const place21 = new Pool(4, 5, '21st Place', false, 21, 24);
+    const place25 = new Pool(4, 6, '25th Place', false, 25, 28);
+    const place29 = new Pool(4, 7, '29th Place', false, 29, 32);
+
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
+    prelims.wildCardAdvancementRules = [
+      { tier: 1, numberOfTeams: 8 },
+      { tier: 2, numberOfTeams: 4 },
+      { tier: 3, numberOfTeams: 4 },
+      { tier: 4, numberOfTeams: 4 },
+      { tier: 5, numberOfTeams: 4 },
+      { tier: 6, numberOfTeams: 4 },
+      { tier: 7, numberOfTeams: 4 },
+    ];
+    const playoffs = new Phase(PhaseTypes.Playoff, 6, 8, '2');
+    const finals = new Phase(PhaseTypes.Finals, 9, 9, '3');
+
+    prelims.pools = [prelimPool];
+    playoffs.pools = playoffTopPools.concat([place9, place13, place17, place21, place25, place29]);
+
+    return [prelims, playoffs, finals];
+  },
+};
+
 export const Sched32Teams9Rounds: StandardSchedule = {
   fullName: '32 Teams - Four stages',
   shortName: '9 Rounds',

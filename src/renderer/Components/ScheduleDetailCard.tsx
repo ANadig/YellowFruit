@@ -107,7 +107,7 @@ function PhaseEditor(props: IPhaseEditorProps) {
 
   return (
     <Grid container spacing={2}>
-      {wcRules.length > 0 && (
+      {wcRules.length > 0 && phase.pools.length > 1 && (
         <Grid xs={12} sx={{ '& .MuiFormControlLabel-label': { typography: 'body2' }, '& .MuiRadio-root': { py: 0.5 } }}>
           <FormControl>
             <FormLabel>Cross-Pool (Wild Card) Ranking Method</FormLabel>

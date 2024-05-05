@@ -85,6 +85,7 @@ import {
   Sched32Teams10Rounds,
   Sched32Teams11Rounds8to4to4,
   Sched32Teams13Rounds,
+  Sched32Teams8Rounds,
   Sched32Teams9Rounds,
 } from './Schedules/32-team';
 import { Sched4TeamsTripleRR, Sched4TeamsQuadRR } from './Schedules/4-team';
@@ -210,7 +211,13 @@ export function getTemplateList(size: number | string) {
     case 31:
       return [Sched31Teams9Rounds, Sched31Teams11Rounds, Sched31Teams13Rounds];
     case 32:
-      return [Sched32Teams9Rounds, Sched32Teams10Rounds, Sched32Teams11Rounds8to4to4, Sched32Teams13Rounds];
+      return [
+        Sched32Teams8Rounds,
+        Sched32Teams9Rounds,
+        Sched32Teams10Rounds,
+        Sched32Teams11Rounds8to4to4,
+        Sched32Teams13Rounds,
+      ];
     default:
       return [];
   }
