@@ -542,7 +542,7 @@ export default class HtmlReportGenerator {
   }
 
   private teamDetailMatchTable(teamStats: PoolTeamStats) {
-    const omitPhaseCol = this.tournament.getFullPhases().length < 2;
+    const omitPhaseCol = this.tournament.phases.length < 2;
     const rows = [this.teamDetailMatchTableHeader(omitPhaseCol)];
     for (const result of teamStats.matches) {
       rows.push(this.teamDetailMatchTableRow(result, omitPhaseCol));
@@ -721,7 +721,7 @@ export default class HtmlReportGenerator {
   }
 
   private playerDetailTable(playerStats: PlayerStats) {
-    const omitPhaseCol = this.tournament.getFullPhases().length < 2;
+    const omitPhaseCol = this.tournament.phases.length < 2;
     const rows = [this.playerDetailTableHeader(omitPhaseCol)];
     for (const result of playerStats.matches) {
       rows.push(this.playerDetailTableRow(result, omitPhaseCol));
