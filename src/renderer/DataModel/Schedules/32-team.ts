@@ -128,3 +128,30 @@ export const Sched32Teams11Rounds8to4to4: StandardSchedule = {
     return [prelims, playoffs, superplayoffs];
   },
 };
+
+export const Sched32Teams13Rounds: StandardSchedule = {
+  fullName: '32 Teams - 4 Pools of 8, then 4 Pools of 8',
+  shortName: '13 Rounds',
+  size: 32,
+  rounds: 13,
+  rebracketAfter: [7],
+  rooms: 16,
+  minGames: 13,
+  constructPhases: () => {
+    const prelimPools = makePoolSet(4, 8, 1, 'Prelim ', [2, 2, 2, 2]);
+    snakeSeed(prelimPools, 1, 32);
+
+    const championship = new Pool(8, 1, 'Championship', true, 1, 8);
+    const place9 = new Pool(8, 2, '9th Place', true, 9, 16);
+    const place17 = new Pool(8, 3, '17th Place', true, 17, 24);
+    const place25 = new Pool(8, 4, '25th Place', true, 25, 32);
+
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 8, 13, '2');
+
+    prelims.pools = prelimPools;
+    playoffs.pools = [championship, place9, place17, place25];
+
+    return [prelims, playoffs];
+  },
+};

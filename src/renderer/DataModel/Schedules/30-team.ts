@@ -1,7 +1,7 @@
 /** Standard schedules for 30-team tournaments */
 
 import { Phase, PhaseTypes } from '../Phase';
-import { Pool, makePoolSet, snakeSeed } from '../Pool';
+import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
 export const Sched30Teams11Rounds2PPlusF: StandardSchedule = {
@@ -47,7 +47,7 @@ export const Sched30Teams11Rounds2PPlusF: StandardSchedule = {
 
 export const Sched30Teams13Rounds6to10: StandardSchedule = {
   fullName: '30 Teams - Pools of 6, then Playoff Pools of 10',
-  shortName: '13 Rounds (prelim pools of 6)',
+  shortName: '13 Rounds (Prelim Pools of 6)',
   size: 30,
   rounds: 13,
   rebracketAfter: [5],
@@ -70,6 +70,37 @@ export const Sched30Teams13Rounds6to10: StandardSchedule = {
 
     prelims.pools = prelimPools;
     playoffs.pools = [championship, place11, place21];
+
+    return [prelims, playoffs];
+  },
+};
+
+export const Sched30Teams13Rounds8to8: StandardSchedule = {
+  fullName: '30 Teams - 4 Pools of 7 or 8, then 4 Pools of 7 or 8',
+  shortName: '13 Rounds (Prelim Pools of 8)',
+  size: 30,
+  rounds: 13,
+  rebracketAfter: [7],
+  rooms: 15,
+  minGames: 12,
+  constructPhases: () => {
+    const prelimPools = makePoolSet(4, 8, 1, 'Prelim ', [2, 2, 2, 2]);
+    prelimPools[0].size = 7;
+    prelimPools[1].size = 7;
+    setAutoAdvanceRules(prelimPools[0], [2, 2, 2, 1]);
+    setAutoAdvanceRules(prelimPools[1], [2, 2, 2, 1]);
+    snakeSeed(prelimPools, 1, 30);
+
+    const championship = new Pool(8, 1, 'Championship', true, 1, 8);
+    const place9 = new Pool(8, 2, '9th Place', true, 9, 16);
+    const place17 = new Pool(8, 3, '17th Place', true, 17, 24);
+    const place25 = new Pool(6, 4, '25th Place', false, 25, 30);
+
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 8, 13, '2');
+
+    prelims.pools = prelimPools;
+    playoffs.pools = [championship, place9, place17, place25];
 
     return [prelims, playoffs];
   },
