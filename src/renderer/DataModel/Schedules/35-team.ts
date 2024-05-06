@@ -4,6 +4,50 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
+export const Sched35Teams10Rounds: StandardSchedule = {
+  fullName: '35 Teams - 5 Pools of 7, then 9 Pools of 3 or 4 (Top 2 Parallel)',
+  shortName: '10 Rounds + Finals',
+  size: 35,
+  rounds: 10,
+  rebracketAfter: [7],
+  rooms: 17,
+  minGames: 8,
+  constructPhases: () => {
+    const prelimPools = makePoolSet(5, 7, 1, 'Prelim ', [1]);
+    snakeSeed(prelimPools, 1, 35);
+
+    const playoffTopPools = makePoolSet(2, 4, 1, 'Championship ', []);
+    snakeSeed(playoffTopPools, 1, 8);
+
+    const place9 = new Pool(4, 2, '9th Place', false, 9, 12);
+    const place13 = new Pool(4, 3, '13th Place', false, 13, 16);
+    const place17 = new Pool(4, 4, '17th Place', false, 17, 20);
+    const place21 = new Pool(4, 5, '21st Place', false, 21, 24);
+    const place25 = new Pool(4, 6, '25th Place', false, 25, 28);
+    const place29 = new Pool(4, 7, '29th Place', false, 29, 32);
+    const place33 = new Pool(3, 8, '33rd Place', false, 33, 35);
+
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
+    prelims.wildCardAdvancementRules = [
+      { tier: 1, numberOfTeams: 3 },
+      { tier: 2, numberOfTeams: 4 },
+      { tier: 3, numberOfTeams: 4 },
+      { tier: 4, numberOfTeams: 4 },
+      { tier: 5, numberOfTeams: 4 },
+      { tier: 6, numberOfTeams: 4 },
+      { tier: 7, numberOfTeams: 4 },
+      { tier: 8, numberOfTeams: 3 },
+    ];
+    const playoffs = new Phase(PhaseTypes.Playoff, 8, 10, '2');
+
+    prelims.pools = prelimPools;
+    playoffs.pools = playoffTopPools.concat([place9, place13, place17, place21, place25, place29, place33]);
+    const finals = new Phase(PhaseTypes.Finals, 11, 11, '3');
+
+    return [prelims, playoffs, finals];
+  },
+};
+
 export const Sched35Teams11Rounds: StandardSchedule = {
   fullName: '35 Teams - 6 Pools of 5 or 6, then 6 Pools of 5 or 6, then 9 Pools of 3 or 4',
   shortName: '11 Rounds',
