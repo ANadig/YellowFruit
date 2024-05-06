@@ -90,9 +90,15 @@ import {
   Sched32Teams9Rounds,
 } from './Schedules/32-team';
 import { Sched33Teams10RoundsPlusF } from './Schedules/33-team';
-import { Sched34Teams10RoundsPlusF, Sched34Teams11Rounds } from './Schedules/34-team';
-import { Sched35Teams11Rounds } from './Schedules/35-team';
-import { Sched36Teams10Rounds, Sched36Teams10RoundsPlusF, Sched36Teams11Rounds } from './Schedules/36-team';
+import { Sched34Teams10RoundsPlusF, Sched34Teams11Rounds, Sched34Teams12Rounds } from './Schedules/34-team';
+import { Sched35Teams11Rounds, Sched35Teams12RoundsRb5and8, Sched35Teams12RoundsRb5and9 } from './Schedules/35-team';
+import {
+  Sched36Teams10Rounds,
+  Sched36Teams10RoundsPlusF,
+  Sched36Teams11Rounds,
+  Sched36Teams12RoundsRb5and8,
+  Sched36Teams12RoundsRb5and9,
+} from './Schedules/36-team';
 import { Sched4TeamsTripleRR, Sched4TeamsQuadRR } from './Schedules/4-team';
 import { Sched5Teams13Rounds, Sched5TeamsDoubleRR } from './Schedules/5-team';
 import { Sched6Teams13RoundsSplit33, Sched6Teams13RoundsSplit42, Sched6TeamsDoubleRR } from './Schedules/6-team';
@@ -228,11 +234,17 @@ export function getTemplateList(size: number | string) {
     case 33:
       return [Sched33Teams10RoundsPlusF];
     case 34:
-      return [Sched34Teams10RoundsPlusF, Sched34Teams11Rounds];
+      return [Sched34Teams10RoundsPlusF, Sched34Teams11Rounds, Sched34Teams12Rounds];
     case 35:
-      return [Sched35Teams11Rounds];
+      return [Sched35Teams11Rounds, Sched35Teams12RoundsRb5and9, Sched35Teams12RoundsRb5and8];
     case 36:
-      return [Sched36Teams10RoundsPlusF, Sched36Teams10Rounds, Sched36Teams11Rounds];
+      return [
+        Sched36Teams10RoundsPlusF,
+        Sched36Teams10Rounds,
+        Sched36Teams11Rounds,
+        Sched36Teams12RoundsRb5and9,
+        Sched36Teams12RoundsRb5and8,
+      ];
     default:
       return [];
   }

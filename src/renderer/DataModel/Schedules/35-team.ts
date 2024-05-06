@@ -4,7 +4,6 @@ import { Phase, PhaseTypes } from '../Phase';
 import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
-// eslint-disable-next-line import/prefer-default-export
 export const Sched35Teams11Rounds: StandardSchedule = {
   fullName: '35 Teams - 6 Pools of 5 or 6, then 6 Pools of 5 or 6, then 9 Pools of 3 or 4',
   shortName: '11 Rounds',
@@ -19,11 +18,11 @@ export const Sched35Teams11Rounds: StandardSchedule = {
     setAutoAdvanceRules(prelimPools[0], [2, 2, 1]);
     snakeSeed(prelimPools, 1, 35);
 
-    const playoffTopPools = makePoolSet(2, 6, 1, 'Playoff 1', [2, 2, 2], true);
-    const playoffMiddlePools = makePoolSet(2, 6, 2, 'Playoff 2', [2, 2, 2], true);
-    const playoffBottomPools = makePoolSet(2, 6, 3, 'Playoff 3', [2, 2, 2], true);
+    const playoffTopPools = makePoolSet(2, 6, 1, 'Playoff 1', [2, 2, 2, 0, 0, 0, 0, 0, 0], true);
+    const playoffMiddlePools = makePoolSet(2, 6, 2, 'Playoff 2', [0, 0, 0, 2, 2, 2, 0, 0, 0], true);
+    const playoffBottomPools = makePoolSet(2, 6, 3, 'Playoff 3', [0, 0, 0, 0, 0, 0, 2, 2, 2], true);
     playoffBottomPools[0].size = 5;
-    setAutoAdvanceRules(playoffBottomPools[0], [2, 2, 1]);
+    setAutoAdvanceRules(playoffBottomPools[0], [0, 0, 0, 0, 0, 0, 2, 2, 1]);
     snakeSeed(playoffTopPools, 1, 12);
     snakeSeed(playoffMiddlePools, 13, 24);
     snakeSeed(playoffBottomPools, 25, 35);
@@ -45,6 +44,88 @@ export const Sched35Teams11Rounds: StandardSchedule = {
     prelims.pools = prelimPools;
     playoffs.pools = [playoffTopPools, playoffMiddlePools, playoffBottomPools].flat();
     superplayoffs.pools = [championship, place5, place9, place13, place17, place21, place25, place29, place33];
+
+    return [prelims, playoffs, superplayoffs];
+  },
+};
+
+export const Sched35Teams12RoundsRb5and9: StandardSchedule = {
+  fullName: '35 Teams - 3 stages of 6 pools of 5 or 6',
+  shortName: '12 Rounds (Rebracket After 5 and 9)',
+  size: 35,
+  rounds: 12,
+  rebracketAfter: [5, 9],
+  rooms: 17,
+  minGames: 11,
+  constructPhases: () => {
+    const prelimPools = makePoolSet(6, 6, 1, 'Prelim ', [2, 2, 2]);
+    prelimPools[0].size = 5;
+    setAutoAdvanceRules(prelimPools[0], [2, 2, 1]);
+    snakeSeed(prelimPools, 1, 35);
+
+    const playoffTopPools = makePoolSet(2, 6, 1, 'Playoff 1', [3, 3, 0, 0, 0, 0], true);
+    const playoffMiddlePools = makePoolSet(2, 6, 2, 'Playoff 2', [0, 0, 3, 3, 0, 0], true);
+    const playoffBottomPools = makePoolSet(2, 6, 3, 'Playoff 3', [0, 0, 0, 0, 3, 3], true);
+    playoffBottomPools[0].size = 5;
+    setAutoAdvanceRules(playoffBottomPools[0], [0, 0, 0, 0, 3, 2]);
+    snakeSeed(playoffTopPools, 1, 12);
+    snakeSeed(playoffMiddlePools, 13, 24);
+    snakeSeed(playoffBottomPools, 25, 35);
+
+    const championship = new Pool(6, 1, 'Championship', true, 1, 6);
+    const place7 = new Pool(6, 2, '7th Place', true, 7, 12);
+    const place13 = new Pool(6, 3, '13th Place', true, 13, 18);
+    const place19 = new Pool(6, 4, '19th Place', true, 19, 24);
+    const place25 = new Pool(6, 5, '25th Place', true, 25, 30);
+    const place31 = new Pool(5, 6, '31st Place', true, 31, 35);
+
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 6, 9, '2');
+    const superplayoffs = new Phase(PhaseTypes.Playoff, 10, 12, '3');
+
+    prelims.pools = prelimPools;
+    playoffs.pools = [playoffTopPools, playoffMiddlePools, playoffBottomPools].flat();
+    superplayoffs.pools = [championship, place7, place13, place19, place25, place31];
+
+    return [prelims, playoffs, superplayoffs];
+  },
+};
+
+export const Sched35Teams12RoundsRb5and8: StandardSchedule = {
+  fullName: '35 Teams - 3 stages of 6 pools of 5 or 6',
+  shortName: '12 Rounds (Rebracket After 5 and 8)',
+  size: 35,
+  rounds: 12,
+  rebracketAfter: [5, 8],
+  rooms: 17,
+  minGames: 11,
+  constructPhases: () => {
+    const prelimPools = makePoolSet(6, 6, 1, 'Prelim ', [3, 3]);
+    prelimPools[0].size = 5;
+    setAutoAdvanceRules(prelimPools[0], [2, 2, 1]);
+    snakeSeed(prelimPools, 1, 35);
+
+    const playoffTopPools = makePoolSet(3, 6, 1, 'Playoff 1', [2, 2, 2, 0, 0, 0], true);
+    const playoffBottomPools = makePoolSet(3, 6, 2, 'Playoff 3', [0, 0, 0, 2, 2, 2], true);
+    playoffBottomPools[0].size = 5;
+    setAutoAdvanceRules(playoffBottomPools[0], [0, 0, 0, 2, 2, 1]);
+    snakeSeed(playoffTopPools, 1, 18);
+    snakeSeed(playoffBottomPools, 19, 35);
+
+    const championship = new Pool(6, 1, 'Championship', true, 1, 6);
+    const place7 = new Pool(6, 2, '7th Place', true, 7, 12);
+    const place13 = new Pool(6, 3, '13th Place', true, 13, 18);
+    const place19 = new Pool(6, 4, '19th Place', true, 19, 24);
+    const place25 = new Pool(6, 5, '25th Place', true, 25, 30);
+    const place31 = new Pool(5, 6, '31st Place', true, 31, 35);
+
+    const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
+    const playoffs = new Phase(PhaseTypes.Playoff, 6, 8, '2');
+    const superplayoffs = new Phase(PhaseTypes.Playoff, 9, 12, '3');
+
+    prelims.pools = prelimPools;
+    playoffs.pools = [playoffTopPools, playoffBottomPools].flat();
+    superplayoffs.pools = [championship, place7, place13, place19, place25, place31];
 
     return [prelims, playoffs, superplayoffs];
   },
