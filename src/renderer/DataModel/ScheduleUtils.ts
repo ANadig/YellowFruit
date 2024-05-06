@@ -104,7 +104,13 @@ import {
   Sched36Teams12RoundsRb5and8,
   Sched36Teams12RoundsRb5and9,
 } from './Schedules/36-team';
+import { Sched37Teams10RoundsPlusF } from './Schedules/37-team';
+import { Sched38Teams10RoundsPlusF } from './Schedules/38-team';
+import { Sched39Teams10RoundsPlusF } from './Schedules/39-team';
 import { Sched4TeamsTripleRR, Sched4TeamsQuadRR } from './Schedules/4-team';
+import { Sched40Teams10RoundsPlusF } from './Schedules/40-team';
+import { Sched41Teams10RoundsPlusF } from './Schedules/41-team';
+import { Sched42Teams10RoundsPlusF } from './Schedules/42-team';
 import { Sched5Teams13Rounds, Sched5TeamsDoubleRR } from './Schedules/5-team';
 import { Sched6Teams13RoundsSplit33, Sched6Teams13RoundsSplit42, Sched6TeamsDoubleRR } from './Schedules/6-team';
 import { Sched7Teams13Rounds, Sched7Teams10Rounds, Sched7TeamsDoubleRR, Sched7TeamsSingleRR } from './Schedules/7-team';
@@ -118,7 +124,7 @@ import {
 
 export const sizesWithTemplates = [
   4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
-  35, 36,
+  35, 36, 37, 38, 39, 40, 41, 42,
 ];
 
 export function getStdSchedule(shortName: string, size: number | string) {
@@ -250,6 +256,18 @@ export function getTemplateList(size: number | string) {
         Sched36Teams12RoundsRb5and9,
         Sched36Teams12RoundsRb5and8,
       ];
+    case 37:
+      return [Sched37Teams10RoundsPlusF];
+    case 38:
+      return [Sched38Teams10RoundsPlusF];
+    case 39:
+      return [Sched39Teams10RoundsPlusF];
+    case 40:
+      return [Sched40Teams10RoundsPlusF];
+    case 41:
+      return [Sched41Teams10RoundsPlusF];
+    case 42:
+      return [Sched42Teams10RoundsPlusF];
     default:
       return [];
   }
