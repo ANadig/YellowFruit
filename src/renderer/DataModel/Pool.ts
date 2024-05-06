@@ -264,6 +264,42 @@ export function setAutoAdvanceRules(pool: Pool, autoQualChunks: number[]) {
   }
 }
 
+export function makePlacementPools(
+  numPools: number,
+  size: number,
+  startingTier: number,
+  startSeed: number,
+  endSeed: number,
+  hasCarryOver: boolean = false,
+) {
+  const pools: Pool[] = [];
+  let curTier = startingTier;
+  for (let i = 1; i <= numPools; i++) {
+    const firstSeed = startSeed + (i - 1) * size;
+    const lastSeed = Math.min(firstSeed + size - 1, endSeed);
+    const curSize = lastSeed - firstSeed + 1;
+    pools.push(new Pool(curSize, curTier, placementPoolName(firstSeed), hasCarryOver, firstSeed, lastSeed));
+    curTier++;
+  }
+  return pools;
+}
+
+function placementPoolName(topRank: number) {
+  if (topRank === 1) return 'Championship';
+  if (10 <= topRank && topRank <= 19) return `${topRank}th Place`;
+  const unitsDigit = topRank % 10;
+  switch (unitsDigit) {
+    case 1:
+      return `${topRank}st Place`;
+    case 2:
+      return `${topRank}nd Place`;
+    case 3:
+      return `${topRank}rd Place`;
+    default:
+      return `${topRank}th Place`;
+  }
+}
+
 /**
  * Populate seeds array in the given pools. Caller is resonsible for making sure pools are in the desired order
  * and that numTeams is compatible with the list of pools.

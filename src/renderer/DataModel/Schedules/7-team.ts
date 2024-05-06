@@ -1,7 +1,7 @@
 /** Standard schedules for 7-team tournaments */
 
-import { Phase, PhaseTypes } from '../Phase';
-import { Pool, setAutoAdvanceRules } from '../Pool';
+import { Phase, PhaseTypes, simpleRoundRobinPrelims } from '../Phase';
+import { Pool, makePlacementPools } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
 export const Sched7TeamsSingleRR: StandardSchedule = {
@@ -13,12 +13,7 @@ export const Sched7TeamsSingleRR: StandardSchedule = {
   rooms: 3,
   minGames: 6,
   constructPhases: () => {
-    const rrPool = new Pool(7, 1, 'Round Robin');
-    rrPool.setSeedRange(1, 7);
-
-    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 7, '1', 'Round Robin');
-    roundRobin.pools = [rrPool];
-    return [roundRobin];
+    return [simpleRoundRobinPrelims(7, 1)];
   },
 };
 
@@ -31,23 +26,10 @@ export const Sched7Teams10Rounds: StandardSchedule = {
   rooms: 3,
   minGames: 8,
   constructPhases: () => {
-    // Prelims: single round robin
-    const rrPool = new Pool(7, 1, 'Prelims');
-    rrPool.setSeedRange(1, 7);
-    setAutoAdvanceRules(rrPool, [4, 3]);
+    const prelims = simpleRoundRobinPrelims(7, 1, [4, 3]);
 
-    // Playoffs: 2 tiers
-    const championship = new Pool(4, 1, 'Championship', false);
-    const place5 = new Pool(3, 2, '5th Place', false);
-
-    championship.setSeedRange(1, 4);
-    place5.setSeedRange(5, 7);
-
-    const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 8, 10, '2');
-
-    prelims.pools = [rrPool];
-    playoffs.pools = [championship, place5];
+    playoffs.pools = makePlacementPools(2, 4, 1, 1, 7, false);
 
     return [prelims, playoffs];
   },
@@ -62,25 +44,14 @@ export const Sched7Teams13Rounds: StandardSchedule = {
   rooms: 3,
   minGames: 10,
   constructPhases: () => {
-    // Prelims: single round robin
-    const rrPool = new Pool(7, 1, 'Prelims');
-    rrPool.setSeedRange(1, 7);
-    setAutoAdvanceRules(rrPool, [4, 3]);
+    const prelims = simpleRoundRobinPrelims(7, 1, [4, 3]);
 
-    // Playoffs: 2 tiers
-    const championship = new Pool(4, 1, 'Championship', false);
-    const place5 = new Pool(3, 2, '5th Place', false);
-
+    const championship = new Pool(4, 1, 'Championship', false, 1, 4);
+    const place5 = new Pool(3, 2, '5th Place', false, 5, 7);
     championship.roundRobins = 2;
     place5.roundRobins = 2;
 
-    championship.setSeedRange(1, 4);
-    place5.setSeedRange(5, 7);
-
-    const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 8, 13, '2');
-
-    prelims.pools = [rrPool];
     playoffs.pools = [championship, place5];
 
     return [prelims, playoffs];
@@ -96,12 +67,6 @@ export const Sched7TeamsDoubleRR: StandardSchedule = {
   rooms: 3,
   minGames: 12,
   constructPhases: () => {
-    const rrPool = new Pool(7, 1, 'Round Robin');
-    rrPool.setSeedRange(1, 7);
-    rrPool.roundRobins = 2;
-
-    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 14, '1', 'Round Robin');
-    roundRobin.pools = [rrPool];
-    return [roundRobin];
+    return [simpleRoundRobinPrelims(7, 2)];
   },
 };

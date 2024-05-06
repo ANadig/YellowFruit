@@ -1,7 +1,6 @@
 /** Standard schedules for 4-team tournaments */
 
-import { Phase, PhaseTypes } from '../Phase';
-import { Pool } from '../Pool';
+import { simpleRoundRobinPrelims } from '../Phase';
 import StandardSchedule from '../StandardSchedule';
 
 export const Sched4TeamsTripleRR: StandardSchedule = {
@@ -13,13 +12,7 @@ export const Sched4TeamsTripleRR: StandardSchedule = {
   rooms: 2,
   minGames: 9,
   constructPhases: () => {
-    const rrPool = new Pool(4, 1, 'Round Robin');
-    rrPool.setSeedRange(1, 4);
-    rrPool.roundRobins = 3;
-
-    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 9, '1', 'Round Robin');
-    roundRobin.pools = [rrPool];
-    return [roundRobin];
+    return [simpleRoundRobinPrelims(4, 3)];
   },
 };
 
@@ -32,12 +25,6 @@ export const Sched4TeamsQuadRR: StandardSchedule = {
   rooms: 2,
   minGames: 12,
   constructPhases: () => {
-    const rrPool = new Pool(4, 1, 'Round Robin');
-    rrPool.setSeedRange(1, 4);
-    rrPool.roundRobins = 4;
-
-    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 12, '1', 'Round Robin');
-    roundRobin.pools = [rrPool];
-    return [roundRobin];
+    return [simpleRoundRobinPrelims(4, 4)];
   },
 };
