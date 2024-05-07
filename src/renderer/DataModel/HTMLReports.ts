@@ -389,7 +389,7 @@ export default class HtmlReportGenerator {
 
   private boxScore(match: Match) {
     const segments: string[] = [];
-    segments.push(genericTagWithAttributes('div', [id(matchLinkId(match))]));
+    segments.push(genericTagWithAttributes('div', [id(matchLinkId(match)), classAttribute(cssClasses.boxScoreAnchor)]));
     segments.push(genericTag('h3', match.getScoreString()));
     if (match.isForfeit()) return segments.join('\n');
 
@@ -906,6 +906,7 @@ const StatReportPageTitles = {
 const cssClasses = {
   headerAndDivider: 'headerAndDivider',
   stickyHeader: 'scoreboardRoundHeader',
+  boxScoreAnchor: 'boxScoreAnchor',
   inlineDivider: 'inlineDivider',
   smallText: 'smallText',
   boxScoreTableContainer: 'boxScoreTable',
@@ -987,7 +988,9 @@ function getPageStyle() {
     { attr: 'top', val: '0' },
     { attr: 'background-color', val: 'white' },
     { attr: 'padding-bottom', val: '10px' },
+    { attr: 'margin-bottom', val: '-10px' },
   );
+  const boxScoreAnchor = cssSelector(`.${cssClasses.boxScoreAnchor}`, { attr: 'padding-top', val: '30px' });
   const phaseH2 = cssSelector(`.${cssClasses.headerAndDivider} h2`, { attr: 'margin', val: '0' });
   const inlineDivider = cssSelector(
     `.${cssClasses.inlineDivider}`,
@@ -1036,6 +1039,7 @@ function getPageStyle() {
     zebra,
     headerAndDivider,
     scoreboardRoundHeader,
+    boxScoreAnchor,
     inlineDivider,
     ul,
     smallText,
