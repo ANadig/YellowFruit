@@ -111,7 +111,19 @@ import { Sched4TeamsTripleRR, Sched4TeamsQuadRR } from './Schedules/4-team';
 import { Sched40Teams10RoundsPlusF } from './Schedules/40-team';
 import { Sched41Teams10RoundsPlusF } from './Schedules/41-team';
 import { Sched42Teams10RoundsPlusF } from './Schedules/42-team';
+import { Sched43Teams10RoundsPlusF } from './Schedules/43-team';
+import { Sched44Teams10RoundsPlusF } from './Schedules/44-team';
+import { Sched45Teams10RoundsPlusF } from './Schedules/45-team';
+import { Sched46Teams10RoundsPlusF } from './Schedules/46-team';
+import { Sched47Teams10RoundsPlusF } from './Schedules/47-team';
+import { Sched48Teams10RoundsPlusF } from './Schedules/48-team';
+import { Sched49Teams10RoundsPlusF } from './Schedules/49-team';
 import { Sched5Teams13Rounds, Sched5TeamsDoubleRR } from './Schedules/5-team';
+import { Sched50Teams10RoundsPlusF } from './Schedules/50-team';
+import { Sched51Teams10RoundsPlusF } from './Schedules/51-team';
+import { Sched52Teams10RoundsPlusF } from './Schedules/52-team';
+import { Sched53Teams10RoundsPlusF } from './Schedules/53-team';
+import { Sched54Teams10RoundsPlusF } from './Schedules/54-team';
 import { Sched6Teams13RoundsSplit33, Sched6Teams13RoundsSplit42, Sched6TeamsDoubleRR } from './Schedules/6-team';
 import { Sched7Teams13Rounds, Sched7Teams10Rounds, Sched7TeamsDoubleRR, Sched7TeamsSingleRR } from './Schedules/7-team';
 import { Sched8Teams10Rounds, Sched8Teams13Rounds, Sched8TeamsDoubleRR, Sched8TeamsSingleRR } from './Schedules/8-team';
@@ -124,7 +136,7 @@ import {
 
 export const sizesWithTemplates = [
   4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
-  35, 36, 37, 38, 39, 40, 41, 42,
+  35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
 ];
 
 export function getStdSchedule(shortName: string, size: number | string) {
@@ -268,6 +280,30 @@ export function getTemplateList(size: number | string) {
       return [Sched41Teams10RoundsPlusF];
     case 42:
       return [Sched42Teams10RoundsPlusF];
+    case 43:
+      return [Sched43Teams10RoundsPlusF];
+    case 44:
+      return [Sched44Teams10RoundsPlusF];
+    case 45:
+      return [Sched45Teams10RoundsPlusF];
+    case 46:
+      return [Sched46Teams10RoundsPlusF];
+    case 47:
+      return [Sched47Teams10RoundsPlusF];
+    case 48:
+      return [Sched48Teams10RoundsPlusF];
+    case 49:
+      return [Sched49Teams10RoundsPlusF];
+    case 50:
+      return [Sched50Teams10RoundsPlusF];
+    case 51:
+      return [Sched51Teams10RoundsPlusF];
+    case 52:
+      return [Sched52Teams10RoundsPlusF];
+    case 53:
+      return [Sched53Teams10RoundsPlusF];
+    case 54:
+      return [Sched54Teams10RoundsPlusF];
     default:
       return [];
   }
