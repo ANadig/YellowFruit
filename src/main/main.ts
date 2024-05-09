@@ -19,10 +19,12 @@ import { resolveHtmlPath } from './util';
 import {
   handleSaveAsRequest,
   handleSaveFile,
+  handleWriteStatReports,
   handleSetWindowTitle,
   handleShowInAppStatReport as handleWriteInAppStatReport,
   inAppStatReportDirectory,
   parseStatReportPath,
+  handleRequestToSaveHtmlReports,
 } from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
 import { statReportProtocol } from '../SharedUtils';
@@ -151,6 +153,8 @@ app
     ipcMain.on(IpcRendToMain.setWindowTitle, handleSetWindowTitle);
     ipcMain.on(IpcRendToMain.saveAsDialog, handleSaveAsRequest);
     ipcMain.on(IpcRendToMain.WriteInAppStatReport, handleWriteInAppStatReport);
+    ipcMain.on(IpcRendToMain.StatReportSaveDialog, handleRequestToSaveHtmlReports);
+    ipcMain.on(IpcRendToMain.WriteStatReports, handleWriteStatReports);
 
     protocol.handle(statReportProtocol, (request) => {
       const url = pathToFileURL(path.resolve(inAppStatReportDirectory, parseStatReportPath(request.url)));

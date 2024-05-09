@@ -192,6 +192,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     playoffStats.sortTeamsByFinalRank();
   }
 
+  setHtmlFilePrefix(prefix?: string) {
+    this.htmlGenerator.setFilePrefix(prefix);
+  }
+
   makeHtmlStandings() {
     return this.htmlGenerator.generateStandingsPage();
   }

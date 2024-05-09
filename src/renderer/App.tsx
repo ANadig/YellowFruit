@@ -70,7 +70,7 @@ function TournamentEditor() {
 
   useEffect(() => {
     if (activePage === ApplicationPages.StatReport) {
-      mgr.generateInAppHtmlReport();
+      mgr.generateHtmlReport();
     } else if (activePage === ApplicationPages.Teams && mgr.currentTeamsPageView === 2) {
       mgr.compileStats();
     }
@@ -79,7 +79,7 @@ function TournamentEditor() {
 
   const changePage = (page: ApplicationPages) => {
     if (page === ApplicationPages.StatReport) {
-      mgr.generateInAppHtmlReport();
+      mgr.generateHtmlReport();
     } else if (page === ApplicationPages.Teams && mgr.currentTeamsPageView === 2) {
       mgr.compileStats();
     }

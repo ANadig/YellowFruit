@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import Tournament, { IQbjTournament, IYftFileTournament } from './DataModel/Tournament';
-import { dateFieldChanged, textFieldChanged } from './Utils/GeneralUtils';
+import { dateFieldChanged, getFileNameFromPath, textFieldChanged } from './Utils/GeneralUtils';
 import { NullObjects } from './Utils/UtilTypes';
 import { IpcMainToRend, IpcRendToMain } from '../IPCChannels';
 import { IQbjWholeFile, IRefTargetDict } from './DataModel/Interfaces';
@@ -113,6 +113,9 @@ export class TournamentManager {
     });
     window.electron.ipcRenderer.on(IpcMainToRend.GeneratedInAppStatReport, () => {
       this.onFinishInAppStatReport();
+    });
+    window.electron.ipcRenderer.on(IpcMainToRend.RequestStatReport, (filePathStart) => {
+      this.generateHtmlReport(filePathStart as string);
     });
   }
 
@@ -240,7 +243,17 @@ export class TournamentManager {
     this.onFinishInAppStatReport();
   }
 
-  generateInAppHtmlReport() {
+  /**
+   * Generate html reports and direct the main process to write them to files
+   * @param filePathStart The full file path, minus the identifier of the specific page (e.g. _standing.html), if saving externally. E.g. C:\mydata\mystatreport.
+   * If saving to the in-app stat report, should be undefined
+   */
+  generateHtmlReport(filePathStart?: string) {
+    let filePrefix;
+    if (filePathStart) filePrefix = getFileNameFromPath(filePathStart);
+
+    this.tournament.setHtmlFilePrefix(filePrefix);
+
     this.tournament.compileStats(true);
     const reports: StatReportHtmlPage[] = [
       { fileName: StatReportFileNames[StatReportPages.Standings], contents: this.tournament.makeHtmlStandings() },
@@ -253,7 +266,13 @@ export class TournamentManager {
       },
       { fileName: StatReportFileNames[StatReportPages.RoundReport], contents: this.tournament.makeHtmlRoundReport() },
     ];
-    window.electron.ipcRenderer.sendMessage(IpcRendToMain.WriteInAppStatReport, reports);
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.WriteStatReports, reports, filePathStart);
+  }
+
+  /** Prompt the user for a place to save the reports. Main will then tell renderer to generate reports with the chosen file name */
+  exportStatReports() {
+    const defaultFilePrefix = this.filePath ? getFileNameFromPath(this.filePath) : undefined;
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.StatReportSaveDialog, defaultFilePrefix);
   }
 
   onFinishInAppStatReport() {

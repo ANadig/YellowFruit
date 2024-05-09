@@ -101,3 +101,8 @@ export function versionLt(a: string, b: string, type?: 'major' | 'minor' | 'patc
   }
   return aSplit[2] < bSplit[2];
 }
+
+export function getFileNameFromPath(path: string) {
+  const filePathSegments = path.split(/[\\/]/);
+  return filePathSegments.pop();
+}

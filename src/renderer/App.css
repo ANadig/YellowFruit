@@ -25,29 +25,29 @@
 
 /* This is hacky, but actually dynamically sizing the iframe is a headache due to cross-frame scripting guardrails */
 .stat-report-iframe {
-  height: 500px;
+  height: 420px;
 }
 
 @media screen and (min-height: 720px) {
   .stat-report-iframe {
-    height: 600px;
+    height: 520px;
   }
 }
 
 @media screen and (min-height: 820px) {
   .stat-report-iframe {
-    height: 700px;
+    height: 620px;
   }
 }
 
 @media screen and (min-height: 920px) {
   .stat-report-iframe {
-    height: 800px;
+    height: 720px;
   }
 }
 
 @media screen and (min-height: 1020px) {
   .stat-report-iframe {
-    height: 900px;
+    height: 820px;
   }
 }

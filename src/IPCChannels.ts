@@ -10,6 +10,10 @@ export enum IpcRendToMain {
   WriteInAppStatReport = 'ShowInAppStatReport',
   /** Retrieve the directory containing the in-app stat report */
   GetAppDataStatReportPath = 'GetAppDataStatReportPath',
+  /** Open the file browser so the user can choose where to save stat reports */
+  StatReportSaveDialog = 'StatReportSaveDialog',
+  /** Save html stat reports */
+  WriteStatReports = 'WriteStatReports',
 }
 
 /** Channels for main sending messages to renderer */
@@ -25,6 +29,8 @@ export enum IpcMainToRend {
   newTournament = 'newTournament',
   /** Report that the stat report has been successfully written to file */
   GeneratedInAppStatReport = 'GeneratedInAppStatReport',
+  /** Request the renderer to generate stat reports */
+  RequestStatReport = 'RequestStatReport',
 }
 
 /** Channels for both directions renderer<-->main */
@@ -41,4 +47,5 @@ export const rendererListenableEvents = [
   IpcMainToRend.saveAsCommand,
   IpcMainToRend.newTournament,
   IpcMainToRend.GeneratedInAppStatReport,
+  IpcMainToRend.RequestStatReport,
 ];

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { nextAlphabetLetter, teamGetNameAndLetter } from '../renderer/Utils/GeneralUtils';
+import { getFileNameFromPath, nextAlphabetLetter, teamGetNameAndLetter } from '../renderer/Utils/GeneralUtils';
 
 test('teamGetNameAndLetter01', () => {
   const raw = 'West River A';
@@ -92,4 +92,12 @@ test('nextAlphabetLetter04', () => {
 
 test('nextAlphabetLetter05', () => {
   expect(nextAlphabetLetter('AA')).toBe('');
+});
+
+test('getFileNameFromPath01', () => {
+  expect(getFileNameFromPath('C:\\windows\\folder\\filenm')).toBe('filenm');
+});
+
+test('getFileNameFromPath01', () => {
+  expect(getFileNameFromPath('some/other/path/tofile.html')).toBe('tofile.html');
 });

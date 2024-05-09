@@ -7,7 +7,9 @@ import { IQbjPoolTeam, PoolTeam } from './PoolTeam';
 import { QbjTypeNames } from './QbjEnums';
 import { Team } from './Team';
 
-/** How do we rank teams to determine who goes where in the next phase? */
+/** How do we rank teams to determine who goes where in the next phase?
+ *  This isn't used right now.
+ */
 enum AutoQualificationRankRules {
   /** Break ties at the buzzer if same record */
   RecordThenTB = 'RecordThenTB',

@@ -37,8 +37,6 @@ export function yftSaveAs(mainWindow: BrowserWindow) {
   mainWindow.webContents.send(IpcMainToRend.saveAsCommand, fileName);
 }
 
-// Handlers for renderer-->main
-
 export function handleSaveAsRequest(event: IpcMainEvent) {
   const window = BrowserWindow.fromWebContents(event.sender);
   if (!window) return;
@@ -72,22 +70,37 @@ export function handleShowInAppStatReport(event: IpcMainEvent, reports: StatRepo
   const window = BrowserWindow.fromWebContents(event.sender);
   if (!window) return;
 
-  writeInAppStatReportFile(reports, 0, window);
+  writeStatReportFile(reports, 0, window);
 }
 
-function writeInAppStatReportFile(reports: StatReportHtmlPage[], idx: number, window: BrowserWindow) {
+export function handleWriteStatReports(event: IpcMainEvent, reports: StatReportHtmlPage[], filePathStart?: string) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  writeStatReportFile(reports, 0, window, filePathStart);
+}
+
+/** If externalFilePathStart not passed, write to the in-app location rather than exporting somewhere else */
+function writeStatReportFile(
+  reports: StatReportHtmlPage[],
+  idx: number,
+  window: BrowserWindow,
+  externalFilePathStart?: string,
+) {
   const page = reports[idx];
   if (!page) return;
 
-  const pagePath = path.resolve(inAppStatReportDirectory, page.fileName);
+  const pagePath = externalFilePathStart
+    ? `${externalFilePathStart}_${page.fileName}`
+    : path.resolve(inAppStatReportDirectory, page.fileName);
   fs.writeFile(pagePath, page.contents, { encoding: 'utf8' }, (err) => {
     if (err) {
       dialog.showMessageBoxSync(window, { message: `Error generating report: \n\n ${err.message}` });
       return;
     }
     if (idx < reports.length - 1) {
-      writeInAppStatReportFile(reports, idx + 1, window);
-    } else {
+      writeStatReportFile(reports, idx + 1, window, externalFilePathStart);
+    } else if (!externalFilePathStart) {
       window.webContents.send(IpcMainToRend.GeneratedInAppStatReport);
     }
   });
@@ -106,4 +119,29 @@ export function parseStatReportPath(url: string) {
   // links in the iframe try to take you to, e.g. "standings.html/individuals.html" instead of
   // "individuals.html", so we need to remove the first page name before the slash
   return str.replace(/^.*\.html\//, '');
+}
+
+export function handleRequestToSaveHtmlReports(event: IpcMainEvent, curFileName?: string) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  promptForStatReportLocation(window, curFileName);
+}
+
+export function promptForStatReportLocation(window: BrowserWindow, curFileName?: string) {
+  const fileName = dialog.showSaveDialogSync(window, {
+    defaultPath: curFileName ? stripYftExtension(curFileName) : undefined,
+    filters: [{ name: 'HTML Webpages', extensions: ['html'] }],
+  });
+
+  if (!fileName) return;
+
+  let fileStart = fileName.replace(/.html/i, '');
+  fileStart = fileStart.replace(/_(standings|individuals|games|teamdetail|playerdetail|rounds)/i, '');
+
+  window.webContents.send(IpcMainToRend.RequestStatReport, fileStart);
+}
+
+function stripYftExtension(filename: string) {
+  return filename.replace('.yft', '');
 }
