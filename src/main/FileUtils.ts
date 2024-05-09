@@ -66,13 +66,6 @@ export function handleSetWindowTitle(event: IpcMainEvent, title: string) {
 
 export const inAppStatReportDirectory = path.resolve(app.getPath('userData'), 'StatReport');
 
-export function handleShowInAppStatReport(event: IpcMainEvent, reports: StatReportHtmlPage[]) {
-  const window = BrowserWindow.fromWebContents(event.sender);
-  if (!window) return;
-
-  writeStatReportFile(reports, 0, window);
-}
-
 export function handleWriteStatReports(event: IpcMainEvent, reports: StatReportHtmlPage[], filePathStart?: string) {
   const window = BrowserWindow.fromWebContents(event.sender);
   if (!window) return;

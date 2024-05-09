@@ -21,7 +21,6 @@ import {
   handleSaveFile,
   handleWriteStatReports,
   handleSetWindowTitle,
-  handleShowInAppStatReport as handleWriteInAppStatReport,
   inAppStatReportDirectory,
   parseStatReportPath,
   handleRequestToSaveHtmlReports,
@@ -152,7 +151,6 @@ app
     ipcMain.on(IpcRendToMain.saveFile, handleSaveFile);
     ipcMain.on(IpcRendToMain.setWindowTitle, handleSetWindowTitle);
     ipcMain.on(IpcRendToMain.saveAsDialog, handleSaveAsRequest);
-    ipcMain.on(IpcRendToMain.WriteInAppStatReport, handleWriteInAppStatReport);
     ipcMain.on(IpcRendToMain.StatReportSaveDialog, handleRequestToSaveHtmlReports);
     ipcMain.on(IpcRendToMain.WriteStatReports, handleWriteStatReports);
 

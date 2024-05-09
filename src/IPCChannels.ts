@@ -6,8 +6,6 @@ export enum IpcRendToMain {
   saveAsDialog = 'saveAsDialog',
   /** Set the title of the electron window */
   setWindowTitle = 'setWindowTitle',
-  /** Send contents of the preview stat reports */
-  WriteInAppStatReport = 'ShowInAppStatReport',
   /** Retrieve the directory containing the in-app stat report */
   GetAppDataStatReportPath = 'GetAppDataStatReportPath',
   /** Open the file browser so the user can choose where to save stat reports */

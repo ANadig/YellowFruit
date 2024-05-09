@@ -1,7 +1,7 @@
 /** Standard schedules for 12-team tournaments */
 
-import { Phase, PhaseTypes } from '../Phase';
-import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
+import { Phase, PhaseTypes, simpleRoundRobinPrelims } from '../Phase';
+import { Pool, makePlacementPools, makePoolSet, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
 export const Sched12Teams8Rounds: StandardSchedule = {
@@ -13,22 +13,16 @@ export const Sched12Teams8Rounds: StandardSchedule = {
   rooms: 6,
   minGames: 8,
   constructPhases: () => {
-    // Prelim: 2 pools of 6
     const prelimPools = makePoolSet(2, 6, 1, 'Prelim ', [3, 3]);
     snakeSeed(prelimPools, 1, 12);
 
-    // Playoffs: 2 tiers, each with 1 pool of 6
-    const championship = new Pool(6, 1, 'Championship', true);
-    const place7 = new Pool(6, 2, '7th Place', true);
-
-    championship.setSeedRange(1, 6);
-    place7.setSeedRange(7, 12);
+    const playoffPools = makePlacementPools(2, 6, 1, 1, 12, true);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 6, 8, '2');
 
     prelims.pools = prelimPools;
-    playoffs.pools = [championship, place7];
+    playoffs.pools = playoffPools;
 
     return [prelims, playoffs];
   },
@@ -43,13 +37,11 @@ export const Sched12Teams9Rounds: StandardSchedule = {
   rooms: 6,
   minGames: 8,
   constructPhases: () => {
-    // Prelim: 2 pools of 6
     const prelimPools = makePoolSet(2, 6, 1, 'Prelim ', [4, 2]);
     snakeSeed(prelimPools, 1, 12);
 
-    // Playoffs: 2 tiers - 8/4
     const championship = new Pool(8, 1, 'Championship', true);
-    const place9 = new Pool(9, 2, '9th Place', false);
+    const place9 = new Pool(4, 2, '9th Place', false);
 
     championship.setSeedRange(1, 8);
     place9.setSeedRange(9, 12);
@@ -73,22 +65,16 @@ export const Sched12Teams10Rounds: StandardSchedule = {
   rooms: 6,
   minGames: 10,
   constructPhases: () => {
-    // Prelim: 2 pools of 6
     const prelimPools = makePoolSet(2, 6, 1, 'Prelim ', [3, 3]);
     snakeSeed(prelimPools, 1, 12);
 
-    // Playoffs: 2 tiers, each with 1 pool of 6
-    const championship = new Pool(6, 1, 'Championship', false);
-    const place7 = new Pool(6, 2, '7th Place', false);
-
-    championship.setSeedRange(1, 6);
-    place7.setSeedRange(7, 12);
+    const playoffPools = makePlacementPools(2, 6, 1, 1, 12, true);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 6, 10, '2');
 
     prelims.pools = prelimPools;
-    playoffs.pools = [championship, place7];
+    playoffs.pools = playoffPools;
 
     return [prelims, playoffs];
   },
@@ -103,12 +89,7 @@ export const Sched12TeamsSingleRR: StandardSchedule = {
   rooms: 6,
   minGames: 11,
   constructPhases: () => {
-    const rrPool = new Pool(12, 1, 'Round Robin');
-    rrPool.setSeedRange(1, 12);
-
-    const roundRobin = new Phase(PhaseTypes.Prelim, 1, 11, '1', 'Round Robin');
-    roundRobin.pools = [rrPool];
-    return [roundRobin];
+    return [simpleRoundRobinPrelims(12, 1)];
   },
 };
 
@@ -121,25 +102,12 @@ export const Sched12Teams14Rounds: StandardSchedule = {
   rooms: 6,
   minGames: 14,
   constructPhases: () => {
-    // Prelim: 2 pools of 6
-    const rrPool = new Pool(12, 1, 'Round Robin');
-    rrPool.setSeedRange(1, 12);
-    setAutoAdvanceRules(rrPool, [4, 4, 4]);
+    const prelims = simpleRoundRobinPrelims(12, 1, [4, 4, 4]);
 
-    // Playoffs: 3 tiers, each with 1 pool of 4
-    const championship = new Pool(4, 1, 'Championship', false);
-    const place5 = new Pool(4, 2, '5th Place', false);
-    const place9 = new Pool(4, 3, '9th Place', false);
+    const playoffPools = makePlacementPools(3, 4, 1, 1, 12, false);
 
-    championship.setSeedRange(1, 4);
-    place5.setSeedRange(5, 8);
-    place9.setSeedRange(9, 12);
-
-    const prelims = new Phase(PhaseTypes.Prelim, 1, 11, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 12, 14, '2');
-
-    prelims.pools = [rrPool];
-    playoffs.pools = [championship, place5, place9];
+    playoffs.pools = playoffPools;
 
     return [prelims, playoffs];
   },
