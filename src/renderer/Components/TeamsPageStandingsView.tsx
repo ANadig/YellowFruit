@@ -70,6 +70,7 @@ function PhaseStandings(props: IPhaseStandingsProps) {
   const nextPhase = thisTournament.getNextFullPhase(phase);
   const tbPhase = thisTournament.getTiebreakerPhaseFor(phase);
   const regulationTossupCount = thisTournament.scoringRules.regulationTossupCount;
+  const showPPB = thisTournament.scoringRules.useBonuses;
 
   const phaseStats = thisTournament.stats.find((ps) => ps.phase === phase);
   if (!phaseStats) return null;
@@ -134,7 +135,7 @@ function PhaseStandings(props: IPhaseStandingsProps) {
                           Pct
                         </TableCell>
                         <TableCell align="right">{`PP${regulationTossupCount}`}</TableCell>
-                        <TableCell align="right">PPB</TableCell>
+                        {showPPB && <TableCell align="right">PPB</TableCell>}
                         <TableCell align="right">{nextPhase ? 'Seed' : 'Final Rank'}</TableCell>
                         {nextPhase && <TableCell width="4%" />}
                         {nextPhase && <TableCell>Advance To</TableCell>}
@@ -166,7 +167,7 @@ function PhaseStandings(props: IPhaseStandingsProps) {
                           {phaseStats.anyTiesExist && <TableCell align="right">{ptStats.ties}</TableCell>}
                           <TableCell align="right">{ptStats.getWinPctString()}</TableCell>
                           <TableCell align="right">{ptStats.getPtsPerRegTuhString(regulationTossupCount)}</TableCell>
-                          <TableCell align="right">{ptStats.getPtsPerBonusString()}</TableCell>
+                          {showPPB && <TableCell align="right">{ptStats.getPtsPerBonusString()}</TableCell>}
                           {nextPhase ? (
                             <TableCell align="right">{ptStats.currentSeed}</TableCell>
                           ) : (
