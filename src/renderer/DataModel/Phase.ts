@@ -338,10 +338,37 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return this.rounds.find((rd) => rd.number === roundNo);
   }
 
-  findMatchBetweenTeams(team1: Team, team2: Team, carryoverPhase?: Phase) {
+  /**
+   * Find a match between teams in this phase. Does NOT look at carryvoer -- use findMatchBetweenTeamsWithCarryOver
+   * @param team1 One team
+   * @param team2 The other team
+   * @param nthMatch Pass 2 to find the 2nd match between these teams, etc.
+   */
+  findMatchBetweenTeams(team1: Team, team2: Team, nthMatch: number = 1) {
+    let numFound = 0;
+    for (const round of this.rounds) {
+      let exitRound = false;
+      let matchesThisRound = 0;
+      let matchFound;
+      while (!exitRound && numFound < nthMatch) {
+        matchFound = round.findMatchBetweenTeams(team1, team2, matchesThisRound + 1);
+        if (!matchFound) {
+          exitRound = true;
+        } else {
+          numFound++;
+          matchesThisRound++;
+        }
+      }
+      if (numFound >= nthMatch) return matchFound;
+    }
+    return undefined;
+  }
+
+  /** Find a match in this phase that carries over to the given subsequent phase */
+  findMatchBetweenTeamsWithCarryOver(team1: Team, team2: Team, carryoverPhase: Phase) {
     for (const round of this.rounds) {
       const match = round.findMatchBetweenTeams(team1, team2);
-      if (match && (!carryoverPhase || match.carryoverPhases.includes(carryoverPhase))) {
+      if (match && match.carryoverPhases.includes(carryoverPhase)) {
         return match;
       }
     }

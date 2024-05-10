@@ -604,8 +604,16 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     round.addMatch(match);
   }
 
-  findMatchBetweenTeams(team1: Team, team2: Team, phase: Phase) {
-    const matchInThisPhase = phase.findMatchBetweenTeams(team1, team2);
+  /**
+   * Find a match where two teams played
+   * @param team1 One team. Doesn't matter which order the teams are in
+   * @param team2 The other team
+   * @param phase Phase the match should have, either directly or by carryover
+   * @param nthMatch How far to look for matches. e.g. pass 2 to find the second match. NOTE: This parameter is intended for pools with multiple
+   * round robins, and as such we assume that such pools don't carry over any matches from previous pools.
+   */
+  findMatchBetweenTeams(team1: Team, team2: Team, phase: Phase, nthMatch: number = 1) {
+    const matchInThisPhase = phase.findMatchBetweenTeams(team1, team2, nthMatch);
     if (matchInThisPhase) return matchInThisPhase;
 
     if (!phase.shouldLookForCarryover(team1, team2)) return undefined;
@@ -614,7 +622,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     for (let phaseIdx = fullPhases.indexOf(phase) - 1; phaseIdx >= 0; phaseIdx--) {
       const pastPhase = fullPhases[phaseIdx];
 
-      const matchInPastPhase = pastPhase.findMatchBetweenTeams(team1, team2, phase);
+      const matchInPastPhase = pastPhase.findMatchBetweenTeamsWithCarryOver(team1, team2, phase);
       if (matchInPastPhase) return matchInPastPhase;
 
       // No need to go further back

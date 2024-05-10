@@ -119,13 +119,15 @@ export class Round implements IQbjRound, IYftDataModelObject {
     return ary;
   }
 
-  findMatchBetweenTeams(team1: Team, team2: Team) {
+  findMatchBetweenTeams(team1: Team, team2: Team, nthMatch?: number) {
+    let numFound = 0;
     for (const match of this.matches) {
       if (
         (match.leftTeam.team === team1 && match.rightTeam.team === team2) ||
         (match.rightTeam.team === team1 && match.leftTeam.team === team2)
       ) {
-        return match;
+        numFound++;
+        if (nthMatch === undefined || numFound >= nthMatch) return match;
       }
     }
     return undefined;

@@ -31,21 +31,28 @@ function GamesForPhaseByPool(props: IGamesForPhaseByPoolProps) {
   return (
     <YfCard title={phase.name}>
       <Grid container spacing={2}>
-        {phase.pools.map((pool) => (
-          <PoolMatrix key={pool.name} pool={pool} phase={phase} />
-        ))}
+        {phase.pools.map((pool) => poolMatrixSeries(phase, pool))}
       </Grid>
     </YfCard>
   );
 }
 
+function poolMatrixSeries(phase: Phase, pool: Pool) {
+  const matrices = [];
+  for (let i = 1; i <= pool.roundRobins; i++) {
+    matrices.push(<PoolMatrix key={`${pool.name}_${i}`} phase={phase} pool={pool} nthRoundRobin={i} />);
+  }
+  return matrices;
+}
+
 interface IPoolMatrixProps {
   phase: Phase;
   pool: Pool;
+  nthRoundRobin: number;
 }
 
 function PoolMatrix(props: IPoolMatrixProps) {
-  const { pool, phase } = props;
+  const { pool, phase, nthRoundRobin } = props;
 
   if (pool.poolTeams.length === 0) return null;
 
@@ -55,7 +62,7 @@ function PoolMatrix(props: IPoolMatrixProps) {
         <Table size="small">
           <TableBody>
             <TableRow>
-              <TableCell sx={{ fontWeight: 'bold' }}>{pool.name}</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>{getMatrixTitle(pool, nthRoundRobin)}</TableCell>
               {pool.poolTeams.map((pt) => (
                 <TableCell key={`header-${pt.team.name}`} align="center">
                   {pt.team.name}
@@ -71,6 +78,7 @@ function PoolMatrix(props: IPoolMatrixProps) {
                     team={pt.team}
                     opponent={opponent.team}
                     phase={phase}
+                    nthRoundRobin={nthRoundRobin}
                   />
                 ))}
               </TableRow>
@@ -82,20 +90,27 @@ function PoolMatrix(props: IPoolMatrixProps) {
   );
 }
 
+function getMatrixTitle(pool: Pool, nthRoundRobin: number) {
+  if (nthRoundRobin === 1) return pool.name;
+  if (pool.name.toLocaleLowerCase().includes('round robin')) return `Round Robin ${nthRoundRobin}`;
+  return `${pool.name}: Round Robin ${nthRoundRobin}`;
+}
+
 interface IMatrixCellProps {
   team: Team;
   opponent: Team;
   phase: Phase;
+  nthRoundRobin: number;
 }
 
 function MatrixCell(props: IMatrixCellProps) {
-  const { team, opponent, phase } = props;
+  const { team, opponent, phase, nthRoundRobin } = props;
   const tournManager = useContext(TournamentContext);
 
   if (team === opponent) {
     return <TableCell sx={{ backgroundColor: 'lightgray' }} />;
   }
-  const match = tournManager.tournament.findMatchBetweenTeams(team, opponent, phase);
+  const match = tournManager.tournament.findMatchBetweenTeams(team, opponent, phase, nthRoundRobin);
   if (!match) {
     return (
       <TableCell align="center">
