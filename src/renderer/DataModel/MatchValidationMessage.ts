@@ -29,6 +29,7 @@ export enum MatchValidationType {
   TeamAlreadyPlayedInRound = 'TeamAlreadyPlayedInRound',
   InvalidBouncebackPoints = 'InvalidBouncebackPoints',
   BouncebackConvOver100 = 'BouncebackConvOver100',
+  TotalScoreAndTuPtsMismatch = 'TotalScoreAndTuPtsMismatch',
 }
 
 export interface IYftFileMatchValidationMsg {

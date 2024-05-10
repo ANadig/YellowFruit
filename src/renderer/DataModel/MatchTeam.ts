@@ -315,6 +315,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   validateAll(scoringRules: ScoringRules) {
     this.validateTotalPoints();
+    this.validateTotalAndTuPtsEqual(scoringRules);
     this.validateBouncebackPoints();
     this.validateAnswerCounts();
     this.validateBonusPoints(scoringRules);
@@ -344,6 +345,22 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     this.totalScoreFieldValidation.setOk();
   }
 
+  /** If not using bonuses, player TU points must add up to the final score */
+  validateTotalAndTuPtsEqual(scoringRules: ScoringRules) {
+    if (scoringRules.useBonuses) return;
+    if (this.points === undefined) return;
+
+    if (this.getTossupPoints() !== this.points) {
+      this.addValidationMessage(
+        MatchValidationType.TotalScoreAndTuPtsMismatch,
+        ValidationStatuses.Error,
+        "Players's points don't add up to total score",
+      );
+    } else {
+      this.clearValidationMessage(MatchValidationType.TotalScoreAndTuPtsMismatch);
+    }
+  }
+
   validateBouncebackPoints() {
     if (this.bonusBouncebackPoints === undefined) {
       this.bouncebackFieldValidation.setOk();
@@ -361,6 +378,8 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
   }
 
   validateBonusPoints(scoringRules: ScoringRules) {
+    if (!scoringRules.useBonuses) return;
+
     const bonusPoints = this.getBonusPoints();
     const bonusesHeard = this.getBonusesHeard(scoringRules);
     const ppb = bonusPoints / bonusesHeard;
