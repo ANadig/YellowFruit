@@ -627,6 +627,8 @@ function BonusDisplay(props: IBonusDisplayProps) {
   const [bonusPoints, bonusesHeard, ppb] = matchTeam.getBonusStats(modalManager.tournament.scoringRules);
   const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
 
+  if (!modalManager.tournament.scoringRules.useBonuses) return null;
+
   if (matchTeam.team === undefined || forfeit) {
     return <span>&emsp;&nbsp;Bonuses:&emsp;&mdash; pts&emsp;|&emsp;&mdash; heard&emsp;|&emsp;&mdash; ppb</span>;
   }

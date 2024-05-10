@@ -183,7 +183,9 @@ export default class HtmlReportGenerator {
     cells.push(stdTdHeader(this.abbr(StatTypes.pointsPerXTuhTmStandings), true, '8%'));
     this.pushTossupValueHeaders(cells);
     cells.push(stdTdHeader(this.abbr(StatTypes.tuhTmStandings), true));
-    cells.push(stdTdHeader(this.abbr(StatTypes.ppb), true));
+    if (this.tournament.scoringRules.useBonuses) {
+      cells.push(stdTdHeader(this.abbr(StatTypes.ppb), true));
+    }
     if (this.tournament.scoringRules.bonusesBounceBack) {
       cells.push(stdTdHeader(this.abbr(StatTypes.bbPct), true));
     }
