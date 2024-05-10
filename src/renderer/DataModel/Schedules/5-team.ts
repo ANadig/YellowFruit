@@ -4,6 +4,19 @@ import { Phase, PhaseTypes, simpleRoundRobinPrelims } from '../Phase';
 import { Pool } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
+export const Sched5TeamsSingleRR: StandardSchedule = {
+  fullName: '5 Teams - Single Round Robin',
+  shortName: 'Single Round Robin',
+  size: 5,
+  rounds: 5,
+  rebracketAfter: [],
+  rooms: 2,
+  minGames: 4,
+  constructPhases: () => {
+    return [simpleRoundRobinPrelims(5, 1)];
+  },
+};
+
 export const Sched5TeamsDoubleRR: StandardSchedule = {
   fullName: '5 Teams - Double Round Robin',
   shortName: 'Double Round Robin',

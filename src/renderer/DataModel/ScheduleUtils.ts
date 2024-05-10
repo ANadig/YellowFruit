@@ -107,7 +107,7 @@ import {
 import { Sched37Teams10RoundsPlusF } from './Schedules/37-team';
 import { Sched38Teams10RoundsPlusF } from './Schedules/38-team';
 import { Sched39Teams10RoundsPlusF } from './Schedules/39-team';
-import { Sched4TeamsTripleRR, Sched4TeamsQuadRR } from './Schedules/4-team';
+import { Sched4TeamsTripleRR, Sched4TeamsQuadRR, Sched4TeamsSingleRR, Sched4TeamsDoubleRR } from './Schedules/4-team';
 import { Sched40Teams10RoundsPlusF } from './Schedules/40-team';
 import { Sched41Teams10RoundsPlusF } from './Schedules/41-team';
 import { Sched42Teams10RoundsPlusF } from './Schedules/42-team';
@@ -118,13 +118,18 @@ import { Sched46Teams10RoundsPlusF } from './Schedules/46-team';
 import { Sched47Teams10RoundsPlusF } from './Schedules/47-team';
 import { Sched48Teams10RoundsPlusF } from './Schedules/48-team';
 import { Sched49Teams10RoundsPlusF } from './Schedules/49-team';
-import { Sched5Teams13Rounds, Sched5TeamsDoubleRR } from './Schedules/5-team';
+import { Sched5Teams13Rounds, Sched5TeamsDoubleRR, Sched5TeamsSingleRR } from './Schedules/5-team';
 import { Sched50Teams10RoundsPlusF } from './Schedules/50-team';
 import { Sched51Teams10RoundsPlusF } from './Schedules/51-team';
 import { Sched52Teams10RoundsPlusF } from './Schedules/52-team';
 import { Sched53Teams10RoundsPlusF } from './Schedules/53-team';
 import { Sched54Teams10RoundsPlusF } from './Schedules/54-team';
-import { Sched6Teams13RoundsSplit33, Sched6Teams13RoundsSplit42, Sched6TeamsDoubleRR } from './Schedules/6-team';
+import {
+  Sched6Teams13RoundsSplit33,
+  Sched6Teams13RoundsSplit42,
+  Sched6TeamsDoubleRR,
+  Sched6TeamsSingleRR,
+} from './Schedules/6-team';
 import { Sched7Teams13Rounds, Sched7Teams10Rounds, Sched7TeamsDoubleRR, Sched7TeamsSingleRR } from './Schedules/7-team';
 import { Sched8Teams10Rounds, Sched8Teams13Rounds, Sched8TeamsDoubleRR, Sched8TeamsSingleRR } from './Schedules/8-team';
 import {
@@ -149,11 +154,11 @@ export function getTemplateList(size: number | string) {
 
   switch (size) {
     case 4:
-      return [Sched4TeamsTripleRR, Sched4TeamsQuadRR];
+      return [Sched4TeamsSingleRR, Sched4TeamsDoubleRR, Sched4TeamsTripleRR, Sched4TeamsQuadRR];
     case 5:
-      return [Sched5TeamsDoubleRR, Sched5Teams13Rounds];
+      return [Sched5TeamsSingleRR, Sched5TeamsDoubleRR, Sched5Teams13Rounds];
     case 6:
-      return [Sched6TeamsDoubleRR, Sched6Teams13RoundsSplit33, Sched6Teams13RoundsSplit42];
+      return [Sched6TeamsSingleRR, Sched6TeamsDoubleRR, Sched6Teams13RoundsSplit33, Sched6Teams13RoundsSplit42];
     case 7:
       return [Sched7TeamsSingleRR, Sched7Teams10Rounds, Sched7Teams13Rounds, Sched7TeamsDoubleRR];
     case 8:
