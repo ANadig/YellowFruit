@@ -269,4 +269,12 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
   canCalculateBounceBackPartsHeard() {
     return this.bonusesAreRegular();
   }
+
+  setUseBonuses(useBonuses: boolean) {
+    this.useBonuses = useBonuses;
+    if (!useBonuses) {
+      this.bonusesBounceBack = false;
+      this.overtimeIncludesBonuses = false;
+    }
+  }
 }

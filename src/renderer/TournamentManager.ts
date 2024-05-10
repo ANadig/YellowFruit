@@ -403,7 +403,7 @@ export class TournamentManager {
   }
 
   setUseBonuses(checked: boolean) {
-    this.tournament.scoringRules.useBonuses = checked;
+    this.tournament.scoringRules.setUseBonuses(checked);
     this.tournament.clearStdRuleSet();
     this.onDataChanged();
   }

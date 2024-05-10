@@ -10,6 +10,7 @@ function OvertimeSettingsCard() {
   const thisTournamentRules = tournManager.tournament.scoringRules;
   const [suddenDeath, setSuddenDeath] = useSubscription(thisTournamentRules.minimumOvertimeQuestionCount === 1);
   const [minTossups, setMinTossups] = useSubscription(thisTournamentRules.minimumOvertimeQuestionCount.toString());
+  const [tournUseBonuses] = useSubscription(thisTournamentRules.useBonuses);
   const [otUseBonuses, setOtUseBonuses] = useSubscription(thisTournamentRules.overtimeIncludesBonuses);
   const [minTossupsVisible, setMinTossupsVisible] = useSubscription(!suddenDeath);
   const readOnly = tournManager.tournament.hasMatchData;
@@ -80,7 +81,9 @@ function OvertimeSettingsCard() {
       <FormGroup>
         <FormControlLabel
           label="Use Bonuses"
-          control={<Switch checked={otUseBonuses} disabled={readOnly} onChange={handleUseBonusChange} />}
+          control={
+            <Switch checked={otUseBonuses} disabled={readOnly || !tournUseBonuses} onChange={handleUseBonusChange} />
+          }
         />
       </FormGroup>
     </YfCard>

@@ -31,8 +31,6 @@ function BonusSettingsCard() {
     setUseBonuses(e.target.checked);
     tournManager.setUseBonuses(e.target.checked);
     if (!e.target.checked) {
-      setBonusesBounce(false);
-      tournManager.setBonusesBounceBack(false);
       setAdvancedExpanded(false);
     }
   };
