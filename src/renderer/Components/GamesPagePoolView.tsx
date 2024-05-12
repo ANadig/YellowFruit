@@ -39,10 +39,40 @@ function GamesForPhaseByPool(props: IGamesForPhaseByPoolProps) {
 
 function poolMatrixSeries(phase: Phase, pool: Pool) {
   const matrices = [];
+
+  if (pool.roundRobins < 1) {
+    return <NullMatrix key={`${phase.name}%${pool.name}`} message={`${pool.name}: Not a round robin pool`} />;
+  }
+  if (pool.poolTeams.length === 0) {
+    return <NullMatrix key={`${phase.name}%${pool.name}`} message={`${pool.name}: No teams are assigned`} />;
+  }
+
   for (let i = 1; i <= pool.roundRobins; i++) {
     matrices.push(<PoolMatrix key={`${pool.name}_${i}`} phase={phase} pool={pool} nthRoundRobin={i} />);
   }
   return matrices;
+}
+
+interface INullMatrixProps {
+  message: string;
+}
+
+function NullMatrix(props: INullMatrixProps) {
+  const { message } = props;
+
+  return (
+    <Grid xs={12}>
+      <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+        <Table size="small">
+          <TableBody>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 'bold' }}>{message}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Grid>
+  );
 }
 
 interface IPoolMatrixProps {
