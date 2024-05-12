@@ -391,7 +391,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
   };
 
   const handlePlayerNameBlur = () => {
-    if (playerName !== '') {
+    if (teamHasPlayed || playerName !== '') {
       modalManager.changePlayerName(rowIdx, playerName);
     } else if (!teamHasPlayed && rowIdx < modalManager.tempTeam.players.length - 1) {
       modalManager.deletePlayer(rowIdx);

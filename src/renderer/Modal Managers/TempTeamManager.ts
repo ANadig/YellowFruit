@@ -78,7 +78,9 @@ export class TempTeamManager {
     this.tempTeam.validateAll();
     const errs = this.tempRegistration.getErrorMessages().concat(this.tempTeam.getErrorMessages());
     if (errs.length > 0) {
-      this.tempTeam.pushBlankPlayer();
+      if (!this.teamHasPlayed) {
+        this.tempTeam.pushBlankPlayer();
+      }
       this.openErrorDialog(errs);
       return false;
     }
