@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   Button,
   FormControl,
@@ -28,6 +28,12 @@ export default function SchedulePickerCard() {
   const [previewedSchedule, setPreviewedSchedule] = useState<StandardSchedule | null>(null);
   const [numTeamsRegistered] = useSubscription(tournManager.tournament.getNumberOfTeams());
   const readOnly = tournManager.tournament.hasMatchData;
+
+  useEffect(() => {
+    setSize('');
+    setSelectedTemplateName('');
+    setPreviewedSchedule(null);
+  }, [tournManager.tournament]);
 
   const handleSizeChange = (val: number | string) => {
     setSize(val);
