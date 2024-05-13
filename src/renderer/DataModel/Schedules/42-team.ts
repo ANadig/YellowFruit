@@ -13,6 +13,7 @@ export const Sched42Teams10RoundsPlusF: StandardSchedule = {
   rebracketAfter: [5],
   rooms: 21,
   minGames: 10,
+  usesWC: true,
   constructPhases: () => {
     const prelimPools = makePoolSet(7, 6, 1, 'Prelim ', [1]);
     snakeSeed(prelimPools, 1, 42);

@@ -13,6 +13,7 @@ export const Sched45Teams10RoundsPlusF: StandardSchedule = {
   rebracketAfter: [5],
   rooms: 21,
   minGames: 8,
+  usesWC: true,
   constructPhases: () => {
     const prelimPools = makePoolSet(8, 6, 1, 'Prelim ', [1]);
     prelimPools[0].size = 5;

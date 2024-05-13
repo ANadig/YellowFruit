@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import {
+  Alert,
   Button,
   FormControl,
   InputLabel,
@@ -93,6 +94,12 @@ export default function SchedulePickerCard() {
           <Typography variant="subtitle2" sx={{ marginTop: 3 }}>
             {previewedSchedule.fullName}
           </Typography>
+          {!tournManager.tournament.scoringRules.useBonuses && previewedSchedule.usesWC && (
+            <Alert severity="warning" variant="filled">
+              This schedule should only be used for tournaments that use bonuses because it requires re-seeding teams
+              based on points per bonus
+            </Alert>
+          )}
           <List dense>
             <ListItem>
               <ListItemText>Rounds: {previewedSchedule.rounds}</ListItemText>

@@ -12,6 +12,7 @@ export const Sched32Teams8Rounds: StandardSchedule = {
   rebracketAfter: [5],
   rooms: 16,
   minGames: 8,
+  usesWC: true,
   constructPhases: () => {
     const prelimPool = new Pool(32, 1, 'Card System', false, 1, 32);
     prelimPool.roundRobins = 0;
@@ -119,6 +120,7 @@ export const Sched32Teams10Rounds6to6: StandardSchedule = {
   rebracketAfter: [5],
   rooms: 14,
   minGames: 8,
+  usesWC: true,
   constructPhases: () => {
     const prelimPools = makePoolSet(6, 6, 1, 'Prelim ', [2]);
     prelimPools[0].size = 5;

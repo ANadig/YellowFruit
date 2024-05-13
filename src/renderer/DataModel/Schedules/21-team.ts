@@ -16,15 +16,10 @@ export const Sched21Teams11Rounds: StandardSchedule = {
     const prelimPools = makePoolSet(3, 7, 1, 'Prelim ', [2, 2, 2, 1]);
     snakeSeed(prelimPools, 1, 21);
 
-    const championship = new Pool(6, 1, 'Championship', true);
-    const place7 = new Pool(6, 2, '7th Place', true);
-    const place13 = new Pool(6, 3, '13th Place', true);
-    const place19 = new Pool(3, 4, '19th Place', false);
-
-    championship.setSeedRange(1, 6);
-    place7.setSeedRange(7, 12);
-    place13.setSeedRange(13, 18);
-    place19.setSeedRange(19, 21);
+    const championship = new Pool(6, 1, 'Championship', true, 1, 6);
+    const place7 = new Pool(6, 2, '7th Place', true, 7, 12);
+    const place13 = new Pool(6, 3, '13th Place', true, 13, 18);
+    const place19 = new Pool(3, 4, '19th Place', false, 19, 21);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 8, 11, '2');
@@ -44,19 +39,15 @@ export const Sched21Teams12Rounds: StandardSchedule = {
   rebracketAfter: [7],
   rooms: 9,
   minGames: 10,
+  usesWC: true,
   constructPhases() {
     const prelimPools = makePoolSet(3, 7, 1, 'Prelim ', [2]);
     snakeSeed(prelimPools, 1, 21);
 
-    const championship = new Pool(6, 1, 'Championship', true);
-    const place7 = new Pool(5, 2, '7th Place');
-    const place12 = new Pool(5, 3, '13th Place');
-    const place17 = new Pool(5, 4, '19th Place');
-
-    championship.setSeedRange(1, 6);
-    place7.setSeedRange(7, 11);
-    place12.setSeedRange(12, 16);
-    place17.setSeedRange(17, 21);
+    const championship = new Pool(6, 1, 'Championship', true, 1, 6);
+    const place7 = new Pool(5, 2, '7th Place', false, 7, 11);
+    const place12 = new Pool(5, 3, '13th Place', false, 12, 16);
+    const place17 = new Pool(5, 4, '19th Place', false, 17, 21);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
     prelims.wildCardAdvancementRules = [
@@ -85,13 +76,9 @@ export const Sched21Teams14Rounds: StandardSchedule = {
     const prelimPools = makePoolSet(3, 7, 1, 'Prelim ', [3, 2, 2]);
     snakeSeed(prelimPools, 1, 21);
 
-    const championship = new Pool(9, 1, 'Championship', true);
-    const place10 = new Pool(6, 2, '10th Place', true);
-    const place16 = new Pool(6, 3, '16th Place', true);
-
-    championship.setSeedRange(1, 9);
-    place10.setSeedRange(10, 15);
-    place16.setSeedRange(16, 21);
+    const championship = new Pool(9, 1, 'Championship', true, 1, 9);
+    const place10 = new Pool(6, 2, '10th Place', true, 10, 15);
+    const place16 = new Pool(6, 3, '16th Place', true, 16, 21);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 8, 14, '2');
@@ -115,13 +102,9 @@ export const Sched21Teams14RoundsNoCO: StandardSchedule = {
     const prelimPools = makePoolSet(3, 7, 1, 'Prelim ', [3, 2, 2]);
     snakeSeed(prelimPools, 1, 21);
 
-    const championship = new Pool(9, 1, 'Championship', true);
-    const place10 = new Pool(6, 2, '10th Place', false);
-    const place16 = new Pool(6, 3, '16th Place', false);
-
-    championship.setSeedRange(1, 9);
-    place10.setSeedRange(10, 15);
-    place16.setSeedRange(16, 21);
+    const championship = new Pool(9, 1, 'Championship', true, 1, 9);
+    const place10 = new Pool(6, 2, '10th Place', false, 10, 15);
+    const place16 = new Pool(6, 3, '16th Place', false, 16, 21);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 8, 14, '2');

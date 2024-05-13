@@ -17,6 +17,8 @@ export default interface StandardSchedule {
   rebracketAfter: number[];
   /** How many simultaneous rooms this schedule uses */
   rooms: number;
+  /** Does this tournament use cross-pool "wildcard" rankings at any point? */
+  usesWC?: boolean;
   /** Phase structure of the tournament */
   constructPhases: () => Phase[];
 }

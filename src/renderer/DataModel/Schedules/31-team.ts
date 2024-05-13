@@ -1,7 +1,7 @@
 /** Standard schedules for 31-team tournaments */
 
 import { Phase, PhaseTypes } from '../Phase';
-import { Pool, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
+import { makePlacementPools, makePoolSet, setAutoAdvanceRules, snakeSeed } from '../Pool';
 import StandardSchedule from '../StandardSchedule';
 
 // eslint-disable-next-line import/prefer-default-export
@@ -37,14 +37,7 @@ export const Sched31Teams9Rounds: StandardSchedule = {
     snakeSeed(playoff2Tier3Pools, 17, 24);
     snakeSeed(playoff2Tier4Pools, 25, 31);
 
-    const championship = new Pool(4, 1, 'Championship', true, 1, 4);
-    const place5 = new Pool(4, 2, '5th Place', true, 5, 8);
-    const place9 = new Pool(4, 3, '9th Place', true, 9, 12);
-    const place13 = new Pool(4, 4, '13th Place', true, 13, 16);
-    const place17 = new Pool(4, 5, '17th Place', true, 17, 20);
-    const place21 = new Pool(4, 6, '21st Place', true, 21, 24);
-    const place25 = new Pool(4, 7, '25th Place', true, 25, 28);
-    const place29 = new Pool(3, 8, '29th Place', true, 29, 31);
+    const playoff3Pools = makePlacementPools(8, 4, 1, 1, 31, true);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 3, '1');
     const playoffs1 = new Phase(PhaseTypes.Playoff, 4, 5, '2', 'Playoff Stage 1');
@@ -54,7 +47,7 @@ export const Sched31Teams9Rounds: StandardSchedule = {
     prelims.pools = prelimPools;
     playoffs1.pools = [playoff1TopPools, playoff1BottomPools].flat();
     playoffs2.pools = [playoff2Tier1Pools, playoff2Tier2Pools, playoff2Tier3Pools, playoff2Tier4Pools].flat();
-    playoffs3.pools = [championship, place5, place9, place13, place17, place21, place25, place29];
+    playoffs3.pools = playoff3Pools;
 
     return [prelims, playoffs1, playoffs2, playoffs3];
   },
@@ -85,14 +78,7 @@ export const Sched31Teams11Rounds: StandardSchedule = {
     snakeSeed(playoffTier3Pools, 17, 24);
     snakeSeed(playoffTier4Pools, 25, 31);
 
-    const championship = new Pool(4, 1, 'Championship', true, 1, 4);
-    const place5 = new Pool(4, 2, '5th Place', true, 5, 8);
-    const place9 = new Pool(4, 3, '9th Place', true, 9, 12);
-    const place13 = new Pool(4, 4, '13th Place', true, 13, 16);
-    const place17 = new Pool(4, 5, '17th Place', true, 17, 20);
-    const place21 = new Pool(4, 6, '21st Place', true, 21, 24);
-    const place25 = new Pool(4, 7, '25th Place', true, 25, 28);
-    const place29 = new Pool(3, 8, '29th Place', true, 29, 31);
+    const superPlayoffPools = makePlacementPools(8, 4, 1, 1, 31, true);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 8, 9, '2');
@@ -100,7 +86,7 @@ export const Sched31Teams11Rounds: StandardSchedule = {
 
     prelims.pools = prelimPools;
     playoffs.pools = [playoffTier1Pools, playoffTier2Pools, playoffTier3Pools, playoffTier4Pools].flat();
-    superplayoffs.pools = [championship, place5, place9, place13, place17, place21, place25, place29];
+    superplayoffs.pools = superPlayoffPools;
 
     return [prelims, playoffs, superplayoffs];
   },
@@ -120,16 +106,13 @@ export const Sched31Teams13Rounds: StandardSchedule = {
     setAutoAdvanceRules(prelimPools[0], [2, 2, 2, 1]);
     snakeSeed(prelimPools, 1, 31);
 
-    const championship = new Pool(8, 1, 'Championship', true, 1, 8);
-    const place9 = new Pool(8, 2, '9th Place', true, 9, 16);
-    const place17 = new Pool(8, 3, '17th Place', true, 17, 24);
-    const place25 = new Pool(7, 4, '25th Place', true, 25, 31);
+    const playoffPools = makePlacementPools(4, 8, 1, 1, 31, true);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 8, 13, '2');
 
     prelims.pools = prelimPools;
-    playoffs.pools = [championship, place9, place17, place25];
+    playoffs.pools = playoffPools;
 
     return [prelims, playoffs];
   },
