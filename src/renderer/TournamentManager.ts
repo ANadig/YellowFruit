@@ -96,8 +96,8 @@ export class TournamentManager {
   }
 
   protected addIpcListeners() {
-    window.electron.ipcRenderer.on(IpcMainToRend.openYftFile, (filePath, fileContents) => {
-      this.openYftFile(filePath as string, fileContents as string);
+    window.electron.ipcRenderer.on(IpcMainToRend.openYftFile, (filePath, fileContents, curYfVersion) => {
+      this.openYftFile(filePath as string, fileContents as string, curYfVersion as string);
     });
     window.electron.ipcRenderer.on(IpcMainToRend.saveCurrentTournament, () => {
       this.saveYftFile();
@@ -131,7 +131,7 @@ export class TournamentManager {
   }
 
   /** Parse file contents and load tournament for editing */
-  private openYftFile(filePath: string, fileContents: string) {
+  private openYftFile(filePath: string, fileContents: string, curYfVersion: string) {
     let objFromFile: IQbjWholeFile | null = null;
     try {
       objFromFile = JSON.parse(fileContents, (key, value) => {
@@ -145,7 +145,7 @@ export class TournamentManager {
     if (!objFromFile) return;
 
     snakeCaseToCamelCase(objFromFile);
-    const loadedTournament = this.loadTournamentFromQbjObjects(objFromFile);
+    const loadedTournament = this.loadTournamentFromQbjObjects(objFromFile, curYfVersion);
     if (loadedTournament === null) {
       return;
     }
@@ -160,7 +160,7 @@ export class TournamentManager {
   }
 
   /** Given an array of Qbj/Yft objects, parse them and create a tournament from the info */
-  loadTournamentFromQbjObjects(objFromFile: IQbjWholeFile): Tournament | null {
+  loadTournamentFromQbjObjects(objFromFile: IQbjWholeFile, curYfVersion?: string): Tournament | null {
     if (!qbjFileValidVersion(objFromFile)) {
       this.openGenericModal('Invalid File', "This file doesn't use a supported version of the tournament schema.");
       return null;
@@ -186,7 +186,7 @@ export class TournamentManager {
     const parser = new FileParser(refTargets);
     let loadedTournament: Tournament | null = null;
     try {
-      loadedTournament = parser.parseYftTournament(tournamentObj as IYftFileTournament);
+      loadedTournament = parser.parseYftTournament(tournamentObj as IYftFileTournament, curYfVersion);
     } catch (err: any) {
       this.openGenericModal('Invalid File', err.message);
     }

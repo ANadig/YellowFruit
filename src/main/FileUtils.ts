@@ -19,7 +19,7 @@ export function openYftFile(mainWindow: BrowserWindow) {
       dialog.showMessageBoxSync(mainWindow, { message: `Error reading file: \n\n ${err.message}` });
       return;
     }
-    mainWindow.webContents.send(IpcMainToRend.openYftFile, fileNameAry[0], fileContents);
+    mainWindow.webContents.send(IpcMainToRend.openYftFile, fileNameAry[0], fileContents, app.getVersion());
   });
 }
 

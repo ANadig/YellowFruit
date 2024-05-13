@@ -48,10 +48,16 @@ export default class FileParser {
     this.tourn = new Tournament();
   }
 
-  parseYftTournament(obj: IYftFileTournament): Tournament | null {
+  parseYftTournament(obj: IYftFileTournament, curYfVersion?: string): Tournament | null {
     const version = obj.YfData?.YfVersion;
-    if (!version) return null;
-    if (versionLt(version, '4.0.0')) return null;
+    if (!version) {
+      throw new Error('Failed to determine the YellowFruit version of this file.');
+    }
+    if (curYfVersion && versionLt(curYfVersion, version)) {
+      throw new Error(
+        `This file was made with YellowFruit version ${version}. You must upgrade to that version (or later) to open this file.`,
+      );
+    }
 
     return this.parseTournament(obj);
   }
