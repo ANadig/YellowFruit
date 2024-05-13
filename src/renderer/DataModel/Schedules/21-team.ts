@@ -46,8 +46,8 @@ export const Sched21Teams12Rounds: StandardSchedule = {
 
     const championship = new Pool(6, 1, 'Championship', true, 1, 6);
     const place7 = new Pool(5, 2, '7th Place', false, 7, 11);
-    const place12 = new Pool(5, 3, '13th Place', false, 12, 16);
-    const place17 = new Pool(5, 4, '19th Place', false, 17, 21);
+    const place12 = new Pool(5, 3, '12th Place', false, 12, 16);
+    const place17 = new Pool(5, 4, '17th Place', false, 17, 21);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 7, '1');
     prelims.wildCardAdvancementRules = [
