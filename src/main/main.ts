@@ -17,16 +17,18 @@ import { pathToFileURL } from 'url';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import {
-  handleSaveAsRequest,
   handleSaveFile,
   handleWriteStatReports,
   handleSetWindowTitle,
   inAppStatReportDirectory,
   parseStatReportPath,
   handleRequestToSaveHtmlReports,
+  handleContinueAction,
+  tryFileSwitchAction,
+  appAllowedToQuit,
 } from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
-import { statReportProtocol } from '../SharedUtils';
+import { FileSwitchActions, statReportProtocol } from '../SharedUtils';
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -115,6 +117,14 @@ const createWindow = async () => {
     }
   });
 
+  mainWindow.on('close', (e) => {
+    if (!mainWindow) return; // just making typescript happy
+    if (!appAllowedToQuit()) {
+      e.preventDefault();
+      tryFileSwitchAction(mainWindow, FileSwitchActions.CloseApp);
+    }
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -150,9 +160,9 @@ app
   .then(() => {
     ipcMain.on(IpcRendToMain.saveFile, handleSaveFile);
     ipcMain.on(IpcRendToMain.setWindowTitle, handleSetWindowTitle);
-    ipcMain.on(IpcRendToMain.saveAsDialog, handleSaveAsRequest);
     ipcMain.on(IpcRendToMain.StatReportSaveDialog, handleRequestToSaveHtmlReports);
     ipcMain.on(IpcRendToMain.WriteStatReports, handleWriteStatReports);
+    ipcMain.on(IpcRendToMain.ContinueWithAction, handleContinueAction);
 
     protocol.handle(statReportProtocol, (request) => {
       const url = pathToFileURL(path.resolve(inAppStatReportDirectory, parseStatReportPath(request.url)));

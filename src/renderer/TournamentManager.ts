@@ -15,7 +15,7 @@ import { collectRefTargets, findTournamentObject } from './DataModel/QbjUtils2';
 import FileParser from './DataModel/FileParsing';
 import { TempMatchManager } from './Modal Managers/TempMatchManager';
 import { Match } from './DataModel/Match';
-import { StatReportHtmlPage } from '../SharedUtils';
+import { FileSwitchActions, StatReportHtmlPage } from '../SharedUtils';
 import { StatReportFileNames, StatReportPages } from './Enums';
 import { Pool } from './DataModel/Pool';
 import { PoolStats } from './DataModel/StatSummaries';
@@ -96,14 +96,17 @@ export class TournamentManager {
   }
 
   protected addIpcListeners() {
+    window.electron.ipcRenderer.on(IpcMainToRend.CheckForUnsavedData, (action) => {
+      this.checkForUnsavedData(action as FileSwitchActions);
+    });
     window.electron.ipcRenderer.on(IpcMainToRend.openYftFile, (filePath, fileContents, curYfVersion) => {
       this.openYftFile(filePath as string, fileContents as string, curYfVersion as string);
     });
     window.electron.ipcRenderer.on(IpcMainToRend.saveCurrentTournament, () => {
       this.saveYftFile();
     });
-    window.electron.ipcRenderer.on(IpcMainToRend.tournamentSavedSuccessfully, () => {
-      this.onSuccessfulYftSave();
+    window.electron.ipcRenderer.on(IpcMainToRend.tournamentSavedSuccessfully, (filePath) => {
+      this.onSuccessfulYftSave(filePath as string);
     });
     window.electron.ipcRenderer.on(IpcMainToRend.newTournament, () => {
       this.newTournament();
@@ -116,6 +119,21 @@ export class TournamentManager {
     });
     window.electron.ipcRenderer.on(IpcMainToRend.RequestStatReport, (filePathStart) => {
       this.generateHtmlReport(filePathStart as string);
+    });
+  }
+
+  private checkForUnsavedData(action: FileSwitchActions) {
+    if (!this.unsavedData) {
+      window.electron.ipcRenderer.sendMessage(IpcRendToMain.ContinueWithAction, action);
+      return;
+    }
+
+    this.genericModalManager.openUnsavedDataDialog(action, (saveData: boolean = false) => {
+      if (saveData) {
+        this.saveYftFile(action);
+      } else {
+        window.electron.ipcRenderer.sendMessage(IpcRendToMain.ContinueWithAction, action);
+      }
     });
   }
 
@@ -211,14 +229,8 @@ export class TournamentManager {
   }
 
   /** Write the current tournament to the current file */
-  private saveYftFile() {
-    if (this.filePath === null) {
-      window.electron.ipcRenderer.sendMessage(IpcRendToMain.saveAsDialog);
-      return;
-    }
-
+  private saveYftFile(subsequentAction?: FileSwitchActions) {
     const wholeFileObj: IQbjWholeFile = { version: '2.1.1', objects: [this.tournament.toFileObject(false, true)] };
-    // const wholeFileObj = [this.tournament.toFileObject(false, true)];
     camelCaseToSnakeCase(wholeFileObj);
 
     const fileContents = JSON.stringify(wholeFileObj, (key, value) => {
@@ -228,14 +240,19 @@ export class TournamentManager {
       }
       return value;
     });
-    window.electron.ipcRenderer.sendMessage(IpcRendToMain.saveFile, this.filePath, fileContents);
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.saveFile, this.filePath, fileContents, subsequentAction);
   }
 
-  private onSuccessfulYftSave() {
+  private onSuccessfulYftSave(filePath?: string) {
     this.displayName = this.tournament.name || '';
+    if (filePath) this.setFilePath(filePath);
     this.unsavedData = false;
     this.setWindowTitle();
     // this.makeToast('Data saved');
+  }
+
+  private setFilePath(path: string) {
+    this.filePath = path ?? null;
   }
 
   compileStats() {
@@ -511,7 +528,7 @@ export class TournamentManager {
   }
 
   tryDeleteTeam(reg: Registration, team: Team) {
-    this.genericModalManager.open('Delete Team', `Are you sure you want to delete ${team.name}?`, 'No', 'Yes', () =>
+    this.genericModalManager.open('Delete Team', `Are you sure you want to delete ${team.name}?`, 'N&o', '&Yes', () =>
       this.deleteTeam(reg, team),
     );
   }
@@ -551,7 +568,7 @@ export class TournamentManager {
   }
 
   tryDeleteMatch(match: Match, round: Round) {
-    this.genericModalManager.open('Delete Game', 'Are you sure you want to delete this game?', 'No', 'Yes', () =>
+    this.genericModalManager.open('Delete Game', 'Are you sure you want to delete this game?', 'N&o', '&Yes', () =>
       this.deleteMatch(match, round),
     );
   }

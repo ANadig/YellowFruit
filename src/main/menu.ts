@@ -1,5 +1,6 @@
 import { app, Menu, shell, BrowserWindow, MenuItemConstructorOptions } from 'electron';
-import { newYftFile, openYftFile, promptForStatReportLocation, requestToSaveYftFile, yftSaveAs } from './FileUtils';
+import { promptForStatReportLocation, requestToSaveYftFile, tryFileSwitchAction, yftSaveAs } from './FileUtils';
+import { FileSwitchActions } from '../SharedUtils';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -25,14 +26,14 @@ export default class MenuBuilder {
       label: '&New Tournament',
       accelerator: 'Ctrl+N',
       click: () => {
-        newYftFile(this.mainWindow);
+        tryFileSwitchAction(this.mainWindow, FileSwitchActions.NewFile);
       },
     },
     {
       label: '&Open',
       accelerator: 'Ctrl+O',
       click: () => {
-        openYftFile(this.mainWindow);
+        tryFileSwitchAction(this.mainWindow, FileSwitchActions.OpenYftFile);
       },
     },
     {

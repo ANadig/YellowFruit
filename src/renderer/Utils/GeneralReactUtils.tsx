@@ -12,7 +12,7 @@ export enum YfCssClasses {
  */
 export function hotkeyFormat(caption: string) {
   const splitLoc = caption.indexOf('&');
-  if (splitLoc === -1) return <span>caption</span>;
+  if (splitLoc === -1) return <span>{caption}</span>;
 
   const start = caption.substring(0, splitLoc);
   const uLetter = caption.substring(splitLoc + 1, splitLoc + 2);

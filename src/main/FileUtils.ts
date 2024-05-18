@@ -2,14 +2,48 @@ import path from 'path';
 import { app, BrowserWindow, IpcMainEvent, dialog } from 'electron';
 import fs from 'fs';
 import { IpcMainToRend } from '../IPCChannels';
-import { StatReportHtmlPage, statReportProtocol } from '../SharedUtils';
+import { FileSwitchActions, StatReportHtmlPage, statReportProtocol } from '../SharedUtils';
 
-export function newYftFile(mainWindow: BrowserWindow) {
+let appCanQuit = false;
+
+export function appAllowedToQuit() {
+  return appCanQuit;
+}
+
+export function tryFileSwitchAction(mainWindow: BrowserWindow, action: FileSwitchActions) {
+  mainWindow.webContents.send(IpcMainToRend.CheckForUnsavedData, action);
+}
+
+export function handleContinueAction(event: IpcMainEvent, action: FileSwitchActions) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  doFileSwitchAction(action, window);
+}
+
+function doFileSwitchAction(action: FileSwitchActions, window: BrowserWindow) {
+  switch (action) {
+    case FileSwitchActions.OpenYftFile:
+      openYftFile(window);
+      break;
+    case FileSwitchActions.NewFile:
+      newYftFile(window);
+      break;
+    case FileSwitchActions.CloseApp:
+      appCanQuit = true;
+      app.quit();
+      break;
+    default:
+  }
+}
+
+function newYftFile(mainWindow: BrowserWindow) {
   mainWindow.webContents.send(IpcMainToRend.newTournament);
 }
 
-export function openYftFile(mainWindow: BrowserWindow) {
+function openYftFile(mainWindow: BrowserWindow) {
   const fileNameAry = dialog.showOpenDialogSync(mainWindow, {
+    title: 'Open File',
     filters: [{ name: 'YellowFruit Tournament', extensions: ['yft'] }],
   });
   if (!fileNameAry) return;
@@ -28,32 +62,40 @@ export function requestToSaveYftFile(mainWindow: BrowserWindow) {
 }
 
 export function yftSaveAs(mainWindow: BrowserWindow) {
-  const fileName = dialog.showSaveDialogSync(mainWindow, {
-    filters: [{ name: 'YellowFruit Tournament', extensions: ['yft'] }],
-  });
-
+  const fileName = promptForYftFile(mainWindow);
   if (!fileName) return;
 
   mainWindow.webContents.send(IpcMainToRend.saveAsCommand, fileName);
 }
 
-export function handleSaveAsRequest(event: IpcMainEvent) {
-  const window = BrowserWindow.fromWebContents(event.sender);
-  if (!window) return;
-
-  yftSaveAs(window);
+function promptForYftFile(window: BrowserWindow) {
+  return dialog.showSaveDialogSync(window, {
+    title: 'Save As',
+    filters: [{ name: 'YellowFruit Tournament', extensions: ['yft'] }],
+  });
 }
 
-export function handleSaveFile(event: IpcMainEvent, filePath: string, fileContents: string) {
+export function handleSaveFile(
+  event: IpcMainEvent,
+  filePathFromRenderer: string,
+  fileContents: string,
+  subsequentAction?: FileSwitchActions,
+) {
   const window = BrowserWindow.fromWebContents(event.sender);
   if (!window) return;
+
+  const filePath = filePathFromRenderer || promptForYftFile(window);
+  if (!filePath) return;
 
   fs.writeFile(filePath, fileContents, { encoding: 'utf8' }, (err) => {
     if (err) {
       dialog.showMessageBoxSync(window, { message: `Error saving file: \n\n ${err.message}` });
       return;
     }
-    window.webContents.send(IpcMainToRend.tournamentSavedSuccessfully);
+    window.webContents.send(IpcMainToRend.tournamentSavedSuccessfully, filePath);
+    if (subsequentAction !== undefined) {
+      doFileSwitchAction(subsequentAction, window);
+    }
   });
 }
 
