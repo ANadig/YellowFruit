@@ -1,9 +1,10 @@
 import path from 'path';
 import { app, BrowserWindow, IpcMainEvent, dialog } from 'electron';
 import fs from 'fs';
-import { IpcMainToRend } from '../IPCChannels';
+import { IpcBidirectional, IpcMainToRend } from '../IPCChannels';
 import { FileSwitchActions, StatReportHtmlPage, statReportProtocol } from '../SharedUtils';
 
+/** We stop the window from closing so we can check whether we need to save. This is set to true once we've done the necessary checking and saving */
 let appCanQuit = false;
 
 export function appAllowedToQuit() {
@@ -14,6 +15,7 @@ export function tryFileSwitchAction(mainWindow: BrowserWindow, action: FileSwitc
   mainWindow.webContents.send(IpcMainToRend.CheckForUnsavedData, action);
 }
 
+/** Actually do the action we interrupted to (possibly) save data first */
 export function handleContinueAction(event: IpcMainEvent, action: FileSwitchActions) {
   const window = BrowserWindow.fromWebContents(event.sender);
   if (!window) return;
@@ -30,11 +32,16 @@ function doFileSwitchAction(action: FileSwitchActions, window: BrowserWindow) {
       newYftFile(window);
       break;
     case FileSwitchActions.CloseApp:
-      appCanQuit = true;
-      app.quit();
+      closeApplication();
       break;
     default:
   }
+}
+
+function closeApplication() {
+  clearBackupFile();
+  appCanQuit = true;
+  app.quit();
 }
 
 function newYftFile(mainWindow: BrowserWindow) {
@@ -179,4 +186,37 @@ export function promptForStatReportLocation(window: BrowserWindow, curFileName?:
 
 function stripYftExtension(filename: string) {
   return filename.replace('.yft', '');
+}
+
+export const backupFileDir = path.resolve(app.getPath('userData'), 'yfBackup');
+const backupFilePathProd = path.resolve(backupFileDir, 'prod_backup.yftbak');
+const backupFilePathDev = path.resolve(backupFileDir, 'dev_backup.yftbak');
+const curBackupFilePath = process.env.NODE_ENV === 'development' ? backupFilePathDev : backupFilePathProd;
+
+export function generateBackup(window: BrowserWindow | null) {
+  if (!window) return;
+  window.webContents.send(IpcMainToRend.GenerateBackup);
+}
+
+export function handleSaveBackup(event: IpcMainEvent, fileContents: string) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  fs.writeFile(curBackupFilePath, fileContents, { encoding: 'utf8' }, (err) => {
+    // eslint-disable-next-line no-console
+    if (err) console.log(err);
+  });
+}
+
+function clearBackupFile() {
+  fs.writeFileSync(curBackupFilePath, '');
+}
+
+function getBackupContents() {
+  return fs.readFileSync(curBackupFilePath, { encoding: 'utf8' });
+}
+
+export function handleLoadBackup(event: IpcMainEvent) {
+  const contents = getBackupContents();
+  event.reply(IpcBidirectional.LoadBackup, contents);
 }

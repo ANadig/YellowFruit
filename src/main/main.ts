@@ -26,6 +26,10 @@ import {
   handleContinueAction,
   tryFileSwitchAction,
   appAllowedToQuit,
+  handleSaveBackup,
+  generateBackup,
+  backupFileDir,
+  handleLoadBackup,
 } from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
 import { FileSwitchActions, statReportProtocol } from '../SharedUtils';
@@ -53,10 +57,6 @@ ipcMain.on(IpcBidirectional.ipcExample, async (event, arg) => {
   event.reply(IpcBidirectional.ipcExample, msgTemplate('pong'));
 });
 
-if (!fs.existsSync(inAppStatReportDirectory)) {
-  fs.mkdirSync(inAppStatReportDirectory);
-}
-
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
@@ -80,6 +80,8 @@ const installExtensions = async () => {
     )
     .catch(console.log);
 };
+
+const autoSaveIntervalMS = 120000; // 2 minutes
 
 const createWindow = async () => {
   if (isDebug) {
@@ -158,18 +160,30 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
+    createWindow();
     ipcMain.on(IpcRendToMain.saveFile, handleSaveFile);
     ipcMain.on(IpcRendToMain.setWindowTitle, handleSetWindowTitle);
     ipcMain.on(IpcRendToMain.StatReportSaveDialog, handleRequestToSaveHtmlReports);
     ipcMain.on(IpcRendToMain.WriteStatReports, handleWriteStatReports);
     ipcMain.on(IpcRendToMain.ContinueWithAction, handleContinueAction);
+    ipcMain.on(IpcRendToMain.SaveBackup, handleSaveBackup);
+    ipcMain.once(IpcBidirectional.LoadBackup, handleLoadBackup);
+    ipcMain.once(IpcRendToMain.StartAutosave, () => {
+      setInterval(() => generateBackup(mainWindow), autoSaveIntervalMS);
+    });
 
     protocol.handle(statReportProtocol, (request) => {
       const url = pathToFileURL(path.resolve(inAppStatReportDirectory, parseStatReportPath(request.url)));
       return net.fetch(url.href);
     });
 
-    createWindow();
+    if (!fs.existsSync(inAppStatReportDirectory)) {
+      fs.mkdirSync(inAppStatReportDirectory);
+    }
+    if (!fs.existsSync(backupFileDir)) {
+      fs.mkdirSync(backupFileDir);
+    }
+
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.

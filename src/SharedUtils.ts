@@ -19,3 +19,10 @@ export const FileSwitchActionNames = {
   [FileSwitchActions.OpenYftFile]: 'Open File',
   [FileSwitchActions.CloseApp]: 'Exit YellowFruit',
 };
+
+export interface IYftBackupFile {
+  filePath: string;
+  /** When the backup was last saved - stringify to ISO 8601 format */
+  savedAtTime: Date;
+  fileContents: object;
+}

@@ -12,6 +12,10 @@ export enum IpcRendToMain {
   WriteStatReports = 'WriteStatReports',
   /** After allowing the user to save data, continue with the action the main process was trying to do */
   ContinueWithAction = 'ContinueWithAction',
+  /** Provide the contents of a backup file to save */
+  SaveBackup = 'SaveBackup',
+  /** Tell the main process that it can start autosaving the current data */
+  StartAutosave = 'StartAutosave',
 }
 
 /** Channels for main sending messages to renderer */
@@ -33,11 +37,15 @@ export enum IpcMainToRend {
   RequestStatReport = 'RequestStatReport',
   /** Before switching away from the current file, allow renderer to give user a chance to save unsaved data or back out */
   CheckForUnsavedData = 'CheckForUnsavedData',
+  /** Save a backup copy of the current file */
+  GenerateBackup = 'GenerateBackup',
 }
 
 /** Channels for both directions renderer<-->main */
 export enum IpcBidirectional {
   ipcExample = 'ipc-example',
+  /** Grab the backup file on startup */
+  LoadBackup = 'LoadBackup',
 }
 
 export type IpcChannels = IpcRendToMain | IpcMainToRend | IpcBidirectional;
@@ -52,4 +60,5 @@ export const rendererListenableEvents = [
   IpcMainToRend.GeneratedInAppStatReport,
   IpcMainToRend.RequestStatReport,
   IpcMainToRend.CheckForUnsavedData,
+  IpcMainToRend.GenerateBackup,
 ];

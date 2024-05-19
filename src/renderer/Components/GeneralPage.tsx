@@ -1,8 +1,20 @@
 import Grid from '@mui/material/Unstable_Grid2';
-import { Box, Checkbox, FormControlLabel, FormGroup, Stack, TextField } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+  List,
+  ListItem,
+  Stack,
+  TextField,
+} from '@mui/material';
 import { useContext } from 'react';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
+import { Delete, Restore } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import YfCard from './YfCard';
@@ -11,6 +23,7 @@ import { NullDate } from '../Utils/UtilTypes';
 function GeneralPage() {
   return (
     <Grid container spacing={2}>
+      <BackupRecoveryNotice />
       <Grid xs={12} sm={6}>
         <GeneralInfoCard />
       </Grid>
@@ -170,6 +183,47 @@ function AttributeSettingsCard() {
         />
       </FormGroup>
     </YfCard>
+  );
+}
+
+function BackupRecoveryNotice() {
+  const tournManager = useContext(TournamentContext);
+  const [recoveredBackup] = useSubscription(tournManager.recoveredBackup);
+
+  if (!recoveredBackup) return null;
+
+  const firstLine = "YellowFruit didn't shut down correctly. The following file is available to recover:"; // IDE gets made about the unescaped apostrophe if I put this in raw
+  return (
+    <Grid xs={12}>
+      <Alert
+        variant="filled"
+        severity="info"
+        action={
+          <Button
+            variant="outlined"
+            color="inherit"
+            startIcon={<Delete />}
+            onClick={() => tournManager.discardRecoveredBackup()}
+          >
+            Discard
+          </Button>
+        }
+      >
+        {firstLine}
+        <List>
+          <ListItem>{recoveredBackup.filePath || '(New file)'}</ListItem>
+          <ListItem>{`Saved at ${recoveredBackup.savedAtTime}`}</ListItem>
+        </List>
+        <Button
+          variant="outlined"
+          color="inherit"
+          startIcon={<Restore />}
+          onClick={() => tournManager.useRecoveredBackup()}
+        >
+          Restore file
+        </Button>
+      </Alert>
+    </Grid>
   );
 }
 

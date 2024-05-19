@@ -3,7 +3,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import Tournament, { IQbjTournament, IYftFileTournament } from './DataModel/Tournament';
 import { dateFieldChanged, getFileNameFromPath, textFieldChanged } from './Utils/GeneralUtils';
 import { NullObjects } from './Utils/UtilTypes';
-import { IpcMainToRend, IpcRendToMain } from '../IPCChannels';
+import { IpcBidirectional, IpcMainToRend, IpcRendToMain } from '../IPCChannels';
 import { IQbjWholeFile, IRefTargetDict } from './DataModel/Interfaces';
 import AnswerType from './DataModel/AnswerType';
 import StandardSchedule from './DataModel/StandardSchedule';
@@ -15,7 +15,7 @@ import { collectRefTargets, findTournamentObject } from './DataModel/QbjUtils2';
 import FileParser from './DataModel/FileParsing';
 import { TempMatchManager } from './Modal Managers/TempMatchManager';
 import { Match } from './DataModel/Match';
-import { FileSwitchActions, StatReportHtmlPage } from '../SharedUtils';
+import { FileSwitchActions, IYftBackupFile, StatReportHtmlPage } from '../SharedUtils';
 import { StatReportFileNames, StatReportPages } from './Enums';
 import { Pool } from './DataModel/Pool';
 import { PoolStats } from './DataModel/StatSummaries';
@@ -78,6 +78,8 @@ export class TournamentManager {
   /** When did we last update the stat report? */
   inAppStatReportGenerated: Date;
 
+  recoveredBackup?: IYftBackupFile;
+
   readonly isNull: boolean = false;
 
   constructor() {
@@ -93,6 +95,8 @@ export class TournamentManager {
     this.poolModalManager = new TempPoolManager();
     this.rankModalManager = new TempRankManager();
     this.inAppStatReportGenerated = new Date();
+
+    window.electron.ipcRenderer.sendMessage(IpcBidirectional.LoadBackup);
   }
 
   protected addIpcListeners() {
@@ -119,6 +123,12 @@ export class TournamentManager {
     });
     window.electron.ipcRenderer.on(IpcMainToRend.RequestStatReport, (filePathStart) => {
       this.generateHtmlReport(filePathStart as string);
+    });
+    window.electron.ipcRenderer.on(IpcMainToRend.GenerateBackup, () => {
+      this.saveBackup();
+    });
+    window.electron.ipcRenderer.on(IpcBidirectional.LoadBackup, (contents) => {
+      this.parseBackup(contents as string);
     });
   }
 
@@ -150,20 +160,14 @@ export class TournamentManager {
 
   /** Parse file contents and load tournament for editing */
   private openYftFile(filePath: string, fileContents: string, curYfVersion: string) {
-    let objFromFile: IQbjWholeFile | null = null;
-    try {
-      objFromFile = JSON.parse(fileContents, (key, value) => {
-        if (TournamentManager.isNameOfDateField(key)) return dayjs(value).toDate(); // must be ISO 8601 format
-        return value;
-      });
-    } catch (err: any) {
-      this.openGenericModal('Invalid File', 'This file does not contain valid JSON.');
-    }
-
+    const objFromFile = this.parseJSON(fileContents);
     if (!objFromFile) return;
+    this.parseObjectFromFile(filePath, objFromFile, curYfVersion);
+  }
 
+  private parseObjectFromFile(filePath: string, objFromFile: object, curYfVersion?: string) {
     snakeCaseToCamelCase(objFromFile);
-    const loadedTournament = this.loadTournamentFromQbjObjects(objFromFile, curYfVersion);
+    const loadedTournament = this.loadTournamentFromQbjObjects(objFromFile as IQbjWholeFile, curYfVersion);
     if (loadedTournament === null) {
       return;
     }
@@ -175,6 +179,19 @@ export class TournamentManager {
     this.unsavedData = false;
     this.setWindowTitle();
     this.dataChangedReactCallback();
+  }
+
+  private parseJSON(fileContents: string) {
+    let objFromFile: object | null = null;
+    try {
+      objFromFile = JSON.parse(fileContents, (key, value) => {
+        if (TournamentManager.isNameOfDateField(key)) return dayjs(value).toDate(); // must be ISO 8601 format
+        return value;
+      });
+    } catch (err: any) {
+      this.openGenericModal('Invalid File', 'This file does not contain valid JSON.');
+    }
+    return objFromFile;
   }
 
   /** Given an array of Qbj/Yft objects, parse them and create a tournament from the info */
@@ -214,7 +231,9 @@ export class TournamentManager {
 
   /** Is this a property in a JSON file that we should try to parse a date from? */
   static isNameOfDateField(key: string) {
-    return key === 'startDate' || key === 'endDate' || key === 'start_date' || key === 'end_date';
+    return (
+      key === 'startDate' || key === 'endDate' || key === 'start_date' || key === 'end_date' || key === 'savedAtTime'
+    );
   }
 
   private static getTournamentFromQbjFile(fileObj: IQbjWholeFile): IQbjTournament | null {
@@ -230,17 +249,64 @@ export class TournamentManager {
 
   /** Write the current tournament to the current file */
   private saveYftFile(subsequentAction?: FileSwitchActions) {
+    const fileObj = this.generateYftWholeFileObj();
+    const fileContents = TournamentManager.makeJSON(fileObj);
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.saveFile, this.filePath, fileContents, subsequentAction);
+  }
+
+  private saveBackup() {
+    const fileContents = this.generateYftWholeFileObj();
+    const backupObj: IYftBackupFile = {
+      filePath: this.filePath || '',
+      savedAtTime: new Date(),
+      fileContents,
+    };
+    const backupFileContents = TournamentManager.makeJSON(backupObj);
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.SaveBackup, backupFileContents);
+  }
+
+  private parseBackup(fileContents: string) {
+    if (fileContents === '') {
+      window.electron.ipcRenderer.sendMessage(IpcRendToMain.StartAutosave);
+      return;
+    }
+    const objFromFile = this.parseJSON(fileContents);
+    if (!objFromFile) {
+      window.electron.ipcRenderer.sendMessage(IpcRendToMain.StartAutosave);
+      return;
+    }
+
+    this.recoveredBackup = objFromFile as IYftBackupFile;
+    this.onDataChanged(true);
+  }
+
+  useRecoveredBackup() {
+    if (!this.recoveredBackup) return;
+    this.parseObjectFromFile(this.recoveredBackup.filePath, this.recoveredBackup.fileContents);
+    this.saveYftFile();
+    this.discardRecoveredBackup();
+  }
+
+  discardRecoveredBackup() {
+    delete this.recoveredBackup;
+    this.onDataChanged(true);
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.StartAutosave);
+  }
+
+  private generateYftWholeFileObj() {
     const wholeFileObj: IQbjWholeFile = { version: '2.1.1', objects: [this.tournament.toFileObject(false, true)] };
     camelCaseToSnakeCase(wholeFileObj);
+    return wholeFileObj;
+  }
 
-    const fileContents = JSON.stringify(wholeFileObj, (key, value) => {
+  private static makeJSON(obj: object) {
+    return JSON.stringify(obj, (key, value) => {
       if (TournamentManager.isNameOfDateField(key)) {
         if (value) return dayjs(value).toISOString();
         return undefined;
       }
       return value;
     });
-    window.electron.ipcRenderer.sendMessage(IpcRendToMain.saveFile, this.filePath, fileContents, subsequentAction);
   }
 
   private onSuccessfulYftSave(filePath?: string) {
