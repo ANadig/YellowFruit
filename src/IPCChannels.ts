@@ -16,6 +16,8 @@ export enum IpcRendToMain {
   SaveBackup = 'SaveBackup',
   /** Tell the main process that it can start autosaving the current data */
   StartAutosave = 'StartAutosave',
+  /** Tell the main process that we crashed :( */
+  WebPageCrashed = 'WebPageCrashed',
 }
 
 /** Channels for main sending messages to renderer */

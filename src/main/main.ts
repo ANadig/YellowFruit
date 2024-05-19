@@ -10,10 +10,11 @@
  */
 import path from 'path';
 import fs from 'fs';
-import { app, BrowserWindow, shell, ipcMain, protocol, net } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, protocol, net, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { pathToFileURL } from 'url';
+import { IpcMainEvent } from 'electron/main';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import {
@@ -167,6 +168,7 @@ app
     ipcMain.on(IpcRendToMain.WriteStatReports, handleWriteStatReports);
     ipcMain.on(IpcRendToMain.ContinueWithAction, handleContinueAction);
     ipcMain.on(IpcRendToMain.SaveBackup, handleSaveBackup);
+    ipcMain.on(IpcRendToMain.WebPageCrashed, handleRendererCrashed);
     ipcMain.once(IpcBidirectional.LoadBackup, handleLoadBackup);
     ipcMain.once(IpcRendToMain.StartAutosave, () => {
       setInterval(() => generateBackup(mainWindow), autoSaveIntervalMS);
@@ -191,3 +193,23 @@ app
     });
   })
   .catch(console.log);
+
+function handleRendererCrashed(event: IpcMainEvent) {
+  if (isDebug) return;
+
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  dialog.showMessageBoxSync(window, {
+    title: 'YellowFruit',
+    message: 'YellowFruit has encountered an unexpected error. Click OK to relaunch the application.',
+    buttons: ['OK'],
+  });
+
+  forceRelaunch();
+}
+
+function forceRelaunch() {
+  app.relaunch();
+  app.exit();
+}

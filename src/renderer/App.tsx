@@ -27,7 +27,9 @@ import { ApplicationPages } from './Enums';
 import PhaseEditDialog from './Components/PhaseEditDialog';
 import PoolEditDialog from './Components/PoolEditDialog';
 import RankEditDialog from './Components/RankEditDialog';
+import { IpcRendToMain } from '../IPCChannels';
 
+window.onerror = () => window.electron.ipcRenderer.sendMessage(IpcRendToMain.WebPageCrashed);
 window.electron.ipcRenderer.removeAllListeners();
 const tournManager = new TournamentManager();
 

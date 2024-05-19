@@ -283,7 +283,7 @@ export class TournamentManager {
   useRecoveredBackup() {
     if (!this.recoveredBackup) return;
     this.parseObjectFromFile(this.recoveredBackup.filePath, this.recoveredBackup.fileContents);
-    this.saveYftFile();
+    if (this.recoveredBackup.filePath !== '') this.saveYftFile();
     this.discardRecoveredBackup();
   }
 
