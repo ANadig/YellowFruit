@@ -132,22 +132,19 @@ export class PhaseStandings {
 
   carryoverMatches: Match[];
 
-  yieldsFinalRanks: boolean = false;
-
   /** Did any matches end in a tie? */
   anyTiesExist: boolean = false;
 
   scoringRules: ScoringRules;
 
-  constructor(phase: Phase, carryoverMatches: Match[], rules: ScoringRules, yieldsFinalRanks: boolean = false) {
+  constructor(phase: Phase, carryoverMatches: Match[], rules: ScoringRules) {
     this.phase = phase;
     this.pools = phase.pools.map((pool) => new PoolStats(pool, rules));
     this.carryoverMatches = carryoverMatches;
-    this.yieldsFinalRanks = yieldsFinalRanks;
     this.scoringRules = rules;
   }
 
-  compileStats() {
+  compileStats(sortByFinalRank: boolean = false) {
     for (const round of this.phase.rounds) {
       for (const match of round.matches) {
         this.addMatchToTeamStats(match);
@@ -164,7 +161,7 @@ export class PhaseStandings {
       }
     }
     this.assignWildCardSeeds();
-    if (this.yieldsFinalRanks) {
+    if (sortByFinalRank) {
       this.assignFinalTeamRanks();
       this.sortTeamsByFinalRank();
     }

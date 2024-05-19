@@ -118,6 +118,9 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** ungrouped dump of all teams with all the games they've played  */
   cumulativeStats?: AggregateStandings;
 
+  /** Playoff standings with all prelim games carried over - for use when the prelim phase is a round robin with all teams */
+  prelimsPlusPlayoffStats?: PhaseStandings;
+
   hasMatchData: boolean = false;
 
   finalRankingsReady: boolean = false;
@@ -167,16 +170,22 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return yftFileObj;
   }
 
-  compileStats(fullReport: boolean = false) {
+  compileStats(fullReport: boolean = false, sortByFinalRank: boolean = false) {
     this.stats = [];
     const lastPhase = this.getLastFullPhase();
     if (!lastPhase) return;
     this.phases.forEach((p) => {
       if (p.isFullPhase()) {
-        this.stats.push(new PhaseStandings(p, this.getCarryoverMatches(p), this.scoringRules, p === lastPhase));
+        this.stats.push(new PhaseStandings(p, this.getCarryoverMatches(p), this.scoringRules));
       }
     });
-    this.stats.forEach((phaseSt) => phaseSt.compileStats());
+    this.stats.forEach((phaseSt, idx) => phaseSt.compileStats(sortByFinalRank && idx === this.stats.length - 1));
+    if (this.allPrelimGamesCarryOver()) {
+      const prelimMatches = this.getPrelimPhase()?.getAllMatches() ?? [];
+      this.prelimsPlusPlayoffStats = new PhaseStandings(lastPhase, prelimMatches, this.scoringRules);
+      this.prelimsPlusPlayoffStats.compileStats(sortByFinalRank);
+    }
+
     if (fullReport) {
       this.cumulativeStats = new AggregateStandings(this.getListOfAllTeams(), this.phases, this.scoringRules);
       if (this.finalRankingsReady) this.cumulativeStats.sortTeamsByFinalRank();
@@ -187,9 +196,16 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   }
 
   reSortStandingsByFinalRank() {
-    const playoffStats = this.stats[this.stats.length - 1];
-    if (!playoffStats?.yieldsFinalRanks) return;
+    const playoffStats = this.statsWithFinalRanks();
+    if (this.getLastFullPhase() !== playoffStats.phase) return;
+
     playoffStats.sortTeamsByFinalRank();
+  }
+
+  statsWithFinalRanks() {
+    const playoffStats = this.stats[this.stats.length - 1];
+    if (this.allPrelimGamesCarryOver()) return this.prelimsPlusPlayoffStats ?? playoffStats;
+    return playoffStats;
   }
 
   setHtmlFilePrefix(prefix?: string) {
@@ -435,6 +451,13 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       if (ph.hasAnyCarryover()) return true;
     }
     return false;
+  }
+
+  allPrelimGamesCarryOver() {
+    const prelims = this.getPrelimPhase();
+    if (!prelims) return false;
+    if (this.getFullPhases().length !== 2) return false; // <2: nothing to carry over to; >2: something weird I've never heard of and don't want to deal with
+    return prelims.pools.length === 1 && prelims.pools[0].roundRobins >= 1;
   }
 
   findPoolWithTeam(team: Team, round: Round): Pool | undefined {
@@ -691,7 +714,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   confirmFinalRankings() {
     if (this.stats.length === 0) return;
-    for (const poolStats of this.stats[this.stats.length - 1].pools) {
+    for (const poolStats of this.statsWithFinalRanks().pools) {
       for (const ptStats of poolStats.poolTeams) {
         const { team } = ptStats;
         if (team.getOverallRank()) continue;

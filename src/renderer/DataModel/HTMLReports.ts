@@ -94,19 +94,39 @@ export default class HtmlReportGenerator {
     sections.push(this.finalsList().join('\n'));
 
     let printedPhaseCount = 0;
+    let printedCombinedPlayoff = false;
     for (let i = this.tournament.stats.length - 1; i >= 0; i--) {
       const phaseStats = this.tournament.stats[i];
       if (!phaseStats.phase.anyTeamsAssigned()) continue;
 
+      const printingCombinedPlayoff =
+        i === this.tournament.stats.length - 1 &&
+        this.tournament.allPrelimGamesCarryOver() &&
+        this.tournament.prelimsPlusPlayoffStats;
+
+      // combined prelim+playoff for tournaments with full RR + playoffs
+      if (printingCombinedPlayoff && this.tournament.prelimsPlusPlayoffStats) {
+        const header = headerWithDivider(
+          `${phaseStats.phase.name}: Total`,
+          !this.tournament.finalRankingsReady && printedPhaseCount === 1,
+        );
+        sections.push(`${header}\n${this.standingsForOnePhase(this.tournament.prelimsPlusPlayoffStats)}`);
+        printedCombinedPlayoff = true;
+      }
+
       printedPhaseCount++;
       const header = headerWithDivider(
-        phaseStats.phase.name,
+        printingCombinedPlayoff ? `${phaseStats.phase.name} Only` : phaseStats.phase.name,
         !this.tournament.finalRankingsReady && printedPhaseCount === 1,
       );
       sections.push(`${header}\n${this.standingsForOnePhase(phaseStats)}`);
     }
 
-    if (this.tournament.numberOfPhasesWithStats() > 1 && !this.tournament.finalRankingsReady) {
+    if (
+      this.tournament.numberOfPhasesWithStats() > 1 &&
+      !this.tournament.finalRankingsReady &&
+      !printedCombinedPlayoff
+    ) {
       const header = headerWithDivider('Cumulative');
       sections.push(`${header}\n${this.cumulativeStandingsTable(true)}`);
     }

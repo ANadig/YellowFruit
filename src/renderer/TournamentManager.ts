@@ -322,7 +322,7 @@ export class TournamentManager {
   }
 
   compileStats() {
-    this.tournament.compileStats();
+    this.tournament.compileStats(false, true);
     this.onFinishInAppStatReport();
   }
 

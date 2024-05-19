@@ -72,7 +72,10 @@ function PhaseStandings(props: IPhaseStandingsProps) {
   const regulationTossupCount = thisTournament.scoringRules.regulationTossupCount;
   const showPPB = thisTournament.scoringRules.useBonuses;
 
-  const phaseStats = thisTournament.stats.find((ps) => ps.phase === phase);
+  const phaseStats =
+    !nextPhase && thisTournament.allPrelimGamesCarryOver()
+      ? thisTournament.prelimsPlusPlayoffStats
+      : thisTournament.stats.find((ps) => ps.phase === phase);
   if (!phaseStats) return null;
 
   const launchOverrideForm = (team: Team, initPool?: Pool) => {
