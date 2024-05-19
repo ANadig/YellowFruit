@@ -220,3 +220,24 @@ export function handleLoadBackup(event: IpcMainEvent) {
   const contents = getBackupContents();
   event.reply(IpcBidirectional.LoadBackup, contents);
 }
+
+/** Tell renderer to export QBJ to the given path */
+export function exportQbjFile(mainWindow: BrowserWindow) {
+  const filePath = dialog.showSaveDialogSync(mainWindow, {
+    title: 'Export as QBJ',
+    filters: [{ name: 'Quiz Bowl Tournament Schema', extensions: ['qbj'] }],
+  });
+  if (!filePath) return;
+
+  mainWindow.webContents.send(IpcBidirectional.ExportQbjFile, filePath);
+}
+
+/** Save file contents provided by the renderer */
+export function handleExportQbjFile(event: IpcMainEvent, filePath: string, fileContents: string) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  fs.writeFile(filePath, fileContents, { encoding: 'utf8' }, (err) => {
+    if (err) dialog.showMessageBoxSync(window, { title: 'YellowFruit', message: `Error saving file:\n\n${err}` });
+  });
+}

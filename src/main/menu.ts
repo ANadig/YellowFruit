@@ -1,5 +1,11 @@
-import { app, Menu, shell, BrowserWindow, MenuItemConstructorOptions } from 'electron';
-import { promptForStatReportLocation, requestToSaveYftFile, tryFileSwitchAction, yftSaveAs } from './FileUtils';
+import { app, Menu, BrowserWindow, MenuItemConstructorOptions, dialog } from 'electron';
+import {
+  exportQbjFile,
+  promptForStatReportLocation,
+  requestToSaveYftFile,
+  tryFileSwitchAction,
+  yftSaveAs,
+} from './FileUtils';
 import { FileSwitchActions } from '../SharedUtils';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
@@ -17,6 +23,12 @@ export default class MenuBuilder {
       accelerator: 'Ctrl+U',
       click: () => {
         promptForStatReportLocation(this.mainWindow);
+      },
+    },
+    {
+      label: 'Export QB&J',
+      click: () => {
+        exportQbjFile(this.mainWindow);
       },
     },
     {
@@ -52,12 +64,15 @@ export default class MenuBuilder {
   ];
 
   readonly subMenuHelp: MenuItemConstructorOptions = {
-    label: 'Help',
+    label: '&Help',
     submenu: [
       {
-        label: 'Learn More',
-        click() {
-          shell.openExternal('https://electronjs.org');
+        label: 'About YellowFruit',
+        click: () => {
+          dialog.showMessageBoxSync(this.mainWindow, {
+            title: 'About YellowFruit',
+            message: `YellowFruit\n\nVersion ${app.getVersion()}`,
+          });
         },
       },
     ],

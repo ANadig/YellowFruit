@@ -48,6 +48,8 @@ export enum IpcBidirectional {
   ipcExample = 'ipc-example',
   /** Grab the backup file on startup */
   LoadBackup = 'LoadBackup',
+  /** Export QBJ schema file format */
+  ExportQbjFile = 'ExportQbjFile',
 }
 
 export type IpcChannels = IpcRendToMain | IpcMainToRend | IpcBidirectional;
@@ -63,4 +65,5 @@ export const rendererListenableEvents = [
   IpcMainToRend.RequestStatReport,
   IpcMainToRend.CheckForUnsavedData,
   IpcMainToRend.GenerateBackup,
+  IpcBidirectional.ExportQbjFile,
 ];

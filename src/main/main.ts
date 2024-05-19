@@ -31,6 +31,7 @@ import {
   generateBackup,
   backupFileDir,
   handleLoadBackup,
+  handleExportQbjFile,
 } from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
 import { FileSwitchActions, statReportProtocol } from '../SharedUtils';
@@ -169,6 +170,7 @@ app
     ipcMain.on(IpcRendToMain.ContinueWithAction, handleContinueAction);
     ipcMain.on(IpcRendToMain.SaveBackup, handleSaveBackup);
     ipcMain.on(IpcRendToMain.WebPageCrashed, handleRendererCrashed);
+    ipcMain.on(IpcBidirectional.ExportQbjFile, handleExportQbjFile);
     ipcMain.once(IpcBidirectional.LoadBackup, handleLoadBackup);
     ipcMain.once(IpcRendToMain.StartAutosave, () => {
       setInterval(() => generateBackup(mainWindow), autoSaveIntervalMS);

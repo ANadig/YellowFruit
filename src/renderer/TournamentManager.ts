@@ -130,6 +130,9 @@ export class TournamentManager {
     window.electron.ipcRenderer.on(IpcBidirectional.LoadBackup, (contents) => {
       this.parseBackup(contents as string);
     });
+    window.electron.ipcRenderer.on(IpcBidirectional.ExportQbjFile, (filePath) => {
+      this.exportQbjFile(filePath as string);
+    });
   }
 
   private checkForUnsavedData(action: FileSwitchActions) {
@@ -249,13 +252,19 @@ export class TournamentManager {
 
   /** Write the current tournament to the current file */
   private saveYftFile(subsequentAction?: FileSwitchActions) {
-    const fileObj = this.generateYftWholeFileObj();
+    const fileObj = this.generateWholeFileObj();
     const fileContents = TournamentManager.makeJSON(fileObj);
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.saveFile, this.filePath, fileContents, subsequentAction);
   }
 
+  private exportQbjFile(filePath: string) {
+    const fileObj = this.generateWholeFileObj(true);
+    const fileContents = TournamentManager.makeJSON(fileObj);
+    window.electron.ipcRenderer.sendMessage(IpcBidirectional.ExportQbjFile, filePath, fileContents);
+  }
+
   private saveBackup() {
-    const fileContents = this.generateYftWholeFileObj();
+    const fileContents = this.generateWholeFileObj();
     const backupObj: IYftBackupFile = {
       filePath: this.filePath || '',
       savedAtTime: new Date(),
@@ -293,8 +302,8 @@ export class TournamentManager {
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.StartAutosave);
   }
 
-  private generateYftWholeFileObj() {
-    const wholeFileObj: IQbjWholeFile = { version: '2.1.1', objects: [this.tournament.toFileObject(false, true)] };
+  private generateWholeFileObj(qbjOnly: boolean = false) {
+    const wholeFileObj: IQbjWholeFile = { version: '2.1.1', objects: [this.tournament.toFileObject(qbjOnly, true)] };
     camelCaseToSnakeCase(wholeFileObj);
     return wholeFileObj;
   }
