@@ -161,8 +161,8 @@
     "webpack-merge": "^5.9.0"
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.erb.ElectronReact",
+    "productName": "YellowFruit",
+    "appId": "org.erb.YellowFruit",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
@@ -221,7 +221,7 @@
     "publish": {
       "provider": "github",
       "owner": "ANadig",
-      "repo": "YellowFruitQB"
+      "repo": "YellowFruit"
     }
   },
   "devEngines": {
