@@ -11,8 +11,6 @@
 import path from 'path';
 import fs from 'fs';
 import { app, BrowserWindow, shell, ipcMain, protocol, net, dialog } from 'electron';
-import { autoUpdater } from 'electron-updater';
-import log from 'electron-log';
 import { pathToFileURL } from 'url';
 import { IpcMainEvent } from 'electron/main';
 import MenuBuilder from './menu';
@@ -42,14 +40,6 @@ protocol.registerSchemesAsPrivileged([
     privileges: { standard: true, secure: true, supportFetchAPI: true },
   },
 ]);
-
-class AppUpdater {
-  constructor() {
-    log.transports.file.level = 'info';
-    autoUpdater.logger = log;
-    autoUpdater.checkForUpdatesAndNotify();
-  }
-}
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -141,10 +131,6 @@ const createWindow = async () => {
     shell.openExternal(edata.url);
     return { action: 'deny' };
   });
-
-  // Remove this if your app does not use auto updates
-  // eslint-disable-next-line
-  new AppUpdater();
 };
 
 /**
