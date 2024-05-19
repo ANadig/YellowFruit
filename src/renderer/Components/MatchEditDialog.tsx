@@ -733,10 +733,10 @@ function OvertimeTuReadField() {
 
   return (
     <Grid container columnSpacing={1}>
-      <Grid xs={4} sx={{ paddingTop: 2.4, textAlign: 'right' }}>
-        Overtime:
+      <Grid xs={5} sx={{ paddingTop: 2.4, textAlign: 'right' }}>
+        Overtime:&nbsp;
       </Grid>
-      <Grid xs={8} sx={{ '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 } }}>
+      <Grid xs={7} sx={{ '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 } }}>
         <TextField
           type="number"
           inputProps={{ min: 0 }}
