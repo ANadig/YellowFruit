@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import Tournament, { IQbjTournament, IYftFileTournament } from './DataModel/Tournament';
+import Tournament, { IQbjTournament, IYftFileTournament, NullTournament } from './DataModel/Tournament';
 import { dateFieldChanged, getFileNameFromPath, textFieldChanged } from './Utils/GeneralUtils';
 import { NullObjects } from './Utils/UtilTypes';
 import { IpcBidirectional, IpcMainToRend, IpcRendToMain } from '../IPCChannels';
@@ -31,7 +31,7 @@ import { qbjFileValidVersion } from './DataModel/QbjUtils';
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
   /** The tournament being edited */
-  tournament: Tournament;
+  tournament: Tournament = NullTournament;
 
   /** name of the currently-open file */
   filePath: string | null = null;
@@ -83,10 +83,8 @@ export class TournamentManager {
   readonly isNull: boolean = false;
 
   constructor() {
-    this.tournament = new Tournament();
     this.dataChangedReactCallback = () => {};
     this.addIpcListeners();
-    this.setWindowTitle();
 
     this.genericModalManager = new GenericModalManager();
     this.teamModalManager = new TempTeamManager();
@@ -95,6 +93,8 @@ export class TournamentManager {
     this.poolModalManager = new TempPoolManager();
     this.rankModalManager = new TempRankManager();
     this.inAppStatReportGenerated = new Date();
+
+    this.newTournament();
 
     window.electron.ipcRenderer.sendMessage(IpcBidirectional.LoadBackup);
   }
