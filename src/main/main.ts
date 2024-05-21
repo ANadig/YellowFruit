@@ -9,7 +9,6 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import fs from 'fs';
 import { app, BrowserWindow, shell, ipcMain, protocol, net, dialog } from 'electron';
 import { pathToFileURL } from 'url';
 import { IpcMainEvent } from 'electron/main';
@@ -27,9 +26,9 @@ import {
   appAllowedToQuit,
   handleSaveBackup,
   generateBackup,
-  backupFileDir,
   handleLoadBackup,
   handleExportQbjFile,
+  createDirectories,
 } from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
 import { FileSwitchActions, statReportProtocol } from '../SharedUtils';
@@ -148,6 +147,7 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
+    createDirectories();
     createWindow();
     ipcMain.on(IpcRendToMain.saveFile, handleSaveFile);
     ipcMain.on(IpcRendToMain.setWindowTitle, handleSetWindowTitle);
@@ -166,13 +166,6 @@ app
       const url = pathToFileURL(path.resolve(inAppStatReportDirectory, parseStatReportPath(request.url)));
       return net.fetch(url.href);
     });
-
-    if (!fs.existsSync(inAppStatReportDirectory)) {
-      fs.mkdirSync(inAppStatReportDirectory);
-    }
-    if (!fs.existsSync(backupFileDir)) {
-      fs.mkdirSync(backupFileDir);
-    }
 
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

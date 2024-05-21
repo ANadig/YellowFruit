@@ -4,6 +4,29 @@ import fs from 'fs';
 import { IpcBidirectional, IpcMainToRend } from '../IPCChannels';
 import { FileSwitchActions, StatReportHtmlPage, statReportProtocol } from '../SharedUtils';
 
+export const inAppStatReportDirectory = path.resolve(app.getPath('userData'), 'StatReport');
+
+const backupFileDir = path.resolve(app.getPath('userData'), 'yfBackup');
+const backupFilePathProd = path.resolve(backupFileDir, 'prod_backup.yftbak');
+const backupFilePathDev = path.resolve(backupFileDir, 'dev_backup.yftbak');
+const curBackupFilePath = process.env.NODE_ENV === 'development' ? backupFilePathDev : backupFilePathProd;
+
+/** Create necessary directories and files if they don't yet exist  */
+export function createDirectories() {
+  if (!fs.existsSync(inAppStatReportDirectory)) {
+    fs.mkdirSync(inAppStatReportDirectory);
+  }
+  if (!fs.existsSync(backupFileDir)) {
+    fs.mkdirSync(backupFileDir);
+  }
+  if (!fs.existsSync(curBackupFilePath)) {
+    fs.writeFile(curBackupFilePath, '', { encoding: 'utf8' }, (err) => {
+      // eslint-disable-next-line no-console
+      if (err) console.log(err);
+    });
+  }
+}
+
 /** We stop the window from closing so we can check whether we need to save. This is set to true once we've done the necessary checking and saving */
 let appCanQuit = false;
 
@@ -113,8 +136,6 @@ export function handleSetWindowTitle(event: IpcMainEvent, title: string) {
   window?.setTitle(`YellowFruit - ${title}`);
 }
 
-export const inAppStatReportDirectory = path.resolve(app.getPath('userData'), 'StatReport');
-
 export function handleWriteStatReports(event: IpcMainEvent, reports: StatReportHtmlPage[], filePathStart?: string) {
   const window = BrowserWindow.fromWebContents(event.sender);
   if (!window) return;
@@ -187,11 +208,6 @@ export function promptForStatReportLocation(window: BrowserWindow, curFileName?:
 function stripYftExtension(filename: string) {
   return filename.replace('.yft', '');
 }
-
-export const backupFileDir = path.resolve(app.getPath('userData'), 'yfBackup');
-const backupFilePathProd = path.resolve(backupFileDir, 'prod_backup.yftbak');
-const backupFilePathDev = path.resolve(backupFileDir, 'dev_backup.yftbak');
-const curBackupFilePath = process.env.NODE_ENV === 'development' ? backupFilePathDev : backupFilePathProd;
 
 export function generateBackup(window: BrowserWindow | null) {
   if (!window) return;
