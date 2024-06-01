@@ -68,7 +68,7 @@ export const Sched12Teams10Rounds: StandardSchedule = {
     const prelimPools = makePoolSet(2, 6, 1, 'Prelim ', [3, 3]);
     snakeSeed(prelimPools, 1, 12);
 
-    const playoffPools = makePlacementPools(2, 6, 1, 1, 12, true);
+    const playoffPools = makePlacementPools(2, 6, 1, 1, 12, false);
 
     const prelims = new Phase(PhaseTypes.Prelim, 1, 5, '1');
     const playoffs = new Phase(PhaseTypes.Playoff, 6, 10, '2');
