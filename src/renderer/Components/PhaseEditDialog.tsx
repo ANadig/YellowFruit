@@ -47,7 +47,7 @@ function PhaseEditDialogCore() {
       <DialogTitle>Edit Stage</DialogTitle>
       <DialogContent>
         <PhaseNameField />
-        <PhaseRoundFields />
+        {modalManager.shouldShowRoundFields() && <PhaseRoundFields />}
       </DialogContent>
       <DialogActions>
         <Button variant="outlined" onClick={handleCancel}>

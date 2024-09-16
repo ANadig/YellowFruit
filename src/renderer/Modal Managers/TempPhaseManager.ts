@@ -104,6 +104,10 @@ export default class TempPhaseManager {
     }
   }
 
+  shouldShowRoundFields() {
+    return !!this.originalPhaseOpened?.usesNumericRounds();
+  }
+
   setPhaseName(val: string) {
     const trimmedName = val.trim();
     this.phaseName = trimmedName;

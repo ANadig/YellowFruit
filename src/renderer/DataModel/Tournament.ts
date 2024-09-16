@@ -459,7 +459,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     const idx = fullPhases.indexOf(phase);
     if (idx === -1 || idx === 0) return 1;
 
-    return fullPhases[idx - 1].lastRoundNumber();
+    return fullPhases[idx - 1].lastRoundNumber() + 1;
   }
 
   /** The highest round that this phase could contain, given the surrounding phases */
@@ -468,7 +468,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     const idx = fullPhases.indexOf(phase);
     if (idx === -1 || idx === fullPhases.length - 1) return 999;
 
-    return fullPhases[idx + 1].firstRoundNumber();
+    return fullPhases[idx + 1].firstRoundNumber() - 1;
   }
 
   /** Add an empty phase for the user to customize */
