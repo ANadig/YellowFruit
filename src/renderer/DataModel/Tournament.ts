@@ -134,6 +134,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.tournamentSite = new TournamentSite();
     this.scoringRules = new ScoringRules(CommonRuleSets.NaqtUntimed);
     this.htmlGenerator = new HtmlReportGenerator(this);
+    this.addBlankPhase();
   }
 
   toFileObject(qbjOnly = false, isTopLevel = true, isReferenced = false): IQbjTournament {
@@ -187,12 +188,17 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     }
 
     if (fullReport) {
-      this.cumulativeStats = new AggregateStandings(this.getListOfAllTeams(), this.phases, this.scoringRules);
-      if (this.finalRankingsReady) this.cumulativeStats.sortTeamsByFinalRank();
-      else this.cumulativeStats.sortTeamsByPPB();
-
-      this.stats.find((phSt) => phSt.phase.phaseType === PhaseTypes.Prelim)?.compileIndividualStats();
+      this.compileAddlStatsForFullReport();
     }
+  }
+
+  /** Do additional work needed for the full stat report- cumulative stats, individual stats, etc. */
+  private compileAddlStatsForFullReport() {
+    this.cumulativeStats = new AggregateStandings(this.getListOfAllTeams(), this.phases, this.scoringRules);
+    if (this.finalRankingsReady) this.cumulativeStats.sortTeamsByFinalRank();
+    else this.cumulativeStats.sortTeamsByPPB();
+
+    this.stats.find((phSt) => phSt.phase.phaseType === PhaseTypes.Prelim)?.compileIndividualStats();
   }
 
   reSortStandingsByFinalRank() {
@@ -355,7 +361,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.find((ph) => ph.name === str);
   }
 
-  lastPhaseCodeNo(): number {
+  private nextPhaseCode(): string {
+    return (this.lastPhaseCodeNo() + 1).toString();
+  }
+
+  private lastPhaseCodeNo(): number {
     for (let i = this.phases.length - 1; i >= 0; i--) {
       const ph = this.phases[i];
       if (ph.phaseType !== PhaseTypes.Tiebreaker) return parseInt(ph.code, 10);
@@ -396,9 +406,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     const roundNumber = this.phases[this.phases.length - 1].lastRoundNumber() + 1;
     const numFinalsAlready = this.getFinalsPhases().length;
     const phaseName = numFinalsAlready > 0 ? `Finals (${numFinalsAlready + 1})` : undefined;
-    this.phases.push(
-      new Phase(PhaseTypes.Finals, roundNumber, roundNumber, (this.lastPhaseCodeNo() + 1).toString(), phaseName),
-    );
+    this.phases.push(new Phase(PhaseTypes.Finals, roundNumber, roundNumber, this.nextPhaseCode(), phaseName));
   }
 
   deletePhase(phase: Phase) {
@@ -443,6 +451,48 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
         lastRoundNo = this.phases[i].lastRoundNumber();
       }
     }
+  }
+
+  /** The lowest round that this phase could contain, given the surrounding phases */
+  roundNumberLowerBound(phase: Phase): number {
+    const fullPhases = this.getFullPhases();
+    const idx = fullPhases.indexOf(phase);
+    if (idx === -1 || idx === 0) return 1;
+
+    return fullPhases[idx - 1].lastRoundNumber();
+  }
+
+  /** The highest round that this phase could contain, given the surrounding phases */
+  roundNumberUpperBound(phase: Phase): number {
+    const fullPhases = this.getFullPhases();
+    const idx = fullPhases.indexOf(phase);
+    if (idx === -1 || idx === fullPhases.length - 1) return 999;
+
+    return fullPhases[idx + 1].firstRoundNumber();
+  }
+
+  /** Add an empty phase for the user to customize */
+  addBlankPhase() {
+    const startingRound = 1 + (this.getLastFullPhase()?.lastRoundNumber() || 0);
+    const phaseType = startingRound === 1 ? PhaseTypes.Prelim : PhaseTypes.Playoff;
+    const newPhaseName = this.getNewPhaseName();
+    const newPhase = new Phase(phaseType, startingRound, startingRound, this.nextPhaseCode(), newPhaseName);
+    newPhase.addBlankPool();
+    this.phases.push(newPhase);
+  }
+
+  /** Get an appropriate name for a newly-added blank phase */
+  private getNewPhaseName() {
+    const fullPhases = this.getFullPhases();
+    if (fullPhases.find((ph) => ph.name === 'New Stage')) {
+      for (let i = 2; ; i++) {
+        const altName = `New Stage ${i}`;
+        if (!fullPhases.find((ph) => ph.name === altName)) {
+          return altName;
+        }
+      }
+    }
+    return 'New Stage';
   }
 
   /** Do any of the phases in this tournament carry over games to a subsequent phase? */

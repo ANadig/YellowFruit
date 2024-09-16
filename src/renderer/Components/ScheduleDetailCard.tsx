@@ -206,7 +206,7 @@ function PoolDetail(props: IPoolDetailProps) {
     <Box typography="body2">
       <List dense>
         <ListItem disableGutters>{roundRobinDisplay(selectedPool)}</ListItem>
-        <ListItem disableGutters>Seeds {selectedPool.seeds.join(', ')}</ListItem>
+        {selectedPool.seeds.length > 0 && <ListItem disableGutters>Seeds {selectedPool.seeds.join(', ')}</ListItem>}
         {selectedPool.autoAdvanceRules.length > 0 && (
           <>
             <ListItem disableGutters>Advancement:</ListItem>
@@ -221,12 +221,12 @@ function PoolDetail(props: IPoolDetailProps) {
   );
 }
 
-interface IMinoPhaseSectionProps {
+interface IMinorPhaseSectionProps {
   phase: Phase;
 }
 
 /** A minimal section for a tiebreaker or finals phase */
-function MinorPhaseSection(props: IMinoPhaseSectionProps) {
+function MinorPhaseSection(props: IMinorPhaseSectionProps) {
   const { phase } = props;
   const tournManager = useContext(TournamentContext);
   const [usesNumeric, setUsesNumeric] = useSubscription(phase.forceNumericRounds || false);

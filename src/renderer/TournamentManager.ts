@@ -842,7 +842,12 @@ export class TournamentManager {
 
   openPhaseModal(phase: Phase) {
     const otherNames = this.tournament.phases.filter((ph) => ph !== phase).map((ph) => ph.name);
-    this.phaseModalManager.openModal(phase, otherNames);
+    this.phaseModalManager.openModal(
+      phase,
+      otherNames,
+      this.tournament.roundNumberLowerBound(phase),
+      this.tournament.roundNumberUpperBound(phase),
+    );
   }
 
   closePhaseModal(shouldSave: boolean) {

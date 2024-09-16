@@ -166,8 +166,32 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return this.isFullPhase() || this.forceNumericRounds;
   }
 
+  /** The lowest round number contained in this phase, or 0 if it contains no rounds */
+  firstRoundNumber() {
+    return this.rounds[0]?.number || 0;
+  }
+
+  /** The highest round number contained in this phase, or 0 if it contains no rounds */
   lastRoundNumber(): number {
     return this.rounds[this.rounds.length - 1]?.number || 0;
+  }
+
+  firstRoundNumberWithGames() {
+    if (this.rounds.length === 0) return undefined;
+
+    for (let i = 0; i < this.rounds.length; i++) {
+      if (this.rounds[i].anyMatchesExist()) return this.rounds[i].number;
+    }
+    return undefined;
+  }
+
+  lastRoundNumberWithGames() {
+    if (this.rounds.length === 0) return undefined;
+
+    for (let i = this.rounds.length - 1; i >= 0; i--) {
+      if (this.rounds[i].anyMatchesExist()) return this.rounds[i].number;
+    }
+    return undefined;
   }
 
   /** Adjust round numbers so that they start at the given number and go up from there */
@@ -177,6 +201,61 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
       rd.number = curRoundNo;
       curRoundNo++;
     }
+  }
+
+  /** Set this phase's rounds to be from firstRound to lastRound. Existing rounds within this range are preserved; others are discarded.
+   *  Caller is responsible for determining that this is safe to do.
+   */
+  setRoundRange(firstRound: number, lastRound: number) {
+    const newRoundArray: Round[] = [];
+    let curRequestedRound = firstRound;
+    for (const rd of this.rounds) {
+      if (rd.number > lastRound) break;
+
+      if (rd.number > curRequestedRound) {
+        for (let i = curRequestedRound; i < rd.number; i++) {
+          newRoundArray.push(new Round(i));
+        }
+      }
+      newRoundArray.push(rd);
+      curRequestedRound = rd.number + 1;
+    }
+    for (let i = curRequestedRound; i <= lastRound; i++) {
+      newRoundArray.push(new Round(i));
+    }
+    this.rounds = newRoundArray;
+  }
+
+  /** Should the user be allowed to add or remove pools from this phase? */
+  allowAddOrRemovePools() {
+    // if there are seeds, it's from a template. No way to manually specify seeds right now, so don't allow messing with that
+    for (const p of this.pools) {
+      if (p.seeds.length > 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /** Add a pool with default info, to be customized by the user */
+  addBlankPool() {
+    if (!this.findPoolByName('New Pool')) {
+      this.pools.push(Pool.newBlankPool('New Pool'));
+      return;
+    }
+    for (let i = 2; i < 100; i++) {
+      const defaultName = `New Pool ${i}`;
+      if (!this.findPoolByName(defaultName)) {
+        this.pools.push(Pool.newBlankPool(defaultName));
+        return;
+      }
+    }
+    this.pools.push(Pool.newBlankPool());
+  }
+
+  /** Remove a pool. Caller is responsible for determining whether that's safe */
+  deletePool(pool: Pool) {
+    this.pools = this.pools.filter((p) => p !== pool);
   }
 
   resetPools() {
