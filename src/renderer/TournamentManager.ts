@@ -857,7 +857,7 @@ export class TournamentManager {
 
   openPoolModal(phase: Phase, pool: Pool) {
     const otherNames = phase.pools.filter((pl) => pl !== pool).map((pl) => pl.name);
-    this.poolModalManager.openModal(pool, otherNames);
+    this.poolModalManager.openModal(pool, otherNames, phase);
   }
 
   closePoolModal(shouldSave: boolean) {

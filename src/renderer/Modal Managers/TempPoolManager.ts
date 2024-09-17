@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import { Pool } from '../DataModel/Pool';
+import { Phase, PhaseTypes } from '../DataModel/Phase';
 
 export default class TempPoolManager {
   /** The pool being edited */
@@ -14,6 +15,12 @@ export default class TempPoolManager {
   numTeams?: number;
 
   numTeamsError: string = '';
+
+  numRoundRobins?: number;
+
+  hasCarryover: boolean = false;
+
+  canSetCarryover: boolean = true;
 
   /** Names of other pool, for duplicate checking */
   otherPoolNames: string[] = [];
@@ -38,12 +45,16 @@ export default class TempPoolManager {
     this.numTeamsError = '';
   }
 
-  openModal(pool: Pool, otherPoolNames: string[]) {
+  openModal(pool: Pool, otherPoolNames: string[], phase: Phase) {
     this.modalIsOpen = true;
     this.originalPoolOpened = pool;
     this.poolName = pool.name;
     this.numTeams = pool.size;
+    this.numRoundRobins = pool.roundRobins;
+    this.hasCarryover = pool.hasCarryover;
     this.otherPoolNames = otherPoolNames;
+    this.canSetCarryover = phase.phaseType === PhaseTypes.Playoff;
+    this.carryoverScripting();
     this.validateAll();
     this.dataChangedReactCallback();
   }
@@ -64,6 +75,8 @@ export default class TempPoolManager {
     if (!this.originalPoolOpened) return;
     this.originalPoolOpened.name = this.poolName;
     if (this.numTeams !== undefined) this.originalPoolOpened.size = this.numTeams;
+    if (this.numRoundRobins !== undefined) this.originalPoolOpened.roundRobins = this.numRoundRobins;
+    this.originalPoolOpened.hasCarryover = this.hasCarryover;
   }
 
   hasAnyErrors() {
@@ -120,6 +133,23 @@ export default class TempPoolManager {
       return;
     }
     this.numTeamsError = '';
+  }
+
+  private carryoverScripting() {
+    if (this.numRoundRobins !== 1) {
+      this.hasCarryover = false;
+    }
+  }
+
+  setNumRoundRobins(val: number) {
+    this.numRoundRobins = val;
+    this.carryoverScripting();
+    this.dataChangedReactCallback();
+  }
+
+  setHasCarryover(checked: boolean) {
+    this.hasCarryover = checked;
+    this.dataChangedReactCallback();
   }
 }
 

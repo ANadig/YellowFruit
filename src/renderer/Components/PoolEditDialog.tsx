@@ -1,5 +1,19 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import {
+  Box,
+  Button,
+  Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  FormGroup,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+} from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -28,6 +42,7 @@ function PoolEditDialogCore() {
   const modalManager = useContext(PoolEditModalContext);
   const [isOpen] = useSubscription(modalManager.modalIsOpen);
   const [hasErrors] = useSubscription(modalManager.hasAnyErrors());
+  const [canSetCarryover] = useSubscription(modalManager.canSetCarryover);
   const acceptButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleAccept = () => {
@@ -49,6 +64,13 @@ function PoolEditDialogCore() {
         <Box sx={{ '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' } }}>
           <PoolNameField />
           <NumberOfTeamsField />
+          <Grid container columnSpacing={1} sx={{ marginTop: 1 }}>
+            <Grid xs={3}>Round Robins:</Grid>
+            <Grid xs={5}>
+              <RoundRobinsField />
+            </Grid>
+            <Grid xs={4}>{canSetCarryover && <CarryoverField />}</Grid>
+          </Grid>
         </Box>
       </DialogContent>
       <DialogActions>
@@ -105,7 +127,7 @@ function NumberOfTeamsField() {
 
   return (
     <TextField
-      sx={{ marginTop: 1, verticalAlign: 'baseline', width: '10ch' }}
+      sx={{ verticalAlign: 'baseline', width: '10ch' }}
       type="number"
       inputProps={{ min: 1, max: 999 }}
       variant="outlined"
@@ -120,5 +142,53 @@ function NumberOfTeamsField() {
         if (e.key === 'Enter') onBlur();
       }}
     />
+  );
+}
+
+function RoundRobinsField() {
+  const modalManager = useContext(PoolEditModalContext);
+  const [numRRs] = useSubscription(modalManager.numRoundRobins || 0);
+
+  const allowedOptions = [0, 1, 2, 3, 4];
+
+  return (
+    <ToggleButtonGroup
+      size="small"
+      color="primary"
+      exclusive
+      value={numRRs}
+      onChange={(e, newValue) => {
+        if (newValue === null) return;
+        modalManager.setNumRoundRobins(newValue);
+      }}
+    >
+      {allowedOptions.map((opt) => (
+        <ToggleButton key={opt} value={opt}>
+          {opt === 0 ? 'Not RR' : `${opt}x`}
+        </ToggleButton>
+      ))}
+    </ToggleButtonGroup>
+  );
+}
+
+function CarryoverField() {
+  const modalManager = useContext(PoolEditModalContext);
+  const [hasCO] = useSubscription(modalManager.hasCarryover);
+  const [numRRs] = useSubscription(modalManager.numRoundRobins || 0);
+
+  return (
+    <FormGroup>
+      <FormControlLabel
+        control={
+          <Checkbox
+            size="small"
+            checked={hasCO}
+            disabled={numRRs !== 1}
+            onChange={(e) => modalManager.setHasCarryover(e.target.checked)}
+          />
+        }
+        label="Carryover?"
+      />
+    </FormGroup>
   );
 }
