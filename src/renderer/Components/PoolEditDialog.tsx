@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -46,7 +46,10 @@ function PoolEditDialogCore() {
     <Dialog open={isOpen} fullWidth maxWidth="sm" onClose={handleCancel}>
       <DialogTitle>Edit Pool</DialogTitle>
       <DialogContent>
-        <PoolNameField />
+        <Box sx={{ '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' } }}>
+          <PoolNameField />
+          <NumberOfTeamsField />
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button variant="outlined" onClick={handleCancel}>
@@ -81,6 +84,37 @@ function PoolNameField() {
       helperText={error || ' '}
       value={name}
       onChange={(e) => setName(e.target.value)}
+      onBlur={onBlur}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') onBlur();
+      }}
+    />
+  );
+}
+
+function NumberOfTeamsField() {
+  const modalManager = useContext(PoolEditModalContext);
+  const [numTeams, setNumTeams] = useSubscription(modalManager.numTeams?.toString() || '');
+  const [error] = useSubscription(modalManager.numTeamsError);
+
+  const onBlur = () => {
+    const newNumTeams = modalManager.setNumTeams(numTeams);
+    const valToUse = newNumTeams === undefined ? '' : newNumTeams.toString();
+    setNumTeams(valToUse);
+  };
+
+  return (
+    <TextField
+      sx={{ marginTop: 1, verticalAlign: 'baseline', width: '10ch' }}
+      type="number"
+      inputProps={{ min: 1, max: 999 }}
+      variant="outlined"
+      size="small"
+      label="No. Teams"
+      value={numTeams}
+      error={error !== ''}
+      helperText={error || ' '}
+      onChange={(e) => setNumTeams(e.target.value)}
       onBlur={onBlur}
       onKeyDown={(e) => {
         if (e.key === 'Enter') onBlur();

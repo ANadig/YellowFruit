@@ -11,6 +11,10 @@ export default class TempPoolManager {
 
   poolNameError: string = '';
 
+  numTeams?: number;
+
+  numTeamsError: string = '';
+
   /** Names of other pool, for duplicate checking */
   otherPoolNames: string[] = [];
 
@@ -20,20 +24,25 @@ export default class TempPoolManager {
 
   static readonly maxPoolNameLength = 200;
 
+  static readonly maxNumTeams = 999;
+
   constructor() {
     this.dataChangedReactCallback = () => {};
   }
 
   reset() {
     this.poolName = '';
+    delete this.numTeams;
     delete this.originalPoolOpened;
     this.poolNameError = '';
+    this.numTeamsError = '';
   }
 
   openModal(pool: Pool, otherPoolNames: string[]) {
     this.modalIsOpen = true;
     this.originalPoolOpened = pool;
     this.poolName = pool.name;
+    this.numTeams = pool.size;
     this.otherPoolNames = otherPoolNames;
     this.validateAll();
     this.dataChangedReactCallback();
@@ -54,6 +63,7 @@ export default class TempPoolManager {
   saveData() {
     if (!this.originalPoolOpened) return;
     this.originalPoolOpened.name = this.poolName;
+    if (this.numTeams !== undefined) this.originalPoolOpened.size = this.numTeams;
   }
 
   hasAnyErrors() {
@@ -62,6 +72,7 @@ export default class TempPoolManager {
 
   validateAll() {
     this.validatePoolName();
+    this.validateNumRounds();
   }
 
   setPoolName(val: string) {
@@ -71,7 +82,7 @@ export default class TempPoolManager {
     this.dataChangedReactCallback();
   }
 
-  validatePoolName() {
+  private validatePoolName() {
     if (this.poolName === '') {
       this.poolNameError = 'Name is required';
       return;
@@ -85,6 +96,30 @@ export default class TempPoolManager {
       return;
     }
     this.poolNameError = '';
+  }
+
+  setNumTeams(val: string) {
+    const parsed = parseInt(val, 10);
+    if (Number.isNaN(parsed)) {
+      this.numTeams = undefined;
+    } else {
+      this.numTeams = parsed;
+    }
+    this.validateNumRounds();
+    this.dataChangedReactCallback();
+    return this.numTeams;
+  }
+
+  private validateNumRounds() {
+    if (this.numTeams === undefined) {
+      this.numTeamsError = 'Required';
+      return;
+    }
+    if (this.numTeams < 1 || this.numTeams > TempPoolManager.maxNumTeams) {
+      this.numTeamsError = 'Invalid number';
+      return;
+    }
+    this.numTeamsError = '';
   }
 }
 
