@@ -348,6 +348,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.filter((ph) => ph.isFullPhase());
   }
 
+  getNumericRoundPhases() {
+    return this.phases.filter((ph) => ph.usesNumericRounds());
+  }
+
   /** The list of tiebreaker and finals phases */
   getMinorPhases() {
     return this.phases.filter((ph) => !ph.isFullPhase());
@@ -455,20 +459,20 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   /** The lowest round that this phase could contain, given the surrounding phases */
   roundNumberLowerBound(phase: Phase): number {
-    const fullPhases = this.getFullPhases();
-    const idx = fullPhases.indexOf(phase);
+    const numericPhases = this.getNumericRoundPhases();
+    const idx = numericPhases.indexOf(phase);
     if (idx === -1 || idx === 0) return 1;
 
-    return fullPhases[idx - 1].lastRoundNumber() + 1;
+    return numericPhases[idx - 1].lastRoundNumber() + 1;
   }
 
   /** The highest round that this phase could contain, given the surrounding phases */
   roundNumberUpperBound(phase: Phase): number {
-    const fullPhases = this.getFullPhases();
-    const idx = fullPhases.indexOf(phase);
-    if (idx === -1 || idx === fullPhases.length - 1) return 999;
+    const numericPhases = this.getNumericRoundPhases();
+    const idx = numericPhases.indexOf(phase);
+    if (idx === -1 || idx === numericPhases.length - 1) return 999;
 
-    return fullPhases[idx + 1].firstRoundNumber() - 1;
+    return numericPhases[idx + 1].firstRoundNumber() - 1;
   }
 
   /** Add an empty phase for the user to customize */
