@@ -12,14 +12,19 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { HelpOutline } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { hotkeyFormat } from '../Utils/GeneralReactUtils';
 import { PoolEditModalContext } from '../Modal Managers/TempPoolManager';
+
+const carryoverFieldTooltip =
+  "Include previous rounds' matches in the pool standings where both teams are in this pool?";
 
 export default function PoolEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -190,7 +195,14 @@ function CarryoverField() {
             onChange={(e) => modalManager.setHasCarryover(e.target.checked)}
           />
         }
-        label="Carryover?"
+        label={
+          <>
+            Carryover?
+            <Tooltip sx={{ mx: 1, verticalAlign: 'text-bottom' }} title={carryoverFieldTooltip} placement="right">
+              <HelpOutline fontSize="small" />
+            </Tooltip>
+          </>
+        }
       />
     </FormGroup>
   );
