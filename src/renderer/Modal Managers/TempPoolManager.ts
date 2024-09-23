@@ -22,6 +22,8 @@ export default class TempPoolManager {
 
   canSetCarryover: boolean = true;
 
+  minRRs: number = 0;
+
   /** Names of other pool, for duplicate checking */
   otherPoolNames: string[] = [];
 
@@ -53,7 +55,11 @@ export default class TempPoolManager {
     this.numRoundRobins = pool.roundRobins;
     this.hasCarryover = pool.hasCarryover;
     this.otherPoolNames = otherPoolNames;
-    this.canSetCarryover = phase.phaseType === PhaseTypes.Playoff;
+
+    const noMatchesYet = !phase.anyMatchesExist();
+    this.minRRs = noMatchesYet ? 0 : pool.roundRobins;
+    this.canSetCarryover = phase.phaseType === PhaseTypes.Playoff && noMatchesYet;
+
     this.carryoverScripting();
     this.validateAll();
     this.dataChangedReactCallback();
@@ -85,7 +91,7 @@ export default class TempPoolManager {
 
   validateAll() {
     this.validatePoolName();
-    this.validateNumRounds();
+    this.validateNumTeams();
   }
 
   setPoolName(val: string) {
@@ -118,18 +124,22 @@ export default class TempPoolManager {
     } else {
       this.numTeams = parsed;
     }
-    this.validateNumRounds();
+    this.validateNumTeams();
     this.dataChangedReactCallback();
     return this.numTeams;
   }
 
-  private validateNumRounds() {
+  private validateNumTeams() {
     if (this.numTeams === undefined) {
       this.numTeamsError = 'Required';
       return;
     }
     if (this.numTeams < 1 || this.numTeams > TempPoolManager.maxNumTeams) {
       this.numTeamsError = 'Invalid number';
+      return;
+    }
+    if (this.originalPoolOpened && this.numTeams < this.originalPoolOpened.poolTeams.length) {
+      this.numTeamsError = `There are already ${this.originalPoolOpened.poolTeams.length} teams in this pool`;
       return;
     }
     this.numTeamsError = '';

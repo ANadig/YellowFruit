@@ -125,6 +125,7 @@ function PoolNameField() {
 function NumberOfTeamsField() {
   const modalManager = useContext(PoolEditModalContext);
   const [numTeams, setNumTeams] = useSubscription(modalManager.numTeams?.toString() || '');
+  const [numTeamsInPool] = useSubscription(modalManager.originalPoolOpened?.poolTeams.length || 0);
   const [error] = useSubscription(modalManager.numTeamsError);
 
   const onBlur = () => {
@@ -137,7 +138,7 @@ function NumberOfTeamsField() {
     <TextField
       sx={{ verticalAlign: 'baseline', width: '10ch' }}
       type="number"
-      inputProps={{ min: 1, max: 999 }}
+      inputProps={{ min: Math.max(1, numTeamsInPool), max: 999 }}
       variant="outlined"
       size="small"
       label="No. Teams"
@@ -156,6 +157,7 @@ function NumberOfTeamsField() {
 function RoundRobinsField() {
   const modalManager = useContext(PoolEditModalContext);
   const [numRRs] = useSubscription(modalManager.numRoundRobins || 0);
+  const [minRRs] = useSubscription(modalManager.minRRs);
 
   const allowedOptions = [0, 1, 2, 3, 4];
 
@@ -171,7 +173,7 @@ function RoundRobinsField() {
       }}
     >
       {allowedOptions.map((opt) => (
-        <ToggleButton key={opt} value={opt}>
+        <ToggleButton key={opt} value={opt} disabled={opt < minRRs}>
           {opt === 0 ? 'Not RR' : `${opt}x`}
         </ToggleButton>
       ))}
