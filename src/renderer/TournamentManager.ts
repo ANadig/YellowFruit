@@ -582,6 +582,11 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  addPlayoffPhase() {
+    this.tournament.addBlankPhase();
+    this.onDataChanged();
+  }
+
   deletePhase(phase: Phase) {
     this.tournament.deletePhase(phase);
     this.onDataChanged();

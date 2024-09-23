@@ -5,6 +5,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
+  Button,
   Checkbox,
   Divider,
   FormControl,
@@ -20,7 +21,7 @@ import {
   RadioGroup,
   Typography,
 } from '@mui/material';
-import { Edit, ExpandMore } from '@mui/icons-material';
+import { Add, Edit, ExpandMore } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
@@ -56,6 +57,14 @@ export default function ScheduleDetailCard() {
           </Accordion>
         ))}
       </List>
+      <Button
+        sx={{ marginTop: 1 }}
+        variant="contained"
+        onClick={() => tournManager.addPlayoffPhase()}
+        startIcon={<Add />}
+      >
+        Add Stage
+      </Button>
     </YfCard>
   );
 }
@@ -93,6 +102,7 @@ function PhaseEditor(props: IPhaseEditorProps) {
   const thisTournament = tournManager.tournament;
   const canAddTB = !thisTournament.hasTiebreakerAfter(phase);
   const canAddFinals = thisTournament.isLastFullPhase(phase);
+  const matchesExist = phase.anyMatchesExist();
   const dragKey = `pools-${phase.name}`;
 
   if (phase.pools === undefined) {
@@ -106,91 +116,101 @@ function PhaseEditor(props: IPhaseEditorProps) {
   const thenPPB = thisTournament.scoringRules.useBonuses ? ', then PPB' : '';
 
   return (
-    <Grid container spacing={2}>
-      {wcRules.length > 0 && phase.pools.length > 1 && (
-        <Grid xs={12} sx={{ '& .MuiFormControlLabel-label': { typography: 'body2' }, '& .MuiRadio-root': { py: 0.5 } }}>
-          <FormControl>
-            <FormLabel>Cross-Pool (Wild Card) Ranking Method</FormLabel>
-            <RadioGroup
-              value={wcRankValue}
-              onChange={(e) => handleWcRankMethodChange(e.target.value as WildCardRankingMethod)}
-            >
-              <FormControlLabel
-                value={WildCardRankingMethod.RankThenPPB}
-                control={<Radio size="small" />}
-                label={`Rank within pool${thenPPB}`}
-              />
-              <FormControlLabel
-                value={WildCardRankingMethod.RecordThanPPB}
-                control={<Radio size="small" />}
-                label={`Record${thenPPB}`}
-              />
-            </RadioGroup>
-          </FormControl>
-        </Grid>
-      )}
-      <Grid xs={4}>
-        <Box
-          sx={{
-            marginTop: 1,
-            border: 1,
-            borderRadius: 1,
-            borderColor: 'lightgray',
-            '& .MuiListItem-root': { p: 0 },
-            '& .MuiSvgIcon-root': { fontSize: '1.2rem' },
-          }}
-        >
-          <List dense sx={{ py: 0 }}>
-            {phase.pools.map((pool, idx) => (
-              <div key={pool.name}>
-                {idx !== 0 && <Divider />}
-                <ListItem
-                  draggable
-                  onDragStart={(e) => e.dataTransfer.setData(dragKey, idx.toString())}
-                  onDragEnter={(e) => e.preventDefault()}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    tournManager.reorderPools(phase, e.dataTransfer.getData(dragKey), idx);
-                  }}
-                  onDragLeave={(e) => e.preventDefault()}
-                  disableGutters
-                  secondaryAction={
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        tournManager.openPoolModal(phase, pool);
-                      }}
-                    >
-                      <Edit />
-                    </IconButton>
-                  }
-                >
-                  <ListItemButton selected={idx === selectedPoolIdx} onClick={() => setSelectedPoolIdx(idx)}>
-                    <ListItemText
-                      primary={pool.name}
-                      secondary={`${showTiers ? `Tier ${pool.position} | ` : ''}${pool.size} Teams`}
-                    />
-                  </ListItemButton>
-                </ListItem>
-              </div>
-            ))}
-          </List>
-        </Box>
-      </Grid>
-      <Grid xs={8}>
-        <Typography sx={{ marginTop: 1 }} variant="subtitle2">
-          {selectedPool?.name}
-        </Typography>
-        {selectedPool && <PoolDetail selectedPool={selectedPool} hasWildCardAdvancement={wcRules.length > 0} />}
-        {canAddTB && (
-          <LinkButton onClick={() => tournManager.addTiebreakerAfter(phase)}>Add tiebreaker stage</LinkButton>
+    <>
+      <Grid container spacing={2}>
+        {wcRules.length > 0 && phase.pools.length > 1 && (
+          <Grid
+            xs={12}
+            sx={{ '& .MuiFormControlLabel-label': { typography: 'body2' }, '& .MuiRadio-root': { py: 0.5 } }}
+          >
+            <FormControl>
+              <FormLabel>Cross-Pool (Wild Card) Ranking Method</FormLabel>
+              <RadioGroup
+                value={wcRankValue}
+                onChange={(e) => handleWcRankMethodChange(e.target.value as WildCardRankingMethod)}
+              >
+                <FormControlLabel
+                  value={WildCardRankingMethod.RankThenPPB}
+                  control={<Radio size="small" />}
+                  label={`Rank within pool${thenPPB}`}
+                />
+                <FormControlLabel
+                  value={WildCardRankingMethod.RecordThanPPB}
+                  control={<Radio size="small" />}
+                  label={`Record${thenPPB}`}
+                />
+              </RadioGroup>
+            </FormControl>
+          </Grid>
         )}
-        <br />
-        {canAddFinals && <LinkButton onClick={() => tournManager.addFinalsPhase()}>Add finals stage</LinkButton>}
+        <Grid xs={4}>
+          <Box
+            sx={{
+              marginTop: 1,
+              border: 1,
+              borderRadius: 1,
+              borderColor: 'lightgray',
+              '& .MuiListItem-root': { p: 0 },
+              '& .MuiSvgIcon-root': { fontSize: '1.2rem' },
+            }}
+          >
+            <List dense sx={{ py: 0 }}>
+              {phase.pools.map((pool, idx) => (
+                <div key={pool.name}>
+                  {idx !== 0 && <Divider />}
+                  <ListItem
+                    draggable
+                    onDragStart={(e) => e.dataTransfer.setData(dragKey, idx.toString())}
+                    onDragEnter={(e) => e.preventDefault()}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      tournManager.reorderPools(phase, e.dataTransfer.getData(dragKey), idx);
+                    }}
+                    onDragLeave={(e) => e.preventDefault()}
+                    disableGutters
+                    secondaryAction={
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          tournManager.openPoolModal(phase, pool);
+                        }}
+                      >
+                        <Edit />
+                      </IconButton>
+                    }
+                  >
+                    <ListItemButton selected={idx === selectedPoolIdx} onClick={() => setSelectedPoolIdx(idx)}>
+                      <ListItemText
+                        primary={pool.name}
+                        secondary={`${showTiers ? `Tier ${pool.position} | ` : ''}${pool.size} Teams`}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                </div>
+              ))}
+            </List>
+          </Box>
+        </Grid>
+        <Grid xs={8}>
+          <Typography sx={{ marginTop: 1 }} variant="subtitle2">
+            {selectedPool?.name}
+          </Typography>
+          {selectedPool && <PoolDetail selectedPool={selectedPool} hasWildCardAdvancement={wcRules.length > 0} />}
+          {canAddTB && (
+            <LinkButton onClick={() => tournManager.addTiebreakerAfter(phase)}>Add tiebreaker stage</LinkButton>
+          )}
+          <br />
+          {canAddFinals && <LinkButton onClick={() => tournManager.addFinalsPhase()}>Add finals stage</LinkButton>}
+        </Grid>
       </Grid>
-    </Grid>
+      {phase.phaseType !== PhaseTypes.Prelim && (
+        <LinkButton disabled={matchesExist} onClick={() => tournManager.deletePhase(phase)}>
+          Delete stage
+        </LinkButton>
+      )}
+    </>
   );
 }
 

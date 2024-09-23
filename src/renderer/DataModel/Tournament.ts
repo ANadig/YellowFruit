@@ -482,7 +482,18 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     const newPhaseName = this.getNewPhaseName();
     const newPhase = new Phase(phaseType, startingRound, startingRound, this.nextPhaseCode(), newPhaseName);
     newPhase.addBlankPool();
-    this.phases.push(newPhase);
+
+    if (this.phases.length === 0) {
+      this.phases.push(newPhase);
+      return;
+    }
+
+    let lastNonFinalsIdx = this.phases.length - 1;
+    while (this.phases[lastNonFinalsIdx].phaseType === PhaseTypes.Finals) {
+      lastNonFinalsIdx--;
+    }
+
+    this.phases.splice(lastNonFinalsIdx + 1, 0, newPhase);
   }
 
   /** Get an appropriate name for a newly-added blank phase */
