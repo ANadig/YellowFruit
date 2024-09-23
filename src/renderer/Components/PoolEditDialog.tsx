@@ -12,6 +12,7 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -65,7 +66,9 @@ function PoolEditDialogCore() {
           <PoolNameField />
           <NumberOfTeamsField />
           <Grid container columnSpacing={1} sx={{ marginTop: 1 }}>
-            <Grid xs={3}>Round Robins:</Grid>
+            <Grid xs={3}>
+              <Typography sx={{ paddingTop: 1 }}>Round Robins:</Typography>
+            </Grid>
             <Grid xs={5}>
               <RoundRobinsField />
             </Grid>
