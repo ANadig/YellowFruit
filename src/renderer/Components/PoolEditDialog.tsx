@@ -62,7 +62,7 @@ function PoolEditDialogCore() {
   };
 
   const handleDelete = () => {
-    tournManager.closePoolModal(false, true);
+    tournManager.tryDeletePool();
   };
 
   useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });

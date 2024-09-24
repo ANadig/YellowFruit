@@ -612,7 +612,20 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  /** After getting confirmation from the user, close the pool modal and delete the pool that was just open */
+  tryDeletePool() {
+    const poolOpened = this.poolModalManager.originalPoolOpened;
+    const phase = this.poolModalManager.phaseContainingPool;
+    if (poolOpened && phase) {
+      this.genericModalManager.open('Delete Pool', 'Are you sure you want to delete this pool?', 'N&o', '&Yes', () => {
+        this.poolModalManager.closeModal(false);
+        this.deletePool(phase, poolOpened);
+      });
+    }
+  }
+
   deletePool(phase: Phase, pool: Pool) {
+    this.poolModalManager.closeModal(false);
     phase.deletePool(pool);
     this.onDataChanged();
   }
@@ -875,13 +888,8 @@ export class TournamentManager {
     this.poolModalManager.openModal(pool, otherNames, phase);
   }
 
-  closePoolModal(shouldSave: boolean, shouldDelete = false) {
-    const poolOpened = this.poolModalManager.originalPoolOpened;
-    const phase = this.poolModalManager.phaseContainingPool;
+  closePoolModal(shouldSave: boolean) {
     this.poolModalManager.closeModal(shouldSave);
-    if (shouldDelete && poolOpened && phase) {
-      this.deletePool(phase, poolOpened);
-    }
     this.onDataChanged(!shouldSave);
   }
 
