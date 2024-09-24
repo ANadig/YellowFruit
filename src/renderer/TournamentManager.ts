@@ -875,8 +875,13 @@ export class TournamentManager {
     this.poolModalManager.openModal(pool, otherNames, phase);
   }
 
-  closePoolModal(shouldSave: boolean) {
+  closePoolModal(shouldSave: boolean, shouldDelete = false) {
+    const poolOpened = this.poolModalManager.originalPoolOpened;
+    const phase = this.poolModalManager.phaseContainingPool;
     this.poolModalManager.closeModal(shouldSave);
+    if (shouldDelete && poolOpened && phase) {
+      this.deletePool(phase, poolOpened);
+    }
     this.onDataChanged(!shouldSave);
   }
 

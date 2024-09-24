@@ -6,6 +6,8 @@ export default class TempPoolManager {
   /** The pool being edited */
   originalPoolOpened?: Pool;
 
+  phaseContainingPool?: Phase;
+
   modalIsOpen: boolean = false;
 
   poolName: string = '';
@@ -23,6 +25,8 @@ export default class TempPoolManager {
   canSetCarryover: boolean = true;
 
   minRRs: number = 0;
+
+  deletionDisabled: boolean = true;
 
   /** Names of other pool, for duplicate checking */
   otherPoolNames: string[] = [];
@@ -43,18 +47,22 @@ export default class TempPoolManager {
     this.poolName = '';
     delete this.numTeams;
     delete this.originalPoolOpened;
+    delete this.phaseContainingPool;
     this.poolNameError = '';
     this.numTeamsError = '';
+    this.deletionDisabled = true;
   }
 
   openModal(pool: Pool, otherPoolNames: string[], phase: Phase) {
     this.modalIsOpen = true;
     this.originalPoolOpened = pool;
+    this.phaseContainingPool = phase;
     this.poolName = pool.name;
     this.numTeams = pool.size;
     this.numRoundRobins = pool.roundRobins;
     this.hasCarryover = pool.hasCarryover;
     this.otherPoolNames = otherPoolNames;
+    this.deletionDisabled = pool.poolTeams.length > 0 || phase.pools.length <= 1;
 
     const noMatchesYet = !phase.anyMatchesExist();
     this.minRRs = noMatchesYet ? 0 : pool.roundRobins;

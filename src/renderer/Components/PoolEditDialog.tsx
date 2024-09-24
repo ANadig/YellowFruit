@@ -49,6 +49,7 @@ function PoolEditDialogCore() {
   const [isOpen] = useSubscription(modalManager.modalIsOpen);
   const [hasErrors] = useSubscription(modalManager.hasAnyErrors());
   const [canSetCarryover] = useSubscription(modalManager.canSetCarryover);
+  const [deleteionDisabled] = useSubscription(modalManager.deletionDisabled);
   const acceptButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleAccept = () => {
@@ -58,6 +59,10 @@ function PoolEditDialogCore() {
 
   const handleCancel = () => {
     tournManager.closePoolModal(false);
+  };
+
+  const handleDelete = () => {
+    tournManager.closePoolModal(false, true);
   };
 
   useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });
@@ -81,13 +86,20 @@ function PoolEditDialogCore() {
           </Grid>
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button variant="outlined" onClick={handleCancel}>
-          {hotkeyFormat('&Cancel')}
-        </Button>
-        <Button variant="outlined" onClick={handleAccept} disabled={hasErrors} ref={acceptButtonRef}>
-          {hotkeyFormat('&Accept')}
-        </Button>
+      <DialogActions sx={{ justifyContent: 'space-between' }}>
+        <div>
+          <Button variant="outlined" color="warning" disabled={deleteionDisabled} onClick={handleDelete}>
+            Delete
+          </Button>
+        </div>
+        <Box sx={{ '& .MuiButton-root': { marginLeft: 1 } }}>
+          <Button variant="outlined" onClick={handleCancel}>
+            {hotkeyFormat('&Cancel')}
+          </Button>
+          <Button variant="outlined" onClick={handleAccept} disabled={hasErrors} ref={acceptButtonRef}>
+            {hotkeyFormat('&Accept')}
+          </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   );
