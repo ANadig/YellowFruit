@@ -192,6 +192,15 @@ function PhaseEditor(props: IPhaseEditorProps) {
               ))}
             </List>
           </Box>
+          <Button
+            sx={{ marginTop: 1 }}
+            size="small"
+            variant="outlined"
+            startIcon={<Add />}
+            onClick={() => tournManager.addPool(phase)}
+          >
+            Add Pool
+          </Button>
         </Grid>
         <Grid xs={8}>
           <Typography sx={{ marginTop: 1 }} variant="subtitle2">

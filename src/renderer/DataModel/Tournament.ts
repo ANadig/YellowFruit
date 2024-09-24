@@ -93,7 +93,9 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   registrations: Registration[] = [];
 
-  /** Phases (prelims, playoffs, etc) of the tournament. In YellowFruit, these must always be in chronological order! */
+  /** Phases (prelims, playoffs, etc) of the tournament. In YellowFruit, these must always be in chronological order!
+   *  Furthermore, there must always be exactly one prelim phase, at index 0.
+   */
   phases: Phase[] = [];
 
   rankings: Ranking[] = [];

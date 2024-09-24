@@ -239,18 +239,30 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
 
   /** Add a pool with default info, to be customized by the user */
   addBlankPool() {
+    const size = this.defaultSizeForBlankPool();
     if (!this.findPoolByName('New Pool')) {
-      this.pools.push(Pool.newBlankPool('New Pool'));
+      this.pools.push(Pool.newBlankPool('New Pool', size));
       return;
     }
     for (let i = 2; i < 100; i++) {
       const defaultName = `New Pool ${i}`;
       if (!this.findPoolByName(defaultName)) {
-        this.pools.push(Pool.newBlankPool(defaultName));
+        this.pools.push(Pool.newBlankPool(defaultName, size));
         return;
       }
     }
-    this.pools.push(Pool.newBlankPool());
+    this.pools.push(Pool.newBlankPool(undefined, size));
+  }
+
+  /** Find a resonable size to use as the default for the next new pool the user adds */
+  private defaultSizeForBlankPool() {
+    if (this.pools.length === 0) return 2;
+
+    const existingPoolsSize = this.pools[0].size;
+    for (let i = 1; i < this.pools.length; i++) {
+      if (this.pools[i].size !== existingPoolsSize) return 2;
+    }
+    return existingPoolsSize;
   }
 
   /** Remove a pool. Caller is responsible for determining whether that's safe */
