@@ -1,4 +1,4 @@
-import { sumReduce } from '../Utils/GeneralUtils';
+import { sumReduce, versionLt } from '../Utils/GeneralUtils';
 // eslint-disable-next-line import/no-cycle
 import { NullDate, NullObjects } from '../Utils/UtilTypes';
 // eslint-disable-next-line import/no-cycle
@@ -72,6 +72,7 @@ interface ITournamentExtraData {
   trackUG: boolean;
   trackDiv2: boolean;
   finalRankingsReady?: boolean;
+  usingScheduleTemplate?: boolean;
 }
 
 /** YellowFruit implementation of the Tournament object */
@@ -97,6 +98,8 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
    *  Furthermore, there must always be exactly one prelim phase, at index 0.
    */
   phases: Phase[] = [];
+
+  usingScheduleTemplate: boolean = false;
 
   rankings: Ranking[] = [];
 
@@ -129,6 +132,8 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   htmlGenerator: HtmlReportGenerator;
 
+  appVersion: string = '';
+
   constructor(name?: string) {
     if (name) {
       this.name = name;
@@ -158,7 +163,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     if (qbjOnly) return qbjObject;
 
     const metadata: ITournamentExtraData = {
-      YfVersion: '4.0.0',
+      YfVersion: this.appVersion,
       standardRuleSet: this.standardRuleSet,
       seeds: this.seeds.map((team) => team.toRefPointer()),
       trackPlayerYear: this.trackPlayerYear,
@@ -167,6 +172,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       trackUG: this.trackUG,
       trackDiv2: this.trackDiv2,
       finalRankingsReady: this.finalRankingsReady,
+      usingScheduleTemplate: this.usingScheduleTemplate,
     };
     const yftFileObj = { YfData: metadata, ...qbjObject };
 
@@ -520,6 +526,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return false;
   }
 
+  /** Should all prelim games carry over to playoffs because every team played every other team? */
   allPrelimGamesCarryOver() {
     const prelims = this.getPrelimPhase();
     if (!prelims) return false;
@@ -680,6 +687,14 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   setStandardSchedule(sched: StandardSchedule) {
     this.phases = sched.constructPhases();
     this.distributeSeeds();
+    this.usingScheduleTemplate = true;
+  }
+
+  unlockCustomSchedule() {
+    this.usingScheduleTemplate = false;
+    for (const ph of this.phases) {
+      ph.unlockCustomSchedule();
+    }
   }
 
   /** Take the list of seeds and populate prelim pools with them */
@@ -790,7 +805,18 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       }
     }
   }
-  //
+
+  /** Convert data to the current version's format */
+  conversions() {
+    if (versionLt(this.appVersion, '4.0.1')) {
+      this.conversion4x0x1();
+    }
+  }
+
+  /** If 4.0.0, must have used a schedule template */
+  private conversion4x0x1() {
+    this.usingScheduleTemplate = true;
+  }
 }
 
 export const NullTournament = new Tournament('Null Tournament');

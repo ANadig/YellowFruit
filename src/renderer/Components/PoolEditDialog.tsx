@@ -50,6 +50,7 @@ function PoolEditDialogCore() {
   const [hasErrors] = useSubscription(modalManager.hasAnyErrors());
   const [canSetCarryover] = useSubscription(modalManager.canSetCarryover);
   const [deleteionDisabled] = useSubscription(modalManager.deletionDisabled);
+  const [allowCustomSched] = useSubscription(modalManager.allowCustomSchedule);
   const acceptButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleAccept = () => {
@@ -88,9 +89,11 @@ function PoolEditDialogCore() {
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'space-between' }}>
         <div>
-          <Button variant="outlined" color="warning" disabled={deleteionDisabled} onClick={handleDelete}>
-            Delete
-          </Button>
+          {allowCustomSched && (
+            <Button variant="outlined" color="warning" disabled={deleteionDisabled} onClick={handleDelete}>
+              Delete
+            </Button>
+          )}
         </div>
         <Box sx={{ '& .MuiButton-root': { marginLeft: 1 } }}>
           <Button variant="outlined" onClick={handleCancel}>
@@ -139,6 +142,7 @@ function NumberOfTeamsField() {
   const [numTeams, setNumTeams] = useSubscription(modalManager.numTeams?.toString() || '');
   const [numTeamsInPool] = useSubscription(modalManager.originalPoolOpened?.poolTeams.length || 0);
   const [error] = useSubscription(modalManager.numTeamsError);
+  const [allowCustomSched] = useSubscription(modalManager.allowCustomSchedule);
 
   const onBlur = () => {
     const newNumTeams = modalManager.setNumTeams(numTeams);
@@ -154,6 +158,7 @@ function NumberOfTeamsField() {
       variant="outlined"
       size="small"
       label="No. Teams"
+      disabled={!allowCustomSched}
       value={numTeams}
       error={error !== ''}
       helperText={error || ' '}

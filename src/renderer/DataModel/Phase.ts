@@ -512,6 +512,14 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     const [poolToMove] = this.pools.splice(positionDragged, 1);
     this.pools.splice(positionDroppedOn, 0, poolToMove);
   }
+
+  /** Discard information that we only want to track if we're using a schedule template */
+  unlockCustomSchedule() {
+    this.wildCardAdvancementRules = [];
+    for (const p of this.pools) {
+      p.unlockCustomSchedule();
+    }
+  }
 }
 
 /**

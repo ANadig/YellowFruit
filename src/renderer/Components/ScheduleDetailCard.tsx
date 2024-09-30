@@ -22,7 +22,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { Add, Delete, Edit, ExpandMore } from '@mui/icons-material';
+import { Add, Delete, Edit, ExpandMore, LockOpen } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
@@ -30,13 +30,36 @@ import { Phase, PhaseTypes, WildCardRankingMethod } from '../DataModel/Phase';
 import { Pool, advOpportunityDisplay } from '../DataModel/Pool';
 import { LinkButton } from '../Utils/GeneralReactUtils';
 
+const unlockCustSchedTooltip =
+  'Add, remove, or modify stages and pools. Seeding and rebracketing assistance is not available for custom schedules.';
+const usingCustSchedTooltip = 'Using a custom schedule. Seeding and rebracketing assistance are not available.';
+
 export default function ScheduleDetailCard() {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
   const [phases] = useSubscription(thisTournament.phases);
+  const [usingTemplate] = useSubscription(thisTournament.usingScheduleTemplate);
+
+  const tooltip = usingTemplate ? unlockCustSchedTooltip : usingCustSchedTooltip;
 
   return (
-    <YfCard title="Schedule Detail">
+    <YfCard
+      title="Schedule Detail"
+      secondaryHeader={
+        <Tooltip title={tooltip}>
+          <span>
+            <Button
+              variant="contained"
+              disabled={!usingTemplate}
+              onClick={() => tournManager.tryUnlockCustomSchedule()}
+              startIcon={<LockOpen />}
+            >
+              {usingTemplate ? 'Customize' : 'Custom'}
+            </Button>
+          </span>
+        </Tooltip>
+      }
+    >
       <List>
         {phases.map((phase) => (
           <Accordion key={phase.code} defaultExpanded>
@@ -47,14 +70,16 @@ export default function ScheduleDetailCard() {
           </Accordion>
         ))}
       </List>
-      <Button
-        sx={{ marginTop: 1 }}
-        variant="contained"
-        onClick={() => tournManager.addPlayoffPhase()}
-        startIcon={<Add />}
-      >
-        Add Stage
-      </Button>
+      {!usingTemplate && (
+        <Button
+          sx={{ marginTop: 1 }}
+          variant="contained"
+          onClick={() => tournManager.addPlayoffPhase()}
+          startIcon={<Add />}
+        >
+          Add Stage
+        </Button>
+      )}
     </YfCard>
   );
 }
@@ -67,6 +92,9 @@ function PhaseAccordionHeader(props: PhaseAccordionHeaderProps) {
   const { phase } = props;
   const tournManager = useContext(TournamentContext);
   const matchesExist = phase.anyMatchesExist();
+  const [usingTemplate] = useSubscription(tournManager.tournament.usingScheduleTemplate);
+
+  const showDeleteButton = !phase.isFullPhase() || (!usingTemplate && phase.phaseType !== PhaseTypes.Prelim);
 
   return (
     <AccordionSummary
@@ -89,7 +117,7 @@ function PhaseAccordionHeader(props: PhaseAccordionHeaderProps) {
         </IconButton>
       </div>
       <div>
-        {phase.phaseType !== PhaseTypes.Prelim && (
+        {showDeleteButton && (
           <Tooltip title="Delete stage">
             <span>
               <IconButton
@@ -143,6 +171,7 @@ function PhaseEditor(props: IPhaseEditorProps) {
   const thisTournament = tournManager.tournament;
   const canAddTB = !thisTournament.hasTiebreakerAfter(phase);
   const canAddFinals = thisTournament.isLastFullPhase(phase);
+  const [usingTemplate] = useSubscription(thisTournament.usingScheduleTemplate);
   const dragKey = `pools-${phase.name}`;
 
   if (phase.pools === undefined) {
@@ -228,15 +257,17 @@ function PhaseEditor(props: IPhaseEditorProps) {
             ))}
           </List>
         </Box>
-        <Button
-          sx={{ marginTop: 1 }}
-          size="small"
-          variant="outlined"
-          startIcon={<Add />}
-          onClick={() => tournManager.addPool(phase)}
-        >
-          Add Pool
-        </Button>
+        {!usingTemplate && (
+          <Button
+            sx={{ marginTop: 1 }}
+            size="small"
+            variant="outlined"
+            startIcon={<Add />}
+            onClick={() => tournManager.addPool(phase)}
+          >
+            Add Pool
+          </Button>
+        )}
       </Grid>
       <Grid xs={7}>
         <Typography sx={{ marginTop: 1 }} variant="subtitle2">

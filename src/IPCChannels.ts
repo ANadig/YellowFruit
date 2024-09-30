@@ -50,6 +50,8 @@ export enum IpcBidirectional {
   LoadBackup = 'LoadBackup',
   /** Export QBJ schema file format */
   ExportQbjFile = 'ExportQbjFile',
+  /** For asking for and receiving the app version number */
+  GetAppVersion = 'GetAppVersion',
 }
 
 export type IpcChannels = IpcRendToMain | IpcMainToRend | IpcBidirectional;

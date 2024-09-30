@@ -161,6 +161,9 @@ app
     ipcMain.once(IpcRendToMain.StartAutosave, () => {
       setInterval(() => generateBackup(mainWindow), autoSaveIntervalMS);
     });
+    ipcMain.once(IpcBidirectional.GetAppVersion, (event) =>
+      event.reply(IpcBidirectional.GetAppVersion, app.getVersion()),
+    );
 
     protocol.handle(statReportProtocol, (request) => {
       const url = pathToFileURL(path.resolve(inAppStatReportDirectory, parseStatReportPath(request.url)));

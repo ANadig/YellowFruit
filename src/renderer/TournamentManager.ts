@@ -82,6 +82,8 @@ export class TournamentManager {
 
   readonly isNull: boolean = false;
 
+  appVersion: string = '';
+
   constructor() {
     this.dataChangedReactCallback = () => {};
     this.addIpcListeners();
@@ -93,6 +95,8 @@ export class TournamentManager {
     this.poolModalManager = new TempPoolManager();
     this.rankModalManager = new TempRankManager();
     this.inAppStatReportGenerated = new Date();
+
+    window.electron.ipcRenderer.sendMessage(IpcBidirectional.GetAppVersion);
 
     this.newTournament();
 
@@ -133,6 +137,10 @@ export class TournamentManager {
     window.electron.ipcRenderer.on(IpcBidirectional.ExportQbjFile, (filePath) => {
       this.exportQbjFile(filePath as string);
     });
+    window.electron.ipcRenderer.on(IpcBidirectional.GetAppVersion, (version) => {
+      this.appVersion = version as string;
+      if (this.tournament) this.tournament.appVersion = this.appVersion;
+    });
   }
 
   private checkForUnsavedData(action: FileSwitchActions) {
@@ -152,6 +160,7 @@ export class TournamentManager {
 
   private newTournament() {
     this.tournament = new Tournament();
+    this.tournament.appVersion = this.appVersion;
     this.modalManagersSetTournament();
     this.filePath = null;
     this.displayName = '';
@@ -174,6 +183,9 @@ export class TournamentManager {
     if (loadedTournament === null) {
       return;
     }
+
+    loadedTournament.conversions();
+    loadedTournament.appVersion = this.appVersion;
 
     this.filePath = filePath as string;
     this.tournament = loadedTournament;
@@ -572,6 +584,28 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  tryUnlockCustomSchedule() {
+    if (!this.tournament.hasMatchData) {
+      this.unlockCustomSchedule();
+      return;
+    }
+
+    this.genericModalManager.open(
+      'Customize Schedule',
+      'Are you sure you want to unlock custom scheduling features and give up rebracketing assistance? Because one or more games have already been entered, you will not be able to reapply this template.',
+      'N&o',
+      '&Yes',
+      () => {
+        this.unlockCustomSchedule();
+      },
+    );
+  }
+
+  unlockCustomSchedule() {
+    this.tournament.unlockCustomSchedule();
+    this.onDataChanged();
+  }
+
   setPhaseWCRankMethod(phase: Phase, method: WildCardRankingMethod) {
     phase.wildCardRankingMethod = method;
     this.onDataChanged();
@@ -891,7 +925,7 @@ export class TournamentManager {
 
   openPoolModal(phase: Phase, pool: Pool) {
     const otherNames = phase.pools.filter((pl) => pl !== pool).map((pl) => pl.name);
-    this.poolModalManager.openModal(pool, otherNames, phase);
+    this.poolModalManager.openModal(pool, otherNames, phase, !this.tournament.usingScheduleTemplate);
   }
 
   closePoolModal(shouldSave: boolean) {

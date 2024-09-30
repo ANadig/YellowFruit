@@ -99,12 +99,6 @@ export class Pool implements IQbjPool, IYftDataModelObject {
   /** Does this pool carry over games from the previous phase? */
   hasCarryover: boolean = false;
 
-  /** List of pools from the previous phase that this pool's teams should come from. Null if all pools supply
-   *  (or potentially supply) teams to this pool. This property is needed for certain schedules with parallel
-   *  playoff pools that require a certain number of prelim->playoff carryovers.
-   */
-  feederPools: Pool[] | null = null;
-
   /** Which ranks automatically go to which tiers in the next phase?
    *  Wild card situations are specified at the Phase level, not here.
    */
@@ -215,6 +209,12 @@ export class Pool implements IQbjPool, IYftDataModelObject {
     if (leftTeam && this.includesTeam(leftTeam)) return true;
     if (rightTeam && this.includesTeam(rightTeam)) return true;
     return false;
+  }
+
+  /** Discard information that we only want to track if we're using a schedule template */
+  unlockCustomSchedule() {
+    this.seeds = [];
+    this.autoAdvanceRules = [];
   }
 }
 

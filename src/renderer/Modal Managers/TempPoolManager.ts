@@ -10,6 +10,8 @@ export default class TempPoolManager {
 
   modalIsOpen: boolean = false;
 
+  allowCustomSchedule: boolean = false;
+
   poolName: string = '';
 
   poolNameError: string = '';
@@ -53,7 +55,7 @@ export default class TempPoolManager {
     this.deletionDisabled = true;
   }
 
-  openModal(pool: Pool, otherPoolNames: string[], phase: Phase) {
+  openModal(pool: Pool, otherPoolNames: string[], phase: Phase, allowCustomSchedule: boolean) {
     this.modalIsOpen = true;
     this.originalPoolOpened = pool;
     this.phaseContainingPool = phase;
@@ -63,6 +65,7 @@ export default class TempPoolManager {
     this.hasCarryover = pool.hasCarryover;
     this.otherPoolNames = otherPoolNames;
     this.deletionDisabled = pool.poolTeams.length > 0 || phase.pools.length <= 1;
+    this.allowCustomSchedule = allowCustomSchedule;
 
     const noMatchesYet = !phase.anyMatchesExist();
     this.minRRs = noMatchesYet ? 0 : pool.roundRobins;
