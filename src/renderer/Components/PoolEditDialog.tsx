@@ -77,7 +77,7 @@ function PoolEditDialogCore() {
           <NumberOfTeamsField />
           <Grid container columnSpacing={1} sx={{ marginTop: 1 }}>
             <Grid xs={3}>
-              <Typography sx={{ paddingTop: 1 }}>Round Robins:</Typography>
+              <Typography sx={{ paddingTop: 1 }}>Round Robin:</Typography>
             </Grid>
             <Grid xs={5}>
               <RoundRobinsField />

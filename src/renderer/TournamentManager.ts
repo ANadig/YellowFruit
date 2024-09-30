@@ -587,6 +587,12 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  tryDeletePhase(phase: Phase) {
+    this.genericModalManager.open('Delete Stage', 'Are you sure you want to delete this stage?', 'N&o', '&Yes', () => {
+      this.deletePhase(phase);
+    });
+  }
+
   deletePhase(phase: Phase) {
     this.tournament.deletePhase(phase);
     this.onDataChanged();
