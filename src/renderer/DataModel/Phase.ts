@@ -240,18 +240,19 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   /** Add a pool with default info, to be customized by the user */
   addBlankPool() {
     const size = this.defaultSizeForBlankPool();
+    const tier = this.lowestPoolTier() + 1;
     if (!this.findPoolByName('New Pool')) {
-      this.pools.push(Pool.newBlankPool('New Pool', size));
+      this.pools.push(new Pool(size, tier, 'New Pool'));
       return;
     }
     for (let i = 2; i < 100; i++) {
       const defaultName = `New Pool ${i}`;
       if (!this.findPoolByName(defaultName)) {
-        this.pools.push(Pool.newBlankPool(defaultName, size));
+        this.pools.push(new Pool(size, tier, defaultName));
         return;
       }
     }
-    this.pools.push(Pool.newBlankPool(undefined, size));
+    this.pools.push(new Pool(size, tier, 'New Pool'));
   }
 
   /** Find a resonable size to use as the default for the next new pool the user adds */
@@ -265,11 +266,23 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return existingPoolsSize;
   }
 
-  /** Remove a pool. Caller is responsible for determining whether that's safe */
-  deletePool(pool: Pool) {
-    this.pools = this.pools.filter((p) => p !== pool);
+  private lowestPoolTier() {
+    return this.pools.map((p) => p.position).reduce((maxSoFar, currVal) => Math.max(maxSoFar, currVal), 0);
   }
 
+  /**
+   * Remove a pool. Caller is responsible for determining whether that's safe
+   * @param pool pool to delete
+   * @param resetTiers whether to reassign tier/position numbers. Ignored if this isn't a playoff phase.
+   */
+  deletePool(pool: Pool, resetTiers: boolean = false) {
+    this.pools = this.pools.filter((p) => p !== pool);
+    if (resetTiers && this.phaseType === PhaseTypes.Playoff) {
+      this.resetTiers();
+    }
+  }
+
+  /** Delete all teams from this phase's pools */
   resetPools() {
     for (const pool of this.pools) {
       pool.clearTeams();
@@ -518,6 +531,16 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     this.wildCardAdvancementRules = [];
     for (const p of this.pools) {
       p.unlockCustomSchedule();
+    }
+    if (this.phaseType === PhaseTypes.Playoff) {
+      this.resetTiers();
+    }
+  }
+
+  private resetTiers() {
+    let tier = 1;
+    for (const p of this.pools) {
+      p.position = tier++;
     }
   }
 }

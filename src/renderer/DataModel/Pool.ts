@@ -123,10 +123,6 @@ export class Pool implements IQbjPool, IYftDataModelObject {
     if (firstSeed && lastSeed) this.setSeedRange(firstSeed, lastSeed);
   }
 
-  static newBlankPool(name?: string, size = 2) {
-    return new Pool(size, 1, name || 'New Pool');
-  }
-
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjPool {
     const qbjObject: IQbjPool = {
       name: this.name,

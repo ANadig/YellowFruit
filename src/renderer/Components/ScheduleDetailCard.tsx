@@ -164,11 +164,11 @@ function PhaseEditor(props: IPhaseEditorProps) {
   const [selectedPoolIdx, setSelectedPoolIdx] = useState(0);
   const [wcRankValue, setWcRankValue] = useSubscription(phase.wildCardRankingMethod);
 
-  const selectedPool = phase.pools[selectedPoolIdx];
-  const wcRules = phase.wildCardAdvancementRules;
-  const showTiers = phase.phaseType === PhaseTypes.Playoff;
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
+  const selectedPool = phase.pools[selectedPoolIdx];
+  const wcRules = phase.wildCardAdvancementRules;
+  const showTiers = phase.phaseType === PhaseTypes.Playoff && thisTournament.usingScheduleTemplate;
   const canAddTB = !thisTournament.hasTiebreakerAfter(phase);
   const canAddFinals = thisTournament.isLastFullPhase(phase);
   const [usingTemplate] = useSubscription(thisTournament.usingScheduleTemplate);

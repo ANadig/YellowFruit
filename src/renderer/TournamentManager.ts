@@ -666,7 +666,7 @@ export class TournamentManager {
 
   deletePool(phase: Phase, pool: Pool) {
     this.poolModalManager.closeModal(false);
-    phase.deletePool(pool);
+    phase.deletePool(pool, true);
     this.onDataChanged();
   }
 
