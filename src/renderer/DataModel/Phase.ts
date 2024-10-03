@@ -296,6 +296,16 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     }
   }
 
+  /** If not using seeds, put a time in the first available pool */
+  addUnseededTeam(team: Team) {
+    for (const pool of this.pools) {
+      if (pool.poolTeams.length < pool.size) {
+        pool.addTeam(team);
+        return;
+      }
+    }
+  }
+
   setTeamList(seededTeams: Team[]) {
     this.resetPools();
     let curSeed = 1;

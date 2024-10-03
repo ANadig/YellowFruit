@@ -161,7 +161,7 @@ app
     ipcMain.once(IpcRendToMain.StartAutosave, () => {
       setInterval(() => generateBackup(mainWindow), autoSaveIntervalMS);
     });
-    ipcMain.once(IpcBidirectional.GetAppVersion, (event) =>
+    ipcMain.on(IpcBidirectional.GetAppVersion, (event) =>
       event.reply(IpcBidirectional.GetAppVersion, app.getVersion()),
     );
 

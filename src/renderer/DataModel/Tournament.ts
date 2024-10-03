@@ -534,6 +534,14 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return prelims.pools.length === 1 && prelims.pools[0].roundRobins >= 1;
   }
 
+  findPoolByName(name: string) {
+    for (const phase of this.getFullPhases()) {
+      const matchingPool = phase.findPoolByName(name);
+      if (matchingPool) return matchingPool;
+    }
+    return undefined;
+  }
+
   findPoolWithTeam(team: Team, round: Round): Pool | undefined {
     const phase = this.whichPhaseIsRoundIn(round);
     if (!phase) return undefined;
@@ -576,9 +584,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** Give a new team a seed and assign them to the appropriate prelim pool. Returns the seed number. */
   seedAndAssignNewTeam(newTeam: Team) {
     const seedNo = this.seeds.push(newTeam);
-    const prelimPhase = this.getPrelimPhase();
-    if (prelimPhase) {
-      prelimPhase.addSeededTeam(newTeam, seedNo);
+    if (this.usingScheduleTemplate) {
+      this.getPrelimPhase()?.addSeededTeam(newTeam, seedNo);
+    } else {
+      this.addUnseededTeamToPrelims(newTeam);
     }
   }
 
@@ -594,6 +603,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     for (const tm of reg.teams) {
       if (!this.seeds.includes(tm)) this.seedAndAssignNewTeam(tm);
     }
+  }
+
+  addUnseededTeamToPrelims(team: Team) {
+    this.getPrelimPhase()?.addUnseededTeam(team);
   }
 
   /** Swap the team at the given seed with the team above it.

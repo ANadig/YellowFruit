@@ -91,6 +91,7 @@ export default class FileParser {
       this.tourn.trackDiv2 = yfExtraData.trackDiv2 || false;
       this.tourn.finalRankingsReady = yfExtraData.finalRankingsReady || false;
       this.tourn.usingScheduleTemplate = yfExtraData.usingScheduleTemplate || false;
+      this.tourn.appVersion = yfExtraData.YfVersion || '';
     }
 
     this.tourn.calcHasMatchData();

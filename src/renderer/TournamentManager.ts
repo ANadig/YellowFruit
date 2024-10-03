@@ -710,6 +710,19 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  unseededTeamDragDrop(originPool: Pool, targetPool: Pool, teamBeingDropped: Team, teamDroppedOn: Team | null) {
+    if (originPool === targetPool) return;
+
+    originPool.removeTeam(teamBeingDropped);
+    // if no room in pool, swap the two teams
+    if (targetPool.isFull() && teamDroppedOn) {
+      targetPool.removeTeam(teamDroppedOn);
+      originPool.addTeam(teamDroppedOn);
+    }
+    targetPool.addTeam(teamBeingDropped);
+    this.onDataChanged();
+  }
+
   tryDeleteMatch(match: Match, round: Round) {
     this.genericModalManager.open('Delete Game', 'Are you sure you want to delete this game?', 'N&o', '&Yes', () =>
       this.deleteMatch(match, round),

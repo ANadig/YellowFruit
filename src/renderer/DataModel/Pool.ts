@@ -161,6 +161,11 @@ export class Pool implements IQbjPool, IYftDataModelObject {
     return this.poolTeams.length > 0;
   }
 
+  /** Does this pool have the full complement of teams it's supposed to have? */
+  isFull() {
+    return this.poolTeams.length >= this.size;
+  }
+
   addTeam(team: Team) {
     this.poolTeams.push(new PoolTeam(team));
   }
