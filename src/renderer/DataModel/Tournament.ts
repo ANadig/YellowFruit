@@ -299,6 +299,13 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return sumReduce(poolSizes);
   }
 
+  /** Should we let the user start entering matches? */
+  readyToAddMatches() {
+    if (this.getNumberOfTeams() < 2) return false;
+
+    return !this.anyPoolErrors();
+  }
+
   /** Which phase is the prelim phase? */
   getPrelimPhase(): Phase | undefined {
     return this.phases.find((phase) => phase.phaseType === PhaseTypes.Prelim);
@@ -546,6 +553,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     const phase = this.whichPhaseIsRoundIn(round);
     if (!phase) return undefined;
     return phase.findPoolWithTeam(team);
+  }
+
+  /** Do any pools have errors that need to be corrected right now? */
+  private anyPoolErrors() {
+    return !!this.getPrelimPhase()?.anyPoolErrors(); // this only applies to prelim phase right now
   }
 
   /** Add a new registration, and a team that should be contained in that registration */

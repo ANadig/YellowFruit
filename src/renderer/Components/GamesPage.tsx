@@ -14,7 +14,7 @@ import {
   Divider,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { useContext, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { AddCircle, Delete, Edit, ExpandMore } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -104,6 +104,7 @@ function SingleRound(props: ISingleRoundProps) {
   const tournManager = useContext(TournamentContext);
   const [expanded, setExpanded] = useState(expandedProp);
   const numMatches = round.matches.length;
+  const canAddMatch = useMemo(() => tournManager.tournament.readyToAddMatches(), [tournManager]);
 
   const newMatchForRound = () => {
     tournManager.openMatchModalNewMatchForRound(round);
@@ -116,18 +117,20 @@ function SingleRound(props: ISingleRoundProps) {
         <Typography sx={{ width: '62%', color: 'text.secondary' }}>
           {numMatches === 1 ? '1 game' : `${numMatches} games`}
         </Typography>
-        <Tooltip placement="left" title="Add a game to this round">
-          <IconButton
-            size="small"
-            sx={{ p: 0 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              newMatchForRound();
-            }}
-          >
-            <AddCircle />
-          </IconButton>
-        </Tooltip>
+        {canAddMatch && (
+          <Tooltip placement="left" title="Add a game to this round">
+            <IconButton
+              size="small"
+              sx={{ p: 0 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                newMatchForRound();
+              }}
+            >
+              <AddCircle />
+            </IconButton>
+          </Tooltip>
+        )}
       </AccordionSummary>
       <AccordionDetails>
         {round.matches.length > 0 && (

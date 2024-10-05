@@ -89,13 +89,6 @@ export class Pool implements IQbjPool, IYftDataModelObject {
    */
   seeds: number[] = [];
 
-  /**
-   * Wild card positions that advance to this pool. For example, if this is a top playoff bracket where
-   * the last team in is the top wild card, this field would be [1]. If this is a consolation bracket with
-   * wild cards 3 through 8, this field would be [3, 4, 5, 6, 7, 8]
-   */
-  // wildCardPositions: number[] = [];
-
   /** Does this pool carry over games from the previous phase? */
   hasCarryover: boolean = false;
 
@@ -103,6 +96,8 @@ export class Pool implements IQbjPool, IYftDataModelObject {
    *  Wild card situations are specified at the Phase level, not here.
    */
   autoAdvanceRules: AdvancementOpportunity[] = [];
+
+  sizeValidationError: string = '';
 
   get id(): string {
     return `Pool_${this.name}`;
@@ -161,21 +156,27 @@ export class Pool implements IQbjPool, IYftDataModelObject {
     return this.poolTeams.length > 0;
   }
 
-  /** Does this pool have the full complement of teams it's supposed to have? */
-  isFull() {
-    return this.poolTeams.length >= this.size;
-  }
-
   addTeam(team: Team) {
     this.poolTeams.push(new PoolTeam(team));
+    this.validateSize();
   }
 
   removeTeam(team: Team) {
     this.poolTeams = this.poolTeams.filter((pt) => pt.team !== team);
+    this.validateSize();
   }
 
   clearTeams() {
     this.poolTeams = [];
+    this.validateSize();
+  }
+
+  validateSize() {
+    if (this.poolTeams.length > this.size) {
+      this.sizeValidationError = `This pool's size exceeds its expected size of ${this.size}. You must correct this error before entering games.`;
+      return;
+    }
+    this.sizeValidationError = '';
   }
 
   /** Is this team in this pool? */

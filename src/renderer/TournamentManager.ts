@@ -710,15 +710,10 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
-  unseededTeamDragDrop(originPool: Pool, targetPool: Pool, teamBeingDropped: Team, teamDroppedOn: Team | null) {
+  unseededTeamDragDrop(originPool: Pool, targetPool: Pool, teamBeingDropped: Team) {
     if (originPool === targetPool) return;
 
     originPool.removeTeam(teamBeingDropped);
-    // if no room in pool, swap the two teams
-    if (targetPool.isFull() && teamDroppedOn) {
-      targetPool.removeTeam(teamDroppedOn);
-      originPool.addTeam(teamDroppedOn);
-    }
     targetPool.addTeam(teamBeingDropped);
     this.onDataChanged();
   }

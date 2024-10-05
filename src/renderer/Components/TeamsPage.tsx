@@ -23,7 +23,7 @@ import SeedingView from './TeamsPageSeedingView';
 import StandingsView from './TeamsPageStandingsView';
 
 // Defines the order the buttons should be in
-const viewList = ['Registration', 'Prelim Seeding', 'Rebracket / Final Ranks'];
+const viewList = ['Registration', 'Prelim Assignments', 'Rebracket / Final Ranks'];
 
 function TeamsPage() {
   const tournManager = useContext(TournamentContext);

@@ -15,8 +15,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
 } from '@mui/material';
-import { ArrowDropDown, ArrowDropUp, Lock } from '@mui/icons-material';
+import { ArrowDropDown, ArrowDropUp, Error, Lock } from '@mui/icons-material';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -242,18 +243,34 @@ interface IUnseededPoolTableProps {
 function UnseededPoolTable(props: IUnseededPoolTableProps) {
   const { pool } = props;
 
-  const listItems = pool.poolTeams.map((pt) => (
-    <PoolViewTableRowUnseeded key={pt.team.name} team={pt.team} pool={pool} canDrag />
+  const listItems = pool.poolTeams.map((pt, idx) => (
+    <PoolViewTableRowUnseeded
+      key={pt.team.name}
+      team={pt.team}
+      index={idx < pool.size ? idx + 1 : null}
+      pool={pool}
+      canDrag
+    />
   ));
   for (let i = listItems.length; i < pool.size; i++) {
-    listItems.push(<PoolViewTableRowUnseeded key={`Empty ${i + 1}`} team={null} pool={pool} canDrag={false} />);
+    listItems.push(
+      <PoolViewTableRowUnseeded key={`Empty ${i + 1}`} team={null} index={i + 1} pool={pool} canDrag={false} />,
+    );
   }
 
   return (
     <Table size="small">
       <TableHead>
         <TableRow>
-          <TableCell>{pool.name}</TableCell>
+          <TableCell sx={{ width: '40px' }} />
+          <TableCell>
+            {pool.name}
+            {pool.sizeValidationError && (
+              <Tooltip sx={{ mx: 1, verticalAlign: 'text-bottom' }} title={pool.sizeValidationError}>
+                <Error fontSize="small" color="error" />
+              </Tooltip>
+            )}
+          </TableCell>
         </TableRow>
       </TableHead>
       <TableBody>{listItems}</TableBody>
@@ -263,6 +280,7 @@ function UnseededPoolTable(props: IUnseededPoolTableProps) {
 
 interface IPoolViewTableRowUnseededProps {
   team: Team | null;
+  index: number | null;
   pool: Pool;
   canDrag: boolean;
 }
@@ -270,7 +288,7 @@ interface IPoolViewTableRowUnseededProps {
 const unseededTeamDragItemKey = 'SeedListItem';
 
 function PoolViewTableRowUnseeded(props: IPoolViewTableRowUnseededProps) {
-  const { team, pool, canDrag } = props;
+  const { team, index, pool, canDrag } = props;
   const tournManager = useContext(TournamentContext);
   const dragData = unseededDragDataSerialize(pool, team);
 
@@ -278,7 +296,7 @@ function PoolViewTableRowUnseeded(props: IPoolViewTableRowUnseededProps) {
     const [originPool, draggedTeam] = unseededDragDataDeserialize(droppedData, tournManager.tournament);
     if (!originPool || !draggedTeam) return;
 
-    tournManager.unseededTeamDragDrop(originPool, pool, draggedTeam, team);
+    tournManager.unseededTeamDragDrop(originPool, pool, draggedTeam);
   };
 
   return (
@@ -294,6 +312,7 @@ function PoolViewTableRowUnseeded(props: IPoolViewTableRowUnseededProps) {
         handleDrop(data);
       }}
     >
+      <TableCell>{index}</TableCell>
       <TableCell>{team?.name ?? '-'}</TableCell>
     </TableRow>
   );

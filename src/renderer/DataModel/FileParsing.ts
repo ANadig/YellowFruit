@@ -556,6 +556,7 @@ export default class FileParser {
       yftPool.autoAdvanceRules = yfExtraData.autoAdvanceRules;
     }
     yftPool.poolTeams = this.parsePoolPoolTeams(qbjPool);
+    yftPool.validateSize();
 
     return yftPool;
   }

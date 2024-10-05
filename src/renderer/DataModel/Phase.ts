@@ -226,15 +226,12 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     this.rounds = newRoundArray;
   }
 
-  /** Should the user be allowed to add or remove pools from this phase? */
-  allowAddOrRemovePools() {
-    // if there are seeds, it's from a template. No way to manually specify seeds right now, so don't allow messing with that
+  /** Do any pools have errors that need to be corrected right now? */
+  anyPoolErrors() {
     for (const p of this.pools) {
-      if (p.seeds.length > 0) {
-        return false;
-      }
+      if (p.sizeValidationError) return true;
     }
-    return true;
+    return false;
   }
 
   /** Add a pool with default info, to be customized by the user */
