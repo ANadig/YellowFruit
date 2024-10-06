@@ -1,6 +1,6 @@
 /* eslint-disable react/require-default-props */
 /* eslint-disable prefer-destructuring */
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
 import Grid from '@mui/material/Unstable_Grid2';
 import {
   TableContainer,
@@ -13,29 +13,19 @@ import {
   Tooltip,
   IconButton,
   Stack,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  FormControl,
-  RadioGroup,
   FormControlLabel,
-  Radio,
-  Button,
-  DialogActions,
   Typography,
   Box,
   Checkbox,
 } from '@mui/material';
 import { Create, Done, Edit, Error, Warning } from '@mui/icons-material';
-import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { PoolTeamStats } from '../DataModel/StatSummaries';
 import { Phase, PhaseTypes } from '../DataModel/Phase';
-import { LinkButton, hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { LinkButton } from '../Utils/GeneralReactUtils';
 import YfCard from './YfCard';
 import { Pool } from '../DataModel/Pool';
-import { Team } from '../DataModel/Team';
 import { Match } from '../DataModel/Match';
 
 export default function StandingsView() {
@@ -62,9 +52,6 @@ interface IPhaseStandingsProps {
 
 function PhaseStandings(props: IPhaseStandingsProps) {
   const { phase } = props;
-  const [poolOverrideFormOpen, setPoolOverrideFormOpen] = useState(false);
-  const [teamBeingEdited, setTeamBeingEdited] = useState<Team | null>(null);
-  const [teamEditInitPool, setTeamEditInitPool] = useState<Pool | null>(null);
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
   const nextPhase = thisTournament.getNextFullPhase(phase);
@@ -78,158 +65,142 @@ function PhaseStandings(props: IPhaseStandingsProps) {
       : thisTournament.stats.find((ps) => ps.phase === phase);
   if (!phaseStats) return null;
 
-  const launchOverrideForm = (team: Team, initPool?: Pool) => {
-    setTeamBeingEdited(team);
-    setTeamEditInitPool(initPool || null);
-    setPoolOverrideFormOpen(true);
-  };
-
-  const closeOverrideForm = (saveData: boolean, newPool?: Pool) => {
-    if (!nextPhase) return;
-    if (saveData && teamBeingEdited) {
-      tournManager.overridePlayoffPoolAssignment(teamBeingEdited, nextPhase, newPool);
-    }
-    setTeamBeingEdited(null);
-    setTeamEditInitPool(null);
-    setPoolOverrideFormOpen(false);
-  };
-
   return (
-    <>
-      <YfCard title={phase.name}>
-        <CardContent>
-          <Grid
-            container
-            spacing={2}
-            sx={{ '& .MuiSvgIcon-root': { fontSize: '1rem' }, '& .MuiIconButton-root': { py: 0 } }}
-          >
-            {thisTournament.isLastFullPhase(phase) && (
-              <>
-                <Grid xs={6}>
-                  {thisTournament.getFinalsPhases().map((ph) => (
-                    <TiebreakerOrFinalsInfo key={ph.code} tbOrFinalsPhase={ph} />
-                  ))}
-                </Grid>
-                <Grid xs={6} sx={{ textAlign: 'right', '& .MuiSvgIcon-root': { fontSize: '1.5rem' } }}>
-                  <ConfirmFinalRanksCheckbox />
-                </Grid>
-              </>
-            )}
-            {phaseStats.pools.map((poolStats) => (
-              <Grid key={poolStats.pool.name} xs={12}>
-                <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell width="5%" />
-                        <TableCell width="20%">{poolStats.pool.name}</TableCell>
+    <YfCard title={phase.name}>
+      <CardContent>
+        <Grid
+          container
+          spacing={2}
+          sx={{ '& .MuiSvgIcon-root': { fontSize: '1rem' }, '& .MuiIconButton-root': { py: 0 } }}
+        >
+          {thisTournament.isLastFullPhase(phase) && (
+            <>
+              <Grid xs={6}>
+                {thisTournament.getFinalsPhases().map((ph) => (
+                  <TiebreakerOrFinalsInfo key={ph.code} tbOrFinalsPhase={ph} />
+                ))}
+              </Grid>
+              <Grid xs={6} sx={{ textAlign: 'right', '& .MuiSvgIcon-root': { fontSize: '1.5rem' } }}>
+                <ConfirmFinalRanksCheckbox />
+              </Grid>
+            </>
+          )}
+          {phaseStats.pools.map((poolStats) => (
+            <Grid key={poolStats.pool.name} xs={12}>
+              <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell width="5%" />
+                      <TableCell width="20%">{poolStats.pool.name}</TableCell>
+                      <TableCell align="right" width="5%">
+                        W
+                      </TableCell>
+                      <TableCell align="right" width="5%">
+                        L
+                      </TableCell>
+                      {phaseStats.anyTiesExist && (
                         <TableCell align="right" width="5%">
-                          W
+                          T
                         </TableCell>
-                        <TableCell align="right" width="5%">
-                          L
-                        </TableCell>
-                        {phaseStats.anyTiesExist && (
-                          <TableCell align="right" width="5%">
-                            T
-                          </TableCell>
-                        )}
-                        <TableCell align="right" width="8%">
-                          Pct
-                        </TableCell>
-                        <TableCell align="right">{`PP${regulationTossupCount}`}</TableCell>
-                        {showPPB && <TableCell align="right">PPB</TableCell>}
+                      )}
+                      <TableCell align="right" width="8%">
+                        Pct
+                      </TableCell>
+                      <TableCell align="right">{`PP${regulationTossupCount}`}</TableCell>
+                      {showPPB && <TableCell align="right">PPB</TableCell>}
+                      {(!nextPhase || thisTournament.usingScheduleTemplate) && (
                         <TableCell align="right">{nextPhase ? 'Seed' : 'Final Rank'}</TableCell>
-                        {nextPhase && <TableCell width="4%" />}
-                        {nextPhase && <TableCell>Advance To</TableCell>}
-                        {nextPhase && (
-                          <TableCell align="center">
-                            <Tooltip
-                              placement="left"
-                              title={`Place all of this pool's teams into the ${nextPhase.name} pools as shown`}
+                      )}
+
+                      {nextPhase && <TableCell width="4%" />}
+                      {nextPhase && <TableCell>Advance To</TableCell>}
+                      {nextPhase && thisTournament.usingScheduleTemplate && (
+                        <TableCell align="center">
+                          <Tooltip
+                            placement="left"
+                            title={`Place all of this pool's teams into the ${nextPhase.name} pools as shown`}
+                          >
+                            <LinkButton
+                              size="small"
+                              variant="text"
+                              onClick={() => tournManager.rebracketPool(poolStats, nextPhase)}
                             >
-                              <LinkButton
-                                size="small"
-                                variant="text"
-                                onClick={() => tournManager.rebracketPool(poolStats, nextPhase)}
-                              >
-                                Confirm All
-                              </LinkButton>
-                            </Tooltip>
-                          </TableCell>
+                              Confirm All
+                            </LinkButton>
+                          </Tooltip>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {poolStats.poolTeams.map((ptStats) => (
+                      <TableRow key={ptStats.team.name}>
+                        <TableCell>{ptStats.rank}</TableCell>
+                        <TableCell>{ptStats.team.name}</TableCell>
+                        <TableCell align="right">{ptStats.wins}</TableCell>
+                        <TableCell align="right">{ptStats.losses}</TableCell>
+                        {phaseStats.anyTiesExist && <TableCell align="right">{ptStats.ties}</TableCell>}
+                        <TableCell align="right">{ptStats.getWinPctString()}</TableCell>
+                        <TableCell align="right">{ptStats.getPtsPerRegTuhString(regulationTossupCount)}</TableCell>
+                        {showPPB && <TableCell align="right">{ptStats.getPtsPerBonusString()}</TableCell>}
+                        {nextPhase && thisTournament.usingScheduleTemplate ? (
+                          <TableCell align="right">{ptStats.currentSeed}</TableCell>
+                        ) : (
+                          !nextPhase && <FinalRankCell ptStats={ptStats} />
+                        )}
+                        {nextPhase && <TableCell>{getAdvancementIcon(ptStats)}</TableCell>}
+                        {nextPhase && <AdvanceToCell ptStats={ptStats} nextPhase={nextPhase} />}
+                        {nextPhase && thisTournament.usingScheduleTemplate && (
+                          <ConfirmationCell ptStats={ptStats} nextPhase={nextPhase} />
                         )}
                       </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {poolStats.poolTeams.map((ptStats) => (
-                        <TableRow key={ptStats.team.name}>
-                          <TableCell>{ptStats.rank}</TableCell>
-                          <TableCell>{ptStats.team.name}</TableCell>
-                          <TableCell align="right">{ptStats.wins}</TableCell>
-                          <TableCell align="right">{ptStats.losses}</TableCell>
-                          {phaseStats.anyTiesExist && <TableCell align="right">{ptStats.ties}</TableCell>}
-                          <TableCell align="right">{ptStats.getWinPctString()}</TableCell>
-                          <TableCell align="right">{ptStats.getPtsPerRegTuhString(regulationTossupCount)}</TableCell>
-                          {showPPB && <TableCell align="right">{ptStats.getPtsPerBonusString()}</TableCell>}
-                          {nextPhase ? (
-                            <TableCell align="right">{ptStats.currentSeed}</TableCell>
-                          ) : (
-                            <FinalRankCell ptStats={ptStats} />
-                          )}
-                          {nextPhase && <TableCell>{getAdvancementIcon(ptStats)}</TableCell>}
-                          {nextPhase && (
-                            <AdvanceToCell
-                              ptStats={ptStats}
-                              nextPhase={nextPhase}
-                              launchOverrideForm={launchOverrideForm}
-                            />
-                          )}
-                          {nextPhase && <ConfirmationCell ptStats={ptStats} nextPhase={nextPhase} />}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-                {tbPhase && <TiebreakerOrFinalsInfo tbOrFinalsPhase={tbPhase} pool={poolStats.pool} />}
-              </Grid>
-            ))}
-          </Grid>
-        </CardContent>
-      </YfCard>
-      {nextPhase && (
-        <PoolOverrideDialog
-          isOpen={poolOverrideFormOpen}
-          phase={nextPhase}
-          team={teamBeingEdited}
-          initialPool={teamEditInitPool}
-          handleAccept={(p?: Pool) => closeOverrideForm(true, p)}
-          handleCancel={() => closeOverrideForm(false)}
-        />
-      )}
-    </>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              {tbPhase && <TiebreakerOrFinalsInfo tbOrFinalsPhase={tbPhase} pool={poolStats.pool} />}
+            </Grid>
+          ))}
+        </Grid>
+      </CardContent>
+    </YfCard>
   );
 }
 
 interface IAdvanceToCellProps {
   ptStats: PoolTeamStats;
   nextPhase: Phase;
-  launchOverrideForm: (team: Team, initPool?: Pool) => void;
 }
 
 function AdvanceToCell(props: IAdvanceToCellProps) {
-  const { ptStats, nextPhase, launchOverrideForm } = props;
-  if (!ptStats.currentSeed) return null;
+  const { ptStats, nextPhase } = props;
+  const tournManager = useContext(TournamentContext);
+
+  // if (!ptStats.currentSeed) return null;
 
   const confirmedPool = nextPhase.findPoolWithTeam(ptStats.team);
-  let poolToShow = confirmedPool || nextPhase.findPoolWithSeed(ptStats.currentSeed);
+  let poolToShow =
+    ptStats.currentSeed === undefined
+      ? confirmedPool
+      : confirmedPool || nextPhase.findPoolWithSeed(ptStats.currentSeed);
   if (ptStats.poolTeam.didNotAdvance) poolToShow = undefined;
   const dispText = poolToShow ? `Tier ${poolToShow.position} - ${poolToShow.name}` : 'None';
+
+  const handleModalAccept = () => {
+    tournManager.poolAssignPlayoffSwitch();
+  };
 
   return (
     <TableCell>
       {dispText}
       <Tooltip placement="right" title="Change assignment">
-        <IconButton size="small" onClick={() => launchOverrideForm(ptStats.team, poolToShow)}>
+        <IconButton
+          size="small"
+          onClick={() =>
+            tournManager.openPoolAssignmentModal(ptStats.poolTeam.team, nextPhase, handleModalAccept, poolToShow)
+          }
+        >
           <Create />
         </IconButton>
       </Tooltip>
@@ -375,59 +346,5 @@ function FinalRankCell(props: IFinalRankCellProps) {
         <Edit />
       </IconButton>
     </TableCell>
-  );
-}
-
-interface IPoolOverrideDialogProps {
-  isOpen: boolean;
-  phase: Phase;
-  team: Team | null;
-  initialPool: Pool | null;
-  handleAccept: (overridePool?: Pool) => void;
-  handleCancel: () => void;
-}
-
-function PoolOverrideDialog(props: IPoolOverrideDialogProps) {
-  const { isOpen, phase, team, initialPool, handleAccept, handleCancel } = props;
-  const noneOption = 'none-pool-radio-option';
-  const [poolOption, setPoolOption] = useState(initialPool?.name || noneOption);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => setPoolOption(initialPool?.name || noneOption), [isOpen]);
-
-  const closeWindow = (saveData: boolean) => {
-    if (saveData) {
-      if (poolOption === noneOption) {
-        handleAccept();
-      } else {
-        const pool = phase.findPoolByName(poolOption);
-        handleAccept(pool);
-      }
-    } else {
-      handleCancel();
-    }
-    setPoolOption('');
-  };
-
-  useHotkeys('alt+a', () => closeWindow(true), { enabled: isOpen, enableOnFormTags: true });
-  useHotkeys('alt+c', () => closeWindow(false), { enabled: isOpen, enableOnFormTags: true });
-
-  return (
-    <Dialog open={isOpen} fullWidth maxWidth="xs" onClose={() => closeWindow(false)}>
-      <DialogTitle>{`Assign ${team?.name || ''}`}</DialogTitle>
-      <DialogContent>
-        <FormControl>
-          <RadioGroup value={poolOption} onChange={(e) => setPoolOption(e.target.value)}>
-            {phase.pools.map((p) => (
-              <FormControlLabel key={p.name} value={p.name} label={p.name} control={<Radio />} />
-            ))}
-            <FormControlLabel value={noneOption} label="None" control={<Radio />} />
-          </RadioGroup>
-        </FormControl>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => closeWindow(false)}>{hotkeyFormat('&Cancel')}</Button>
-        <Button onClick={() => closeWindow(true)}>{hotkeyFormat('&Accept')}</Button>
-      </DialogActions>
-    </Dialog>
   );
 }

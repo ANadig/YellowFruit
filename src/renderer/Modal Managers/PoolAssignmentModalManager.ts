@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { Phase } from '../DataModel/Phase';
+import { Phase, PhaseTypes } from '../DataModel/Phase';
 import { Pool } from '../DataModel/Pool';
 import { Team } from '../DataModel/Team';
 
@@ -14,16 +14,28 @@ export default class PoolAssignmentModalManager {
 
   selectedPool?: Pool;
 
+  showNoneOption: boolean = false;
+
+  acceptCallback: () => void;
+
+  static readonly noneOptionKey = 'none-pool-radio-option';
+
+  constructor() {
+    this.acceptCallback = () => {};
+  }
+
   reset() {
     delete this.teamBeingAssigned;
     delete this.selectedPool;
   }
 
-  openModal(team: Team, originalPool: Pool, phase: Phase) {
+  openModal(team: Team, phase: Phase, acceptCallback: () => void, originalPool?: Pool) {
     this.teamBeingAssigned = team;
     this.originalPoolAssigned = originalPool;
     this.selectedPool = originalPool;
     this.phase = phase;
+    this.showNoneOption = phase.phaseType === PhaseTypes.Playoff;
+    this.acceptCallback = acceptCallback;
     this.modalIsOpen = true;
   }
 
@@ -36,14 +48,23 @@ export default class PoolAssignmentModalManager {
   }
 
   saveData() {
+    this.acceptCallback();
+  }
+
+  /** A function that just removes the team from the old pool and adds to the new. Available for use as an accept callback. */
+  simplePoolSwitch() {
     if (!this.teamBeingAssigned) return;
 
     this.originalPoolAssigned?.removeTeam(this.teamBeingAssigned);
     this.selectedPool?.addTeam(this.teamBeingAssigned);
   }
 
-  setSelectedPool(poolName: string) {
-    this.selectedPool = this.phase?.findPoolByName(poolName);
+  setSelectedPool(optionKey: string) {
+    if (optionKey === PoolAssignmentModalManager.noneOptionKey) {
+      delete this.selectedPool;
+      return;
+    }
+    this.selectedPool = this.phase?.findPoolByName(optionKey);
   }
 }
 

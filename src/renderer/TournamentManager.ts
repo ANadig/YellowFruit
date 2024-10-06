@@ -958,16 +958,29 @@ export class TournamentManager {
     this.onDataChanged(!shouldSave);
   }
 
-  openPoolAssignmentModal(team: Team, originalPool: Pool) {
-    const prelimPhase = this.tournament.getPrelimPhase();
-    if (!prelimPhase) return;
-    this.poolAssignmentModalManager.openModal(team, originalPool, prelimPhase);
+  openPoolAssignmentModal(team: Team, phase: Phase, acceptCallback: () => void, originalPool?: Pool) {
+    this.poolAssignmentModalManager.openModal(team, phase, acceptCallback, originalPool);
     this.onDataChanged(true);
   }
 
   closePoolAssignmentModal(shouldSave: boolean) {
     this.poolAssignmentModalManager.closeModal(shouldSave);
     this.onDataChanged(!shouldSave);
+  }
+
+  poolAssignSimpleSwitch() {
+    this.poolAssignmentModalManager.simplePoolSwitch();
+  }
+
+  poolAssignPlayoffSwitch() {
+    if (!this.poolAssignmentModalManager.modalIsOpen) return;
+
+    const team = this.poolAssignmentModalManager.teamBeingAssigned;
+    const nextPhase = this.poolAssignmentModalManager.phase;
+    if (!team || !nextPhase) return;
+
+    const newPool = this.poolAssignmentModalManager.selectedPool;
+    this.overridePlayoffPoolAssignment(team, nextPhase, newPool);
   }
 
   // #endregion

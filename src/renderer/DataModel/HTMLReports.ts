@@ -211,7 +211,7 @@ export default class HtmlReportGenerator {
     }
     if (nextPhase?.anyTeamsAssigned()) {
       cells.push(stdTdHeader(this.abbr(StatTypes.advancedTo)));
-    } else if (nextPhase) {
+    } else if (nextPhase && this.tournament.usingScheduleTemplate) {
       cells.push(stdTdHeader(this.abbr(StatTypes.wouldAdvance)));
     }
 
@@ -273,7 +273,7 @@ export default class HtmlReportGenerator {
 
     if (nextPhase?.anyTeamsAssigned()) {
       cells.push(tdTag({}, this.definiteAdvancementTierDisplay(teamStats, nextPhase)));
-    } else if (nextPhase) {
+    } else if (nextPhase && this.tournament.usingScheduleTemplate) {
       cells.push(tdTag({}, this.provisionalAdvancementTierDisplay(teamStats)));
     }
 
