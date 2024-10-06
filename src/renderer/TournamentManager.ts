@@ -845,6 +845,9 @@ export class TournamentManager {
 
     if (this.registrationBeingModified !== null && registrationSwitched) {
       this.registrationBeingModified.deleteTeam(this.teamBeingModified);
+      if (this.registrationBeingModified.teams.length === 0) {
+        this.tournament.deleteRegistration(this.registrationBeingModified);
+      }
     }
 
     if (actualRegToModify === null) {
