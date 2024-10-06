@@ -255,6 +255,8 @@ interface IUnseededPoolTableProps {
 
 function UnseededPoolTable(props: IUnseededPoolTableProps) {
   const { pool } = props;
+  const tournManager = useContext(TournamentContext);
+  const [readOnly] = useSubscription(tournManager.tournament.hasMatchData);
 
   const listItems = pool.poolTeams.map((pt, idx) => (
     <PoolViewTableRowUnseeded
@@ -262,12 +264,12 @@ function UnseededPoolTable(props: IUnseededPoolTableProps) {
       team={pt.team}
       index={idx < pool.size ? idx + 1 : null}
       pool={pool}
-      canDrag
+      canMove={!readOnly}
     />
   ));
   for (let i = listItems.length; i < pool.size; i++) {
     listItems.push(
-      <PoolViewTableRowUnseeded key={`Empty ${i + 1}`} team={null} index={i + 1} pool={pool} canDrag={false} />,
+      <PoolViewTableRowUnseeded key={`Empty ${i + 1}`} team={null} index={i + 1} pool={pool} canMove={false} />,
     );
   }
 
@@ -298,13 +300,13 @@ interface IPoolViewTableRowUnseededProps {
   team: Team | null;
   index: number | null;
   pool: Pool;
-  canDrag: boolean;
+  canMove: boolean;
 }
 
 const unseededTeamDragItemKey = 'SeedListItem';
 
 function PoolViewTableRowUnseeded(props: IPoolViewTableRowUnseededProps) {
-  const { team, index, pool, canDrag } = props;
+  const { team, index, pool, canMove } = props;
   const tournManager = useContext(TournamentContext);
   const dragData = unseededDragDataSerialize(pool, team);
 
@@ -317,8 +319,8 @@ function PoolViewTableRowUnseeded(props: IPoolViewTableRowUnseededProps) {
 
   return (
     <TableRow
-      className={canDrag ? YfCssClasses.Draggable : undefined}
-      draggable={canDrag}
+      className={canMove ? YfCssClasses.Draggable : undefined}
+      draggable={canMove}
       onDragStart={(e) => e.dataTransfer.setData(unseededTeamDragItemKey, dragData)}
       onDragEnter={(e) => e.preventDefault()}
       onDragOver={(e) => e.preventDefault()}
@@ -331,7 +333,7 @@ function PoolViewTableRowUnseeded(props: IPoolViewTableRowUnseededProps) {
       <TableCell>{index}</TableCell>
       <TableCell>{team?.name ?? '-'}</TableCell>
       <TableCell>
-        {team !== null && (
+        {canMove && team && (
           <Tooltip title="Change pool assignment">
             <IconButton size="small" onClick={() => tournManager.openPoolAssignmentModal(team, pool)}>
               <Edit />

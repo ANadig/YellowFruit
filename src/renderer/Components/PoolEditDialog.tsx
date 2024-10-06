@@ -53,8 +53,6 @@ function PoolEditDialogCore() {
   const [allowCustomSched] = useSubscription(modalManager.allowCustomSchedule);
   const acceptButtonRef = useRef<HTMLButtonElement>(null);
 
-  console.log(hasErrors);
-
   const handleAccept = () => {
     acceptButtonRef.current?.focus();
     tournManager.closePoolModal(true);
