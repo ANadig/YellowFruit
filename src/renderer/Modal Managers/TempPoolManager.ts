@@ -94,10 +94,12 @@ export default class TempPoolManager {
     if (this.numTeams !== undefined) this.originalPoolOpened.size = this.numTeams;
     if (this.numRoundRobins !== undefined) this.originalPoolOpened.roundRobins = this.numRoundRobins;
     this.originalPoolOpened.hasCarryover = this.hasCarryover;
+
+    this.originalPoolOpened.validateSize();
   }
 
   hasAnyErrors() {
-    return !!this.poolNameError;
+    return !!(this.poolNameError || this.numTeamsError);
   }
 
   validateAll() {

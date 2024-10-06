@@ -4,11 +4,20 @@ import { useContext, useState } from 'react';
 import {
   Alert,
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
+  FormControl,
+  FormControlLabel,
   IconButton,
   List,
   ListItem,
   ListItemText,
+  Radio,
+  RadioGroup,
   Table,
   TableBody,
   TableCell,
@@ -17,12 +26,13 @@ import {
   TableRow,
   Tooltip,
 } from '@mui/material';
-import { ArrowDropDown, ArrowDropUp, Error, Lock } from '@mui/icons-material';
+import { ArrowDropDown, ArrowDropUp, Edit, Error, Lock } from '@mui/icons-material';
+import { useHotkeys } from 'react-hotkeys-hook';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { Team } from '../DataModel/Team';
-import { YfCssClasses } from '../Utils/GeneralReactUtils';
+import { hotkeyFormat, YfCssClasses } from '../Utils/GeneralReactUtils';
 import { Pool } from '../DataModel/Pool';
 import Tournament from '../DataModel/Tournament';
 
@@ -32,23 +42,26 @@ export default function SeedingView() {
   const [usingTemplate] = useSubscription(tournManager.tournament.usingScheduleTemplate);
 
   return (
-    <Grid container spacing={2}>
-      {readOnly && (
-        <Grid xs={12}>
-          <Alert variant="filled" severity="info" icon={<Lock fontSize="small" />}>
-            Seeds are read-only
-          </Alert>
+    <>
+      <Grid container spacing={2}>
+        {readOnly && (
+          <Grid xs={12}>
+            <Alert variant="filled" severity="info" icon={<Lock fontSize="small" />}>
+              Seeds are read-only
+            </Alert>
+          </Grid>
+        )}
+        <Grid xs={12} sm={6} md={4}>
+          {usingTemplate && <SeedList />}
         </Grid>
-      )}
-      <Grid xs={12} sm={6} md={4}>
-        {usingTemplate && <SeedList />}
+        <Grid xs={12} sm={usingTemplate ? 6 : undefined} md={usingTemplate ? 8 : undefined}>
+          <YfCard title="Pools">
+            <PoolView />
+          </YfCard>
+        </Grid>
       </Grid>
-      <Grid xs={12} sm={usingTemplate ? 6 : undefined} md={usingTemplate ? 8 : undefined}>
-        <YfCard title="Pools">
-          <PoolView />
-        </YfCard>
-      </Grid>
-    </Grid>
+      <PoolAssignmentDialog />
+    </>
   );
 }
 
@@ -271,9 +284,12 @@ function UnseededPoolTable(props: IUnseededPoolTableProps) {
               </Tooltip>
             )}
           </TableCell>
+          <TableCell sx={{ width: '40px' }} />
         </TableRow>
       </TableHead>
-      <TableBody>{listItems}</TableBody>
+      <TableBody sx={{ '& .MuiSvgIcon-root': { fontSize: '1.2rem' }, '& .MuiIconButton-root': { p: 0 } }}>
+        {listItems}
+      </TableBody>
     </Table>
   );
 }
@@ -314,6 +330,15 @@ function PoolViewTableRowUnseeded(props: IPoolViewTableRowUnseededProps) {
     >
       <TableCell>{index}</TableCell>
       <TableCell>{team?.name ?? '-'}</TableCell>
+      <TableCell>
+        {team !== null && (
+          <Tooltip title="Change pool assignment">
+            <IconButton size="small" onClick={() => tournManager.openPoolAssignmentModal(team, pool)}>
+              <Edit />
+            </IconButton>
+          </Tooltip>
+        )}
+      </TableCell>
     </TableRow>
   );
 }
@@ -327,4 +352,51 @@ function unseededDragDataDeserialize(data: string, tourn: Tournament): [Pool | u
   const pool = tourn.findPoolByName(poolName);
   const team = teamName ? tourn.findTeamByName(teamName) : undefined;
   return [pool, team];
+}
+
+function PoolAssignmentDialog() {
+  const tournManager = useContext(TournamentContext);
+  const modalManager = tournManager.poolAssignmentModalManager;
+  const [isOpen] = useSubscription(modalManager.modalIsOpen);
+  const [team] = useSubscription(modalManager.teamBeingAssigned);
+  const [selectedPool, setSeletedPool] = useSubscription(modalManager.originalPoolAssigned?.name || '');
+
+  const handleAccept = () => {
+    tournManager.closePoolAssignmentModal(true);
+  };
+  const handleCancel = () => {
+    tournManager.closePoolAssignmentModal(false);
+  };
+  const handleOptionChange = (option: string) => {
+    modalManager.setSelectedPool(option);
+    setSeletedPool(option);
+  };
+
+  useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });
+  useHotkeys('alt+a', () => handleAccept(), { enabled: isOpen, enableOnFormTags: true });
+
+  if (!modalManager.phase) return null;
+
+  return (
+    <Dialog open={isOpen} fullWidth maxWidth="sm" onClose={handleCancel}>
+      <DialogTitle>{`Assign ${team?.name || ''}`}</DialogTitle>
+      <DialogContent>
+        <FormControl>
+          <RadioGroup value={selectedPool} onChange={(e) => handleOptionChange(e.target.value)}>
+            {modalManager.phase.pools.map((p) => (
+              <FormControlLabel key={p.name} value={p.name} label={p.name} control={<Radio />} />
+            ))}
+          </RadioGroup>
+        </FormControl>
+      </DialogContent>
+      <DialogActions>
+        <Button variant="outlined" onClick={handleCancel}>
+          {hotkeyFormat('&Cancel')}
+        </Button>
+        <Button variant="outlined" onClick={handleAccept}>
+          {hotkeyFormat('&Accept')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 }

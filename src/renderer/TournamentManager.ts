@@ -27,6 +27,7 @@ import TempRankManager from './Modal Managers/TempRankManager';
 import { snakeCaseToCamelCase, camelCaseToSnakeCase } from './DataModel/CaseConversion';
 import { CommonRuleSets } from './DataModel/ScoringRules';
 import { qbjFileValidVersion } from './DataModel/QbjUtils';
+import PoolAssignmentModalManager from './Modal Managers/PoolAssignmentModalManager';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -75,6 +76,8 @@ export class TournamentManager {
 
   rankModalManager: TempRankManager;
 
+  poolAssignmentModalManager: PoolAssignmentModalManager;
+
   /** When did we last update the stat report? */
   inAppStatReportGenerated: Date;
 
@@ -94,6 +97,7 @@ export class TournamentManager {
     this.phaseModalManager = new TempPhaseManager();
     this.poolModalManager = new TempPoolManager();
     this.rankModalManager = new TempRankManager();
+    this.poolAssignmentModalManager = new PoolAssignmentModalManager();
     this.inAppStatReportGenerated = new Date();
 
     window.electron.ipcRenderer.sendMessage(IpcBidirectional.GetAppVersion);
@@ -948,6 +952,18 @@ export class TournamentManager {
   closeRankModal(shouldSave: boolean) {
     this.rankModalManager.closeModal(shouldSave);
     if (shouldSave) this.tournament.reSortStandingsByFinalRank();
+    this.onDataChanged(!shouldSave);
+  }
+
+  openPoolAssignmentModal(team: Team, originalPool: Pool) {
+    const prelimPhase = this.tournament.getPrelimPhase();
+    if (!prelimPhase) return;
+    this.poolAssignmentModalManager.openModal(team, originalPool, prelimPhase);
+    this.onDataChanged(true);
+  }
+
+  closePoolAssignmentModal(shouldSave: boolean) {
+    this.poolAssignmentModalManager.closeModal(shouldSave);
     this.onDataChanged(!shouldSave);
   }
 
