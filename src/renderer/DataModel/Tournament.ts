@@ -432,6 +432,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     const idx = this.phases.indexOf(phase);
     if (idx === -1) return;
 
+    if (phase.phaseType === PhaseTypes.Playoff) {
+      this.clearAllCarryoverMatchesForPhase(phase);
+    }
+
     const nextPhase = this.phases[idx + 1];
 
     this.phases.splice(idx, 1);
@@ -784,6 +788,12 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       // No need to go further back
       // (I'm not aware of any formats where phase A carries over to phase C but phase B doesn't)
       if (!pastPhase.hasAnyCarryover()) break;
+    }
+  }
+
+  clearAllCarryoverMatchesForPhase(playoffPhase: Phase) {
+    for (const tm of this.getListOfAllTeams()) {
+      this.clearCarryoverMatches(tm, playoffPhase);
     }
   }
 
