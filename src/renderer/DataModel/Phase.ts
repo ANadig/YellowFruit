@@ -254,11 +254,11 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
 
   /** Find a resonable size to use as the default for the next new pool the user adds */
   private defaultSizeForBlankPool() {
-    if (this.pools.length === 0) return 2;
+    if (this.pools.length === 0) return 4;
 
     const existingPoolsSize = this.pools[0].size;
     for (let i = 1; i < this.pools.length; i++) {
-      if (this.pools[i].size !== existingPoolsSize) return 2;
+      if (this.pools[i].size !== existingPoolsSize) return 4;
     }
     return existingPoolsSize;
   }
