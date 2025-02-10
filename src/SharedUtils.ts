@@ -12,6 +12,7 @@ export enum FileSwitchActions {
   NewFile,
   OpenYftFile,
   CloseApp,
+  ImportQbjTournament,
 }
 
 export const FileSwitchActionNames = {

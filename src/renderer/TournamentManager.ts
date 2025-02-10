@@ -114,6 +114,9 @@ export class TournamentManager {
     window.electron.ipcRenderer.on(IpcMainToRend.openYftFile, (filePath, fileContents, curYfVersion) => {
       this.openYftFile(filePath as string, fileContents as string, curYfVersion as string);
     });
+    window.electron.ipcRenderer.on(IpcMainToRend.ImportQbjTournament, (filePath, fileContents) => {
+      this.importQbjTournament(filePath as string, fileContents as string);
+    });
     window.electron.ipcRenderer.on(IpcMainToRend.saveCurrentTournament, () => {
       this.saveYftFile();
     });
@@ -178,10 +181,27 @@ export class TournamentManager {
   private openYftFile(filePath: string, fileContents: string, curYfVersion: string) {
     const objFromFile = this.parseJSON(fileContents);
     if (!objFromFile) return;
-    this.parseObjectFromFile(filePath, objFromFile, curYfVersion);
+    this.parseYftFile(filePath, objFromFile, curYfVersion);
   }
 
-  private parseObjectFromFile(filePath: string, objFromFile: object, curYfVersion?: string) {
+  /** Import an entire (non-YFT) qbj file */
+  private importQbjTournament(filePath: string, fileContents: string) {
+    this.newTournament();
+    const objFromFile = this.parseJSON(fileContents);
+    if (!objFromFile) return;
+
+    snakeCaseToCamelCase(objFromFile);
+    const loadedTournament = this.loadTournamentFromQbjObjects(objFromFile as IQbjWholeFile);
+    if (loadedTournament === null) {
+      return;
+    }
+    this.tournament = loadedTournament;
+    this.modalManagersSetTournament();
+    this.displayName = this.tournament.name || '';
+    this.onDataChanged();
+  }
+
+  private parseYftFile(filePath: string, objFromFile: object, curYfVersion?: string) {
     snakeCaseToCamelCase(objFromFile);
     const loadedTournament = this.loadTournamentFromQbjObjects(objFromFile as IQbjWholeFile, curYfVersion);
     if (loadedTournament === null) {
@@ -213,7 +233,12 @@ export class TournamentManager {
     return objFromFile;
   }
 
-  /** Given an array of Qbj/Yft objects, parse them and create a tournament from the info */
+  /**
+  /**
+   * Given an array of Qbj/Yft objects, parse them and create a tournament from the info
+   * @param objFromFile The parsed JSON object from the file
+   * @param curYfVersion YellowFruit version the yft file must be compatible with. If not passed, we treat as a non-YFT base qbj file
+   */
   loadTournamentFromQbjObjects(objFromFile: IQbjWholeFile, curYfVersion?: string): Tournament | null {
     if (!qbjFileValidVersion(objFromFile)) {
       this.openGenericModal('Invalid File', "This file doesn't use a supported version of the tournament schema.");
@@ -240,7 +265,11 @@ export class TournamentManager {
     const parser = new FileParser(refTargets);
     let loadedTournament: Tournament | null = null;
     try {
-      loadedTournament = parser.parseYftTournament(tournamentObj as IYftFileTournament, curYfVersion);
+      if (curYfVersion) {
+        loadedTournament = parser.parseYftTournament(tournamentObj as IYftFileTournament, curYfVersion);
+      } else {
+        loadedTournament = parser.parseTournament(tournamentObj);
+      }
     } catch (err: any) {
       this.openGenericModal('Invalid File', err.message);
     }
@@ -307,7 +336,7 @@ export class TournamentManager {
 
   useRecoveredBackup() {
     if (!this.recoveredBackup) return;
-    this.parseObjectFromFile(this.recoveredBackup.filePath, this.recoveredBackup.fileContents);
+    this.parseYftFile(this.recoveredBackup.filePath, this.recoveredBackup.fileContents);
     if (this.recoveredBackup.filePath !== '') this.saveYftFile();
     this.discardRecoveredBackup();
   }

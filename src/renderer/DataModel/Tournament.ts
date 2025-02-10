@@ -829,6 +829,19 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return matches;
   }
 
+  /** Set hasCarryover to true in the pools of phases to which matches were carried over */
+  inferCarryoverStatus() {
+    for (const ph of this.getFullPhases()) {
+      for (const coPh of ph.getPhasesCarriedOverTo()) {
+        if (coPh.hasAnyCarryover()) continue;
+
+        for (const p of coPh.pools) {
+          p.hasCarryover = true;
+        }
+      }
+    }
+  }
+
   confirmFinalRankings() {
     if (this.stats.length === 0) return;
     for (const poolStats of this.statsWithFinalRanks().pools) {

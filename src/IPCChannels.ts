@@ -41,6 +41,8 @@ export enum IpcMainToRend {
   CheckForUnsavedData = 'CheckForUnsavedData',
   /** Save a backup copy of the current file */
   GenerateBackup = 'GenerateBackup',
+  /** Import an entire non-yft qbj file */
+  ImportQbjTournament = 'ImportQbjTournament',
 }
 
 /** Channels for both directions renderer<-->main */

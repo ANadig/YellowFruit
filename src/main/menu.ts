@@ -26,10 +26,21 @@ export default class MenuBuilder {
       },
     },
     {
-      label: 'Export QB&J',
-      click: () => {
-        exportQbjFile(this.mainWindow);
-      },
+      label: 'QBJ Schema',
+      submenu: [
+        {
+          label: 'Export QBJ',
+          click: () => {
+            exportQbjFile(this.mainWindow);
+          },
+        },
+        {
+          label: 'Open QBJ',
+          click: () => {
+            tryFileSwitchAction(this.mainWindow, FileSwitchActions.ImportQbjTournament);
+          },
+        },
+      ],
     },
     {
       type: 'separator',

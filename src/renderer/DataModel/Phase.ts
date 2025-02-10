@@ -398,6 +398,36 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return this.rounds.map((rd) => rd.getCarryoverMatches(playoffPhase)).flat();
   }
 
+  /** A list of all the phases that at least one match in this phase is carried over to */
+  getPhasesCarriedOverTo() {
+    const phasesFound: Phase[] = [];
+    for (const rd of this.rounds) {
+      for (const m of rd.matches) {
+        for (const coPh of m.carryoverPhases) {
+          if (phasesFound.indexOf(coPh) === -1) phasesFound.push(coPh);
+        }
+      }
+    }
+    return phasesFound;
+  }
+
+  /** Figure out whether pools should have hasCarryover set based on whether there are matches with carryover phases */
+  inferCarryoverFromMatches() {
+    let foundCarryover = false;
+    for (const rd of this.rounds) {
+      if (rd.matches.find((m) => m.carryoverPhases.length > 0)) {
+        foundCarryover = true;
+        break;
+      }
+    }
+    if (foundCarryover) {
+      // maybe this could be more sophisticaed, but we probably shouldn't be too clever
+      for (const p of this.pools) {
+        p.hasCarryover = true;
+      }
+    }
+  }
+
   /** Find the matches that involve at least one team in the given pool. If no pool is passed, all matches are returned */
   getMatchesForPool(pool?: Pool) {
     const allMatches = this.getAllMatches();

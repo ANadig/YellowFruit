@@ -92,6 +92,8 @@ export default class FileParser {
       this.tourn.finalRankingsReady = yfExtraData.finalRankingsReady || false;
       this.tourn.usingScheduleTemplate = yfExtraData.usingScheduleTemplate || false;
       this.tourn.appVersion = yfExtraData.YfVersion || '';
+    } else {
+      this.tourn.inferCarryoverStatus();
     }
 
     this.tourn.calcHasMatchData();
@@ -547,7 +549,8 @@ export default class FileParser {
     const yftPool = new Pool(size, position);
     yftPool.name = name;
     if (description) yftPool.description = description;
-    if (!yfExtraData) return yftPool;
+    yftPool.poolTeams = this.parsePoolPoolTeams(qbjPool);
+    yftPool.validateSize();
 
     if (yfExtraData) {
       yftPool.roundRobins = yfExtraData.roundRobins;
@@ -555,8 +558,6 @@ export default class FileParser {
       yftPool.hasCarryover = yfExtraData.hasCarryover;
       yftPool.autoAdvanceRules = yfExtraData.autoAdvanceRules;
     }
-    yftPool.poolTeams = this.parsePoolPoolTeams(qbjPool);
-    yftPool.validateSize();
 
     return yftPool;
   }

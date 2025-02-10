@@ -51,6 +51,9 @@ function doFileSwitchAction(action: FileSwitchActions, window: BrowserWindow) {
     case FileSwitchActions.OpenYftFile:
       openYftFile(window);
       break;
+    case FileSwitchActions.ImportQbjTournament:
+      importQbjTournament(window);
+      break;
     case FileSwitchActions.NewFile:
       newYftFile(window);
       break;
@@ -84,6 +87,22 @@ function openYftFile(mainWindow: BrowserWindow) {
       return;
     }
     mainWindow.webContents.send(IpcMainToRend.openYftFile, fileNameAry[0], fileContents, app.getVersion());
+  });
+}
+
+function importQbjTournament(mainWindow: BrowserWindow) {
+  const fileNameAry = dialog.showOpenDialogSync(mainWindow, {
+    title: 'Open File',
+    filters: [{ name: 'QBJ Tournament Schema', extensions: ['qbj'] }],
+  });
+  if (!fileNameAry) return;
+
+  fs.readFile(fileNameAry[0], { encoding: 'utf8' }, (err, fileContents) => {
+    if (err) {
+      dialog.showMessageBoxSync(mainWindow, { message: `Error reading file: \n\n ${err.message}` });
+      return;
+    }
+    mainWindow.webContents.send(IpcMainToRend.ImportQbjTournament, fileNameAry[0], fileContents);
   });
 }
 
