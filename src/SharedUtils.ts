@@ -27,3 +27,8 @@ export interface IYftBackupFile {
   savedAtTime: Date;
   fileContents: object;
 }
+
+export interface IMatchImportFileRequest {
+  filePath: string;
+  fileContents: string;
+}

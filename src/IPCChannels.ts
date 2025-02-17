@@ -52,6 +52,8 @@ export enum IpcBidirectional {
   LoadBackup = 'LoadBackup',
   /** Export QBJ schema file format */
   ExportQbjFile = 'ExportQbjFile',
+  /** Import individual games from qbj files */
+  ImportQbjGames = 'ImportQbjGames',
   /** For asking for and receiving the app version number */
   GetAppVersion = 'GetAppVersion',
 }
@@ -69,5 +71,7 @@ export const rendererListenableEvents = [
   IpcMainToRend.RequestStatReport,
   IpcMainToRend.CheckForUnsavedData,
   IpcMainToRend.GenerateBackup,
+  IpcMainToRend.ImportQbjTournament,
+  IpcBidirectional.ImportQbjGames,
   IpcBidirectional.ExportQbjFile,
 ];

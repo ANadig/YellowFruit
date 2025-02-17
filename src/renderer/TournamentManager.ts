@@ -1,10 +1,10 @@
 import { createContext } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import Tournament, { IQbjTournament, IYftFileTournament, NullTournament } from './DataModel/Tournament';
+import Tournament, { IYftFileTournament, NullTournament } from './DataModel/Tournament';
 import { dateFieldChanged, getFileNameFromPath, textFieldChanged } from './Utils/GeneralUtils';
 import { NullObjects } from './Utils/UtilTypes';
 import { IpcBidirectional, IpcMainToRend, IpcRendToMain } from '../IPCChannels';
-import { IQbjWholeFile, IRefTargetDict } from './DataModel/Interfaces';
+import { IIndeterminateQbj, IQbjWholeFile, IRefTargetDict } from './DataModel/Interfaces';
 import AnswerType from './DataModel/AnswerType';
 import StandardSchedule from './DataModel/StandardSchedule';
 import { Team } from './DataModel/Team';
@@ -14,8 +14,8 @@ import { GenericModalManager } from './Modal Managers/GenericModalManager';
 import { collectRefTargets, findTournamentObject } from './DataModel/QbjUtils2';
 import FileParser from './DataModel/FileParsing';
 import { TempMatchManager } from './Modal Managers/TempMatchManager';
-import { Match } from './DataModel/Match';
-import { FileSwitchActions, IYftBackupFile, StatReportHtmlPage } from '../SharedUtils';
+import { IQbjMatch, Match } from './DataModel/Match';
+import { FileSwitchActions, IMatchImportFileRequest, IYftBackupFile, StatReportHtmlPage } from '../SharedUtils';
 import { StatReportFileNames, StatReportPages } from './Enums';
 import { Pool } from './DataModel/Pool';
 import { PoolStats } from './DataModel/StatSummaries';
@@ -28,6 +28,7 @@ import { snakeCaseToCamelCase, camelCaseToSnakeCase } from './DataModel/CaseConv
 import { CommonRuleSets } from './DataModel/ScoringRules';
 import { qbjFileValidVersion } from './DataModel/QbjUtils';
 import PoolAssignmentModalManager from './Modal Managers/PoolAssignmentModalManager';
+import MatchImportResult from './DataModel/MatchImportResult';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -284,9 +285,81 @@ export class TournamentManager {
     );
   }
 
-  private static getTournamentFromQbjFile(fileObj: IQbjWholeFile): IQbjTournament | null {
-    if (!fileObj.objects) return null;
-    return findTournamentObject(fileObj.objects);
+  /** Tell main to launch the file selection window for importing matches to the given round */
+  async launchImportMatchWorkflow(round: Round) {
+    const files = (await window.electron.ipcRenderer.invoke(
+      IpcBidirectional.ImportQbjGames,
+    )) as IMatchImportFileRequest[];
+    if (files.length === 0) return;
+
+    this.importMatchesFromQbj(files, round);
+  }
+
+  /** Parse a qbj or qbj-like file and add its matches to the given round */
+  private importMatchesFromQbj(fileAry: IMatchImportFileRequest[], round: Round) {
+    const phase = this.tournament.findPhaseByRound(round);
+    // console.log(round);
+    // console.log(phase);
+    if (!phase) return;
+
+    const results: MatchImportResult[] = [];
+    for (const oneFile of fileAry) {
+      const { filePath, fileContents } = oneFile;
+      const objFromFile = this.parseJSON(fileContents);
+      if (!objFromFile) return;
+
+      snakeCaseToCamelCase(objFromFile);
+      const oneResult: MatchImportResult = new MatchImportResult(filePath);
+      results.push(oneResult);
+
+      if ((objFromFile as IQbjWholeFile).objects) {
+        this.importMatchesFromWholeQbj(objFromFile as IQbjWholeFile, oneResult);
+      } else {
+        this.importSingleMatchObj(objFromFile as IQbjMatch, phase, round, oneResult);
+      }
+    }
+
+    for (const res of results) {
+      if (res.match) round.addMatch(res.match);
+    }
+    const numSucceeded = results.filter((r) => r.isSuccess()).length;
+    if (numSucceeded > 0) this.onDataChanged();
+
+    let outputLines = [`${numSucceeded} of ${results.length} imported.\n`];
+    outputLines = outputLines.concat(results.map((r) => r.toString()));
+
+    this.openGenericModal(`Round ${round.number} import`, outputLines.join('\n'));
+  }
+
+  /** Not fully implemented */
+  private importMatchesFromWholeQbj(fileObj: IQbjWholeFile, importResult: MatchImportResult) {
+    const objectList = fileObj.objects;
+    if (!qbjFileValidVersion(fileObj as IQbjWholeFile)) {
+      importResult.errorMsg = "This file doesn't use a supported version of the tournament schema.";
+      return;
+    }
+    let refTargets: IRefTargetDict = {};
+    try {
+      refTargets = collectRefTargets(objectList);
+    } catch (err: any) {
+      importResult.errorMsg = err.message;
+      return;
+    }
+    const parser = new FileParser(refTargets, this.tournament);
+    // not implemented
+  }
+
+  /** Import a match based only on a single QBJ Match object and nothing else */
+  private importSingleMatchObj(match: IQbjMatch, phase: Phase, round: Round, importResult: MatchImportResult) {
+    const parser = new FileParser({}, this.tournament, phase);
+    let yfMatch;
+    try {
+      yfMatch = parser.parseMatch(match as IIndeterminateQbj);
+    } catch (err: any) {
+      importResult.errorMsg = err.message;
+      return;
+    }
+    if (yfMatch) importResult.match = yfMatch;
   }
 
   /** Save the tournament to the given file and switch context to that file */

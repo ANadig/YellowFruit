@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useContext, useMemo, useState } from 'react';
-import { AddCircle, Delete, Edit, ExpandMore } from '@mui/icons-material';
+import { Add, Delete, Edit, ExpandMore, FileUpload } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import YfCard from './YfCard';
@@ -109,6 +109,9 @@ function SingleRound(props: ISingleRoundProps) {
   const newMatchForRound = () => {
     tournManager.openMatchModalNewMatchForRound(round);
   };
+  const importMatches = () => {
+    tournManager.launchImportMatchWorkflow(round);
+  };
 
   return (
     <Accordion expanded={expanded} onChange={() => setExpanded(!expanded)}>
@@ -118,18 +121,36 @@ function SingleRound(props: ISingleRoundProps) {
           {numMatches === 1 ? '1 game' : `${numMatches} games`}
         </Typography>
         {canAddMatch && (
-          <Tooltip placement="left" title="Add a game to this round">
-            <IconButton
-              size="small"
-              sx={{ p: 0 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                newMatchForRound();
-              }}
+          <>
+            <Tooltip title="Enter a new game for this round" placement="left">
+              <IconButton
+                size="small"
+                sx={{ p: 0 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  newMatchForRound();
+                }}
+              >
+                <Add />
+              </IconButton>
+            </Tooltip>
+            <Tooltip
+              placement="top-start"
+              title="Import games from other files into this round"
+              slotProps={{ popper: { modifiers: [{ name: 'offset', options: { offset: [0, 6] } }] } }}
             >
-              <AddCircle />
-            </IconButton>
-          </Tooltip>
+              <IconButton
+                size="small"
+                sx={{ p: 0 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  importMatches();
+                }}
+              >
+                <FileUpload />
+              </IconButton>
+            </Tooltip>
+          </>
         )}
       </AccordionSummary>
       <AccordionDetails>

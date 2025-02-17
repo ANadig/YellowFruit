@@ -380,6 +380,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.find((ph) => ph.name === str);
   }
 
+  findPhaseByRound(round: Round) {
+    return this.phases.find((ph) => ph.rounds.includes(round));
+  }
+
   private nextPhaseCode(): string {
     return (this.lastPhaseCodeNo() + 1).toString();
   }

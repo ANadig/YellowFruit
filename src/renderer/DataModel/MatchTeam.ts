@@ -203,6 +203,12 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return teamAnswerCounts;
   }
 
+  /** Set the points attribute based on a known number of bonus points */
+  calculateTotalPoints(bonusPoints: number) {
+    this.points =
+      this.getTossupPoints() + bonusPoints + (this.bonusBouncebackPoints || 0) + (this.lightningPoints || 0);
+  }
+
   /** Number of points scored on tossups */
   getTossupPoints(): number {
     let total = 0;

@@ -1,8 +1,8 @@
 import path from 'path';
-import { app, BrowserWindow, IpcMainEvent, dialog } from 'electron';
+import { app, BrowserWindow, IpcMainEvent, dialog, IpcMainInvokeEvent } from 'electron';
 import fs from 'fs';
 import { IpcBidirectional, IpcMainToRend } from '../IPCChannels';
-import { FileSwitchActions, StatReportHtmlPage, statReportProtocol } from '../SharedUtils';
+import { FileSwitchActions, IMatchImportFileRequest, StatReportHtmlPage, statReportProtocol } from '../SharedUtils';
 
 export const inAppStatReportDirectory = path.resolve(app.getPath('userData'), 'StatReport');
 
@@ -275,4 +275,23 @@ export function handleExportQbjFile(event: IpcMainEvent, filePath: string, fileC
   fs.writeFile(filePath, fileContents, { encoding: 'utf8' }, (err) => {
     if (err) dialog.showMessageBoxSync(window, { title: 'YellowFruit', message: `Error saving file:\n\n${err}` });
   });
+}
+
+export async function handleImportGamesFromQbj(event: IpcMainInvokeEvent) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return [];
+
+  const fileNameAry = dialog.showOpenDialogSync(window, {
+    title: 'Import Games',
+    filters: [{ name: 'Tournament Schema ', extensions: ['qbj', 'json'] }],
+    properties: ['multiSelections'],
+  });
+  if (!fileNameAry) return [];
+
+  const fileAry: IMatchImportFileRequest[] = [];
+  for (const filePath of fileNameAry) {
+    const fileContents = fs.readFileSync(filePath, { encoding: 'utf8' });
+    fileAry.push({ filePath, fileContents });
+  }
+  return fileAry;
 }
