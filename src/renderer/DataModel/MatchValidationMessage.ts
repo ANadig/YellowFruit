@@ -30,6 +30,7 @@ export enum MatchValidationType {
   InvalidBouncebackPoints = 'InvalidBouncebackPoints',
   BouncebackConvOver100 = 'BouncebackConvOver100',
   TotalScoreAndTuPtsMismatch = 'TotalScoreAndTuPtsMismatch',
+  ImportTwoMatchesSameTeam = 'ImportTwoMatchesSameTeam',
 }
 
 export interface IYftFileMatchValidationMsg {
@@ -149,6 +150,11 @@ export class MatchValidationCollection {
       return v.status === ValidationStatuses.HiddenError;
     });
     return errorsToShow.map((v) => v.message);
+  }
+
+  getWarningMessages(): string[] {
+    const warningsToShow = this.validators.filter((v) => v.status === ValidationStatuses.Warning && !v.isSuppressed);
+    return warningsToShow.map((v) => v.message);
   }
 
   findMsgType(type: MatchValidationType) {

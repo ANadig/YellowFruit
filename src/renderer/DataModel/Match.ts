@@ -21,6 +21,16 @@ import AnswerType from './AnswerType';
 import { ScoringRules } from './ScoringRules';
 import { MatchPlayer } from './MatchPlayer';
 
+/** Different situations for whether it's okay to use a match to calculate stats */
+export enum StatsValidity {
+  /** A normal game with normal stats */
+  valid,
+  /** A game with a final score, but the player-specific stats should be ignored */
+  noIndividuals,
+  /** A game that is invalid and shouldn't be used in the standings at all */
+  omit,
+}
+
 export interface IQbjMatch extends IQbjObject {
   /** The number of tossups read, including any tossups read in overtime */
   tossupsRead?: number;
@@ -94,6 +104,12 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
   notes?: string;
 
+  /** The name of the file that the game was imported from */
+  importedFile?: string;
+
+  /** Whether this game should count towards stats */
+  statsValidity: StatsValidity = StatsValidity.valid;
+
   /** Validation directly associated with the total TUH field */
   totalTuhFieldValidation: MatchValidationMessage;
 
@@ -142,6 +158,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.scorekeeper = source.scorekeeper;
     this.serial = source.serial;
     this.notes = source.notes;
+    this.statsValidity = source.statsValidity;
 
     this.totalTuhFieldValidation = source.totalTuhFieldValidation.makeCopy();
     this.overtimeTuhFieldValidation = source.overtimeTuhFieldValidation.makeCopy();
@@ -395,6 +412,17 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     errs = errs.concat(this.leftTeam.getErrorMessages(ignoreHidden));
     errs = errs.concat(this.rightTeam.getErrorMessages(ignoreHidden));
     return errs;
+  }
+
+  getWarningMessages(): string[] {
+    let warnings: string[] = [];
+    if (this.totalTuhFieldValidation.status === ValidationStatuses.Warning) {
+      warnings.push(`Tossups heard: ${this.totalTuhFieldValidation.message}`);
+    }
+    warnings = warnings.concat(this.modalBottomValidation.getWarningMessages());
+    warnings = warnings.concat(this.leftTeam.getWarningMessages());
+    warnings = warnings.concat(this.rightTeam.getWarningMessages());
+    return warnings;
   }
 
   validateAll(scoringRules: ScoringRules) {

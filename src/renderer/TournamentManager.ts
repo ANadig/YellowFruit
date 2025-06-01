@@ -29,6 +29,7 @@ import { CommonRuleSets } from './DataModel/ScoringRules';
 import { qbjFileValidVersion } from './DataModel/QbjUtils';
 import PoolAssignmentModalManager from './Modal Managers/PoolAssignmentModalManager';
 import MatchImportResult from './DataModel/MatchImportResult';
+import MatchImportResultsManager from './Modal Managers/MatchImportResultsManager';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -79,6 +80,8 @@ export class TournamentManager {
 
   poolAssignmentModalManager: PoolAssignmentModalManager;
 
+  matchImportResultsManager: MatchImportResultsManager;
+
   /** When did we last update the stat report? */
   inAppStatReportGenerated: Date;
 
@@ -99,6 +102,7 @@ export class TournamentManager {
     this.poolModalManager = new TempPoolManager();
     this.rankModalManager = new TempRankManager();
     this.poolAssignmentModalManager = new PoolAssignmentModalManager();
+    this.matchImportResultsManager = new MatchImportResultsManager();
     this.inAppStatReportGenerated = new Date();
 
     window.electron.ipcRenderer.sendMessage(IpcBidirectional.GetAppVersion);
@@ -317,16 +321,8 @@ export class TournamentManager {
       }
     }
 
-    for (const res of results) {
-      if (res.match) round.addMatch(res.match);
-    }
-    const numSucceeded = results.filter((r) => r.isSuccess()).length;
-    if (numSucceeded > 0) this.onDataChanged();
-
-    let outputLines = [`${numSucceeded} of ${results.length} imported.\n`];
-    outputLines = outputLines.concat(results.map((r) => r.toString()));
-
-    this.openGenericModal(`Round ${round.number} import`, outputLines.join('\n'));
+    MatchImportResult.validateImportSetForTeamDups(results);
+    this.openMatchImportModal(round, results);
   }
 
   /** Not fully implemented */
@@ -354,10 +350,13 @@ export class TournamentManager {
     try {
       yfMatch = parser.parseMatch(match as IIndeterminateQbj);
     } catch (err: any) {
-      importResult.errorMsg = err.message;
+      importResult.markFatal(err.message);
       return;
     }
-    if (yfMatch) importResult.match = yfMatch;
+    if (yfMatch) {
+      Tournament.validateHaveTeamsPlayedInRound(yfMatch, round, phase, false);
+      importResult.evaluateMatch(yfMatch);
+    }
   }
 
   /** Save the tournament to the given file and switch context to that file */
@@ -1021,6 +1020,15 @@ export class TournamentManager {
     } else {
       this.matchModalManager.closeModal();
     }
+  }
+
+  openMatchImportModal(round: Round, importResults: MatchImportResult[]) {
+    this.matchImportResultsManager.openModal(round, importResults);
+  }
+
+  closeMatchImportModal(shouldSave: boolean) {
+    this.matchImportResultsManager.closeModal(shouldSave);
+    this.onDataChanged(!shouldSave);
   }
 
   openPhaseModal(phase: Phase) {

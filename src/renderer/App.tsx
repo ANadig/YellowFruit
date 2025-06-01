@@ -29,6 +29,7 @@ import PoolEditDialog from './Components/PoolEditDialog';
 import RankEditDialog from './Components/RankEditDialog';
 import { IpcRendToMain } from '../IPCChannels';
 import PoolAssignmentDialog from './Components/PoolAssignmentDialog';
+import MatchImportResultDialog from './Components/MatchImportResultDialog';
 
 window.onerror = () => window.electron.ipcRenderer.sendMessage(IpcRendToMain.WebPageCrashed);
 window.electron.ipcRenderer.removeAllListeners();
@@ -102,6 +103,7 @@ function TournamentEditor() {
       <PoolEditDialog />
       <RankEditDialog />
       <PoolAssignmentDialog />
+      <MatchImportResultDialog />
     </>
   );
 }

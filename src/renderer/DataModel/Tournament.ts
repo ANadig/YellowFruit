@@ -771,6 +771,40 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return undefined;
   }
 
+  /**
+   * Determine whether a match's teams have already played in some other match in the same round, and update the Match's validation data accordingly
+   * @param match Match to validate
+   * @param round Round the match happened in
+   * @param phase Phase that round is in
+   * @param unSuppress True if we should ignore that this warning was previously suppressed
+   * @param matchToIgnore Match that should be ignored if we find it (for use with temp matches being manually edited in the modal)
+   */
+  static validateHaveTeamsPlayedInRound(
+    match: Match,
+    round: Round | undefined,
+    phase: Phase | undefined,
+    unSuppress: boolean,
+    matchToIgnore?: Match,
+  ) {
+    const leftTeam = match.leftTeam.team;
+    const rightTeam = match.rightTeam.team;
+    if (!round || (phase && !phase.isFullPhase())) {
+      match.setAlreadyPlayedInRdValidation(true, '', unSuppress);
+      return;
+    }
+    const leftHasPlayed = leftTeam ? round.teamHasPlayedIn(leftTeam, matchToIgnore) : false;
+    const rightHasPlayed = rightTeam ? round.teamHasPlayedIn(rightTeam, matchToIgnore) : false;
+    let message = '';
+    if (leftHasPlayed && rightHasPlayed) {
+      message = 'Both teams have already played a game in this round';
+    } else if (leftHasPlayed) {
+      message = `${leftTeam?.name} has already played a game in this round`;
+    } else if (rightHasPlayed) {
+      message = `${rightTeam?.name} has already played a game in this round`;
+    }
+    match.setAlreadyPlayedInRdValidation(message === '', message, unSuppress);
+  }
+
   /** Carry over matches from previous phases to this one */
   carryOverMatches(nextPhase: Phase, teams: Team[]) {
     if (!nextPhase.hasAnyCarryover()) return;

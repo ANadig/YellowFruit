@@ -319,6 +319,24 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return errs;
   }
 
+  getWarningMessages(): string[] {
+    let warnings: string[] = [];
+    if (this.totalScoreFieldValidation.status === ValidationStatuses.Warning) {
+      warnings.push(`${this.team?.name || 'Total'} score: ${this.totalScoreFieldValidation.message}`);
+    }
+    if (this.bouncebackFieldValidation.status === ValidationStatuses.Warning) {
+      warnings.push(`${this.team?.name || ''} Bounceback points: ${this.bouncebackFieldValidation.message}`);
+    }
+    warnings = warnings.concat(this.modalBottomValidation.getWarningMessages());
+    this.matchPlayers.forEach((mp) => {
+      warnings = warnings.concat(mp.getWarningMessages());
+    });
+    this.overTimeBuzzes.forEach((ac) => {
+      warnings = warnings.concat(ac.getWarningMessages());
+    });
+    return warnings;
+  }
+
   validateAll(scoringRules: ScoringRules) {
     this.validateTotalPoints();
     this.validateTotalAndTuPtsEqual(scoringRules);

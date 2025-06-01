@@ -1,5 +1,5 @@
 import AnswerType from './AnswerType';
-import { IQbjObject, IQbjRefPointer, IYftDataModelObject } from './Interfaces';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject, ValidationStatuses } from './Interfaces';
 import MatchValidationMessage, { MatchValidationType } from './MatchValidationMessage';
 import { Player, IQbjPlayer } from './Player';
 import { IQbjPlayerAnswerCount, PlayerAnswerCount, sortAnswerCounts } from './PlayerAnswerCount';
@@ -113,6 +113,20 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
       errors = errors.concat(ac.getErrorMessages());
     });
     return errors;
+  }
+
+  getWarningMessages() {
+    let warnings: string[] = [];
+    if (this.tuhValidation.status === ValidationStatuses.Warning) {
+      warnings.push(this.tuhValidation.message);
+    }
+    if (this.totalBuzzesValidation.status === ValidationStatuses.Warning) {
+      warnings.push(this.totalBuzzesValidation.message);
+    }
+    this.answerCounts.forEach((ac) => {
+      warnings = warnings.concat(ac.getWarningMessages());
+    });
+    return warnings;
   }
 
   /**

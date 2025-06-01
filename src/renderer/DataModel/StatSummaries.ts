@@ -2,7 +2,7 @@
 
 import { sumReduce } from '../Utils/GeneralUtils';
 import { LeftOrRight } from '../Utils/UtilTypes';
-import { Match } from './Match';
+import { Match, StatsValidity } from './Match';
 import { MatchPlayer } from './MatchPlayer';
 import { MatchTeam } from './MatchTeam';
 import { Phase, WildCardRankingMethod } from './Phase';
@@ -38,6 +38,8 @@ export class AggregateStandings {
       for (const round of phase.rounds) {
         const roundStats = new RoundStats(round, scoringRules, phase);
         for (const match of round.matches) {
+          if (match.statsValidity === StatsValidity.omit) continue;
+
           // we have to do this from scratch rather than adding together existing phases' stats
           // in order to avoid double-counting carryover matches
           this.addMatchToTeamStats(match, round, phase);
@@ -168,6 +170,8 @@ export class PhaseStandings {
   }
 
   private addMatchToTeamStats(match: Match) {
+    if (match.statsValidity === StatsValidity.omit) return;
+
     const leftTeamStats = this.findPoolTeam(match.leftTeam.team);
     leftTeamStats?.addMatchTeam(match, 'left');
     const rightTeamStats = this.findPoolTeam(match.rightTeam.team);
@@ -262,6 +266,8 @@ export class PhaseStandings {
   }
 
   private addMatchToIndividualStats(match: Match) {
+    if (match.statsValidity === StatsValidity.omit) return;
+
     this.addMatchTeamToIndividualStats(match.leftTeam, match.tossupsRead ?? 0);
     this.addMatchTeamToIndividualStats(match.rightTeam, match.tossupsRead ?? 0);
   }
