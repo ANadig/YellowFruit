@@ -298,8 +298,6 @@ export class TournamentManager {
   /** Parse a qbj or qbj-like file and add its matches to the given round */
   private importMatchesFromQbj(fileAry: IMatchImportFileRequest[], round: Round) {
     const phase = this.tournament.findPhaseByRound(round);
-    // console.log(round);
-    // console.log(phase);
     if (!phase) return;
 
     const results: MatchImportResult[] = [];

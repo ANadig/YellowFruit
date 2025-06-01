@@ -63,6 +63,8 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
     this.player = source.player;
     this.tossupsHeard = source.tossupsHeard;
     this.answerCounts = source.answerCounts.map((ac) => ac.makeCopy());
+    this.tuhValidation = source.tuhValidation.makeCopy();
+    this.totalBuzzesValidation = source.totalBuzzesValidation.makeCopy();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
