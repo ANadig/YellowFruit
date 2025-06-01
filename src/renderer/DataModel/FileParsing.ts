@@ -735,7 +735,18 @@ export default class FileParser {
       return this.getYfObjectFromId(qbjMatchTeam.team as IIndeterminateQbj, this.teamsById);
     }
 
-    const nameToMatch = (qbjMatchTeam.team as IQbjTeam).name;
+    let nameToMatch;
+    // If the team is a $ref to something else in the file, resolve the intra-file reference, then use that team's name for string matching
+    if (isQbjRefPointer(qbjMatchTeam.team as IIndeterminateQbj)) {
+      const importFileTeamObj = this.getYfObjectFromId(qbjMatchTeam.team as IIndeterminateQbj, this.teamsById);
+      if (!importFileTeamObj) {
+        throw new Error(`Couldn't resolve reference to team ${(qbjMatchTeam.team as IQbjRefPointer).$ref}`);
+      }
+      nameToMatch = importFileTeamObj.name;
+    } else {
+      nameToMatch = (qbjMatchTeam.team as IQbjTeam).name;
+    }
+
     const importResult = getYfTeamFromName(nameToMatch, this.importPhase);
     if (importResult.confidence < stringSimConfThreshold) {
       throw new Error(
@@ -762,7 +773,7 @@ export default class FileParser {
 
   /**
    * @param obj MatchPlayer to parse
-   * @param team YF Team we know they're on, if we need to do string matching to figure out what Plyer object it obj refers to
+   * @param team YF Team we know they're on, if we need to do string matching to figure out what Player object it obj refers to
    */
   parseMatchPlayer(obj: IIndeterminateQbj, team?: Team): MatchPlayer | null {
     const baseObj = getBaseQbjObject(obj, this.refTargets);
@@ -797,10 +808,24 @@ export default class FileParser {
     }
 
     if (!team) return undefined;
-    const nameToMatch = (qbjMatchPlayer.player as IQbjPlayer).name;
+
+    let nameToMatch;
+    // If the player is a $ref to something else in the file, resolve the intra-file reference, then use that player's name for string matching
+    if (isQbjRefPointer(qbjMatchPlayer.player as IIndeterminateQbj)) {
+      const importFilePlayerObj = this.getYfObjectFromId(qbjMatchPlayer.player as IIndeterminateQbj, this.playersById);
+      if (!importFilePlayerObj) {
+        throw new Error(`Couldn't resolve reference to player ${(qbjMatchPlayer.player as IQbjRefPointer).$ref}`);
+      }
+      nameToMatch = importFilePlayerObj.name;
+    } else {
+      nameToMatch = (qbjMatchPlayer.player as IQbjPlayer).name;
+    }
+
     const importResult = getYfPlayerFromName(nameToMatch, team);
     if (importResult.confidence < stringSimConfThreshold) {
-      throw new Error(`Couldn't find player '${nameToMatch}'. Closest name found: '${importResult.matchedObj?.name}'.`);
+      throw new Error(
+        `Couldn't find player '${nameToMatch} on team ${team.name}'. Closest name found: '${importResult.matchedObj?.name}'.`,
+      );
     }
     return importResult.matchedObj;
   }
