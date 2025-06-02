@@ -277,4 +277,11 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
       this.overtimeIncludesBonuses = false;
     }
   }
+
+  findAnswerTypeById(id: string) {
+    for (const at of this.answerTypes) {
+      if (at.id === id) return at;
+    }
+    return undefined;
+  }
 }

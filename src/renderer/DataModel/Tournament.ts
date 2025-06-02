@@ -685,6 +685,16 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return undefined;
   }
 
+  findPlayerByName(name: string): Player | undefined {
+    for (const reg of this.registrations) {
+      for (const tm of reg.teams) {
+        const pl = tm.findPlayerByName(name);
+        if (pl) return pl;
+      }
+    }
+    return undefined;
+  }
+
   teamHasPlayedAnyMatch(team: Team) {
     for (const ph of this.phases) {
       if (ph.teamHasPlayedAnyMatches(team)) return true;

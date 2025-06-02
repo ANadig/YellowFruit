@@ -3,9 +3,13 @@ import MatchImportResult, { ImportResultStatus } from '../DataModel/MatchImportR
 import { Round } from '../DataModel/Round';
 import { StatsValidity } from '../DataModel/Match';
 import { getFileNameFromPath } from '../Utils/GeneralUtils';
+import Tournament from '../DataModel/Tournament';
+import { Phase } from '../DataModel/Phase';
 
 export default class MatchImportResultsManager {
   modalIsOpen: boolean = false;
+
+  phase?: Phase;
 
   round?: Round;
 
@@ -19,12 +23,14 @@ export default class MatchImportResultsManager {
 
   reset() {
     delete this.round;
+    delete this.phase;
     delete this.resultsList;
   }
 
-  openModal(round: Round, resultsList: MatchImportResult[]) {
+  openModal(round: Round, phase: Phase, resultsList: MatchImportResult[]) {
     this.modalIsOpen = true;
     this.round = round;
+    this.phase = phase;
     this.resultsList = resultsList;
     this.dataChangedReactCallback();
   }
@@ -45,6 +51,7 @@ export default class MatchImportResultsManager {
       if (res.proceedWithImport && res.match) {
         if (res.status === ImportResultStatus.ErrNonFatal) res.match.statsValidity = StatsValidity.omit;
         res.match.importedFile = getFileNameFromPath(res.filePath);
+        Tournament.validateHaveTeamsPlayedInRound(res.match, this.round, this.phase, false);
         this.round.addMatch(res.match);
       }
     }

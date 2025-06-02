@@ -23,6 +23,8 @@ import { IQbjScoringRules, IYftFileScoringRules, ScoringRules } from './ScoringR
 import { IQbjTeam, IYftFileTeam, Team } from './Team';
 import Tournament, { IQbjTournament, IYftFileTournament } from './Tournament';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
+import { QbjTypeNames } from './QbjEnums';
+import { findTournamentObject } from './QbjUtils2';
 
 /** Threshold (0 to 1 scale) for string matching of team and player names when importing data. Similarity must be at leaset this high for us to use the match. */
 const stringSimConfThreshold = 0.8;
@@ -62,6 +64,23 @@ export default class FileParser {
     } else {
       this.tourn = new Tournament();
     }
+  }
+
+  static findMatches(objectsFromFile: IQbjObject[]) {
+    const matches: IQbjMatch[] = [];
+    for (const obj of objectsFromFile) {
+      if (obj.type === QbjTypeNames.Match) matches.push(obj as IQbjMatch);
+    }
+    const tourn = findTournamentObject(objectsFromFile);
+    if (tourn === null) return matches;
+    for (const ph of tourn.phases || []) {
+      for (const rd of ph.rounds || []) {
+        for (const m of rd.matches || []) {
+          matches.push(m);
+        }
+      }
+    }
+    return matches;
   }
 
   parseYftTournament(obj: IYftFileTournament, curYfVersion?: string): Tournament | null {
@@ -901,6 +920,67 @@ export default class FileParser {
     if (!id) return undefined;
 
     return dict[id];
+  }
+
+  /** Match up IDs from a file we're importing, to the YF file we already have open */
+  buildTypesByIdArrays(objectsFromFile: IQbjObject[]) {
+    for (const obj of objectsFromFile) {
+      if (obj.type === QbjTypeNames.Team) {
+        if (obj.id) {
+          const yfTeam = this.tourn.findTeamById(obj.id);
+          if (yfTeam) this.teamsById[obj.id] = yfTeam;
+
+          for (const playerObj of (obj as IQbjTeam).players || []) {
+            if (playerObj.id) {
+              const yfPlayer = yfTeam?.findPlayerByName(playerObj.name);
+              if (yfPlayer) this.playersById[playerObj.id] = yfPlayer;
+            }
+          }
+        }
+      } else if (obj.type === QbjTypeNames.Player) {
+        if (obj.id) {
+          const yfPlayer = this.tourn.findPlayerByName((obj as IQbjPlayer).name);
+          if (yfPlayer) this.playersById[obj.id] = yfPlayer;
+        }
+      } else if (obj.type === QbjTypeNames.AnswerType) {
+        if (obj.id) {
+          const yfAnswerType = this.tourn.scoringRules.findAnswerTypeById(obj.id);
+          if (yfAnswerType) this.answerTypesById[obj.id] = yfAnswerType;
+        }
+      } else if (obj.type === QbjTypeNames.ScoringRules) {
+        for (const atObj of (obj as IQbjScoringRules).answerTypes || []) {
+          if (atObj.id) {
+            const yfAnswerType = this.tourn.scoringRules.findAnswerTypeById(atObj.id);
+            if (yfAnswerType) this.answerTypesById[atObj.id] = yfAnswerType;
+          }
+        }
+      } else {
+        let regQbjArray: IQbjRegistration[] = [];
+        if (obj.type === QbjTypeNames.Tournament) regQbjArray = (obj as IQbjTournament).registrations || [];
+        else if (obj.type === QbjTypeNames.Registration) regQbjArray = [obj as IQbjRegistration];
+
+        for (const oneReg of regQbjArray) {
+          for (const qbjTeam of oneReg.teams || []) {
+            if (qbjTeam.id) {
+              const yfTeam = this.tourn.findTeamById(qbjTeam.id);
+              if (yfTeam) this.teamsById[qbjTeam.id] = yfTeam;
+              for (const playerObj of (qbjTeam as IQbjTeam).players || []) {
+                if (playerObj.id) {
+                  const yfPlayer = yfTeam?.findPlayerByName(playerObj.name);
+                  if (yfPlayer) this.playersById[playerObj.id] = yfPlayer;
+                }
+              }
+            }
+          }
+        }
+        for (const atObj of (obj as IQbjTournament).scoringRules?.answerTypes || []) {
+          if (atObj.id) {
+            const yfAnswerType = this.tourn.scoringRules.findAnswerTypeById(atObj.id);
+            if (yfAnswerType) this.answerTypesById[atObj.id] = yfAnswerType;
+          }
+        }
+      }
+    }
   }
 }
 

@@ -238,10 +238,10 @@ function MessageList(props: IMessageListProps) {
   const { messages } = props;
 
   return messages.map((msg, idx) => (
-    <>
+    <span key={msg}>
       {msg}
       {idx < messages.length - 1 && <br />}
-    </>
+    </span>
   ));
 }
 

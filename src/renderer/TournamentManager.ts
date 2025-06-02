@@ -304,48 +304,79 @@ export class TournamentManager {
     const phase = this.tournament.findPhaseByRound(round);
     if (!phase) return;
 
-    const results: MatchImportResult[] = [];
+    let results: MatchImportResult[] = [];
     for (const oneFile of fileAry) {
       const { filePath, fileContents } = oneFile;
       const objFromFile = this.parseJSON(fileContents);
       if (!objFromFile) return;
 
       snakeCaseToCamelCase(objFromFile);
-      const oneResult: MatchImportResult = new MatchImportResult(filePath);
-      results.push(oneResult);
 
       if ((objFromFile as IQbjWholeFile).objects) {
-        this.importMatchesFromWholeQbj(objFromFile as IQbjWholeFile, oneResult);
+        results = results.concat(this.importMatchesFromWholeQbj(objFromFile as IQbjWholeFile, phase, round, filePath));
       } else {
+        const oneResult: MatchImportResult = new MatchImportResult(filePath);
+        results.push(oneResult);
         this.importSingleMatchObj(objFromFile as IQbjMatch, phase, round, oneResult);
       }
     }
 
     MatchImportResult.validateImportSetForTeamDups(results);
-    this.openMatchImportModal(round, results);
+    this.openMatchImportModal(round, phase, results);
   }
 
-  /** Not fully implemented */
-  private importMatchesFromWholeQbj(fileObj: IQbjWholeFile, importResult: MatchImportResult) {
+  /**
+   * Import multiple matchese from an arbitrary QBJ file
+   * @param fileObj top-level file JSON object
+   * @param phase phase we're importing matches into
+   * @param round round we're importing matches into
+   * @param filePath file that we're importing
+   */
+  private importMatchesFromWholeQbj(fileObj: IQbjWholeFile, phase: Phase, round: Round, filePath: string) {
     const objectList = fileObj.objects;
+    const importResults: MatchImportResult[] = [];
+    const wholeFileFailureResult = new MatchImportResult(filePath);
     if (!qbjFileValidVersion(fileObj as IQbjWholeFile)) {
-      importResult.markFatal("This file doesn't use a supported version of the tournament schema.");
-      return;
+      wholeFileFailureResult.markFatal("This file doesn't use a supported version of the tournament schema.");
+      importResults.push(wholeFileFailureResult);
+      return importResults;
     }
+
     let refTargets: IRefTargetDict = {};
     try {
       refTargets = collectRefTargets(objectList);
     } catch (err: any) {
-      importResult.markFatal(err.message);
-      return;
+      wholeFileFailureResult.markFatal(err.message);
+      importResults.push(wholeFileFailureResult);
+      return importResults;
     }
-    const parser = new FileParser(refTargets, this.tournament);
-    // not implemented
+
+    const matchList = FileParser.findMatches(objectList);
+    if (matchList.length === 0) {
+      wholeFileFailureResult.markFatal(`The file ${filePath} contains no Match objects.`);
+      importResults.push(wholeFileFailureResult);
+      return importResults;
+    }
+
+    const parser = new FileParser(refTargets, this.tournament, phase);
+    parser.buildTypesByIdArrays(objectList);
+    for (const matchObj of matchList) {
+      const singleResult = new MatchImportResult(filePath);
+      this.importSingleMatchObj(matchObj, phase, round, singleResult, parser);
+      importResults.push(singleResult);
+    }
+    return importResults;
   }
 
   /** Import a match based only on a single QBJ Match object and nothing else */
-  private importSingleMatchObj(match: IQbjMatch, phase: Phase, round: Round, importResult: MatchImportResult) {
-    const parser = new FileParser({}, this.tournament, phase);
+  private importSingleMatchObj(
+    match: IQbjMatch,
+    phase: Phase,
+    round: Round,
+    importResult: MatchImportResult,
+    existingParser?: FileParser,
+  ) {
+    const parser = existingParser ?? new FileParser({}, this.tournament, phase);
     let yfMatch;
     try {
       yfMatch = parser.parseMatch(match as IIndeterminateQbj);
@@ -1022,8 +1053,8 @@ export class TournamentManager {
     }
   }
 
-  openMatchImportModal(round: Round, importResults: MatchImportResult[]) {
-    this.matchImportResultsManager.openModal(round, importResults);
+  openMatchImportModal(round: Round, phase: Phase, importResults: MatchImportResult[]) {
+    this.matchImportResultsManager.openModal(round, phase, importResults);
   }
 
   closeMatchImportModal(shouldSave: boolean) {

@@ -288,4 +288,8 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
     }
     return false;
   }
+
+  static getPlayerNameFromId(id: string) {
+    return id.replace('Player_', '').replace(/_\d{4,}$/, '');
+  }
 }

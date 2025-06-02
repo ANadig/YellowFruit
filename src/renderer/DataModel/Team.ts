@@ -269,4 +269,11 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     });
     return errs;
   }
+
+  findPlayerByName(name: string) {
+    for (const pl of this.players) {
+      if (pl.name === name) return pl;
+    }
+    return undefined;
+  }
 }
