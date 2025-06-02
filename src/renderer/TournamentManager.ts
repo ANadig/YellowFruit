@@ -329,14 +329,14 @@ export class TournamentManager {
   private importMatchesFromWholeQbj(fileObj: IQbjWholeFile, importResult: MatchImportResult) {
     const objectList = fileObj.objects;
     if (!qbjFileValidVersion(fileObj as IQbjWholeFile)) {
-      importResult.errorMsg = "This file doesn't use a supported version of the tournament schema.";
+      importResult.markFatal("This file doesn't use a supported version of the tournament schema.");
       return;
     }
     let refTargets: IRefTargetDict = {};
     try {
       refTargets = collectRefTargets(objectList);
     } catch (err: any) {
-      importResult.errorMsg = err.message;
+      importResult.markFatal(err.message);
       return;
     }
     const parser = new FileParser(refTargets, this.tournament);

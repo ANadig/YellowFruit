@@ -64,6 +64,7 @@ export interface IYftFileMatch extends IQbjMatch, IYftFileObject {
 /** Additional info not in qbj but needed for a .yft file */
 interface IMatchExtraData {
   otherValidation: IYftFileMatchValidationMsg[];
+  importedFile?: string;
 }
 
 /** A single match scheduled between two teams */
@@ -159,6 +160,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.serial = source.serial;
     this.notes = source.notes;
     this.statsValidity = source.statsValidity;
+    this.importedFile = source.importedFile;
 
     this.totalTuhFieldValidation = source.totalTuhFieldValidation.makeCopy();
     this.overtimeTuhFieldValidation = source.overtimeTuhFieldValidation.makeCopy();
@@ -184,7 +186,10 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     if (isReferenced) qbjObject.id = this.id;
     if (qbjOnly) return qbjObject;
 
-    const yfData: IMatchExtraData = { otherValidation: this.modalBottomValidation.toFileObject() };
+    const yfData: IMatchExtraData = {
+      otherValidation: this.modalBottomValidation.toFileObject(),
+      importedFile: this.importedFile,
+    };
     const yftFileObj = { YfData: yfData, ...qbjObject };
 
     return yftFileObj;
@@ -403,6 +408,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return 'tie';
   }
 
+  /** Get the list of previously calculated error messages (does NOT revalidate) */
   getErrorMessages(ignoreHidden: boolean = false): string[] {
     let errs: string[] = [];
     if (this.totalTuhFieldValidation.status === ValidationStatuses.Error) {
@@ -414,6 +420,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return errs;
   }
 
+  /** Get the list of previously calculated warning messages (does NOT revalidate) */
   getWarningMessages(): string[] {
     let warnings: string[] = [];
     if (this.totalTuhFieldValidation.status === ValidationStatuses.Warning) {
@@ -423,6 +430,13 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     warnings = warnings.concat(this.leftTeam.getWarningMessages());
     warnings = warnings.concat(this.rightTeam.getWarningMessages());
     return warnings;
+  }
+
+  /** Determine whether the match is in an error state, warning state, or OK, based on existing validation results (does NOT re-validate) */
+  getOverallValidationStatus() {
+    if (this.getErrorMessages().length > 0) return ValidationStatuses.Error;
+    if (this.getWarningMessages().length > 0) return ValidationStatuses.Warning;
+    return ValidationStatuses.Ok;
   }
 
   validateAll(scoringRules: ScoringRules) {

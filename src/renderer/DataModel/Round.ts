@@ -1,4 +1,4 @@
-import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { IQbjObject, IYftDataModelObject, IYftFileObject, ValidationStatuses } from './Interfaces';
 // eslint-disable-next-line import/no-cycle
 import { IQbjMatch, Match } from './Match';
 import { IQbjPacket, Packet } from './Packet';
@@ -144,6 +144,21 @@ export class Round implements IQbjRound, IYftDataModelObject {
 
   deleteMatch(match: Match) {
     this.matches = this.matches.filter((m) => m !== match);
+  }
+
+  /**
+   * Count the number of matches that are in error and warning states.
+   * @returns [# matches with errors, # matches with warnings]
+   */
+  countErrorsAndWarnings() {
+    let errs = 0;
+    let warns = 0;
+    for (const m of this.matches) {
+      const valState = m.getOverallValidationStatus();
+      if (valState === ValidationStatuses.Error) errs++;
+      else if (valState === ValidationStatuses.Warning) warns++;
+    }
+    return [errs, warns];
   }
 }
 

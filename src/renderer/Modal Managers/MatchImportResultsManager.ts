@@ -2,6 +2,7 @@ import { createContext } from 'react';
 import MatchImportResult, { ImportResultStatus } from '../DataModel/MatchImportResult';
 import { Round } from '../DataModel/Round';
 import { StatsValidity } from '../DataModel/Match';
+import { getFileNameFromPath } from '../Utils/GeneralUtils';
 
 export default class MatchImportResultsManager {
   modalIsOpen: boolean = false;
@@ -43,6 +44,7 @@ export default class MatchImportResultsManager {
     for (const res of this.resultsList) {
       if (res.proceedWithImport && res.match) {
         if (res.status === ImportResultStatus.ErrNonFatal) res.match.statsValidity = StatsValidity.omit;
+        res.match.importedFile = getFileNameFromPath(res.filePath);
         this.round.addMatch(res.match);
       }
     }

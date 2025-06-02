@@ -1,4 +1,3 @@
-import { getFileNameFromPath } from '../Utils/GeneralUtils';
 import { Match } from './Match';
 import { Team } from './Team';
 
@@ -15,8 +14,6 @@ export enum ImportResultStatus {
 class MatchImportResult {
   filePath: string;
 
-  errorMsg?: string;
-
   match?: Match;
 
   status: ImportResultStatus;
@@ -29,16 +26,6 @@ class MatchImportResult {
   constructor(filePath: string) {
     this.filePath = filePath;
     this.status = ImportResultStatus.FatalErr;
-  }
-
-  toString() {
-    const fileName = getFileNameFromPath(this.filePath);
-    if (this.errorMsg) return `${fileName} failed: ${this.errorMsg}`;
-    return `${fileName}: Success`;
-  }
-
-  isSuccess() {
-    return !this.errorMsg;
   }
 
   /** Associate this object with the given match, then use the match to determine the status and message */

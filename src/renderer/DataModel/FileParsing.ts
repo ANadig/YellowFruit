@@ -676,6 +676,7 @@ export default class FileParser {
 
     yfMatch.modalBottomValidation = new MatchValidationCollection();
     yfMatch.modalBottomValidation.addFromFileObjects(yfExtraData?.otherValidation || []);
+    yfMatch.importedFile = yfExtraData?.importedFile;
 
     yfMatch.validateAll(this.tourn.scoringRules);
     return yfMatch;
