@@ -54,7 +54,7 @@ const sectionHelpText = {
   [ImportResultStatus.Warning]: 'These games are valid, but might be inaccurate',
   [ImportResultStatus.ErrNonFatal]:
     "These gamese can be imported, but they won't count toward the standings until you correct the errors shown",
-  [ImportResultStatus.FatalErr]: "YellowFruit can't read these files. Repair the files and try again.",
+  [ImportResultStatus.FatalErr]: "YellowFruit can't use the contents of these files. Fix the issues and try again.",
 };
 
 function MatchImportResultDialogCore() {
@@ -69,6 +69,7 @@ function MatchImportResultDialogCore() {
   const warnings = allResults.filter((r) => r.status === ImportResultStatus.Warning);
   const errs = allResults.filter((r) => r.status === ImportResultStatus.ErrNonFatal);
   const fatals = allResults.filter((r) => r.status === ImportResultStatus.FatalErr);
+  const couldImportAnything = successes.length > 0 || warnings.length > 0 || errs.length > 0;
 
   const handleAccept = () => {
     acceptButtonRef.current?.focus();
@@ -80,7 +81,7 @@ function MatchImportResultDialogCore() {
   };
 
   useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });
-  useHotkeys('alt+a', () => handleAccept(), { enabled: isOpen, enableOnFormTags: true });
+  useHotkeys('alt+a', () => handleAccept(), { enabled: isOpen && couldImportAnything, enableOnFormTags: true });
 
   return (
     <Dialog open={isOpen} fullWidth maxWidth="xl" onClose={handleCancel}>
@@ -141,7 +142,7 @@ function MatchImportResultDialogCore() {
         <Button variant="outlined" onClick={handleCancel}>
           {hotkeyFormat('&Cancel')}
         </Button>
-        <Button variant="outlined" onClick={handleAccept} ref={acceptButtonRef}>
+        <Button variant="outlined" onClick={handleAccept} disabled={!couldImportAnything} ref={acceptButtonRef}>
           {hotkeyFormat('&Accept')}
         </Button>
       </DialogActions>

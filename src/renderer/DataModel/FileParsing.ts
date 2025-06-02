@@ -751,7 +751,9 @@ export default class FileParser {
     const importResult = getYfTeamFromName(nameToMatch, this.importPhase);
     if (importResult.confidence < stringSimConfThreshold) {
       throw new Error(
-        `Couldn't find team '${nameToMatch}'. Closest team name found: '${importResult.matchedObj?.name}'.`,
+        `Couldn't find team '${nameToMatch}' within ${this.importPhase.name}. Closest team name found: ${
+          importResult.matchedObj?.name || 'none'
+        }.`,
       );
     }
     return importResult.matchedObj;
@@ -825,7 +827,9 @@ export default class FileParser {
     const importResult = getYfPlayerFromName(nameToMatch, team);
     if (importResult.confidence < stringSimConfThreshold) {
       throw new Error(
-        `Couldn't find player '${nameToMatch} on team ${team.name}'. Closest name found: '${importResult.matchedObj?.name}'.`,
+        `Couldn't find player '${nameToMatch}' on team ${team.name}. Closest name found: ${
+          importResult.matchedObj?.name || 'none'
+        }.`,
       );
     }
     return importResult.matchedObj;

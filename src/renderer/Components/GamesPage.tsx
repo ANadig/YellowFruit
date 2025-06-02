@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useContext, useMemo, useState } from 'react';
-import { Add, Delete, Description, Edit, Error, ExpandMore, FileUpload, Warning } from '@mui/icons-material';
+import { Add, Delete, Edit, Error, ExpandMore, FileUpload, Warning } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import YfCard from './YfCard';
