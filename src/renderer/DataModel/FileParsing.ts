@@ -926,33 +926,14 @@ export default class FileParser {
   buildTypesByIdArrays(objectsFromFile: IQbjObject[]) {
     for (const obj of objectsFromFile) {
       if (obj.type === QbjTypeNames.Team) {
-        if (obj.id) {
-          const yfTeam = this.tourn.findTeamById(obj.id);
-          if (yfTeam) this.teamsById[obj.id] = yfTeam;
-
-          for (const playerObj of (obj as IQbjTeam).players || []) {
-            if (playerObj.id) {
-              const yfPlayer = yfTeam?.findPlayerByName(playerObj.name);
-              if (yfPlayer) this.playersById[playerObj.id] = yfPlayer;
-            }
-          }
-        }
+        this.typesByIdArraysAddTeam(obj);
       } else if (obj.type === QbjTypeNames.Player) {
-        if (obj.id) {
-          const yfPlayer = this.tourn.findPlayerByName((obj as IQbjPlayer).name);
-          if (yfPlayer) this.playersById[obj.id] = yfPlayer;
-        }
+        this.typesByIdArraysAddPlayer(obj);
       } else if (obj.type === QbjTypeNames.AnswerType) {
-        if (obj.id) {
-          const yfAnswerType = this.tourn.scoringRules.findAnswerTypeById(obj.id);
-          if (yfAnswerType) this.answerTypesById[obj.id] = yfAnswerType;
-        }
+        this.typesByIdArraysAddAnswerType(obj);
       } else if (obj.type === QbjTypeNames.ScoringRules) {
         for (const atObj of (obj as IQbjScoringRules).answerTypes || []) {
-          if (atObj.id) {
-            const yfAnswerType = this.tourn.scoringRules.findAnswerTypeById(atObj.id);
-            if (yfAnswerType) this.answerTypesById[atObj.id] = yfAnswerType;
-          }
+          this.typesByIdArraysAddAnswerType(atObj);
         }
       } else {
         let regQbjArray: IQbjRegistration[] = [];
@@ -961,25 +942,38 @@ export default class FileParser {
 
         for (const oneReg of regQbjArray) {
           for (const qbjTeam of oneReg.teams || []) {
-            if (qbjTeam.id) {
-              const yfTeam = this.tourn.findTeamById(qbjTeam.id);
-              if (yfTeam) this.teamsById[qbjTeam.id] = yfTeam;
-              for (const playerObj of (qbjTeam as IQbjTeam).players || []) {
-                if (playerObj.id) {
-                  const yfPlayer = yfTeam?.findPlayerByName(playerObj.name);
-                  if (yfPlayer) this.playersById[playerObj.id] = yfPlayer;
-                }
-              }
-            }
+            this.typesByIdArraysAddTeam(qbjTeam);
           }
         }
         for (const atObj of (obj as IQbjTournament).scoringRules?.answerTypes || []) {
-          if (atObj.id) {
-            const yfAnswerType = this.tourn.scoringRules.findAnswerTypeById(atObj.id);
-            if (yfAnswerType) this.answerTypesById[atObj.id] = yfAnswerType;
-          }
+          this.typesByIdArraysAddAnswerType(atObj);
         }
       }
+    }
+  }
+
+  typesByIdArraysAddTeam(teamObj: IQbjObject) {
+    if (teamObj.id) {
+      const yfTeam = this.tourn.findTeamById(teamObj.id);
+      if (yfTeam) this.teamsById[teamObj.id] = yfTeam;
+      for (const playerObj of (teamObj as IQbjTeam).players || []) {
+        this.typesByIdArraysAddPlayer(playerObj, yfTeam);
+      }
+    }
+  }
+
+  typesByIdArraysAddPlayer(playerObj: IQbjObject, yfTeam?: Team) {
+    if (playerObj.id) {
+      const playerName = (playerObj as IQbjPlayer).name;
+      const yfPlayer = yfTeam ? yfTeam.findPlayerByName(playerName) : this.tourn.findPlayerByName(playerName);
+      if (yfPlayer) this.playersById[playerObj.id] = yfPlayer;
+    }
+  }
+
+  typesByIdArraysAddAnswerType(atObj: IQbjObject) {
+    if (atObj.id) {
+      const yfAnswerType = this.tourn.scoringRules.findAnswerTypeById(atObj.id);
+      if (yfAnswerType) this.answerTypesById[atObj.id] = yfAnswerType;
     }
   }
 }
