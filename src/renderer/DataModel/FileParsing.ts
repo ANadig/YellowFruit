@@ -863,6 +863,7 @@ export default class FileParser {
 
     const answerType = this.resolveAnswerTypeIdentity(qbjPlayerAnswerCount.answerType as IIndeterminateQbj);
     if (!answerType) {
+      if ((qbjPlayerAnswerCount.answerType as IQbjAnswerType).value === 0) return null; // if the data has 0-point buzzes, but the YF file can't use them, that isn't a problem
       throw new Error('Failed to associate a PlayerAnswerCount object with a valid AnswerType');
     }
     const count = dropZero(qbjPlayerAnswerCount.number);
