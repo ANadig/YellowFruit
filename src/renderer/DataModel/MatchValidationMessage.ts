@@ -31,6 +31,8 @@ export enum MatchValidationType {
   BouncebackConvOver100 = 'BouncebackConvOver100',
   TotalScoreAndTuPtsMismatch = 'TotalScoreAndTuPtsMismatch',
   ImportTwoMatchesSameTeam = 'ImportTwoMatchesSameTeam',
+  TuPlusLtngNotEqualTotal = 'TuPlusLtngNotEqualTotal',
+  LightningDivisorMismatch = 'LightningDivisorMismatch',
 }
 
 export interface IYftFileMatchValidationMsg {

@@ -45,14 +45,14 @@ function BonusSettingsCard() {
       </FormGroup>
       {useBonuses && (
         <>
-          <Grid container>
+          <Grid container sx={{ cursor: 'pointer ' }} onClick={() => setAdvancedExpanded(!advancedExpanded)}>
             <Grid xs>
               <Typography sx={{ marginTop: 1.3 }} variant="subtitle2">
                 Advanced
               </Typography>
             </Grid>
             <Grid xs="auto">
-              <ExpandButton expand={advancedExpanded} onClick={() => setAdvancedExpanded(!advancedExpanded)}>
+              <ExpandButton expand={advancedExpanded}>
                 <ExpandMore />
               </ExpandButton>
             </Grid>
@@ -200,7 +200,7 @@ interface IAdvancedBonusFieldProps {
   maxValue: number;
 }
 
-function AdvancedBonusField(props: IAdvancedBonusFieldProps) {
+export function AdvancedBonusField(props: IAdvancedBonusFieldProps) {
   const { label, required, value, onChange, onBlur, disabled, minValue, maxValue } = props;
   const [error, setError] = useState(false);
 

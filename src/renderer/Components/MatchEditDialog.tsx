@@ -155,6 +155,13 @@ function MatchEditDialogCore() {
                 <BounceBackRow whichTeam="right" />
               </Grid>
               {/** sixth row */}
+              <Grid xs={6}>
+                <LightningRow whichTeam="left" />
+              </Grid>
+              <Grid xs={6}>
+                <LightningRow whichTeam="right" />
+              </Grid>
+              {/** seventh row */}
               <Grid xs={12} lg={6}>
                 <OvertimeSection />
               </Grid>
@@ -687,10 +694,15 @@ function BounceBackRow(props: IBounceBackRowProps) {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 } }}>
-      <div>
-        &emsp;&nbsp;<b>Bouncebacks:</b>&emsp;
-      </div>
+    <Box
+      sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        paddingBottom: 2,
+        '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 },
+      }}
+    >
+      <div>&emsp;&nbsp;Bouncebacks:&emsp;</div>
       <TextField
         sx={{ width: '6ch' }}
         type="number"
@@ -709,6 +721,55 @@ function BounceBackRow(props: IBounceBackRowProps) {
       <div>
         pts&emsp;|&emsp;{`${partsHrd} parts heard`}&emsp;|&emsp;{`${conversionPct}% success rate`}
       </div>
+    </Box>
+  );
+}
+
+interface ILightningRowProps {
+  whichTeam: LeftOrRight;
+}
+
+function LightningRow(props: ILightningRowProps) {
+  const { whichTeam } = props;
+  const modalManager = useContext(MatchEditModalContext);
+  const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
+  const rules = modalManager.tournament.scoringRules;
+  const [ltngPts, setLtngPts] = useSubscription(matchTeam.lightningPoints?.toString() || '');
+  const divisor = rules.lightningDivisor;
+  const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
+
+  if (!modalManager.tournament.scoringRules.useLightningRounds() || matchTeam === undefined || forfeit) return null;
+
+  const handleBlur = () => {
+    const valToUse = modalManager.setLightningPoints(whichTeam, ltngPts);
+    setLtngPts(valToUse?.toString() || '');
+  };
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        paddingBottom: 2,
+        '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 },
+      }}
+    >
+      <div>&emsp;&nbsp;Lightning Round:&emsp;</div>
+      <TextField
+        sx={{ width: '6ch' }}
+        type="number"
+        inputProps={{ min: 0, step: divisor }}
+        fullWidth
+        variant="standard"
+        size="small"
+        value={ltngPts}
+        onChange={(e) => setLtngPts(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleBlur();
+        }}
+      />
+      <div>pts</div>
     </Box>
   );
 }
@@ -734,7 +795,7 @@ function OvertimeSection() {
         </Grid>
       </Box>
       <Collapse in={formExpanded}>
-        <Grid container columnSpacing={1} sx={{ marginTop: 1 }}>
+        <Grid container columnSpacing={1} sx={{ marginTop: 1, paddingBottom: 1 }}>
           <Grid xs={3}>
             <OvertimeTuReadField />
           </Grid>
@@ -805,7 +866,7 @@ function OvertimeBuzzesRow(props: IOverTimeRowProps) {
   return (
     <Grid container columns={9} columnSpacing={1}>
       <Grid xs md={4} lg>
-        <span style={{ verticalAlign: 'sub' }}>{matchTeam.team?.name || ''}</span>
+        <span style={{ verticalAlign: 'sub' }}>{matchTeam.team?.name || <span>&nbsp;</span>}</span>
       </Grid>
       {otBuzzes.map((ac) => (
         <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} xs={1} isOvertimeStats disabled={disabled} />

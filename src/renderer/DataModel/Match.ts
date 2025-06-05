@@ -296,6 +296,11 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     mt.validateBouncebackPoints();
   }
 
+  setLightningPoints(whichTeam: LeftOrRight, points: number | undefined) {
+    const mt = this.getMatchTeam(whichTeam);
+    mt.lightningPoints = points;
+  }
+
   setForfeit(whichTeam: LeftOrRight, isForfeit: boolean) {
     const mt = this.getMatchTeam(whichTeam);
     mt.forfeitLoss = isForfeit;

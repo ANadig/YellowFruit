@@ -713,6 +713,12 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  setLightningDivisor(val: number) {
+    this.tournament.scoringRules.lightningDivisor = val;
+    this.tournament.clearStdRuleSet();
+    this.onDataChanged();
+  }
+
   setStandardSchedule(sched: StandardSchedule) {
     this.tournament.setStandardSchedule(sched);
     this.onDataChanged();

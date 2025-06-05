@@ -477,6 +477,8 @@ export class PoolTeamStats {
 
   ties: number = 0;
 
+  nonForfeitMatches: number = 0;
+
   /** Including overtime */
   tuhTotal: number = 0;
 
@@ -568,6 +570,16 @@ export class PoolTeamStats {
     return `${bbConv}%`;
   }
 
+  getLightningPtsPerMatch() {
+    return this.lightningPoints / this.nonForfeitMatches;
+  }
+
+  getLightningPtsPerMatchString() {
+    const ppm = this.getLightningPtsPerMatch();
+    if (Number.isNaN(ppm)) return '-';
+    return ppm.toFixed(1).toString();
+  }
+
   /** Do we need a tiebreaker with this team to determine where they advance to? */
   needsTiebreakerWith(other: PoolTeamStats) {
     if (this.rank !== other.rank) return false;
@@ -586,6 +598,7 @@ export class PoolTeamStats {
 
     if (match.isForfeit()) return;
 
+    this.nonForfeitMatches += 1;
     const matchTeam = match.getMatchTeam(whichTeam);
     this.totalPoints += matchTeam.points || 0;
     this.totalPointsForPPG += matchTeam.getPointsForPPG(this.scoringRules);
@@ -734,6 +747,8 @@ export class RoundStats {
 
   bonusPoints: number = 0;
 
+  lightningPoints: number = 0;
+
   /** Number of bonus parts converted by the rebounding team */
   bouncebackPartsConverted: number = 0;
 
@@ -798,6 +813,10 @@ export class RoundStats {
     return (100 * (this.getBonusPartsConvControlling() + this.bouncebackPartsConverted)) / this.getBonusPartsHeard();
   }
 
+  getLightningPointsPerTeamPerMatch() {
+    return this.lightningPoints / this.games / 2;
+  }
+
   addMatch(match: Match) {
     if (match.isForfeit()) return;
 
@@ -808,6 +827,8 @@ export class RoundStats {
 
     this.points += match.leftTeam.points ?? 0;
     this.points += match.rightTeam.points ?? 0;
+    this.lightningPoints += match.leftTeam.lightningPoints ?? 0;
+    this.lightningPoints += match.rightTeam.lightningPoints ?? 0;
     this.addMatchAnswerCounts(match);
     this.bonusPoints += match.leftTeam.getBonusPoints();
     this.bonusPoints += match.rightTeam.getBonusPoints();

@@ -380,6 +380,15 @@ export class TempMatchManager {
     return valToSave;
   }
 
+  setLightningPoints(whichTeam: LeftOrRight, val: string): number | undefined {
+    const parsed = parseInt(val, 10);
+    const valToSave = Number.isNaN(parsed) ? undefined : parsed;
+    this.tempMatch.setLightningPoints(whichTeam, valToSave);
+    this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
+    this.dataChangedReactCallback();
+    return valToSave;
+  }
+
   setNotes(notes: string) {
     this.tempMatch.notes = notes;
     this.dataChangedReactCallback();

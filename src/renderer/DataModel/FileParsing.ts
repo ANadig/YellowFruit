@@ -276,6 +276,15 @@ export default class FileParser {
       throw new Error(`Scoring Rules: Invalid lightning rounds per team setting: ${lightningCount}`);
     }
     yftScoringRules.lightningCountPerTeam = lightningCount > 0 ? 1 : 0;
+    if (lightningCount < 1) return;
+
+    const { lightningDivisor } = sourceQbj;
+    if (lightningDivisor === undefined) return;
+
+    if (badInteger(lightningDivisor, 0, 1000)) {
+      throw new Error(`Scoring Rules: Invalid lightning round divisor setting: ${lightningDivisor}`);
+    }
+    yftScoringRules.lightningDivisor = lightningDivisor;
   }
 
   parseAnswerType(obj: IIndeterminateQbj): AnswerType | null {

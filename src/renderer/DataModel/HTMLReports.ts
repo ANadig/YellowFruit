@@ -209,6 +209,9 @@ export default class HtmlReportGenerator {
     if (this.tournament.scoringRules.bonusesBounceBack) {
       cells.push(stdTdHeader(this.abbr(StatTypes.bbPct), true));
     }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(stdTdHeader(this.abbr(StatTypes.ltngPerMtch), true));
+    }
     if (nextPhase?.anyTeamsAssigned()) {
       cells.push(stdTdHeader(this.abbr(StatTypes.advancedTo)));
     } else if (nextPhase && this.tournament.usingScheduleTemplate) {
@@ -269,6 +272,9 @@ export default class HtmlReportGenerator {
       const bbConv = teamStats.getBouncebackConvPctString();
       const bbConvStr = bbConv === '-' ? mDashHtml : bbConv;
       cells.push(tdTag({ align: 'right' }, bbConvStr));
+    }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(tdTag({ align: 'right' }, teamStats.getLightningPtsPerMatchString()));
     }
 
     if (nextPhase?.anyTeamsAssigned()) {
@@ -442,11 +448,12 @@ export default class HtmlReportGenerator {
       genericTagWithAttributes('div', [classAttribute(cssClasses.boxScoreTableContainer)], leftTable, rightTable),
     );
 
-    if (this.tournament.scoringRules.useBonuses) {
+    if (this.tournament.scoringRules.useBonuses || this.tournament.scoringRules.useLightningRounds()) {
       segments.push('<br />');
-      segments.push(this.boxScoreBonusTable(match));
     }
+    if (this.tournament.scoringRules.useBonuses) segments.push(this.boxScoreBonusTable(match));
     if (this.tournament.scoringRules.bonusesBounceBack) segments.push(this.boxScoreBouncebackTable(match));
+    if (this.tournament.scoringRules.useLightningRounds()) segments.push(this.boxScoreLightningkTable(match));
     return segments.join('\n');
   }
 
@@ -547,6 +554,29 @@ export default class HtmlReportGenerator {
     return trTag(cells);
   }
 
+  private boxScoreLightningkTable(match: Match) {
+    const rows: string[] = [];
+    rows.push(this.boxScoreLightningkTableHeader());
+    rows.push(this.boxScoreLightningTableRow(match, 'left'));
+    rows.push(this.boxScoreLightningTableRow(match, 'right'));
+    return tableTag(rows, undefined, '30%');
+  }
+
+  private boxScoreLightningkTableHeader() {
+    const cells: string[] = [];
+    cells.push(tdTag({ bold: true, width: '70%' }, 'Lightning Round'));
+    cells.push(tdTag({ bold: true, align: 'right', width: '30%' }, 'Pts'));
+    return trTag(cells);
+  }
+
+  private boxScoreLightningTableRow(match: Match, whichTeam: LeftOrRight) {
+    const cells: string[] = [];
+    const matchTeam = match.getMatchTeam(whichTeam);
+    cells.push(tdTag({}, matchTeam.team?.name ?? ''));
+    cells.push(tdTag({ align: 'right' }, matchTeam.lightningPoints?.toString() ?? '0'));
+    return trTag(cells);
+  }
+
   private getTeamDetailHtml() {
     if (!this.tournament.cumulativeStats) return '';
 
@@ -603,6 +633,9 @@ export default class HtmlReportGenerator {
       cells.push(stdTdHeader(this.abbr(StatTypes.bbPts), true));
       cells.push(stdTdHeader(this.abbr(StatTypes.bbPct), true));
     }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(stdTdHeader(this.abbr(StatTypes.lightning), true));
+    }
     return trTag(cells);
   }
 
@@ -645,6 +678,9 @@ export default class HtmlReportGenerator {
       cells.push(numericCell(forf ? '' : matchTeam.bonusBouncebackPoints?.toString() ?? '0'));
       cells.push(numericCell(forf ? '' : `${rate}%`));
     }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(numericCell(forf ? '' : matchTeam.lightningPoints?.toString() ?? '0'));
+    }
     return trTag(cells);
   }
 
@@ -672,6 +708,9 @@ export default class HtmlReportGenerator {
       cells.push(stdTdHeader(teamStats.bounceBackPartsHeard?.toString() ?? '0', true));
       cells.push(stdTdHeader(teamStats.bounceBackPartsHeard?.toString() ?? '0', true));
       cells.push(stdTdHeader(teamStats.getBouncebackConvPctString(), true));
+    }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(stdTdHeader(teamStats.lightningPoints.toString(), true));
     }
     return tableFooter(cells);
   }
@@ -834,7 +873,7 @@ export default class HtmlReportGenerator {
 
   private roundReportTableHeader(omitPhase: boolean = false) {
     const cells: string[] = [];
-    const columnWidth = omitPhase ? '11%' : '10%';
+    const columnWidth = omitPhase ? '10%' : '9%';
     cells.push(stdTdHeader('Round'));
     if (!omitPhase) cells.push(stdTdHeader('Stage', false, '15%'));
     cells.push(stdTdHeader('Games', true, '10%'));
@@ -850,6 +889,9 @@ export default class HtmlReportGenerator {
     if (this.tournament.scoringRules.bonusesBounceBack) {
       cells.push(stdTdHeader(this.abbr(StatTypes.rrBbPct), true, columnWidth));
       cells.push(stdTdHeader(this.abbr(StatTypes.rrBonusPct), true, columnWidth));
+    }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(stdTdHeader(this.abbr(StatTypes.ltngPerTmPerGm), true, columnWidth));
     }
     return trTag(cells);
   }
@@ -880,6 +922,9 @@ export default class HtmlReportGenerator {
       cells.push(numericCell(`${stats.getBounceBackConvPct().toFixed(0)}%`));
       cells.push(numericCell(`${stats.getTotalBonusConvPct().toFixed(0)}%`));
     }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(numericCell(stats.getLightningPointsPerTeamPerMatch().toFixed(1)));
+    }
     return trTag(cells);
   }
 
@@ -902,6 +947,9 @@ export default class HtmlReportGenerator {
     if (this.tournament.scoringRules.bonusesBounceBack) {
       cells.push(stdTdHeader(`${tournTotals.getBounceBackConvPct().toFixed(0)}%`, true));
       cells.push(stdTdHeader(`${tournTotals.getTotalBonusConvPct().toFixed(0)}%`, true));
+    }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(stdTdHeader(tournTotals.getLightningPointsPerTeamPerMatch().toFixed(1), true));
     }
     return tableFooter(cells);
   }
