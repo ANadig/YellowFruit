@@ -68,7 +68,7 @@ function AdvancedSection() {
       <AdvancedBonusField
         label="Divisor"
         required
-        disabled={false}
+        disabled={tournManager.tournament.hasMatchData}
         value={divisor}
         minValue={1}
         maxValue={1000}
