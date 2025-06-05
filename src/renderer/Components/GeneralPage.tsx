@@ -53,6 +53,7 @@ function GeneralInfoCard() {
       <Box sx={{ '& .MuiTextField-root': { my: 1 } }}>
         <TextField
           label="Tournament Name"
+          spellCheck={false}
           fullWidth
           variant="outlined"
           size="small"
@@ -65,6 +66,7 @@ function GeneralInfoCard() {
         />
         <TextField
           label="Tournament Location"
+          spellCheck={false}
           fullWidth
           variant="outlined"
           size="small"
@@ -109,6 +111,7 @@ function QuestionSetCard() {
       <Box sx={{ '& .MuiTextField-root': { my: 1 } }}>
         <TextField
           label="Question Set"
+          spellCheck={false}
           fullWidth
           variant="outlined"
           size="small"
@@ -192,7 +195,7 @@ function BackupRecoveryNotice() {
 
   if (!recoveredBackup) return null;
 
-  const firstLine = "YellowFruit didn't shut down correctly. The following file is available to recover:"; // IDE gets made about the unescaped apostrophe if I put this in raw
+  const firstLine = "YellowFruit didn't shut down correctly. The following file is available to recover:"; // IDE gets mad about the unescaped apostrophe if I put this in raw
   return (
     <Grid xs={12}>
       <Alert
