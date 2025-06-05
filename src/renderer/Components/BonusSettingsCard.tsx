@@ -95,7 +95,12 @@ function AdvancedBonusSection() {
   };
 
   const handleMaxBonusPartsChange = (value: string) => {
-    const valueToSave = parseAndValidateStringToInt(value, parseInt(minBonusParts, 10), parseInt(minBonusParts, 10), 1000);
+    const valueToSave = parseAndValidateStringToInt(
+      value,
+      parseInt(minBonusParts, 10),
+      parseInt(minBonusParts, 10),
+      1000,
+    );
     setMaxBonusParts(valueToSave.toString());
     tournManager.setMaxPartsPerBonus(valueToSave);
 

@@ -122,6 +122,7 @@ function PoolNameField() {
       sx={{ marginTop: 1 }}
       fullWidth
       autoFocus
+      spellCheck={false}
       variant="outlined"
       size="small"
       label="Name"

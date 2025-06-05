@@ -74,6 +74,7 @@ function PhaseNameField() {
     <TextField
       sx={{ marginTop: 1 }}
       fullWidth
+      spellCheck={false}
       autoFocus
       variant="outlined"
       size="small"
