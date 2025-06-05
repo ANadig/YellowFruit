@@ -6,7 +6,7 @@ import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
 import { invalidInteger } from '../Utils/GeneralUtils';
-import { AdvancedBonusField } from './BonusSettingsCard';
+import { AdvancedNumericRuleField } from './BonusSettingsCard';
 import { ExpandButton } from '../Utils/GeneralReactUtils';
 
 function LightningRoundSettingsCard() {
@@ -65,7 +65,7 @@ function AdvancedSection() {
 
   return (
     <Box sx={{ '& .MuiInputBase-root': { fontSize: 12 } }}>
-      <AdvancedBonusField
+      <AdvancedNumericRuleField
         label="Divisor"
         required
         disabled={tournManager.tournament.hasMatchData}

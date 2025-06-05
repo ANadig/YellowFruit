@@ -134,7 +134,7 @@ function AdvancedBonusSection() {
   return (
     <Box sx={{ '& .MuiInputBase-root': { fontSize: 12 } }}>
       <Stack>
-        <AdvancedBonusField
+        <AdvancedNumericRuleField
           label="Max bonus score"
           required
           value={maxBonusScore}
@@ -144,7 +144,7 @@ function AdvancedBonusSection() {
           onChange={setMaxBonusScore}
           onBlur={() => handleMaxBonusScoreChange(maxBonusScore)}
         />
-        <AdvancedBonusField
+        <AdvancedNumericRuleField
           label="Min parts per bonus"
           required
           value={minBonusParts}
@@ -154,7 +154,7 @@ function AdvancedBonusSection() {
           onChange={setMinBonusParts}
           onBlur={() => handleMinBonusPartsChange(minBonusParts)}
         />
-        <AdvancedBonusField
+        <AdvancedNumericRuleField
           label="Max parts per bonus"
           required
           value={maxBonusParts}
@@ -164,7 +164,7 @@ function AdvancedBonusSection() {
           onChange={setMaxBonusParts}
           onBlur={() => handleMaxBonusPartsChange(maxBonusParts)}
         />
-        <AdvancedBonusField
+        <AdvancedNumericRuleField
           label="Pts per bonus part"
           required={false}
           value={ptsPerPart}
@@ -174,7 +174,7 @@ function AdvancedBonusSection() {
           onChange={setPtsPerPart}
           onBlur={() => handlePtsPerPartChange(ptsPerPart)}
         />
-        <AdvancedBonusField
+        <AdvancedNumericRuleField
           label="Divisor"
           required
           value={divisor}
@@ -189,7 +189,7 @@ function AdvancedBonusSection() {
   );
 }
 
-interface IAdvancedBonusFieldProps {
+interface IAdvancedNumericRuleFieldProps {
   label: string;
   required: boolean;
   value: string;
@@ -200,7 +200,8 @@ interface IAdvancedBonusFieldProps {
   maxValue: number;
 }
 
-export function AdvancedBonusField(props: IAdvancedBonusFieldProps) {
+/** small numeric field used for advanced settings like divisors */
+export function AdvancedNumericRuleField(props: IAdvancedNumericRuleFieldProps) {
   const { label, required, value, onChange, onBlur, disabled, minValue, maxValue } = props;
   const [error, setError] = useState(false);
 

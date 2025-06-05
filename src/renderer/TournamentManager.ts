@@ -326,7 +326,7 @@ export class TournamentManager {
   }
 
   /**
-   * Import multiple matchese from an arbitrary QBJ file
+   * Import multiple matches from an arbitrary QBJ file
    * @param fileObj top-level file JSON object
    * @param phase phase we're importing matches into
    * @param round round we're importing matches into
