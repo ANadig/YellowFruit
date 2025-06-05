@@ -408,6 +408,17 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return 'tie';
   }
 
+  getOvertimeSummary() {
+    if (!this.overtimeTossupsRead || this.overtimeTossupsRead < 1) {
+      return 'None';
+    }
+    if (!this.leftTeam.team || !this.rightTeam.team) return '';
+
+    return `${this.overtimeTossupsRead} TU read, ${
+      this.leftTeam.team.name
+    } ${this.leftTeam.getOvertimePoints()} pts,  ${this.rightTeam.team.name} ${this.rightTeam.getOvertimePoints()} pts`;
+  }
+
   /** Get the list of previously calculated error messages (does NOT revalidate) */
   getErrorMessages(ignoreHidden: boolean = false): string[] {
     let errs: string[] = [];

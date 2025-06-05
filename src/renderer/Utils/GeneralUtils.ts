@@ -106,3 +106,9 @@ export function getFileNameFromPath(path: string) {
   const filePathSegments = path.split(/[\\/]/);
   return filePathSegments.pop();
 }
+
+/** Truncate a string to a desired length, appending an ellipsis if truncation was done */
+export function trunc(s: string, size: number) {
+  if (s.length <= size) return s;
+  return `${s.substring(0, size)}...`;
+}

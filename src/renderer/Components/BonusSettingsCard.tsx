@@ -1,23 +1,12 @@
 import Grid from '@mui/material/Unstable_Grid2';
-import {
-  FormGroup,
-  FormControlLabel,
-  Switch,
-  Typography,
-  TextField,
-  Stack,
-  Box,
-  Collapse,
-  IconButton,
-  styled,
-  IconButtonProps,
-} from '@mui/material';
+import { FormGroup, FormControlLabel, Switch, Typography, TextField, Stack, Box, Collapse } from '@mui/material';
 import { ChangeEvent, useContext, useEffect, useState } from 'react';
 import { ExpandMore } from '@mui/icons-material';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
 import { invalidInteger } from '../Utils/GeneralUtils';
+import { ExpandButton } from '../Utils/GeneralReactUtils';
 
 function BonusSettingsCard() {
   const tournManager = useContext(TournamentContext);
@@ -263,24 +252,6 @@ function InlineLabel(props: { text: string }) {
     </div>
   );
 }
-
-interface ExpandButtonProps extends IconButtonProps {
-  expand: boolean;
-}
-
-// from https://mui.com/material-ui/react-card/
-const ExpandButton = styled((props: ExpandButtonProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { expand, ...other } = props;
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  return <IconButton {...other} />;
-})(({ theme, expand }) => ({
-  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-  marginLeft: 'auto',
-  transition: theme.transitions.create('transform', {
-    duration: theme.transitions.duration.shortest,
-  }),
-}));
 
 function intValueToUse(str: string, deflt: number, lowerBound?: number, upperBound?: number) {
   if (str === '') return deflt;

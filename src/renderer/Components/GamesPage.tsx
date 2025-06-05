@@ -207,6 +207,11 @@ function MatchListItem(props: IMatchListItemProps) {
           {match.carryoverPhases.length > 0 && `Carries over to: ${match.listCarryoverPhases()}`}
         </Typography>
         {match.importedFile && <Typography variant="body2">{`Imported from ${match.importedFile}`}</Typography>}
+        {match.notes && (
+          <Typography variant="body2" color="gray">
+            {match.notes}
+          </Typography>
+        )}
       </Grid>
       <Grid xs={2}>
         {validationStatus === ValidationStatuses.Error && (

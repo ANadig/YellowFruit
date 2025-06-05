@@ -380,6 +380,11 @@ export class TempMatchManager {
     return valToSave;
   }
 
+  setNotes(notes: string) {
+    this.tempMatch.notes = notes;
+    this.dataChangedReactCallback();
+  }
+
   /** Allow the tossup value fields to immediately become enabled when a value changes, so that tab order works */
   enableOtFieldsOverride(enabled: boolean) {
     this.otFieldsEnabledOverride = enabled;

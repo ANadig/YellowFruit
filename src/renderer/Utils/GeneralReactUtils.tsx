@@ -1,4 +1,4 @@
-import { Button, styled } from '@mui/material';
+import { Button, IconButton, IconButtonProps, styled } from '@mui/material';
 
 export enum YfCssClasses {
   HotkeyUnderline = 'yf-hotkey-underline',
@@ -32,4 +32,22 @@ export const LinkButton = styled(Button)(({ theme }) => ({
   textTransform: 'none',
   padding: 0,
   ...theme.typography.body2,
+}));
+
+interface ExpandButtonProps extends IconButtonProps {
+  expand: boolean;
+}
+
+// from https://mui.com/material-ui/react-card/
+export const ExpandButton = styled((props: ExpandButtonProps) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { expand, ...other } = props;
+  // eslint-disable-next-line react/jsx-props-no-spreading
+  return <IconButton {...other} />;
+})(({ theme, expand }) => ({
+  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
+  marginLeft: 'auto',
+  transition: theme.transitions.create('transform', {
+    duration: theme.transitions.duration.shortest,
+  }),
 }));
