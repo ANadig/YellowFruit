@@ -5,7 +5,7 @@ import { ExpandMore } from '@mui/icons-material';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
-import { invalidInteger } from '../Utils/GeneralUtils';
+import { parseAndValidateStringToInt, invalidInteger } from '../Utils/GeneralUtils';
 import { ExpandButton } from '../Utils/GeneralReactUtils';
 
 function BonusSettingsCard() {
@@ -78,7 +78,7 @@ function AdvancedBonusSection() {
 
   const handleMaxBonusScoreChange = (value: string) => {
     const deflt = ptsPerPart !== '' ? parseInt(ptsPerPart, 10) * parseInt(maxBonusParts, 10) : 30;
-    const valueToSave = intValueToUse(value, deflt, 1, 1000);
+    const valueToSave = parseAndValidateStringToInt(value, deflt, 1, 1000);
     setMaxBonusScore(valueToSave.toString());
     tournManager.setMaxBonusScore(valueToSave);
 
@@ -89,13 +89,13 @@ function AdvancedBonusSection() {
   };
 
   const handleMinBonusPartsChange = (value: string) => {
-    const valueToSave = intValueToUse(value, parseInt(maxBonusParts, 10), 1, parseInt(maxBonusParts, 10));
+    const valueToSave = parseAndValidateStringToInt(value, parseInt(maxBonusParts, 10), 1, parseInt(maxBonusParts, 10));
     setMinBonusParts(valueToSave.toString());
     tournManager.setMinPartsPerBonus(valueToSave);
   };
 
   const handleMaxBonusPartsChange = (value: string) => {
-    const valueToSave = intValueToUse(value, parseInt(minBonusParts, 10), parseInt(minBonusParts, 10), 1000);
+    const valueToSave = parseAndValidateStringToInt(value, parseInt(minBonusParts, 10), parseInt(minBonusParts, 10), 1000);
     setMaxBonusParts(valueToSave.toString());
     tournManager.setMaxPartsPerBonus(valueToSave);
 
@@ -111,7 +111,7 @@ function AdvancedBonusSection() {
       tournManager.setPtsPerBonusPart(undefined);
       return;
     }
-    const valueToSave = intValueToUse(value, thisTournamentRules.pointsPerBonusPart || 10, 1, 1000);
+    const valueToSave = parseAndValidateStringToInt(value, thisTournamentRules.pointsPerBonusPart || 10, 1, 1000);
     setPtsPerPart(valueToSave.toString());
     tournManager.setPtsPerBonusPart(valueToSave);
 
@@ -125,7 +125,7 @@ function AdvancedBonusSection() {
 
   const handleDivisorChange = (value: string) => {
     const maxBonusScoreInt = parseInt(maxBonusScore, 10);
-    let valueToSave = intValueToUse(value, thisTournamentRules.bonusDivisor, 1, maxBonusScoreInt);
+    let valueToSave = parseAndValidateStringToInt(value, thisTournamentRules.bonusDivisor, 1, maxBonusScoreInt);
     if (maxBonusScoreInt % valueToSave) valueToSave = thisTournamentRules.bonusDivisor;
     setDivisor(valueToSave.toString());
     tournManager.setBonusDivisor(valueToSave);
@@ -252,12 +252,6 @@ function InlineLabel(props: { text: string }) {
       <Typography variant="body2">{text}</Typography>
     </div>
   );
-}
-
-function intValueToUse(str: string, deflt: number, lowerBound?: number, upperBound?: number) {
-  if (str === '') return deflt;
-  if (invalidInteger(str, lowerBound, upperBound)) return deflt;
-  return parseInt(str, 10);
 }
 
 export default BonusSettingsCard;

@@ -5,7 +5,7 @@ import { ExpandMore } from '@mui/icons-material';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
-import { invalidInteger } from '../Utils/GeneralUtils';
+import { parseAndValidateStringToInt } from '../Utils/GeneralUtils';
 import { AdvancedNumericRuleField } from './BonusSettingsCard';
 import { ExpandButton } from '../Utils/GeneralReactUtils';
 
@@ -58,7 +58,7 @@ function AdvancedSection() {
 
   const handleDivisorChange = (value: string) => {
     const deflt = tournManager.tournament.scoringRules.lightningDivisor;
-    const valueToSave = intValueToUse(value, deflt, 1, 1000);
+    const valueToSave = parseAndValidateStringToInt(value, deflt, 1, 1000);
     setDivisor(valueToSave.toString());
     tournManager.setLightningDivisor(valueToSave);
   };
@@ -77,12 +77,6 @@ function AdvancedSection() {
       />
     </Box>
   );
-}
-
-function intValueToUse(str: string, deflt: number, lowerBound?: number, upperBound?: number) {
-  if (str === '') return deflt;
-  if (invalidInteger(str, lowerBound, upperBound)) return deflt;
-  return parseInt(str, 10);
 }
 
 export default LightningRoundSettingsCard;
