@@ -43,6 +43,8 @@ export enum IpcMainToRend {
   GenerateBackup = 'GenerateBackup',
   /** Import an entire non-yft qbj file */
   ImportQbjTournament = 'ImportQbjTournament',
+  /** Import teams and rosters from a non-yft qbj file */
+  ImportQbjTeams = 'ImportQbjTeams',
 }
 
 /** Channels for both directions renderer<-->main */
@@ -72,6 +74,7 @@ export const rendererListenableEvents = [
   IpcMainToRend.CheckForUnsavedData,
   IpcMainToRend.GenerateBackup,
   IpcMainToRend.ImportQbjTournament,
+  IpcMainToRend.ImportQbjTeams,
   IpcBidirectional.ImportQbjGames,
   IpcBidirectional.ExportQbjFile,
 ];

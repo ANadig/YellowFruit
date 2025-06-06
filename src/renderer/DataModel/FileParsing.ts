@@ -66,6 +66,19 @@ export default class FileParser {
     }
   }
 
+  static findRegistrations(objectsFromFile: IQbjObject[]) {
+    const registrations: IQbjRegistration[] = [];
+    for (const obj of objectsFromFile) {
+      if (obj.type === QbjTypeNames.Registration) registrations.push(obj as IQbjRegistration);
+    }
+    const tourn = findTournamentObject(objectsFromFile);
+    if (tourn === null) return registrations;
+    for (const reg of tourn.registrations ?? []) {
+      if (!isQbjRefPointer(reg as IIndeterminateQbj)) registrations.push(reg);
+    }
+    return registrations;
+  }
+
   static findMatches(objectsFromFile: IQbjObject[]) {
     const matches: IQbjMatch[] = [];
     for (const obj of objectsFromFile) {
@@ -73,10 +86,10 @@ export default class FileParser {
     }
     const tourn = findTournamentObject(objectsFromFile);
     if (tourn === null) return matches;
-    for (const ph of tourn.phases || []) {
-      for (const rd of ph.rounds || []) {
-        for (const m of rd.matches || []) {
-          matches.push(m);
+    for (const ph of tourn.phases ?? []) {
+      for (const rd of ph.rounds ?? []) {
+        for (const m of rd.matches ?? []) {
+          if (!isQbjRefPointer(m as IIndeterminateQbj)) matches.push(m);
         }
       }
     }

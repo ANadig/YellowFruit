@@ -1,6 +1,7 @@
 import { app, Menu, BrowserWindow, MenuItemConstructorOptions, dialog } from 'electron';
 import {
   exportQbjFile,
+  importQbjTeams,
   promptForStatReportLocation,
   requestToSaveYftFile,
   tryFileSwitchAction,
@@ -35,9 +36,15 @@ export default class MenuBuilder {
           },
         },
         {
-          label: 'Open QBJ',
+          label: 'Open QBJ Tournament',
           click: () => {
             tryFileSwitchAction(this.mainWindow, FileSwitchActions.ImportQbjTournament);
+          },
+        },
+        {
+          label: 'Import Teams and Rosters only',
+          click: () => {
+            importQbjTeams(this.mainWindow);
           },
         },
       ],

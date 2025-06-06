@@ -8,7 +8,7 @@ import { IIndeterminateQbj, IQbjWholeFile, IRefTargetDict } from './DataModel/In
 import AnswerType from './DataModel/AnswerType';
 import StandardSchedule from './DataModel/StandardSchedule';
 import { Team } from './DataModel/Team';
-import Registration from './DataModel/Registration';
+import Registration, { IQbjRegistration } from './DataModel/Registration';
 import { TempTeamManager } from './Modal Managers/TempTeamManager';
 import { GenericModalManager } from './Modal Managers/GenericModalManager';
 import { collectRefTargets, findTournamentObject } from './DataModel/QbjUtils2';
@@ -142,6 +142,9 @@ export class TournamentManager {
     });
     window.electron.ipcRenderer.on(IpcMainToRend.GenerateBackup, () => {
       this.saveBackup();
+    });
+    window.electron.ipcRenderer.on(IpcMainToRend.ImportQbjTeams, (contents) => {
+      this.importQbjTeams(contents as string);
     });
     window.electron.ipcRenderer.on(IpcBidirectional.LoadBackup, (contents) => {
       this.parseBackup(contents as string);
@@ -287,6 +290,79 @@ export class TournamentManager {
     return (
       key === 'startDate' || key === 'endDate' || key === 'start_date' || key === 'end_date' || key === 'savedAtTime'
     );
+  }
+
+  importQbjTeams(fileContents: string) {
+    const objFromFile = this.parseJSON(fileContents) as IQbjWholeFile;
+    if (!objFromFile) return;
+
+    const objectList = objFromFile.objects;
+    if (!qbjFileValidVersion(objFromFile)) {
+      this.openGenericModal('Invalid File', "This file doesn't use a supported version of the tournament schema.");
+      return;
+    }
+
+    let refTargets: IRefTargetDict = {};
+    try {
+      refTargets = collectRefTargets(objectList);
+    } catch (err: any) {
+      this.openGenericModal('Invalid File', err.message);
+      return;
+    }
+
+    const registrationList = FileParser.findRegistrations(objectList);
+    if (registrationList.length === 0) {
+      this.openGenericModal('Invalid File', 'This file contains no Registration objects.');
+      return;
+    }
+
+    const parser = new FileParser(refTargets, this.tournament);
+    parser.buildTypesByIdArrays(objectList);
+    let numTeamsImported = 0;
+    for (const reg of registrationList) {
+      numTeamsImported += this.importSingleRegistrationObj(reg, parser);
+    }
+
+    if (numTeamsImported === 0) {
+      this.openGenericModal(
+        'Team Import',
+        `No teams were imported because no new teams were found or the maximum number of teams was reached.`,
+      );
+    } else {
+      this.openGenericModal('Team Import', `Imported ${numTeamsImported} teams.`);
+    }
+  }
+
+  /** Import a match based only on a single QBJ Match object and nothing else */
+  private importSingleRegistrationObj(registration: IQbjRegistration, parser: FileParser) {
+    let registrationFromFile;
+    try {
+      registrationFromFile = parser.parseRegistration(registration as IIndeterminateQbj);
+    } catch (err: any) {
+      // TODO: track errors?
+      return 0;
+    }
+    if (!registrationFromFile) return 0;
+
+    let numTeamsImported = 0;
+    const maxTeamsAllowed = this.tournament.getExpectedNumberOfTeams();
+    const existingRegistration = this.tournament.findRegistration(registrationFromFile.name);
+    if (existingRegistration) {
+      for (const teamFromFile of registrationFromFile.teams) {
+        if (!this.tournament.findTeamByName(teamFromFile.name)) {
+          existingRegistration.addTeam(teamFromFile);
+          numTeamsImported++;
+        }
+        if (this.tournament.getNumberOfTeams() === maxTeamsAllowed) return numTeamsImported;
+      }
+    } else {
+      if (this.tournament.getNumberOfTeams() + registrationFromFile.teams.length > (maxTeamsAllowed ?? 0)) {
+        return 0;
+      }
+      this.tournament.addRegistration(registrationFromFile);
+      numTeamsImported = registrationFromFile.teams.length;
+    }
+    return numTeamsImported;
   }
 
   /** Tell main to launch the file selection window for importing matches to the given round */

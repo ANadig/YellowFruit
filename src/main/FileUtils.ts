@@ -93,7 +93,7 @@ function openYftFile(mainWindow: BrowserWindow) {
 function importQbjTournament(mainWindow: BrowserWindow) {
   const fileNameAry = dialog.showOpenDialogSync(mainWindow, {
     title: 'Open File',
-    filters: [{ name: 'QBJ Tournament Schema', extensions: ['qbj'] }],
+    filters: [{ name: 'Tournament Schema', extensions: ['qbj', 'json'] }],
   });
   if (!fileNameAry) return;
 
@@ -103,6 +103,22 @@ function importQbjTournament(mainWindow: BrowserWindow) {
       return;
     }
     mainWindow.webContents.send(IpcMainToRend.ImportQbjTournament, fileNameAry[0], fileContents);
+  });
+}
+
+export function importQbjTeams(mainWindow: BrowserWindow) {
+  const fileNameAry = dialog.showOpenDialogSync(mainWindow, {
+    title: 'Import Teams',
+    filters: [{ name: 'Tournament Schema', extensions: ['qbj', 'json'] }],
+  });
+  if (!fileNameAry) return;
+
+  fs.readFile(fileNameAry[0], { encoding: 'utf8' }, (err, fileContents) => {
+    if (err) {
+      dialog.showMessageBoxSync(mainWindow, { message: `Error reading file: \n\n ${err.message}` });
+      return;
+    }
+    mainWindow.webContents.send(IpcMainToRend.ImportQbjTeams, fileContents);
   });
 }
 
