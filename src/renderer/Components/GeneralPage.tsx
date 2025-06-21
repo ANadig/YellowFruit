@@ -10,6 +10,7 @@ import {
   ListItem,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material';
 import { useContext } from 'react';
 import { DatePicker } from '@mui/x-date-pickers';
@@ -19,6 +20,8 @@ import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import YfCard from './YfCard';
 import { NullDate } from '../Utils/UtilTypes';
+import { CollapsibleArea } from '../Utils/GeneralReactUtils';
+import { Round } from '../DataModel/Round';
 
 function GeneralPage() {
   return (
@@ -108,7 +111,7 @@ function QuestionSetCard() {
 
   return (
     <YfCard title="Question Set">
-      <Box sx={{ '& .MuiTextField-root': { my: 1 } }}>
+      <Box sx={{ '& .MuiTextField-root': { my: 1 }, paddingBottom: 2 }}>
         <TextField
           label="Question Set"
           spellCheck={false}
@@ -123,7 +126,58 @@ function QuestionSetCard() {
           }}
         />
       </Box>
+      <CollapsibleArea title={<Typography variant="subtitle1">Packet Names</Typography>} secondaryTitle={null}>
+        <PacketNameFields />
+      </CollapsibleArea>
     </YfCard>
+  );
+}
+
+function PacketNameFields() {
+  const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
+
+  return thisTournament.phases.map((ph) => (
+    <div key={ph.name}>
+      <Typography variant="subtitle2" sx={{ paddingTop: 2 }}>
+        <div>{ph.name}</div>
+      </Typography>
+      <Box sx={{ marginLeft: 2 }}>
+        {ph.rounds.map((round) => (
+          <PacketNameField key={round.name} round={round} />
+        ))}
+      </Box>
+    </div>
+  ));
+}
+
+interface IPacketNameFieldProps {
+  round: Round;
+}
+
+function PacketNameField(props: IPacketNameFieldProps) {
+  const { round } = props;
+  const tournManager = useContext(TournamentContext);
+  const { packet } = round;
+  const [packetName, setPacketName] = useSubscription(packet.name);
+
+  return (
+    <Grid container sx={{ p: 1 }}>
+      <Grid xs={3}>{round.displayName()}</Grid>
+      <Grid xs={9}>
+        <TextField
+          variant="standard"
+          size="small"
+          fullWidth
+          value={packetName}
+          onChange={(e) => setPacketName(e.target.value)}
+          onBlur={() => tournManager.setPacketName(round, packetName)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') tournManager.setPacketName(round, packetName);
+          }}
+        />
+      </Grid>
+    </Grid>
   );
 }
 

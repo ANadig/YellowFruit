@@ -1,27 +1,22 @@
 import Grid from '@mui/material/Unstable_Grid2';
-import { FormGroup, FormControlLabel, Switch, Typography, TextField, Stack, Box, Collapse } from '@mui/material';
+import { FormGroup, FormControlLabel, Switch, Typography, TextField, Stack, Box } from '@mui/material';
 import { ChangeEvent, useContext, useEffect, useState } from 'react';
-import { ExpandMore } from '@mui/icons-material';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
 import { parseAndValidateStringToInt, invalidInteger } from '../Utils/GeneralUtils';
-import { ExpandButton } from '../Utils/GeneralReactUtils';
+import { CollapsibleArea } from '../Utils/GeneralReactUtils';
 
 function BonusSettingsCard() {
   const tournManager = useContext(TournamentContext);
   const thisTournamentRules = tournManager.tournament.scoringRules;
   const [useBonuses, setUseBonuses] = useSubscription(thisTournamentRules.useBonuses);
   const [bonusesBounce, setBonusesBounce] = useSubscription(thisTournamentRules.bonusesBounceBack);
-  const [advancedExpanded, setAdvancedExpanded] = useState(false);
   const readOnly = tournManager.tournament.hasMatchData;
 
   const handleUseBonusesChange = (e: ChangeEvent<HTMLInputElement>) => {
     setUseBonuses(e.target.checked);
     tournManager.setUseBonuses(e.target.checked);
-    if (!e.target.checked) {
-      setAdvancedExpanded(false);
-    }
   };
 
   const handleBonusesBounceChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -31,7 +26,7 @@ function BonusSettingsCard() {
 
   return (
     <YfCard title="Bonuses">
-      <FormGroup>
+      <FormGroup sx={{ paddingBottom: useBonuses ? 2 : 0 }}>
         <FormControlLabel
           label="Bonuses"
           control={<Switch disabled={readOnly} checked={useBonuses} onChange={handleUseBonusesChange} />}
@@ -44,23 +39,9 @@ function BonusSettingsCard() {
         />
       </FormGroup>
       {useBonuses && (
-        <>
-          <Grid container sx={{ cursor: 'pointer ' }} onClick={() => setAdvancedExpanded(!advancedExpanded)}>
-            <Grid xs>
-              <Typography sx={{ marginTop: 1.3 }} variant="subtitle2">
-                Advanced
-              </Typography>
-            </Grid>
-            <Grid xs="auto">
-              <ExpandButton expand={advancedExpanded}>
-                <ExpandMore />
-              </ExpandButton>
-            </Grid>
-          </Grid>
-          <Collapse in={advancedExpanded}>
-            <AdvancedBonusSection />
-          </Collapse>
-        </>
+        <CollapsibleArea title={<Typography variant="subtitle2">Advanced</Typography>} secondaryTitle={null}>
+          <AdvancedBonusSection />
+        </CollapsibleArea>
       )}
     </YfCard>
   );

@@ -462,6 +462,11 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return this.rounds.find((rd) => rd.number === roundNo);
   }
 
+  /** Do any rounds in this phase have a packet name defined? */
+  packetNamesExist() {
+    return !!this.rounds.find((rd) => rd.packet.name !== '');
+  }
+
   /**
    * Find a match between teams in this phase. Does NOT look at carryvoer -- use findMatchBetweenTeamsWithCarryOver
    * @param team1 One team

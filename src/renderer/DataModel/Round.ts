@@ -52,7 +52,7 @@ export class Round implements IQbjRound, IYftDataModelObject {
   description?: string;
 
   /** Packet used for the round. YF only supports one packet per round. */
-  packet?: Packet;
+  packet: Packet;
 
   /** The matches that took place in this round */
   matches: Match[] = [];
@@ -64,14 +64,18 @@ export class Round implements IQbjRound, IYftDataModelObject {
   constructor(roundNo: number, name?: string) {
     this.number = roundNo;
     if (name) this.name = name;
+    this.packet = new Packet();
   }
 
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjRound {
     const qbjObject: IQbjRound = {
       name: this.name,
       matches: this.matches.map((m) => m.toFileObject(qbjOnly)),
-      // TODO: packet
     };
+    if (this.packet.name) {
+      qbjObject.packets = [this.packet.toFileObject()];
+    }
+
     if (isTopLevel) qbjObject.type = QbjTypeNames.Round;
     if (isReferenced) qbjObject.id = this.id;
 

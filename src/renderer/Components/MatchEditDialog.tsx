@@ -30,7 +30,7 @@ import { DragIndicator, ExpandMore } from '@mui/icons-material';
 import { MatchEditModalContext } from '../Modal Managers/TempMatchManager';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import { ExpandButton, YfCssClasses, hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { CollapsibleArea, ExpandButton, YfCssClasses, hotkeyFormat } from '../Utils/GeneralReactUtils';
 import { ValidationStatuses } from '../DataModel/Interfaces';
 import { LeftOrRight } from '../Utils/UtilTypes';
 import { MatchPlayer } from '../DataModel/MatchPlayer';
@@ -878,24 +878,10 @@ function OvertimeBuzzesRow(props: IOverTimeRowProps) {
 function NotesCard() {
   const modalManager = useContext(MatchEditModalContext);
   const [notes, setNotes] = useSubscription(modalManager.tempMatch.notes || '');
-  const [formExpanded, setFormExpanded] = useState(false);
 
   return (
     <Card variant="outlined" sx={{ p: 1 }}>
-      <Box sx={{ cursor: 'pointer' }}>
-        <Grid container onClick={() => setFormExpanded(!formExpanded)}>
-          <Grid xs>
-            <b>Notes&emsp;</b>
-            {!formExpanded && <span>{trunc(notes, 70)}</span>}
-          </Grid>
-          <Grid xs="auto">
-            <ExpandButton expand={formExpanded} sx={{ p: 0 }}>
-              <ExpandMore />
-            </ExpandButton>
-          </Grid>
-        </Grid>
-      </Box>
-      <Collapse in={formExpanded}>
+      <CollapsibleArea title={<b>Notes&emsp;</b>} secondaryTitle={<span>{trunc(notes, 70)}</span>}>
         <TextField
           multiline
           spellCheck={false}
@@ -910,7 +896,7 @@ function NotesCard() {
             if (e.key === 'Enter') modalManager.setNotes(notes);
           }}
         />
-      </Collapse>
+      </CollapsibleArea>
     </Card>
   );
 }

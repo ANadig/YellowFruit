@@ -902,6 +902,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     }
   }
 
+  packetNamesExist() {
+    return !!this.phases.find((ph) => ph.packetNamesExist());
+  }
+
   /** Convert data to the current version's format */
   conversions() {
     if (versionLt(this.appVersion, '4.0.1')) {

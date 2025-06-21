@@ -636,6 +636,9 @@ export default class HtmlReportGenerator {
     if (this.tournament.scoringRules.useLightningRounds()) {
       cells.push(stdTdHeader(this.abbr(StatTypes.lightning), true));
     }
+    if (this.tournament.packetNamesExist()) {
+      cells.push(stdTdHeader('Packet'));
+    }
     return trTag(cells);
   }
 
@@ -681,6 +684,9 @@ export default class HtmlReportGenerator {
     if (this.tournament.scoringRules.useLightningRounds()) {
       cells.push(numericCell(forf ? '' : matchTeam.lightningPoints?.toString() ?? '0'));
     }
+    if (this.tournament.packetNamesExist()) {
+      cells.push(textCell(result.round.packet.name));
+    }
     return trTag(cells);
   }
 
@@ -711,6 +717,9 @@ export default class HtmlReportGenerator {
     }
     if (this.tournament.scoringRules.useLightningRounds()) {
       cells.push(stdTdHeader(teamStats.lightningPoints.toString(), true));
+    }
+    if (this.tournament.packetNamesExist()) {
+      cells.push(stdTdHeader(''));
     }
     return tableFooter(cells);
   }
@@ -893,6 +902,9 @@ export default class HtmlReportGenerator {
     if (this.tournament.scoringRules.useLightningRounds()) {
       cells.push(stdTdHeader(this.abbr(StatTypes.ltngPerTmPerGm), true, columnWidth));
     }
+    if (this.tournament.packetNamesExist()) {
+      cells.push(stdTdHeader('Packet'));
+    }
     return trTag(cells);
   }
 
@@ -925,6 +937,9 @@ export default class HtmlReportGenerator {
     if (this.tournament.scoringRules.useLightningRounds()) {
       cells.push(numericCell(stats.getLightningPointsPerTeamPerMatch().toFixed(1)));
     }
+    if (this.tournament.packetNamesExist()) {
+      cells.push(textCell(stats.round.packet.name));
+    }
     return trTag(cells);
   }
 
@@ -950,6 +965,9 @@ export default class HtmlReportGenerator {
     }
     if (this.tournament.scoringRules.useLightningRounds()) {
       cells.push(stdTdHeader(tournTotals.getLightningPointsPerTeamPerMatch().toFixed(1), true));
+    }
+    if (this.tournament.packetNamesExist()) {
+      cells.push(stdTdHeader(''));
     }
     return tableFooter(cells);
   }

@@ -1,4 +1,7 @@
-import { Button, IconButton, IconButtonProps, styled } from '@mui/material';
+import { Button, Collapse, IconButton, IconButtonProps, styled } from '@mui/material';
+import React, { useState } from 'react';
+import Grid from '@mui/material/Unstable_Grid2';
+import { ExpandMore } from '@mui/icons-material';
 
 export enum YfCssClasses {
   HotkeyUnderline = 'yf-hotkey-underline',
@@ -51,3 +54,31 @@ export const ExpandButton = styled((props: ExpandButtonProps) => {
     duration: theme.transitions.duration.shortest,
   }),
 }));
+
+interface ICollapsibleAreaProps {
+  title: React.JSX.Element | string;
+  secondaryTitle: React.JSX.Element | string | null;
+}
+
+/** A section that starts hidden and can be expanded */
+export function CollapsibleArea(props: React.PropsWithChildren<ICollapsibleAreaProps>) {
+  const { title, secondaryTitle, children } = props;
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <>
+      <Grid container sx={{ cursor: 'pointer' }} onClick={() => setIsExpanded(!isExpanded)}>
+        <Grid xs>
+          {title}
+          {!isExpanded && secondaryTitle}
+        </Grid>
+        <Grid xs="auto">
+          <ExpandButton expand={isExpanded} sx={{ py: 0 }}>
+            <ExpandMore />
+          </ExpandButton>
+        </Grid>
+      </Grid>
+      <Collapse in={isExpanded}>{children}</Collapse>
+    </>
+  );
+}

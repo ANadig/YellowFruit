@@ -345,7 +345,6 @@ export class TournamentManager {
         `No teams were imported because no new teams were found or the maximum number of teams was reached.`,
       );
     } else {
-      console.log(this.tournament.registrations);
       this.openGenericModal(
         'Team Import',
         `Imported ${numTeamsImported} teams.${
@@ -686,6 +685,15 @@ export class TournamentManager {
       return;
     }
     this.tournament.questionSet = trimmedName;
+    this.onDataChanged();
+  }
+
+  setPacketName(round: Round, packetName: string) {
+    const trimmedName = packetName.trim();
+    if (!textFieldChanged(round.packet.name, trimmedName)) {
+      return;
+    }
+    round.packet.name = trimmedName;
     this.onDataChanged();
   }
 

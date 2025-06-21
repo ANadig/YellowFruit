@@ -25,6 +25,7 @@ import Tournament, { IQbjTournament, IYftFileTournament } from './Tournament';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 import { QbjTypeNames } from './QbjEnums';
 import { findTournamentObject } from './QbjUtils2';
+import { IQbjPacket, Packet } from './Packet';
 
 /** Threshold (0 to 1 scale) for string matching of team and player names when importing data. Similarity must be at leaset this high for us to use the match. */
 const stringSimConfThreshold = 0.8;
@@ -663,9 +664,31 @@ export default class FileParser {
       return yftRound;
     }
     const yftRound = new Round(roundNumber);
+    const packetFromFile = this.parseRoundPacket(qbjRound);
+    if (packetFromFile) yftRound.packet = packetFromFile;
+
     if (yfExtraData?.nonNumericName) yftRound.name = yfExtraData.nonNumericName;
     yftRound.matches = this.parseRoundMatches(qbjRound);
     return yftRound;
+  }
+
+  // We only support one packet name - arbitrarily use the first packet
+  parseRoundPacket(sourceQbj: IQbjRound): Packet | null {
+    if (!sourceQbj.packets) return null;
+    if (sourceQbj.packets.length === 0) return null;
+    return this.parsePacket(sourceQbj.packets[0] as IIndeterminateQbj);
+  }
+
+  parsePacket(obj: IIndeterminateQbj): Packet | null {
+    const baseObj = getBaseQbjObject(obj, this.refTargets);
+    if (baseObj === null) return null;
+
+    const qbjPacket = baseObj as IQbjPacket;
+
+    const yfPacket = new Packet();
+    yfPacket.name = qbjPacket.name || '';
+
+    return yfPacket;
   }
 
   parseRoundMatches(sourceQbj: IQbjRound): Match[] {

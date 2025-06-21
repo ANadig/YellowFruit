@@ -1,20 +1,17 @@
-import { FormGroup, FormControlLabel, Switch, Box, Typography, Collapse } from '@mui/material';
-import { ChangeEvent, useContext, useState } from 'react';
-import Grid from '@mui/material/Unstable_Grid2';
-import { ExpandMore } from '@mui/icons-material';
+import { FormGroup, FormControlLabel, Switch, Box, Typography } from '@mui/material';
+import { ChangeEvent, useContext } from 'react';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
 import { parseAndValidateStringToInt } from '../Utils/GeneralUtils';
 import { AdvancedNumericRuleField } from './BonusSettingsCard';
-import { ExpandButton } from '../Utils/GeneralReactUtils';
+import { CollapsibleArea } from '../Utils/GeneralReactUtils';
 
 function LightningRoundSettingsCard() {
   const tournManager = useContext(TournamentContext);
   const thisTournamentRules = tournManager.tournament.scoringRules;
   const [useLightning, setUseLightning] = useSubscription(thisTournamentRules.lightningCountPerTeam > 0);
   const readOnly = tournManager.tournament.hasMatchData;
-  const [advancedExpanded, setAdvancedExpanded] = useState(false);
 
   const handleUseLightningChange = (e: ChangeEvent<HTMLInputElement>) => {
     setUseLightning(e.target.checked);
@@ -23,30 +20,16 @@ function LightningRoundSettingsCard() {
 
   return (
     <YfCard title="Lightning Round">
-      <FormGroup>
+      <FormGroup sx={{ paddingBottom: useLightning ? 2 : 0 }}>
         <FormControlLabel
           label="Use Lightning Round"
           control={<Switch checked={useLightning} disabled={readOnly} onChange={handleUseLightningChange} />}
         />
       </FormGroup>
       {useLightning && (
-        <>
-          <Grid container sx={{ cursor: 'pointer ' }} onClick={() => setAdvancedExpanded(!advancedExpanded)}>
-            <Grid xs>
-              <Typography sx={{ marginTop: 1.3 }} variant="subtitle2">
-                Advanced
-              </Typography>
-            </Grid>
-            <Grid xs="auto">
-              <ExpandButton expand={advancedExpanded}>
-                <ExpandMore />
-              </ExpandButton>
-            </Grid>
-          </Grid>
-          <Collapse in={advancedExpanded}>
-            <AdvancedSection />
-          </Collapse>
-        </>
+        <CollapsibleArea title={<Typography variant="subtitle2">Advanced</Typography>} secondaryTitle={null}>
+          <AdvancedSection />
+        </CollapsibleArea>
       )}
     </YfCard>
   );
