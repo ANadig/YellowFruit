@@ -12,7 +12,8 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Box from '@mui/material/Box';
 
 import { useContext, useEffect, useState } from 'react';
-import NavBar from './Components/NavBar';
+import { useHotkeys } from 'react-hotkeys-hook';
+import NavBar, { applicationPageOrder } from './Components/NavBar';
 import GeneralPage from './Components/GeneralPage';
 import { TournamentManager, TournamentContext } from './TournamentManager';
 import RulesPage from './Components/RulesPage';
@@ -80,6 +81,21 @@ function TournamentEditor() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mgr, mgr.tournament]);
+
+  useHotkeys('alt+shift+right', () => {
+    if (!mgr.anyModalOpen()) {
+      const activePageIdx = applicationPageOrder.indexOf(activePage);
+      setactivePage(applicationPageOrder[(activePageIdx + 1) % applicationPageOrder.length]);
+    }
+  });
+  useHotkeys('alt+shift+left', () => {
+    if (!mgr.anyModalOpen()) {
+      const activePageIdx = applicationPageOrder.indexOf(activePage);
+      setactivePage(
+        applicationPageOrder[(activePageIdx - 1 + applicationPageOrder.length) % applicationPageOrder.length],
+      );
+    }
+  });
 
   const changePage = (page: ApplicationPages) => {
     if (page === ApplicationPages.StatReport) {

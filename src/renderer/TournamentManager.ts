@@ -1269,6 +1269,19 @@ export class TournamentManager {
   closeGenericModal() {
     this.genericModalManager.close();
   }
+
+  anyModalOpen() {
+    return (
+      this.genericModalManager.isOpen ||
+      this.teamModalManager.modalIsOpen ||
+      this.matchModalManager.modalIsOpen ||
+      this.phaseModalManager.modalIsOpen ||
+      this.poolModalManager.modalIsOpen ||
+      this.rankModalManager.modalIsOpen ||
+      this.matchImportResultsManager.modalIsOpen ||
+      this.poolAssignmentModalManager.modalIsOpen
+    );
+  }
 }
 
 /** Represents an error state where we haven't properly created or loaded a tournament to edit */

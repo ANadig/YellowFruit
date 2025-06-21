@@ -21,7 +21,7 @@ const pageNames = {
   [ApplicationPages.StatReport]: 'Stat Report',
 };
 // Which order the pages should be in
-const pages = [
+export const applicationPageOrder = [
   ApplicationPages.General,
   ApplicationPages.Rules,
   ApplicationPages.Schedule,
@@ -85,7 +85,7 @@ function NavBar(props: INavBarProps) {
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              {pages.map((page) => (
+              {applicationPageOrder.map((page) => (
                 <MenuItem key={page} onClick={() => handlePageButtonClick(page)}>
                   <Typography textAlign="center">{pageNames[page]}</Typography>
                 </MenuItem>
@@ -93,7 +93,7 @@ function NavBar(props: INavBarProps) {
             </Menu>
           </Box>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' } }}>
-            {pages.map((page) => (
+            {applicationPageOrder.map((page) => (
               <Button
                 key={page}
                 onClick={() => handlePageButtonClick(page)}
