@@ -152,7 +152,11 @@ function TeamListItem(props: ITeamListItemProps) {
   if (isLastForReg) nextLetter = team.letter === '' ? 'B' : nextAlphabetLetter(team.letter);
 
   return (
-    <Grid container sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}>
+    <Grid
+      container
+      sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}
+      onDoubleClick={() => tournManager.openTeamEditModalExistingTeam(registration, team)}
+    >
       <Grid xs={9}>
         <Box typography="h5">{team.name}</Box>
         <Typography variant="body2">{teamInfoDisplay(registration, team)}</Typography>

@@ -200,7 +200,11 @@ function MatchListItem(props: IMatchListItemProps) {
   const validationStatus = match.getOverallValidationStatus();
 
   return (
-    <Grid container sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}>
+    <Grid
+      container
+      sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}
+      onDoubleClick={() => tournManager.openMatchEditModalExistingMatch(match, round)}
+    >
       <Grid xs={8}>
         <Box typography="h6">{match.getScoreString()}</Box>
         <Typography variant="body2">
