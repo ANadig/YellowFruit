@@ -572,12 +572,12 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   addRegAndTeam(regToAdd: Registration, teamToAdd: Team) {
     regToAdd.teams = [teamToAdd];
     this.addRegistration(regToAdd);
-    this.seedAndAssignNewTeam(teamToAdd);
   }
 
   addRegistration(regToAdd: Registration) {
     this.registrations.push(regToAdd);
     this.sortRegistrations();
+    this.seedTeamsInRegistration(regToAdd);
   }
 
   sortRegistrations() {

@@ -105,11 +105,11 @@ export class TournamentManager {
     this.matchImportResultsManager = new MatchImportResultsManager();
     this.inAppStatReportGenerated = new Date();
 
-    window.electron.ipcRenderer.sendMessage(IpcBidirectional.GetAppVersion);
+    this.requestAppVersion();
 
     this.newTournament();
 
-    window.electron.ipcRenderer.sendMessage(IpcBidirectional.LoadBackup);
+    this.requestBackupFile();
   }
 
   protected addIpcListeners() {
@@ -156,6 +156,16 @@ export class TournamentManager {
       this.appVersion = version as string;
       if (this.tournament) this.tournament.appVersion = this.appVersion;
     });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  protected requestAppVersion() {
+    window.electron.ipcRenderer.sendMessage(IpcBidirectional.GetAppVersion);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  protected requestBackupFile() {
+    window.electron.ipcRenderer.sendMessage(IpcBidirectional.LoadBackup);
   }
 
   private checkForUnsavedData(action: FileSwitchActions) {
@@ -319,7 +329,13 @@ export class TournamentManager {
     const parser = new FileParser(refTargets, this.tournament);
     parser.buildTypesByIdArrays(objectList);
     let numTeamsImported = 0;
+    const maxTeamsAllowed = this.tournament.getExpectedNumberOfTeams();
+    let maxTeamsReached = false;
     for (const reg of registrationList) {
+      if (this.tournament.getNumberOfTeams() === maxTeamsAllowed) {
+        maxTeamsReached = true;
+        break;
+      }
       numTeamsImported += this.importSingleRegistrationObj(reg, parser);
     }
 
@@ -329,7 +345,13 @@ export class TournamentManager {
         `No teams were imported because no new teams were found or the maximum number of teams was reached.`,
       );
     } else {
-      this.openGenericModal('Team Import', `Imported ${numTeamsImported} teams.`);
+      console.log(this.tournament.registrations);
+      this.openGenericModal(
+        'Team Import',
+        `Imported ${numTeamsImported} teams.${
+          maxTeamsReached ? ' Not all teams were imported because the maximum number teams was reached.' : ''
+        }`,
+      );
     }
   }
 
@@ -344,6 +366,7 @@ export class TournamentManager {
     }
     if (!registrationFromFile) return 0;
 
+    registrationFromFile.computeLettersAndRegName();
     let numTeamsImported = 0;
     const maxTeamsAllowed = this.tournament.getExpectedNumberOfTeams();
     const existingRegistration = this.tournament.findRegistration(registrationFromFile.name);
@@ -353,8 +376,9 @@ export class TournamentManager {
           existingRegistration.addTeam(teamFromFile);
           numTeamsImported++;
         }
-        if (this.tournament.getNumberOfTeams() === maxTeamsAllowed) return numTeamsImported;
+        if (this.tournament.getNumberOfTeams() === maxTeamsAllowed) break;
       }
+      this.tournament.seedTeamsInRegistration(existingRegistration);
     } else {
       if (this.tournament.getNumberOfTeams() + registrationFromFile.teams.length > (maxTeamsAllowed ?? 0)) {
         return 0;
@@ -1253,6 +1277,12 @@ class NullTournamentManager extends TournamentManager {
 
   // eslint-disable-next-line class-methods-use-this
   protected setWindowTitle(): void {}
+
+  // eslint-disable-next-line class-methods-use-this
+  requestAppVersion(): void {}
+
+  // eslint-disable-next-line class-methods-use-this
+  requestBackupFile(): void {}
 }
 
 /** React context that elements can use to access the TournamentManager and its data without
