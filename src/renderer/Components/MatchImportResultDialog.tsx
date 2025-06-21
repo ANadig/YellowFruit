@@ -53,7 +53,7 @@ const sectionHelpText = {
   [ImportResultStatus.Success]: 'These games can be imported with no issues',
   [ImportResultStatus.Warning]: 'These games are valid, but might be inaccurate',
   [ImportResultStatus.ErrNonFatal]:
-    "These gamese can be imported, but they won't count toward the standings until you correct the errors shown",
+    "These games can be imported, but they won't count toward the standings until you correct the errors shown",
   [ImportResultStatus.FatalErr]: "YellowFruit can't use the contents of these files. Fix the issues and try again.",
 };
 
