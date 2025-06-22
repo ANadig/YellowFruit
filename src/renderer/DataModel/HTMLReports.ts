@@ -192,7 +192,7 @@ export default class HtmlReportGenerator {
     const cells: string[] = [];
     if (!omitRank) cells.push(stdTdHeader('Rank', false, '3%'));
     cells.push(tdTag({ bold: true, width: cumulative ? '' : '20%' }, 'Team'));
-    if (this.tournament.trackSmallSchool) cells.push(stdTdHeader(this.abbr(StatTypes.div2)));
+    if (this.tournament.trackSmallSchool) cells.push(stdTdHeader(this.abbr(StatTypes.smallSchool)));
     if (this.tournament.trackJV) cells.push(stdTdHeader(this.abbr(StatTypes.juniorVarsity)));
     if (this.tournament.trackUG) cells.push(stdTdHeader(this.abbr(StatTypes.undergrad)));
     if (this.tournament.trackDiv2) cells.push(stdTdHeader(this.abbr(StatTypes.div2)));
@@ -593,12 +593,39 @@ export default class HtmlReportGenerator {
   }
 
   private teamDetailOneTeam(teamStats: PoolTeamStats) {
+    const teamAttributes = this.teamAttributeString(teamStats.team);
+    const h2Attrs = [id(teamDetailLinkId(teamStats.team))];
+    if (teamAttributes) h2Attrs.push('style="margin-bottom:0"');
+
     const segments = [];
-    segments.push(genericTagWithAttributes('h2', [id(teamDetailLinkId(teamStats.team))], teamStats.team.name));
+    segments.push(genericTagWithAttributes('h2', h2Attrs, teamStats.team.name));
+    if (teamAttributes) {
+      segments.push(
+        genericTagWithAttributes('div', ['style="margin-bottom:15px; font-style: italic"'], teamAttributes),
+      );
+    }
+
     segments.push(this.teamDetailMatchTable(teamStats));
     segments.push('<br />');
     segments.push(this.teamDetailPlayerTable(teamStats.team));
     return segments.join('\n');
+  }
+
+  private teamAttributeString(team: Team) {
+    const attributes: string[] = [];
+    if (this.tournament.trackSmallSchool && this.tournament.findRegistrationByTeam(team)?.isSmallSchool) {
+      attributes.push('Small School');
+    }
+    if (this.tournament.trackJV && team.isJV) {
+      attributes.push('Junior Varsity');
+    }
+    if (this.tournament.trackUG && team.isUG) {
+      attributes.push('Undergraduate');
+    }
+    if (this.tournament.trackDiv2 && team.isD2) {
+      attributes.push('Division II');
+    }
+    return attributes.join(', ');
   }
 
   private teamDetailMatchTable(teamStats: PoolTeamStats) {
@@ -791,11 +818,33 @@ export default class HtmlReportGenerator {
   }
 
   private playerDetailOnePlayer(playerStats: PlayerStats) {
+    const playerAttributes = this.playerAttributeString(playerStats.player);
+    const h2Attrs = [id(playerDetailLinkId(playerStats.player, playerStats.team))];
+    if (playerAttributes) h2Attrs.push('style="margin-bottom:0"');
+
     const segments = [];
-    const anchorId = id(playerDetailLinkId(playerStats.player, playerStats.team));
-    segments.push(genericTagWithAttributes('h2', [anchorId], `${playerStats.player.name}, ${playerStats.team.name}`));
+    segments.push(genericTagWithAttributes('h2', h2Attrs, `${playerStats.player.name}, ${playerStats.team.name}`));
+    if (playerAttributes) {
+      segments.push(
+        genericTagWithAttributes('div', ['style="margin-bottom:15px; font-style: italic"'], playerAttributes),
+      );
+    }
     segments.push(this.playerDetailTable(playerStats));
     return segments.join('\n');
+  }
+
+  private playerAttributeString(player: Player) {
+    const attributes: string[] = [];
+    if (this.tournament.trackUG && player.isUG) {
+      attributes.push('Undergraduate');
+    }
+    if (this.tournament.trackDiv2 && player.isD2) {
+      attributes.push('Division II');
+    }
+    if (this.tournament.trackPlayerYear && player.yearString) {
+      attributes.push(`Year/Grade: ${player.getYearDisplayText()}`);
+    }
+    return attributes.join(', ');
   }
 
   private playerDetailTable(playerStats: PlayerStats) {

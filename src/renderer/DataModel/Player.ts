@@ -56,7 +56,7 @@ interface IPlayerExtraData {
 export class Player implements IQbjPlayer, IYftDataModelObject {
   name: string;
 
-  /** Grade in school as a string. */
+  /** Grede/year in school - the raw string entered by the user */
   yearString: string = '';
 
   static readonly nameMaxLength = 200;
@@ -261,6 +261,14 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
       errs.push(`Grade/year: ${this.yearStringValidation.message}`);
     }
     return errs;
+  }
+
+  /** Get a human-readable label for the player's year/grade */
+  getYearDisplayText() {
+    const { year } = this;
+    if (year === undefined) return this.yearString;
+
+    return Player.yearTitles[year as unknown as keyof typeof Player.yearTitles];
   }
 
   /** Try to find a matching non-numeric year (e.g. "Freshman") and return the
