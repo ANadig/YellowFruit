@@ -192,7 +192,7 @@ export default class HtmlReportGenerator {
     const cells: string[] = [];
     if (!omitRank) cells.push(stdTdHeader('Rank', false, '3%'));
     cells.push(tdTag({ bold: true, width: cumulative ? '' : '20%' }, 'Team'));
-    if (this.tournament.trackSmallSchool) cells.push(stdTdHeader(this.abbr(StatTypes.div2)));
+    if (this.tournament.trackSmallSchool) cells.push(stdTdHeader(this.abbr(StatTypes.smallSchool)));
     if (this.tournament.trackJV) cells.push(stdTdHeader(this.abbr(StatTypes.juniorVarsity)));
     if (this.tournament.trackUG) cells.push(stdTdHeader(this.abbr(StatTypes.undergrad)));
     if (this.tournament.trackDiv2) cells.push(stdTdHeader(this.abbr(StatTypes.div2)));
@@ -209,9 +209,12 @@ export default class HtmlReportGenerator {
     if (this.tournament.scoringRules.bonusesBounceBack) {
       cells.push(stdTdHeader(this.abbr(StatTypes.bbPct), true));
     }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(stdTdHeader(this.abbr(StatTypes.ltngPerMtch), true));
+    }
     if (nextPhase?.anyTeamsAssigned()) {
       cells.push(stdTdHeader(this.abbr(StatTypes.advancedTo)));
-    } else if (nextPhase) {
+    } else if (nextPhase && this.tournament.usingScheduleTemplate) {
       cells.push(stdTdHeader(this.abbr(StatTypes.wouldAdvance)));
     }
 
@@ -270,10 +273,13 @@ export default class HtmlReportGenerator {
       const bbConvStr = bbConv === '-' ? mDashHtml : bbConv;
       cells.push(tdTag({ align: 'right' }, bbConvStr));
     }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(tdTag({ align: 'right' }, teamStats.getLightningPtsPerMatchString()));
+    }
 
     if (nextPhase?.anyTeamsAssigned()) {
       cells.push(tdTag({}, this.definiteAdvancementTierDisplay(teamStats, nextPhase)));
-    } else if (nextPhase) {
+    } else if (nextPhase && this.tournament.usingScheduleTemplate) {
       cells.push(tdTag({}, this.provisionalAdvancementTierDisplay(teamStats)));
     }
 
@@ -442,11 +448,12 @@ export default class HtmlReportGenerator {
       genericTagWithAttributes('div', [classAttribute(cssClasses.boxScoreTableContainer)], leftTable, rightTable),
     );
 
-    if (this.tournament.scoringRules.useBonuses) {
+    if (this.tournament.scoringRules.useBonuses || this.tournament.scoringRules.useLightningRounds()) {
       segments.push('<br />');
-      segments.push(this.boxScoreBonusTable(match));
     }
+    if (this.tournament.scoringRules.useBonuses) segments.push(this.boxScoreBonusTable(match));
     if (this.tournament.scoringRules.bonusesBounceBack) segments.push(this.boxScoreBouncebackTable(match));
+    if (this.tournament.scoringRules.useLightningRounds()) segments.push(this.boxScoreLightningkTable(match));
     return segments.join('\n');
   }
 
@@ -547,6 +554,29 @@ export default class HtmlReportGenerator {
     return trTag(cells);
   }
 
+  private boxScoreLightningkTable(match: Match) {
+    const rows: string[] = [];
+    rows.push(this.boxScoreLightningkTableHeader());
+    rows.push(this.boxScoreLightningTableRow(match, 'left'));
+    rows.push(this.boxScoreLightningTableRow(match, 'right'));
+    return tableTag(rows, undefined, '30%');
+  }
+
+  private boxScoreLightningkTableHeader() {
+    const cells: string[] = [];
+    cells.push(tdTag({ bold: true, width: '70%' }, 'Lightning Round'));
+    cells.push(tdTag({ bold: true, align: 'right', width: '30%' }, 'Pts'));
+    return trTag(cells);
+  }
+
+  private boxScoreLightningTableRow(match: Match, whichTeam: LeftOrRight) {
+    const cells: string[] = [];
+    const matchTeam = match.getMatchTeam(whichTeam);
+    cells.push(tdTag({}, matchTeam.team?.name ?? ''));
+    cells.push(tdTag({ align: 'right' }, matchTeam.lightningPoints?.toString() ?? '0'));
+    return trTag(cells);
+  }
+
   private getTeamDetailHtml() {
     if (!this.tournament.cumulativeStats) return '';
 
@@ -563,12 +593,39 @@ export default class HtmlReportGenerator {
   }
 
   private teamDetailOneTeam(teamStats: PoolTeamStats) {
+    const teamAttributes = this.teamAttributeString(teamStats.team);
+    const h2Attrs = [id(teamDetailLinkId(teamStats.team))];
+    if (teamAttributes) h2Attrs.push('style="margin-bottom:0"');
+
     const segments = [];
-    segments.push(genericTagWithAttributes('h2', [id(teamDetailLinkId(teamStats.team))], teamStats.team.name));
+    segments.push(genericTagWithAttributes('h2', h2Attrs, teamStats.team.name));
+    if (teamAttributes) {
+      segments.push(
+        genericTagWithAttributes('div', ['style="margin-bottom:15px; font-style: italic"'], teamAttributes),
+      );
+    }
+
     segments.push(this.teamDetailMatchTable(teamStats));
     segments.push('<br />');
     segments.push(this.teamDetailPlayerTable(teamStats.team));
     return segments.join('\n');
+  }
+
+  private teamAttributeString(team: Team) {
+    const attributes: string[] = [];
+    if (this.tournament.trackSmallSchool && this.tournament.findRegistrationByTeam(team)?.isSmallSchool) {
+      attributes.push('Small School');
+    }
+    if (this.tournament.trackJV && team.isJV) {
+      attributes.push('Junior Varsity');
+    }
+    if (this.tournament.trackUG && team.isUG) {
+      attributes.push('Undergraduate');
+    }
+    if (this.tournament.trackDiv2 && team.isD2) {
+      attributes.push('Division II');
+    }
+    return attributes.join(', ');
   }
 
   private teamDetailMatchTable(teamStats: PoolTeamStats) {
@@ -602,6 +659,12 @@ export default class HtmlReportGenerator {
       cells.push(stdTdHeader(this.abbr(StatTypes.bbHrd), true));
       cells.push(stdTdHeader(this.abbr(StatTypes.bbPts), true));
       cells.push(stdTdHeader(this.abbr(StatTypes.bbPct), true));
+    }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(stdTdHeader(this.abbr(StatTypes.lightning), true));
+    }
+    if (this.tournament.packetNamesExist()) {
+      cells.push(stdTdHeader('Packet'));
     }
     return trTag(cells);
   }
@@ -645,6 +708,12 @@ export default class HtmlReportGenerator {
       cells.push(numericCell(forf ? '' : matchTeam.bonusBouncebackPoints?.toString() ?? '0'));
       cells.push(numericCell(forf ? '' : `${rate}%`));
     }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(numericCell(forf ? '' : matchTeam.lightningPoints?.toString() ?? '0'));
+    }
+    if (this.tournament.packetNamesExist()) {
+      cells.push(textCell(result.round.packet.name));
+    }
     return trTag(cells);
   }
 
@@ -672,6 +741,12 @@ export default class HtmlReportGenerator {
       cells.push(stdTdHeader(teamStats.bounceBackPartsHeard?.toString() ?? '0', true));
       cells.push(stdTdHeader(teamStats.bounceBackPartsHeard?.toString() ?? '0', true));
       cells.push(stdTdHeader(teamStats.getBouncebackConvPctString(), true));
+    }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(stdTdHeader(teamStats.lightningPoints.toString(), true));
+    }
+    if (this.tournament.packetNamesExist()) {
+      cells.push(stdTdHeader(''));
     }
     return tableFooter(cells);
   }
@@ -743,11 +818,33 @@ export default class HtmlReportGenerator {
   }
 
   private playerDetailOnePlayer(playerStats: PlayerStats) {
+    const playerAttributes = this.playerAttributeString(playerStats.player);
+    const h2Attrs = [id(playerDetailLinkId(playerStats.player, playerStats.team))];
+    if (playerAttributes) h2Attrs.push('style="margin-bottom:0"');
+
     const segments = [];
-    const anchorId = id(playerDetailLinkId(playerStats.player, playerStats.team));
-    segments.push(genericTagWithAttributes('h2', [anchorId], `${playerStats.player.name}, ${playerStats.team.name}`));
+    segments.push(genericTagWithAttributes('h2', h2Attrs, `${playerStats.player.name}, ${playerStats.team.name}`));
+    if (playerAttributes) {
+      segments.push(
+        genericTagWithAttributes('div', ['style="margin-bottom:15px; font-style: italic"'], playerAttributes),
+      );
+    }
     segments.push(this.playerDetailTable(playerStats));
     return segments.join('\n');
+  }
+
+  private playerAttributeString(player: Player) {
+    const attributes: string[] = [];
+    if (this.tournament.trackUG && player.isUG) {
+      attributes.push('Undergraduate');
+    }
+    if (this.tournament.trackDiv2 && player.isD2) {
+      attributes.push('Division II');
+    }
+    if (this.tournament.trackPlayerYear && player.yearString) {
+      attributes.push(`Year/Grade: ${player.getYearDisplayText()}`);
+    }
+    return attributes.join(', ');
   }
 
   private playerDetailTable(playerStats: PlayerStats) {
@@ -834,7 +931,7 @@ export default class HtmlReportGenerator {
 
   private roundReportTableHeader(omitPhase: boolean = false) {
     const cells: string[] = [];
-    const columnWidth = omitPhase ? '11%' : '10%';
+    const columnWidth = omitPhase ? '10%' : '9%';
     cells.push(stdTdHeader('Round'));
     if (!omitPhase) cells.push(stdTdHeader('Stage', false, '15%'));
     cells.push(stdTdHeader('Games', true, '10%'));
@@ -850,6 +947,12 @@ export default class HtmlReportGenerator {
     if (this.tournament.scoringRules.bonusesBounceBack) {
       cells.push(stdTdHeader(this.abbr(StatTypes.rrBbPct), true, columnWidth));
       cells.push(stdTdHeader(this.abbr(StatTypes.rrBonusPct), true, columnWidth));
+    }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(stdTdHeader(this.abbr(StatTypes.ltngPerTmPerGm), true, columnWidth));
+    }
+    if (this.tournament.packetNamesExist()) {
+      cells.push(stdTdHeader('Packet'));
     }
     return trTag(cells);
   }
@@ -880,6 +983,12 @@ export default class HtmlReportGenerator {
       cells.push(numericCell(`${stats.getBounceBackConvPct().toFixed(0)}%`));
       cells.push(numericCell(`${stats.getTotalBonusConvPct().toFixed(0)}%`));
     }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(numericCell(stats.getLightningPointsPerTeamPerMatch().toFixed(1)));
+    }
+    if (this.tournament.packetNamesExist()) {
+      cells.push(textCell(stats.round.packet.name));
+    }
     return trTag(cells);
   }
 
@@ -902,6 +1011,12 @@ export default class HtmlReportGenerator {
     if (this.tournament.scoringRules.bonusesBounceBack) {
       cells.push(stdTdHeader(`${tournTotals.getBounceBackConvPct().toFixed(0)}%`, true));
       cells.push(stdTdHeader(`${tournTotals.getTotalBonusConvPct().toFixed(0)}%`, true));
+    }
+    if (this.tournament.scoringRules.useLightningRounds()) {
+      cells.push(stdTdHeader(tournTotals.getLightningPointsPerTeamPerMatch().toFixed(1), true));
+    }
+    if (this.tournament.packetNamesExist()) {
+      cells.push(stdTdHeader(''));
     }
     return tableFooter(cells);
   }

@@ -166,8 +166,32 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return this.isFullPhase() || this.forceNumericRounds;
   }
 
+  /** The lowest round number contained in this phase, or 0 if it contains no rounds */
+  firstRoundNumber() {
+    return this.rounds[0]?.number || 0;
+  }
+
+  /** The highest round number contained in this phase, or 0 if it contains no rounds */
   lastRoundNumber(): number {
     return this.rounds[this.rounds.length - 1]?.number || 0;
+  }
+
+  firstRoundNumberWithGames() {
+    if (this.rounds.length === 0) return undefined;
+
+    for (let i = 0; i < this.rounds.length; i++) {
+      if (this.rounds[i].anyMatchesExist()) return this.rounds[i].number;
+    }
+    return undefined;
+  }
+
+  lastRoundNumberWithGames() {
+    if (this.rounds.length === 0) return undefined;
+
+    for (let i = this.rounds.length - 1; i >= 0; i--) {
+      if (this.rounds[i].anyMatchesExist()) return this.rounds[i].number;
+    }
+    return undefined;
   }
 
   /** Adjust round numbers so that they start at the given number and go up from there */
@@ -179,6 +203,83 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     }
   }
 
+  /** Set this phase's rounds to be from firstRound to lastRound. Existing rounds within this range are preserved; others are discarded.
+   *  Caller is responsible for determining that this is safe to do.
+   */
+  setRoundRange(firstRound: number, lastRound: number) {
+    const newRoundArray: Round[] = [];
+    let curRequestedRound = firstRound;
+    for (const rd of this.rounds) {
+      if (rd.number > lastRound) break;
+
+      if (rd.number > curRequestedRound) {
+        for (let i = curRequestedRound; i < rd.number; i++) {
+          newRoundArray.push(new Round(i));
+        }
+      }
+      newRoundArray.push(rd);
+      curRequestedRound = rd.number + 1;
+    }
+    for (let i = curRequestedRound; i <= lastRound; i++) {
+      newRoundArray.push(new Round(i));
+    }
+    this.rounds = newRoundArray;
+  }
+
+  /** Do any pools have errors that need to be corrected right now? */
+  anyPoolErrors() {
+    for (const p of this.pools) {
+      if (p.sizeValidationError) return true;
+    }
+    return false;
+  }
+
+  /** Add a pool with default info, to be customized by the user */
+  addBlankPool() {
+    const size = this.defaultSizeForBlankPool();
+    const tier = this.lowestPoolTier() + 1;
+    if (!this.findPoolByName('New Pool')) {
+      this.pools.push(new Pool(size, tier, 'New Pool'));
+      return;
+    }
+    for (let i = 2; i < 100; i++) {
+      const defaultName = `New Pool ${i}`;
+      if (!this.findPoolByName(defaultName)) {
+        this.pools.push(new Pool(size, tier, defaultName));
+        return;
+      }
+    }
+    this.pools.push(new Pool(size, tier, 'New Pool'));
+  }
+
+  /** Find a resonable size to use as the default for the next new pool the user adds */
+  private defaultSizeForBlankPool() {
+    if (this.pools.length === 0) return 4;
+
+    const existingPoolsSize = this.pools[0].size;
+    for (let i = 1; i < this.pools.length; i++) {
+      if (this.pools[i].size !== existingPoolsSize) return 4;
+    }
+    return existingPoolsSize;
+  }
+
+  private lowestPoolTier() {
+    return this.pools.map((p) => p.position).reduce((maxSoFar, currVal) => Math.max(maxSoFar, currVal), 0);
+  }
+
+  /**
+   * Remove a pool. Caller is responsible for determining whether that's safe
+   * @param pool pool to delete
+   * @param resetTiers whether to reassign tier/position numbers. Ignored if this isn't a playoff phase.
+   */
+  deletePool(pool: Pool, resetTiers: boolean = false) {
+    this.pools = this.pools.filter((p) => p !== pool);
+    if (resetTiers && this.phaseType === PhaseTypes.Playoff) {
+      this.resetTiers();
+    }
+  }
+
+  /** Delete all teams from this phase's pools */
   resetPools() {
     for (const pool of this.pools) {
       pool.clearTeams();
@@ -189,6 +290,16 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     const poolWithSeed = this.findPoolWithSeed(seed);
     if (poolWithSeed) {
       poolWithSeed.addTeam(team);
+    }
+  }
+
+  /** If not using seeds, put a time in the first available pool */
+  addUnseededTeam(team: Team) {
+    for (const pool of this.pools) {
+      if (pool.poolTeams.length < pool.size) {
+        pool.addTeam(team);
+        return;
+      }
     }
   }
 
@@ -287,6 +398,19 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return this.rounds.map((rd) => rd.getCarryoverMatches(playoffPhase)).flat();
   }
 
+  /** A list of all the phases that at least one match in this phase is carried over to */
+  getPhasesCarriedOverTo() {
+    const phasesFound: Phase[] = [];
+    for (const rd of this.rounds) {
+      for (const m of rd.matches) {
+        for (const coPh of m.carryoverPhases) {
+          if (phasesFound.indexOf(coPh) === -1) phasesFound.push(coPh);
+        }
+      }
+    }
+    return phasesFound;
+  }
+
   /** Find the matches that involve at least one team in the given pool. If no pool is passed, all matches are returned */
   getMatchesForPool(pool?: Pool) {
     const allMatches = this.getAllMatches();
@@ -336,6 +460,11 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
 
   getRound(roundNo: number): Round | undefined {
     return this.rounds.find((rd) => rd.number === roundNo);
+  }
+
+  /** Do any rounds in this phase have a packet name defined? */
+  packetNamesExist() {
+    return !!this.rounds.find((rd) => rd.packet.name !== '');
   }
 
   /**
@@ -420,6 +549,24 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
 
     const [poolToMove] = this.pools.splice(positionDragged, 1);
     this.pools.splice(positionDroppedOn, 0, poolToMove);
+  }
+
+  /** Discard information that we only want to track if we're using a schedule template */
+  unlockCustomSchedule() {
+    this.wildCardAdvancementRules = [];
+    for (const p of this.pools) {
+      p.unlockCustomSchedule();
+    }
+    if (this.phaseType === PhaseTypes.Playoff) {
+      this.resetTiers();
+    }
+  }
+
+  private resetTiers() {
+    let tier = 1;
+    for (const p of this.pools) {
+      p.position = tier++;
+    }
   }
 }
 

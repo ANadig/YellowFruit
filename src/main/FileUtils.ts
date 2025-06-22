@@ -1,8 +1,8 @@
 import path from 'path';
-import { app, BrowserWindow, IpcMainEvent, dialog } from 'electron';
+import { app, BrowserWindow, IpcMainEvent, dialog, IpcMainInvokeEvent } from 'electron';
 import fs from 'fs';
 import { IpcBidirectional, IpcMainToRend } from '../IPCChannels';
-import { FileSwitchActions, StatReportHtmlPage, statReportProtocol } from '../SharedUtils';
+import { FileSwitchActions, IMatchImportFileRequest, StatReportHtmlPage, statReportProtocol } from '../SharedUtils';
 
 export const inAppStatReportDirectory = path.resolve(app.getPath('userData'), 'StatReport');
 
@@ -51,6 +51,9 @@ function doFileSwitchAction(action: FileSwitchActions, window: BrowserWindow) {
     case FileSwitchActions.OpenYftFile:
       openYftFile(window);
       break;
+    case FileSwitchActions.ImportQbjTournament:
+      importQbjTournament(window);
+      break;
     case FileSwitchActions.NewFile:
       newYftFile(window);
       break;
@@ -84,6 +87,38 @@ function openYftFile(mainWindow: BrowserWindow) {
       return;
     }
     mainWindow.webContents.send(IpcMainToRend.openYftFile, fileNameAry[0], fileContents, app.getVersion());
+  });
+}
+
+function importQbjTournament(mainWindow: BrowserWindow) {
+  const fileNameAry = dialog.showOpenDialogSync(mainWindow, {
+    title: 'Open File',
+    filters: [{ name: 'Tournament Schema', extensions: ['qbj', 'json'] }],
+  });
+  if (!fileNameAry) return;
+
+  fs.readFile(fileNameAry[0], { encoding: 'utf8' }, (err, fileContents) => {
+    if (err) {
+      dialog.showMessageBoxSync(mainWindow, { message: `Error reading file: \n\n ${err.message}` });
+      return;
+    }
+    mainWindow.webContents.send(IpcMainToRend.ImportQbjTournament, fileNameAry[0], fileContents);
+  });
+}
+
+export function importQbjTeams(mainWindow: BrowserWindow) {
+  const fileNameAry = dialog.showOpenDialogSync(mainWindow, {
+    title: 'Import Teams',
+    filters: [{ name: 'Tournament Schema', extensions: ['qbj', 'json'] }],
+  });
+  if (!fileNameAry) return;
+
+  fs.readFile(fileNameAry[0], { encoding: 'utf8' }, (err, fileContents) => {
+    if (err) {
+      dialog.showMessageBoxSync(mainWindow, { message: `Error reading file: \n\n ${err.message}` });
+      return;
+    }
+    mainWindow.webContents.send(IpcMainToRend.ImportQbjTeams, fileContents);
   });
 }
 
@@ -256,4 +291,23 @@ export function handleExportQbjFile(event: IpcMainEvent, filePath: string, fileC
   fs.writeFile(filePath, fileContents, { encoding: 'utf8' }, (err) => {
     if (err) dialog.showMessageBoxSync(window, { title: 'YellowFruit', message: `Error saving file:\n\n${err}` });
   });
+}
+
+export async function handleImportGamesFromQbj(event: IpcMainInvokeEvent) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return [];
+
+  const fileNameAry = dialog.showOpenDialogSync(window, {
+    title: 'Import Games',
+    filters: [{ name: 'Tournament Schema ', extensions: ['qbj', 'json'] }],
+    properties: ['multiSelections'],
+  });
+  if (!fileNameAry) return [];
+
+  const fileAry: IMatchImportFileRequest[] = [];
+  for (const filePath of fileNameAry) {
+    const fileContents = fs.readFileSync(filePath, { encoding: 'utf8' });
+    fileAry.push({ filePath, fileContents });
+  }
+  return fileAry;
 }

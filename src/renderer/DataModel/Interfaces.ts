@@ -21,11 +21,6 @@ export interface IQbjRefPointer {
   $ref: string;
 }
 
-/** An object that is allowed to be pointed to by a ref pointer */
-export interface IQbjRefTarget extends IQbjObject {
-  id: string;
-}
-
 export interface IRefTargetDict {
   [id: string]: IQbjObject;
 }

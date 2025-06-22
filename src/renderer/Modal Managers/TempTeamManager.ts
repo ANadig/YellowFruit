@@ -161,10 +161,10 @@ export class TempTeamManager {
     if (this.tempRegistration.name === regThatWasOpened?.name) {
       return regThatWasOpened;
     }
-    const matchingReg = allRegistrations.find((val) => val.name === this.tempRegistration.name);
-    if (matchingReg === undefined) return null;
+    const differentMatchingReg = allRegistrations.find((val) => val.name === this.tempRegistration.name);
+    if (differentMatchingReg === undefined) return regThatWasOpened;
 
-    return matchingReg;
+    return differentMatchingReg;
   }
 
   /**

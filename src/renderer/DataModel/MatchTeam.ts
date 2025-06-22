@@ -203,6 +203,12 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return teamAnswerCounts;
   }
 
+  /** Set the points attribute based on a known number of bonus points */
+  calculateTotalPoints(bonusPoints: number) {
+    this.points =
+      this.getTossupPoints() + bonusPoints + (this.bonusBouncebackPoints || 0) + (this.lightningPoints || 0);
+  }
+
   /** Number of points scored on tossups */
   getTossupPoints(): number {
     let total = 0;
@@ -313,6 +319,24 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return errs;
   }
 
+  getWarningMessages(): string[] {
+    let warnings: string[] = [];
+    if (this.totalScoreFieldValidation.status === ValidationStatuses.Warning) {
+      warnings.push(`${this.team?.name || 'Total'} score: ${this.totalScoreFieldValidation.message}`);
+    }
+    if (this.bouncebackFieldValidation.status === ValidationStatuses.Warning) {
+      warnings.push(`${this.team?.name || ''} Bounceback points: ${this.bouncebackFieldValidation.message}`);
+    }
+    warnings = warnings.concat(this.modalBottomValidation.getWarningMessages());
+    this.matchPlayers.forEach((mp) => {
+      warnings = warnings.concat(mp.getWarningMessages());
+    });
+    this.overTimeBuzzes.forEach((ac) => {
+      warnings = warnings.concat(ac.getWarningMessages());
+    });
+    return warnings;
+  }
+
   validateAll(scoringRules: ScoringRules) {
     this.validateTotalPoints();
     this.validateTotalAndTuPtsEqual(scoringRules);
@@ -320,6 +344,8 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     this.validateAnswerCounts();
     this.validateBonusPoints(scoringRules);
     this.validateOvertimeBuzzes();
+    this.validateTotalAndLightningPoints(scoringRules);
+    this.validateLightningPoints(scoringRules);
   }
 
   clearValidation() {
@@ -345,9 +371,9 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     this.totalScoreFieldValidation.setOk();
   }
 
-  /** If not using bonuses, player TU points must add up to the final score */
+  /** If not using bonuses or lightning rounds, player TU points must add up to the final score */
   validateTotalAndTuPtsEqual(scoringRules: ScoringRules) {
-    if (scoringRules.useBonuses) return;
+    if (scoringRules.useBonuses || scoringRules.useLightningRounds()) return;
     if (this.points === undefined) return;
 
     if (this.getTossupPoints() !== this.points) {
@@ -358,6 +384,37 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       );
     } else {
       this.clearValidationMessage(MatchValidationType.TotalScoreAndTuPtsMismatch);
+    }
+  }
+
+  /** If useing lightning rounds but NOT bonuses, adding lightning points to player TU points must equal the final score  */
+  validateTotalAndLightningPoints(scoringRules: ScoringRules) {
+    if (scoringRules.useBonuses) return;
+    if (!scoringRules.useLightningRounds()) return;
+    if (this.points === undefined) return;
+
+    if (this.getTossupPoints() + (this.lightningPoints ?? 0) !== this.points) {
+      this.addValidationMessage(
+        MatchValidationType.TuPlusLtngNotEqualTotal,
+        ValidationStatuses.Error,
+        'Player tossup points plus lightning points should equal total score',
+      );
+    } else {
+      this.clearValidationMessage(MatchValidationType.TuPlusLtngNotEqualTotal);
+    }
+  }
+
+  validateLightningPoints(scoringRules: ScoringRules) {
+    if (!scoringRules.useLightningRounds()) return;
+    if ((this.lightningPoints ?? 0) % scoringRules.lightningDivisor > 0) {
+      this.addValidationMessage(
+        MatchValidationType.LightningDivisorMismatch,
+        ValidationStatuses.Warning,
+        `Lightning round points aren't divisble by ${scoringRules.lightningDivisor}`,
+        true,
+      );
+    } else {
+      this.clearValidationMessage(MatchValidationType.LightningDivisorMismatch);
     }
   }
 

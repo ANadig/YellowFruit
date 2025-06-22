@@ -112,6 +112,10 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
     if (this.bonusDivisor % 10) {
       divisor = 5;
     }
+    if (this.lightningCountPerTeam > 0) {
+      if (this.lightningDivisor % 5) return 1;
+      if (this.lightningDivisor % 10) divisor = 5;
+    }
     return divisor;
   }
 
@@ -131,6 +135,8 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
   bonusesBounceBack: boolean = false;
 
   lightningCountPerTeam: number = 0;
+
+  lightningDivisor: number = 10;
 
   answerTypes: AnswerType[] = [];
 
@@ -209,6 +215,9 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
       qbjObject.pointsPerBonusPart = this.pointsPerBonusPart;
       qbjObject.bonusDivisor = this.bonusDivisor;
     }
+    if (this.useLightningRounds()) {
+      qbjObject.lightningDivisor = this.lightningDivisor;
+    }
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.ScoringRules;
     if (isReferenced) qbjObject.id = this.id;
@@ -270,11 +279,22 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
     return this.bonusesAreRegular();
   }
 
+  useLightningRounds() {
+    return this.lightningCountPerTeam > 0;
+  }
+
   setUseBonuses(useBonuses: boolean) {
     this.useBonuses = useBonuses;
     if (!useBonuses) {
       this.bonusesBounceBack = false;
       this.overtimeIncludesBonuses = false;
     }
+  }
+
+  findAnswerTypeById(id: string) {
+    for (const at of this.answerTypes) {
+      if (at.id === id) return at;
+    }
+    return undefined;
   }
 }

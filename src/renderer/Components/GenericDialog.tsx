@@ -51,7 +51,7 @@ function GenericDialogCore() {
   return (
     <Dialog open={isOpen} onClose={handleCancel}>
       {title && <DialogTitle>{title}</DialogTitle>}
-      <DialogContent>{contents}</DialogContent>
+      <DialogContent sx={{ whiteSpace: 'pre-line' }}>{contents}</DialogContent>
       <DialogActions>
         {acceptButtonCaption && <Button onClick={handleAccept}>{hotkeyFormat(acceptButtonCaption)}</Button>}
         {discardButtonCaption && <Button onClick={handleDiscard}>{hotkeyFormat(discardButtonCaption)}</Button>}

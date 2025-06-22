@@ -53,7 +53,7 @@ export class GenericModalManager {
 
   openUnsavedDataDialog(action: FileSwitchActions, continueAction: (saveData?: boolean) => void) {
     this.isOpen = true;
-    this.title = FileSwitchActionNames[action];
+    this.title = FileSwitchActionNames[action as keyof typeof FileSwitchActionNames];
     this.contents = 'You have unsaved data. Save before continuing?';
     this.acceptButtonCaption = '&Yes, save data';
     this.discardAndContinueButtonCaption = 'No, &discard data';

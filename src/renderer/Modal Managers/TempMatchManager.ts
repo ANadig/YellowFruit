@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { LeftOrRight, NullObjects } from '../Utils/UtilTypes';
-import { Match } from '../DataModel/Match';
+import { Match, StatsValidity } from '../DataModel/Match';
 import { Team } from '../DataModel/Team';
 import Tournament, { NullTournament } from '../DataModel/Tournament';
 import { Phase, PhaseTypes } from '../DataModel/Phase';
@@ -110,11 +110,13 @@ export class TempMatchManager {
       this.tournament.addMatch(targetMatch, this.round);
     }
     targetMatch.copyFromMatch(this.tempMatch);
+    targetMatch.statsValidity = StatsValidity.valid;
   }
 
   saveNewMatch() {
     if (this.round === undefined) return;
     this.tempMatch.clearInactivePlayers();
+    this.tempMatch.statsValidity = StatsValidity.valid;
     this.tournament.addMatch(this.tempMatch, this.round);
   }
 
@@ -277,23 +279,13 @@ export class TempMatchManager {
   }
 
   validateHaveTeamsPlayedInRound(unSuppress: boolean) {
-    const leftTeam = this.tempMatch.leftTeam.team;
-    const rightTeam = this.tempMatch.rightTeam.team;
-    if (!this.round || (this.phase && !this.phase.isFullPhase())) {
-      this.tempMatch.setAlreadyPlayedInRdValidation(true, '', unSuppress);
-      return;
-    }
-    const leftHasPlayed = leftTeam ? this.round.teamHasPlayedIn(leftTeam, this.originalMatchLoaded) : false;
-    const rightHasPlayed = rightTeam ? this.round.teamHasPlayedIn(rightTeam, this.originalMatchLoaded) : false;
-    let message = '';
-    if (leftHasPlayed && rightHasPlayed) {
-      message = 'Both teams have already played a game in this round';
-    } else if (leftHasPlayed) {
-      message = `${leftTeam?.name} has already played a game in this round`;
-    } else if (rightHasPlayed) {
-      message = `${rightTeam?.name} has already played a game in this round`;
-    }
-    this.tempMatch.setAlreadyPlayedInRdValidation(message === '', message, unSuppress);
+    Tournament.validateHaveTeamsPlayedInRound(
+      this.tempMatch,
+      this.round,
+      this.phase,
+      unSuppress,
+      this.originalMatchLoaded,
+    );
   }
 
   setTeamScore(whichTeam: LeftOrRight, val: string): number | undefined {
@@ -386,6 +378,20 @@ export class TempMatchManager {
     this.tempMatch.validateBouncebackConversion(this.tournament.scoringRules);
     this.dataChangedReactCallback();
     return valToSave;
+  }
+
+  setLightningPoints(whichTeam: LeftOrRight, val: string): number | undefined {
+    const parsed = parseInt(val, 10);
+    const valToSave = Number.isNaN(parsed) ? undefined : parsed;
+    this.tempMatch.setLightningPoints(whichTeam, valToSave);
+    this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
+    this.dataChangedReactCallback();
+    return valToSave;
+  }
+
+  setNotes(notes: string) {
+    this.tempMatch.notes = notes;
+    this.dataChangedReactCallback();
   }
 
   /** Allow the tossup value fields to immediately become enabled when a value changes, so that tab order works */

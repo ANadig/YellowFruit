@@ -41,6 +41,10 @@ export enum IpcMainToRend {
   CheckForUnsavedData = 'CheckForUnsavedData',
   /** Save a backup copy of the current file */
   GenerateBackup = 'GenerateBackup',
+  /** Import an entire non-yft qbj file */
+  ImportQbjTournament = 'ImportQbjTournament',
+  /** Import teams and rosters from a non-yft qbj file */
+  ImportQbjTeams = 'ImportQbjTeams',
 }
 
 /** Channels for both directions renderer<-->main */
@@ -50,6 +54,10 @@ export enum IpcBidirectional {
   LoadBackup = 'LoadBackup',
   /** Export QBJ schema file format */
   ExportQbjFile = 'ExportQbjFile',
+  /** Import individual games from qbj files */
+  ImportQbjGames = 'ImportQbjGames',
+  /** For asking for and receiving the app version number */
+  GetAppVersion = 'GetAppVersion',
 }
 
 export type IpcChannels = IpcRendToMain | IpcMainToRend | IpcBidirectional;
@@ -65,5 +73,8 @@ export const rendererListenableEvents = [
   IpcMainToRend.RequestStatReport,
   IpcMainToRend.CheckForUnsavedData,
   IpcMainToRend.GenerateBackup,
+  IpcMainToRend.ImportQbjTournament,
+  IpcMainToRend.ImportQbjTeams,
+  IpcBidirectional.ImportQbjGames,
   IpcBidirectional.ExportQbjFile,
 ];

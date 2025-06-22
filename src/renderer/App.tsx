@@ -12,7 +12,8 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Box from '@mui/material/Box';
 
 import { useContext, useEffect, useState } from 'react';
-import NavBar from './Components/NavBar';
+import { useHotkeys } from 'react-hotkeys-hook';
+import NavBar, { applicationPageOrder } from './Components/NavBar';
 import GeneralPage from './Components/GeneralPage';
 import { TournamentManager, TournamentContext } from './TournamentManager';
 import RulesPage from './Components/RulesPage';
@@ -28,6 +29,8 @@ import PhaseEditDialog from './Components/PhaseEditDialog';
 import PoolEditDialog from './Components/PoolEditDialog';
 import RankEditDialog from './Components/RankEditDialog';
 import { IpcRendToMain } from '../IPCChannels';
+import PoolAssignmentDialog from './Components/PoolAssignmentDialog';
+import MatchImportResultDialog from './Components/MatchImportResultDialog';
 
 window.onerror = () => window.electron.ipcRenderer.sendMessage(IpcRendToMain.WebPageCrashed);
 window.electron.ipcRenderer.removeAllListeners();
@@ -79,6 +82,21 @@ function TournamentEditor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mgr, mgr.tournament]);
 
+  useHotkeys('alt+shift+right', () => {
+    if (!mgr.anyModalOpen()) {
+      const activePageIdx = applicationPageOrder.indexOf(activePage);
+      setactivePage(applicationPageOrder[(activePageIdx + 1) % applicationPageOrder.length]);
+    }
+  });
+  useHotkeys('alt+shift+left', () => {
+    if (!mgr.anyModalOpen()) {
+      const activePageIdx = applicationPageOrder.indexOf(activePage);
+      setactivePage(
+        applicationPageOrder[(activePageIdx - 1 + applicationPageOrder.length) % applicationPageOrder.length],
+      );
+    }
+  });
+
   const changePage = (page: ApplicationPages) => {
     if (page === ApplicationPages.StatReport) {
       mgr.generateHtmlReport();
@@ -100,6 +118,8 @@ function TournamentEditor() {
       <PhaseEditDialog />
       <PoolEditDialog />
       <RankEditDialog />
+      <PoolAssignmentDialog />
+      <MatchImportResultDialog />
     </>
   );
 }

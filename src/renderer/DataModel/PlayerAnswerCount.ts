@@ -1,5 +1,5 @@
 import AnswerType, { IQbjAnswerType } from './AnswerType';
-import { IQbjObject, IQbjRefPointer, IYftDataModelObject } from './Interfaces';
+import { IQbjObject, IQbjRefPointer, IYftDataModelObject, ValidationStatuses } from './Interfaces';
 import MatchValidationMessage, { MatchValidationType } from './MatchValidationMessage';
 
 export interface IQbjPlayerAnswerCount extends IQbjObject {
@@ -70,6 +70,13 @@ export class PlayerAnswerCount implements IQbjPlayerAnswerCount, IYftDataModelOb
 
   getErrorMessages(): string[] {
     if (this.validation.isError()) {
+      return [this.validation.message];
+    }
+    return [];
+  }
+
+  getWarningMessages(): string[] {
+    if (this.validation.status === ValidationStatuses.Warning) {
       return [this.validation.message];
     }
     return [];

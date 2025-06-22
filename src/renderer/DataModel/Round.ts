@@ -1,4 +1,4 @@
-import { IQbjObject, IYftDataModelObject, IYftFileObject } from './Interfaces';
+import { IQbjObject, IYftDataModelObject, IYftFileObject, ValidationStatuses } from './Interfaces';
 // eslint-disable-next-line import/no-cycle
 import { IQbjMatch, Match } from './Match';
 import { IQbjPacket, Packet } from './Packet';
@@ -52,7 +52,7 @@ export class Round implements IQbjRound, IYftDataModelObject {
   description?: string;
 
   /** Packet used for the round. YF only supports one packet per round. */
-  packet?: Packet;
+  packet: Packet;
 
   /** The matches that took place in this round */
   matches: Match[] = [];
@@ -64,14 +64,18 @@ export class Round implements IQbjRound, IYftDataModelObject {
   constructor(roundNo: number, name?: string) {
     this.number = roundNo;
     if (name) this.name = name;
+    this.packet = new Packet();
   }
 
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjRound {
     const qbjObject: IQbjRound = {
       name: this.name,
       matches: this.matches.map((m) => m.toFileObject(qbjOnly)),
-      // TODO: packet
     };
+    if (this.packet.name) {
+      qbjObject.packets = [this.packet.toFileObject()];
+    }
+
     if (isTopLevel) qbjObject.type = QbjTypeNames.Round;
     if (isReferenced) qbjObject.id = this.id;
 
@@ -144,6 +148,21 @@ export class Round implements IQbjRound, IYftDataModelObject {
 
   deleteMatch(match: Match) {
     this.matches = this.matches.filter((m) => m !== match);
+  }
+
+  /**
+   * Count the number of matches that are in error and warning states.
+   * @returns [# matches with errors, # matches with warnings]
+   */
+  countErrorsAndWarnings() {
+    let errs = 0;
+    let warns = 0;
+    for (const m of this.matches) {
+      const valState = m.getOverallValidationStatus();
+      if (valState === ValidationStatuses.Error) errs++;
+      else if (valState === ValidationStatuses.Warning) warns++;
+    }
+    return [errs, warns];
   }
 }
 
