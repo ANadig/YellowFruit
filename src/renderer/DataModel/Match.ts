@@ -698,7 +698,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   }
 
   validateTotalAndOtTuhRelationship(scoringRules: ScoringRules) {
-    if (this.tossupsRead === undefined) {
+    if (this.tossupsRead === undefined || (this.tossupsRead === 0 && this.isForfeit())) {
       this.modalBottomValidation.clearMsgType(MatchValidationType.RegulationTuhNotStandard);
       return;
     }

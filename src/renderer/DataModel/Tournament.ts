@@ -354,6 +354,13 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.find((phase) => phase.includesRoundNumber(roundNo));
   }
 
+  getRoundObjByNumber(roundNo: number) {
+    const phase = this.whichPhaseIsRoundNumberIn(roundNo);
+    if (!phase) return undefined;
+
+    return phase.rounds.find((rd) => rd.number === roundNo);
+  }
+
   getPlayoffPhases() {
     return this.phases.filter((ph) => ph.phaseType === PhaseTypes.Playoff);
   }

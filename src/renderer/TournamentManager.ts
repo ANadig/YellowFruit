@@ -30,6 +30,7 @@ import { qbjFileValidVersion } from './DataModel/QbjUtils';
 import PoolAssignmentModalManager from './Modal Managers/PoolAssignmentModalManager';
 import MatchImportResult from './DataModel/MatchImportResult';
 import MatchImportResultsManager from './Modal Managers/MatchImportResultsManager';
+import { parseOldYfFile, isOldYftFile } from './DataModel/OldYfParsing';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -197,9 +198,38 @@ export class TournamentManager {
 
   /** Parse file contents and load tournament for editing */
   private openYftFile(filePath: string, fileContents: string, curYfVersion: string) {
+    if (isOldYftFile(fileContents)) {
+      this.openOldYftFile(fileContents);
+      return;
+    }
+
     const objFromFile = this.parseJSON(fileContents);
     if (!objFromFile) return;
     this.parseYftFile(filePath, objFromFile, curYfVersion);
+  }
+
+  private openOldYftFile(fileContents: string) {
+    try {
+      this.tournament = parseOldYfFile(fileContents);
+    } catch (err: any) {
+      this.openGenericModal('Invalid File', err.message);
+      this.newTournament();
+      return;
+    }
+
+    this.tournament.appVersion = this.appVersion;
+    this.modalManagersSetTournament();
+    this.filePath = null; // don't actually edit old files directly, in case we can't parse them right and end up losing info
+    this.displayName = '';
+    this.unsavedData = true;
+
+    this.setWindowTitle();
+    this.dataChangedReactCallback();
+
+    this.genericModalManager.open(
+      'YellowFruit',
+      'This file is from an older version of YellowFruit. It has been opened successfully, but you will need to save a new file if you make changes.',
+    );
   }
 
   /** Import an entire (non-YFT) qbj file */
