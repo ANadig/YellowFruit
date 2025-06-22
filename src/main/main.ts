@@ -30,6 +30,7 @@ import {
   handleExportQbjFile,
   createDirectories,
   handleImportGamesFromQbj,
+  readYftFileAndSendToRend,
 } from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
 import { FileSwitchActions, statReportProtocol } from '../SharedUtils';
@@ -108,6 +109,11 @@ const createWindow = async () => {
       mainWindow.minimize();
     } else {
       mainWindow.show();
+    }
+
+    const argsLength = process.defaultApp ? 3 : 2;
+    if (process.env.NODE_ENV === 'production' && process.argv.length >= argsLength) {
+      readYftFileAndSendToRend(mainWindow, process.argv[argsLength - 1]);
     }
   });
 

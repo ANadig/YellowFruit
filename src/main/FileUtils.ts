@@ -81,12 +81,16 @@ function openYftFile(mainWindow: BrowserWindow) {
   });
   if (!fileNameAry) return;
 
-  fs.readFile(fileNameAry[0], { encoding: 'utf8' }, (err, fileContents) => {
+  readYftFileAndSendToRend(mainWindow, fileNameAry[0]);
+}
+
+export function readYftFileAndSendToRend(mainWindow: BrowserWindow, filePath: string) {
+  fs.readFile(filePath, { encoding: 'utf8' }, (err, fileContents) => {
     if (err) {
       dialog.showMessageBoxSync(mainWindow, { message: `Error reading file: \n\n ${err.message}` });
       return;
     }
-    mainWindow.webContents.send(IpcMainToRend.openYftFile, fileNameAry[0], fileContents, app.getVersion());
+    mainWindow.webContents.send(IpcMainToRend.openYftFile, filePath, fileContents, app.getVersion());
   });
 }
 
