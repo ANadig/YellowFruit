@@ -23,7 +23,7 @@ import SeedingView from './TeamsPageSeedingView';
 import StandingsView from './TeamsPageStandingsView';
 
 // Defines the order the buttons should be in
-const viewList = ['Registration', 'Prelim Seeding', 'Rebracket / Final Ranks'];
+const viewList = ['Registration', 'Prelim Assignments', 'Rebracket / Final Ranks'];
 
 function TeamsPage() {
   const tournManager = useContext(TournamentContext);
@@ -152,7 +152,11 @@ function TeamListItem(props: ITeamListItemProps) {
   if (isLastForReg) nextLetter = team.letter === '' ? 'B' : nextAlphabetLetter(team.letter);
 
   return (
-    <Grid container sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}>
+    <Grid
+      container
+      sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}
+      onDoubleClick={() => tournManager.openTeamEditModalExistingTeam(registration, team)}
+    >
       <Grid xs={9}>
         <Box typography="h5">{team.name}</Box>
         <Typography variant="body2">{teamInfoDisplay(registration, team)}</Typography>

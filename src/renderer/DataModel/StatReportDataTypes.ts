@@ -14,6 +14,9 @@ export enum StatTypes {
   bbHrd,
   bbPts,
   bbPct,
+  ltngPerMtch,
+  lightning,
+  ltngPerTmPerGm,
   wouldAdvance,
   advancedTo,
   gamesPlayed,
@@ -62,6 +65,12 @@ export function columnName(stat: StatTypes, tournament: Tournament) {
     case StatTypes.bbPct:
     case StatTypes.rrBbPct:
       return 'BB%';
+    case StatTypes.ltngPerMtch:
+      return 'Ltng/G';
+    case StatTypes.lightning:
+      return 'Ltng';
+    case StatTypes.ltngPerTmPerGm:
+      return 'Ltng/Tm/G';
     case StatTypes.wouldAdvance:
       return 'Would Advance';
     case StatTypes.advancedTo:
@@ -121,6 +130,12 @@ export function columnTooltip(stat: StatTypes, tournament: Tournament) {
     case StatTypes.bbPct:
     case StatTypes.rrBbPct:
       return 'Percentage of bounceback bonus parts that were answered correctly';
+    case StatTypes.ltngPerMtch:
+      return 'Points earned from lightning rounds per game';
+    case StatTypes.lightning:
+      return 'Lightning round points';
+    case StatTypes.ltngPerTmPerGm:
+      return 'Points earned from lightning rounds per team per game';
     case StatTypes.wouldAdvance:
       return 'Level of the next stage of the tournament that the team would advance to, given the current standings';
     case StatTypes.gamesPlayed:

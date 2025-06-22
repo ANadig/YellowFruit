@@ -5,6 +5,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
+  Button,
   Checkbox,
   Divider,
   FormControl,
@@ -18,9 +19,10 @@ import {
   ListItemText,
   Radio,
   RadioGroup,
+  Tooltip,
   Typography,
 } from '@mui/material';
-import { Edit, ExpandMore } from '@mui/icons-material';
+import { Add, Delete, Edit, ExpandMore, LockOpen } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
@@ -28,35 +30,111 @@ import { Phase, PhaseTypes, WildCardRankingMethod } from '../DataModel/Phase';
 import { Pool, advOpportunityDisplay } from '../DataModel/Pool';
 import { LinkButton } from '../Utils/GeneralReactUtils';
 
+const unlockCustSchedTooltip =
+  'Add, remove, or modify stages and pools. Seeding and rebracketing assistance is not available for custom schedules.';
+const usingCustSchedTooltip = 'Using a custom schedule. Seeding and rebracketing assistance are not available.';
+
 export default function ScheduleDetailCard() {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
   const [phases] = useSubscription(thisTournament.phases);
+  const [usingTemplate] = useSubscription(thisTournament.usingScheduleTemplate);
+
+  const tooltip = usingTemplate ? unlockCustSchedTooltip : usingCustSchedTooltip;
 
   return (
-    <YfCard title="Schedule Detail">
+    <YfCard
+      title="Schedule Detail"
+      secondaryHeader={
+        <Tooltip title={tooltip}>
+          <span>
+            <Button
+              variant="contained"
+              disabled={!usingTemplate}
+              onClick={() => tournManager.tryUnlockCustomSchedule()}
+              startIcon={<LockOpen />}
+            >
+              {usingTemplate ? 'Customize' : 'Custom'}
+            </Button>
+          </span>
+        </Tooltip>
+      }
+    >
       <List>
         {phases.map((phase) => (
           <Accordion key={phase.code} defaultExpanded>
-            <AccordionSummary expandIcon={<ExpandMore />} sx={{ '& .MuiIconButton-root': { py: 0, px: 0.5, mx: 1 } }}>
-              <PhaseTitle phase={phase} />
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  tournManager.openPhaseModal(phase);
-                }}
-              >
-                <Edit />
-              </IconButton>
-            </AccordionSummary>
+            <PhaseAccordionHeader phase={phase} />
             <AccordionDetails>
               {phase.isFullPhase() ? <PhaseEditor phase={phase} /> : <MinorPhaseSection phase={phase} />}
             </AccordionDetails>
           </Accordion>
         ))}
       </List>
+      {!usingTemplate && (
+        <Button
+          sx={{ marginTop: 1 }}
+          variant="contained"
+          onClick={() => tournManager.addPlayoffPhase()}
+          startIcon={<Add />}
+        >
+          Add Stage
+        </Button>
+      )}
     </YfCard>
+  );
+}
+
+interface PhaseAccordionHeaderProps {
+  phase: Phase;
+}
+
+function PhaseAccordionHeader(props: PhaseAccordionHeaderProps) {
+  const { phase } = props;
+  const tournManager = useContext(TournamentContext);
+  const matchesExist = phase.anyMatchesExist();
+  const [usingTemplate] = useSubscription(tournManager.tournament.usingScheduleTemplate);
+
+  const showDeleteButton = !phase.isFullPhase() || (!usingTemplate && phase.phaseType !== PhaseTypes.Prelim);
+
+  return (
+    <AccordionSummary
+      expandIcon={<ExpandMore />}
+      sx={{
+        '& .MuiAccordionSummary-content': { justifyContent: 'space-between' },
+        '& .MuiIconButton-root': { py: 0, px: 0.5, mx: 1 },
+      }}
+    >
+      <div>
+        <PhaseTitle phase={phase} />
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            tournManager.openPhaseModal(phase);
+          }}
+        >
+          <Edit />
+        </IconButton>
+      </div>
+      <div>
+        {showDeleteButton && (
+          <Tooltip title="Delete stage">
+            <span>
+              <IconButton
+                size="small"
+                disabled={matchesExist}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  tournManager.tryDeletePhase(phase);
+                }}
+              >
+                <Delete />
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
+      </div>
+    </AccordionSummary>
   );
 }
 
@@ -86,13 +164,14 @@ function PhaseEditor(props: IPhaseEditorProps) {
   const [selectedPoolIdx, setSelectedPoolIdx] = useState(0);
   const [wcRankValue, setWcRankValue] = useSubscription(phase.wildCardRankingMethod);
 
-  const selectedPool = phase.pools[selectedPoolIdx];
-  const wcRules = phase.wildCardAdvancementRules;
-  const showTiers = phase.phaseType === PhaseTypes.Playoff;
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
+  const selectedPool = phase.pools[selectedPoolIdx];
+  const wcRules = phase.wildCardAdvancementRules;
+  const showTiers = phase.phaseType === PhaseTypes.Playoff && thisTournament.usingScheduleTemplate;
   const canAddTB = !thisTournament.hasTiebreakerAfter(phase);
   const canAddFinals = thisTournament.isLastFullPhase(phase);
+  const [usingTemplate] = useSubscription(thisTournament.usingScheduleTemplate);
   const dragKey = `pools-${phase.name}`;
 
   if (phase.pools === undefined) {
@@ -129,7 +208,7 @@ function PhaseEditor(props: IPhaseEditorProps) {
           </FormControl>
         </Grid>
       )}
-      <Grid xs={4}>
+      <Grid xs={5}>
         <Box
           sx={{
             marginTop: 1,
@@ -178,8 +257,19 @@ function PhaseEditor(props: IPhaseEditorProps) {
             ))}
           </List>
         </Box>
+        {!usingTemplate && (
+          <Button
+            sx={{ marginTop: 1 }}
+            size="small"
+            variant="outlined"
+            startIcon={<Add />}
+            onClick={() => tournManager.addPool(phase)}
+          >
+            Add Pool
+          </Button>
+        )}
       </Grid>
-      <Grid xs={8}>
+      <Grid xs={7}>
         <Typography sx={{ marginTop: 1 }} variant="subtitle2">
           {selectedPool?.name}
         </Typography>
@@ -206,7 +296,7 @@ function PoolDetail(props: IPoolDetailProps) {
     <Box typography="body2">
       <List dense>
         <ListItem disableGutters>{roundRobinDisplay(selectedPool)}</ListItem>
-        <ListItem disableGutters>Seeds {selectedPool.seeds.join(', ')}</ListItem>
+        {selectedPool.seeds.length > 0 && <ListItem disableGutters>Seeds {selectedPool.seeds.join(', ')}</ListItem>}
         {selectedPool.autoAdvanceRules.length > 0 && (
           <>
             <ListItem disableGutters>Advancement:</ListItem>
@@ -221,16 +311,15 @@ function PoolDetail(props: IPoolDetailProps) {
   );
 }
 
-interface IMinoPhaseSectionProps {
+interface IMinorPhaseSectionProps {
   phase: Phase;
 }
 
 /** A minimal section for a tiebreaker or finals phase */
-function MinorPhaseSection(props: IMinoPhaseSectionProps) {
+function MinorPhaseSection(props: IMinorPhaseSectionProps) {
   const { phase } = props;
   const tournManager = useContext(TournamentContext);
   const [usesNumeric, setUsesNumeric] = useSubscription(phase.forceNumericRounds || false);
-  const matchesExist = phase.anyMatchesExist();
 
   const handleUsesNumericChange = (checked: boolean) => {
     setUsesNumeric(checked);
@@ -242,20 +331,15 @@ function MinorPhaseSection(props: IMinoPhaseSectionProps) {
   };
 
   return (
-    <>
-      <FormGroup>
-        <FormControlLabel
-          control={
-            <Checkbox size="small" checked={usesNumeric} onChange={(e) => handleUsesNumericChange(e.target.checked)} />
-          }
-          label="Uses numeric round"
-          sx={{ width: 'fit-content' }}
-        />
-      </FormGroup>
-      <LinkButton disabled={matchesExist} onClick={() => tournManager.deletePhase(phase)}>
-        Delete stage
-      </LinkButton>
-    </>
+    <FormGroup>
+      <FormControlLabel
+        control={
+          <Checkbox size="small" checked={usesNumeric} onChange={(e) => handleUsesNumericChange(e.target.checked)} />
+        }
+        label="Uses numeric round"
+        sx={{ width: 'fit-content' }}
+      />
+    </FormGroup>
   );
 }
 

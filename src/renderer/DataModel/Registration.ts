@@ -1,3 +1,4 @@
+import { teamGetNameAndLetter } from '../Utils/GeneralUtils';
 import {
   IQbjObject,
   IValidationInfo,
@@ -97,6 +98,25 @@ class Registration implements IQbjRegistration, IYftDataModelObject {
 
   sortTeams() {
     this.teams.sort((a, b) => a.letter.localeCompare(b.letter));
+  }
+
+  /** Look through the list of teams and determine each team's letter and the overall registration name.
+   *  For example, if the registration and team are both "Central A", the registration name should be "Central".
+   *  Use for registrations that were just created from non-YellowFruit files.
+   */
+  computeLettersAndRegName() {
+    if (this.teams.length === 0) return;
+
+    let registrationName;
+    let regNameIsConsistent = true;
+    for (const tm of this.teams) {
+      const [name, letter] = teamGetNameAndLetter(tm.name);
+      if (letter !== '') tm.letter = letter;
+
+      if (!registrationName) registrationName = name;
+      else if (name !== registrationName) regNameIsConsistent = false;
+    }
+    if (regNameIsConsistent && registrationName) this.name = registrationName;
   }
 
   validateAll() {

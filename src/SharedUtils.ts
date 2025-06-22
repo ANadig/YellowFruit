@@ -12,6 +12,7 @@ export enum FileSwitchActions {
   NewFile,
   OpenYftFile,
   CloseApp,
+  ImportQbjTournament,
 }
 
 export const FileSwitchActionNames = {
@@ -25,4 +26,9 @@ export interface IYftBackupFile {
   /** When the backup was last saved - stringify to ISO 8601 format */
   savedAtTime: Date;
   fileContents: object;
+}
+
+export interface IMatchImportFileRequest {
+  filePath: string;
+  fileContents: string;
 }

@@ -1,4 +1,4 @@
-import { sumReduce } from '../Utils/GeneralUtils';
+import { sumReduce, versionLt } from '../Utils/GeneralUtils';
 // eslint-disable-next-line import/no-cycle
 import { NullDate, NullObjects } from '../Utils/UtilTypes';
 // eslint-disable-next-line import/no-cycle
@@ -72,6 +72,7 @@ interface ITournamentExtraData {
   trackUG: boolean;
   trackDiv2: boolean;
   finalRankingsReady?: boolean;
+  usingScheduleTemplate?: boolean;
 }
 
 /** YellowFruit implementation of the Tournament object */
@@ -93,8 +94,12 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   registrations: Registration[] = [];
 
-  /** Phases (prelims, playoffs, etc) of the tournament. In YellowFruit, these must always be in chronological order! */
+  /** Phases (prelims, playoffs, etc) of the tournament. In YellowFruit, these must always be in chronological order!
+   *  Furthermore, there must always be exactly one prelim phase, at index 0.
+   */
   phases: Phase[] = [];
+
+  usingScheduleTemplate: boolean = false;
 
   rankings: Ranking[] = [];
 
@@ -127,6 +132,8 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   htmlGenerator: HtmlReportGenerator;
 
+  appVersion: string = '';
+
   constructor(name?: string) {
     if (name) {
       this.name = name;
@@ -134,6 +141,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.tournamentSite = new TournamentSite();
     this.scoringRules = new ScoringRules(CommonRuleSets.NaqtUntimed);
     this.htmlGenerator = new HtmlReportGenerator(this);
+    this.addBlankPhase();
   }
 
   toFileObject(qbjOnly = false, isTopLevel = true, isReferenced = false): IQbjTournament {
@@ -155,7 +163,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     if (qbjOnly) return qbjObject;
 
     const metadata: ITournamentExtraData = {
-      YfVersion: '4.0.0',
+      YfVersion: this.appVersion,
       standardRuleSet: this.standardRuleSet,
       seeds: this.seeds.map((team) => team.toRefPointer()),
       trackPlayerYear: this.trackPlayerYear,
@@ -164,6 +172,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       trackUG: this.trackUG,
       trackDiv2: this.trackDiv2,
       finalRankingsReady: this.finalRankingsReady,
+      usingScheduleTemplate: this.usingScheduleTemplate,
     };
     const yftFileObj = { YfData: metadata, ...qbjObject };
 
@@ -187,12 +196,17 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     }
 
     if (fullReport) {
-      this.cumulativeStats = new AggregateStandings(this.getListOfAllTeams(), this.phases, this.scoringRules);
-      if (this.finalRankingsReady) this.cumulativeStats.sortTeamsByFinalRank();
-      else this.cumulativeStats.sortTeamsByPPB();
-
-      this.stats.find((phSt) => phSt.phase.phaseType === PhaseTypes.Prelim)?.compileIndividualStats();
+      this.compileAddlStatsForFullReport();
     }
+  }
+
+  /** Do additional work needed for the full stat report- cumulative stats, individual stats, etc. */
+  private compileAddlStatsForFullReport() {
+    this.cumulativeStats = new AggregateStandings(this.getListOfAllTeams(), this.phases, this.scoringRules);
+    if (this.finalRankingsReady) this.cumulativeStats.sortTeamsByFinalRank();
+    else this.cumulativeStats.sortTeamsByPPB();
+
+    this.stats.find((phSt) => phSt.phase.phaseType === PhaseTypes.Prelim)?.compileIndividualStats();
   }
 
   reSortStandingsByFinalRank() {
@@ -285,6 +299,13 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return sumReduce(poolSizes);
   }
 
+  /** Should we let the user start entering matches? */
+  readyToAddMatches() {
+    if (this.getNumberOfTeams() < 2) return false;
+
+    return !this.anyPoolErrors();
+  }
+
   /** Which phase is the prelim phase? */
   getPrelimPhase(): Phase | undefined {
     return this.phases.find((phase) => phase.phaseType === PhaseTypes.Prelim);
@@ -333,6 +354,13 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.find((phase) => phase.includesRoundNumber(roundNo));
   }
 
+  getRoundObjByNumber(roundNo: number) {
+    const phase = this.whichPhaseIsRoundNumberIn(roundNo);
+    if (!phase) return undefined;
+
+    return phase.rounds.find((rd) => rd.number === roundNo);
+  }
+
   getPlayoffPhases() {
     return this.phases.filter((ph) => ph.phaseType === PhaseTypes.Playoff);
   }
@@ -340,6 +368,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** "Real" phases with pool play, as oppsed to tiebreakers or finals */
   getFullPhases() {
     return this.phases.filter((ph) => ph.isFullPhase());
+  }
+
+  getNumericRoundPhases() {
+    return this.phases.filter((ph) => ph.usesNumericRounds());
   }
 
   /** The list of tiebreaker and finals phases */
@@ -355,7 +387,15 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.find((ph) => ph.name === str);
   }
 
-  lastPhaseCodeNo(): number {
+  findPhaseByRound(round: Round) {
+    return this.phases.find((ph) => ph.rounds.includes(round));
+  }
+
+  private nextPhaseCode(): string {
+    return (this.lastPhaseCodeNo() + 1).toString();
+  }
+
+  private lastPhaseCodeNo(): number {
     for (let i = this.phases.length - 1; i >= 0; i--) {
       const ph = this.phases[i];
       if (ph.phaseType !== PhaseTypes.Tiebreaker) return parseInt(ph.code, 10);
@@ -396,14 +436,16 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     const roundNumber = this.phases[this.phases.length - 1].lastRoundNumber() + 1;
     const numFinalsAlready = this.getFinalsPhases().length;
     const phaseName = numFinalsAlready > 0 ? `Finals (${numFinalsAlready + 1})` : undefined;
-    this.phases.push(
-      new Phase(PhaseTypes.Finals, roundNumber, roundNumber, (this.lastPhaseCodeNo() + 1).toString(), phaseName),
-    );
+    this.phases.push(new Phase(PhaseTypes.Finals, roundNumber, roundNumber, this.nextPhaseCode(), phaseName));
   }
 
   deletePhase(phase: Phase) {
     const idx = this.phases.indexOf(phase);
     if (idx === -1) return;
+
+    if (phase.phaseType === PhaseTypes.Playoff) {
+      this.clearAllCarryoverMatchesForPhase(phase);
+    }
 
     const nextPhase = this.phases[idx + 1];
 
@@ -445,6 +487,59 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     }
   }
 
+  /** The lowest round that this phase could contain, given the surrounding phases */
+  roundNumberLowerBound(phase: Phase): number {
+    const numericPhases = this.getNumericRoundPhases();
+    const idx = numericPhases.indexOf(phase);
+    if (idx === -1 || idx === 0) return 1;
+
+    return numericPhases[idx - 1].lastRoundNumber() + 1;
+  }
+
+  /** The highest round that this phase could contain, given the surrounding phases */
+  roundNumberUpperBound(phase: Phase): number {
+    const numericPhases = this.getNumericRoundPhases();
+    const idx = numericPhases.indexOf(phase);
+    if (idx === -1 || idx === numericPhases.length - 1) return 999;
+
+    return numericPhases[idx + 1].firstRoundNumber() - 1;
+  }
+
+  /** Add an empty phase for the user to customize */
+  addBlankPhase() {
+    const startingRound = 1 + (this.getLastFullPhase()?.lastRoundNumber() || 0);
+    const phaseType = startingRound === 1 ? PhaseTypes.Prelim : PhaseTypes.Playoff;
+    const newPhaseName = this.getNewPhaseName();
+    const newPhase = new Phase(phaseType, startingRound, startingRound, this.nextPhaseCode(), newPhaseName);
+    newPhase.addBlankPool();
+
+    if (this.phases.length === 0) {
+      this.phases.push(newPhase);
+      return;
+    }
+
+    let lastNonFinalsIdx = this.phases.length - 1;
+    while (this.phases[lastNonFinalsIdx].phaseType === PhaseTypes.Finals) {
+      lastNonFinalsIdx--;
+    }
+
+    this.phases.splice(lastNonFinalsIdx + 1, 0, newPhase);
+  }
+
+  /** Get an appropriate name for a newly-added blank phase */
+  private getNewPhaseName() {
+    const fullPhases = this.getFullPhases();
+    if (fullPhases.find((ph) => ph.name === 'New Stage')) {
+      for (let i = 2; ; i++) {
+        const altName = `New Stage ${i}`;
+        if (!fullPhases.find((ph) => ph.name === altName)) {
+          return altName;
+        }
+      }
+    }
+    return 'New Stage';
+  }
+
   /** Do any of the phases in this tournament carry over games to a subsequent phase? */
   hasAnyCarryover() {
     for (const ph of this.getFullPhases()) {
@@ -453,11 +548,20 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return false;
   }
 
+  /** Should all prelim games carry over to playoffs because every team played every other team? */
   allPrelimGamesCarryOver() {
     const prelims = this.getPrelimPhase();
     if (!prelims) return false;
     if (this.getFullPhases().length !== 2) return false; // <2: nothing to carry over to; >2: something weird I've never heard of and don't want to deal with
     return prelims.pools.length === 1 && prelims.pools[0].roundRobins >= 1;
+  }
+
+  findPoolByName(name: string) {
+    for (const phase of this.getFullPhases()) {
+      const matchingPool = phase.findPoolByName(name);
+      if (matchingPool) return matchingPool;
+    }
+    return undefined;
   }
 
   findPoolWithTeam(team: Team, round: Round): Pool | undefined {
@@ -466,16 +570,21 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return phase.findPoolWithTeam(team);
   }
 
+  /** Do any pools have errors that need to be corrected right now? */
+  private anyPoolErrors() {
+    return !!this.getPrelimPhase()?.anyPoolErrors(); // this only applies to prelim phase right now
+  }
+
   /** Add a new registration, and a team that should be contained in that registration */
   addRegAndTeam(regToAdd: Registration, teamToAdd: Team) {
     regToAdd.teams = [teamToAdd];
     this.addRegistration(regToAdd);
-    this.seedAndAssignNewTeam(teamToAdd);
   }
 
   addRegistration(regToAdd: Registration) {
     this.registrations.push(regToAdd);
     this.sortRegistrations();
+    this.seedTeamsInRegistration(regToAdd);
   }
 
   sortRegistrations() {
@@ -502,9 +611,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** Give a new team a seed and assign them to the appropriate prelim pool. Returns the seed number. */
   seedAndAssignNewTeam(newTeam: Team) {
     const seedNo = this.seeds.push(newTeam);
-    const prelimPhase = this.getPrelimPhase();
-    if (prelimPhase) {
-      prelimPhase.addSeededTeam(newTeam, seedNo);
+    if (this.usingScheduleTemplate) {
+      this.getPrelimPhase()?.addSeededTeam(newTeam, seedNo);
+    } else {
+      this.addUnseededTeamToPrelims(newTeam);
     }
   }
 
@@ -520,6 +630,10 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     for (const tm of reg.teams) {
       if (!this.seeds.includes(tm)) this.seedAndAssignNewTeam(tm);
     }
+  }
+
+  addUnseededTeamToPrelims(team: Team) {
+    this.getPrelimPhase()?.addUnseededTeam(team);
   }
 
   /** Swap the team at the given seed with the team above it.
@@ -578,6 +692,16 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return undefined;
   }
 
+  findPlayerByName(name: string): Player | undefined {
+    for (const reg of this.registrations) {
+      for (const tm of reg.teams) {
+        const pl = tm.findPlayerByName(name);
+        if (pl) return pl;
+      }
+    }
+    return undefined;
+  }
+
   teamHasPlayedAnyMatch(team: Team) {
     for (const ph of this.phases) {
       if (ph.teamHasPlayedAnyMatches(team)) return true;
@@ -613,6 +737,14 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   setStandardSchedule(sched: StandardSchedule) {
     this.phases = sched.constructPhases();
     this.distributeSeeds();
+    this.usingScheduleTemplate = true;
+  }
+
+  unlockCustomSchedule() {
+    this.usingScheduleTemplate = false;
+    for (const ph of this.phases) {
+      ph.unlockCustomSchedule();
+    }
   }
 
   /** Take the list of seeds and populate prelim pools with them */
@@ -656,6 +788,40 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return undefined;
   }
 
+  /**
+   * Determine whether a match's teams have already played in some other match in the same round, and update the Match's validation data accordingly
+   * @param match Match to validate
+   * @param round Round the match happened in
+   * @param phase Phase that round is in
+   * @param unSuppress True if we should ignore that this warning was previously suppressed
+   * @param matchToIgnore Match that should be ignored if we find it (for use with temp matches being manually edited in the modal)
+   */
+  static validateHaveTeamsPlayedInRound(
+    match: Match,
+    round: Round | undefined,
+    phase: Phase | undefined,
+    unSuppress: boolean,
+    matchToIgnore?: Match,
+  ) {
+    const leftTeam = match.leftTeam.team;
+    const rightTeam = match.rightTeam.team;
+    if (!round || (phase && !phase.isFullPhase())) {
+      match.setAlreadyPlayedInRdValidation(true, '', unSuppress);
+      return;
+    }
+    const leftHasPlayed = leftTeam ? round.teamHasPlayedIn(leftTeam, matchToIgnore) : false;
+    const rightHasPlayed = rightTeam ? round.teamHasPlayedIn(rightTeam, matchToIgnore) : false;
+    let message = '';
+    if (leftHasPlayed && rightHasPlayed) {
+      message = 'Both teams have already played a game in this round';
+    } else if (leftHasPlayed) {
+      message = `${leftTeam?.name} has already played a game in this round`;
+    } else if (rightHasPlayed) {
+      message = `${rightTeam?.name} has already played a game in this round`;
+    }
+    match.setAlreadyPlayedInRdValidation(message === '', message, unSuppress);
+  }
+
   /** Carry over matches from previous phases to this one */
   carryOverMatches(nextPhase: Phase, teams: Team[]) {
     if (!nextPhase.hasAnyCarryover()) return;
@@ -677,6 +843,12 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       // No need to go further back
       // (I'm not aware of any formats where phase A carries over to phase C but phase B doesn't)
       if (!pastPhase.hasAnyCarryover()) break;
+    }
+  }
+
+  clearAllCarryoverMatchesForPhase(playoffPhase: Phase) {
+    for (const tm of this.getListOfAllTeams()) {
+      this.clearCarryoverMatches(tm, playoffPhase);
     }
   }
 
@@ -712,6 +884,19 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return matches;
   }
 
+  /** Set hasCarryover to true in the pools of phases to which matches were carried over */
+  inferCarryoverStatus() {
+    for (const ph of this.getFullPhases()) {
+      for (const coPh of ph.getPhasesCarriedOverTo()) {
+        if (coPh.hasAnyCarryover()) continue;
+
+        for (const p of coPh.pools) {
+          p.hasCarryover = true;
+        }
+      }
+    }
+  }
+
   confirmFinalRankings() {
     if (this.stats.length === 0) return;
     for (const poolStats of this.statsWithFinalRanks().pools) {
@@ -723,7 +908,22 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       }
     }
   }
-  //
+
+  packetNamesExist() {
+    return !!this.phases.find((ph) => ph.packetNamesExist());
+  }
+
+  /** Convert data to the current version's format */
+  conversions() {
+    if (versionLt(this.appVersion, '4.0.1')) {
+      this.conversion4x0x1();
+    }
+  }
+
+  /** If 4.0.0, must have used a schedule template */
+  private conversion4x0x1() {
+    this.usingScheduleTemplate = true;
+  }
 }
 
 export const NullTournament = new Tournament('Null Tournament');
