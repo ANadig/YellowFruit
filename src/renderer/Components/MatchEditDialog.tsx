@@ -22,19 +22,22 @@ import {
   Autocomplete,
   FormControlLabel,
   Paper,
+  Card,
+  Collapse,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { DragIndicator } from '@mui/icons-material';
+import { DragIndicator, ExpandMore } from '@mui/icons-material';
 import { MatchEditModalContext } from '../Modal Managers/TempMatchManager';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import { YfCssClasses, hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { CollapsibleArea, ExpandButton, YfCssClasses, hotkeyFormat } from '../Utils/GeneralReactUtils';
 import { ValidationStatuses } from '../DataModel/Interfaces';
 import { LeftOrRight } from '../Utils/UtilTypes';
 import { MatchPlayer } from '../DataModel/MatchPlayer';
 import { PlayerAnswerCount } from '../DataModel/PlayerAnswerCount';
 import MatchValidationMessage from '../DataModel/MatchValidationMessage';
 import { otherTeam } from '../DataModel/Match';
+import { trunc } from '../Utils/GeneralUtils';
 
 export default function MatchEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -152,14 +155,18 @@ function MatchEditDialogCore() {
                 <BounceBackRow whichTeam="right" />
               </Grid>
               {/** sixth row */}
-              <Grid xs={3} lg={2} sx={{ marginTop: 3, paddingLeft: 2.5 }}>
-                <OvertimeTuReadField />
+              <Grid xs={6}>
+                <LightningRow whichTeam="left" />
               </Grid>
-              <Grid xs={9} lg={5} sx={{ marginTop: 3 }}>
-                <OvertimeBuzzesRow whichTeam="left" />
+              <Grid xs={6}>
+                <LightningRow whichTeam="right" />
               </Grid>
-              <Grid xs={9} lg={5} xsOffset={3} lgOffset={0} sx={{ marginTop: 3 }}>
-                <OvertimeBuzzesRow whichTeam="right" />
+              {/** seventh row */}
+              <Grid xs={12} lg={6}>
+                <OvertimeSection />
+              </Grid>
+              <Grid xs={12} lg={6}>
+                <NotesCard />
               </Grid>
             </Grid>
           </Box>
@@ -590,19 +597,15 @@ function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
     setCount(valToUse?.toString() || '');
   };
 
-  let label;
-  if (isOvertimeStats) label = disabled ? ' ' : `« ${answerCount.answerType.value} »`;
-
   return (
     <Grid xs={xs}>
       <TextField
         type="number"
         inputProps={{ min: 0 }}
         fullWidth
-        label={label}
         variant={outlinedStyle ? 'outlined' : 'standard'}
         size="small"
-        hiddenLabel={!isOvertimeStats}
+        hiddenLabel
         disabled={disabled}
         error={invalid}
         value={count}
@@ -691,10 +694,15 @@ function BounceBackRow(props: IBounceBackRowProps) {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 } }}>
-      <div>
-        &emsp;&nbsp;<b>Bouncebacks:</b>&emsp;
-      </div>
+    <Box
+      sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        paddingBottom: 2,
+        '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 },
+      }}
+    >
+      <div>&emsp;&nbsp;Bouncebacks:&emsp;</div>
       <TextField
         sx={{ width: '6ch' }}
         type="number"
@@ -717,6 +725,99 @@ function BounceBackRow(props: IBounceBackRowProps) {
   );
 }
 
+interface ILightningRowProps {
+  whichTeam: LeftOrRight;
+}
+
+function LightningRow(props: ILightningRowProps) {
+  const { whichTeam } = props;
+  const modalManager = useContext(MatchEditModalContext);
+  const [matchTeam] = useSubscription(modalManager.tempMatch.getMatchTeam(whichTeam));
+  const rules = modalManager.tournament.scoringRules;
+  const [ltngPts, setLtngPts] = useSubscription(matchTeam.lightningPoints?.toString() || '');
+  const divisor = rules.lightningDivisor;
+  const [forfeit] = useSubscription(modalManager.tempMatch.isForfeit());
+
+  if (!modalManager.tournament.scoringRules.useLightningRounds() || matchTeam === undefined || forfeit) return null;
+
+  const handleBlur = () => {
+    const valToUse = modalManager.setLightningPoints(whichTeam, ltngPts);
+    setLtngPts(valToUse?.toString() || '');
+  };
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        paddingBottom: 2,
+        '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 },
+      }}
+    >
+      <div>&emsp;&nbsp;Lightning Round:&emsp;</div>
+      <TextField
+        sx={{ width: '6ch' }}
+        type="number"
+        inputProps={{ min: 0, step: divisor }}
+        fullWidth
+        variant="standard"
+        size="small"
+        value={ltngPts}
+        onChange={(e) => setLtngPts(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleBlur();
+        }}
+      />
+      <div>pts</div>
+    </Box>
+  );
+}
+
+function OvertimeSection() {
+  const tournManager = useContext(TournamentContext);
+  const modalManager = useContext(MatchEditModalContext);
+  const [formExpanded, setFormExpanded] = useState(false);
+
+  return (
+    <Card variant="outlined" sx={{ p: 1 }}>
+      <Box sx={{ cursor: 'pointer' }}>
+        <Grid container onClick={() => setFormExpanded(!formExpanded)}>
+          <Grid xs>
+            <b>Overtime&emsp;</b>
+            {!formExpanded && <span>{modalManager.tempMatch.getOvertimeSummary()}</span>}
+          </Grid>
+          <Grid xs="auto">
+            <ExpandButton expand={formExpanded} sx={{ p: 0 }}>
+              <ExpandMore />
+            </ExpandButton>
+          </Grid>
+        </Grid>
+      </Box>
+      <Collapse in={formExpanded}>
+        <Grid container columnSpacing={1} sx={{ marginTop: 1, paddingBottom: 1 }}>
+          <Grid xs={3}>
+            <OvertimeTuReadField />
+          </Grid>
+          <Grid xs={1} />
+          <Grid xs={8}>
+            <Grid container columns={9} columnSpacing={1}>
+              <Grid xs md={4} lg />
+              {tournManager.tournament.scoringRules.answerTypes.map((at) => (
+                <Grid key={at.value} xs={1}>
+                  &nbsp;&nbsp;<b>{at.shortLabel}</b>
+                </Grid>
+              ))}
+            </Grid>
+            <OvertimeBuzzesRow whichTeam="left" />
+            <OvertimeBuzzesRow whichTeam="right" />
+          </Grid>
+        </Grid>
+      </Collapse>
+    </Card>
+  );
+}
+
 function OvertimeTuReadField() {
   const modalManager = useContext(MatchEditModalContext);
   const [otTUH, setOtTUH] = useSubscription(modalManager.tempMatch.overtimeTossupsRead?.toString() || '');
@@ -732,27 +833,21 @@ function OvertimeTuReadField() {
   };
 
   return (
-    <Grid container columnSpacing={1}>
-      <Grid xs={5} sx={{ paddingTop: 2.4, textAlign: 'right' }}>
-        Overtime:&nbsp;
-      </Grid>
-      <Grid xs={7} sx={{ '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 } }}>
-        <TextField
-          type="number"
-          inputProps={{ min: 0 }}
-          label="TU Read"
-          fullWidth
-          variant="standard"
-          size="small"
-          value={otTUH}
-          onChange={(e) => handleChange(e.target.value)}
-          onBlur={handleBlur}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleBlur();
-          }}
-        />
-      </Grid>
-    </Grid>
+    <TextField
+      sx={{ top: '30px' }}
+      type="number"
+      inputProps={{ min: 0 }}
+      label="TU Read"
+      fullWidth
+      variant="outlined"
+      size="small"
+      value={otTUH}
+      onChange={(e) => handleChange(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') handleBlur();
+      }}
+    />
   );
 }
 
@@ -769,14 +864,40 @@ function OvertimeBuzzesRow(props: IOverTimeRowProps) {
   const disabled = !overrideEnable;
 
   return (
-    <Grid container columnSpacing={1} sx={{ '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 } }}>
-      <Grid xs sx={{ paddingTop: 2.4, textAlign: 'right', color: disabled ? 'rgba(0, 0, 0, 0.38)' : undefined }}>
-        {matchTeam.team?.name || ''}
+    <Grid container columns={9} columnSpacing={1}>
+      <Grid xs md={4} lg>
+        <span style={{ verticalAlign: 'sub' }}>{matchTeam.team?.name || <span>&nbsp;</span>}</span>
       </Grid>
       {otBuzzes.map((ac) => (
-        <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} xs={2} isOvertimeStats disabled={disabled} />
+        <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} xs={1} isOvertimeStats disabled={disabled} />
       ))}
     </Grid>
+  );
+}
+
+function NotesCard() {
+  const modalManager = useContext(MatchEditModalContext);
+  const [notes, setNotes] = useSubscription(modalManager.tempMatch.notes || '');
+
+  return (
+    <Card variant="outlined" sx={{ p: 1 }}>
+      <CollapsibleArea title={<b>Notes&emsp;</b>} secondaryTitle={<span>{trunc(notes, 70)}</span>}>
+        <TextField
+          multiline
+          spellCheck={false}
+          rows={4}
+          fullWidth
+          variant="outlined"
+          size="small"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          onBlur={() => modalManager.setNotes(notes)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') modalManager.setNotes(notes);
+          }}
+        />
+      </CollapsibleArea>
+    </Card>
   );
 }
 

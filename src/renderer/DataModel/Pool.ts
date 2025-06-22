@@ -89,26 +89,15 @@ export class Pool implements IQbjPool, IYftDataModelObject {
    */
   seeds: number[] = [];
 
-  /**
-   * Wild card positions that advance to this pool. For example, if this is a top playoff bracket where
-   * the last team in is the top wild card, this field would be [1]. If this is a consolation bracket with
-   * wild cards 3 through 8, this field would be [3, 4, 5, 6, 7, 8]
-   */
-  // wildCardPositions: number[] = [];
-
   /** Does this pool carry over games from the previous phase? */
   hasCarryover: boolean = false;
-
-  /** List of pools from the previous phase that this pool's teams should come from. Null if all pools supply
-   *  (or potentially supply) teams to this pool. This property is needed for certain schedules with parallel
-   *  playoff pools that require a certain number of prelim->playoff carryovers.
-   */
-  feederPools: Pool[] | null = null;
 
   /** Which ranks automatically go to which tiers in the next phase?
    *  Wild card situations are specified at the Phase level, not here.
    */
   autoAdvanceRules: AdvancementOpportunity[] = [];
+
+  sizeValidationError: string = '';
 
   get id(): string {
     return `Pool_${this.name}`;
@@ -169,14 +158,25 @@ export class Pool implements IQbjPool, IYftDataModelObject {
 
   addTeam(team: Team) {
     this.poolTeams.push(new PoolTeam(team));
+    this.validateSize();
   }
 
   removeTeam(team: Team) {
     this.poolTeams = this.poolTeams.filter((pt) => pt.team !== team);
+    this.validateSize();
   }
 
   clearTeams() {
     this.poolTeams = [];
+    this.validateSize();
+  }
+
+  validateSize() {
+    if (this.poolTeams.length > this.size) {
+      this.sizeValidationError = `This pool's size exceeds its expected size of ${this.size}. You must correct this error before entering games.`;
+      return;
+    }
+    this.sizeValidationError = '';
   }
 
   /** Is this team in this pool? */
@@ -211,6 +211,12 @@ export class Pool implements IQbjPool, IYftDataModelObject {
     if (leftTeam && this.includesTeam(leftTeam)) return true;
     if (rightTeam && this.includesTeam(rightTeam)) return true;
     return false;
+  }
+
+  /** Discard information that we only want to track if we're using a schedule template */
+  unlockCustomSchedule() {
+    this.seeds = [];
+    this.autoAdvanceRules = [];
   }
 }
 

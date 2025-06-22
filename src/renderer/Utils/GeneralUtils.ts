@@ -27,6 +27,13 @@ export function dateFieldChanged(oldVal: Dayjs | null, newVal: Dayjs | null): bo
   return oldVal.unix() !== newVal.unix();
 }
 
+/** Parse an integer from a string, substituting a default value if nothing valid can be parsed  */
+export function parseAndValidateStringToInt(str: string, deflt: number, lowerBound?: number, upperBound?: number) {
+  if (str === '') return deflt;
+  if (invalidInteger(str, lowerBound, upperBound)) return deflt;
+  return parseInt(str, 10);
+}
+
 /** Is this string an integer within the given bounds? (Empty string is valid) */
 export function invalidInteger(str: string, lowerBound?: number, upperBound?: number) {
   if (str === '') return false;
@@ -105,4 +112,10 @@ export function versionLt(a: string, b: string, type?: 'major' | 'minor' | 'patc
 export function getFileNameFromPath(path: string) {
   const filePathSegments = path.split(/[\\/]/);
   return filePathSegments.pop();
+}
+
+/** Truncate a string to a desired length, appending an ellipsis if truncation was done */
+export function trunc(s: string, size: number) {
+  if (s.length <= size) return s;
+  return `${s.substring(0, size)}...`;
 }

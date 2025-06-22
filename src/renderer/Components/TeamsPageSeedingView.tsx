@@ -15,17 +15,21 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
 } from '@mui/material';
-import { ArrowDropDown, ArrowDropUp, Lock } from '@mui/icons-material';
+import { ArrowDropDown, ArrowDropUp, Edit, Error, Lock } from '@mui/icons-material';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { Team } from '../DataModel/Team';
 import { YfCssClasses } from '../Utils/GeneralReactUtils';
+import { Pool } from '../DataModel/Pool';
+import Tournament from '../DataModel/Tournament';
 
 export default function SeedingView() {
   const tournManager = useContext(TournamentContext);
   const [readOnly] = useSubscription(tournManager.tournament.hasMatchData);
+  const [usingTemplate] = useSubscription(tournManager.tournament.usingScheduleTemplate);
 
   return (
     <Grid container spacing={2}>
@@ -37,9 +41,9 @@ export default function SeedingView() {
         </Grid>
       )}
       <Grid xs={12} sm={6} md={4}>
-        <SeedList />
+        {usingTemplate && <SeedList />}
       </Grid>
-      <Grid xs={12} sm={6} md={8}>
+      <Grid xs={12} sm={usingTemplate ? 6 : undefined} md={usingTemplate ? 8 : undefined}>
         <YfCard title="Pools">
           <PoolView />
         </YfCard>
@@ -152,9 +156,8 @@ function SeedListItem(props: ISeedListItemProps) {
 function PoolView() {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
-  const [seedList] = useSubscription(thisTournament.seeds);
   const [phase] = useSubscription(thisTournament.getPrelimPhase());
-  const [readOnly] = useSubscription(thisTournament.hasMatchData);
+  const [usingTemplate] = useSubscription(thisTournament.usingScheduleTemplate);
 
   if (!phase) return null;
 
@@ -163,28 +166,39 @@ function PoolView() {
       {phase.pools.map((pool) => (
         <Grid key={pool.name} xs={12} md={6}>
           <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ width: '40px' }} />
-                  <TableCell>{pool.name}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {pool.seeds.map((seedNo) => (
-                  <PoolViewTableRow
-                    key={seedNo}
-                    seedNo={seedNo}
-                    team={seedList[seedNo - 1] || null}
-                    canDrag={!readOnly}
-                  />
-                ))}
-              </TableBody>
-            </Table>
+            {usingTemplate ? <PoolViewSeedTable pool={pool} /> : <UnseededPoolTable pool={pool} />}
           </TableContainer>
         </Grid>
       ))}
     </Grid>
+  );
+}
+
+interface IPoolViewSeedTableProps {
+  pool: Pool;
+}
+
+function PoolViewSeedTable(props: IPoolViewSeedTableProps) {
+  const { pool } = props;
+  const tournManager = useContext(TournamentContext);
+  const thisTournament = tournManager.tournament;
+  const [seedList] = useSubscription(thisTournament.seeds);
+  const [readOnly] = useSubscription(thisTournament.hasMatchData);
+
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell sx={{ width: '40px' }} />
+          <TableCell>{pool.name}</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {pool.seeds.map((seedNo) => (
+          <PoolViewTableRow key={seedNo} seedNo={seedNo} team={seedList[seedNo - 1] || null} canDrag={!readOnly} />
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -220,4 +234,121 @@ function PoolViewTableRow(props: IPoolViewTableRowProps) {
       <TableCell>{team?.name}</TableCell>
     </TableRow>
   );
+}
+
+interface IUnseededPoolTableProps {
+  pool: Pool;
+}
+
+function UnseededPoolTable(props: IUnseededPoolTableProps) {
+  const { pool } = props;
+  const tournManager = useContext(TournamentContext);
+  const [readOnly] = useSubscription(tournManager.tournament.hasMatchData);
+
+  const listItems = pool.poolTeams.map((pt, idx) => (
+    <PoolViewTableRowUnseeded
+      key={pt.team.name}
+      team={pt.team}
+      index={idx < pool.size ? idx + 1 : null}
+      pool={pool}
+      canMove={!readOnly}
+    />
+  ));
+  for (let i = listItems.length; i < pool.size; i++) {
+    listItems.push(
+      <PoolViewTableRowUnseeded key={`Empty ${i + 1}`} team={null} index={i + 1} pool={pool} canMove={false} />,
+    );
+  }
+
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell sx={{ width: '40px' }} />
+          <TableCell>
+            {pool.name}
+            {pool.sizeValidationError && (
+              <Tooltip sx={{ mx: 1, verticalAlign: 'text-bottom' }} title={pool.sizeValidationError}>
+                <Error fontSize="small" color="error" />
+              </Tooltip>
+            )}
+          </TableCell>
+          <TableCell sx={{ width: '40px' }} />
+        </TableRow>
+      </TableHead>
+      <TableBody sx={{ '& .MuiSvgIcon-root': { fontSize: '1.2rem' }, '& .MuiIconButton-root': { p: 0 } }}>
+        {listItems}
+      </TableBody>
+    </Table>
+  );
+}
+
+interface IPoolViewTableRowUnseededProps {
+  team: Team | null;
+  index: number | null;
+  pool: Pool;
+  canMove: boolean;
+}
+
+const unseededTeamDragItemKey = 'SeedListItem';
+
+function PoolViewTableRowUnseeded(props: IPoolViewTableRowUnseededProps) {
+  const { team, index, pool, canMove } = props;
+  const tournManager = useContext(TournamentContext);
+  const dragData = unseededDragDataSerialize(pool, team);
+  const phase = tournManager.tournament.getPrelimPhase();
+
+  const handleDrop = (droppedData: string) => {
+    const [originPool, draggedTeam] = unseededDragDataDeserialize(droppedData, tournManager.tournament);
+    if (!originPool || !draggedTeam) return;
+
+    tournManager.unseededTeamDragDrop(originPool, pool, draggedTeam);
+  };
+
+  const handleModalAccept = () => {
+    tournManager.poolAssignSimpleSwitch();
+  };
+
+  if (!phase) return null;
+
+  return (
+    <TableRow
+      className={canMove ? YfCssClasses.Draggable : undefined}
+      draggable={canMove}
+      onDragStart={(e) => e.dataTransfer.setData(unseededTeamDragItemKey, dragData)}
+      onDragEnter={(e) => e.preventDefault()}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
+        const data = e.dataTransfer.getData(unseededTeamDragItemKey);
+        handleDrop(data);
+      }}
+    >
+      <TableCell>{index}</TableCell>
+      <TableCell>{team?.name ?? '-'}</TableCell>
+      <TableCell>
+        {canMove && team && (
+          <Tooltip title="Change pool assignment">
+            <IconButton
+              size="small"
+              onClick={() => tournManager.openPoolAssignmentModal(team, phase, handleModalAccept, pool)}
+            >
+              <Edit />
+            </IconButton>
+          </Tooltip>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function unseededDragDataSerialize(pool: Pool, team: Team | null) {
+  return `${pool.name}${String.fromCharCode(1)}${team?.name || ''}`;
+}
+
+function unseededDragDataDeserialize(data: string, tourn: Tournament): [Pool | undefined, Team | undefined] {
+  const [poolName, teamName] = data.split(String.fromCharCode(1));
+  const pool = tourn.findPoolByName(poolName);
+  const team = teamName ? tourn.findTeamByName(teamName) : undefined;
+  return [pool, team];
 }

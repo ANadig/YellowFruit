@@ -1,5 +1,5 @@
 import { IconButton, Stack, Table, TableBody, TableCell, TableContainer, TableRow, Tooltip } from '@mui/material';
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import Grid from '@mui/material/Unstable_Grid2';
 import { Add, Edit, JoinRight } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
@@ -136,6 +136,7 @@ interface IMatrixCellProps {
 function MatrixCell(props: IMatrixCellProps) {
   const { team, opponent, phase, nthRoundRobin } = props;
   const tournManager = useContext(TournamentContext);
+  const canAddMatch = useMemo(() => tournManager.tournament.readyToAddMatches(), [tournManager]);
 
   if (team === opponent) {
     return <TableCell sx={{ backgroundColor: 'lightgray' }} />;
@@ -144,9 +145,11 @@ function MatrixCell(props: IMatrixCellProps) {
   if (!match) {
     return (
       <TableCell align="center">
-        <IconButton size="small" onClick={() => tournManager.openMatchModalNewMatchForTeams(team, opponent)}>
-          <Add />
-        </IconButton>
+        {canAddMatch && (
+          <IconButton size="small" onClick={() => tournManager.openMatchModalNewMatchForTeams(team, opponent)}>
+            <Add />
+          </IconButton>
+        )}
       </TableCell>
     );
   }

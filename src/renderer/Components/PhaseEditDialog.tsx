@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import { PhaseEditModalContext } from '../Modal Managers/TempPhaseManager';
@@ -47,6 +47,7 @@ function PhaseEditDialogCore() {
       <DialogTitle>Edit Stage</DialogTitle>
       <DialogContent>
         <PhaseNameField />
+        {modalManager.shouldShowRoundFields() && <PhaseRoundFields />}
       </DialogContent>
       <DialogActions>
         <Button variant="outlined" onClick={handleCancel}>
@@ -73,6 +74,7 @@ function PhaseNameField() {
     <TextField
       sx={{ marginTop: 1 }}
       fullWidth
+      spellCheck={false}
       autoFocus
       variant="outlined"
       size="small"
@@ -86,5 +88,63 @@ function PhaseNameField() {
         if (e.key === 'Enter') onBlur();
       }}
     />
+  );
+}
+
+function PhaseRoundFields() {
+  const modalManager = useContext(PhaseEditModalContext);
+  const [firstRound, setFirstRound] = useSubscription(modalManager.firstRound?.toString() || '');
+  const [lastRound, setLastRound] = useSubscription(modalManager.lastRound?.toString() || '');
+  const [error] = useSubscription(modalManager.roundRangeError);
+
+  const handleBlurFirstRound = () => {
+    const newRoundNo = modalManager.setFirstRound(firstRound);
+    const valToUse = newRoundNo === undefined ? '' : newRoundNo.toString();
+    setFirstRound(valToUse);
+  };
+  const handleBlurLastRound = () => {
+    const newRoundNo = modalManager.setLastRound(lastRound);
+    const valToUse = newRoundNo === undefined ? '' : newRoundNo.toString();
+    setLastRound(valToUse);
+  };
+
+  return (
+    <>
+      <div style={{ paddingLeft: '4px' }}>
+        <span style={{ padding: '0 10px' }}>Rounds</span>
+        <TextField
+          sx={{ verticalAlign: 'baseline', width: '8ch' }}
+          type="number"
+          inputProps={{ min: 1, max: 999 }}
+          variant="outlined"
+          size="small"
+          value={firstRound}
+          onChange={(e) => setFirstRound(e.target.value)}
+          onBlur={handleBlurFirstRound}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleBlurFirstRound();
+          }}
+        />
+        <span style={{ padding: '0 10px' }}>to</span>
+        <TextField
+          sx={{ verticalAlign: 'baseline', width: '8ch' }}
+          type="number"
+          inputProps={{ min: 1, max: 999 }}
+          variant="outlined"
+          size="small"
+          value={lastRound}
+          onChange={(e) => setLastRound(e.target.value)}
+          onBlur={handleBlurLastRound}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleBlurLastRound();
+          }}
+        />
+      </div>
+      {error && (
+        <Alert sx={{ marginTop: 2.5 }} variant="outlined" severity="error">
+          {error}
+        </Alert>
+      )}
+    </>
   );
 }

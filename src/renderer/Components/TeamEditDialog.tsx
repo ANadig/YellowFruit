@@ -187,6 +187,7 @@ const OrgAndLetterFields = forwardRef((props: TeamAndLetterFieldsProps, orgNameF
           inputRef={orgNameFieldRef}
           sx={{ marginTop: 1 }}
           label="School / Organization"
+          spellCheck={false}
           fullWidth
           autoFocus={autofocusOrgName}
           variant="outlined"
@@ -205,6 +206,7 @@ const OrgAndLetterFields = forwardRef((props: TeamAndLetterFieldsProps, orgNameF
         <TextField
           sx={{ marginTop: 1, width: '10ch' }}
           placeholder="A, B, etc."
+          spellCheck={false}
           variant="outlined"
           size="small"
           error={teamLetter !== '' && teamNameValidationStatus === ValidationStatuses.Error}
@@ -413,6 +415,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
       <Grid xs={5} md={6}>
         <TextField
           placeholder="Player Name"
+          spellCheck={false}
           fullWidth
           autoFocus={autoFocus}
           variant="outlined"
@@ -431,6 +434,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
         <Grid xs={2}>
           <TextField
             placeholder="Grade / Yr."
+            spellCheck={false}
             fullWidth
             variant="outlined"
             size="small"

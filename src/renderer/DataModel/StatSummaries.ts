@@ -2,7 +2,7 @@
 
 import { sumReduce } from '../Utils/GeneralUtils';
 import { LeftOrRight } from '../Utils/UtilTypes';
-import { Match } from './Match';
+import { Match, StatsValidity } from './Match';
 import { MatchPlayer } from './MatchPlayer';
 import { MatchTeam } from './MatchTeam';
 import { Phase, WildCardRankingMethod } from './Phase';
@@ -38,6 +38,8 @@ export class AggregateStandings {
       for (const round of phase.rounds) {
         const roundStats = new RoundStats(round, scoringRules, phase);
         for (const match of round.matches) {
+          if (match.statsValidity === StatsValidity.omit) continue;
+
           // we have to do this from scratch rather than adding together existing phases' stats
           // in order to avoid double-counting carryover matches
           this.addMatchToTeamStats(match, round, phase);
@@ -168,6 +170,8 @@ export class PhaseStandings {
   }
 
   private addMatchToTeamStats(match: Match) {
+    if (match.statsValidity === StatsValidity.omit) return;
+
     const leftTeamStats = this.findPoolTeam(match.leftTeam.team);
     leftTeamStats?.addMatchTeam(match, 'left');
     const rightTeamStats = this.findPoolTeam(match.rightTeam.team);
@@ -262,6 +266,8 @@ export class PhaseStandings {
   }
 
   private addMatchToIndividualStats(match: Match) {
+    if (match.statsValidity === StatsValidity.omit) return;
+
     this.addMatchTeamToIndividualStats(match.leftTeam, match.tossupsRead ?? 0);
     this.addMatchTeamToIndividualStats(match.rightTeam, match.tossupsRead ?? 0);
   }
@@ -471,6 +477,8 @@ export class PoolTeamStats {
 
   ties: number = 0;
 
+  nonForfeitMatches: number = 0;
+
   /** Including overtime */
   tuhTotal: number = 0;
 
@@ -562,6 +570,16 @@ export class PoolTeamStats {
     return `${bbConv}%`;
   }
 
+  getLightningPtsPerMatch() {
+    return this.lightningPoints / this.nonForfeitMatches;
+  }
+
+  getLightningPtsPerMatchString() {
+    const ppm = this.getLightningPtsPerMatch();
+    if (Number.isNaN(ppm)) return '-';
+    return ppm.toFixed(1).toString();
+  }
+
   /** Do we need a tiebreaker with this team to determine where they advance to? */
   needsTiebreakerWith(other: PoolTeamStats) {
     if (this.rank !== other.rank) return false;
@@ -580,6 +598,7 @@ export class PoolTeamStats {
 
     if (match.isForfeit()) return;
 
+    this.nonForfeitMatches += 1;
     const matchTeam = match.getMatchTeam(whichTeam);
     this.totalPoints += matchTeam.points || 0;
     this.totalPointsForPPG += matchTeam.getPointsForPPG(this.scoringRules);
@@ -728,6 +747,8 @@ export class RoundStats {
 
   bonusPoints: number = 0;
 
+  lightningPoints: number = 0;
+
   /** Number of bonus parts converted by the rebounding team */
   bouncebackPartsConverted: number = 0;
 
@@ -792,6 +813,10 @@ export class RoundStats {
     return (100 * (this.getBonusPartsConvControlling() + this.bouncebackPartsConverted)) / this.getBonusPartsHeard();
   }
 
+  getLightningPointsPerTeamPerMatch() {
+    return this.lightningPoints / this.games / 2;
+  }
+
   addMatch(match: Match) {
     if (match.isForfeit()) return;
 
@@ -802,6 +827,8 @@ export class RoundStats {
 
     this.points += match.leftTeam.points ?? 0;
     this.points += match.rightTeam.points ?? 0;
+    this.lightningPoints += match.leftTeam.lightningPoints ?? 0;
+    this.lightningPoints += match.rightTeam.lightningPoints ?? 0;
     this.addMatchAnswerCounts(match);
     this.bonusPoints += match.leftTeam.getBonusPoints();
     this.bonusPoints += match.rightTeam.getBonusPoints();

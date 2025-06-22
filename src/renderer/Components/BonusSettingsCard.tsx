@@ -1,38 +1,22 @@
 import Grid from '@mui/material/Unstable_Grid2';
-import {
-  FormGroup,
-  FormControlLabel,
-  Switch,
-  Typography,
-  TextField,
-  Stack,
-  Box,
-  Collapse,
-  IconButton,
-  styled,
-  IconButtonProps,
-} from '@mui/material';
+import { FormGroup, FormControlLabel, Switch, Typography, TextField, Stack, Box } from '@mui/material';
 import { ChangeEvent, useContext, useEffect, useState } from 'react';
-import { ExpandMore } from '@mui/icons-material';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
-import { invalidInteger } from '../Utils/GeneralUtils';
+import { parseAndValidateStringToInt, invalidInteger } from '../Utils/GeneralUtils';
+import { CollapsibleArea } from '../Utils/GeneralReactUtils';
 
 function BonusSettingsCard() {
   const tournManager = useContext(TournamentContext);
   const thisTournamentRules = tournManager.tournament.scoringRules;
   const [useBonuses, setUseBonuses] = useSubscription(thisTournamentRules.useBonuses);
   const [bonusesBounce, setBonusesBounce] = useSubscription(thisTournamentRules.bonusesBounceBack);
-  const [advancedExpanded, setAdvancedExpanded] = useState(false);
   const readOnly = tournManager.tournament.hasMatchData;
 
   const handleUseBonusesChange = (e: ChangeEvent<HTMLInputElement>) => {
     setUseBonuses(e.target.checked);
     tournManager.setUseBonuses(e.target.checked);
-    if (!e.target.checked) {
-      setAdvancedExpanded(false);
-    }
   };
 
   const handleBonusesBounceChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -42,7 +26,7 @@ function BonusSettingsCard() {
 
   return (
     <YfCard title="Bonuses">
-      <FormGroup>
+      <FormGroup sx={{ paddingBottom: useBonuses ? 2 : 0 }}>
         <FormControlLabel
           label="Bonuses"
           control={<Switch disabled={readOnly} checked={useBonuses} onChange={handleUseBonusesChange} />}
@@ -55,23 +39,9 @@ function BonusSettingsCard() {
         />
       </FormGroup>
       {useBonuses && (
-        <>
-          <Grid container>
-            <Grid xs>
-              <Typography sx={{ marginTop: 1.3 }} variant="subtitle2">
-                Advanced
-              </Typography>
-            </Grid>
-            <Grid xs="auto">
-              <ExpandButton expand={advancedExpanded} onClick={() => setAdvancedExpanded(!advancedExpanded)}>
-                <ExpandMore />
-              </ExpandButton>
-            </Grid>
-          </Grid>
-          <Collapse in={advancedExpanded}>
-            <AdvancedBonusSection />
-          </Collapse>
-        </>
+        <CollapsibleArea title={<Typography variant="subtitle2">Advanced</Typography>} secondaryTitle={null}>
+          <AdvancedBonusSection />
+        </CollapsibleArea>
       )}
     </YfCard>
   );
@@ -89,7 +59,7 @@ function AdvancedBonusSection() {
 
   const handleMaxBonusScoreChange = (value: string) => {
     const deflt = ptsPerPart !== '' ? parseInt(ptsPerPart, 10) * parseInt(maxBonusParts, 10) : 30;
-    const valueToSave = intValueToUse(value, deflt, 1, 1000);
+    const valueToSave = parseAndValidateStringToInt(value, deflt, 1, 1000);
     setMaxBonusScore(valueToSave.toString());
     tournManager.setMaxBonusScore(valueToSave);
 
@@ -100,13 +70,18 @@ function AdvancedBonusSection() {
   };
 
   const handleMinBonusPartsChange = (value: string) => {
-    const valueToSave = intValueToUse(value, parseInt(maxBonusParts, 10), 1, parseInt(maxBonusParts, 10));
+    const valueToSave = parseAndValidateStringToInt(value, parseInt(maxBonusParts, 10), 1, parseInt(maxBonusParts, 10));
     setMinBonusParts(valueToSave.toString());
     tournManager.setMinPartsPerBonus(valueToSave);
   };
 
   const handleMaxBonusPartsChange = (value: string) => {
-    const valueToSave = intValueToUse(value, parseInt(minBonusParts, 10), parseInt(minBonusParts, 10), 1000);
+    const valueToSave = parseAndValidateStringToInt(
+      value,
+      parseInt(minBonusParts, 10),
+      parseInt(minBonusParts, 10),
+      1000,
+    );
     setMaxBonusParts(valueToSave.toString());
     tournManager.setMaxPartsPerBonus(valueToSave);
 
@@ -122,7 +97,7 @@ function AdvancedBonusSection() {
       tournManager.setPtsPerBonusPart(undefined);
       return;
     }
-    const valueToSave = intValueToUse(value, thisTournamentRules.pointsPerBonusPart || 10, 1, 1000);
+    const valueToSave = parseAndValidateStringToInt(value, thisTournamentRules.pointsPerBonusPart || 10, 1, 1000);
     setPtsPerPart(valueToSave.toString());
     tournManager.setPtsPerBonusPart(valueToSave);
 
@@ -136,7 +111,7 @@ function AdvancedBonusSection() {
 
   const handleDivisorChange = (value: string) => {
     const maxBonusScoreInt = parseInt(maxBonusScore, 10);
-    let valueToSave = intValueToUse(value, thisTournamentRules.bonusDivisor, 1, maxBonusScoreInt);
+    let valueToSave = parseAndValidateStringToInt(value, thisTournamentRules.bonusDivisor, 1, maxBonusScoreInt);
     if (maxBonusScoreInt % valueToSave) valueToSave = thisTournamentRules.bonusDivisor;
     setDivisor(valueToSave.toString());
     tournManager.setBonusDivisor(valueToSave);
@@ -145,7 +120,7 @@ function AdvancedBonusSection() {
   return (
     <Box sx={{ '& .MuiInputBase-root': { fontSize: 12 } }}>
       <Stack>
-        <AdvancedBonusField
+        <AdvancedNumericRuleField
           label="Max bonus score"
           required
           value={maxBonusScore}
@@ -155,7 +130,7 @@ function AdvancedBonusSection() {
           onChange={setMaxBonusScore}
           onBlur={() => handleMaxBonusScoreChange(maxBonusScore)}
         />
-        <AdvancedBonusField
+        <AdvancedNumericRuleField
           label="Min parts per bonus"
           required
           value={minBonusParts}
@@ -165,7 +140,7 @@ function AdvancedBonusSection() {
           onChange={setMinBonusParts}
           onBlur={() => handleMinBonusPartsChange(minBonusParts)}
         />
-        <AdvancedBonusField
+        <AdvancedNumericRuleField
           label="Max parts per bonus"
           required
           value={maxBonusParts}
@@ -175,7 +150,7 @@ function AdvancedBonusSection() {
           onChange={setMaxBonusParts}
           onBlur={() => handleMaxBonusPartsChange(maxBonusParts)}
         />
-        <AdvancedBonusField
+        <AdvancedNumericRuleField
           label="Pts per bonus part"
           required={false}
           value={ptsPerPart}
@@ -185,7 +160,7 @@ function AdvancedBonusSection() {
           onChange={setPtsPerPart}
           onBlur={() => handlePtsPerPartChange(ptsPerPart)}
         />
-        <AdvancedBonusField
+        <AdvancedNumericRuleField
           label="Divisor"
           required
           value={divisor}
@@ -200,7 +175,7 @@ function AdvancedBonusSection() {
   );
 }
 
-interface IAdvancedBonusFieldProps {
+interface IAdvancedNumericRuleFieldProps {
   label: string;
   required: boolean;
   value: string;
@@ -211,7 +186,8 @@ interface IAdvancedBonusFieldProps {
   maxValue: number;
 }
 
-function AdvancedBonusField(props: IAdvancedBonusFieldProps) {
+/** small numeric field used for advanced settings like divisors */
+export function AdvancedNumericRuleField(props: IAdvancedNumericRuleFieldProps) {
   const { label, required, value, onChange, onBlur, disabled, minValue, maxValue } = props;
   const [error, setError] = useState(false);
 
@@ -262,30 +238,6 @@ function InlineLabel(props: { text: string }) {
       <Typography variant="body2">{text}</Typography>
     </div>
   );
-}
-
-interface ExpandButtonProps extends IconButtonProps {
-  expand: boolean;
-}
-
-// from https://mui.com/material-ui/react-card/
-const ExpandButton = styled((props: ExpandButtonProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { expand, ...other } = props;
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  return <IconButton {...other} />;
-})(({ theme, expand }) => ({
-  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-  marginLeft: 'auto',
-  transition: theme.transitions.create('transform', {
-    duration: theme.transitions.duration.shortest,
-  }),
-}));
-
-function intValueToUse(str: string, deflt: number, lowerBound?: number, upperBound?: number) {
-  if (str === '') return deflt;
-  if (invalidInteger(str, lowerBound, upperBound)) return deflt;
-  return parseInt(str, 10);
 }
 
 export default BonusSettingsCard;
