@@ -189,6 +189,7 @@
       "notarize": false
     },
     "dmg": {
+      "icon": "assets/icon.icns",
       "contents": [
         {
           "x": 130,
