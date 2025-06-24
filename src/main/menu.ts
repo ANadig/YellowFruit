@@ -21,7 +21,7 @@ export default class MenuBuilder {
   readonly subMenuFileCommonElements: MenuItemConstructorOptions[] = [
     {
       label: '&Export Stat Report',
-      accelerator: 'Ctrl+U',
+      accelerator: 'CmdOrCtrl+U',
       click: () => {
         promptForStatReportLocation(this.mainWindow);
       },
@@ -54,21 +54,21 @@ export default class MenuBuilder {
     },
     {
       label: '&New Tournament',
-      accelerator: 'Ctrl+N',
+      accelerator: 'CmdOrCtrl+N',
       click: () => {
         tryFileSwitchAction(this.mainWindow, FileSwitchActions.NewFile);
       },
     },
     {
       label: '&Open',
-      accelerator: 'Ctrl+O',
+      accelerator: 'CmdOrCtrl+O',
       click: () => {
         tryFileSwitchAction(this.mainWindow, FileSwitchActions.OpenYftFile);
       },
     },
     {
       label: '&Save',
-      accelerator: 'Ctrl+S',
+      accelerator: 'CmdOrCtrl+S',
       click: () => {
         requestToSaveYftFile(this.mainWindow);
       },
@@ -259,7 +259,7 @@ export default class MenuBuilder {
             ? [
                 {
                   label: '&Reload',
-                  accelerator: 'Ctrl+R',
+                  accelerator: 'CmdOrCtrl+R',
                   click: () => {
                     this.mainWindow.webContents.reload();
                   },
