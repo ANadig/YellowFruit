@@ -29,7 +29,7 @@ jobs:
           npm run postinstall
           npm run build
 
-      - name: Publish releases
+      - name: Publish macOS releases
         env:
           # These values are used for auto updates signing
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -41,3 +41,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm exec electron-builder -- --publish always --mac
+
+      - name: Publish windows releases
+        env:
+          # This is used for uploading release assets to github
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm exec electron-builder -- --publish always --windows
