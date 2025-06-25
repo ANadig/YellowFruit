@@ -40,7 +40,7 @@ jobs:
           # This is used for uploading release assets to github
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm exec electron-builder -- --publish always --mac --windows
+          npm exec electron-builder -- --publish always --mac
 
   publish-win:
     runs-on: ${{ matrix.os }}
@@ -100,4 +100,4 @@ jobs:
           # This is used for uploading release assets to github
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm exec electron-builder -- --publish --linux
+          npm exec electron-builder -- --publish always --linux
