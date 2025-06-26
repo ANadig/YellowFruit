@@ -1,9 +1,9 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import { hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { hotkeyFormat, YfNumericField } from '../Utils/GeneralReactUtils';
 import { RankEditModalContext } from '../Modal Managers/TempRankManager';
 
 export default function RankEditDialog() {
@@ -74,9 +74,8 @@ function RankField() {
   };
 
   return (
-    <TextField
+    <YfNumericField
       sx={{ marginTop: 1, width: '15ch' }}
-      type="number"
       inputProps={{ min: 1 }}
       autoFocus
       variant="outlined"

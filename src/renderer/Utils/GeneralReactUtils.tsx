@@ -1,4 +1,4 @@
-import { Button, Collapse, IconButton, IconButtonProps, styled } from '@mui/material';
+import { Button, Collapse, IconButton, IconButtonProps, styled, TextField, TextFieldProps } from '@mui/material';
 import React, { useState } from 'react';
 import Grid from '@mui/material/Unstable_Grid2';
 import { ExpandMore } from '@mui/icons-material';
@@ -81,4 +81,22 @@ export function CollapsibleArea(props: React.PropsWithChildren<ICollapsibleAreaP
       <Collapse in={isExpanded}>{children}</Collapse>
     </>
   );
+}
+
+function numberInputOnWheelPreventChange(e: any) {
+  // Prevent the input value change
+  e.target.blur();
+
+  // Prevent the page/container scrolling
+  e.stopPropagation();
+
+  // Refocus immediately, on the next tick (after the current function is done)
+  setTimeout(() => e.target.focus(), 0);
+}
+
+/** A numeric field that stops the mouse wheel from changing it */
+export function YfNumericField(props: TextFieldProps) {
+  const { ...other } = props;
+  // eslint-disable-next-line react/jsx-props-no-spreading
+  return <TextField type="number" onWheel={numberInputOnWheelPreventChange} {...other} />;
 }

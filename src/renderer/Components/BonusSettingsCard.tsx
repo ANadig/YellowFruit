@@ -1,11 +1,11 @@
 import Grid from '@mui/material/Unstable_Grid2';
-import { FormGroup, FormControlLabel, Switch, Typography, TextField, Stack, Box } from '@mui/material';
+import { FormGroup, FormControlLabel, Switch, Typography, Stack, Box } from '@mui/material';
 import { ChangeEvent, useContext, useEffect, useState } from 'react';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
 import { parseAndValidateStringToInt, invalidInteger } from '../Utils/GeneralUtils';
-import { CollapsibleArea } from '../Utils/GeneralReactUtils';
+import { CollapsibleArea, YfNumericField } from '../Utils/GeneralReactUtils';
 
 function BonusSettingsCard() {
   const tournManager = useContext(TournamentContext);
@@ -212,10 +212,9 @@ export function AdvancedNumericRuleField(props: IAdvancedNumericRuleFieldProps) 
         <InlineLabel text={label} />
       </Grid>
       <Grid xs="auto">
-        <TextField
+        <YfNumericField
           sx={{ marginTop: 1, width: '8ch' }}
           size="small"
-          type="number"
           inputProps={{ min: 0 }}
           disabled={disabled}
           error={error}

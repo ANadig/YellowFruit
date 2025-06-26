@@ -4,7 +4,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import { PhaseEditModalContext } from '../Modal Managers/TempPhaseManager';
 import useSubscription from '../Utils/CustomHooks';
-import { hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { hotkeyFormat, YfNumericField } from '../Utils/GeneralReactUtils';
 
 export default function PhaseEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -112,9 +112,8 @@ function PhaseRoundFields() {
     <>
       <div style={{ paddingLeft: '4px' }}>
         <span style={{ padding: '0 10px' }}>Rounds</span>
-        <TextField
+        <YfNumericField
           sx={{ verticalAlign: 'baseline', width: '8ch' }}
-          type="number"
           inputProps={{ min: 1, max: 999 }}
           variant="outlined"
           size="small"
@@ -126,9 +125,8 @@ function PhaseRoundFields() {
           }}
         />
         <span style={{ padding: '0 10px' }}>to</span>
-        <TextField
+        <YfNumericField
           sx={{ verticalAlign: 'baseline', width: '8ch' }}
-          type="number"
           inputProps={{ min: 1, max: 999 }}
           variant="outlined"
           size="small"

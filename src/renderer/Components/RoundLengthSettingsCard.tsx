@@ -1,10 +1,11 @@
-import { FormControlLabel, FormGroup, Switch, TextField, Tooltip } from '@mui/material';
+import { FormControlLabel, FormGroup, Switch, Tooltip } from '@mui/material';
 import { useState, ChangeEvent, useContext } from 'react';
 import { HelpOutline } from '@mui/icons-material';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import { ScoringRules } from '../DataModel/ScoringRules';
 import useSubscription from '../Utils/CustomHooks';
+import { YfNumericField } from '../Utils/GeneralReactUtils';
 
 const standardTusLabel = 'Toss-Ups';
 const standardTusHelpText = 'The number of toss-ups read per round (not including overtime)';
@@ -61,10 +62,9 @@ function RoundLengthSettingsCard() {
           control={<Switch disabled={readOnly} checked={timedRoundsChecked} onChange={handleTimedRoundsChange} />}
         />
       </FormGroup>
-      <TextField
+      <YfNumericField
         sx={{ marginTop: 1, width: '13ch' }}
         size="small"
-        type="number"
         inputProps={{ min: 1, disabled: readOnly }}
         label={numTusLabel}
         value={numTus}

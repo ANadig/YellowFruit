@@ -30,7 +30,7 @@ import { DragIndicator, ExpandMore } from '@mui/icons-material';
 import { MatchEditModalContext } from '../Modal Managers/TempMatchManager';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import { CollapsibleArea, ExpandButton, YfCssClasses, hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { CollapsibleArea, ExpandButton, YfCssClasses, YfNumericField, hotkeyFormat } from '../Utils/GeneralReactUtils';
 import { ValidationStatuses } from '../DataModel/Interfaces';
 import { LeftOrRight } from '../Utils/UtilTypes';
 import { MatchPlayer } from '../DataModel/MatchPlayer';
@@ -207,8 +207,7 @@ function RoundField() {
   };
 
   return (
-    <TextField
-      type="number"
+    <YfNumericField
       inputProps={{ min: 1 }}
       label="Round"
       fullWidth
@@ -296,9 +295,8 @@ const TuhTotalField = forwardRef((props: {}, ref) => {
   };
 
   return (
-    <TextField
+    <YfNumericField
       inputRef={ref}
-      type="number"
       inputProps={{ min: 1 }}
       label="TU Read (incl. OT)"
       fullWidth
@@ -403,8 +401,7 @@ function TeamScoreField(props: ITeamScoreProps) {
   };
 
   return (
-    <TextField
-      type="number"
+    <YfNumericField
       inputProps={{ step: divisor }}
       label="Score"
       fullWidth
@@ -544,8 +541,7 @@ function PlayerRow(props: IPlayerRowProps) {
         {playerName}
       </Grid>
       <Grid xs={numColumns}>
-        <TextField
-          type="number"
+        <YfNumericField
           inputProps={{ min: 0 }}
           fullWidth
           variant="standard"
@@ -599,8 +595,7 @@ function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
 
   return (
     <Grid xs={xs}>
-      <TextField
-        type="number"
+      <YfNumericField
         inputProps={{ min: 0 }}
         fullWidth
         variant={outlinedStyle ? 'outlined' : 'standard'}
@@ -703,9 +698,8 @@ function BounceBackRow(props: IBounceBackRowProps) {
       }}
     >
       <div>&emsp;&nbsp;Bouncebacks:&emsp;</div>
-      <TextField
+      <YfNumericField
         sx={{ width: '6ch' }}
-        type="number"
         inputProps={{ min: 0, step: divisor }}
         fullWidth
         variant="standard"
@@ -755,9 +749,8 @@ function LightningRow(props: ILightningRowProps) {
       }}
     >
       <div>&emsp;&nbsp;Lightning Round:&emsp;</div>
-      <TextField
+      <YfNumericField
         sx={{ width: '6ch' }}
-        type="number"
         inputProps={{ min: 0, step: divisor }}
         fullWidth
         variant="standard"
@@ -833,9 +826,8 @@ function OvertimeTuReadField() {
   };
 
   return (
-    <TextField
+    <YfNumericField
       sx={{ top: '30px' }}
-      type="number"
       inputProps={{ min: 0 }}
       label="TU Read"
       fullWidth

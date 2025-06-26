@@ -1,9 +1,10 @@
-import { FormGroup, FormControlLabel, Switch, TextField } from '@mui/material';
+import { FormGroup, FormControlLabel, Switch } from '@mui/material';
 import { ChangeEvent, useContext } from 'react';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { ScoringRules } from '../DataModel/ScoringRules';
+import { YfNumericField } from '../Utils/GeneralReactUtils';
 
 function OvertimeSettingsCard() {
   const tournManager = useContext(TournamentContext);
@@ -63,10 +64,9 @@ function OvertimeSettingsCard() {
         />
       </FormGroup>
       {minTossupsVisible && (
-        <TextField
+        <YfNumericField
           sx={{ marginTop: 1, marginLeft: 6, width: '13ch' }}
           size="small"
-          type="number"
           inputProps={{ min: 1, disabled: readOnly }}
           label="Min Toss-Ups"
           value={minTossups}

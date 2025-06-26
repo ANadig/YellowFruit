@@ -20,7 +20,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { HelpOutline } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import { hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { hotkeyFormat, YfNumericField } from '../Utils/GeneralReactUtils';
 import { PoolEditModalContext } from '../Modal Managers/TempPoolManager';
 
 const carryoverFieldTooltip =
@@ -152,9 +152,8 @@ function NumberOfTeamsField() {
   };
 
   return (
-    <TextField
+    <YfNumericField
       sx={{ verticalAlign: 'baseline', width: '10ch' }}
-      type="number"
       inputProps={{ min: Math.max(1, numTeamsInPool), max: 999 }}
       variant="outlined"
       size="small"
