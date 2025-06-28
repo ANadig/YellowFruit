@@ -17,10 +17,10 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { HelpOutline } from '@mui/icons-material';
+import { Delete, HelpOutline } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import { hotkeyFormat, YfNumericField } from '../Utils/GeneralReactUtils';
+import { YfAcceptButton, YfCancelButton, YfNumericField } from '../Utils/GeneralReactUtils';
 import { PoolEditModalContext } from '../Modal Managers/TempPoolManager';
 
 const carryoverFieldTooltip =
@@ -90,18 +90,20 @@ function PoolEditDialogCore() {
       <DialogActions sx={{ justifyContent: 'space-between' }}>
         <div>
           {allowCustomSched && (
-            <Button variant="outlined" color="warning" disabled={deleteionDisabled} onClick={handleDelete}>
+            <Button
+              variant="outlined"
+              color="warning"
+              disabled={deleteionDisabled}
+              onClick={handleDelete}
+              startIcon={<Delete />}
+            >
               Delete
             </Button>
           )}
         </div>
         <Box sx={{ '& .MuiButton-root': { marginLeft: 1 } }}>
-          <Button variant="outlined" onClick={handleCancel}>
-            {hotkeyFormat('&Cancel')}
-          </Button>
-          <Button variant="outlined" onClick={handleAccept} disabled={hasErrors} ref={acceptButtonRef}>
-            {hotkeyFormat('&Accept')}
-          </Button>
+          <YfCancelButton onClick={handleCancel} />
+          <YfAcceptButton onClick={handleAccept} disabled={hasErrors} ref={acceptButtonRef} />
         </Box>
       </DialogActions>
     </Dialog>

@@ -1,10 +1,10 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import { Alert, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import { PhaseEditModalContext } from '../Modal Managers/TempPhaseManager';
 import useSubscription from '../Utils/CustomHooks';
-import { hotkeyFormat, YfNumericField } from '../Utils/GeneralReactUtils';
+import { YfAcceptButton, YfCancelButton, YfNumericField } from '../Utils/GeneralReactUtils';
 
 export default function PhaseEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -50,12 +50,8 @@ function PhaseEditDialogCore() {
         {modalManager.shouldShowRoundFields() && <PhaseRoundFields />}
       </DialogContent>
       <DialogActions>
-        <Button variant="outlined" onClick={handleCancel}>
-          {hotkeyFormat('&Cancel')}
-        </Button>
-        <Button variant="outlined" onClick={handleAccept} disabled={hasErrors} ref={acceptButtonRef}>
-          {hotkeyFormat('&Accept')}
-        </Button>
+        <YfCancelButton onClick={handleCancel} />
+        <YfAcceptButton onClick={handleAccept} disabled={hasErrors} ref={acceptButtonRef} />
       </DialogActions>
     </Dialog>
   );

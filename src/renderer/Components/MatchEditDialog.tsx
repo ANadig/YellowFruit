@@ -30,7 +30,15 @@ import { DragIndicator, ExpandMore } from '@mui/icons-material';
 import { MatchEditModalContext } from '../Modal Managers/TempMatchManager';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import { CollapsibleArea, ExpandButton, YfCssClasses, YfNumericField, hotkeyFormat } from '../Utils/GeneralReactUtils';
+import {
+  CollapsibleArea,
+  ExpandButton,
+  YfAcceptButton,
+  YfCancelButton,
+  YfCssClasses,
+  YfNumericField,
+  hotkeyFormat,
+} from '../Utils/GeneralReactUtils';
 import { ValidationStatuses } from '../DataModel/Interfaces';
 import { LeftOrRight } from '../Utils/UtilTypes';
 import { MatchPlayer } from '../DataModel/MatchPlayer';
@@ -176,15 +184,11 @@ function MatchEditDialogCore() {
             <ValidationSection />
           </Box>
           <Box sx={{ '& .MuiButton-root': { marginLeft: 1, whiteSpace: 'nowrap' } }}>
-            <Button variant="outlined" onClick={handleCancel}>
-              {hotkeyFormat('&Cancel')}
-            </Button>
+            <YfCancelButton onClick={handleCancel} />
             <Button variant="outlined" onClick={handleAcceptAndStay} ref={saveAndNewButtonRef}>
               {hotkeyFormat('&Save {AMP} New')}
             </Button>
-            <Button variant="outlined" onClick={handleAccept} ref={acceptButtonRef}>
-              {hotkeyFormat('&Accept')}
-            </Button>
+            <YfAcceptButton onClick={handleAccept} ref={acceptButtonRef} />
           </Box>
         </DialogActions>
       </Dialog>

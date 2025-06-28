@@ -652,8 +652,6 @@ export class TournamentManager {
     this.matchModalManager.tournament = this.tournament;
   }
 
-  // #region Functions for changing the data from the UI
-
   /** Keep track of which view the user is on, so that they can leave the Teams page, then
    *  come back and see the samve view.
    */
@@ -1070,10 +1068,6 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
-  // #endregion
-
-  // #region Functions for handling temporary data used by dialogs
-
   /** Open with a new blank team */
   openTeamEditModalNewTeam() {
     this.teamModalManager.openModal();
@@ -1265,8 +1259,6 @@ export class TournamentManager {
     const newPool = this.poolAssignmentModalManager.selectedPool;
     this.overridePlayoffPoolAssignment(team, nextPhase, newPool);
   }
-
-  // #endregion
 
   /** Should be called anytime the user modifies something */
   private onDataChanged(doesntAffectFile = false) {

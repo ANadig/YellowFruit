@@ -1,9 +1,9 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import { hotkeyFormat, YfNumericField } from '../Utils/GeneralReactUtils';
+import { YfAcceptButton, YfCancelButton, YfNumericField } from '../Utils/GeneralReactUtils';
 import { RankEditModalContext } from '../Modal Managers/TempRankManager';
 
 export default function RankEditDialog() {
@@ -50,12 +50,8 @@ function RankEditDialogCore() {
         <RankField />
       </DialogContent>
       <DialogActions>
-        <Button variant="outlined" onClick={handleCancel}>
-          {hotkeyFormat('&Cancel')}
-        </Button>
-        <Button variant="outlined" onClick={handleAccept} disabled={hasErrors} ref={acceptButtonRef}>
-          {hotkeyFormat('&Accept')}
-        </Button>
+        <YfCancelButton onClick={handleCancel} />
+        <YfAcceptButton onClick={handleAccept} disabled={hasErrors} ref={acceptButtonRef} />
       </DialogActions>
     </Dialog>
   );

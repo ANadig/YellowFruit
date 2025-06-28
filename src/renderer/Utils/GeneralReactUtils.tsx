@@ -1,7 +1,17 @@
-import { Button, Collapse, IconButton, IconButtonProps, styled, TextField, TextFieldProps } from '@mui/material';
-import React, { useState } from 'react';
+/* eslint-disable react/jsx-props-no-spreading */
+import {
+  Button,
+  ButtonProps,
+  Collapse,
+  IconButton,
+  IconButtonProps,
+  styled,
+  TextField,
+  TextFieldProps,
+} from '@mui/material';
+import React, { forwardRef, useState } from 'react';
 import Grid from '@mui/material/Unstable_Grid2';
-import { ExpandMore } from '@mui/icons-material';
+import { Close, Done, ExpandMore } from '@mui/icons-material';
 
 export enum YfCssClasses {
   HotkeyUnderline = 'yf-hotkey-underline',
@@ -45,7 +55,6 @@ interface ExpandButtonProps extends IconButtonProps {
 export const ExpandButton = styled((props: ExpandButtonProps) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { expand, ...other } = props;
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return <IconButton {...other} />;
 })(({ theme, expand }) => ({
   transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
@@ -97,6 +106,29 @@ function numberInputOnWheelPreventChange(e: any) {
 /** A numeric field that stops the mouse wheel from changing it */
 export function YfNumericField(props: TextFieldProps) {
   const { ...other } = props;
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return <TextField type="number" onWheel={numberInputOnWheelPreventChange} {...other} />;
+}
+
+export const YfAcceptButton = forwardRef((props: ButtonProps, buttonRef) => {
+  const { ...other } = props;
+  return (
+    <Button
+      variant="outlined"
+      color="success"
+      startIcon={<Done />}
+      {...other}
+      ref={buttonRef as React.RefObject<HTMLButtonElement>}
+    >
+      {hotkeyFormat('&Accept')}
+    </Button>
+  );
+});
+
+export function YfCancelButton(props: ButtonProps) {
+  const { ...other } = props;
+  return (
+    <Button variant="outlined" color="error" startIcon={<Close />} {...other}>
+      {hotkeyFormat('&Cancel')}
+    </Button>
+  );
 }

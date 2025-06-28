@@ -2,7 +2,6 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Box,
-  Button,
   Dialog,
   DialogActions,
   DialogContent,
@@ -20,7 +19,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { Cancel, Close, Upload } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import { hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { YfAcceptButton, YfCancelButton } from '../Utils/GeneralReactUtils';
 import { MatchImportResultsModalContext } from '../Modal Managers/MatchImportResultsManager';
 import MatchImportResult, { ImportResultStatus } from '../DataModel/MatchImportResult';
 import { getFileNameFromPath } from '../Utils/GeneralUtils';
@@ -139,12 +138,8 @@ function MatchImportResultDialogCore() {
         )}
       </DialogContent>
       <DialogActions>
-        <Button variant="outlined" onClick={handleCancel}>
-          {hotkeyFormat('&Cancel')}
-        </Button>
-        <Button variant="outlined" onClick={handleAccept} disabled={!couldImportAnything} ref={acceptButtonRef}>
-          {hotkeyFormat('&Accept')}
-        </Button>
+        <YfCancelButton onClick={handleCancel} />
+        <YfAcceptButton onClick={handleAccept} disabled={!couldImportAnything} ref={acceptButtonRef} />
       </DialogActions>
     </Dialog>
   );

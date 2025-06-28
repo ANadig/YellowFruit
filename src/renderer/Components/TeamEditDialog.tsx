@@ -33,7 +33,7 @@ import useSubscription from '../Utils/CustomHooks';
 import { TeamEditModalContext } from '../Modal Managers/TempTeamManager';
 import { Team } from '../DataModel/Team';
 import { ValidationStatuses } from '../DataModel/Interfaces';
-import { hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { hotkeyFormat, YfAcceptButton, YfCancelButton } from '../Utils/GeneralReactUtils';
 
 function TeamEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -132,18 +132,14 @@ function TeamEditDialogCore() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" onClick={handleCancel}>
-            {hotkeyFormat('&Cancel')}
-          </Button>
+          <YfCancelButton onClick={handleCancel} />
           <SaveAndNewButtons
             disabled={disableSaveAndNew}
             onClickSaveAndNew={handleAcceptAndStay}
             onClickSaveAndNextLetter={handleAcceptAndNextLetter}
             ref={saveAndNewButtonRef}
           />
-          <Button variant="outlined" onClick={handleAccept} ref={acceptButtonRef}>
-            {hotkeyFormat('&Accept')}
-          </Button>
+          <YfAcceptButton onClick={handleAccept} ref={acceptButtonRef} />
         </DialogActions>
       </Dialog>
       <ErrorDialog />

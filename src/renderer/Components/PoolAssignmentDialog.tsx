@@ -7,13 +7,12 @@ import {
   FormControlLabel,
   Radio,
   DialogActions,
-  Button,
 } from '@mui/material';
 import { useContext } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
-import { hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { YfAcceptButton, YfCancelButton } from '../Utils/GeneralReactUtils';
 import PoolAssignmentModalManager from '../Modal Managers/PoolAssignmentModalManager';
 
 export default function PoolAssignmentDialog() {
@@ -57,12 +56,8 @@ export default function PoolAssignmentDialog() {
         </FormControl>
       </DialogContent>
       <DialogActions>
-        <Button variant="outlined" onClick={handleCancel}>
-          {hotkeyFormat('&Cancel')}
-        </Button>
-        <Button variant="outlined" onClick={handleAccept}>
-          {hotkeyFormat('&Accept')}
-        </Button>
+        <YfCancelButton onClick={handleCancel} />
+        <YfAcceptButton onClick={handleAccept} />
       </DialogActions>
     </Dialog>
   );
