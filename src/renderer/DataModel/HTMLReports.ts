@@ -191,7 +191,7 @@ export default class HtmlReportGenerator {
   ) {
     const cells: string[] = [];
     if (!omitRank) cells.push(stdTdHeader('Rank', false, '3%'));
-    cells.push(tdTag({ bold: true, width: cumulative ? '' : '20%' }, 'Team'));
+    cells.push(tdTag({ bold: true, width: cumulative ? '' : '25%' }, 'Team'));
     if (this.tournament.trackSmallSchool) cells.push(stdTdHeader(this.abbr(StatTypes.smallSchool)));
     if (this.tournament.trackJV) cells.push(stdTdHeader(this.abbr(StatTypes.juniorVarsity)));
     if (this.tournament.trackUG) cells.push(stdTdHeader(this.abbr(StatTypes.undergrad)));
@@ -199,15 +199,15 @@ export default class HtmlReportGenerator {
     cells.push(stdTdHeader(this.abbr(StatTypes.wins), true, '3%'));
     cells.push(stdTdHeader(this.abbr(StatTypes.losses), true, '3%'));
     if (anyTiesExist) cells.push(stdTdHeader(this.abbr(StatTypes.ties), true, '3%'));
-    if (!cumulative) cells.push(stdTdHeader(this.abbr(StatTypes.winPct), true));
+    if (!cumulative) cells.push(stdTdHeader(this.abbr(StatTypes.winPct), true, '7%'));
     cells.push(stdTdHeader(this.abbr(StatTypes.pointsPerXTuhTmStandings), true, '8%'));
     this.pushTossupValueHeaders(cells);
-    cells.push(stdTdHeader(this.abbr(StatTypes.tuhTmStandings), true));
+    cells.push(stdTdHeader(this.abbr(StatTypes.tuhTmStandings), true, '6%'));
     if (this.tournament.scoringRules.useBonuses) {
-      cells.push(stdTdHeader(this.abbr(StatTypes.ppb), true));
+      cells.push(stdTdHeader(this.abbr(StatTypes.ppb), true, '7%'));
     }
     if (this.tournament.scoringRules.bonusesBounceBack) {
-      cells.push(stdTdHeader(this.abbr(StatTypes.bbPct), true));
+      cells.push(stdTdHeader(this.abbr(StatTypes.bbPct), true, '6%'));
     }
     if (this.tournament.scoringRules.useLightningRounds()) {
       cells.push(stdTdHeader(this.abbr(StatTypes.ltngPerMtch), true));
@@ -1023,7 +1023,7 @@ export default class HtmlReportGenerator {
 
   private pushTossupValueHeaders(cells: string[]) {
     this.tournament.scoringRules.answerTypes.forEach((at) => {
-      cells.push(stdTdHeader(at.value.toString() || '??', true));
+      cells.push(stdTdHeader(at.value.toString() || '??', true, '5%'));
     });
   }
 
