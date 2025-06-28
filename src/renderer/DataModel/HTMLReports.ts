@@ -74,7 +74,15 @@ export default class HtmlReportGenerator {
     const mainHeader = genericTagWithAttributes('h1', [id(topAnchorID)], title);
     const style = getPageStyle();
 
-    const body = genericTag('BODY', topLinks, mainHeader, style, data, madeWithYellowFruit());
+    const body = genericTagWithAttributes(
+      'BODY',
+      [classAttribute(cssClasses.inAppIframeBody)],
+      topLinks,
+      mainHeader,
+      style,
+      data,
+      madeWithYellowFruit(),
+    );
     return genericTag('HTML', htmlHeader, body);
   }
 
@@ -1089,6 +1097,7 @@ const StatReportPageTitles = {
 };
 
 const cssClasses = {
+  inAppIframeBody: 'inAppIframeBody',
   headerAndDivider: 'headerAndDivider',
   stickyHeader: 'scoreboardRoundHeader',
   boxScoreAnchor: 'boxScoreAnchor',
@@ -1132,7 +1141,7 @@ function getHtmlHeader(pageTitle: string) {
 }
 
 function getPageStyle() {
-  const body = cssSelector('BODY', { attr: 'font-family', val: 'Roboto, sans-serif' });
+  const body = cssSelector(`.${cssClasses.inAppIframeBody}`, { attr: 'font-family', val: 'Roboto, sans-serif' });
   const table = cssSelector(
     'table',
     { attr: 'font-size', val: '11pt' },
