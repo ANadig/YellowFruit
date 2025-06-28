@@ -82,7 +82,7 @@ jobs:
         id: getPreRelease
         uses: cardinalby/git-get-release-action@v1
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           latest: true
           prerelease: true
