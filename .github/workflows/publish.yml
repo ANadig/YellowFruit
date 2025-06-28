@@ -78,11 +78,21 @@ jobs:
           files: release/build/win-unpacked
           dest: win-unpacked.zip
 
+      - name: Get most recent pre-release
+        id: getPreRelease
+        uses: cardinalby/git-get-release-action@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          latest: true
+          prerelease: true
+
       - name: Upload zip file
         uses: softprops/action-gh-release@v2
         with:
-          draft: true
+          tag_name: ${{ steps.getPreRelease.outputs.tag_name }}
           files: win-unpacked.zip
+
 
 
   publish-linux:
