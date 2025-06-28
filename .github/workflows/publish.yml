@@ -72,6 +72,19 @@ jobs:
         run: |
           npm exec electron-builder -- --publish --windows
 
+      - name: Create zip file with unpacked code
+        uses: vimtor/action-zip@v1.2
+        with:
+          files: release/build/win-unpacked
+          dest: win-unpacked.zip
+
+      - name: Upload zip file
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: win-unpacked.zip
+
+
   publish-linux:
     runs-on: ${{ matrix.os }}
 
