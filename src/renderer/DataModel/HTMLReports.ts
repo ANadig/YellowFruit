@@ -1145,7 +1145,7 @@ function getPageStyle() {
     `.${cssClasses.headerAndDivider}`,
     { attr: 'display', val: 'flex' },
     { attr: 'flex-direction', val: 'row' },
-    { attr: 'margin', val: '18 0' },
+    { attr: 'margin', val: '18px 0' },
   );
   const scoreboardRoundHeader = cssSelector(
     `.${cssClasses.stickyHeader}`,
