@@ -203,7 +203,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** Do additional work needed for the full stat report- cumulative stats, individual stats, etc. */
   private compileAddlStatsForFullReport() {
     this.cumulativeStats = new AggregateStandings(this.getListOfAllTeams(), this.phases, this.scoringRules);
-    if (this.finalRankingsReady) this.cumulativeStats.sortTeamsByFinalRank();
+    if (this.finalRankingsReady) this.cumulativeStats.arrangeTeamsForFinalRanking();
     else this.cumulativeStats.sortTeamsByPPB();
 
     this.stats.find((phSt) => phSt.phase.phaseType === PhaseTypes.Prelim)?.compileIndividualStats();

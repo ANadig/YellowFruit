@@ -231,8 +231,7 @@ export default class HtmlReportGenerator {
     omitRank: boolean = false,
   ) {
     const cells: string[] = [];
-    if (!omitRank && cumulative) cells.push(tdTag({}, teamStats.team.getOverallRankString()));
-    else if (!omitRank && !cumulative) cells.push(tdTag({}, teamStats.rank));
+    if (!omitRank) cells.push(tdTag({}, teamStats.rank));
 
     cells.push(textCell(this.teamDetailLink(teamStats.team)));
     if (this.tournament.trackSmallSchool) {

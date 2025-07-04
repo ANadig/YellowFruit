@@ -79,13 +79,27 @@ export class AggregateStandings {
     return bPpb - aPpb;
   }
 
-  sortTeamsByFinalRank() {
+  /** Sort teams by their final rank. Then assign the rank display strings that indicate where there are ties */
+  arrangeTeamsForFinalRanking() {
     this.teamStats.sort((a, b) => {
       const aRank = a.team.getOverallRank() || 9999;
       const bRank = b.team.getOverallRank() || 9999;
       if (aRank !== bRank) return aRank - bRank;
       return AggregateStandings.ppbCompare(a, b);
     });
+
+    let lastRank = 0;
+    for (let i = 0; i < this.teamStats.length; i++) {
+      const thisTeamRank = this.teamStats[i].team.getOverallRank();
+      if (thisTeamRank === undefined) continue;
+
+      if (thisTeamRank === lastRank) {
+        this.teamStats[i].rank = `${thisTeamRank}=`;
+        this.teamStats[i - 1].rank = `${thisTeamRank}=`;
+      } else this.teamStats[i].rank = thisTeamRank.toString();
+
+      lastRank = thisTeamRank;
+    }
   }
 
   private calcAnyTiesExist() {
