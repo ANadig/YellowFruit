@@ -87,7 +87,7 @@ export default class HtmlReportGenerator {
     sections.push(this.generalMetaData());
 
     if (this.tournament.finalRankingsReady) {
-      const header = headerWithDivider('Final Rankings', true);
+      const header = this.headerWithDivider('Final Rankings', StatReportPages.Standings, true);
       sections.push(`${header}\n${this.cumulativeStandingsTable()}`);
     }
 
@@ -106,8 +106,9 @@ export default class HtmlReportGenerator {
 
       // combined prelim+playoff for tournaments with full RR + playoffs
       if (printingCombinedPlayoff && this.tournament.prelimsPlusPlayoffStats) {
-        const header = headerWithDivider(
+        const header = this.headerWithDivider(
           `${phaseStats.phase.name}: Total`,
+          StatReportPages.Standings,
           !this.tournament.finalRankingsReady && printedPhaseCount === 1,
         );
         sections.push(`${header}\n${this.standingsForOnePhase(this.tournament.prelimsPlusPlayoffStats)}`);
@@ -115,8 +116,9 @@ export default class HtmlReportGenerator {
       }
 
       printedPhaseCount++;
-      const header = headerWithDivider(
+      const header = this.headerWithDivider(
         printingCombinedPlayoff ? `${phaseStats.phase.name} Only` : phaseStats.phase.name,
+        StatReportPages.Standings,
         !this.tournament.finalRankingsReady && printedPhaseCount === 1,
       );
       sections.push(`${header}\n${this.standingsForOnePhase(phaseStats)}`);
@@ -127,7 +129,7 @@ export default class HtmlReportGenerator {
       !this.tournament.finalRankingsReady &&
       !printedCombinedPlayoff
     ) {
-      const header = headerWithDivider('Cumulative');
+      const header = this.headerWithDivider('Cumulative', StatReportPages.Standings);
       sections.push(`${header}\n${this.cumulativeStandingsTable(true)}`);
     }
     return sections.join('\n');
@@ -301,7 +303,7 @@ export default class HtmlReportGenerator {
     return this.tournament.getFinalsPhases().map((ph) => {
       const matchList = this.tbOrFinalsMatchList(ph);
       if (matchList === '') return '';
-      return `${headerWithDivider(ph.name)}\n${matchList}`;
+      return `${this.headerWithDivider(ph.name, StatReportPages.Standings)}\n${matchList}`;
     });
   }
 
@@ -322,11 +324,11 @@ export default class HtmlReportGenerator {
     const prelims = this.tournament.stats[0];
     if (!prelims) return '';
 
-    const prelimsHeader = headerWithDivider(prelims.phase.name, true);
+    const prelimsHeader = this.headerWithDivider(prelims.phase.name, StatReportPages.Individuals, true);
     sections.push(`${prelimsHeader}\n${this.individualsTable(prelims.players)}`);
 
     if (this.tournament.numberOfPhasesWithStats() > 1 && this.tournament.cumulativeStats) {
-      const aggregateHeader = headerWithDivider('All Games');
+      const aggregateHeader = this.headerWithDivider('All Games', StatReportPages.Individuals);
       sections.push(`${aggregateHeader}\n${this.individualsTable(this.tournament.cumulativeStats.players, true)}`);
     }
 
@@ -416,7 +418,7 @@ export default class HtmlReportGenerator {
     let title = round.displayName(false);
     if (phase.isFullPhase()) title += ` - ${phase.name}`;
     segments.push(genericTagWithAttributes('div', [id(roundLinkId(round))]));
-    segments.push(headerWithDivider(title, round.number === 1, true));
+    segments.push(this.headerWithDivider(title, StatReportPages.Scoreboard, round.number === 1, true));
     for (const match of round.matches) {
       segments.push(this.boxScore(match));
     }
@@ -1071,6 +1073,26 @@ export default class HtmlReportGenerator {
   private fileNameForLink(page: StatReportPages) {
     return `${this.filePrefix}${StatReportFileNames[page]}`;
   }
+
+  private headerWithDivider(
+    text: string,
+    whichPage: StatReportPages,
+    noTopLink: boolean = false,
+    sticky: boolean = false,
+  ) {
+    const header = genericTag('h2', text + nbsp);
+    const divider = genericTagWithAttributes('div', [classAttribute(cssClasses.inlineDivider)]);
+    const attrs = sticky
+      ? classAttribute(cssClasses.headerAndDivider, cssClasses.stickyHeader)
+      : classAttribute(cssClasses.headerAndDivider);
+    if (noTopLink) return genericTagWithAttributes('div', [attrs], header, divider);
+
+    const topLink = aTag(
+      `${this.fileNameForLink(whichPage)}${topAnchorID}`,
+      genericTagWithAttributes('span', [classAttribute(cssClasses.smallText)], `${unicodeHTML('2191')}Top`),
+    );
+    return genericTagWithAttributes('div', [attrs], header, divider, genericTag('span', nbsp), topLink);
+  }
 }
 
 const lineBreak = '<br/>';
@@ -1271,21 +1293,6 @@ function genericTag(tag: string, ...contents: string[]) {
 
 function genericTagWithAttributes(tag: string, attr: string[], ...contents: string[]) {
   return `<${tag} ${attr.join(' ')}>\n${contents.join('\n')}\n</${tag}>`;
-}
-
-function headerWithDivider(text: string, noTopLink: boolean = false, sticky: boolean = false) {
-  const header = genericTag('h2', text + nbsp);
-  const divider = genericTagWithAttributes('div', [classAttribute(cssClasses.inlineDivider)]);
-  const attrs = sticky
-    ? classAttribute(cssClasses.headerAndDivider, cssClasses.stickyHeader)
-    : classAttribute(cssClasses.headerAndDivider);
-  if (noTopLink) return genericTagWithAttributes('div', [attrs], header, divider);
-
-  const topLink = aTag(
-    topAnchorID,
-    genericTagWithAttributes('span', [classAttribute(cssClasses.smallText)], `${unicodeHTML('2191')}Top`),
-  );
-  return genericTagWithAttributes('div', [attrs], header, divider, genericTag('span', nbsp), topLink);
 }
 
 function unorderedList(items: string[]) {
