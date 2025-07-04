@@ -347,8 +347,22 @@ function PlayersGrid(props: IPlayersGridProps) {
   const sessionID = useSubscription(modalManager.sessionID);
   const rows: React.JSX.Element[] = [];
 
+  const switchRowFocus = (rowToFocus: number, isYearField?: boolean) => {
+    if (rowToFocus < 0 || rowToFocus >= numRows) return;
+
+    const id = isYearField ? playerYearFieldId(rowToFocus) : playerNameFieldId(rowToFocus);
+    document.getElementById(id)?.focus();
+  };
+
   for (let i = 0; i < numRows; i++) {
-    rows.push(<PlayerGridRow key={`${sessionID}-${i}`} rowIdx={i} autoFocus={autoFocusFirstPlayer && i === 0} />);
+    rows.push(
+      <PlayerGridRow
+        key={`${sessionID}-${i}`}
+        rowIdx={i}
+        autoFocus={autoFocusFirstPlayer && i === 0}
+        switchRowFocus={switchRowFocus}
+      />,
+    );
   }
   return rows;
 }
@@ -356,10 +370,11 @@ function PlayersGrid(props: IPlayersGridProps) {
 interface IPlayerGridRowProps {
   rowIdx: number;
   autoFocus: boolean;
+  switchRowFocus: (rowToFocus: number, isYearField?: boolean) => void;
 }
 
 function PlayerGridRow(props: IPlayerGridRowProps) {
-  const { rowIdx, autoFocus } = props;
+  const { rowIdx, autoFocus, switchRowFocus } = props;
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
   const modalManager = useContext(TeamEditModalContext);
@@ -410,6 +425,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
     <Grid container spacing={1}>
       <Grid xs={5} md={6}>
         <TextField
+          id={playerNameFieldId(rowIdx)}
           placeholder="Player Name"
           spellCheck={false}
           fullWidth
@@ -423,12 +439,15 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
           onBlur={handlePlayerNameBlur}
           onKeyDown={(e) => {
             if (e.key === 'Enter') handlePlayerNameBlur();
+            if (e.key === 'ArrowUp') switchRowFocus(rowIdx - 1);
+            if (e.key === 'ArrowDown') switchRowFocus(rowIdx + 1);
           }}
         />
       </Grid>
       {thisTournament.trackPlayerYear && (
         <Grid xs={2}>
           <TextField
+            id={playerYearFieldId(rowIdx)}
             placeholder="Grade / Yr."
             spellCheck={false}
             fullWidth
@@ -441,6 +460,8 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
             onBlur={() => modalManager.changePlayerYear(rowIdx, playerYear)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') modalManager.changePlayerYear(rowIdx, playerYear);
+              if (e.key === 'ArrowUp') switchRowFocus(rowIdx - 1, true);
+              if (e.key === 'ArrowDown') switchRowFocus(rowIdx + 1, true);
             }}
           />
         </Grid>
@@ -528,6 +549,14 @@ function ErrorDialog() {
       </DialogActions>
     </Dialog>
   );
+}
+
+function playerNameFieldId(rowIdx: number) {
+  return `teamEditModalPlayerName_${rowIdx}`;
+}
+
+function playerYearFieldId(rowIdx: number) {
+  return `teamEditModalPlayerYear_${rowIdx}`;
 }
 
 export default TeamEditDialog;
