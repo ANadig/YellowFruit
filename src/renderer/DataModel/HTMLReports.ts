@@ -29,6 +29,8 @@ export default class HtmlReportGenerator {
 
   filePrefix: string = '';
 
+  phaseColors: { phase: Phase; color: string }[] = [];
+
   constructor(tourn: Tournament) {
     this.tournament = tourn;
   }
@@ -581,6 +583,7 @@ export default class HtmlReportGenerator {
   private getTeamDetailHtml() {
     if (!this.tournament.cumulativeStats) return '';
 
+    this.assignPhaseColors();
     const teamListCopy = this.tournament.cumulativeStats.teamStats.slice();
     teamListCopy.sort((a, b) => {
       const aName = a.team.name.toLocaleUpperCase();
@@ -678,9 +681,9 @@ export default class HtmlReportGenerator {
     if (!matchTeam.team || !opponent.team) return trTag([]);
 
     cells.push(textCell(result.phase?.usesNumericRounds() ? result.round.number.toString() : ''));
-    if (!omitPhase) cells.push(textCell(result.phase?.name ?? ''));
+    if (!omitPhase) cells.push(this.coloredPhaseCellSingle(result.phase));
     if (!omitPhase && this.tournament.hasAnyCarryover()) {
-      cells.push(textCell(result.match.carryoverPhases.map((ph) => ph.name).join(', ')));
+      cells.push(this.coloredPhaseCell(result.match.carryoverPhases));
     }
     cells.push(textCell(this.teamDetailLink(opponent.team)));
     cells.push(textCell(result.match.getResultDisplay(result.whichTeam)));
@@ -880,7 +883,7 @@ export default class HtmlReportGenerator {
     if (!matchTeam.team || !opponent.team) return trTag([]);
 
     cells.push(textCell(result.phase?.usesNumericRounds() ? result.round.number.toString() : ''));
-    if (!omitPhase) cells.push(textCell(result.phase?.name ?? ''));
+    if (!omitPhase) cells.push(this.coloredPhaseCellSingle(result.phase));
     cells.push(textCell(this.teamDetailLink(opponent.team)));
     cells.push(textCell(result.match.getResultDisplay(result.whichTeam)));
     cells.push(textCell(this.scoreboardMatchLink(result.match, result.match.getScoreOnly(result.whichTeam, true))));
@@ -969,7 +972,7 @@ export default class HtmlReportGenerator {
       if (stats.phase && !stats.phase.usesNumericRounds()) {
         cells.push(textCell(this.scoreboardRoundLink(stats.phase.rounds[0], stats.phase.name)));
       } else {
-        cells.push(textCell(stats.phase?.name ?? ''));
+        cells.push(this.coloredPhaseCellSingle(stats.phase));
       }
     }
     cells.push(numericCell(stats.games.toString()));
@@ -1091,6 +1094,42 @@ export default class HtmlReportGenerator {
       genericTagWithAttributes('span', [classAttribute(cssClasses.smallText)], `${unicodeHTML('2191')}Top`),
     );
     return genericTagWithAttributes('div', [attrs], header, divider, genericTag('span', nbsp), topLink);
+  }
+
+  /** Look through the tournaments phases and determine which color each should use */
+  private assignPhaseColors() {
+    this.phaseColors = [];
+    let idx = 0;
+    for (const ph of this.tournament.getFullPhases()) {
+      this.phaseColors.push({ phase: ph, color: availablePhaseColors[idx] ?? '' });
+      idx++;
+    }
+  }
+
+  private coloredPhaseCellSingle(phase?: Phase) {
+    if (!phase) return this.coloredPhaseCell([]);
+
+    return this.coloredPhaseCell([phase]);
+  }
+
+  private coloredPhaseCell(phases: Phase[]) {
+    if (phases.length === 0) return textCell('');
+
+    const colors: string[] = [];
+    for (const ph of phases) {
+      const color = this.phaseColors.find((obj) => obj.phase === ph)?.color ?? '';
+      if (color !== '') colors.push(color);
+
+      if (color.length === 2) break;
+    }
+
+    const cellText = phases.map((ph) => ph.name).join(', ');
+    const style =
+      colors.length === 1
+        ? `background-color:${colors[0]}`
+        : `background-image: linear-gradient(to bottom right, ${colors[0]} 50%, ${colors[1]} 51%)`;
+
+    return genericTagWithAttributes('td', [makeAttribute('style', style)], cellText);
   }
 }
 
@@ -1332,3 +1371,5 @@ function cssSelector(selector: string, ...rules: CssRule[]) {
 function unicodeHTML(codepoint: string) {
   return `&#x${codepoint};`;
 }
+
+const availablePhaseColors = ['#03a9f430', '#4caf5030', '#ffeb3b30', '#f4433630', '#673ab730', '#ff980030'];
