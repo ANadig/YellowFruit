@@ -301,11 +301,13 @@ export default class HtmlReportGenerator {
   }
 
   private finalsList() {
-    return this.tournament.getFinalsPhases().map((ph) => {
+    const list = this.tournament.getFinalsPhases().map((ph) => {
       const matchList = this.tbOrFinalsMatchList(ph);
       if (matchList === '') return '';
       return `${this.headerWithDivider(ph.name, StatReportPages.Standings)}\n${matchList}`;
     });
+    // reverse the list so that assuming the phases were configured in chronological order, the last one is at the top of the report
+    return list.map((_val, idx) => list[list.length - idx - 1]);
   }
 
   private tbOrFinalsMatchList(tbOrFinalsPhase: Phase | undefined, pool?: Pool) {

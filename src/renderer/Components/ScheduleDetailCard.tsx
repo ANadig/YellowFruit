@@ -62,7 +62,7 @@ export default function ScheduleDetailCard() {
     >
       <List>
         {phases.map((phase) => (
-          <Accordion key={phase.code} defaultExpanded>
+          <Accordion key={`${phase.code}${phase.name}`} defaultExpanded>
             <PhaseAccordionHeader phase={phase} />
             <AccordionDetails>
               {phase.isFullPhase() ? <PhaseEditor phase={phase} /> : <MinorPhaseSection phase={phase} />}

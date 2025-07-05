@@ -93,9 +93,6 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   /** Code to help users understand the order of phases: 1, 2, 2A, etc. */
   code: string = '';
 
-  /** The number of tiers. Should be consistent with the position property of the pools in this phase */
-  // tiers: number = 1;
-
   rounds: Round[];
 
   pools: Pool[] = [];
@@ -224,6 +221,23 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
       newRoundArray.push(new Round(i));
     }
     this.rounds = newRoundArray;
+  }
+
+  convertToTiebreaker() {
+    this.convertToMinorPhase(PhaseTypes.Tiebreaker);
+  }
+
+  convertToFinals() {
+    this.convertToMinorPhase(PhaseTypes.Finals);
+  }
+
+  /** Convert this phase from a normal prelim/playoff phase to something else */
+  private convertToMinorPhase(newType: PhaseTypes) {
+    if (this.phaseType === PhaseTypes.Prelim) return;
+
+    this.phaseType = newType;
+    this.pools = [];
+    this.forceNumericRounds = true;
   }
 
   /** Do any pools have errors that need to be corrected right now? */

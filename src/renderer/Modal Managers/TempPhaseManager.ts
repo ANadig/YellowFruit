@@ -15,6 +15,14 @@ export default class TempPhaseManager {
 
   lastRound?: number;
 
+  convertToTiebreaker: boolean = false;
+
+  convertToFinals: boolean = false;
+
+  canConvToTB: boolean = false;
+
+  canConvToFinals: boolean = false;
+
   roundRangeError: string = '';
 
   lowestPossibleRound: number = 1;
@@ -43,11 +51,20 @@ export default class TempPhaseManager {
     delete this.originalPhaseOpened;
     delete this.firstRound;
     delete this.lastRound;
+    this.convertToFinals = false;
+    this.convertToTiebreaker = false;
     this.phaseNameError = '';
     this.roundRangeError = '';
   }
 
-  openModal(phase: Phase, otherPhaseNames: string[], roundLowerBound?: number, roundUpperBound?: number) {
+  openModal(
+    phase: Phase,
+    otherPhaseNames: string[],
+    canConvToFinals: boolean,
+    canConvtoTB: boolean,
+    roundLowerBound?: number,
+    roundUpperBound?: number,
+  ) {
     this.modalIsOpen = true;
     this.originalPhaseOpened = phase;
     this.phaseName = phase.name;
@@ -57,6 +74,8 @@ export default class TempPhaseManager {
     this.highestPossibleRound = roundUpperBound || 999;
     this.setRequiredRoundRange();
     this.otherPhaseNames = otherPhaseNames;
+    this.canConvToFinals = canConvToFinals;
+    this.canConvToTB = canConvtoTB;
     this.validateAll();
     this.dataChangedReactCallback();
   }
@@ -73,7 +92,7 @@ export default class TempPhaseManager {
     this.dataChangedReactCallback();
   }
 
-  saveData() {
+  private saveData() {
     if (!this.originalPhaseOpened) return;
     this.originalPhaseOpened.name = this.phaseName;
     if (this.originalPhaseOpened.phaseType === PhaseTypes.Finals && !this.originalPhaseOpened.forceNumericRounds) {
@@ -82,6 +101,15 @@ export default class TempPhaseManager {
     if (this.firstRound && this.lastRound) {
       this.originalPhaseOpened.setRoundRange(this.firstRound, this.lastRound);
     }
+    if (this.convertToFinals) {
+      this.originalPhaseOpened.convertToFinals();
+    } else if (this.convertToTiebreaker) {
+      this.originalPhaseOpened.convertToTiebreaker();
+    }
+  }
+
+  needToRecomputePhaseCodes() {
+    return this.convertToTiebreaker;
   }
 
   hasAnyErrors() {
@@ -139,6 +167,18 @@ export default class TempPhaseManager {
     return this.lastRound;
   }
 
+  setConvertToFinals(val: boolean) {
+    this.convertToFinals = val;
+    if (val) this.convertToTiebreaker = false;
+    this.dataChangedReactCallback();
+  }
+
+  setConvertToTiebreaker(val: boolean) {
+    this.convertToTiebreaker = val;
+    if (val) this.convertToFinals = false;
+    this.dataChangedReactCallback();
+  }
+
   validatePhaseName() {
     if (this.phaseName === '') {
       this.phaseNameError = 'Name is required';
@@ -156,6 +196,10 @@ export default class TempPhaseManager {
   }
 
   validateRoundRange() {
+    if (!this.originalPhaseOpened?.usesNumericRounds()) {
+      this.roundRangeError = '';
+      return;
+    }
     if (this.firstRound === undefined || this.lastRound === undefined) {
       this.roundRangeError = 'Round numbers are required';
       return;

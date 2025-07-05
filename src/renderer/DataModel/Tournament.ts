@@ -403,6 +403,19 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return 0;
   }
 
+  /** Recompute the code attribute for all phases */
+  recomputePhaseCodes() {
+    let idx = 1;
+    for (const ph of this.phases) {
+      if (ph.phaseType === PhaseTypes.Tiebreaker) {
+        ph.code = `${idx}T`;
+      } else {
+        ph.code = idx.toString();
+        idx++;
+      }
+    }
+  }
+
   addTiebreakerAfter(phase: Phase) {
     const idx = this.phases.indexOf(phase);
     if (idx === -1) return;

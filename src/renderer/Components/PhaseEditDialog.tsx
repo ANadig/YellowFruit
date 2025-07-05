@@ -1,5 +1,17 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Alert, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import {
+  Alert,
+  Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  FormGroup,
+  TextField,
+  Tooltip,
+} from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { TournamentContext } from '../TournamentManager';
 import { PhaseEditModalContext } from '../Modal Managers/TempPhaseManager';
@@ -48,6 +60,7 @@ function PhaseEditDialogCore() {
       <DialogContent>
         <PhaseNameField />
         {modalManager.shouldShowRoundFields() && <PhaseRoundFields />}
+        <PhaseConvertFields />
       </DialogContent>
       <DialogActions>
         <YfCancelButton onClick={handleCancel} />
@@ -140,5 +153,61 @@ function PhaseRoundFields() {
         </Alert>
       )}
     </>
+  );
+}
+
+function PhaseConvertFields() {
+  const modalManager = useContext(PhaseEditModalContext);
+  const thisPhase = modalManager.originalPhaseOpened;
+  const [convertToFinals, setConvertToFinals] = useSubscription(modalManager?.convertToFinals || false);
+  const [convertToTB, setConvertToTB] = useSubscription(modalManager?.convertToTiebreaker || false);
+
+  const handleCheckConvToFinals = (checked: boolean) => {
+    setConvertToFinals(checked);
+    modalManager.setConvertToFinals(checked);
+  };
+  const handleCheckConvToTB = (checked: boolean) => {
+    setConvertToTB(checked);
+    modalManager.setConvertToTiebreaker(checked);
+  };
+
+  if (!thisPhase) return null;
+  if (!modalManager.canConvToFinals && !modalManager.canConvToTB) return null;
+
+  return (
+    <Grid container sx={{ my: 1 }}>
+      <Grid xs={6}>
+        {modalManager.canConvToFinals && (
+          <FormGroup>
+            <Tooltip
+              placement="top"
+              title="Designate this stage as containing finals matches rather than standard pool play. This action will delete all pools in this stage."
+            >
+              <FormControlLabel
+                label="Convert to finals"
+                control={
+                  <Checkbox checked={convertToFinals} onChange={(e) => handleCheckConvToFinals(e.target.checked)} />
+                }
+              />
+            </Tooltip>
+          </FormGroup>
+        )}
+      </Grid>
+      <Grid xs={6}>
+        {modalManager.canConvToTB && (
+          <FormGroup>
+            <Tooltip
+              placement="top"
+              title="Designate this stage as containing tiebreaker matches rather than standard pool play. This action will delete all pools in this stage."
+            >
+              <FormControlLabel
+                label="Convert to tiebreakers"
+                control={<Checkbox checked={convertToTB} onChange={(e) => handleCheckConvToTB(e.target.checked)} />}
+              />
+            </Tooltip>
+          </FormGroup>
+        )}
+      </Grid>
+    </Grid>
   );
 }

@@ -19,7 +19,7 @@ import { FileSwitchActions, IMatchImportFileRequest, IYftBackupFile, StatReportH
 import { StatReportFileNames, StatReportPages } from './Enums';
 import { Pool } from './DataModel/Pool';
 import { PoolStats } from './DataModel/StatSummaries';
-import { Phase, WildCardRankingMethod } from './DataModel/Phase';
+import { Phase, PhaseTypes, WildCardRankingMethod } from './DataModel/Phase';
 import { Round } from './DataModel/Round';
 import TempPhaseManager from './Modal Managers/TempPhaseManager';
 import TempPoolManager from './Modal Managers/TempPoolManager';
@@ -1202,16 +1202,32 @@ export class TournamentManager {
 
   openPhaseModal(phase: Phase) {
     const otherNames = this.tournament.phases.filter((ph) => ph !== phase).map((ph) => ph.name);
+    const relatedFullPhase = phase.isFullPhase() ? phase : this.tournament.getPrevFullPhase(phase);
+    const canConvToFinals = !relatedFullPhase
+      ? false
+      : (phase.phaseType === PhaseTypes.Playoff || phase.phaseType === PhaseTypes.Tiebreaker) &&
+        this.tournament.isLastFullPhase(relatedFullPhase);
+    const canConvToTB = !relatedFullPhase
+      ? false
+      : (phase.phaseType === PhaseTypes.Playoff || phase.phaseType === PhaseTypes.Finals) &&
+        !this.tournament.hasTiebreakerAfter(relatedFullPhase);
+
     this.phaseModalManager.openModal(
       phase,
       otherNames,
+      canConvToFinals,
+      canConvToTB,
       this.tournament.roundNumberLowerBound(phase),
       this.tournament.roundNumberUpperBound(phase),
     );
   }
 
   closePhaseModal(shouldSave: boolean) {
+    const needToRecomputePhaseCodes = shouldSave && this.phaseModalManager.needToRecomputePhaseCodes();
     this.phaseModalManager.closeModal(shouldSave);
+    if (needToRecomputePhaseCodes) {
+      this.tournament.recomputePhaseCodes();
+    }
     this.onDataChanged(!shouldSave);
   }
 
