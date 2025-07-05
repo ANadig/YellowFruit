@@ -471,10 +471,10 @@ export default class HtmlReportGenerator {
 
   private boxScoreTableHeader(teamName: string) {
     const cells: string[] = [];
-    cells.push(tdTag({ bold: true }, teamName));
-    cells.push(tdTag({ bold: true, align: 'right' }, 'TUH'));
+    cells.push(stdTdHeader(teamName));
+    cells.push(stdTdHeader('TUH', true));
     this.pushTossupValueHeaders(cells);
-    cells.push(tdTag({ bold: true, align: 'right' }, 'Tot'));
+    cells.push(stdTdHeader('Tot', true, '8%'));
     return trTag(cells);
   }
 
