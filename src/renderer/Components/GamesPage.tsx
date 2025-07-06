@@ -112,7 +112,7 @@ function TeamFilterField(props: ITeamFilterFieldProps) {
       options={filterOptions}
       isOptionEqualToValue={isOptionEqualToValue}
       // eslint-disable-next-line react/jsx-props-no-spreading
-      renderInput={(params) => <TextField {...params} size="small" label="Search by team" />}
+      renderInput={(params) => <TextField {...params} size="small" label="Filter by team" />}
     />
   );
 }

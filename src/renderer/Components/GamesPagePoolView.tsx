@@ -161,10 +161,14 @@ function MatrixCell(props: IMatrixCellProps) {
     if (!round) return;
     tournManager.openMatchEditModalExistingMatch(match, round);
   };
+  const resultDisp = match.getShortScore(team);
+  let backgroundColor = '';
+  if (resultDisp.startsWith('W')) backgroundColor = '#4caf5020';
+  else if (resultDisp.startsWith('L')) backgroundColor = '#f4433620';
 
   return (
-    <TableCell align="center">
-      {match.getShortScore(team)}
+    <TableCell align="center" sx={{ backgroundColor }}>
+      {resultDisp}
       <IconButton size="small" onClick={editExisting}>
         <Edit />
       </IconButton>
