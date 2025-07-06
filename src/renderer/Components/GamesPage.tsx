@@ -264,7 +264,7 @@ function SingleRound(props: ISingleRoundProps) {
         {expanded ? (
           <SingleRoundMatchList round={round} matchList={matchesToShow} />
         ) : (
-          <PlaceholderMatchList listSize={matchesToShow.length} />
+          <PlaceholderMatchList listSize={Math.min(matchesToShow.length, 6)} />
         )}
       </AccordionDetails>
     </Accordion>
@@ -302,7 +302,10 @@ function PlaceholderMatchList(props: IPlaceholderMatchListProps) {
 
   const placeholders: React.JSX.Element[] = [];
   for (let i = 1; i <= listSize; i++) {
-    placeholders.push(<Skeleton key={i} variant="text" width="50%" sx={{ fontSize: '16pt' }} />);
+    const widthPct = 15 + 35 * Math.random();
+    placeholders.push(
+      <Skeleton key={i} variant="text" width={`${widthPct.toPrecision(2)}%`} sx={{ fontSize: '16pt' }} />,
+    );
   }
 
   return <Stack spacing={2}>{placeholders}</Stack>;
