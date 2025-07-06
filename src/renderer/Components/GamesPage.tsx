@@ -14,9 +14,10 @@ import {
   Divider,
   Autocomplete,
   TextField,
+  Skeleton,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { useContext, useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { Add, Delete, Edit, Error, ExpandMore, FileUpload, FilterAlt, Warning } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -260,19 +261,51 @@ function SingleRound(props: ISingleRoundProps) {
         )}
       </AccordionSummary>
       <AccordionDetails>
-        {round.matches.length > 0 && (
-          <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
-            {matchesToShow.map((m, idx) => (
-              <div key={m.id}>
-                {idx !== 0 && <Divider />}
-                <MatchListItem match={m} round={round} />
-              </div>
-            ))}
-          </Box>
+        {expanded ? (
+          <SingleRoundMatchList round={round} matchList={matchesToShow} />
+        ) : (
+          <PlaceholderMatchList listSize={matchesToShow.length} />
         )}
       </AccordionDetails>
     </Accordion>
   );
+}
+
+interface ISingleRoundMatchListProps {
+  round: Round;
+  matchList: Match[];
+}
+
+function SingleRoundMatchList(props: ISingleRoundMatchListProps) {
+  const { round, matchList } = props;
+  return (
+    round.matches.length > 0 && (
+      <Box sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+        {matchList.map((m, idx) => (
+          <div key={m.id}>
+            {idx !== 0 && <Divider />}
+            <MatchListItem match={m} round={round} />
+          </div>
+        ))}
+      </Box>
+    )
+  );
+}
+
+interface IPlaceholderMatchListProps {
+  listSize: number;
+}
+
+function PlaceholderMatchList(props: IPlaceholderMatchListProps) {
+  const { listSize } = props;
+  if (listSize === 0) return null;
+
+  const placeholders: React.JSX.Element[] = [];
+  for (let i = 1; i <= listSize; i++) {
+    placeholders.push(<Skeleton key={i} variant="text" width="50%" sx={{ fontSize: '16pt' }} />);
+  }
+
+  return <Stack spacing={2}>{placeholders}</Stack>;
 }
 
 interface IMatchListItemProps {
