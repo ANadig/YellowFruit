@@ -22,7 +22,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { Add, Delete, Edit, ExpandMore, LockOpen } from '@mui/icons-material';
+import { Add, ArrowDownward, ArrowUpward, Delete, Edit, ExpandMore, LockOpen } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
@@ -91,10 +91,13 @@ interface PhaseAccordionHeaderProps {
 function PhaseAccordionHeader(props: PhaseAccordionHeaderProps) {
   const { phase } = props;
   const tournManager = useContext(TournamentContext);
+  const thisTourn = tournManager.tournament;
   const matchesExist = phase.anyMatchesExist();
-  const [usingTemplate] = useSubscription(tournManager.tournament.usingScheduleTemplate);
+  const [usingTemplate] = useSubscription(thisTourn.usingScheduleTemplate);
 
   const showDeleteButton = !phase.isFullPhase() || (!usingTemplate && phase.phaseType !== PhaseTypes.Prelim);
+  const canMoveUp = thisTourn.canMovePhaseUp(phase);
+  const canMoveDown = thisTourn.canMovePhaseDown(phase);
 
   return (
     <AccordionSummary
@@ -117,6 +120,38 @@ function PhaseAccordionHeader(props: PhaseAccordionHeaderProps) {
         </IconButton>
       </div>
       <div>
+        {(canMoveUp || canMoveDown) && (
+          <>
+            <Tooltip title="Move up">
+              <span>
+                <IconButton
+                  size="small"
+                  disabled={!canMoveUp}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    tournManager.movePhaseUp(phase);
+                  }}
+                >
+                  <ArrowUpward />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title="Move down">
+              <span>
+                <IconButton
+                  size="small"
+                  disabled={!canMoveDown}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    tournManager.movePhaseDown(phase);
+                  }}
+                >
+                  <ArrowDownward />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </>
+        )}
         {showDeleteButton && (
           <Tooltip title="Delete stage">
             <span>

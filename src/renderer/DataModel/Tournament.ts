@@ -458,6 +458,45 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.phases.push(new Phase(PhaseTypes.Finals, roundNumber, roundNumber, this.nextPhaseCode(), phaseName));
   }
 
+  /** Would it ever make sense to try moving this phase up or down in the list? */
+  static phaseCouldBeMoved(phase: Phase) {
+    return phase.phaseType === PhaseTypes.Finals && !phase.usesNumericRounds();
+  }
+
+  /** Should we allow swapping this phase with the previous one in the list? */
+  canMovePhaseUp(phase: Phase) {
+    if (!Tournament.phaseCouldBeMoved(phase)) return false;
+    const idx = this.phases.indexOf(phase);
+    return idx >= 1 && Tournament.phaseCouldBeMoved(this.phases[idx - 1]);
+  }
+
+  /** Should we allow swapping this phase with the next one in the list? */
+  canMovePhaseDown(phase: Phase) {
+    if (!Tournament.phaseCouldBeMoved(phase)) return false;
+    const idx = this.phases.indexOf(phase);
+    return idx >= 0 && idx < this.phases.length - 1 && Tournament.phaseCouldBeMoved(this.phases[idx + 1]);
+  }
+
+  /** Move a phase up in the list (backwards chronologically). Only Finals phases are supportd */
+  movePhaseUp(phase: Phase) {
+    if (!this.canMovePhaseUp(phase)) return;
+
+    const idx = this.phases.indexOf(phase);
+    const phaseToSwitchWith = this.phases[idx - 1];
+    this.phases[idx - 1] = phase;
+    this.phases[idx] = phaseToSwitchWith;
+  }
+
+  /** Move a phase down in the list (forwards chronologically). Only Finals phases are supportd */
+  movePhaseDown(phase: Phase) {
+    if (!this.canMovePhaseDown(phase)) return;
+
+    const idx = this.phases.indexOf(phase);
+    const phaseToSwitchWith = this.phases[idx - 1];
+    this.phases[idx - 1] = phase;
+    this.phases[idx] = phaseToSwitchWith;
+  }
+
   deletePhase(phase: Phase) {
     const idx = this.phases.indexOf(phase);
     if (idx === -1) return;
