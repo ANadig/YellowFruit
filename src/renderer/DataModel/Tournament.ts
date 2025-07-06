@@ -311,6 +311,12 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.find((phase) => phase.phaseType === PhaseTypes.Prelim);
   }
 
+  getPrevPhase(phase: Phase): Phase | undefined {
+    const idx = this.phases.indexOf(phase) - 1;
+    if (idx === -1) return undefined;
+    return this.phases[idx];
+  }
+
   /** Get the prelim or playoff phase that preceded this one */
   getPrevFullPhase(phase: Phase): Phase | undefined {
     let idx = this.phases.indexOf(phase) - 1;

@@ -1206,10 +1206,13 @@ export class TournamentManager {
     const canConvToFinals = !relatedFullPhase
       ? false
       : (phase.phaseType === PhaseTypes.Playoff || phase.phaseType === PhaseTypes.Tiebreaker) &&
-        this.tournament.isLastFullPhase(relatedFullPhase);
+        this.tournament.isLastFullPhase(relatedFullPhase) &&
+        !this.tournament.hasTiebreakerAfter(phase);
+    // Has to either be a playoff phase, or a finals phase immediately after a playoff phase
     const canConvToTB = !relatedFullPhase
       ? false
-      : (phase.phaseType === PhaseTypes.Playoff || phase.phaseType === PhaseTypes.Finals) &&
+      : (phase.phaseType === PhaseTypes.Playoff ||
+          (phase.phaseType === PhaseTypes.Finals && relatedFullPhase === this.tournament.getPrevPhase(phase))) &&
         !this.tournament.hasTiebreakerAfter(relatedFullPhase);
 
     this.phaseModalManager.openModal(
