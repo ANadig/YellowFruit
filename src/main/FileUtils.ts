@@ -202,7 +202,9 @@ function writeStatReportFile(
     }
     if (idx < reports.length - 1) {
       writeStatReportFile(reports, idx + 1, window, externalFilePathStart);
-    } else if (!externalFilePathStart) {
+    } else if (externalFilePathStart) {
+      window.webContents.send(IpcMainToRend.MakeToast, 'Stat report exported');
+    } else {
       window.webContents.send(IpcMainToRend.GeneratedInAppStatReport);
     }
   });
@@ -294,6 +296,7 @@ export function handleExportQbjFile(event: IpcMainEvent, filePath: string, fileC
 
   fs.writeFile(filePath, fileContents, { encoding: 'utf8' }, (err) => {
     if (err) dialog.showMessageBoxSync(window, { title: 'YellowFruit', message: `Error saving file:\n\n${err}` });
+    else window.webContents.send(IpcMainToRend.MakeToast, 'Exported QBJ file');
   });
 }
 

@@ -49,6 +49,9 @@ export class TournamentManager {
   /** Hook into the UI to tell it when it needs to update */
   dataChangedReactCallback: () => void;
 
+  /** Show a toast message */
+  makeToast: (message: string) => void;
+
   /** Is there data that hasn't been saved to a file? */
   unsavedData: boolean = false;
 
@@ -94,6 +97,7 @@ export class TournamentManager {
 
   constructor() {
     this.dataChangedReactCallback = () => {};
+    this.makeToast = () => {};
     this.addIpcListeners();
 
     this.genericModalManager = new GenericModalManager();
@@ -146,6 +150,9 @@ export class TournamentManager {
     });
     window.electron.ipcRenderer.on(IpcMainToRend.ImportQbjTeams, (contents) => {
       this.importQbjTeams(contents as string);
+    });
+    window.electron.ipcRenderer.on(IpcMainToRend.MakeToast, (message) => {
+      this.makeToast(message as string);
     });
     window.electron.ipcRenderer.on(IpcBidirectional.LoadBackup, (contents) => {
       this.parseBackup(contents as string);
@@ -598,7 +605,7 @@ export class TournamentManager {
     if (filePath) this.setFilePath(filePath);
     this.unsavedData = false;
     this.setWindowTitle();
-    // this.makeToast('Data saved');
+    this.makeToast('File saved');
   }
 
   private setFilePath(path: string) {

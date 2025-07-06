@@ -45,6 +45,8 @@ export enum IpcMainToRend {
   ImportQbjTournament = 'ImportQbjTournament',
   /** Import teams and rosters from a non-yft qbj file */
   ImportQbjTeams = 'ImportQbjTeams',
+  /** Send a message to display as a toast */
+  MakeToast = 'MakeToast',
 }
 
 /** Channels for both directions renderer<-->main */

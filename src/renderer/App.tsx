@@ -13,6 +13,7 @@ import Box from '@mui/material/Box';
 
 import { useContext, useEffect, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { Alert, Snackbar } from '@mui/material';
 import NavBar, { applicationPageOrder } from './Components/NavBar';
 import GeneralPage from './Components/GeneralPage';
 import { TournamentManager, TournamentContext } from './TournamentManager';
@@ -120,6 +121,7 @@ function TournamentEditor() {
       <RankEditDialog />
       <PoolAssignmentDialog />
       <MatchImportResultDialog />
+      <GenericToast />
     </>
   );
 }
@@ -147,4 +149,29 @@ function ActivePage(props: IActivePageProps) {
     default:
       return null;
   }
+}
+
+/** Toast message that the TournamentManager can invoke imperatively */
+function GenericToast() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const [mgr] = useState(tournManager);
+  useEffect(() => {
+    mgr.makeToast = (msg) => {
+      setIsOpen(true);
+      setMessage(msg);
+    };
+  }, [mgr]);
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
+  return (
+    <Snackbar open={isOpen} autoHideDuration={5000} onClose={handleClose}>
+      <Alert severity="success" variant="filled" onClose={handleClose} sx={{ width: '100%' }}>
+        {message}
+      </Alert>
+    </Snackbar>
+  );
 }
