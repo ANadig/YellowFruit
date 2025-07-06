@@ -285,6 +285,10 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return this.leftTeam;
   }
 
+  includesTeam(team: Team) {
+    return this.leftTeam.team === team || this.rightTeam.team === team;
+  }
+
   setTeamScore(whichTeam: LeftOrRight, points: number | undefined) {
     const mt = this.getMatchTeam(whichTeam);
     mt.points = points;

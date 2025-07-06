@@ -12,10 +12,12 @@ import {
   Box,
   Tooltip,
   Divider,
+  Autocomplete,
+  TextField,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useContext, useMemo, useState } from 'react';
-import { Add, Delete, Edit, Error, ExpandMore, FileUpload, Warning } from '@mui/icons-material';
+import { Add, Delete, Edit, Error, ExpandMore, FileUpload, FilterAlt, Warning } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import YfCard from './YfCard';
@@ -24,50 +26,110 @@ import { Phase } from '../DataModel/Phase';
 import { Round } from '../DataModel/Round';
 import GamesViewByPool from './GamesPagePoolView';
 import { ValidationStatuses } from '../DataModel/Interfaces';
+import { Team } from '../DataModel/Team';
 
 // Defines the order the buttons should be in
 const viewList = ['By Round', 'By Pool'];
 
+const teamSelectNullOption = '';
+
 export default function GamesPage() {
   const tournManager = useContext(TournamentContext);
   const [curView] = useSubscription(tournManager.currentGamesPageView);
+  const [filterTeam, setFilterTeam] = useState<Team | undefined>(undefined);
 
   return (
     <>
       <Card sx={{ marginBottom: 2, '& .MuiCardContent-root': { paddingBottom: 2.1 } }}>
         <CardContent>
-          <ToggleButtonGroup
-            size="small"
-            color="primary"
-            exclusive
-            value={curView}
-            onChange={(e, newValue) => {
-              if (newValue === null) return;
-              tournManager.setGamesPageView(newValue);
-            }}
-          >
-            {viewList.map((val, idx) => (
-              <ToggleButton key={val} value={idx}>
-                {val}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
+          <Grid container>
+            <Grid xs>
+              <ToggleButtonGroup
+                size="small"
+                color="primary"
+                exclusive
+                value={curView}
+                onChange={(e, newValue) => {
+                  if (newValue === null) return;
+                  tournManager.setGamesPageView(newValue);
+                }}
+              >
+                {viewList.map((val, idx) => (
+                  <ToggleButton key={val} value={idx}>
+                    {val}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            </Grid>
+            {curView === 0 && (
+              <Grid xs={4}>
+                <TeamFilterField filterByTeam={setFilterTeam} />
+              </Grid>
+            )}
+          </Grid>
         </CardContent>
       </Card>
-      {curView === 0 && <GamesViewByRound />}
+      {curView === 0 && <GamesViewByRound filterTeam={filterTeam} />}
       {curView === 1 && <GamesViewByPool />}
     </>
   );
 }
 
-function GamesViewByRound() {
+interface ITeamFilterFieldProps {
+  filterByTeam: (team: Team | undefined) => void;
+}
+
+function TeamFilterField(props: ITeamFilterFieldProps) {
+  const { filterByTeam } = props;
+  const tournManager = useContext(TournamentContext);
+  const thisTourn = tournManager.tournament;
+  const [filterTeam, setFilterTeam] = useState<Team | undefined>(undefined);
+  const [filterInputValue, setFilterInputValue] = useState('');
+
+  const handleFilterChange = (val: string | null) => {
+    const matchingTeam = val === null ? undefined : thisTourn.findTeamByName(val) ?? undefined;
+    setFilterTeam(matchingTeam);
+    filterByTeam(matchingTeam);
+  };
+
+  const isOptionEqualToValue = (option: string, value: string) => {
+    if (value === option) return true;
+    return value === '' && option === teamSelectNullOption;
+  };
+
+  const allTeamNames = useMemo(() => thisTourn.getListOfAllTeams().map((tm) => tm.name), [thisTourn]);
+  const filterOptions = [teamSelectNullOption].concat(allTeamNames);
+
+  return (
+    <Autocomplete
+      autoHighlight
+      clearOnEscape
+      autoSelect
+      value={filterTeam?.name ?? ''}
+      onChange={(event: any, newValue: string | null) => handleFilterChange(newValue)}
+      inputValue={filterInputValue}
+      onInputChange={(event, newVal) => setFilterInputValue(newVal)}
+      options={filterOptions}
+      isOptionEqualToValue={isOptionEqualToValue}
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      renderInput={(params) => <TextField {...params} size="small" label="Search by team" />}
+    />
+  );
+}
+
+interface IGameViewByRoundProps {
+  filterTeam: Team | undefined;
+}
+
+function GamesViewByRound(props: IGameViewByRoundProps) {
+  const { filterTeam } = props;
   const tournManager = useContext(TournamentContext);
   const [phases] = useSubscription(tournManager.tournament.phases);
 
   return (
     <Stack spacing={2}>
       {phases.map((phase) => (
-        <GamesForPhaseByRound key={phase.name} phase={phase} />
+        <GamesForPhaseByRound key={phase.name} phase={phase} filterTeam={filterTeam} />
       ))}
     </Stack>
   );
@@ -75,10 +137,11 @@ function GamesViewByRound() {
 
 interface IGamesForPhaseByRoundProps {
   phase: Phase;
+  filterTeam: Team | undefined;
 }
 
 function GamesForPhaseByRound(props: IGamesForPhaseByRoundProps) {
-  const { phase } = props;
+  const { phase, filterTeam } = props;
 
   return (
     <YfCard title={phase.name}>
@@ -86,8 +149,9 @@ function GamesForPhaseByRound(props: IGamesForPhaseByRoundProps) {
         <SingleRound
           key={round.name}
           round={round}
-          expanded={false}
+          expanded={!!filterTeam}
           forceNumericDisplay={phase.forceNumericRounds || false}
+          filterTeam={filterTeam}
         />
       ))}
     </YfCard>
@@ -98,15 +162,28 @@ interface ISingleRoundProps {
   round: Round;
   expanded: boolean;
   forceNumericDisplay: boolean;
+  filterTeam: Team | undefined;
 }
 
 function SingleRound(props: ISingleRoundProps) {
-  const { round, expanded: expandedProp, forceNumericDisplay } = props;
+  const { round, expanded: expandedProp, forceNumericDisplay, filterTeam } = props;
   const tournManager = useContext(TournamentContext);
   const [expanded, setExpanded] = useState(expandedProp);
-  const numMatches = round.matches.length;
   const canAddMatch = useMemo(() => tournManager.tournament.readyToAddMatches(), [tournManager]);
-  const [numErrs, numWarns] = round.countErrorsAndWarnings();
+  const [numErrs, numWarns] = filterTeam === undefined ? round.countErrorsAndWarnings() : [0, 0];
+  const [prevFilterTeam, setPrevFilterTeam] = useState<Team | undefined>(undefined);
+
+  const matchesToShow = useMemo(
+    () => (filterTeam ? round.matches.filter((m) => m.includesTeam(filterTeam)) : round.matches),
+    [filterTeam, round.matches],
+  );
+  const numMatches = matchesToShow.length;
+
+  if (prevFilterTeam !== filterTeam) {
+    if (filterTeam && numMatches > 0) setExpanded(true);
+    else setExpanded(false);
+    setPrevFilterTeam(filterTeam);
+  }
 
   const newMatchForRound = () => {
     tournManager.openMatchModalNewMatchForRound(round);
@@ -116,11 +193,20 @@ function SingleRound(props: ISingleRoundProps) {
   };
 
   return (
-    <Accordion expanded={expanded} onChange={() => setExpanded(!expanded)}>
+    <Accordion
+      expanded={expanded}
+      elevation={expanded ? 4 : 1}
+      sx={{
+        '& .MuiAccordionSummary-content.Mui-expanded': { my: 0 },
+        '& .MuiButtonBase-root-MuiAccordionSummary-root.Mui-expanded': { minHeight: '48px' },
+      }}
+      onChange={() => setExpanded(!expanded)}
+    >
       <AccordionSummary expandIcon={<ExpandMore />}>
         <Typography sx={{ width: '33%', flexShrink: 0 }}>{round.displayName(forceNumericDisplay)}</Typography>
         <Typography sx={{ width: '34%', color: 'text.secondary' }}>
           {numMatches === 1 ? '1 game' : `${numMatches} games`}
+          {!!filterTeam && <FilterAlt fontSize="small" sx={{ verticalAlign: 'sub' }} />}
         </Typography>
         <Typography sx={{ width: '28%' }}>
           {numErrs > 0 && (
@@ -176,7 +262,7 @@ function SingleRound(props: ISingleRoundProps) {
       <AccordionDetails>
         {round.matches.length > 0 && (
           <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
-            {round.matches.map((m, idx) => (
+            {matchesToShow.map((m, idx) => (
               <div key={m.id}>
                 {idx !== 0 && <Divider />}
                 <MatchListItem match={m} round={round} />
