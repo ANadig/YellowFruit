@@ -26,6 +26,16 @@ import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
 import { QbjTypeNames } from './QbjEnums';
 import { findTournamentObject } from './QbjUtils2';
 import { IQbjPacket, Packet } from './Packet';
+import {
+  IQbjMatchQuestion,
+  IQbjMatchQuestionBonus,
+  IQbjMatchQuestionBonusPart,
+  IQbjMatchQuestionBuzz,
+  MatchQuestion,
+  MatchQuestionBonus,
+  MatchQuestionBonusPart,
+  MatchQuestionBuzz,
+} from './MatchQuestion';
 
 /** Threshold (0 to 1 scale) for string matching of team and player names when importing data. Similarity must be at leaset this high for us to use the match. */
 const stringSimConfThreshold = 0.8;
@@ -738,6 +748,11 @@ export default class FileParser {
 
     if (yfMatch.isForfeit()) yfMatch.tossupsRead = undefined;
 
+    yfMatch.matchQuestions = this.parseMatchMatchQuestions(qbjMatch.matchQuestions as IIndeterminateQbj[], [
+      leftTeam,
+      rightTeam,
+    ]);
+
     yfMatch.modalBottomValidation = new MatchValidationCollection();
     yfMatch.modalBottomValidation.addFromFileObjects(yfExtraData?.otherValidation || []);
     yfMatch.importedFile = yfExtraData?.importedFile;
@@ -768,7 +783,7 @@ export default class FileParser {
     const qbjMatchTeam = baseObj as IQbjMatchTeam;
     const yfExtraData = (baseObj as IYftFileMatchTeam).YfData;
 
-    const team = this.resolveMatchTeamIdentity(qbjMatchTeam);
+    const team = this.resolveTeamIdentity(qbjMatchTeam.team as IIndeterminateQbj);
     if (!team) {
       throw new Error('Failed to associate a MatchTeam object with a valid Team');
     }
@@ -794,22 +809,22 @@ export default class FileParser {
     return yfMatchTeam;
   }
 
-  /** Find the Team object that this MatchTeam refers to */
-  resolveMatchTeamIdentity(qbjMatchTeam: IQbjMatchTeam) {
+  /** Find the Team object that this object refers to */
+  resolveTeamIdentity(qbjTeam: IIndeterminateQbj) {
     if (!this.importPhase) {
-      return this.getYfObjectFromId(qbjMatchTeam.team as IIndeterminateQbj, this.teamsById);
+      return this.getYfObjectFromId(qbjTeam, this.teamsById);
     }
 
     let nameToMatch;
     // If the team is a $ref to something else in the file, resolve the intra-file reference, then use that team's name for string matching
-    if (isQbjRefPointer(qbjMatchTeam.team as IIndeterminateQbj)) {
-      const importFileTeamObj = this.getYfObjectFromId(qbjMatchTeam.team as IIndeterminateQbj, this.teamsById);
+    if (isQbjRefPointer(qbjTeam)) {
+      const importFileTeamObj = this.getYfObjectFromId(qbjTeam, this.teamsById);
       if (!importFileTeamObj) {
-        throw new Error(`Couldn't resolve reference to team ${(qbjMatchTeam.team as IQbjRefPointer).$ref}`);
+        throw new Error(`Couldn't resolve reference to team ${(qbjTeam as IQbjRefPointer).$ref}`);
       }
       nameToMatch = importFileTeamObj.name;
     } else {
-      nameToMatch = (qbjMatchTeam.team as IQbjTeam).name;
+      nameToMatch = (qbjTeam as IQbjTeam).name;
     }
 
     const importResult = getYfTeamFromName(nameToMatch, this.importPhase);
@@ -847,7 +862,7 @@ export default class FileParser {
     if (baseObj === null) return null;
 
     const qbjMatchPlayer = baseObj as IQbjMatchPlayer;
-    const player = this.resolveMatchPlayerIdentity(qbjMatchPlayer, team);
+    const player = this.resolvePlayerIdentity(qbjMatchPlayer.player as IIndeterminateQbj, team);
     if (!player) {
       throw new Error('Failed to associate a MatchPlayer object with a valid Player');
     }
@@ -865,27 +880,27 @@ export default class FileParser {
   }
 
   /**
-   * Find the Team object that this MatchTeam refers to
+   * Find the Player object that this object refers to
    * @param qbjMatchPlayer MatchPlayer being parsed
    * @param team YF Team we know they're on, if we need to do string matching
    */
-  resolveMatchPlayerIdentity(qbjMatchPlayer: IQbjMatchPlayer, team?: Team) {
+  resolvePlayerIdentity(qbjPlayer: IIndeterminateQbj, team?: Team) {
     if (!this.importPhase) {
-      return this.getYfObjectFromId(qbjMatchPlayer.player as IIndeterminateQbj, this.playersById);
+      return this.getYfObjectFromId(qbjPlayer, this.playersById);
     }
 
     if (!team) return undefined;
 
     let nameToMatch;
     // If the player is a $ref to something else in the file, resolve the intra-file reference, then use that player's name for string matching
-    if (isQbjRefPointer(qbjMatchPlayer.player as IIndeterminateQbj)) {
-      const importFilePlayerObj = this.getYfObjectFromId(qbjMatchPlayer.player as IIndeterminateQbj, this.playersById);
+    if (isQbjRefPointer(qbjPlayer)) {
+      const importFilePlayerObj = this.getYfObjectFromId(qbjPlayer, this.playersById);
       if (!importFilePlayerObj) {
-        throw new Error(`Couldn't resolve reference to player ${(qbjMatchPlayer.player as IQbjRefPointer).$ref}`);
+        throw new Error(`Couldn't resolve reference to player ${(qbjPlayer as IQbjRefPointer).$ref}`);
       }
       nameToMatch = importFilePlayerObj.name;
     } else {
-      nameToMatch = (qbjMatchPlayer.player as IQbjPlayer).name;
+      nameToMatch = (qbjPlayer as IQbjPlayer).name;
     }
 
     const importResult = getYfPlayerFromName(nameToMatch, team);
@@ -942,6 +957,123 @@ export default class FileParser {
       const phaseObj = this.getYfObjectFromId(ptr, this.phasesById);
       if (phaseObj) match.carryoverPhases.push(phaseObj);
     }
+  }
+
+  parseMatchMatchQuestions(matchQuestions: IIndeterminateQbj[], allowedMatchTeams: MatchTeam[]): MatchQuestion[] {
+    if (!matchQuestions) return [];
+
+    const team1 = allowedMatchTeams[0].team;
+    const team2 = allowedMatchTeams[1].team;
+    if (!team1 || !team2) return []; // not plausible, but gotta keep typescript happy
+
+    const teamsInMatch: Team[] = [team1, team2];
+
+    const yfMatchQuestions: MatchQuestion[] = [];
+    for (const obj of matchQuestions) {
+      const oneMq = this.parseMatchQuestion(obj, teamsInMatch);
+      if (oneMq) yfMatchQuestions.push(oneMq);
+    }
+    return yfMatchQuestions;
+  }
+
+  parseMatchQuestion(obj: IIndeterminateQbj, teamsInMatch: Team[]): MatchQuestion | null {
+    const baseObj = getBaseQbjObject(obj, this.refTargets);
+    if (baseObj === null) return null;
+
+    const qbjMatchQuestion = baseObj as IQbjMatchQuestion;
+    const cycleNumber = qbjMatchQuestion.questionNumber;
+    if (cycleNumber === undefined) {
+      throw new Error('Match object contains a MatchQuestion with no questionNumber');
+    }
+
+    const yfMatchQuestion = new MatchQuestion(cycleNumber);
+    yfMatchQuestion.buzzes = this.parseMatchQuestionMatchQuestionBuzzes(
+      qbjMatchQuestion.buzzes as IIndeterminateQbj[],
+      teamsInMatch,
+    );
+    if (qbjMatchQuestion.bonus) {
+      yfMatchQuestion.bonus = this.parseMatchQuestionBonus(qbjMatchQuestion.bonus as IIndeterminateQbj) ?? undefined;
+    }
+    yfMatchQuestion.bonusPoints = qbjMatchQuestion.bonusPoints;
+    yfMatchQuestion.bonusBouncebackPoints = qbjMatchQuestion.bonusBouncebackPoints;
+
+    const errorMsg = yfMatchQuestion.validate(this.tourn.scoringRules);
+    if (errorMsg) {
+      throw new Error(`Match object contains a MatchQuestion with the following error: ${errorMsg}`);
+    }
+
+    return yfMatchQuestion;
+  }
+
+  parseMatchQuestionMatchQuestionBuzzes(
+    matchQuestionBuzzes: IIndeterminateQbj[],
+    allowedTeams: Team[],
+  ): MatchQuestionBuzz[] {
+    if (!matchQuestionBuzzes) return [];
+
+    const yfMatchQuestionBuzzes: MatchQuestionBuzz[] = [];
+    for (const obj of matchQuestionBuzzes) {
+      const oneBuzz = this.parseMatchQuestionBuzz(obj);
+      if (!oneBuzz) continue;
+
+      if (!allowedTeams.includes(oneBuzz.team)) {
+        throw new Error("A Match object contains a MatchQuestionBuzz for a team that doesn' play in the match");
+      }
+
+      yfMatchQuestionBuzzes.push(oneBuzz);
+    }
+    return yfMatchQuestionBuzzes;
+  }
+
+  parseMatchQuestionBonus(obj: IIndeterminateQbj): MatchQuestionBonus | null {
+    const baseObj = getBaseQbjObject(obj, this.refTargets);
+    if (baseObj === null) return null;
+
+    const qbjMatchQuestionBonus = baseObj as IQbjMatchQuestionBonus;
+
+    const yfMatchQuestionBonus = new MatchQuestionBonus();
+    for (const pt of qbjMatchQuestionBonus.parts || []) {
+      const yfPt = this.parseMatchQuestionBonusPart(pt as IIndeterminateQbj);
+      if (yfPt) yfMatchQuestionBonus.parts.push(yfPt);
+    }
+
+    return yfMatchQuestionBonus;
+  }
+
+  parseMatchQuestionBuzz(obj: IIndeterminateQbj): MatchQuestionBuzz | null {
+    const baseObj = getBaseQbjObject(obj, this.refTargets);
+    if (baseObj === null) return null;
+
+    const qbjMatchQuestionBuzz = baseObj as IQbjMatchQuestionBuzz;
+
+    const team = this.resolveTeamIdentity(qbjMatchQuestionBuzz.team as IIndeterminateQbj);
+    if (!team) {
+      throw new Error('Failed to associate a MatchQuestionBuzz object with a valid Team');
+    }
+    const player = this.resolvePlayerIdentity(qbjMatchQuestionBuzz.player as IIndeterminateQbj, team);
+    if (!player) {
+      throw new Error('Failed to associate a MatchQuestionBuzz object with a valid Player');
+    }
+    const answerType = this.resolveAnswerTypeIdentity(qbjMatchQuestionBuzz.result as IIndeterminateQbj);
+    if (!answerType) {
+      throw new Error('Failed to associate a MatchQuestionBuzz object with a valid AnswerType');
+    }
+
+    const yfMatchQuestionBuzz = new MatchQuestionBuzz(team, player, answerType);
+    return yfMatchQuestionBuzz;
+  }
+
+  parseMatchQuestionBonusPart(obj: IIndeterminateQbj): MatchQuestionBonusPart | null {
+    const baseObj = getBaseQbjObject(obj, this.refTargets);
+    if (baseObj === null) return null;
+
+    const qbjMatchQuestionBonusPart = baseObj as IQbjMatchQuestionBonusPart;
+
+    const yfMatchQuestionBonusPart = new MatchQuestionBonusPart(
+      qbjMatchQuestionBonusPart.controlledPoints ?? 0,
+      this.tourn.scoringRules.bonusesBounceBack ? qbjMatchQuestionBonusPart.bouncebackPoints : undefined,
+    );
+    return yfMatchQuestionBonusPart;
   }
 
   /** unused right now */

@@ -289,7 +289,6 @@ export class TournamentManager {
   }
 
   /**
-  /**
    * Given an array of Qbj/Yft objects, parse them and create a tournament from the info
    * @param objFromFile The parsed JSON object from the file
    * @param curYfVersion YellowFruit version the yft file must be compatible with. If not passed, we treat as a non-YFT base qbj file

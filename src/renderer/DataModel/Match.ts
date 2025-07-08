@@ -20,6 +20,7 @@ import { LeftOrRight, wlt } from '../Utils/UtilTypes';
 import AnswerType from './AnswerType';
 import { ScoringRules } from './ScoringRules';
 import { MatchPlayer } from './MatchPlayer';
+import { IQbjMatchQuestion, MatchQuestion } from './MatchQuestion';
 
 /** Different situations for whether it's okay to use a match to calculate stats */
 export enum StatsValidity {
@@ -54,6 +55,8 @@ export interface IQbjMatch extends IQbjObject {
   carryoverPhases?: IQbjPhase[] | IQbjRefPointer[];
   /** Additional notes about this match */
   notes?: string;
+  /** Question-level data */
+  matchQuestions?: IQbjMatchQuestion[];
 }
 
 /** Tournament object as written to a .yft file */
@@ -104,6 +107,8 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   coPhaseQbjIds: IQbjRefPointer[] = [];
 
   notes?: string;
+
+  matchQuestions: MatchQuestion[] = [];
 
   /** The name of the file that the game was imported from */
   importedFile?: string;
@@ -159,6 +164,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.scorekeeper = source.scorekeeper;
     this.serial = source.serial;
     this.notes = source.notes;
+    this.matchQuestions = this.matchQuestions.map((mq) => mq.makeCopy());
     this.statsValidity = source.statsValidity;
     this.importedFile = source.importedFile;
 
@@ -180,6 +186,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       scorekeeper: this.scorekeeper,
       serial: this.serial,
       notes: this.notes,
+      matchQuestions: this.matchQuestions.length > 0 ? this.matchQuestions.map((mq) => mq.toFileObject()) : undefined,
     };
 
     if (isTopLevel) qbjObject.type = QbjTypeNames.Match;
