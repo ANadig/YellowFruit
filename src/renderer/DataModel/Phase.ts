@@ -565,6 +565,29 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     this.pools.splice(positionDroppedOn, 0, poolToMove);
   }
 
+  /** Find all the matches involving at least one team in this pool. Set each matche's validation for whether both teams are in the same pool. */
+  revalidateMatchesForPoolCompatibility(pool: Pool) {
+    for (const rd of this.rounds) {
+      for (const m of rd.matches) {
+        const leftTeam = m.getMatchTeam('left').team;
+        const rightTeam = m.getMatchTeam('right').team;
+        if (!leftTeam || !rightTeam) continue;
+
+        const leftPool = this.findPoolWithTeam(leftTeam);
+        const rightPool = this.findPoolWithTeam(rightTeam);
+        if (leftPool === pool || rightPool === pool) {
+          m.setSamePoolValidation(leftPool === rightPool, true);
+        }
+      }
+    }
+  }
+
+  /** Find all the matches involving at least one team in the pool with this seed. Set each matche's validation for whether both teams are in the same pool. */
+  revalidateMatchesForPoolCompatFromSeed(seed: number) {
+    const pool = this.findPoolWithSeed(seed);
+    if (pool) this.revalidateMatchesForPoolCompatibility(pool);
+  }
+
   /** Discard information that we only want to track if we're using a schedule template */
   unlockCustomSchedule() {
     this.wildCardAdvancementRules = [];

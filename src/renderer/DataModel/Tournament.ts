@@ -371,7 +371,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return this.phases.filter((ph) => ph.phaseType === PhaseTypes.Playoff);
   }
 
-  /** "Real" phases with pool play, as oppsed to tiebreakers or finals */
+  /** "Real" phases with pool play, as opposed to tiebreakers or finals */
   getFullPhases() {
     return this.phases.filter((ph) => ph.isFullPhase());
   }
@@ -739,6 +739,12 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.seeds[seedB - 1] = this.seeds[seedA - 1];
     this.seeds[seedA - 1] = seedBTeam;
     this.distributeSeeds();
+
+    const phase = this.getPrelimPhase();
+    if (!phase) return;
+
+    phase.revalidateMatchesForPoolCompatFromSeed(seedA);
+    phase.revalidateMatchesForPoolCompatFromSeed(seedB);
   }
 
   findTeamById(id: string): Team | undefined {
@@ -770,6 +776,14 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** Determine whether any matches have been entered */
   calcHasMatchData() {
     this.hasMatchData = this.getPrelimPhase()?.anyMatchesExist() || false;
+  }
+
+  /** Should we allow the user to move teams between prelim pools? */
+  prelimSeedsReadOnly() {
+    const secondPhase = this.getFullPhases()[1];
+    if (!secondPhase) return false;
+
+    return secondPhase.anyMatchesExist();
   }
 
   numberOfPhasesWithStats() {

@@ -1007,6 +1007,13 @@ export class TournamentManager {
 
     originPool.removeTeam(teamBeingDropped);
     targetPool.addTeam(teamBeingDropped);
+
+    const phase = this.tournament.getPrelimPhase();
+    if (phase) {
+      phase.revalidateMatchesForPoolCompatibility(originPool);
+      phase.revalidateMatchesForPoolCompatibility(targetPool);
+    }
+
     this.onDataChanged();
   }
 

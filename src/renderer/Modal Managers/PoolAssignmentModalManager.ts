@@ -57,6 +57,8 @@ export default class PoolAssignmentModalManager {
 
     this.originalPoolAssigned?.removeTeam(this.teamBeingAssigned);
     this.selectedPool?.addTeam(this.teamBeingAssigned);
+    if (this.originalPoolAssigned) this.phase?.revalidateMatchesForPoolCompatibility(this.originalPoolAssigned);
+    if (this.selectedPool) this.phase?.revalidateMatchesForPoolCompatibility(this.selectedPool);
   }
 
   setSelectedPool(optionKey: string) {

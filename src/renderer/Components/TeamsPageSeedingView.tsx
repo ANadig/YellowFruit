@@ -28,7 +28,7 @@ import Tournament from '../DataModel/Tournament';
 
 export default function SeedingView() {
   const tournManager = useContext(TournamentContext);
-  const [readOnly] = useSubscription(tournManager.tournament.hasMatchData);
+  const readOnly = tournManager.tournament.prelimSeedsReadOnly();
   const [usingTemplate] = useSubscription(tournManager.tournament.usingScheduleTemplate);
 
   return (
@@ -57,7 +57,7 @@ function SeedList() {
   const thisTournament = tournManager.tournament;
   const [seedList] = useSubscription(thisTournament.seeds);
   const [expectedNumTeams] = useSubscription(thisTournament.getExpectedNumberOfTeams());
-  const [readOnly] = useSubscription(thisTournament.hasMatchData);
+  const readOnly = thisTournament.prelimSeedsReadOnly();
 
   const listItems = seedList.map((tm, idx) => (
     <SeedListItem
@@ -183,7 +183,7 @@ function PoolViewSeedTable(props: IPoolViewSeedTableProps) {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
   const [seedList] = useSubscription(thisTournament.seeds);
-  const [readOnly] = useSubscription(thisTournament.hasMatchData);
+  const readOnly = thisTournament.prelimSeedsReadOnly();
 
   return (
     <Table size="small">
@@ -243,7 +243,7 @@ interface IUnseededPoolTableProps {
 function UnseededPoolTable(props: IUnseededPoolTableProps) {
   const { pool } = props;
   const tournManager = useContext(TournamentContext);
-  const [readOnly] = useSubscription(tournManager.tournament.hasMatchData);
+  const readOnly = tournManager.tournament.prelimSeedsReadOnly();
 
   const listItems = pool.poolTeams.map((pt, idx) => (
     <PoolViewTableRowUnseeded
