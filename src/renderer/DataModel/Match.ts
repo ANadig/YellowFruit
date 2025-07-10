@@ -503,6 +503,8 @@ export class Match implements IQbjMatch, IYftDataModelObject {
         `Total tossups heard is less than ${scoringRules.regulationTossupCount}, the standard number for a game`,
         true,
       );
+      // this warning is redundant in this case
+      this.modalBottomValidation.clearMsgType(MatchValidationType.RegulationTuhNotStandard);
       return;
     }
 
@@ -557,7 +559,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       );
       return;
     }
-    this.modalBottomValidation.clearMsgType(MatchValidationType.TeamsNotInSamePool);
+    this.modalBottomValidation.clearMsgType(MatchValidationType.TeamAlreadyPlayedInRound);
   }
 
   /** Validate the team-level stats for both teams */
@@ -709,7 +711,11 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   }
 
   validateTotalAndOtTuhRelationship(scoringRules: ScoringRules) {
-    if (this.tossupsRead === undefined || (this.tossupsRead === 0 && this.isForfeit())) {
+    if (
+      this.tossupsRead === undefined ||
+      (this.tossupsRead === 0 && this.isForfeit()) ||
+      this.modalBottomValidation.findMsgType(MatchValidationType.LowTotalTuh)
+    ) {
       this.modalBottomValidation.clearMsgType(MatchValidationType.RegulationTuhNotStandard);
       return;
     }

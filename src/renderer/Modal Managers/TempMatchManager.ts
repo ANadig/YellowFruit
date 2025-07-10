@@ -184,7 +184,7 @@ export class TempMatchManager {
       return;
     }
     if (!this.round) {
-      this.roundFieldError = 'This round number is not a part of any Phase';
+      this.roundFieldError = 'This round number is not a part of any Stage';
       return;
     }
     delete this.roundFieldError;
