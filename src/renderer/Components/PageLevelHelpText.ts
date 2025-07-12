@@ -48,7 +48,7 @@ const SchedulePageHelpText: HelpTextSection[] = [
   {
     header: 'Templates',
     content: [
-      'YellowFruit has pre-configured templates for most common tournament formats. When you use a template, YellowFruit is aware of the structure of the tourmament and can use the stats for a given stage to determine which teams should qualify for which pools in the subsequent stage (this calculation can be overridden if needed).',
+      'YellowFruit has pre-configured templates for most common tournament formats. When you use a template, YellowFruit is aware of the structure of the tourmament and can use the stats for a given stage to determine which teams should qualify for which pools in the subsequent stage (this determination can be overridden if needed).',
     ],
   },
   {
@@ -94,8 +94,8 @@ const TeamsPageHelpText: HelpTextSection[] = [
     header: 'Rebracketing / Final Ranks',
     content: [
       "Use this page to review tournament standings and bracket teams into the appropriate playoff pools. If you're using a schedule template, YellowFruit suggests the most likely pool assignments, which you can either confirm or override.",
-      "In the standings for the last stage of the tournament, you can manually set the final rankings of each team. This is useful in situations involving finals or parallel-bracket placement games, where the ordering of teams in playoff pool play doesn't necessarily reflect the overall final rankings.",
-      "Once you've confirmed that the final rankings are correct, check the Final rankings ready to publish checkbox to show the final rankings at the top of the Standings page of the stat report.",
+      "In the standings for the last stage of the tournament, you can override the final ranking of each team if needed. This is useful in situations involving finals or parallel-bracket placement games, where the ordering of teams in playoff pool play doesn't necessarily reflect the overall final rankings.",
+      'Once you\'ve confirmed that the final rankings are correct, check the "Final rankings ready to publish" checkbox to show the final rankings at the top of the Standings page of the stat report.',
     ],
   },
 ];
