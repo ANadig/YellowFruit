@@ -43,7 +43,7 @@ export default class MenuBuilder {
           },
         },
         {
-          label: 'Import Teams and Rosters only',
+          label: 'Import Teams and Rosters Only',
           click: () => {
             importQbjTeams(this.mainWindow);
           },
