@@ -134,6 +134,9 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   appVersion: string = '';
 
+  /** Whether we should use question-by-question data from qbj/MODAQ files. Is always false until we develop features that use it. */
+  readonly useQuestionLevelData = false;
+
   constructor(name?: string) {
     if (name) {
       this.name = name;

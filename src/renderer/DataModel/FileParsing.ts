@@ -748,10 +748,12 @@ export default class FileParser {
 
     if (yfMatch.isForfeit()) yfMatch.tossupsRead = undefined;
 
-    yfMatch.matchQuestions = this.parseMatchMatchQuestions(qbjMatch.matchQuestions as IIndeterminateQbj[], [
-      leftTeam,
-      rightTeam,
-    ]);
+    if (this.tourn.useQuestionLevelData) {
+      yfMatch.matchQuestions = this.parseMatchMatchQuestions(qbjMatch.matchQuestions as IIndeterminateQbj[], [
+        leftTeam,
+        rightTeam,
+      ]);
+    }
 
     yfMatch.modalBottomValidation = new MatchValidationCollection();
     yfMatch.modalBottomValidation.addFromFileObjects(yfExtraData?.otherValidation || []);
