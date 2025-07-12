@@ -28,6 +28,7 @@ import { Round } from '../DataModel/Round';
 import GamesViewByPool from './GamesPagePoolView';
 import { ValidationStatuses } from '../DataModel/Interfaces';
 import { Team } from '../DataModel/Team';
+import { trunc } from '../Utils/GeneralUtils';
 
 // Defines the order the buttons should be in
 const viewList = ['By Round', 'By Pool'];
@@ -341,12 +342,17 @@ function MatchListItem(props: IMatchListItemProps) {
       </Grid>
       <Grid xs={2}>
         {validationStatus === ValidationStatuses.Error && (
-          <Tooltip title="This game has errors that prevent it from counting in the stat report">
+          <Tooltip
+            title={`This game has errors that prevent it from counting in the stat report: ${trunc(
+              match.getErrorMessages().join('; '),
+              120,
+            )}`}
+          >
             <Error color="error" sx={{ verticalAlign: 'text-bottom', marginTop: 1 }} />
           </Tooltip>
         )}
         {validationStatus === ValidationStatuses.Warning && (
-          <Tooltip title="This game has validation warnings">
+          <Tooltip title={`This game has validation warnings: ${trunc(match.getWarningMessages().join('; '), 120)}`}>
             <Warning color="warning" sx={{ verticalAlign: 'text-bottom', marginTop: 1 }} />
           </Tooltip>
         )}
