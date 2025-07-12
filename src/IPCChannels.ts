@@ -18,6 +18,10 @@ export enum IpcRendToMain {
   StartAutosave = 'StartAutosave',
   /** Tell the main process that we crashed :( */
   WebPageCrashed = 'WebPageCrashed',
+  /** Tell main to prompt for a qbj file to import teams/rosters from */
+  LaunchImportQbjTeamWorkflow = 'LaunchImportQbjTeamWorkflow',
+  /** Tell main to prompt for an SQBS filoe to import teams/rosters from */
+  LaunchImportSqbsTeamWorkflow = 'LaunchImportSqbsTeamWorkflow',
 }
 
 /** Channels for main sending messages to renderer */
@@ -45,6 +49,8 @@ export enum IpcMainToRend {
   ImportQbjTournament = 'ImportQbjTournament',
   /** Import teams and rosters from a non-yft qbj file */
   ImportQbjTeams = 'ImportQbjTeams',
+  /** Import teams and rosters from an SQBS file */
+  ImportSqbsTeams = 'ImportSqbsTeams',
   /** Send a message to display as a toast */
   MakeToast = 'MakeToast',
 }

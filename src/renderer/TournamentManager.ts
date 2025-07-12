@@ -31,6 +31,7 @@ import PoolAssignmentModalManager from './Modal Managers/PoolAssignmentModalMana
 import MatchImportResult from './DataModel/MatchImportResult';
 import MatchImportResultsManager from './Modal Managers/MatchImportResultsManager';
 import { parseOldYfFile, isOldYftFile } from './DataModel/OldYfParsing';
+import parseTeamsFromSqbsFile from './DataModel/SqbsParsing';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -150,6 +151,9 @@ export class TournamentManager {
     });
     window.electron.ipcRenderer.on(IpcMainToRend.ImportQbjTeams, (contents) => {
       this.importQbjTeams(contents as string);
+    });
+    window.electron.ipcRenderer.on(IpcMainToRend.ImportSqbsTeams, (contents) => {
+      this.importSqbsTeams(contents as string);
     });
     window.electron.ipcRenderer.on(IpcMainToRend.MakeToast, (message) => {
       this.makeToast(message as string);
@@ -338,7 +342,17 @@ export class TournamentManager {
     );
   }
 
-  importQbjTeams(fileContents: string) {
+  // eslint-disable-next-line class-methods-use-this
+  launchImportQbjTeamsWorkflow() {
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.LaunchImportQbjTeamWorkflow);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  launchImportSqbsTeamsWorkflow() {
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.LaunchImportSqbsTeamWorkflow);
+  }
+
+  private importQbjTeams(fileContents: string) {
     const objFromFile = this.parseJSON(fileContents) as IQbjWholeFile;
     if (!objFromFile) return;
 
@@ -390,7 +404,6 @@ export class TournamentManager {
     }
   }
 
-  /** Import a match based only on a single QBJ Match object and nothing else */
   private importSingleRegistrationObj(registration: IQbjRegistration, parser: FileParser) {
     let registrationFromFile;
     try {
@@ -422,6 +435,48 @@ export class TournamentManager {
       numTeamsImported = registrationFromFile.teams.length;
     }
     return numTeamsImported;
+  }
+
+  private importSqbsTeams(fileContents: string) {
+    let registrationList;
+    try {
+      registrationList = parseTeamsFromSqbsFile(fileContents);
+    } catch (err: any) {
+      this.openGenericModal('SQBS Roster Import', `Import failed: ${err.message}`);
+      return;
+    }
+    if (!registrationList) return;
+
+    if (registrationList.length === 0) {
+      this.openGenericModal('SQBS Roster Import', 'No teams imported: this file contains no teams');
+      return;
+    }
+
+    const maxTeamsAllowed = this.tournament.getExpectedNumberOfTeams() ?? 0;
+    let numTeamsImported = 0;
+    for (const oneReg of registrationList) {
+      if (this.tournament.getNumberOfTeams() >= maxTeamsAllowed) {
+        this.openGenericModal(
+          'SQBS Roster Import',
+          `Imported ${numTeamsImported} teams. Not all teams in the file were imported because the maximum number of teams was reached.`,
+        );
+        return;
+      }
+
+      const existingReg = this.tournament.findRegistration(oneReg.name);
+      if (!existingReg) {
+        this.tournament.addRegistration(oneReg);
+        numTeamsImported++;
+      } else {
+        const newTeam = oneReg.teams[0];
+        if (!existingReg.teams.find((t) => t.name === newTeam.name)) {
+          existingReg.addTeam(newTeam);
+          this.tournament.seedAndAssignNewTeam(newTeam);
+          numTeamsImported++;
+        }
+      }
+    }
+    this.openGenericModal('SQBS Roster Import', `Imported ${numTeamsImported} teams.`);
   }
 
   /** Tell main to launch the file selection window for importing matches to the given round */

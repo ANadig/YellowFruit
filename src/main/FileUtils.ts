@@ -110,6 +110,13 @@ function importQbjTournament(mainWindow: BrowserWindow) {
   });
 }
 
+export function handleLaunchImportQbjTeamsFromRenderer(event: IpcMainEvent) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  importQbjTeams(window);
+}
+
 export function importQbjTeams(mainWindow: BrowserWindow) {
   const fileNameAry = dialog.showOpenDialogSync(mainWindow, {
     title: 'Import Teams',
@@ -123,6 +130,29 @@ export function importQbjTeams(mainWindow: BrowserWindow) {
       return;
     }
     mainWindow.webContents.send(IpcMainToRend.ImportQbjTeams, fileContents);
+  });
+}
+
+export function handleLaunchImportSqbsTeamsFromRenderer(event: IpcMainEvent) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  importSqbsTeams(window);
+}
+
+export function importSqbsTeams(mainWindow: BrowserWindow) {
+  const fileNameAry = dialog.showOpenDialogSync(mainWindow, {
+    title: 'Import Teams',
+    filters: [{ name: 'SQBS Tournament', extensions: ['sqbs'] }],
+  });
+  if (!fileNameAry) return;
+
+  fs.readFile(fileNameAry[0], { encoding: 'utf8' }, (err, fileContents) => {
+    if (err) {
+      dialog.showMessageBoxSync(mainWindow, { message: `Error reading file: \n\n ${err.message}` });
+      return;
+    }
+    mainWindow.webContents.send(IpcMainToRend.ImportSqbsTeams, fileContents);
   });
 }
 

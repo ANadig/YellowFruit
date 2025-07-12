@@ -2,6 +2,7 @@ import { app, Menu, BrowserWindow, MenuItemConstructorOptions, dialog } from 'el
 import {
   exportQbjFile,
   importQbjTeams,
+  importSqbsTeams,
   promptForStatReportLocation,
   requestToSaveYftFile,
   tryFileSwitchAction,
@@ -45,6 +46,17 @@ export default class MenuBuilder {
           label: 'Import Teams and Rosters only',
           click: () => {
             importQbjTeams(this.mainWindow);
+          },
+        },
+      ],
+    },
+    {
+      label: 'SQBS',
+      submenu: [
+        {
+          label: 'Import Teams and Rosters',
+          click: () => {
+            importSqbsTeams(this.mainWindow);
           },
         },
       ],

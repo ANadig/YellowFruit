@@ -1,11 +1,17 @@
-import { AddCircle, CopyAll, Delete, Edit } from '@mui/icons-material';
+import { Add, ArrowDropDown, CopyAll, Delete, Edit } from '@mui/icons-material';
 import {
   Box,
   Button,
+  ButtonGroup,
   Card,
   CardContent,
+  ClickAwayListener,
   Divider,
   IconButton,
+  MenuItem,
+  MenuList,
+  Paper,
+  Popper,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
@@ -13,7 +19,7 @@ import {
   Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { useContext } from 'react';
+import { useContext, useRef, useState } from 'react';
 import Registration from '../DataModel/Registration';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
@@ -78,20 +84,12 @@ function RegistrationView() {
   return (
     <Card>
       <CardContent>
-        <Grid container>
-          <Grid xs={6} sx={{ display: 'flex', alignItems: 'center' }}>
+        <Grid container spacing={1}>
+          <Grid xs sx={{ display: 'flex', alignItems: 'center' }}>
             {teamTotDisp}
           </Grid>
-          <Grid xs={6}>
-            <Button
-              variant="contained"
-              sx={{ float: 'right' }}
-              disabled={cantAddMoreTeams}
-              startIcon={<AddCircle />}
-              onClick={() => tournManager.openTeamEditModalNewTeam()}
-            >
-              Add team
-            </Button>
+          <Grid xs="auto">
+            <ImportButtons disabled={cantAddMoreTeams} />
           </Grid>
         </Grid>
         {numberOfTeams > 0 && (
@@ -108,6 +106,58 @@ function RegistrationView() {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+interface IImportButtonsProps {
+  disabled: boolean;
+}
+
+function ImportButtons(props: IImportButtonsProps) {
+  const { disabled } = props;
+  const tournManager = useContext(TournamentContext);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const anchorRef = useRef<HTMLDivElement>(null);
+
+  const handleDropDownClose = (event: Event) => {
+    if (anchorRef && anchorRef.current?.contains(event.target as HTMLElement)) {
+      return;
+    }
+    setDropdownOpen(false);
+  };
+
+  return (
+    <>
+      <ButtonGroup ref={anchorRef}>
+        <Tooltip placement="top" title="Enter a new team">
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            disabled={disabled}
+            onClick={() => tournManager.openTeamEditModalNewTeam()}
+          >
+            Add team
+          </Button>
+        </Tooltip>
+        <Button size="small" variant="contained" disabled={disabled} onClick={() => setDropdownOpen(!dropdownOpen)}>
+          <ArrowDropDown />
+        </Button>
+      </ButtonGroup>
+      <Popper open={dropdownOpen} anchorEl={anchorRef.current}>
+        <Paper>
+          <ClickAwayListener onClickAway={handleDropDownClose}>
+            <MenuList id="split-button-menu">
+              <MenuItem onClick={() => tournManager.launchImportQbjTeamsWorkflow()}>
+                Import teams from QBJ/JSON (MODAQ) file
+              </MenuItem>
+              <MenuItem onClick={() => tournManager.launchImportSqbsTeamsWorkflow()}>
+                Import teams from SQBS file
+              </MenuItem>
+            </MenuList>
+          </ClickAwayListener>
+        </Paper>
+      </Popper>
+    </>
   );
 }
 
