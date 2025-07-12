@@ -130,14 +130,16 @@ function ImportButtons(props: IImportButtonsProps) {
     <>
       <ButtonGroup ref={anchorRef}>
         <Tooltip placement="top" title="Enter a new team">
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            disabled={disabled}
-            onClick={() => tournManager.openTeamEditModalNewTeam()}
-          >
-            Add team
-          </Button>
+          <span>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              disabled={disabled}
+              onClick={() => tournManager.openTeamEditModalNewTeam()}
+            >
+              Add team
+            </Button>
+          </span>
         </Tooltip>
         <Button size="small" variant="contained" disabled={disabled} onClick={() => setDropdownOpen(!dropdownOpen)}>
           <ArrowDropDown />
