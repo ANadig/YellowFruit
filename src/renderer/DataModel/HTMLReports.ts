@@ -62,21 +62,23 @@ export default class HtmlReportGenerator {
   }
 
   generateRoundReportPage() {
-    return this.generateHtmlPage('Round Report', this.getRoundReportHtml());
+    return this.generateHtmlPage('Round Report', this.getRoundReportHtml(), true);
   }
 
   /**
    * The entire contents of one html document
    * @param title Title of the top header of the page
    * @param data  html contents of the page's data
+   * @param addYfVersion whether to put the application's version number at the bottom of the report
    */
-  private generateHtmlPage(title: string, data: string) {
+  private generateHtmlPage(title: string, data: string, addYfVersion?: boolean) {
     const htmlHeader = getHtmlHeader(title);
     const topLinks = this.getTopLinks();
     const mainHeader = genericTagWithAttributes('h1', [id(topAnchorID)], title);
     const style = getPageStyle();
 
-    const body = genericTag('BODY', topLinks, mainHeader, style, data, madeWithYellowFruit());
+    const appVersion = addYfVersion ? this.tournament.appVersion : undefined;
+    const body = genericTag('BODY', topLinks, mainHeader, style, data, madeWithYellowFruit(appVersion));
     return genericTag('HTML', htmlHeader, body);
   }
 
@@ -925,6 +927,7 @@ export default class HtmlReportGenerator {
 
   private getRoundReportHtml() {
     if (!this.tournament.cumulativeStats) return '';
+    if (this.tournament.cumulativeStats.rounds.length === 0) return '';
 
     const omitPhaseCol = this.tournament.numberOfPhasesWithStats() < 2;
     const rows = [this.roundReportTableHeader(omitPhaseCol)];
@@ -1355,11 +1358,9 @@ function classAttribute(...classNames: string[]) {
 }
 
 function madeWithYellowFruit(yfVersion?: string) {
-  let html = `<span style="font-size:x-small">Made with YellowFruit ${unicodeHTML('1F34C')}</span>` + '\n'; // banana emoji
-  if (yfVersion) {
-    html += `<span style="font-size:x-small; color:white">&nbsp;${yfVersion}</span>` + `\n`;
-  }
-  return html;
+  return (
+    `<span style="font-size:x-small">Made with YellowFruit ${yfVersion ?? ''}${unicodeHTML('1F34C')}</span>` + '\n'
+  ); // unicode banana emoji
 }
 
 type CssRule = { attr: string; val: string };
