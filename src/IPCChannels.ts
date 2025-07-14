@@ -66,6 +66,8 @@ export enum IpcBidirectional {
   ImportQbjGames = 'ImportQbjGames',
   /** For asking for and receiving the app version number */
   GetAppVersion = 'GetAppVersion',
+  /** For the main process asking for and receiving SQBS files to save */
+  SqbsExport = 'SqbsExport',
 }
 
 export type IpcChannels = IpcRendToMain | IpcMainToRend | IpcBidirectional;
@@ -83,6 +85,11 @@ export const rendererListenableEvents = [
   IpcMainToRend.GenerateBackup,
   IpcMainToRend.ImportQbjTournament,
   IpcMainToRend.ImportQbjTeams,
-  IpcBidirectional.ImportQbjGames,
+  IpcMainToRend.ImportSqbsTeams,
+  IpcMainToRend.MakeToast,
+  IpcBidirectional.LoadBackup,
   IpcBidirectional.ExportQbjFile,
+  IpcBidirectional.ImportQbjGames,
+  IpcBidirectional.GetAppVersion,
+  IpcBidirectional.SqbsExport,
 ];

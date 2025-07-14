@@ -3,7 +3,14 @@
 export const statReportProtocol = 'yf-stat-report';
 
 export interface StatReportHtmlPage {
+  /** last part of the file name (e.g. "standings.html") */
   fileName: string;
+  contents: string;
+}
+
+export interface SqbsExportFile {
+  /** suffix to add to the user-selected file path, if exporting multiple files */
+  fileSuffix?: string;
   contents: string;
 }
 

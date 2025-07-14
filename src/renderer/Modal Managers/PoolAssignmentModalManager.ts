@@ -1,4 +1,3 @@
-import { createContext } from 'react';
 import { Phase, PhaseTypes } from '../DataModel/Phase';
 import { Pool } from '../DataModel/Pool';
 import { Team } from '../DataModel/Team';
@@ -69,5 +68,3 @@ export default class PoolAssignmentModalManager {
     this.selectedPool = this.phase?.findPoolByName(optionKey);
   }
 }
-
-export const PoolAssignmentModalContext = createContext<PoolAssignmentModalManager>(new PoolAssignmentModalManager());

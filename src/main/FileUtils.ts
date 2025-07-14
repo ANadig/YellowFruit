@@ -2,7 +2,13 @@ import path from 'path';
 import { app, BrowserWindow, IpcMainEvent, dialog, IpcMainInvokeEvent } from 'electron';
 import fs from 'fs';
 import { IpcBidirectional, IpcMainToRend } from '../IPCChannels';
-import { FileSwitchActions, IMatchImportFileRequest, StatReportHtmlPage, statReportProtocol } from '../SharedUtils';
+import {
+  FileSwitchActions,
+  IMatchImportFileRequest,
+  SqbsExportFile,
+  StatReportHtmlPage,
+  statReportProtocol,
+} from '../SharedUtils';
 
 export const inAppStatReportDirectory = path.resolve(app.getPath('userData'), 'StatReport');
 
@@ -327,6 +333,44 @@ export function handleExportQbjFile(event: IpcMainEvent, filePath: string, fileC
   fs.writeFile(filePath, fileContents, { encoding: 'utf8' }, (err) => {
     if (err) dialog.showMessageBoxSync(window, { title: 'YellowFruit', message: `Error saving file:\n\n${err}` });
     else window.webContents.send(IpcMainToRend.MakeToast, 'Exported QBJ file');
+  });
+}
+
+/** Tell renderer to export SQBS file(s) to the given path */
+export function launchSqbsExportWorkflow(mainWindow: BrowserWindow) {
+  mainWindow.webContents.send(IpcBidirectional.SqbsExport);
+}
+
+export function handleExportSqbsFile(event: IpcMainEvent, files: SqbsExportFile[]) {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  const filePathStart = dialog.showSaveDialogSync(window, {
+    title: 'Export as SQBS',
+    filters: [{ name: 'SQBS Tournament', extensions: ['sqbs'] }],
+  });
+  if (!filePathStart) return;
+
+  writeSqbsFile(files, 0, window, filePathStart);
+}
+
+function writeSqbsFile(files: SqbsExportFile[], idx: number, window: BrowserWindow, filePathStart: string) {
+  const file = files[idx];
+  if (!file) return;
+
+  const filePath = file.fileSuffix ? `${filePathStart.replace('.sqbs', '')}_${file.fileSuffix}.sqbs` : filePathStart;
+
+  fs.writeFile(filePath, file.contents, { encoding: 'utf-8' }, (err) => {
+    if (err) {
+      dialog.showMessageBoxSync(window, { message: `Error generating file ${filePath}:\n\n${err.message}` });
+      return;
+    }
+    if (idx < files.length - 1) {
+      writeSqbsFile(files, idx + 1, window, filePathStart);
+    } else {
+      const toastMsg = files.length > 1 ? 'SQBS files exported' : 'SQBS file exported';
+      window.webContents.send(IpcMainToRend.MakeToast, toastMsg);
+    }
   });
 }
 

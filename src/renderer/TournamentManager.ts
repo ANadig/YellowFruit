@@ -15,7 +15,13 @@ import { collectRefTargets, findTournamentObject } from './DataModel/QbjUtils2';
 import FileParser from './DataModel/FileParsing';
 import { TempMatchManager } from './Modal Managers/TempMatchManager';
 import { IQbjMatch, Match } from './DataModel/Match';
-import { FileSwitchActions, IMatchImportFileRequest, IYftBackupFile, StatReportHtmlPage } from '../SharedUtils';
+import {
+  FileSwitchActions,
+  IMatchImportFileRequest,
+  IYftBackupFile,
+  SqbsExportFile,
+  StatReportHtmlPage,
+} from '../SharedUtils';
 import { StatReportFileNames, StatReportPages } from './Enums';
 import { Pool } from './DataModel/Pool';
 import { PoolStats } from './DataModel/StatSummaries';
@@ -32,6 +38,8 @@ import MatchImportResult from './DataModel/MatchImportResult';
 import MatchImportResultsManager from './Modal Managers/MatchImportResultsManager';
 import { parseOldYfFile, isOldYftFile } from './DataModel/OldYfParsing';
 import parseTeamsFromSqbsFile from './DataModel/SqbsParsing';
+import SqbsExportModalManager from './Modal Managers/SqbsExportModalManager';
+import SqbsGenerator from './DataModel/SqbsFileGeneration';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -87,6 +95,8 @@ export class TournamentManager {
 
   matchImportResultsManager: MatchImportResultsManager;
 
+  sqbsExportModalManager: SqbsExportModalManager;
+
   /** When did we last update the stat report? */
   inAppStatReportGenerated: Date;
 
@@ -109,6 +119,7 @@ export class TournamentManager {
     this.rankModalManager = new TempRankManager();
     this.poolAssignmentModalManager = new PoolAssignmentModalManager();
     this.matchImportResultsManager = new MatchImportResultsManager();
+    this.sqbsExportModalManager = new SqbsExportModalManager();
     this.inAppStatReportGenerated = new Date();
 
     this.requestAppVersion();
@@ -163,6 +174,9 @@ export class TournamentManager {
     });
     window.electron.ipcRenderer.on(IpcBidirectional.ExportQbjFile, (filePath) => {
       this.exportQbjFile(filePath as string);
+    });
+    window.electron.ipcRenderer.on(IpcBidirectional.SqbsExport, () => {
+      this.startSqbsExport();
     });
     window.electron.ipcRenderer.on(IpcBidirectional.GetAppVersion, (version) => {
       this.appVersion = version as string;
@@ -597,6 +611,41 @@ export class TournamentManager {
     const fileObj = this.generateWholeFileObj(true);
     const fileContents = TournamentManager.makeJSON(fileObj);
     window.electron.ipcRenderer.sendMessage(IpcBidirectional.ExportQbjFile, filePath, fileContents);
+  }
+
+  private startSqbsExport() {
+    if (this.tournament.phases.length > 1) {
+      this.openSqbsExportModal();
+    } else {
+      this.generateSqbsFiles(this.tournament.phases);
+    }
+  }
+
+  private generateSqbsFiles(phases: Phase[], combinedFile?: boolean) {
+    if (phases.length === 0) {
+      this.openGenericModal('Error', 'Failed to find any stages to export');
+      return;
+    }
+    const sqbsGenerator = new SqbsGenerator(this.tournament);
+    const sqbsFiles: SqbsExportFile[] = [];
+    if (phases.length === 1 || combinedFile) {
+      sqbsGenerator.generateFile(phases);
+      if (sqbsGenerator.errorMessage !== '') {
+        this.openGenericModal('SQBS Export', `Error: ${sqbsGenerator.errorMessage}`);
+        return;
+      }
+      sqbsFiles.push({ contents: sqbsGenerator.fileOutput });
+    } else {
+      for (const ph of phases) {
+        sqbsGenerator.generateFile([ph]);
+        if (sqbsGenerator.errorMessage !== '') {
+          this.openGenericModal('SQBS Export', `Error: ${sqbsGenerator.errorMessage}`);
+          return;
+        }
+        sqbsFiles.push({ contents: sqbsGenerator.fileOutput, fileSuffix: ph.name });
+      }
+    }
+    window.electron.ipcRenderer.sendMessage(IpcBidirectional.SqbsExport, sqbsFiles);
   }
 
   private saveBackup() {
@@ -1357,6 +1406,20 @@ export class TournamentManager {
     this.overridePlayoffPoolAssignment(team, nextPhase, newPool);
   }
 
+  openSqbsExportModal() {
+    this.sqbsExportModalManager.openModal(this.tournament.phases);
+    this.onDataChanged(true);
+  }
+
+  closeSqbsExportModal(shouldSave: boolean) {
+    const phases = this.sqbsExportModalManager.selectedPhases;
+    const combinedFile = this.sqbsExportModalManager.combineFiles;
+    this.sqbsExportModalManager.closeModal();
+    this.onDataChanged(true);
+
+    if (shouldSave) this.generateSqbsFiles(phases, combinedFile);
+  }
+
   /** Should be called anytime the user modifies something */
   private onDataChanged(doesntAffectFile = false) {
     this.dataChangedReactCallback();
@@ -1398,7 +1461,8 @@ export class TournamentManager {
       this.poolModalManager.modalIsOpen ||
       this.rankModalManager.modalIsOpen ||
       this.matchImportResultsManager.modalIsOpen ||
-      this.poolAssignmentModalManager.modalIsOpen
+      this.poolAssignmentModalManager.modalIsOpen ||
+      this.sqbsExportModalManager.modalIsOpen
     );
   }
 }

@@ -3,6 +3,7 @@ import {
   exportQbjFile,
   importQbjTeams,
   importSqbsTeams,
+  launchSqbsExportWorkflow,
   promptForStatReportLocation,
   requestToSaveYftFile,
   tryFileSwitchAction,
@@ -53,6 +54,12 @@ export default class MenuBuilder {
     {
       label: 'SQBS',
       submenu: [
+        {
+          label: 'Export SQBS Files',
+          click: () => {
+            launchSqbsExportWorkflow(this.mainWindow);
+          },
+        },
         {
           label: 'Import Teams and Rosters',
           click: () => {

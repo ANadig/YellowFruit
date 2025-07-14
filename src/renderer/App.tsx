@@ -32,9 +32,10 @@ import RankEditDialog from './Components/RankEditDialog';
 import { IpcRendToMain } from '../IPCChannels';
 import PoolAssignmentDialog from './Components/PoolAssignmentDialog';
 import MatchImportResultDialog from './Components/MatchImportResultDialog';
+import SqbsExportDialog from './Components/SqbsExportDialog';
 
 window.onerror = () => window.electron.ipcRenderer.sendMessage(IpcRendToMain.WebPageCrashed);
-window.electron.ipcRenderer.removeAllListeners();
+window.electron.ipcRenderer.removeAllListeners(); // needed in dev environemnt so that you don't end up with duplicate listers when the app reloads
 const tournManager = new TournamentManager();
 
 export default function App() {
@@ -121,6 +122,7 @@ function TournamentEditor() {
       <RankEditDialog />
       <PoolAssignmentDialog />
       <MatchImportResultDialog />
+      <SqbsExportDialog />
       <GenericToast />
     </>
   );
