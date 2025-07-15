@@ -416,6 +416,7 @@ export class TournamentManager {
         }`,
       );
     }
+    this.markFileDirty();
   }
 
   private importSingleRegistrationObj(registration: IQbjRegistration, parser: FileParser) {
@@ -474,6 +475,7 @@ export class TournamentManager {
           'SQBS Roster Import',
           `Imported ${numTeamsImported} teams. Not all teams in the file were imported because the maximum number of teams was reached.`,
         );
+        this.markFileDirty();
         return;
       }
 
@@ -491,6 +493,7 @@ export class TournamentManager {
       }
     }
     this.openGenericModal('SQBS Roster Import', `Imported ${numTeamsImported} teams.`);
+    this.markFileDirty();
   }
 
   /** Tell main to launch the file selection window for importing matches to the given round */
@@ -1425,6 +1428,10 @@ export class TournamentManager {
     this.dataChangedReactCallback();
     if (doesntAffectFile) return;
 
+    this.markFileDirty();
+  }
+
+  private markFileDirty() {
     this.unsavedData = true;
     this.setWindowTitle();
   }
