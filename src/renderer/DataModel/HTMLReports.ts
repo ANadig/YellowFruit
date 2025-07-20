@@ -237,7 +237,7 @@ export default class HtmlReportGenerator {
     const cells: string[] = [];
     if (!omitRank) cells.push(tdTag({}, teamStats.rank));
 
-    cells.push(textCell(this.teamDetailLink(teamStats.team)));
+    cells.push(textCell(this.teamDetailLink(teamStats.team, true)));
     if (this.tournament.trackSmallSchool) {
       const isSS = this.tournament.findRegistrationByTeam(teamStats.team)?.isSmallSchool;
       cells.push(tdTag({}, isSS ? 'SS' : ''));
@@ -465,7 +465,7 @@ export default class HtmlReportGenerator {
   }
 
   private boxScoreTableOneTeam(matchTeam: MatchTeam) {
-    const rows = [this.boxScoreTableHeader(matchTeam.team?.name ?? '')];
+    const rows = [this.boxScoreTableHeader(matchTeam.team?.getTruncatedName(25) ?? '')];
     for (const mp of matchTeam.getActiveMatchPlayers()) {
       rows.push(this.boxScoreOneMatchPlayer(mp));
     }
@@ -526,7 +526,7 @@ export default class HtmlReportGenerator {
   private boxScoreBonusTableRow(matchTeam: MatchTeam) {
     const cells: string[] = [];
     const [pts, heard, ppb] = matchTeam.getBonusStats(this.tournament.scoringRules);
-    cells.push(tdTag({}, matchTeam.team?.name ?? ''));
+    cells.push(tdTag({}, matchTeam.team?.getTruncatedName(25) ?? ''));
     cells.push(tdTag({ align: 'right' }, heard));
     cells.push(tdTag({ align: 'right' }, pts));
     cells.push(tdTag({ align: 'right' }, ppb));
@@ -554,7 +554,7 @@ export default class HtmlReportGenerator {
     const cells: string[] = [];
     const [heard, rate] = match.getBouncebackStatsString(whichTeam, this.tournament.scoringRules);
     const matchTeam = match.getMatchTeam(whichTeam);
-    cells.push(tdTag({}, matchTeam.team?.name ?? ''));
+    cells.push(tdTag({}, matchTeam.team?.getTruncatedName(25) ?? ''));
     cells.push(tdTag({ align: 'right' }, heard));
     cells.push(tdTag({ align: 'right' }, matchTeam.bonusBouncebackPoints?.toString() ?? '0'));
     cells.push(tdTag({ align: 'right' }, `${rate}%`));
@@ -1067,9 +1067,9 @@ export default class HtmlReportGenerator {
     return aTag(href, text);
   }
 
-  private teamDetailLink(team: Team) {
+  private teamDetailLink(team: Team, dontTruncate?: boolean) {
     const href = `${this.fileNameForLink(StatReportPages.TeamDetails)}#${teamDetailLinkId(team)}`;
-    return aTag(href, team.name);
+    return aTag(href, dontTruncate ? team.name : team.getTruncatedName());
   }
 
   private playerDetailLink(player: Player, team: Team) {

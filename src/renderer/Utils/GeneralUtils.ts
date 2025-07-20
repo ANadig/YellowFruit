@@ -117,5 +117,5 @@ export function getFileNameFromPath(path: string) {
 /** Truncate a string to a desired length, appending an ellipsis if truncation was done */
 export function trunc(s: string, size: number) {
   if (s.length <= size) return s;
-  return `${s.substring(0, size)}...`;
+  return `${s.substring(0, size).trim()}...`;
 }

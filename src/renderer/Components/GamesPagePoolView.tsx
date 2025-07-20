@@ -95,13 +95,13 @@ function PoolMatrix(props: IPoolMatrixProps) {
               <TableCell sx={{ fontWeight: 'bold' }}>{getMatrixTitle(pool, nthRoundRobin)}</TableCell>
               {pool.poolTeams.map((pt) => (
                 <TableCell key={`header-${pt.team.name}`} align="center">
-                  {pt.team.name}
+                  {pt.team.getTruncatedName()}
                 </TableCell>
               ))}
             </TableRow>
             {pool.poolTeams.map((pt) => (
               <TableRow key={`row-${pt.team.name}`}>
-                <TableCell>{pt.team.name}</TableCell>
+                <TableCell>{pt.team.getTruncatedName()}</TableCell>
                 {pool.poolTeams.map((opponent) => (
                   <MatrixCell
                     key={`versus-${opponent.team.name}`}

@@ -485,7 +485,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     message: string,
     suppressable: boolean = false,
   ) {
-    const fullMessage = `${this.team ? `${this.team.name}: ` : ''}${message}`;
+    const fullMessage = `${this.team ? `${this.team.getTruncatedName()}: ` : ''}${message}`;
     this.modalBottomValidation.addValidationMsg(type, status, fullMessage, suppressable);
   }
 

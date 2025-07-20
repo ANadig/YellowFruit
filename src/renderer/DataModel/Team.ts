@@ -1,3 +1,4 @@
+import { trunc } from '../Utils/GeneralUtils';
 import {
   IQbjObject,
   IQbjRefPointer,
@@ -159,6 +160,19 @@ export class Team implements IQbjTeam, IYftDataModelObject {
   /** Add a new player to the end of the list */
   pushBlankPlayer() {
     this.players.push(new Player(''));
+  }
+
+  /**
+   * Get a truncated version of a team name
+   * @param length number of characters to truncate to (not including ellipsis). Default is 35
+   * @returns Team name where the organization name is truncated. e.g. "Abcdef..." or "Abcdef... B"
+   */
+  getTruncatedName(length: number = 35) {
+    if (this.name.length <= length) return this.name;
+
+    if (this.letter === '') return trunc(this.name, length);
+
+    return `${trunc(this.name, length - this.letter.length - 1)} ${this.letter}`;
   }
 
   removeNullPlayers() {
