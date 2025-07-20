@@ -529,6 +529,7 @@ export class TournamentManager {
     }
 
     MatchImportResult.validateImportSetForTeamDups(results);
+    this.tournament.setMatchIdCounter();
     this.openMatchImportModal(round, phase, results);
   }
 

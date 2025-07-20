@@ -70,7 +70,7 @@ export class Round implements IQbjRound, IYftDataModelObject {
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjRound {
     const qbjObject: IQbjRound = {
       name: this.name,
-      matches: this.matches.map((m) => m.toFileObject(qbjOnly)),
+      matches: this.matches.map((m) => m.toFileObject(qbjOnly, false, true)), // matches are not actually $ref-ed, but add the ID anyway because it can still be useful
     };
     if (this.packet.name) {
       qbjObject.packets = [this.packet.toFileObject()];

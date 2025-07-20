@@ -139,6 +139,7 @@ export default class FileParser {
     const { phases, registrations } = obj;
     if (registrations) this.tourn.registrations = this.parseRegistrationList(registrations as IIndeterminateQbj[]);
     if (phases) this.tourn.phases = this.parsePhaseList(phases as IIndeterminateQbj[]);
+    this.tourn.setMatchIdCounter();
 
     if (yfExtraData) {
       this.tourn.standardRuleSet = yfExtraData.standardRuleSet;
@@ -720,6 +721,9 @@ export default class FileParser {
     const yfExtraData = (baseObj as IYftFileMatch).YfData;
 
     const yfMatch = new Match();
+    if (qbjMatch.id !== undefined) {
+      yfMatch.tryToSetId(qbjMatch.id);
+    }
     yfMatch.tossupsRead = qbjMatch.tossupsRead;
     if (yfMatch.tossupsRead === undefined && !this.tourn.scoringRules.timed) {
       yfMatch.tossupsRead = this.tourn.scoringRules.regulationTossupCount;

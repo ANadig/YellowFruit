@@ -125,8 +125,10 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   /** Any other messages that should go at the bottom of the modal rather than a specific field */
   modalBottomValidation: MatchValidationCollection;
 
+  private static readonly idCounterStartingValue = 1000;
+
   /** counter to make sure match IDs are unique */
-  private static idCounter = 1000;
+  private static idCounter = Match.idCounterStartingValue;
 
   private idNumber: number;
 
@@ -134,14 +136,32 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return `Match_${this.idNumber}`;
   }
 
-  constructor(leftTeam?: Team, rightTeam?: Team, answerTypes?: AnswerType[]) {
-    this.idNumber = Match.idCounter++;
+  constructor(leftTeam?: Team, rightTeam?: Team, answerTypes?: AnswerType[], idNumber?: number) {
+    if (idNumber !== undefined) this.idNumber = idNumber;
+    else this.idNumber = Match.idCounter++;
     this.leftTeam = new MatchTeam(leftTeam, answerTypes);
     this.rightTeam = new MatchTeam(rightTeam, answerTypes);
 
     this.totalTuhFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidTotalTuh);
     this.overtimeTuhFieldValidation = new MatchValidationMessage(MatchValidationType.InvalidOvertimeTuh);
     this.modalBottomValidation = new MatchValidationCollection();
+  }
+
+  /** Get the numeric part of the Match id */
+  getIdNumber() {
+    return this.idNumber;
+  }
+
+  /** Set the counter of match ID numbers to a specific value. Use this if opening a file to make sure new match IDs don't collide with existing ones. */
+  static overrideIdCounter(newStartingNumber: number) {
+    this.idCounter = newStartingNumber;
+  }
+
+  /** If given an string of the form "Match_<positive integer>", set the ID number to that integer */
+  tryToSetId(id: string) {
+    if (id.search(/^Match_\d+$/) === -1) return;
+
+    this.idNumber = parseInt(id.replace(/^Match_/, ''), 10);
   }
 
   makeCopy(): Match {

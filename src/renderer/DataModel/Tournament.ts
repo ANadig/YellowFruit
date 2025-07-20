@@ -989,6 +989,22 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return !!this.phases.find((ph) => ph.packetNamesExist());
   }
 
+  /** Set the starting value for Match ID generation high enough not to collide with anything in this tournament. Used after opening a file. */
+  setMatchIdCounter() {
+    let maxId = 0;
+    for (const ph of this.phases) {
+      for (const rd of ph.rounds) {
+        for (const m of rd.matches) {
+          maxId = Math.max(maxId, m.getIdNumber());
+        }
+      }
+    }
+    if (maxId > 0) {
+      // don't bother doing this if the tournament doesn't actually contain any matches
+      Match.overrideIdCounter(maxId + 1);
+    }
+  }
+
   /** Convert data to the current version's format */
   conversions() {
     if (versionLt(this.appVersion, '4.0.1')) {
