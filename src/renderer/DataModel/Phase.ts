@@ -207,7 +207,7 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     const newRoundArray: Round[] = [];
     let curRequestedRound = firstRound;
     for (const rd of this.rounds) {
-      if (rd.number > lastRound) break;
+      if (rd.number > lastRound || rd.number < firstRound) break;
 
       if (rd.number > curRequestedRound) {
         for (let i = curRequestedRound; i < rd.number; i++) {
