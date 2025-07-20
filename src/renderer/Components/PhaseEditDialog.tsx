@@ -10,6 +10,7 @@ import {
   FormGroup,
   TextField,
   Tooltip,
+  Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -17,6 +18,14 @@ import { TournamentContext } from '../TournamentManager';
 import { PhaseEditModalContext } from '../Modal Managers/TempPhaseManager';
 import useSubscription from '../Utils/CustomHooks';
 import { YfAcceptButton, YfCancelButton, YfNumericField } from '../Utils/GeneralReactUtils';
+import { PhaseTypes } from '../DataModel/Phase';
+
+const phaseTypeDisplayName = {
+  [PhaseTypes.Prelim]: 'Prelim',
+  [PhaseTypes.Playoff]: 'Playoff',
+  [PhaseTypes.Tiebreaker]: 'Tiebreaker',
+  [PhaseTypes.Finals]: 'Finals',
+};
 
 export default function PhaseEditDialog() {
   const tournManager = useContext(TournamentContext);
@@ -41,6 +50,7 @@ function PhaseEditDialogCore() {
   const [isOpen] = useSubscription(modalManager.modalIsOpen);
   const [hasErrors] = useSubscription(modalManager.hasAnyErrors());
   const acceptButtonRef = useRef<HTMLButtonElement>(null);
+  const phaseType = modalManager.originalPhaseOpened?.phaseType;
 
   const handleAccept = () => {
     acceptButtonRef.current?.focus();
@@ -58,7 +68,16 @@ function PhaseEditDialogCore() {
     <Dialog open={isOpen} fullWidth maxWidth="sm" onClose={handleCancel}>
       <DialogTitle>Edit Stage</DialogTitle>
       <DialogContent>
-        <PhaseNameField />
+        <Grid container>
+          <Grid xs>
+            <PhaseNameField />
+          </Grid>
+          <Grid xs="auto">
+            <Typography sx={{ marginTop: 2, paddingLeft: 1 }}>
+              Type: {phaseType ? phaseTypeDisplayName[phaseType] : ''}
+            </Typography>
+          </Grid>
+        </Grid>
         {modalManager.shouldShowRoundFields() && <PhaseRoundFields />}
         <PhaseConvertFields />
       </DialogContent>
@@ -180,7 +199,7 @@ function PhaseConvertFields() {
         {modalManager.canConvToFinals && (
           <FormGroup>
             <Tooltip
-              placement="top"
+              placement="bottom"
               title="Designate this stage as containing finals matches rather than standard pool play. This action will delete all pools in this stage."
             >
               <FormControlLabel
@@ -197,7 +216,7 @@ function PhaseConvertFields() {
         {modalManager.canConvToTB && (
           <FormGroup>
             <Tooltip
-              placement="top"
+              placement="right"
               title="Designate this stage as containing tiebreaker matches rather than standard pool play. This action will delete all pools in this stage."
             >
               <FormControlLabel

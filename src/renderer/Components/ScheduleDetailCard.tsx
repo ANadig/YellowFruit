@@ -71,14 +71,16 @@ export default function ScheduleDetailCard() {
         ))}
       </List>
       {!usingTemplate && (
-        <Button
-          sx={{ marginTop: 1 }}
-          variant="contained"
-          onClick={() => tournManager.addPlayoffPhase()}
-          startIcon={<Add />}
-        >
-          Add Stage
-        </Button>
+        <Tooltip title="Add a stage of pool-based play.">
+          <Button
+            sx={{ marginTop: 1 }}
+            variant="contained"
+            onClick={() => tournManager.addPlayoffPhase()}
+            startIcon={<Add />}
+          >
+            Add Playoff Stage
+          </Button>
+        </Tooltip>
       )}
     </YfCard>
   );
@@ -292,28 +294,34 @@ function PhaseEditor(props: IPhaseEditorProps) {
             ))}
           </List>
         </Box>
-        {!usingTemplate && (
-          <Button
-            sx={{ marginTop: 1 }}
-            size="small"
-            variant="outlined"
-            startIcon={<Add />}
-            onClick={() => tournManager.addPool(phase)}
-          >
-            Add Pool
-          </Button>
-        )}
       </Grid>
       <Grid xs={7}>
         <Typography sx={{ marginTop: 1 }} variant="subtitle2">
           {selectedPool?.name}
         </Typography>
         {selectedPool && <PoolDetail selectedPool={selectedPool} hasWildCardAdvancement={wcRules.length > 0} />}
+      </Grid>
+      <Grid xs>
+        {!usingTemplate && (
+          <Button size="small" variant="outlined" startIcon={<Add />} onClick={() => tournManager.addPool(phase)}>
+            Add Pool
+          </Button>
+        )}
+      </Grid>
+      <Grid xs="auto">
         {canAddTB && (
-          <LinkButton onClick={() => tournManager.addTiebreakerAfter(phase)}>Add tiebreaker stage</LinkButton>
+          <LinkButton onClick={() => tournManager.addTiebreakerAfter(phase)}>
+            <Add fontSize="small" />
+            Add tiebreaker stage
+          </LinkButton>
         )}
         <br />
-        {canAddFinals && <LinkButton onClick={() => tournManager.addFinalsPhase()}>Add finals stage</LinkButton>}
+        {canAddFinals && (
+          <LinkButton onClick={() => tournManager.addFinalsPhase()}>
+            <Add fontSize="small" />
+            Add finals stage
+          </LinkButton>
+        )}
       </Grid>
     </Grid>
   );

@@ -55,6 +55,7 @@ const SchedulePageHelpText: HelpTextSection[] = [
     header: 'Custom schedules',
     content: [
       'You can define your own schedule by customizing a template or adding new stages from scratch. If the button at the top right of the form is disabled and reads "custom", you are using a custom schedule, and you will need to assign teams to playoff pools manually during rebracketing.',
+      "When using a custom schedule, use the Add Playoff Stage button to add additional stages of pool-based (e.g. round-robin or card system) play. You don't need to use a custom schedule to add tiebreaker or finals stages.",
     ],
   },
   {
