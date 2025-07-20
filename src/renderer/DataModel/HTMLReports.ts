@@ -76,9 +76,15 @@ export default class HtmlReportGenerator {
     const topLinks = this.getTopLinks();
     const mainHeader = genericTagWithAttributes('h1', [id(topAnchorID)], title);
     const style = getPageStyle();
-
     const appVersion = addYfVersion ? this.tournament.appVersion : undefined;
-    const body = genericTag('BODY', topLinks, mainHeader, style, data, madeWithYellowFruit(appVersion));
+    const pageContent = genericTagWithAttributes(
+      'div',
+      ['style="font-size: 11pt; text-size-adjust: none;"'],
+      data,
+      madeWithYellowFruit(appVersion),
+    );
+
+    const body = genericTag('BODY', topLinks, mainHeader, style, pageContent);
     return genericTag('HTML', htmlHeader, body);
   }
 
@@ -320,7 +326,10 @@ export default class HtmlReportGenerator {
     const list = unorderedList(
       matches.map((m) => `${m.getWinnerLoserString()} (${this.scoreboardMatchLink(m, 'box')})`),
     );
-    return genericTagWithAttributes('div', [classAttribute(cssClasses.smallText)], title, list);
+    if (tbOrFinalsPhase.phaseType === PhaseTypes.Tiebreaker) {
+      return genericTagWithAttributes('div', [classAttribute(cssClasses.smallText)], title, list);
+    }
+    return genericTag('div', title, list);
   }
 
   /** The actual data of the individuals page */
@@ -1193,11 +1202,7 @@ function getHtmlHeader(pageTitle: string) {
 }
 
 function getPageStyle() {
-  const body = cssSelector(
-    'HTML',
-    { attr: 'font-family', val: 'Roboto, sans-serif' },
-    { attr: 'font-size', val: '11pt' },
-  );
+  const body = cssSelector('HTML', { attr: 'font-family', val: 'Roboto, sans-serif' });
   const table = cssSelector(
     'table',
     { attr: 'font-size', val: '11pt' },
