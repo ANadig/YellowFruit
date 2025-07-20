@@ -162,7 +162,7 @@ export default class SqbsGenerator {
       this.addLine(tm.name);
       for (const pl of tm.players) {
         let playerName = pl.name;
-        if (pl.yearString !== '') playerName += ` (${pl.yearString})`;
+        if (pl.yearString !== '' && this.tournament.trackPlayerYear) playerName += ` (${pl.yearString})`;
         this.addLine(playerName);
       }
     }
