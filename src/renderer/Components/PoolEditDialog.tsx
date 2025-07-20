@@ -176,7 +176,6 @@ function NumberOfTeamsField() {
 function RoundRobinsField() {
   const modalManager = useContext(PoolEditModalContext);
   const [numRRs] = useSubscription(modalManager.numRoundRobins || 0);
-  const [minRRs] = useSubscription(modalManager.minRRs);
 
   const allowedOptions = [0, 1, 2, 3, 4];
 
@@ -192,7 +191,7 @@ function RoundRobinsField() {
       }}
     >
       {allowedOptions.map((opt) => (
-        <ToggleButton key={opt} value={opt} disabled={opt < minRRs}>
+        <ToggleButton key={opt} value={opt}>
           {opt === 0 ? 'Not RR' : `${opt}x`}
         </ToggleButton>
       ))}

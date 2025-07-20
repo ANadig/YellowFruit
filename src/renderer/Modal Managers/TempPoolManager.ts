@@ -26,8 +26,6 @@ export default class TempPoolManager {
 
   canSetCarryover: boolean = true;
 
-  minRRs: number = 0;
-
   deletionDisabled: boolean = true;
 
   /** Names of other pool, for duplicate checking */
@@ -67,9 +65,7 @@ export default class TempPoolManager {
     this.deletionDisabled = pool.poolTeams.length > 0 || phase.pools.length <= 1;
     this.allowCustomSchedule = allowCustomSchedule;
 
-    const noMatchesYet = !phase.anyMatchesExist();
-    this.minRRs = noMatchesYet ? 0 : pool.roundRobins;
-    this.canSetCarryover = phase.phaseType === PhaseTypes.Playoff && noMatchesYet;
+    this.canSetCarryover = phase.phaseType === PhaseTypes.Playoff;
 
     this.carryoverScripting();
     this.validateAll();
