@@ -176,7 +176,7 @@ export default class HtmlReportGenerator {
     for (const teamStats of poolStats.poolTeams) {
       rows.push(this.standingsRow(teamStats, anyTiesExist, nextPhase));
     }
-    return `${tableTag(rows, undefined, '100%')}\n${this.tbOrFinalsMatchList(tbPhase, poolStats.pool)}`;
+    return `${tableTag(rows, '100%')}\n${this.tbOrFinalsMatchList(tbPhase, poolStats.pool)}`;
   }
 
   private cumulativeStandingsTable(omitRank: boolean = false) {
@@ -186,7 +186,7 @@ export default class HtmlReportGenerator {
     for (const teamStats of stats.teamStats) {
       rows.push(this.standingsRow(teamStats, stats.anyTiesExist, undefined, true, omitRank));
     }
-    return tableTag(rows, undefined, '75%');
+    return tableTag(rows, undefined, cssClasses.fwBelow1000px);
   }
 
   private standingsHeader(
@@ -346,7 +346,7 @@ export default class HtmlReportGenerator {
       if (playerStats.tossupsHeard === 0) continue;
       rows.push(this.individualsRow(playerStats, skipRankCol));
     }
-    return tableTag(rows, undefined, '80%');
+    return tableTag(rows, undefined, cssClasses.fwBelow1000px);
   }
 
   private individualsHeader(skipRankCol: boolean = false) {
@@ -437,17 +437,11 @@ export default class HtmlReportGenerator {
     if (match.isForfeit()) return segments.join('\n');
 
     if (match.carryoverPhases.length > 0) {
-      segments.push(
-        genericTagWithAttributes(
-          'p',
-          [classAttribute(cssClasses.smallText)],
-          `Carries over to: ${match.carryoverPhases.map((ph) => ph.name).join(', ')}`,
-        ),
-      );
+      segments.push(genericTag('p', `Carries over to: ${match.carryoverPhases.map((ph) => ph.name).join(', ')}`));
     }
     let tuReadStr = `Tossups read: ${match.tossupsRead ?? 'unknown'}`;
     if (match.overtimeTossupsRead) tuReadStr += ` (${match.overtimeTossupsRead} in OT)`;
-    segments.push(genericTagWithAttributes('p', [classAttribute(cssClasses.smallText)], tuReadStr));
+    segments.push(genericTag('p', tuReadStr));
 
     const leftTable = this.boxScoreTableOneTeam(match.leftTeam);
     const rightTable = this.boxScoreTableOneTeam(match.rightTeam);
@@ -470,7 +464,7 @@ export default class HtmlReportGenerator {
       rows.push(this.boxScoreOneMatchPlayer(mp));
     }
     rows.push(this.boxScoreTotalRow(matchTeam));
-    return tableTag(rows, undefined, '35%');
+    return tableTag(rows, '35%');
   }
 
   private boxScoreTableHeader(teamName: string) {
@@ -511,7 +505,7 @@ export default class HtmlReportGenerator {
     rows.push(this.boxScoreBonusTableHeader());
     rows.push(this.boxScoreBonusTableRow(match.leftTeam));
     rows.push(this.boxScoreBonusTableRow(match.rightTeam));
-    return tableTag(rows, undefined, '50%');
+    return tableTag(rows);
   }
 
   private boxScoreBonusTableHeader() {
@@ -538,7 +532,7 @@ export default class HtmlReportGenerator {
     rows.push(this.boxScoreBouncebackTableHeader());
     rows.push(this.boxScoreBouncebackTableRow(match, 'left'));
     rows.push(this.boxScoreBouncebackTableRow(match, 'right'));
-    return tableTag(rows, undefined, '50%');
+    return tableTag(rows);
   }
 
   private boxScoreBouncebackTableHeader() {
@@ -566,7 +560,7 @@ export default class HtmlReportGenerator {
     rows.push(this.boxScoreLightningkTableHeader());
     rows.push(this.boxScoreLightningTableRow(match, 'left'));
     rows.push(this.boxScoreLightningTableRow(match, 'right'));
-    return tableTag(rows, undefined, '30%');
+    return tableTag(rows);
   }
 
   private boxScoreLightningkTableHeader() {
@@ -643,7 +637,7 @@ export default class HtmlReportGenerator {
       rows.push(this.teamDetailMatchTableRow(result, omitPhaseCol));
     }
     rows.push(this.teamDetailMatchTableFooter(teamStats, omitPhaseCol));
-    return tableTag(rows, undefined, '100%');
+    return tableTag(rows, '100%');
   }
 
   private teamDetailMatchTableHeader(omitPhase: boolean = false) {
@@ -767,7 +761,7 @@ export default class HtmlReportGenerator {
     for (const plSt of playersOnTeam) {
       rows.push(this.teamDetailPlayerTableRow(plSt));
     }
-    return tableTag(rows, undefined, '70%');
+    return tableTag(rows, undefined, cssClasses.fwBelow800px);
   }
 
   private teamDetailPlayerTableHeader() {
@@ -778,8 +772,8 @@ export default class HtmlReportGenerator {
     if (this.tournament.trackDiv2) cells.push(stdTdHeader(this.abbr(StatTypes.div2)));
     cells.push(stdTdHeader(this.abbr(StatTypes.gamesPlayed), true));
     this.pushTossupValueHeaders(cells);
-    cells.push(stdTdHeader(this.abbr(StatTypes.tuh), true));
-    cells.push(stdTdHeader(this.abbr(StatTypes.pointsPerXTuh), true));
+    cells.push(stdTdHeader(this.abbr(StatTypes.tuh), true, '10%'));
+    cells.push(stdTdHeader(this.abbr(StatTypes.pointsPerXTuh), true, '12%'));
     return trTag(cells);
   }
 
@@ -862,7 +856,7 @@ export default class HtmlReportGenerator {
       rows.push(this.playerDetailTableRow(result, omitPhaseCol));
     }
     rows.push(this.playerDetailTableFooter(playerStats, omitPhaseCol));
-    return tableTag(rows, undefined, '80%');
+    return tableTag(rows, undefined, cssClasses.fwBelow1000px);
   }
 
   private playerDetailTableHeader(omitPhase: boolean = false) {
@@ -935,7 +929,7 @@ export default class HtmlReportGenerator {
       rows.push(this.roundReportTableRow(roundStats, omitPhaseCol));
     }
     rows.push(this.roundReportTableFooter(this.tournament.cumulativeStats.roundReportTotalStats, omitPhaseCol));
-    return tableTag(rows, undefined, '100%');
+    return tableTag(rows, '100%');
   }
 
   private roundReportTableHeader(omitPhase: boolean = false) {
@@ -1054,7 +1048,7 @@ export default class HtmlReportGenerator {
     }
 
     const tr = trTag(linkCells);
-    return tableTag([tr], '0', '100%');
+    return tableTag([tr], '100%', undefined, '0');
   }
 
   private scoreboardRoundLink(round: Round, text: string) {
@@ -1162,6 +1156,8 @@ const cssClasses = {
   boxScoreTableContainer: 'boxScoreTable',
   pseudoTFoot: 'pseudoTFoot',
   floatingTOC: 'floatingTOC',
+  fwBelow1000px: 'fwBelow1000px',
+  fwBelow800px: 'fwBelow800px',
 };
 
 const topAnchorID = '#top';
@@ -1200,11 +1196,11 @@ function getPageStyle() {
   const body = cssSelector(
     'HTML',
     { attr: 'font-family', val: 'Roboto, sans-serif' },
-    { attr: 'font-size', val: '10pt' },
+    { attr: 'font-size', val: '11pt' },
   );
   const table = cssSelector(
     'table',
-    { attr: 'font-size', val: '10pt' },
+    { attr: 'font-size', val: '11pt' },
     { attr: 'border-spacing', val: '0' },
     { attr: 'border-collapse', val: 'collapse' },
   );
@@ -1281,6 +1277,8 @@ function getPageStyle() {
     pseudoFooter,
     floatingTOC,
     ulNoBullets,
+    cssResponsiveTableWidthSelector(800, cssClasses.fwBelow800px, 60),
+    cssResponsiveTableWidthSelector(1000, cssClasses.fwBelow1000px, 80),
   );
 }
 
@@ -1289,10 +1287,11 @@ function aTag(href: string, contents: string) {
   return `<a HREF=${href}>${contents}</a>`;
 }
 
-function tableTag(trTags: string[], border?: string, width?: string) {
-  const borderAttr = border !== undefined ? `border=${border}` : '';
+function tableTag(trTags: string[], width?: string, cssClass?: string, border?: string) {
   const widthAttr = width !== undefined ? `width=${width}` : '';
-  return `<table ${borderAttr} ${widthAttr}>\n${trTags.join('\n')}\n</table>`;
+  const classAttr = cssClass !== undefined ? `class=${cssClass}` : '';
+  const borderAttr = border !== undefined ? `border=${border}` : '';
+  return `<table ${borderAttr} ${classAttr} ${widthAttr}>\n${trTags.join('\n')}\n</table>`;
 }
 
 /** A <tr> tag: table row containing <td>s */
@@ -1372,6 +1371,10 @@ type CssRule = { attr: string; val: string };
 function cssSelector(selector: string, ...rules: CssRule[]) {
   const ruleStrings = rules.map((r) => `${r.attr}: ${r.val};`);
   return `${selector}{\n${ruleStrings.join('\n')}\n}`;
+}
+
+function cssResponsiveTableWidthSelector(minWidthPx: number, className: string, widthPct: number) {
+  return `@media screen and (min-width: ${minWidthPx}px) {\n.${className}{\nwidth: ${widthPct}%;\n}\n}`;
 }
 
 function unicodeHTML(codepoint: string) {
