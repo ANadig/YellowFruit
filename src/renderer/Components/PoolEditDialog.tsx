@@ -24,7 +24,7 @@ import { YfAcceptButton, YfCancelButton, YfNumericField } from '../Utils/General
 import { PoolEditModalContext } from '../Modal Managers/TempPoolManager';
 
 const carryoverFieldTooltip =
-  "Include previous rounds' matches in the pool standings where both teams are in this pool?";
+  "Include previous rounds' matches in the pool standings where both teams are in this pool? Usually this should only done when needed to complete a round robin.";
 
 export default function PoolEditDialog() {
   const tournManager = useContext(TournamentContext);
