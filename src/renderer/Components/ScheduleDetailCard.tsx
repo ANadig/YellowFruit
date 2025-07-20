@@ -71,7 +71,7 @@ export default function ScheduleDetailCard() {
         ))}
       </List>
       {!usingTemplate && (
-        <Tooltip title="Add a stage of pool-based play.">
+        <Tooltip title="Add a stage of pool-based play">
           <Button
             sx={{ marginTop: 1 }}
             variant="contained"
