@@ -28,6 +28,12 @@
   height: 420px;
 }
 
+@media screen and (min-height: 670px) {
+  .stat-report-iframe {
+    height: 470px;
+  }
+}
+
 @media screen and (min-height: 720px) {
   .stat-report-iframe {
     height: 520px;
