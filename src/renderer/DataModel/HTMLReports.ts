@@ -1197,10 +1197,14 @@ function getHtmlHeader(pageTitle: string) {
 }
 
 function getPageStyle() {
-  const body = cssSelector('HTML', { attr: 'font-family', val: 'Roboto, sans-serif' });
+  const body = cssSelector(
+    'HTML',
+    { attr: 'font-family', val: 'Roboto, sans-serif' },
+    { attr: 'font-size', val: '10pt' },
+  );
   const table = cssSelector(
     'table',
-    { attr: 'font-size', val: '11pt' },
+    { attr: 'font-size', val: '10pt' },
     { attr: 'border-spacing', val: '0' },
     { attr: 'border-collapse', val: 'collapse' },
   );
@@ -1259,7 +1263,6 @@ function getPageStyle() {
     `.${cssClasses.floatingTOC} ul`,
     { attr: 'list-style-type', val: 'none' },
     { attr: 'padding-inline-start', val: '20px' },
-    { attr: 'font-size', val: '11pt' },
   );
   return genericTag(
     'style',
