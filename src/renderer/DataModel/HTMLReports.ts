@@ -262,7 +262,7 @@ export default class HtmlReportGenerator {
     }
 
     const ppgStr =
-      teamStats.totalPointsForPPG === 0
+      teamStats.getCorrectTuh() === 0
         ? mDashHtml
         : (teamStats.getPtsPerRegTuh() * this.tournament.scoringRules.regulationTossupCount).toFixed(1);
     cells.push(tdTag({ align: 'right' }, ppgStr));
