@@ -200,6 +200,12 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     }
   }
 
+  assignPhaseNameToRoundNames() {
+    this.rounds.forEach((rd) => {
+      rd.name = this.name;
+    });
+  }
+
   /** Set this phase's rounds to be from firstRound to lastRound. Existing rounds within this range are preserved; others are discarded.
    *  Caller is responsible for determining that this is safe to do.
    */
@@ -474,6 +480,21 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
 
   getRound(roundNo: number): Round | undefined {
     return this.rounds.find((rd) => rd.number === roundNo);
+  }
+
+  /** For a finals or tiebreaker phase, should we disallow unchecking "use numeric rounds"? */
+  preventConvertToNonNumericRounds() {
+    let numRoundsWithGames = 0;
+    for (const rd of this.rounds) {
+      if (rd.anyMatchesExist()) numRoundsWithGames++;
+
+      if (numRoundsWithGames > 1) return true;
+    }
+    return false;
+  }
+
+  deleteEmptyRounds() {
+    this.rounds = this.rounds.filter((rd) => rd.anyMatchesExist());
   }
 
   /** Do any rounds in this phase have a packet name defined? */

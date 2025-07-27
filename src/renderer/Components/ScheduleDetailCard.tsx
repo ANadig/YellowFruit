@@ -377,7 +377,12 @@ function MinorPhaseSection(props: IMinorPhaseSectionProps) {
     <FormGroup>
       <FormControlLabel
         control={
-          <Checkbox size="small" checked={usesNumeric} onChange={(e) => handleUsesNumericChange(e.target.checked)} />
+          <Checkbox
+            size="small"
+            checked={usesNumeric}
+            disabled={phase.preventConvertToNonNumericRounds()}
+            onChange={(e) => handleUsesNumericChange(e.target.checked)}
+          />
         }
         label="Uses numeric round"
         sx={{ width: 'fit-content' }}

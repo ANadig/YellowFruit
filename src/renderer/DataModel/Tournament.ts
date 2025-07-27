@@ -529,6 +529,8 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   undoForcePhaseToBeNumeric(tbOrFinalsPhase: Phase) {
     if (tbOrFinalsPhase.isFullPhase()) return;
     tbOrFinalsPhase.forceNumericRounds = false;
+    tbOrFinalsPhase.deleteEmptyRounds();
+    tbOrFinalsPhase.assignPhaseNameToRoundNames();
     this.reassignRoundNumbers(tbOrFinalsPhase);
     tbOrFinalsPhase.reassignRoundNumbers(tbOrFinalsPhase.rounds[0].number + 0.5); // for consistency, put back our fractional pseudo round number
   }
