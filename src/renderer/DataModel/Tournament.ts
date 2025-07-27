@@ -142,7 +142,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       this.name = name;
     }
     this.tournamentSite = new TournamentSite();
-    this.scoringRules = new ScoringRules(CommonRuleSets.NaqtUntimed);
+    this.scoringRules = new ScoringRules();
     this.htmlGenerator = new HtmlReportGenerator(this);
     this.addBlankPhase();
   }

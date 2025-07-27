@@ -6,7 +6,7 @@ import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 
 // Defines the order the buttons should be in
-const ruleSets = [CommonRuleSets.NaqtUntimed, CommonRuleSets.NaqtTimed, CommonRuleSets.Acf];
+const ruleSets = [CommonRuleSets.AcfPowers, CommonRuleSets.Acf, CommonRuleSets.NaqtUntimed, CommonRuleSets.NaqtTimed];
 
 function StandardRuleSetCard() {
   const tournManager = useContext(TournamentContext);
