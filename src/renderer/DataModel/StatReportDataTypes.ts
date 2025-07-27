@@ -110,7 +110,7 @@ export function columnTooltip(stat: StatTypes, tournament: Tournament) {
     case StatTypes.pointsPerXTuh:
       return `Points per ${rules.regulationTossupCount} tossups heard`;
     case StatTypes.tuhTmStandings:
-      return rules.overtimeIncludesBonuses ? 'Tossups heard' : 'Tossups heard in regulation';
+      return rules.useOvertimeInPPTUH() ? 'Tossups heard' : 'Tossups heard in regulation';
     case StatTypes.tuh:
       return 'Tossups heard';
     case StatTypes.bonusesHrd:
@@ -165,7 +165,7 @@ export function columnTooltip(stat: StatTypes, tournament: Tournament) {
 
 function pointsPerXTuhTmStandingsTooltip(tournament: Tournament) {
   const stdTuCount = tournament.scoringRules.regulationTossupCount;
-  if (tournament.scoringRules.overtimeIncludesBonuses) {
+  if (tournament.scoringRules.useOvertimeInPPTUH()) {
     return `Points per ${stdTuCount} tossups heard`;
   }
   return `Points scored in regulation per ${stdTuCount} regulation tossups heard`;

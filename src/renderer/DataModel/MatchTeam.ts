@@ -250,7 +250,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   /** Total points minus points scored in overtime without bonuses */
   getPointsForPPG(scoringRules: ScoringRules): number {
-    if (!scoringRules.useBonuses || scoringRules.overtimeIncludesBonuses) {
+    if (scoringRules.useOvertimeInPPTUH()) {
       return this.points || 0;
     }
     return (this.points || 0) - this.getOvertimePoints();

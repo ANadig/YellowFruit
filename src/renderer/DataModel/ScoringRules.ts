@@ -283,6 +283,10 @@ export class ScoringRules implements IQbjScoringRules, IYftDataModelObject {
     return this.lightningCountPerTeam > 0;
   }
 
+  useOvertimeInPPTUH() {
+    return this.overtimeIncludesBonuses || !this.useBonuses;
+  }
+
   setUseBonuses(useBonuses: boolean) {
     this.useBonuses = useBonuses;
     if (!useBonuses) {

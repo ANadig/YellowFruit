@@ -71,12 +71,24 @@ export class AggregateStandings {
     this.teamStats.sort(AggregateStandings.ppbCompare);
   }
 
+  sortTeamsByPptuh() {
+    this.teamStats.sort(AggregateStandings.pptuhCompare);
+  }
+
   static ppbCompare(a: PoolTeamStats, b: PoolTeamStats) {
     let aPpb = a.getPtsPerBonus();
     let bPpb = b.getPtsPerBonus();
     if (Number.isNaN(aPpb)) aPpb = -9999999;
     if (Number.isNaN(bPpb)) bPpb = -9999999;
     return bPpb - aPpb;
+  }
+
+  static pptuhCompare(a: PoolTeamStats, b: PoolTeamStats) {
+    let aPptuh = a.getPtsPerRegTuh();
+    let bPptuh = b.getPtsPerRegTuh();
+    if (Number.isNaN(aPptuh)) aPptuh = -9999999;
+    if (Number.isNaN(bPptuh)) bPptuh = -9999999;
+    return bPptuh - aPptuh;
   }
 
   /** Sort teams by their final rank. Then assign the rank display strings that indicate where there are ties */
@@ -548,8 +560,9 @@ export class PoolTeamStats {
     return pct.toFixed(3).toString();
   }
 
+  /** Get the total tossups heard value that we want to use for PPG stats */
   getCorrectTuh() {
-    return this.scoringRules.overtimeIncludesBonuses ? this.tuhTotal : this.tuhRegulation;
+    return this.scoringRules.useOvertimeInPPTUH() ? this.tuhTotal : this.tuhRegulation;
   }
 
   /** Points per non-overtime tossup heard. Is NaN if tossups heard is zero! */
@@ -795,7 +808,7 @@ export class RoundStats {
   }
 
   getPointsPerXTuh() {
-    const tuh = this.scoringRules.overtimeIncludesBonuses ? this.tossupsHeardTotal : this.tossupsHeardRegulation;
+    const tuh = this.scoringRules.useOvertimeInPPTUH() ? this.tossupsHeardTotal : this.tossupsHeardRegulation;
     return (this.scoringRules.regulationTossupCount * this.points) / tuh / 2;
   }
 
@@ -811,7 +824,7 @@ export class RoundStats {
 
   getNegsPerXTuh() {
     const totalNegs = sumReduce(this.tossupCounts.map((ac) => (ac.answerType.isNeg ? ac.number ?? 0 : 0)));
-    const tuh = this.scoringRules.overtimeIncludesBonuses ? this.tossupsHeardTotal : this.tossupsHeardRegulation;
+    const tuh = this.scoringRules.useOvertimeInPPTUH() ? this.tossupsHeardTotal : this.tossupsHeardRegulation;
     return (this.scoringRules.regulationTossupCount * totalNegs) / tuh / 2;
   }
 
