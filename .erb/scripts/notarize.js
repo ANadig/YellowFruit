@@ -17,6 +17,8 @@ exports.default = async function notarizeMacos(context) {
     return;
   }
 
+  console.log('Running afterSign notarization script');
+
   const appName = context.packager.appInfo.productFilename;
 
   await notarize({
