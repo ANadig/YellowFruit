@@ -701,7 +701,9 @@ function BounceBackRow(props: IBounceBackRowProps) {
         '& .MuiInputBase-input': { paddingLeft: 0.5, paddingRight: 0 },
       }}
     >
-      <div>&emsp;&nbsp;Bouncebacks:&emsp;</div>
+      <div>
+        &emsp;&nbsp;<b>Bouncebacks:</b>&emsp;
+      </div>
       <YfNumericField
         sx={{ width: '6ch' }}
         inputProps={{ min: 0, step: divisor }}
