@@ -340,7 +340,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
   validateAll(scoringRules: ScoringRules) {
     this.validateTotalPoints();
     this.validateTotalAndTuPtsEqual(scoringRules);
-    this.validateBouncebackPoints();
+    this.validateBouncebackPoints(scoringRules);
     this.validateAnswerCounts();
     this.validateBonusPoints(scoringRules);
     this.validateOvertimeBuzzes();
@@ -411,23 +411,34 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
         MatchValidationType.LightningDivisorMismatch,
         ValidationStatuses.Warning,
         `Lightning round points aren't divisble by ${scoringRules.lightningDivisor}`,
-        true,
       );
     } else {
       this.clearValidationMessage(MatchValidationType.LightningDivisorMismatch);
     }
   }
 
-  validateBouncebackPoints() {
+  validateBouncebackPoints(scoringRules: ScoringRules) {
     if (this.bonusBouncebackPoints === undefined) {
       this.bouncebackFieldValidation.setOk();
+      this.clearValidationMessage(MatchValidationType.BouncebackDivisorMismatch);
       return;
     }
     if (this.bonusBouncebackPoints < 0 || this.bonusBouncebackPoints > 9999) {
       this.bouncebackFieldValidation.setError('Invalid number');
+      this.clearValidationMessage(MatchValidationType.BouncebackDivisorMismatch);
       return;
     }
     this.bouncebackFieldValidation.setOk();
+
+    if (this.bonusBouncebackPoints % scoringRules.bonusDivisor !== 0) {
+      this.addValidationMessage(
+        MatchValidationType.BouncebackDivisorMismatch,
+        ValidationStatuses.Warning,
+        `Bonus bounceback points aren't divisible by ${scoringRules.bonusDivisor}`,
+      );
+    } else {
+      this.clearValidationMessage(MatchValidationType.BouncebackDivisorMismatch);
+    }
   }
 
   validateAnswerCounts() {
@@ -466,7 +477,6 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
         MatchValidationType.BonusDivisorMismatch,
         ValidationStatuses.Warning,
         `Bonus points are not divisible by ${scoringRules.bonusDivisor}`,
-        true,
       );
     } else {
       this.clearValidationMessage(MatchValidationType.BonusDivisorMismatch);
@@ -479,12 +489,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     }
   }
 
-  addValidationMessage(
-    type: MatchValidationType,
-    status: ValidationStatuses,
-    message: string,
-    suppressable: boolean = false,
-  ) {
+  addValidationMessage(type: MatchValidationType, status: ValidationStatuses, message: string, suppressable?: boolean) {
     const fullMessage = `${this.team ? `${this.team.getTruncatedName()}: ` : ''}${message}`;
     this.modalBottomValidation.addValidationMsg(type, status, fullMessage, suppressable);
   }

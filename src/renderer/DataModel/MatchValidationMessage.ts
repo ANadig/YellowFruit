@@ -33,6 +33,7 @@ export enum MatchValidationType {
   ImportTwoMatchesSameTeam = 'ImportTwoMatchesSameTeam',
   TuPlusLtngNotEqualTotal = 'TuPlusLtngNotEqualTotal',
   LightningDivisorMismatch = 'LightningDivisorMismatch',
+  BouncebackDivisorMismatch = 'BouncebackDivisorMismatch',
 }
 
 export interface IYftFileMatchValidationMsg {
@@ -68,6 +69,12 @@ export default class MatchValidationMessage {
     if (message) this.message = message;
     this.suppressable = suppressable;
     this.isSuppressed = isSuppressed;
+  }
+
+  /** True/false, whether this kind of validation message should normally be suppressable */
+  static getDefaultSuppressableStatus(status: ValidationStatuses) {
+    if (status === ValidationStatuses.Warning) return true;
+    return false;
   }
 
   makeCopy(): MatchValidationMessage {
@@ -163,17 +170,27 @@ export class MatchValidationCollection {
     return this.validators.find((v) => v.type === type);
   }
 
+  /**
+   * Add a new message to the collection
+   * @param type The kind of issue
+   * @param status Error/warning/etc
+   * @param message user-facing text
+   * @param suppressable Whether it can be dismissed by the user. Default is yes if warning, no if anything else
+   * @param isSuppressed True if it should start suppressed
+   */
   addValidationMsg(
     type: MatchValidationType,
     status: ValidationStatuses,
     message: string,
-    suppressable: boolean = false,
+    suppressable?: boolean,
     isSuppressed: boolean = false,
   ) {
     if (this.findMsgType(type)?.isSuppressed) return; // don't "unsuppress" things just because we noticed the issue still exists
 
     this.clearMsgType(type);
-    this.validators.push(new MatchValidationMessage(type, status, message, suppressable, isSuppressed));
+    const suppressableAct =
+      suppressable !== undefined ? suppressable : MatchValidationMessage.getDefaultSuppressableStatus(status);
+    this.validators.push(new MatchValidationMessage(type, status, message, suppressableAct, isSuppressed));
   }
 
   clearMsgType(type: MatchValidationType) {

@@ -373,7 +373,7 @@ export class TempMatchManager {
   setBouncebackPoints(whichTeam: LeftOrRight, val: string): number | undefined {
     const parsed = parseInt(val, 10);
     const valToSave = Number.isNaN(parsed) ? undefined : parsed;
-    this.tempMatch.setBouncebackPoints(whichTeam, valToSave);
+    this.tempMatch.setBouncebackPoints(whichTeam, valToSave, this.tournament.scoringRules);
     this.tempMatch.validateMatchTeams(this.tournament.scoringRules);
     this.tempMatch.validateBouncebackConversion(this.tournament.scoringRules);
     this.dataChangedReactCallback();

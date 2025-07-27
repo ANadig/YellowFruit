@@ -321,10 +321,10 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     mt.points = points;
   }
 
-  setBouncebackPoints(whichTeam: LeftOrRight, points: number | undefined) {
+  setBouncebackPoints(whichTeam: LeftOrRight, points: number | undefined, scoringRules: ScoringRules) {
     const mt = this.getMatchTeam(whichTeam);
     mt.bonusBouncebackPoints = points;
-    mt.validateBouncebackPoints();
+    mt.validateBouncebackPoints(scoringRules);
   }
 
   setLightningPoints(whichTeam: LeftOrRight, points: number | undefined) {
@@ -521,7 +521,6 @@ export class Match implements IQbjMatch, IYftDataModelObject {
         MatchValidationType.LowTotalTuh,
         ValidationStatuses.Warning,
         `Total tossups heard is less than ${scoringRules.regulationTossupCount}, the standard number for a game`,
-        true,
       );
       // this warning is redundant in this case
       this.modalBottomValidation.clearMsgType(MatchValidationType.RegulationTuhNotStandard);
@@ -561,7 +560,6 @@ export class Match implements IQbjMatch, IYftDataModelObject {
         MatchValidationType.TeamsNotInSamePool,
         ValidationStatuses.Warning,
         'These teams are not in the same pool for this round',
-        true,
       );
       return;
     }
@@ -575,7 +573,6 @@ export class Match implements IQbjMatch, IYftDataModelObject {
         MatchValidationType.TeamAlreadyPlayedInRound,
         ValidationStatuses.Warning,
         message,
-        true,
       );
       return;
     }
@@ -597,7 +594,6 @@ export class Match implements IQbjMatch, IYftDataModelObject {
         MatchValidationType.TieGame,
         ValidationStatuses.Warning,
         'This game is a tie',
-        true,
       );
     } else {
       this.modalBottomValidation.clearMsgType(MatchValidationType.TieGame);
@@ -647,7 +643,6 @@ export class Match implements IQbjMatch, IYftDataModelObject {
           MatchValidationType.FewerThanExpectedTUH,
           ValidationStatuses.Warning,
           `Players have heard fewer than ${expectedTotalTUH} tossups in aggregate`,
-          true,
         );
       } else {
         matchTeam.modalBottomValidation.clearMsgType(MatchValidationType.FewerThanExpectedTUH);
@@ -723,7 +718,6 @@ export class Match implements IQbjMatch, IYftDataModelObject {
         MatchValidationType.OtTuhLessThanMinimum,
         ValidationStatuses.Warning,
         `Overtime tossups heard is less than the minimum of ${scoringRules.minimumOvertimeQuestionCount}`,
-        true,
       );
     } else {
       this.modalBottomValidation.clearMsgType(MatchValidationType.OtTuhLessThanMinimum);
@@ -753,7 +747,6 @@ export class Match implements IQbjMatch, IYftDataModelObject {
         MatchValidationType.RegulationTuhNotStandard,
         ValidationStatuses.Warning,
         `Tossups read in regulation is ${regulationTuh}, which is less than the standard number of ${scoringRules.maximumRegulationTossupCount}`,
-        true,
       );
     } else {
       this.modalBottomValidation.clearMsgType(MatchValidationType.RegulationTuhNotStandard);
@@ -796,7 +789,6 @@ export class Match implements IQbjMatch, IYftDataModelObject {
           MatchValidationType.OtButRegScoreNotTied,
           ValidationStatuses.Warning,
           "Game went to overtime but the score wasn't tied after regulation, based on each team's overtime stats",
-          true,
         );
       } else {
         this.modalBottomValidation.clearMsgType(MatchValidationType.OtButRegScoreNotTied);
