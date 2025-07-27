@@ -360,7 +360,7 @@ export default class HtmlReportGenerator {
 
   private individualsHeader(skipRankCol: boolean = false) {
     const cells: string[] = [];
-    if (!skipRankCol) cells.push(tdTag({ bold: true, width: '3%' }, 'Rank'));
+    if (!skipRankCol) cells.push(tdTag({ bold: true }, 'Rank'));
     cells.push(stdTdHeader('Player'));
     if (this.tournament.trackPlayerYear) cells.push(stdTdHeader('Year/Grade'));
     if (this.tournament.trackUG) cells.push(stdTdHeader(this.abbr(StatTypes.undergrad)));
@@ -938,13 +938,13 @@ export default class HtmlReportGenerator {
       rows.push(this.roundReportTableRow(roundStats, omitPhaseCol));
     }
     rows.push(this.roundReportTableFooter(this.tournament.cumulativeStats.roundReportTotalStats, omitPhaseCol));
-    return tableTag(rows, '100%');
+    return tableTag(rows);
   }
 
   private roundReportTableHeader(omitPhase: boolean = false) {
     const cells: string[] = [];
     const columnWidth = omitPhase ? '10%' : '9%';
-    cells.push(stdTdHeader('Round'));
+    cells.push(stdTdHeader('Round', false, '10%'));
     if (!omitPhase) cells.push(stdTdHeader('Stage', false, '15%'));
     cells.push(stdTdHeader('Games', true, '10%'));
     cells.push(stdTdHeader(this.abbr(StatTypes.rrPtsPerTeamPerXTuh), true, columnWidth));
