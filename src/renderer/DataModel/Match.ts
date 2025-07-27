@@ -450,9 +450,9 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     }
     if (!this.leftTeam.team || !this.rightTeam.team) return '';
 
-    return `${this.overtimeTossupsRead} TU read, ${
-      this.leftTeam.team.name
-    } ${this.leftTeam.getOvertimePoints()} pts,  ${this.rightTeam.team.name} ${this.rightTeam.getOvertimePoints()} pts`;
+    return `${this.overtimeTossupsRead} TU read,
+      ${this.leftTeam.team.getTruncatedName(25)} ${this.leftTeam.getOvertimePoints()} pts,
+      ${this.rightTeam.team.getTruncatedName(25)} ${this.rightTeam.getOvertimePoints()} pts`;
   }
 
   /** Get the list of previously calculated error messages (does NOT revalidate) */

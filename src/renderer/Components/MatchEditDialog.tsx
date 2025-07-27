@@ -862,7 +862,7 @@ function OvertimeBuzzesRow(props: IOverTimeRowProps) {
   return (
     <Grid container columns={9} columnSpacing={1}>
       <Grid xs md={4} lg>
-        <span style={{ verticalAlign: 'sub' }}>{matchTeam.team?.name || <span>&nbsp;</span>}</span>
+        <span style={{ verticalAlign: 'sub' }}>{matchTeam.team?.getTruncatedName(30) || <span>&nbsp;</span>}</span>
       </Grid>
       {otBuzzes.map((ac) => (
         <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} xs={1} isOvertimeStats disabled={disabled} />
