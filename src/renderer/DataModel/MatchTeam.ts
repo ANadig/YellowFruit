@@ -115,7 +115,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     const qbjObject: IQbjMatchTeam = {
       team: this.team?.toRefPointer(),
       forfeitLoss: this.forfeitLoss,
-      points: this.points,
+      points: qbjOnly && this.playerLevelStatsExist() ? undefined : this.points,
       bonusPoints: this.getBonusPoints(),
       correctTossupsWithoutBonuses: this.getCorrectTossupsWithoutBonuses(),
       bonusBouncebackPoints: this.bonusBouncebackPoints,
@@ -132,6 +132,14 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     };
     const yftFileObj: IYftFileMatchTeam = { YfData: yfData, ...qbjObject };
     return yftFileObj;
+  }
+
+  /**
+   * Are there player-level stats for this match, as opposed to just team scores?
+   */
+  // eslint-disable-next-line class-methods-use-this
+  playerLevelStatsExist() {
+    return true; // right now, we require entering individual stats
   }
 
   /** For each players on the roster that don't have a MatchPlayer object, make one */
