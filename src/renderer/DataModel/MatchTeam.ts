@@ -380,7 +380,7 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       this.addValidationMessage(
         MatchValidationType.TotalScoreAndTuPtsMismatch,
         ValidationStatuses.Error,
-        "Players's points don't add up to total score",
+        "Players' points don't add up to total score",
       );
     } else {
       this.clearValidationMessage(MatchValidationType.TotalScoreAndTuPtsMismatch);
