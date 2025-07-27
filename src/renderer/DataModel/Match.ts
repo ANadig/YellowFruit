@@ -486,6 +486,14 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return ValidationStatuses.Ok;
   }
 
+  determineStatsValidity() {
+    if (this.getOverallValidationStatus() === ValidationStatuses.Error) {
+      this.statsValidity = StatsValidity.omit;
+    } else {
+      this.statsValidity = StatsValidity.valid;
+    }
+  }
+
   validateAll(scoringRules: ScoringRules) {
     this.validateTotalTuh(scoringRules);
     this.validateTeams();

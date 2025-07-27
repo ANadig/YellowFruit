@@ -764,6 +764,7 @@ export default class FileParser {
     yfMatch.importedFile = yfExtraData?.importedFile;
 
     yfMatch.validateAll(this.tourn.scoringRules);
+    yfMatch.determineStatsValidity();
     return yfMatch;
   }
 
