@@ -381,7 +381,7 @@ export async function handleImportGamesFromQbj(event: IpcMainInvokeEvent) {
   const fileNameAry = dialog.showOpenDialogSync(window, {
     title: 'Import Games',
     filters: [{ name: 'Tournament Schema ', extensions: ['qbj', 'json'] }],
-    properties: ['multiSelections'],
+    properties: ['multiSelections', 'openFile'],
   });
   if (!fileNameAry) return [];
 
