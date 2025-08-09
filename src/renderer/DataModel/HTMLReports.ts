@@ -768,6 +768,7 @@ export default class HtmlReportGenerator {
 
     const rows = [this.teamDetailPlayerTableHeader()];
     for (const plSt of playersOnTeam) {
+      if (plSt.tossupsHeard === 0) continue;
       rows.push(this.teamDetailPlayerTableRow(plSt));
     }
     return tableTag(rows, undefined, cssClasses.fwBelow800px);
