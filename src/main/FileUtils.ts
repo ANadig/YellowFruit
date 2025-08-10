@@ -412,6 +412,14 @@ export async function handleImportGamesFromQbj(event: IpcMainInvokeEvent) {
   return fileAry;
 }
 
-export function launchStatReportInBrowserWindow() {
+export function handlelaunchStatReportInBrowserWindow() {
   shell.openExternal(path.resolve(inAppStatReportDirectory, 'standings.html'));
+}
+
+export function handleLaunchExternalWebPage(event: IpcMainEvent, url: string) {
+  shell.openExternal(url);
+}
+
+export function launchHelpWindow(mainWindow: BrowserWindow) {
+  mainWindow.webContents.send(IpcMainToRend.LaunchAboutYf);
 }

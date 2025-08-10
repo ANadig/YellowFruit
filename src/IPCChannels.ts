@@ -59,6 +59,8 @@ export enum IpcMainToRend {
   ImportSqbsTeams = 'ImportSqbsTeams',
   /** Send a message to display as a toast */
   MakeToast = 'MakeToast',
+  /** Launch an informational help window */
+  LaunchAboutYf = 'LaunchAboutYf',
 }
 
 /** Channels for both directions renderer<-->main */
@@ -93,6 +95,7 @@ export const rendererListenableEvents = [
   IpcMainToRend.ImportQbjTeams,
   IpcMainToRend.ImportSqbsTeams,
   IpcMainToRend.MakeToast,
+  IpcMainToRend.LaunchAboutYf,
   IpcBidirectional.LoadBackup,
   IpcBidirectional.ExportQbjFile,
   IpcBidirectional.ImportQbjGames,

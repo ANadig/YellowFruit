@@ -1,8 +1,9 @@
-import { app, Menu, BrowserWindow, MenuItemConstructorOptions, dialog } from 'electron';
+import { app, Menu, BrowserWindow, MenuItemConstructorOptions } from 'electron';
 import {
   exportQbjFile,
   importQbjTeams,
   importSqbsTeams,
+  launchHelpWindow,
   launchSqbsExportWorkflow,
   promptForStatReportLocation,
   requestToSaveYftFile,
@@ -106,10 +107,7 @@ export default class MenuBuilder {
       {
         label: 'About YellowFruit',
         click: () => {
-          dialog.showMessageBoxSync(this.mainWindow, {
-            title: 'About YellowFruit',
-            message: `YellowFruit\n\nVersion ${app.getVersion()}`,
-          });
+          launchHelpWindow(this.mainWindow);
         },
       },
     ],

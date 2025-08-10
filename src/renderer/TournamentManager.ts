@@ -97,6 +97,8 @@ export class TournamentManager {
 
   sqbsExportModalManager: SqbsExportModalManager;
 
+  aboutYfDialogOpen: boolean = false;
+
   /** When did we last update the stat report? */
   inAppStatReportGenerated: Date;
 
@@ -177,6 +179,9 @@ export class TournamentManager {
     });
     window.electron.ipcRenderer.on(IpcBidirectional.SqbsExport, () => {
       this.startSqbsExport();
+    });
+    window.electron.ipcRenderer.on(IpcMainToRend.LaunchAboutYf, () => {
+      this.openAboutYfDialog();
     });
     window.electron.ipcRenderer.on(IpcBidirectional.GetAppVersion, (version) => {
       this.appVersion = version as string;
@@ -760,11 +765,6 @@ export class TournamentManager {
   onFinishInAppStatReport() {
     this.inAppStatReportGenerated = new Date();
     this.onDataChanged(true);
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  launchStatReportInBrowserWindow() {
-    window.electron.ipcRenderer.sendMessage(IpcRendToMain.LaunchStatReportInBrowser);
   }
 
   modalManagersSetTournament() {
@@ -1462,6 +1462,16 @@ export class TournamentManager {
     return `${this.displayName} - ${fileName}`;
   }
 
+  openAboutYfDialog() {
+    this.aboutYfDialogOpen = true;
+    this.onDataChanged(true);
+  }
+
+  closeAboutYfDialog() {
+    this.aboutYfDialogOpen = false;
+    this.onDataChanged(true);
+  }
+
   openGenericModal(title: string, contents: string) {
     this.genericModalManager.open(title, contents);
     this.dataChangedReactCallback();
@@ -1481,8 +1491,19 @@ export class TournamentManager {
       this.rankModalManager.modalIsOpen ||
       this.matchImportResultsManager.modalIsOpen ||
       this.poolAssignmentModalManager.modalIsOpen ||
-      this.sqbsExportModalManager.modalIsOpen
+      this.sqbsExportModalManager.modalIsOpen ||
+      this.aboutYfDialogOpen
     );
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  launchStatReportInBrowserWindow() {
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.LaunchStatReportInBrowser);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  launchWebPageInBrowserWindow(url: string) {
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.LaunchExternalWebPage, url);
   }
 }
 

@@ -35,7 +35,8 @@ import {
   handleLaunchImportSqbsTeamsFromRenderer,
   handleExportSqbsFile,
   handleSetYftFilePath,
-  launchStatReportInBrowserWindow,
+  handlelaunchStatReportInBrowserWindow,
+  handleLaunchExternalWebPage,
 } from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
 import { FileSwitchActions, statReportProtocol } from '../SharedUtils';
@@ -173,7 +174,8 @@ app
     ipcMain.on(IpcRendToMain.LaunchImportSqbsTeamWorkflow, handleLaunchImportSqbsTeamsFromRenderer);
     ipcMain.on(IpcBidirectional.ExportQbjFile, handleExportQbjFile);
     ipcMain.on(IpcBidirectional.SqbsExport, handleExportSqbsFile);
-    ipcMain.on(IpcRendToMain.LaunchStatReportInBrowser, launchStatReportInBrowserWindow);
+    ipcMain.on(IpcRendToMain.LaunchStatReportInBrowser, handlelaunchStatReportInBrowserWindow);
+    ipcMain.on(IpcRendToMain.LaunchExternalWebPage, handleLaunchExternalWebPage);
     ipcMain.handle(IpcBidirectional.ImportQbjGames, handleImportGamesFromQbj);
     ipcMain.once(IpcBidirectional.LoadBackup, handleLoadBackup);
     ipcMain.once(IpcRendToMain.StartAutosave, () => {
