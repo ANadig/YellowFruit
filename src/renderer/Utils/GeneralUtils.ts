@@ -92,8 +92,8 @@ export function isNormalTeamLetter(letter: string) {
  * @return      true if a is less than b
  */
 export function versionLt(a: string, b: string, type?: 'major' | 'minor' | 'patch'): boolean {
-  const aSplit = a.split('.');
-  const bSplit = b.split('.');
+  const aSplit = getVersionNumbers(a);
+  const bSplit = getVersionNumbers(b);
   if (aSplit[0] !== bSplit[0]) {
     return aSplit[0] < bSplit[0];
   }
@@ -107,6 +107,11 @@ export function versionLt(a: string, b: string, type?: 'major' | 'minor' | 'patc
     return false;
   }
   return aSplit[2] < bSplit[2];
+}
+
+/** Conver a version string like '1.2.3' to an array of numbers */
+function getVersionNumbers(versionString: string) {
+  return versionString.split('.').map((val) => parseInt(val, 10));
 }
 
 export function getFileNameFromPath(path: string) {
