@@ -53,6 +53,12 @@ export default class TempPhaseManager {
     delete this.lastRound;
     this.convertToFinals = false;
     this.convertToTiebreaker = false;
+    this.canConvToTB = false;
+    this.canConvToFinals = false;
+    this.lowestPossibleRound = 1;
+    this.highestPossibleRound = 999;
+    delete this.lowestRequiredRound;
+    delete this.highestRequiredRound;
     this.phaseNameError = '';
     this.roundRangeError = '';
   }
