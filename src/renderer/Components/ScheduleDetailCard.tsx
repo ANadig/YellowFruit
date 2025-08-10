@@ -22,7 +22,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { Add, ArrowDownward, ArrowUpward, Delete, Edit, ExpandMore, LockOpen } from '@mui/icons-material';
+import { Add, ArrowDownward, ArrowUpward, Delete, Edit, ExpandMore, LockOpen, Tune } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
@@ -30,6 +30,7 @@ import { Phase, PhaseTypes, WildCardRankingMethod } from '../DataModel/Phase';
 import { Pool, advOpportunityDisplay } from '../DataModel/Pool';
 import { LinkButton } from '../Utils/GeneralReactUtils';
 
+const cardTitle = 'Schedule Detail';
 const unlockCustSchedTooltip =
   'Add, remove, or modify stages and pools. Seeding and rebracketing assistance is not available for custom schedules.';
 const usingCustSchedTooltip = 'Using a custom schedule. Seeding and rebracketing assistance are not available.';
@@ -40,11 +41,19 @@ export default function ScheduleDetailCard() {
   const [phases] = useSubscription(thisTournament.phases);
   const [usingTemplate] = useSubscription(thisTournament.usingScheduleTemplate);
 
+  if (thisTournament.phases.length === 0) {
+    return (
+      <YfCard title={cardTitle}>
+        <ScheduleZeroState />
+      </YfCard>
+    );
+  }
+
   const tooltip = usingTemplate ? unlockCustSchedTooltip : usingCustSchedTooltip;
 
   return (
     <YfCard
-      title="Schedule Detail"
+      title={cardTitle}
       secondaryHeader={
         <Tooltip title={tooltip}>
           <span>
@@ -388,6 +397,31 @@ function MinorPhaseSection(props: IMinorPhaseSectionProps) {
         sx={{ width: 'fit-content' }}
       />
     </FormGroup>
+  );
+}
+
+function ScheduleZeroState() {
+  const tournManager = useContext(TournamentContext);
+
+  return (
+    <Grid container>
+      <Grid xs />
+      <Grid xs="auto">
+        <Box sx={{ py: 13 }}>
+          <div>
+            <Typography variant="body2" sx={{ marginBottom: 1 }}>
+              To get started, choose a template
+            </Typography>
+          </div>
+          <div>
+            <LinkButton onClick={() => tournManager.startNewCustomSchedule()}>
+              <Tune fontSize="small" /> Create a custom schedule instead
+            </LinkButton>
+          </div>
+        </Box>
+      </Grid>
+      <Grid xs />
+    </Grid>
   );
 }
 

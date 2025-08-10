@@ -144,7 +144,6 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.tournamentSite = new TournamentSite();
     this.scoringRules = new ScoringRules();
     this.htmlGenerator = new HtmlReportGenerator(this);
-    this.addBlankPhase();
   }
 
   toFileObject(qbjOnly = false, isTopLevel = true, isReferenced = false): IQbjTournament {
@@ -411,6 +410,12 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       if (ph.phaseType !== PhaseTypes.Tiebreaker) return parseInt(ph.code, 10);
     }
     return 0;
+  }
+
+  /** Delete any phases that exist and start with a single new prelim phase. Caller is responsible for determining if that is appropriate and safe. */
+  startNewCustomSchedule() {
+    this.phases = [];
+    this.addBlankPhase();
   }
 
   /** Recompute the code attribute for all phases */

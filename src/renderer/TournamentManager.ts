@@ -996,6 +996,11 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
+  startNewCustomSchedule() {
+    this.tournament.startNewCustomSchedule();
+    this.onDataChanged();
+  }
+
   setPhaseWCRankMethod(phase: Phase, method: WildCardRankingMethod) {
     phase.wildCardRankingMethod = method;
     this.onDataChanged();
