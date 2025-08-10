@@ -762,6 +762,11 @@ export class TournamentManager {
     this.onDataChanged(true);
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  launchStatReportInBrowserWindow() {
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.LaunchStatReportInBrowser);
+  }
+
   modalManagersSetTournament() {
     this.teamModalManager.tournament = this.tournament;
     this.matchModalManager.tournament = this.tournament;

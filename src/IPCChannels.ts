@@ -24,6 +24,10 @@ export enum IpcRendToMain {
   LaunchImportQbjTeamWorkflow = 'LaunchImportQbjTeamWorkflow',
   /** Tell main to prompt for an SQBS filoe to import teams/rosters from */
   LaunchImportSqbsTeamWorkflow = 'LaunchImportSqbsTeamWorkflow',
+  /** Tell main to launch the stat report in an external browser window */
+  LaunchStatReportInBrowser = 'LaunchStatReportInBrowser',
+  /** Launch an arbitrary web page in an external browser window */
+  LaunchExternalWebPage = 'LaunchExternalWebPage',
 }
 
 /** Channels for main sending messages to renderer */

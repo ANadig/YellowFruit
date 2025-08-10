@@ -1,5 +1,5 @@
 import path from 'path';
-import { app, BrowserWindow, IpcMainEvent, dialog, IpcMainInvokeEvent } from 'electron';
+import { app, BrowserWindow, IpcMainEvent, dialog, IpcMainInvokeEvent, shell } from 'electron';
 import fs from 'fs';
 import { IpcBidirectional, IpcMainToRend } from '../IPCChannels';
 import {
@@ -410,4 +410,8 @@ export async function handleImportGamesFromQbj(event: IpcMainInvokeEvent) {
     fileAry.push({ filePath, fileContents });
   }
   return fileAry;
+}
+
+export function launchStatReportInBrowserWindow() {
+  shell.openExternal(path.resolve(inAppStatReportDirectory, 'standings.html'));
 }
