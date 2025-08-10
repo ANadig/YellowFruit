@@ -34,6 +34,7 @@ import {
   handleLaunchImportQbjTeamsFromRenderer,
   handleLaunchImportSqbsTeamsFromRenderer,
   handleExportSqbsFile,
+  handleSetYftFilePath,
 } from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
 import { FileSwitchActions, statReportProtocol } from '../SharedUtils';
@@ -159,6 +160,7 @@ app
   .then(() => {
     createDirectories();
     createWindow();
+    ipcMain.on(IpcRendToMain.setYftFilePath, handleSetYftFilePath);
     ipcMain.on(IpcRendToMain.saveFile, handleSaveFile);
     ipcMain.on(IpcRendToMain.setWindowTitle, handleSetWindowTitle);
     ipcMain.on(IpcRendToMain.StatReportSaveDialog, handleRequestToSaveHtmlReports);

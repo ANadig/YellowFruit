@@ -213,7 +213,7 @@ export class TournamentManager {
     this.tournament = new Tournament();
     this.tournament.appVersion = this.appVersion;
     this.modalManagersSetTournament();
-    this.filePath = null;
+    this.setFilePath(null);
     this.displayName = '';
     this.unsavedData = false;
 
@@ -244,7 +244,7 @@ export class TournamentManager {
 
     this.tournament.appVersion = this.appVersion;
     this.modalManagersSetTournament();
-    this.filePath = null; // don't actually edit old files directly, in case we can't parse them right and end up losing info
+    this.setFilePath(null); // don't actually edit old files directly, in case we can't parse them right and end up losing info
     this.displayName = '';
     this.unsavedData = true;
 
@@ -284,7 +284,7 @@ export class TournamentManager {
     loadedTournament.conversions();
     loadedTournament.appVersion = this.appVersion;
 
-    this.filePath = filePath as string;
+    this.setFilePath(filePath as string);
     this.tournament = loadedTournament;
     this.modalManagersSetTournament();
     this.displayName = this.tournament.name || '';
@@ -600,7 +600,7 @@ export class TournamentManager {
 
   /** Save the tournament to the given file and switch context to that file */
   yftSaveAs(filePath: string) {
-    this.filePath = filePath;
+    this.setFilePath(filePath);
     this.saveYftFile();
   }
 
@@ -715,8 +715,9 @@ export class TournamentManager {
     this.makeToast('File saved');
   }
 
-  private setFilePath(path: string) {
-    this.filePath = path ?? null;
+  private setFilePath(path: string | null) {
+    this.filePath = path || null;
+    window.electron.ipcRenderer.sendMessage(IpcRendToMain.setYftFilePath, path || '');
   }
 
   compileStats() {

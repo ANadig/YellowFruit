@@ -2,6 +2,8 @@
 export enum IpcRendToMain {
   /** Save arbitrary file contents */
   saveFile = 'saveFile',
+  /** Tell the main process what file is being edited */
+  setYftFilePath = 'setYftFilePath',
   /** Set the title of the electron window */
   setWindowTitle = 'setWindowTitle',
   /** Retrieve the directory containing the in-app stat report */

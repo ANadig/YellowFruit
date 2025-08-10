@@ -17,6 +17,20 @@ const backupFilePathProd = path.resolve(backupFileDir, 'prod_backup.yftbak');
 const backupFilePathDev = path.resolve(backupFileDir, 'dev_backup.yftbak');
 const curBackupFilePath = process.env.NODE_ENV === 'development' ? backupFilePathDev : backupFilePathProd;
 
+/** The path of the file being edited in the renderer process */
+let curYftFilePath: string = '';
+
+function getCurYftFilePath() {
+  return curYftFilePath;
+}
+function setCurYftFilePath(newPath: string) {
+  curYftFilePath = newPath;
+}
+
+export function handleSetYftFilePath(event: IpcMainEvent, filePath: string) {
+  setCurYftFilePath(filePath);
+}
+
 /** Create necessary directories and files if they don't yet exist  */
 export function createDirectories() {
   if (!fs.existsSync(inAppStatReportDirectory)) {
@@ -268,9 +282,13 @@ export function handleRequestToSaveHtmlReports(event: IpcMainEvent, curFileName?
   promptForStatReportLocation(window, curFileName);
 }
 
-export function promptForStatReportLocation(window: BrowserWindow, curFileName?: string) {
+export function promptForStatReportLocation(window: BrowserWindow, fileNameFromRenderer?: string) {
+  let defaultPath: string | undefined;
+  if (fileNameFromRenderer) defaultPath = stripYftExtension(fileNameFromRenderer);
+  else if (getCurYftFilePath()) defaultPath = stripYftExtension(getCurYftFilePath());
+
   const fileName = dialog.showSaveDialogSync(window, {
-    defaultPath: curFileName ? stripYftExtension(curFileName) : undefined,
+    defaultPath,
     filters: [{ name: 'HTML Webpages', extensions: ['html'] }],
   });
 
@@ -319,6 +337,7 @@ export function exportQbjFile(mainWindow: BrowserWindow) {
   const filePath = dialog.showSaveDialogSync(mainWindow, {
     title: 'Export as QBJ',
     filters: [{ name: 'Quiz Bowl Tournament Schema', extensions: ['qbj'] }],
+    defaultPath: getCurYftFilePath() !== '' ? stripYftExtension(getCurYftFilePath()) : undefined,
   });
   if (!filePath) return;
 
