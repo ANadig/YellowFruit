@@ -1289,7 +1289,8 @@ function getPageStyle() {
 }
 
 /** An <a> tag for hyperlinks */
-function aTag(href: string, contents: string) {
+function aTag(href: string, contents: string, newTab?: boolean) {
+  if (newTab) return `<a HREF=${href} target="_blank">${contents}</a>`;
   return `<a HREF=${href}>${contents}</a>`;
 }
 
@@ -1366,9 +1367,9 @@ function classAttribute(...classNames: string[]) {
 }
 
 function madeWithYellowFruit(yfVersion?: string) {
-  return (
-    `<span style="font-size:x-small">Made with YellowFruit ${yfVersion ?? ''}${unicodeHTML('1F34C')}</span>` + '\n'
-  ); // unicode banana emoji
+  const link = aTag('https://github.com/ANadig/YellowFruit/releases', 'YellowFruit', true);
+  const divAttrs = 'class="html-rpt-hide-in-yft-app" style="font-size:x-small; margin-top: 10px"';
+  return `<div ${divAttrs}>Made with ${link} ${yfVersion ?? ''}&nbsp;${unicodeHTML('1F34C')}</div>` + '\n'; // unicode banana emoji
 }
 
 type CssRule = { attr: string; val: string };
