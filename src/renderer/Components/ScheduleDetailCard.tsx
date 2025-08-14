@@ -410,7 +410,7 @@ function ScheduleZeroState() {
         <Box sx={{ py: 13 }}>
           <div>
             <Typography variant="body2" sx={{ marginBottom: 1 }}>
-              To get started, choose a template
+              Choose a template to get started
             </Typography>
           </div>
           <div>
