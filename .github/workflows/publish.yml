@@ -70,7 +70,7 @@ jobs:
           # This is used for uploading release assets to github
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm exec electron-builder -- --publish --windows
+          npm exec electron-builder -- --publish always --windows
 
       - name: Create zip file with unpacked code
         uses: vimtor/action-zip@v1.2
