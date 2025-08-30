@@ -89,6 +89,11 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
     return this.tossupsHeard !== undefined && this.tossupsHeard > 0;
   }
 
+  /** Does this player have any tossup stats at all? */
+  anyStatsEntered() {
+    return !!this.answerCounts.find((ac) => !!ac.number);
+  }
+
   getTotalBuzzes(positiveOnly: boolean = false) {
     let totalBuzzes = 0;
     this.answerCounts.forEach((ac) => {

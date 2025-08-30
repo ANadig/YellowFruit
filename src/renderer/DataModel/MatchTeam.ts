@@ -142,6 +142,11 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return true; // right now, we require entering individual stats
   }
 
+  /** For a match that's supposed to have player-level stats, has any player tossup data been entered? */
+  anyPlayerStatsEntered() {
+    return !!this.matchPlayers.find((mp) => mp.anyStatsEntered());
+  }
+
   /** For each players on the roster that don't have a MatchPlayer object, make one */
   addNewPlayers(answerTypes: AnswerType[]) {
     if (!this.team) return;
@@ -470,10 +475,13 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       this.clearValidationMessage(MatchValidationType.NegativeBonusPoints);
     }
 
+    console.log(`bpoints ${bonusPoints}`);
+    console.log(`bheard ${bonusesHeard}`);
+
     if ((bonusPoints > 0 && bonusesHeard === 0) || ppb > maxPpb) {
       this.addValidationMessage(
         MatchValidationType.BonusPointsTooHigh,
-        bonusesHeard > 0 ? ValidationStatuses.Error : ValidationStatuses.HiddenError,
+        this.anyPlayerStatsEntered() ? ValidationStatuses.Error : ValidationStatuses.HiddenError,
         `Points per bonus exceeds the maximum of ${maxPpb}`,
       );
     } else {
