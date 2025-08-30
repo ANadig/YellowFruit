@@ -409,10 +409,10 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     const opponent = this.getOpponent(whichTeam);
     if (thisTeam.forfeitLoss && opponent.forfeitLoss) return 'Not played';
     if (this.isForfeit()) return 'Forfeit';
-    const pts = thisTeam.points;
-    const oppPts = opponent.points;
+    const pts = addParensToNegative(thisTeam.points);
+    const oppPts = addParensToNegative(opponent.points);
     const ot = showOT && !!this.overtimeTossupsRead ? ' (OT)' : '';
-    return `${pts}-${oppPts}${ot}`;
+    return `${pts} - ${oppPts}${ot}`;
   }
 
   /** 'W', 'L', or 'T' */
@@ -843,4 +843,10 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
 export function otherTeam(whichTeam: LeftOrRight): LeftOrRight {
   return whichTeam === 'left' ? 'right' : 'left';
+}
+
+function addParensToNegative(score: number | undefined): string {
+  if (score === undefined) return '';
+  if (score >= 0) return score.toString();
+  return `(${score})`;
 }
