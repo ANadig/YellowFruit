@@ -254,9 +254,11 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     return false;
   }
 
-  /** Add a pool with default info, to be customized by the user */
-  addBlankPool() {
-    const size = this.defaultSizeForBlankPool();
+  /** Add a pool with default info, to be customized by the user
+   * @param minTeams The pool must have at least this many teams
+   */
+  addBlankPool(minTeams?: number) {
+    const size = Math.max(this.defaultSizeForBlankPool(), minTeams ?? 0);
     const tier = this.lowestPoolTier() + 1;
     if (!this.findPoolByName('New Pool')) {
       this.pools.push(new Pool(size, tier, 'New Pool'));

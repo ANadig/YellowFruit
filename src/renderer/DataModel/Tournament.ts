@@ -105,7 +105,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   questionSet: string = '';
 
-  /** The list of teams ordered by their initial seed. This should NOT be the source of truth for what teams exist in general. */
+  /** The list of teams ordered by their initial seed. This should NOT be the source of truth for what teams exist in general (use registrations instead). */
   seeds: Team[] = [];
 
   trackPlayerYear: boolean = true;
@@ -415,7 +415,8 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** Delete any phases that exist and start with a single new prelim phase. Caller is responsible for determining if that is appropriate and safe. */
   startNewCustomSchedule() {
     this.phases = [];
-    this.addBlankPhase();
+    this.addBlankPhase(this.getNumberOfTeams());
+    this.seeds.forEach((tm) => this.addUnseededTeamToPrelims(tm));
   }
 
   /** Recompute the code attribute for all phases */
@@ -574,13 +575,16 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     return numericPhases[idx + 1].firstRoundNumber() - 1;
   }
 
-  /** Add an empty phase for the user to customize */
-  addBlankPhase() {
+  /**
+   * Add an empty phase for the user to customize
+   * @param minTeams Number of teams the phase's pools must accomodate
+   */
+  addBlankPhase(minTeams?: number) {
     const startingRound = 1 + (this.getLastFullPhase()?.lastRoundNumber() || 0);
     const phaseType = startingRound === 1 ? PhaseTypes.Prelim : PhaseTypes.Playoff;
     const newPhaseName = this.getNewPhaseName();
     const newPhase = new Phase(phaseType, startingRound, startingRound, this.nextPhaseCode(), newPhaseName);
-    newPhase.addBlankPool();
+    newPhase.addBlankPool(minTeams);
 
     if (this.phases.length === 0) {
       this.phases.push(newPhase);
