@@ -1513,6 +1513,8 @@ export class TournamentManager {
 
   /** Alert the user if there is a newer version of the application is available */
   newReleaseAlert(isRetry?: boolean) {
+    if (this.latestAvailVersion === '') return;
+
     if (this.appVersion === '') {
       if (isRetry) this.requestAppVersion();
 

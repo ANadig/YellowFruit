@@ -29,7 +29,8 @@ export default function AboutYfDialog() {
       <DialogContent>
         <Typography variant="body2">
           Version {tournManager.appVersion} &nbsp;
-          {promptToUpdate ? <NotCurrentIcon newestVersion={newestVersion} /> : <UpToDateIcon />}
+          {newestVersion !== '' &&
+            (promptToUpdate ? <NotCurrentIcon newestVersion={newestVersion} /> : <UpToDateIcon />)}
         </Typography>
         <Typography variant="body2" sx={{ marginTop: 2 }}>
           AGPL-3.0 license
