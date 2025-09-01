@@ -76,6 +76,8 @@ export enum IpcBidirectional {
   GetAppVersion = 'GetAppVersion',
   /** For the main process asking for and receiving SQBS files to save */
   SqbsExport = 'SqbsExport',
+  /** See if there's a newer version the user should condider downloading */
+  CheckForNewVersion = 'CheckForNewVersion',
 }
 
 export type IpcChannels = IpcRendToMain | IpcMainToRend | IpcBidirectional;
@@ -101,4 +103,5 @@ export const rendererListenableEvents = [
   IpcBidirectional.ImportQbjGames,
   IpcBidirectional.GetAppVersion,
   IpcBidirectional.SqbsExport,
+  IpcBidirectional.CheckForNewVersion,
 ];

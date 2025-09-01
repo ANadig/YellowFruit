@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import Tournament, { IYftFileTournament, NullTournament } from './DataModel/Tournament';
-import { dateFieldChanged, getFileNameFromPath, textFieldChanged } from './Utils/GeneralUtils';
+import { dateFieldChanged, getFileNameFromPath, textFieldChanged, versionLt } from './Utils/GeneralUtils';
 import { NullObjects } from './Utils/UtilTypes';
 import { IpcBidirectional, IpcMainToRend, IpcRendToMain } from '../IPCChannels';
 import { IIndeterminateQbj, IQbjWholeFile, IRefTargetDict } from './DataModel/Interfaces';
@@ -40,6 +40,7 @@ import { parseOldYfFile, isOldYftFile } from './DataModel/OldYfParsing';
 import parseTeamsFromSqbsFile from './DataModel/SqbsParsing';
 import SqbsExportModalManager from './Modal Managers/SqbsExportModalManager';
 import SqbsGenerator from './DataModel/SqbsFileGeneration';
+import { AlertColor } from '@mui/material';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -59,7 +60,7 @@ export class TournamentManager {
   dataChangedReactCallback: () => void;
 
   /** Show a toast message */
-  makeToast: (message: string) => void;
+  makeToast: (message: string, severity?: AlertColor, urlToLaunch?: string) => void;
 
   /** Is there data that hasn't been saved to a file? */
   unsavedData: boolean = false;
@@ -106,7 +107,11 @@ export class TournamentManager {
 
   readonly isNull: boolean = false;
 
+  /** The version of the app that is currently running */
   appVersion: string = '';
+
+  /** The latest published version of the app that's available to download*/
+  latestAvailVersion: string = '';
 
   constructor() {
     this.dataChangedReactCallback = () => {};
@@ -125,6 +130,7 @@ export class TournamentManager {
     this.inAppStatReportGenerated = new Date();
 
     this.requestAppVersion();
+    this.checkForNewVersion();
 
     this.newTournament();
 
@@ -187,6 +193,10 @@ export class TournamentManager {
       this.appVersion = version as string;
       if (this.tournament) this.tournament.appVersion = this.appVersion;
     });
+    window.electron.ipcRenderer.on(IpcBidirectional.CheckForNewVersion, (latestVersion) => {
+      this.latestAvailVersion = latestVersion as string;
+      this.newReleaseAlert();
+    });
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -197,6 +207,11 @@ export class TournamentManager {
   // eslint-disable-next-line class-methods-use-this
   protected requestBackupFile() {
     window.electron.ipcRenderer.sendMessage(IpcBidirectional.LoadBackup);
+  }
+
+  //eslint-disable-next-line class-methods-use-this
+  protected checkForNewVersion() {
+    window.electron.ipcRenderer.sendMessage(IpcBidirectional.CheckForNewVersion);
   }
 
   private checkForUnsavedData(action: FileSwitchActions) {
@@ -1496,6 +1511,25 @@ export class TournamentManager {
     );
   }
 
+  /** Alert the user if there is a newer version of the application is available */
+  newReleaseAlert(isRetry?: boolean) {
+    if (this.appVersion === '') {
+      if (isRetry) this.requestAppVersion();
+
+      setTimeout(() => {
+        this.newReleaseAlert(true);
+      }, 3000);
+    }
+
+    if (versionLt(this.appVersion, this.latestAvailVersion)) {
+      this.makeToast(
+        `A newer version of YellowFruit is available`,
+        'info',
+        'https://github.com/ANadig/YellowFruit/releases/latest',
+      );
+    }
+  }
+
   // eslint-disable-next-line class-methods-use-this
   launchStatReportInBrowserWindow() {
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.LaunchStatReportInBrowser);
@@ -1527,6 +1561,9 @@ class NullTournamentManager extends TournamentManager {
 
   // eslint-disable-next-line class-methods-use-this
   requestBackupFile(): void {}
+
+  // eslint-disable-next-line class-methods-use-this
+  checkForNewVersion(): void {}
 }
 
 /** React context that elements can use to access the TournamentManager and its data without

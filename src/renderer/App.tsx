@@ -10,10 +10,10 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Box from '@mui/material/Box';
-
 import { useContext, useEffect, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Alert, Snackbar } from '@mui/material';
+import { Alert, AlertColor, IconButton, Snackbar, Tooltip } from '@mui/material';
+import { Close, Launch } from '@mui/icons-material';
 import NavBar, { applicationPageOrder } from './Components/NavBar';
 import GeneralPage from './Components/GeneralPage';
 import { TournamentManager, TournamentContext } from './TournamentManager';
@@ -159,21 +159,44 @@ function ActivePage(props: IActivePageProps) {
 function GenericToast() {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
+  const [severity, setSeverity] = useState<AlertColor>('success');
+  const [urlToLaunch, setUrlToLaunch] = useState('');
   const [mgr] = useState(tournManager);
   useEffect(() => {
-    mgr.makeToast = (msg) => {
+    mgr.makeToast = (msg, sev = 'success', url = '') => {
       setIsOpen(true);
       setMessage(msg);
+      setSeverity(sev);
+      setUrlToLaunch(url);
     };
   }, [mgr]);
 
   const handleClose = () => {
     setIsOpen(false);
   };
+  const handleLaunchUrl = () => {
+    mgr.launchWebPageInBrowserWindow(urlToLaunch);
+    handleClose();
+  };
+
+  const durationMs = urlToLaunch !== '' ? 15000 : 5000;
+  const action =
+    urlToLaunch === '' ? null : (
+      <>
+        <Tooltip title="Download the lastest version from GitHub">
+          <IconButton color="inherit" size="small" onClick={handleLaunchUrl}>
+            <Launch fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <IconButton color="inherit" size="small" onClick={handleClose}>
+          <Close fontSize="small" />
+        </IconButton>
+      </>
+    );
 
   return (
-    <Snackbar open={isOpen} autoHideDuration={5000} onClose={handleClose}>
-      <Alert severity="success" variant="filled" onClose={handleClose} sx={{ width: '100%' }}>
+    <Snackbar open={isOpen} autoHideDuration={durationMs} onClose={handleClose}>
+      <Alert severity={severity} variant="filled" onClose={handleClose} action={action} sx={{ width: '100%' }}>
         {message}
       </Alert>
     </Snackbar>

@@ -40,6 +40,7 @@ import {
 } from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
 import { FileSwitchActions, statReportProtocol } from '../SharedUtils';
+import { checkForNewVersions } from './UpdateChecker';
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -176,6 +177,7 @@ app
     ipcMain.on(IpcBidirectional.SqbsExport, handleExportSqbsFile);
     ipcMain.on(IpcRendToMain.LaunchStatReportInBrowser, handlelaunchStatReportInBrowserWindow);
     ipcMain.on(IpcRendToMain.LaunchExternalWebPage, handleLaunchExternalWebPage);
+    ipcMain.on(IpcBidirectional.CheckForNewVersion, checkForNewVersions);
     ipcMain.handle(IpcBidirectional.ImportQbjGames, handleImportGamesFromQbj);
     ipcMain.once(IpcBidirectional.LoadBackup, handleLoadBackup);
     ipcMain.once(IpcRendToMain.StartAutosave, () => {
