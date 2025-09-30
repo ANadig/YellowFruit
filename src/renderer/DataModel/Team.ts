@@ -64,7 +64,7 @@ export class Team implements IQbjTeam, IYftDataModelObject {
   overallRank: Rank;
 
   /** Disallow creating teams with more than this many players on the roster */
-  static maxPlayers = 30;
+  static readonly maxPlayers = 100;
 
   static maxLetterLength = 20;
 

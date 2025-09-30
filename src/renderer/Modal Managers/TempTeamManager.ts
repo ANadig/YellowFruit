@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 import Registration from '../DataModel/Registration';
 import { Team } from '../DataModel/Team';
-import { nextAlphabetLetter, teamGetNameAndLetter } from '../Utils/GeneralUtils';
+import { nextAlphabetLetter, teamGetNameAndLetter, textFieldChanged } from '../Utils/GeneralUtils';
 import { NullObjects } from '../Utils/UtilTypes';
 import { Player } from '../DataModel/Player';
 import Tournament, { NullTournament } from '../DataModel/Tournament';
@@ -248,8 +248,10 @@ export class TempTeamManager {
   }
 
   changePlayerName(playerIdx: number, newName: string) {
-    const trimmedName = newName.trim();
     const player = this.tempTeam.players[playerIdx];
+    if (!textFieldChanged(player.name, newName)) return;
+
+    const trimmedName = newName.trim();
     if (!player) return;
 
     player.name = trimmedName;
