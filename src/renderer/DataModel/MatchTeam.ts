@@ -475,9 +475,6 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
       this.clearValidationMessage(MatchValidationType.NegativeBonusPoints);
     }
 
-    console.log(`bpoints ${bonusPoints}`);
-    console.log(`bheard ${bonusesHeard}`);
-
     if ((bonusPoints > 0 && bonusesHeard === 0) || ppb > maxPpb) {
       this.addValidationMessage(
         MatchValidationType.BonusPointsTooHigh,
