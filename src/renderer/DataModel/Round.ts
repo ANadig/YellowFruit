@@ -150,6 +150,11 @@ export class Round implements IQbjRound, IYftDataModelObject {
     this.matches = this.matches.filter((m) => m !== match);
   }
 
+  /** Change to a normal numeric round where the name is just the round number. Does nothing if round is already numeric */
+  resetToNumeric() {
+    delete this._name;
+  }
+
   /**
    * Count the number of matches that are in error and warning states.
    * @returns [# matches with errors, # matches with warnings]

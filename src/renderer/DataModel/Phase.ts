@@ -206,6 +206,11 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
     });
   }
 
+  /** Remove special round names - changes back to just round numbers */
+  resetRoundNamesToNumeric() {
+    this.rounds.forEach((rd) => rd.resetToNumeric());
+  }
+
   /** Set this phase's rounds to be from firstRound to lastRound. Existing rounds within this range are preserved; others are discarded.
    *  Caller is responsible for determining that this is safe to do.
    */
@@ -496,7 +501,11 @@ export class Phase implements IQbjPhase, IYftDataModelObject {
   }
 
   deleteEmptyRounds() {
+    if (this.rounds.length === 0) return;
+
+    const firstRound = this.rounds[0];
     this.rounds = this.rounds.filter((rd) => rd.anyMatchesExist());
+    if (this.rounds.length === 0) this.rounds.push(firstRound); // a phase should never have 0 rounds
   }
 
   /** Do any rounds in this phase have a packet name defined? */

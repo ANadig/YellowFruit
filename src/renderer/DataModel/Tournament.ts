@@ -530,6 +530,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     if (!lastRoundNo) return;
     tbOrFinalsPhase.forceNumericRounds = true;
     this.reassignRoundNumbers(tbOrFinalsPhase);
+    tbOrFinalsPhase.resetRoundNamesToNumeric();
   }
 
   undoForcePhaseToBeNumeric(tbOrFinalsPhase: Phase) {
@@ -1022,11 +1023,23 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     if (versionLt(this.appVersion, '4.0.1')) {
       this.conversion4x0x1();
     }
+    if (versionLt(this.appVersion, '4.0.12')) {
+      this.conversion4x0x12();
+    }
   }
 
   /** If 4.0.0, must have used a schedule template */
   private conversion4x0x1() {
     this.usingScheduleTemplate = true;
+  }
+
+  /** Fix bug with non-numeric round names hanging around when they shouldn't */
+  private conversion4x0x12() {
+    for (const ph of this.getMinorPhases()) {
+      if (ph.forceNumericRounds) {
+        ph.resetRoundNamesToNumeric();
+      }
+    }
   }
 }
 
