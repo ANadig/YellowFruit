@@ -175,6 +175,17 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     return `${trunc(this.name, length - this.letter.length - 1)} ${this.letter}`;
   }
 
+  /** Get a truncated name to use in match IDs */
+  getLinkIdAbbrName() {
+    const targetLength = 20;
+    let name = this.name.replaceAll(/\W/g, '');
+    if (name.length <= targetLength) return name;
+
+    let letter = this.letter.replaceAll(/\W/g, '');
+    if (letter === '' || letter.length > 10) return name.substring(0, targetLength);
+    return `${name.substring(0, targetLength - letter.length)}${letter}`;
+  }
+
   removeNullPlayers() {
     this.players = this.players.filter((player) => player.name !== '');
   }

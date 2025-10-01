@@ -133,7 +133,9 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   private idNumber: number;
 
   get id(): string {
-    return `Match_${this.idNumber}`;
+    return `Match_${this.idNumber}~${this.leftTeam.team?.getLinkIdAbbrName() ?? ''}${
+      this.rightTeam.team?.getLinkIdAbbrName() ?? ''
+    }`;
   }
 
   constructor(leftTeam?: Team, rightTeam?: Team, answerTypes?: AnswerType[], idNumber?: number) {
@@ -157,9 +159,9 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.idCounter = newStartingNumber;
   }
 
-  /** If given an string of the form "Match_<positive integer>", set the ID number to that integer */
+  /** If given an string of the form "Match_<positive integer>" or "Match_<positive integer>~<addl chars>", set the ID number to that integer */
   tryToSetId(id: string) {
-    if (id.search(/^Match_\d+$/) === -1) return;
+    if (id.search(/^Match_(\d+$|\d+~)/) === -1) return;
 
     this.idNumber = parseInt(id.replace(/^Match_/, ''), 10);
   }

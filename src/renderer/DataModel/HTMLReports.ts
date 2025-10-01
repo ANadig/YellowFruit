@@ -1182,7 +1182,7 @@ function roundLinkId(round: Round) {
 }
 
 function matchLinkId(match: Match) {
-  return `Match-${match.id}`;
+  return match.id;
 }
 
 function teamDetailLinkId(team: Team) {
