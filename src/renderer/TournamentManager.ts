@@ -463,7 +463,10 @@ export class TournamentManager {
       }
       this.tournament.seedTeamsInRegistration(existingRegistration);
     } else {
-      if (this.tournament.getNumberOfTeams() + registrationFromFile.teams.length > (maxTeamsAllowed ?? 0)) {
+      if (
+        maxTeamsAllowed !== null &&
+        this.tournament.getNumberOfTeams() + registrationFromFile.teams.length > maxTeamsAllowed
+      ) {
         return 0;
       }
       this.tournament.addRegistration(registrationFromFile);
@@ -487,10 +490,10 @@ export class TournamentManager {
       return;
     }
 
-    const maxTeamsAllowed = this.tournament.getExpectedNumberOfTeams() ?? 0;
+    const maxTeamsAllowed = this.tournament.getExpectedNumberOfTeams();
     let numTeamsImported = 0;
     for (const oneReg of registrationList) {
-      if (this.tournament.getNumberOfTeams() >= maxTeamsAllowed) {
+      if (maxTeamsAllowed !== null && this.tournament.getNumberOfTeams() >= maxTeamsAllowed) {
         this.openGenericModal(
           'SQBS Roster Import',
           `Imported ${numTeamsImported} teams. Not all teams in the file were imported because the maximum number of teams was reached.`,

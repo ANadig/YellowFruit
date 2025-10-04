@@ -293,6 +293,7 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
   /** How many teams there's room for based on the pools that exist.
    *  We assume all teams play in the prelim phase.
    *  Returns null if there isn't enough information to calculate.
+   *  @returns Total size of prelim pools. Null if there are no prelim pools.
    */
   getExpectedNumberOfTeams(): number | null {
     const prelimPhase = this.getPrelimPhase();
