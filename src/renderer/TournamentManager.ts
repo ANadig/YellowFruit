@@ -1272,10 +1272,7 @@ export class TournamentManager {
     const registrationSwitched = this.registrationBeingModified !== actualRegToModify;
 
     if (this.registrationBeingModified !== null && registrationSwitched) {
-      this.registrationBeingModified.deleteTeam(this.teamBeingModified);
-      if (this.registrationBeingModified.teams.length === 0) {
-        this.tournament.deleteRegistration(this.registrationBeingModified);
-      }
+      this.tournament.deleteTeam(this.registrationBeingModified, this.teamBeingModified);
     }
 
     if (actualRegToModify === null) {

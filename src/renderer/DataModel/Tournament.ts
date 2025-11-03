@@ -676,7 +676,8 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.registrations = this.registrations.filter((reg) => reg !== regToDelete);
   }
 
-  deleteTeam(reg: Registration, team: Team) {
+  deleteTeam(reg: Registration, team: Team | null) {
+    if (team === null) return;
     this.deleteTeamFromSeeds(team);
     reg.deleteTeam(team);
     if (reg.teams.length === 0) {
@@ -698,7 +699,9 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.seeds = this.seeds.filter((tm) => tm !== deletedTeam);
     const prelimPhase = this.getPrelimPhase();
     if (prelimPhase) prelimPhase.removeTeam(deletedTeam);
-    this.distributeSeeds();
+    if (!this.prelimSeedsReadOnly()) {
+      this.distributeSeeds();
+    }
   }
 
   /** Add all teams in a registration to the list of seeds, if they aren't already there */

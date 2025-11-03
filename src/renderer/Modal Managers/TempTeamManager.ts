@@ -152,7 +152,7 @@ export class TempTeamManager {
   }
 
   /** Get the registration we would actually need to change (if any), since changing the organization
-   *  name can switch which regitration we're editing. Returns null if we should create a new registration.
+   *  name can switch which registration we're editing. Returns null if we should create a new registration.
    */
   getRegistrationToSaveTo(
     regThatWasOpened: Registration | null,
