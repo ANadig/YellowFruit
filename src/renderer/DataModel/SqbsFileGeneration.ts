@@ -309,7 +309,7 @@ export default class SqbsGenerator {
       this.addLine(0);
     }
     // overtime
-    this.addLine(match.overtimeTossupsRead ?? 0);
+    this.addLine(match.overtimeTossupsRead ?? 0 > 0 ? 1 : 0);
     this.addLine(this.getOvertimeTossupsConverted(leftMatchTeam));
     this.addLine(this.getOvertimeTossupsConverted(rightMatchTeam));
 
