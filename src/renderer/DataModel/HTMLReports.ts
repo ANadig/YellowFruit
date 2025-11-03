@@ -442,7 +442,7 @@ export default class HtmlReportGenerator {
   private boxScore(match: Match) {
     const segments: string[] = [];
     segments.push(genericTagWithAttributes('div', [id(matchLinkId(match)), classAttribute(cssClasses.boxScoreAnchor)]));
-    segments.push(genericTag('h3', match.getScoreString()));
+    segments.push(genericTagWithAttributes('h3', [classAttribute(cssClasses.boxScoreTitle)], match.getScoreString()));
     if (match.isForfeit()) return segments.join('\n');
 
     if (match.carryoverPhases.length > 0) {
@@ -1161,6 +1161,7 @@ const cssClasses = {
   headerAndDivider: 'headerAndDivider',
   stickyHeader: 'scoreboardRoundHeader',
   boxScoreAnchor: 'boxScoreAnchor',
+  boxScoreTitle: 'boxScoreTitle',
   inlineDivider: 'inlineDivider',
   smallText: 'smallText',
   boxScoreTableContainer: 'boxScoreTable',
@@ -1220,6 +1221,7 @@ function getPageStyle() {
   );
   const scoreboardRoundHeader = cssSelector(
     `.${cssClasses.stickyHeader}`,
+    { attr: 'width', val: '71%' },
     { attr: 'position', val: 'sticky' },
     { attr: 'top', val: '0' },
     { attr: 'background-color', val: 'white' },
@@ -1227,6 +1229,7 @@ function getPageStyle() {
     { attr: 'margin-bottom', val: '-10px' },
   );
   const boxScoreAnchor = cssSelector(`.${cssClasses.boxScoreAnchor}`, { attr: 'padding-top', val: '30px' });
+  const boxScoreTitle = cssSelector(`.${cssClasses.boxScoreTitle}`, { attr: 'width', val: '71%' });
   const phaseH2 = cssSelector(`.${cssClasses.headerAndDivider} h2`, { attr: 'margin', val: '0' });
   const inlineDivider = cssSelector(
     `.${cssClasses.inlineDivider}`,
@@ -1250,11 +1253,9 @@ function getPageStyle() {
   );
   const floatingTOC = cssSelector(
     `.${cssClasses.floatingTOC}`,
-    { attr: 'top', val: '45px' },
-    { attr: 'position', val: 'sticky' },
-    { attr: 'float', val: 'right' },
-    { attr: 'margin-top', val: '5px' },
-    { attr: 'margin-right', val: '10px' },
+    { attr: 'top', val: '150px' },
+    { attr: 'right', val: '35px' },
+    { attr: 'position', val: 'fixed' },
     { attr: 'padding-right', val: '5px' },
     { attr: 'background-color', val: '#cccccc' },
     { attr: 'box-shadow', val: '4px 4px 7px #999999' },
@@ -1275,6 +1276,7 @@ function getPageStyle() {
     headerAndDivider,
     scoreboardRoundHeader,
     boxScoreAnchor,
+    boxScoreTitle,
     inlineDivider,
     ul,
     smallText,
