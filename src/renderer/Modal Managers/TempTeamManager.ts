@@ -182,6 +182,7 @@ export class TempTeamManager {
       this.tempRegistration.addTeam(this.tempTeam);
     }
     targetReg.copyFromRegistration(this.tempRegistration);
+    targetReg.compileTeamNames();
     targetReg.sortTeams();
   }
 
@@ -208,9 +209,7 @@ export class TempTeamManager {
 
   /** Keep the official team name, which is not directly edited, up to date */
   makeTeamName() {
-    const teamLetter = this.tempTeam.letter;
-    const orgName = this.tempRegistration.name;
-    this.tempTeam.name = teamLetter === '' ? orgName : `${orgName} ${teamLetter}`;
+    this.tempTeam.compileName(this.tempRegistration.name);
   }
 
   changeTeamLetter(letter: string) {

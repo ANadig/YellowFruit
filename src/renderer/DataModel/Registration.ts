@@ -100,6 +100,11 @@ class Registration implements IQbjRegistration, IYftDataModelObject {
     this.teams.sort((a, b) => a.letter.localeCompare(b.letter));
   }
 
+  /** Set Team.name for each member team according to the registration name */
+  compileTeamNames() {
+    this.teams.forEach((tm) => tm.compileName(this.name));
+  }
+
   /** Look through the list of teams and determine each team's letter and the overall registration name.
    *  For example, if the registration and team are both "Central A", the registration name should be "Central".
    *  Use for registrations that were just created from non-YellowFruit files.

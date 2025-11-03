@@ -162,6 +162,11 @@ export class Team implements IQbjTeam, IYftDataModelObject {
     this.players.push(new Player(''));
   }
 
+  /** Set the 'name' property, given the parent registration's name */
+  compileName(registrationName: string) {
+    this.name = this.letter === '' ? registrationName : `${registrationName} ${this.letter}`;
+  }
+
   /**
    * Get a truncated version of a team name
    * @param length number of characters to truncate to (not including ellipsis). Default is 35
