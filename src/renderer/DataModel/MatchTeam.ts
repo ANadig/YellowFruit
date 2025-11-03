@@ -112,11 +112,14 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toFileObject(qbjOnly = false, isTopLevel = false, isReferenced = false): IQbjMatchTeam {
+    // Don't save both total score and bonus points when they're redundant. QBJ schema prefers bonus points
+    const saveBonusInsteadOfTotal = qbjOnly && this.playerLevelStatsExist();
+
     const qbjObject: IQbjMatchTeam = {
       team: this.team?.toRefPointer(),
       forfeitLoss: this.forfeitLoss,
-      points: qbjOnly && this.playerLevelStatsExist() ? undefined : this.points,
-      bonusPoints: this.getBonusPoints(),
+      points: saveBonusInsteadOfTotal ? undefined : this.points,
+      bonusPoints: saveBonusInsteadOfTotal ? this.getBonusPoints() : undefined,
       correctTossupsWithoutBonuses: this.getCorrectTossupsWithoutBonuses(),
       bonusBouncebackPoints: this.bonusBouncebackPoints,
       lightningPoints: this.lightningPoints,
