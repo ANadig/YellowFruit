@@ -352,6 +352,26 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     this.carryoverPhases = this.carryoverPhases.filter((ph) => ph !== phase);
   }
 
+  /** Number of tossups heard in regulation */
+  getRegulationTuh() {
+    return (this.tossupsRead ?? 0) - (this.overtimeTossupsRead ?? 0);
+  }
+
+  /** The total number of tossups answered correctly */
+  getTotalTuConverted() {
+    return this.leftTeam.getTotalBuzzes(true) + this.rightTeam.getTotalBuzzes(true);
+  }
+
+  /** The total number of tossups answered correctly in regulation */
+  getRegulationTuConverted() {
+    return this.getTotalTuConverted() - this.getOvertimeTuConverted();
+  }
+
+  /** The total number of tossups answered correctly in overtime */
+  getOvertimeTuConverted() {
+    return this.leftTeam.getCorrectTossupsWithoutBonuses() + this.rightTeam.getCorrectTossupsWithoutBonuses();
+  }
+
   getBouncebackPartsHeard(whichTeam: LeftOrRight, scoringRules: ScoringRules): number {
     if (!scoringRules.canCalculateBounceBackPartsHeard()) return Number.NaN;
     const otherMT = this.getOpponent(whichTeam);
@@ -674,7 +694,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   }
 
   validateTotalBuzzes() {
-    const totalConvertedTU = this.leftTeam.getTotalBuzzes(true) + this.rightTeam.getTotalBuzzes(true);
+    const totalConvertedTU = this.getTotalTuConverted();
     if (this.tossupsRead !== undefined && this.tossupsRead > 0 && totalConvertedTU > this.tossupsRead) {
       this.modalBottomValidation.addValidationMsg(
         MatchValidationType.MatchHasTooConvertedTU,
@@ -731,6 +751,18 @@ export class Match implements IQbjMatch, IYftDataModelObject {
       );
     } else {
       this.modalBottomValidation.clearMsgType(MatchValidationType.OtTuhLessThanMinimum);
+    }
+
+    const regulationTuh = this.getRegulationTuh();
+    const regulationConv = this.getRegulationTuConverted();
+    if (regulationConv > regulationTuh) {
+      this.modalBottomValidation.addValidationMsg(
+        MatchValidationType.OvertimeTuhTooHigh,
+        ValidationStatuses.Error,
+        `Based on overtime stats, ${regulationConv} tossups were answered correctly in regulation, but only ${regulationTuh} were read in regulation.`,
+      );
+    } else {
+      this.modalBottomValidation.clearMsgType(MatchValidationType.OvertimeTuhTooHigh);
     }
   }
 

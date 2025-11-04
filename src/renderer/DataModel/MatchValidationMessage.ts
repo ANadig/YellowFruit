@@ -34,6 +34,7 @@ export enum MatchValidationType {
   TuPlusLtngNotEqualTotal = 'TuPlusLtngNotEqualTotal',
   LightningDivisorMismatch = 'LightningDivisorMismatch',
   BouncebackDivisorMismatch = 'BouncebackDivisorMismatch',
+  OvertimeTuhTooHigh = 'OvertimeTuhTooHigh',
 }
 
 export interface IYftFileMatchValidationMsg {
