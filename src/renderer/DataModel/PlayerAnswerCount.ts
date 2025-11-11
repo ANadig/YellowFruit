@@ -82,6 +82,14 @@ export class PlayerAnswerCount implements IQbjPlayerAnswerCount, IYftDataModelOb
     return [];
   }
 
+  getNumSuppressedMsgs() {
+    return this.validation.isSuppressed ? 1 : 0;
+  }
+
+  restoreSuppressedMsgs() {
+    this.validation.isSuppressed = false;
+  }
+
   numberIsValid() {
     if (this.number === undefined) return true;
     return 0 <= this.number && this.number <= PlayerAnswerCount.maximumValue;

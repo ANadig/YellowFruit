@@ -134,6 +134,24 @@ export class MatchPlayer implements IQbjMatchPlayer, IYftDataModelObject {
     return warnings;
   }
 
+  getNumSuppressedMsgs() {
+    let cnt = 0;
+    if (this.tuhValidation.isSuppressed) cnt++;
+    if (this.totalBuzzesValidation.isSuppressed) cnt++;
+    this.answerCounts.forEach((ac) => {
+      cnt += ac.getNumSuppressedMsgs();
+    });
+    return cnt;
+  }
+
+  restoreSuppressedMsgs() {
+    this.tuhValidation.isSuppressed = false;
+    this.totalBuzzesValidation.isSuppressed = false;
+    this.answerCounts.forEach((ac) => {
+      ac.restoreSuppressedMsgs();
+    });
+  }
+
   /**
    * Set the validation status of the player's tossups heard
    * @param isValid whether it's valid

@@ -501,6 +501,24 @@ export class Match implements IQbjMatch, IYftDataModelObject {
     return warnings;
   }
 
+  getNumSuppressedWarnings() {
+    let cnt = 0;
+    if (this.totalTuhFieldValidation.isSuppressed) cnt++;
+    if (this.overtimeTuhFieldValidation.isSuppressed) cnt++;
+    cnt += this.modalBottomValidation.getNumSuppressedMsgs();
+    cnt += this.leftTeam.getNumSuppresedMsgs();
+    cnt += this.rightTeam.getNumSuppresedMsgs();
+    return cnt;
+  }
+
+  restoreSuppressedMsgs() {
+    this.totalTuhFieldValidation.isSuppressed = false;
+    this.overtimeTuhFieldValidation.isSuppressed = false;
+    this.modalBottomValidation.restoreSuppressedMsgs();
+    this.leftTeam.restoreSuppressedMsgs();
+    this.rightTeam.restoreSuppressedMsgs();
+  }
+
   /** Determine whether the match is in an error state, warning state, or OK, based on existing validation results (does NOT re-validate) */
   getOverallValidationStatus() {
     if (this.getErrorMessages().length > 0) return ValidationStatuses.Error;

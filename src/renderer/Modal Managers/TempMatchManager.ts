@@ -405,6 +405,11 @@ export class TempMatchManager {
     this.dataChangedReactCallback();
   }
 
+  restoreSuppressedMsgs() {
+    this.tempMatch.restoreSuppressedMsgs();
+    this.dataChangedReactCallback();
+  }
+
   reorderMatchPlayers(whichTeam: LeftOrRight, positionDraggedStr: string, positionDroppedOn: number) {
     const posDragInt = parseInt(positionDraggedStr, 10);
     if (Number.isNaN(posDragInt)) return;

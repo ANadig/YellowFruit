@@ -167,6 +167,16 @@ export class MatchValidationCollection {
     return warningsToShow.map((v) => v.message);
   }
 
+  getNumSuppressedMsgs() {
+    return this.validators.filter((v) => v.isSuppressed).length;
+  }
+
+  restoreSuppressedMsgs() {
+    this.validators.forEach((v) => {
+      v.isSuppressed = false;
+    });
+  }
+
   findMsgType(type: MatchValidationType) {
     return this.validators.find((v) => v.type === type);
   }

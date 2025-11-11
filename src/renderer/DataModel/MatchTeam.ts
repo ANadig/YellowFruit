@@ -353,6 +353,32 @@ export class MatchTeam implements IQbjMatchTeam, IYftDataModelObject {
     return warnings;
   }
 
+  getNumSuppresedMsgs() {
+    let cnt = 0;
+    if (this.totalScoreFieldValidation.isSuppressed) cnt++;
+    if (this.bouncebackFieldValidation.isSuppressed) cnt++;
+    cnt += this.modalBottomValidation.getNumSuppressedMsgs();
+    this.matchPlayers.forEach((mp) => {
+      cnt += mp.getNumSuppressedMsgs();
+    });
+    this.overTimeBuzzes.forEach((ac) => {
+      cnt += ac.getNumSuppressedMsgs();
+    });
+    return cnt;
+  }
+
+  restoreSuppressedMsgs() {
+    this.totalScoreFieldValidation.isSuppressed = false;
+    this.bouncebackFieldValidation.isSuppressed = false;
+    this.modalBottomValidation.restoreSuppressedMsgs();
+    this.matchPlayers.forEach((mp) => {
+      mp.restoreSuppressedMsgs();
+    });
+    this.overTimeBuzzes.forEach((ac) => {
+      ac.restoreSuppressedMsgs();
+    });
+  }
+
   validateAll(scoringRules: ScoringRules) {
     this.validateTotalPoints();
     this.validateTotalAndTuPtsEqual(scoringRules);

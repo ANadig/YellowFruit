@@ -24,9 +24,11 @@ import {
   Paper,
   Card,
   Collapse,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
-import { DragIndicator, ExpandMore } from '@mui/icons-material';
+import { DragIndicator, ExpandMore, Restore, VisibilityOff } from '@mui/icons-material';
 import { MatchEditModalContext } from '../Modal Managers/TempMatchManager';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -180,7 +182,18 @@ function MatchEditDialogCore() {
           </Box>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'space-between', minHeight: '72px' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', maxHeight: '150px', overflowY: 'auto' }}>
+          <Box>
+            <SuppressedValInfo />
+          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              maxHeight: '150px',
+              overflowY: 'auto',
+              marginRight: 'auto',
+            }}
+          >
             <ValidationSection />
           </Box>
           <Box sx={{ '& .MuiButton-root': { marginLeft: 1, whiteSpace: 'nowrap' } }}>
@@ -896,6 +909,26 @@ function NotesCard() {
         />
       </CollapsibleArea>
     </Card>
+  );
+}
+
+function SuppressedValInfo() {
+  const modalManager = useContext(MatchEditModalContext);
+  const thisMatch = modalManager.tempMatch;
+  const numSuppressed = thisMatch.getNumSuppressedWarnings();
+
+  if (numSuppressed === 0) return null;
+
+  return (
+    <>
+      <span>{numSuppressed}</span>
+      <VisibilityOff fontSize="small" sx={{ verticalAlign: 'sub' }} />
+      <Tooltip title={`Restore ${numSuppressed} ignored warning${numSuppressed > 1 ? 's' : ''}`} placement="top">
+        <IconButton sx={{ paddingTop: '4px' }} onClick={() => modalManager.restoreSuppressedMsgs()}>
+          <Restore />
+        </IconButton>
+      </Tooltip>
+    </>
   );
 }
 
