@@ -182,7 +182,11 @@ export default class HtmlReportGenerator {
     for (const teamStats of poolStats.poolTeams) {
       rows.push(this.standingsRow(teamStats, anyTiesExist, nextPhase));
     }
-    return `${tableTag(rows, '100%')}\n${this.tbOrFinalsMatchList(tbPhase, poolStats.pool)}`;
+    const cssClass =
+      !nextPhase || (!nextPhase.anyTeamsAssigned() && !this.tournament.usingScheduleTemplate)
+        ? cssClasses.fwBelow1000px
+        : undefined;
+    return `${tableTag(rows, undefined, cssClass)}\n${this.tbOrFinalsMatchList(tbPhase, poolStats.pool)}`;
   }
 
   private cumulativeStandingsTable(omitRank: boolean = false) {
@@ -204,11 +208,11 @@ export default class HtmlReportGenerator {
     const cells: string[] = [];
     if (!omitRank) cells.push(stdTdHeader('Rank', false, '3%'));
     cells.push(tdTag({ bold: true, width: cumulative ? '' : '25%' }, 'Team'));
-    if (this.tournament.trackSmallSchool) cells.push(stdTdHeader(this.abbr(StatTypes.smallSchool)));
-    if (this.tournament.trackJV) cells.push(stdTdHeader(this.abbr(StatTypes.juniorVarsity)));
-    if (this.tournament.trackUG) cells.push(stdTdHeader(this.abbr(StatTypes.undergrad)));
-    if (this.tournament.trackDiv2) cells.push(stdTdHeader(this.abbr(StatTypes.div2)));
-    cells.push(stdTdHeader(this.abbr(StatTypes.wins), true, '3%'));
+    if (this.tournament.trackSmallSchool) cells.push(stdTdHeader(this.abbr(StatTypes.smallSchool), false, '3%'));
+    if (this.tournament.trackJV) cells.push(stdTdHeader(this.abbr(StatTypes.juniorVarsity), false, '3%'));
+    if (this.tournament.trackUG) cells.push(stdTdHeader(this.abbr(StatTypes.undergrad), false, '3%'));
+    if (this.tournament.trackDiv2) cells.push(stdTdHeader(this.abbr(StatTypes.div2), false, '3%'));
+    cells.push(stdTdHeader(this.abbr(StatTypes.wins), true, '4%'));
     cells.push(stdTdHeader(this.abbr(StatTypes.losses), true, '3%'));
     if (anyTiesExist) cells.push(stdTdHeader(this.abbr(StatTypes.ties), true, '3%'));
     if (!cumulative) cells.push(stdTdHeader(this.abbr(StatTypes.winPct), true, '7%'));
