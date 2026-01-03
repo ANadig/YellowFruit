@@ -1,4 +1,6 @@
 import { Match } from './Match';
+import { Phase } from './Phase';
+import { Round } from './Round';
 import { Team } from './Team';
 
 export enum ImportResultStatus {
@@ -15,6 +17,10 @@ class MatchImportResult {
   filePath: string;
 
   match?: Match;
+
+  phase?: Phase;
+
+  round?: Round;
 
   status: ImportResultStatus;
 

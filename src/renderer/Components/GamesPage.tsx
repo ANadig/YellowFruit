@@ -15,6 +15,7 @@ import {
   Autocomplete,
   TextField,
   Skeleton,
+  Button,
 } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import React, { useContext, useMemo, useState } from 'react';
@@ -44,8 +45,8 @@ export default function GamesPage() {
     <>
       <Card sx={{ marginBottom: 2, '& .MuiCardContent-root': { paddingBottom: 2.1 } }}>
         <CardContent>
-          <Grid container>
-            <Grid xs>
+          <Grid container spacing={2}>
+            <Grid xs="auto">
               <ToggleButtonGroup
                 size="small"
                 color="primary"
@@ -63,8 +64,22 @@ export default function GamesPage() {
                 ))}
               </ToggleButtonGroup>
             </Grid>
+            <Grid xs>
+              <Tooltip placement="top" title="Import games from one file into multiple rounds">
+                <Button
+                  sx={{ marginTop: '1px' }}
+                  variant="outlined"
+                  size="medium"
+                  startIcon={<FileUpload />}
+                  disabled={tournManager.tournament.phases.length === 0}
+                  onClick={() => tournManager.launchImportMatchWorkflow()}
+                >
+                  Import
+                </Button>
+              </Tooltip>
+            </Grid>
             {curView === 0 && (
-              <Grid xs={4}>
+              <Grid xs={5}>
                 <TeamFilterField filterByTeam={setFilterTeam} />
               </Grid>
             )}

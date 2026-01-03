@@ -14,7 +14,7 @@ import { GenericModalManager } from './Modal Managers/GenericModalManager';
 import { collectRefTargets, findTournamentObject } from './DataModel/QbjUtils2';
 import FileParser from './DataModel/FileParsing';
 import { TempMatchManager } from './Modal Managers/TempMatchManager';
-import { IQbjMatch, Match } from './DataModel/Match';
+import { IModaqMatch, IQbjMatch, Match } from './DataModel/Match';
 import {
   FileSwitchActions,
   IMatchImportFileRequest,
@@ -519,8 +519,12 @@ export class TournamentManager {
     this.markFileDirty();
   }
 
-  /** Tell main to launch the file selection window for importing matches to the given round */
-  async launchImportMatchWorkflow(round: Round) {
+  /**
+   * Tell main to launch the file selection window for importing matches
+   * @param round Which round the matches should go into. If not passed, use the files to determine the correct rounds
+   * @returns
+   */
+  async launchImportMatchWorkflow(round?: Round) {
     const files = (await window.electron.ipcRenderer.invoke(
       IpcBidirectional.ImportQbjGames,
     )) as IMatchImportFileRequest[];
@@ -529,10 +533,13 @@ export class TournamentManager {
     this.importMatchesFromQbj(files, round);
   }
 
-  /** Parse a qbj or qbj-like file and add its matches to the given round */
-  private importMatchesFromQbj(fileAry: IMatchImportFileRequest[], round: Round) {
-    const phase = this.tournament.findPhaseByRound(round);
-    if (!phase) return;
+  /**
+   * Parse a qbj or qbj-like file and add its matches to the given round
+   * @param fileAry The files we're trying to parse
+   * @param round Which round the matches should go into. If not passed, use the files to determine the correct rounds
+   */
+  private importMatchesFromQbj(fileAry: IMatchImportFileRequest[], round?: Round) {
+    const phase = round ? this.tournament.findPhaseByRound(round) : undefined;
 
     let results: MatchImportResult[] = [];
     for (const oneFile of fileAry) {
@@ -543,17 +550,26 @@ export class TournamentManager {
       snakeCaseToCamelCase(objFromFile);
 
       if ((objFromFile as IQbjWholeFile).objects) {
-        results = results.concat(this.importMatchesFromWholeQbj(objFromFile as IQbjWholeFile, phase, round, filePath));
+        results = results.concat(this.importMatchesFromWholeQbj(objFromFile as IQbjWholeFile, filePath, phase, round));
       } else {
         const oneResult: MatchImportResult = new MatchImportResult(filePath);
         results.push(oneResult);
-        this.importSingleMatchObj(objFromFile as IQbjMatch, phase, round, oneResult);
+        const roundToUse = round ?? this.tournament.getRoundObjByNumber((objFromFile as IModaqMatch)._round);
+        if (!roundToUse) {
+          oneResult.markFatal("Couldn't determine a round for the game in this file");
+          continue;
+        }
+        const phaseToUse = phase ?? this.tournament.findPhaseByRound(roundToUse);
+        if (!phaseToUse) {
+          continue; // just ignore this match; this isn't plausible and I don't know how I would explain it to a user
+        }
+        this.importSingleMatchObj(objFromFile as IQbjMatch, phaseToUse, roundToUse, oneResult);
       }
     }
 
     MatchImportResult.validateImportSetForTeamDups(results);
     this.tournament.setMatchIdCounter();
-    this.openMatchImportModal(round, phase, results);
+    this.openMatchImportModal(results, round);
   }
 
   /**
@@ -563,7 +579,7 @@ export class TournamentManager {
    * @param round round we're importing matches into
    * @param filePath file that we're importing
    */
-  private importMatchesFromWholeQbj(fileObj: IQbjWholeFile, phase: Phase, round: Round, filePath: string) {
+  private importMatchesFromWholeQbj(fileObj: IQbjWholeFile, filePath: string, phase?: Phase, round?: Round) {
     const objectList = fileObj.objects;
     const importResults: MatchImportResult[] = [];
     const wholeFileFailureResult = new MatchImportResult(filePath);
@@ -582,8 +598,8 @@ export class TournamentManager {
       return importResults;
     }
 
-    const matchList = FileParser.findMatches(objectList);
-    if (matchList.length === 0) {
+    const matchesWithRoundNums = FileParser.findMatches(objectList);
+    if (matchesWithRoundNums.length === 0) {
       wholeFileFailureResult.markFatal(`The file ${filePath} contains no Match objects.`);
       importResults.push(wholeFileFailureResult);
       return importResults;
@@ -591,9 +607,18 @@ export class TournamentManager {
 
     const parser = new FileParser(refTargets, this.tournament, phase);
     parser.buildTypesByIdArrays(objectList);
-    for (const matchObj of matchList) {
+    for (const matchAndRound of matchesWithRoundNums) {
       const singleResult = new MatchImportResult(filePath);
-      this.importSingleMatchObj(matchObj, phase, round, singleResult, parser);
+      const roundToUse = round ?? this.tournament.getRoundObjByNumber(Number.parseInt(matchAndRound.roundName, 10));
+      if (roundToUse === undefined) {
+        singleResult.markFatal(`Couldn't find a round in this tournament matching "${matchAndRound.roundName}"`);
+        continue;
+      }
+      const phaseToUse = phase ?? this.tournament.findPhaseByRound(roundToUse);
+      if (phaseToUse === undefined) {
+        continue; // just ignore this match; this isn't plausible and I don't know how I would explain it to a user
+      }
+      this.importSingleMatchObj(matchAndRound.match, phaseToUse, roundToUse, singleResult, parser);
       importResults.push(singleResult);
     }
     return importResults;
@@ -607,7 +632,10 @@ export class TournamentManager {
     importResult: MatchImportResult,
     existingParser?: FileParser,
   ) {
-    const parser = existingParser ?? new FileParser({}, this.tournament, phase);
+    importResult.phase = phase;
+    importResult.round = round;
+    const parser = existingParser ?? new FileParser({}, this.tournament);
+    parser.importPhase = phase;
     let yfMatch;
     try {
       yfMatch = parser.parseMatch(match as IIndeterminateQbj);
@@ -1348,8 +1376,8 @@ export class TournamentManager {
     }
   }
 
-  openMatchImportModal(round: Round, phase: Phase, importResults: MatchImportResult[]) {
-    this.matchImportResultsManager.openModal(round, phase, importResults);
+  openMatchImportModal(importResults: MatchImportResult[], round?: Round) {
+    this.matchImportResultsManager.openModal(importResults, round);
   }
 
   closeMatchImportModal(shouldSave: boolean) {

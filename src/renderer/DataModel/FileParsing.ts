@@ -90,21 +90,34 @@ export default class FileParser {
     return registrations;
   }
 
+  /**
+   * Parse a file for just the matches
+   * @param objectsFromFile the objects array from a qbj file
+   * @returns List of match objects with their round numbers (could be NaN if the round wasn't numeric)
+   */
   static findMatches(objectsFromFile: IQbjObject[]) {
-    const matches: IQbjMatch[] = [];
+    const matchesByRound: { roundName: string; match: IQbjMatch }[] = [];
+    const refDict: IRefTargetDict = {};
     for (const obj of objectsFromFile) {
-      if (obj.type === QbjTypeNames.Match) matches.push(obj as IQbjMatch);
+      if (obj.type === QbjTypeNames.Match && obj.id) {
+        refDict[obj.id] = obj;
+      }
     }
     const tourn = findTournamentObject(objectsFromFile);
-    if (tourn === null) return matches;
+    if (tourn === null) return matchesByRound;
     for (const ph of tourn.phases ?? []) {
       for (const rd of ph.rounds ?? []) {
         for (const m of rd.matches ?? []) {
-          if (!isQbjRefPointer(m as IIndeterminateQbj)) matches.push(m);
+          if (!isQbjRefPointer(m as IIndeterminateQbj)) {
+            matchesByRound.push({ roundName: rd.name, match: m });
+          } else {
+            const ref = (m as unknown as IQbjRefPointer).$ref;
+            if (refDict[ref]) matchesByRound.push({ roundName: rd.name, match: refDict[ref] as IQbjMatch });
+          }
         }
       }
     }
-    return matches;
+    return matchesByRound;
   }
 
   parseYftTournament(obj: IYftFileTournament, curYfVersion?: string): Tournament | null {

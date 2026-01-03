@@ -42,6 +42,7 @@ export default function MatchImportResultDialog() {
 }
 
 enum ResultTableColumns {
+  RoundNo,
   FileName,
   MatchTitle,
   Message,
@@ -69,6 +70,7 @@ function MatchImportResultDialogCore() {
   const errs = allResults.filter((r) => r.status === ImportResultStatus.ErrNonFatal);
   const fatals = allResults.filter((r) => r.status === ImportResultStatus.FatalErr);
   const couldImportAnything = successes.length > 0 || warnings.length > 0 || errs.length > 0;
+  const dialogTitle = round ? `Round ${round.name} Import Preview` : 'Import Preview';
 
   const handleAccept = () => {
     acceptButtonRef.current?.focus();
@@ -84,7 +86,7 @@ function MatchImportResultDialogCore() {
 
   return (
     <Dialog open={isOpen} fullWidth maxWidth="xl" onClose={handleCancel}>
-      <DialogTitle>{`Round ${round?.name} Import Preview`}</DialogTitle>
+      <DialogTitle>{dialogTitle}</DialogTitle>
       <DialogContent>
         {successes.length > 0 && (
           <>
@@ -93,7 +95,7 @@ function MatchImportResultDialogCore() {
               <Alert severity="success" sx={{ marginBottom: 1 }}>
                 {sectionHelpText[ImportResultStatus.Success]}
               </Alert>
-              <ResultTable resultList={successes} />
+              <ResultTable resultList={successes} showRoundCol={!round} />
             </Box>
           </>
         )}
@@ -106,7 +108,7 @@ function MatchImportResultDialogCore() {
               <Alert severity="warning" sx={{ marginBottom: 1 }}>
                 {sectionHelpText[ImportResultStatus.Warning]}
               </Alert>
-              <ResultTable resultList={warnings} />
+              <ResultTable resultList={warnings} showRoundCol={!round} />
             </Box>
           </>
         )}
@@ -119,7 +121,7 @@ function MatchImportResultDialogCore() {
               <Alert severity="error" sx={{ marginBottom: 1 }}>
                 {sectionHelpText[ImportResultStatus.ErrNonFatal]}
               </Alert>
-              <ResultTable resultList={errs} />
+              <ResultTable resultList={errs} showRoundCol={!round} />
             </Box>
           </>
         )}
@@ -132,7 +134,7 @@ function MatchImportResultDialogCore() {
               <Alert severity="error" icon={<Cancel />} sx={{ marginBottom: 1 }}>
                 {sectionHelpText[ImportResultStatus.FatalErr]}
               </Alert>
-              <ResultTable resultList={fatals} />
+              <ResultTable resultList={fatals} showRoundCol={!round} />
             </Box>
           </>
         )}
@@ -147,10 +149,11 @@ function MatchImportResultDialogCore() {
 
 interface IResultTableProps {
   resultList: MatchImportResult[];
+  showRoundCol: boolean;
 }
 
 function ResultTable(props: IResultTableProps) {
-  const { resultList } = props;
+  const { resultList, showRoundCol } = props;
 
   if (resultList.length === 0) {
     return <Box sx={{ px: 2 }}>None</Box>;
@@ -162,7 +165,7 @@ function ResultTable(props: IResultTableProps) {
         <TableBody>
           {resultList.map((rslt, idx) => (
             // eslint-disable-next-line react/no-array-index-key
-            <ResultTableRow key={idx} result={rslt} />
+            <ResultTableRow key={idx} result={rslt} showRoundCol={showRoundCol} />
           ))}
         </TableBody>
       </Table>
@@ -172,6 +175,7 @@ function ResultTable(props: IResultTableProps) {
 
 interface IResultTableRowProps {
   result: MatchImportResult;
+  showRoundCol: boolean;
 }
 
 const toggleOptions = {
@@ -180,15 +184,18 @@ const toggleOptions = {
 };
 
 function ResultTableRow(props: IResultTableRowProps) {
-  const { result } = props;
+  const { result, showRoundCol } = props;
   const modalManager = useContext(MatchImportResultsModalContext);
   const [keepResult, setKeepResult] = useSubscription(result.proceedWithImport);
   if (result.status === undefined) return null;
 
-  const cols = getColumnList(result.status);
+  const cols = getColumnList(result.status, showRoundCol);
 
   return (
     <TableRow>
+      {cols.includes(ResultTableColumns.RoundNo) && (
+        <TableCell width="10%">{`Round ${result.round?.number}`}</TableCell>
+      )}
       {cols.includes(ResultTableColumns.FileName) && (
         <TableCell width="20%">{getFileNameFromPath(result.filePath)}</TableCell>
       )}
@@ -240,8 +247,13 @@ function MessageList(props: IMessageListProps) {
   ));
 }
 
-function getColumnList(status: ImportResultStatus) {
-  const cols: ResultTableColumns[] = [ResultTableColumns.FileName];
+function getColumnList(status: ImportResultStatus, showRoundCol: boolean) {
+  const cols: ResultTableColumns[] = [];
+  if (showRoundCol) {
+    cols.push(ResultTableColumns.RoundNo);
+  }
+  cols.push(ResultTableColumns.FileName);
+
   if (status !== ImportResultStatus.FatalErr) {
     cols.push(ResultTableColumns.MatchTitle);
   }
