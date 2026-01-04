@@ -35,10 +35,10 @@ function MaxPlayersSettingsCard() {
   return (
     <YfCard title="Players">
       <YfNumericField
-        sx={{ marginTop: 1, width: '13ch' }}
+        sx={{ marginTop: 1, width: '14ch' }}
         size="small"
         inputProps={{ min: 1, disabled: readOnly }}
-        label="Max Per Team"
+        label="Max Active/Team"
         value={numPlayers}
         error={!numPlayersIsValid()}
         onChange={(e) => setNumPlayers(e.target.value)}
