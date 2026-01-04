@@ -42,57 +42,57 @@ jobs:
         run: |
           npm exec electron-builder -- --publish always --mac
 
-  publish-win:
-    runs-on: ${{ matrix.os }}
+  # publish-win:
+  #   runs-on: ${{ matrix.os }}
 
-    strategy:
-      matrix:
-        os: [windows-latest]
+  #   strategy:
+  #     matrix:
+  #       os: [windows-latest]
 
-    steps:
-      - name: Checkout git repo
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout git repo
+  #       uses: actions/checkout@v3
 
-      - name: Install Node and NPM
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22
-          cache: npm
+  #     - name: Install Node and NPM
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 22
+  #         cache: npm
 
-      - name: Install and build
-        run: |
-          npm install
-          npm run postinstall
-          npm run build
+  #     - name: Install and build
+  #       run: |
+  #         npm install
+  #         npm run postinstall
+  #         npm run build
 
-      - name: Publish windows releases
-        env:
-          # This is used for uploading release assets to github
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npm exec electron-builder -- --publish always --windows
+  #     - name: Publish windows releases
+  #       env:
+  #         # This is used for uploading release assets to github
+  #         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       run: |
+  #         npm exec electron-builder -- --publish always --windows
 
-      - name: Create zip file with unpacked code
-        uses: vimtor/action-zip@v1.2
-        with:
-          files: release/build/win-unpacked
-          dest: win-unpacked.zip
+  #     - name: Create zip file with unpacked code
+  #       uses: vimtor/action-zip@v1.2
+  #       with:
+  #         files: release/build/win-unpacked
+  #         dest: win-unpacked.zip
 
-        # Electron-builder does this automatically for the packaged versions, but we need to do it ourselves for the zip file
-      - name: Get most recent pre-release
-        id: getPreRelease
-        uses: cardinalby/git-get-release-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          latest: true
-          draft: true
+  #       # Electron-builder does this automatically for the packaged versions, but we need to do it ourselves for the zip file
+  #     - name: Get most recent pre-release
+  #       id: getPreRelease
+  #       uses: cardinalby/git-get-release-action@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         latest: true
+  #         draft: true
 
-      - name: Upload zip file
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.getPreRelease.outputs.tag_name }}
-          files: win-unpacked.zip
+  #     - name: Upload zip file
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         tag_name: ${{ steps.getPreRelease.outputs.tag_name }}
+  #         files: win-unpacked.zip
 
   publish-linux:
     runs-on: ${{ matrix.os }}
