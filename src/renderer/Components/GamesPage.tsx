@@ -66,16 +66,18 @@ export default function GamesPage() {
             </Grid>
             <Grid xs>
               <Tooltip placement="top" title="Import games from one file into multiple rounds">
-                <Button
-                  sx={{ marginTop: '1px' }}
-                  variant="outlined"
-                  size="medium"
-                  startIcon={<FileUpload />}
-                  disabled={tournManager.tournament.phases.length === 0}
-                  onClick={() => tournManager.launchImportMatchWorkflow()}
-                >
-                  Import
-                </Button>
+                <span>
+                  <Button
+                    sx={{ marginTop: '1px' }}
+                    variant="outlined"
+                    size="medium"
+                    startIcon={<FileUpload />}
+                    disabled={tournManager.tournament.phases.length === 0}
+                    onClick={() => tournManager.launchImportMatchWorkflow()}
+                  >
+                    Import
+                  </Button>
+                </span>
               </Tooltip>
             </Grid>
             {curView === 0 && (
