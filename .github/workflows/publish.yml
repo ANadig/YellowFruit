@@ -80,7 +80,7 @@ jobs:
 
         # Electron-builder does this automatically for the packaged versions, but we need to do it ourselves for the zip file
       - name: Get most recent pre-release
-        id: getPreRelease
+        id: getDraftRelease
         uses: cardinalby/git-get-release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -88,11 +88,12 @@ jobs:
           latest: true
           draft: true
 
-      # - name: Upload zip file
-      #   uses: softprops/action-gh-release@v2
-      #   with:
-      #     tag_name: ${{ steps.getPreRelease.outputs.tag_name }}
-      #     files: win-unpacked.zip
+      - name: Upload zip file
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.getDraftRelease.outputs.tag_name }}
+          draft: true
+          files: win-unpacked.zip
 
   publish-linux:
     runs-on: ${{ matrix.os }}
