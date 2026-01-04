@@ -536,7 +536,7 @@ export class TournamentManager {
   /**
    * Parse a qbj or qbj-like file and add its matches to the given round
    * @param fileAry The files we're trying to parse
-   * @param round Which round the matches should go into. If not passed, use the files to determine the correct rounds
+   * @param round Which round the matches should go into. If not passed, use the files to determine the correct rounds.
    */
   private importMatchesFromQbj(fileAry: IMatchImportFileRequest[], round?: Round) {
     const phase = round ? this.tournament.findPhaseByRound(round) : undefined;
