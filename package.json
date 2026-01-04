@@ -228,7 +228,8 @@
     "publish": {
       "provider": "github",
       "owner": "ANadig",
-      "repo": "YellowFruit"
+      "repo": "YellowFruit",
+      "releaseType": "draft"
     }
   },
   "engines": {
