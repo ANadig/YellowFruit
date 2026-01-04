@@ -184,6 +184,7 @@ export class TempTeamManager {
         existingTeam.copyFromTeam(this.tempTeam, 'restoreSource');
         this.tempRegistration.addTeam(existingTeam);
       } else {
+        this.tempTeam.removeNullPlayers(); // not entirely sure why we need to do this again
         this.tempRegistration.addTeam(this.tempTeam);
       }
     }
