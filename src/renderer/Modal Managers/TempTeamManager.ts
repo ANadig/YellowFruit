@@ -171,15 +171,21 @@ export class TempTeamManager {
    * Transfer data from temp object to real object
    * @param targetReg real Registration object to save to
    * @param teamIsNew is this team new to this Registration? (regardless of whether it previously existed on another Registration)
+   * @param existingTeam Existing team that is being moved to this registration
    */
-  saveRegistration(targetReg: Registration, teamIsNew?: boolean) {
+  saveRegistration(targetReg: Registration, teamIsNew?: boolean, existingTeam?: Team) {
     if (teamIsNew) {
       this.tempRegistration.teams = [];
       if (targetReg.teams.length === 1 && this.tempTeam.letter === 'B') {
         targetReg.teams[0].makeThisTheATeam();
       }
       this.tempRegistration.addTeams(targetReg.teams);
-      this.tempRegistration.addTeam(this.tempTeam);
+      if (existingTeam) {
+        existingTeam.copyFromTeam(this.tempTeam, 'restoreSource');
+        this.tempRegistration.addTeam(existingTeam);
+      } else {
+        this.tempRegistration.addTeam(this.tempTeam);
+      }
     }
     targetReg.copyFromRegistration(this.tempRegistration);
     targetReg.compileTeamNames();

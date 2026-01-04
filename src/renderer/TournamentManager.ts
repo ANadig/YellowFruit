@@ -1299,16 +1299,22 @@ export class TournamentManager {
     );
     const registrationSwitched = this.registrationBeingModified !== actualRegToModify;
 
-    if (this.registrationBeingModified !== null && registrationSwitched) {
-      this.tournament.deleteTeam(this.registrationBeingModified, this.teamBeingModified);
-    }
-
     if (actualRegToModify === null) {
+      // brand new registration
       this.tournament.addRegAndTeam(this.teamModalManager.tempRegistration, this.teamModalManager.tempTeam);
-    } else if (this.teamBeingModified === null || registrationSwitched) {
+    } else if (this.teamBeingModified === null) {
+      // brand new team on existing registration
       this.teamModalManager.saveRegistration(actualRegToModify, true);
       this.tournament.seedTeamsInRegistration(actualRegToModify);
+    } else if (registrationSwitched) {
+      // existing team being moved from one registration to another
+      this.teamModalManager.saveRegistration(actualRegToModify, true, this.teamBeingModified);
+      if (this.registrationBeingModified !== null) {
+        // remove the team from the old registration
+        this.tournament.deleteTeam(this.registrationBeingModified, this.teamBeingModified);
+      }
     } else {
+      // existing team being modified without changing the registration
       this.teamModalManager.saveTeam(actualRegToModify, this.teamBeingModified);
     }
     this.teamEditModalReset(stayOpen, startNextLetter);
