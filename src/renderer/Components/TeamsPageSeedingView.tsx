@@ -161,6 +161,7 @@ function PoolView() {
 
   if (!phase) return null;
 
+  const unassignedTeams = thisTournament.getTeamsNotInAPool(phase);
   return (
     <Grid container spacing={2}>
       {phase.pools.map((pool) => (
@@ -170,6 +171,13 @@ function PoolView() {
           </TableContainer>
         </Grid>
       ))}
+      {!usingTemplate && unassignedTeams.length > 0 && (
+        <Grid xs={12}>
+          <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+            <UnassignedTeamsList teamList={unassignedTeams} />
+          </TableContainer>
+        </Grid>
+      )}
     </Grid>
   );
 }
@@ -283,10 +291,35 @@ function UnseededPoolTable(props: IUnseededPoolTableProps) {
   );
 }
 
+interface IUnassignedTeamsListProps {
+  teamList: Team[];
+}
+
+function UnassignedTeamsList(props: IUnassignedTeamsListProps) {
+  const { teamList } = props;
+  const listItems = teamList.map((t) => (
+    <PoolViewTableRowUnseeded key={t.name} team={t} index={null} pool={null} canMove />
+  ));
+
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell>Unassigned</TableCell>
+          <TableCell sx={{ width: '40px' }} />
+        </TableRow>
+      </TableHead>
+      <TableBody sx={{ '& .MuiSvgIcon-root': { fontSize: '1.2rem' }, '& .MuiIconButton-root': { p: 0 } }}>
+        {listItems}
+      </TableBody>
+    </Table>
+  );
+}
+
 interface IPoolViewTableRowUnseededProps {
   team: Team | null;
   index: number | null;
-  pool: Pool;
+  pool: Pool | null;
   canMove: boolean;
 }
 
@@ -299,10 +332,11 @@ function PoolViewTableRowUnseeded(props: IPoolViewTableRowUnseededProps) {
   const phase = tournManager.tournament.getPrelimPhase();
 
   const handleDrop = (droppedData: string) => {
+    if (!pool) return;
     const [originPool, draggedTeam] = unseededDragDataDeserialize(droppedData, tournManager.tournament);
-    if (!originPool || !draggedTeam) return;
+    if (!draggedTeam) return;
 
-    tournManager.unseededTeamDragDrop(originPool, pool, draggedTeam);
+    tournManager.unseededTeamDragDrop(originPool ?? null, pool, draggedTeam);
   };
 
   const handleModalAccept = () => {
@@ -319,19 +353,20 @@ function PoolViewTableRowUnseeded(props: IPoolViewTableRowUnseededProps) {
       onDragEnter={(e) => e.preventDefault()}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
+        if (pool === null) return;
         e.preventDefault();
         const data = e.dataTransfer.getData(unseededTeamDragItemKey);
         handleDrop(data);
       }}
     >
-      <TableCell>{index}</TableCell>
+      {pool && <TableCell>{index}</TableCell>}
       <TableCell>{team?.name ?? '-'}</TableCell>
       <TableCell>
         {canMove && team && (
           <Tooltip title="Change pool assignment">
             <IconButton
               size="small"
-              onClick={() => tournManager.openPoolAssignmentModal(team, phase, handleModalAccept, pool)}
+              onClick={() => tournManager.openPoolAssignmentModal(team, phase, handleModalAccept, pool ?? undefined)}
             >
               <Edit />
             </IconButton>
@@ -342,8 +377,8 @@ function PoolViewTableRowUnseeded(props: IPoolViewTableRowUnseededProps) {
   );
 }
 
-function unseededDragDataSerialize(pool: Pool, team: Team | null) {
-  return `${pool.name}${String.fromCharCode(1)}${team?.name || ''}`;
+function unseededDragDataSerialize(pool: Pool | null, team: Team | null) {
+  return `${pool?.name ?? ''}${String.fromCharCode(1)}${team?.name || ''}`;
 }
 
 function unseededDragDataDeserialize(data: string, tourn: Tournament): [Pool | undefined, Team | undefined] {

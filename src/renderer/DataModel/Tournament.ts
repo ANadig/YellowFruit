@@ -845,6 +845,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
     this.getPrelimPhase()?.setTeamList(this.seeds);
   }
 
+  /** The list of teams not assigned to any pool in the given phase */
+  getTeamsNotInAPool(phase: Phase) {
+    return this.getListOfAllTeams().filter((t) => !phase.findPoolWithTeam(t));
+  }
+
   addMatch(match: Match, round: Round) {
     const phase = this.whichPhaseIsRoundIn(round);
     if (!phase) return;

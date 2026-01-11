@@ -1167,15 +1167,21 @@ export class TournamentManager {
     this.onDataChanged();
   }
 
-  unseededTeamDragDrop(originPool: Pool, targetPool: Pool, teamBeingDropped: Team) {
+  /**
+   * Move a team between lists on the seeing page
+   * @param originPool Pool the team was in, or null if they weren't in any pool
+   * @param targetPool Pool the team is being moved to
+   * @param teamBeingDropped Team being moved
+   */
+  unseededTeamDragDrop(originPool: Pool | null, targetPool: Pool, teamBeingDropped: Team) {
     if (originPool === targetPool) return;
 
-    originPool.removeTeam(teamBeingDropped);
+    if (originPool) originPool.removeTeam(teamBeingDropped);
     targetPool.addTeam(teamBeingDropped);
 
     const phase = this.tournament.getPrelimPhase();
     if (phase) {
-      phase.revalidateMatchesForPoolCompatibility(originPool);
+      if (originPool) phase.revalidateMatchesForPoolCompatibility(originPool);
       phase.revalidateMatchesForPoolCompatibility(targetPool);
     }
 

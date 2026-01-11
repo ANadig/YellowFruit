@@ -23,6 +23,7 @@ export default function PoolAssignmentDialog() {
   const [showNone] = useSubscription(modalManager.showNoneOption);
   const defaultOption = showNone ? PoolAssignmentModalManager.noneOptionKey : '';
   const [selectedPool, setSeletedPool] = useSubscription(modalManager.selectedPool?.name || defaultOption);
+  const canAccept = selectedPool !== '';
 
   const handleAccept = () => {
     tournManager.closePoolAssignmentModal(true);
@@ -36,7 +37,7 @@ export default function PoolAssignmentDialog() {
   };
 
   useHotkeys('alt+c', () => handleCancel(), { enabled: isOpen, enableOnFormTags: true });
-  useHotkeys('alt+a', () => handleAccept(), { enabled: isOpen, enableOnFormTags: true });
+  useHotkeys('alt+a', () => handleAccept(), { enabled: isOpen && canAccept, enableOnFormTags: true });
 
   if (!modalManager.phase) return null;
 
@@ -57,7 +58,7 @@ export default function PoolAssignmentDialog() {
       </DialogContent>
       <DialogActions>
         <YfCancelButton onClick={handleCancel} />
-        <YfAcceptButton onClick={handleAccept} />
+        <YfAcceptButton onClick={handleAccept} disabled={!canAccept} />
       </DialogActions>
     </Dialog>
   );
