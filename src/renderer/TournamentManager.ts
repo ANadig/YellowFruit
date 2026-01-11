@@ -174,6 +174,9 @@ export class TournamentManager {
     window.electron.ipcRenderer.on(IpcMainToRend.ImportSqbsTeams, (contents) => {
       this.importSqbsTeams(contents as string);
     });
+    window.electron.ipcRenderer.on(IpcMainToRend.ImportQbjGamesMainLaunch, (fileAry) => {
+      this.importMatchesFromQbj(fileAry as IMatchImportFileRequest[]);
+    });
     window.electron.ipcRenderer.on(IpcMainToRend.MakeToast, (message) => {
       this.makeToast(message as string);
     });
@@ -526,9 +529,8 @@ export class TournamentManager {
    */
   async launchImportMatchWorkflow(round?: Round) {
     const files = (await window.electron.ipcRenderer.invoke(
-      IpcBidirectional.ImportQbjGames,
+      IpcBidirectional.ImportQbjGamesRendererLaunch,
     )) as IMatchImportFileRequest[];
-    if (files.length === 0) return;
 
     this.importMatchesFromQbj(files, round);
   }
@@ -539,6 +541,8 @@ export class TournamentManager {
    * @param round Which round the matches should go into. If not passed, use the files to determine the correct rounds.
    */
   private importMatchesFromQbj(fileAry: IMatchImportFileRequest[], round?: Round) {
+    if (fileAry.length === 0) return;
+
     const phase = round ? this.tournament.findPhaseByRound(round) : undefined;
 
     let results: MatchImportResult[] = [];

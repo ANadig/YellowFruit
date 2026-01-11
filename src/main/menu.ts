@@ -1,6 +1,7 @@
 import { app, Menu, BrowserWindow, MenuItemConstructorOptions } from 'electron';
 import {
   exportQbjFile,
+  importGamesFromQbjMainLaunch,
   importQbjTeams,
   importSqbsTeams,
   launchHelpWindow,
@@ -48,6 +49,13 @@ export default class MenuBuilder {
           label: 'Import Teams and Rosters Only',
           click: () => {
             importQbjTeams(this.mainWindow);
+          },
+        },
+        {
+          label: 'Import Games Only',
+          accelerator: 'CmdOrCtrl+M',
+          click: () => {
+            importGamesFromQbjMainLaunch(this.mainWindow);
           },
         },
       ],

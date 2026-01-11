@@ -124,3 +124,9 @@ export function trunc(s: string, size: number) {
   if (s.length <= size) return s;
   return `${s.substring(0, size).trim()}...`;
 }
+
+/** Returns Ctrl or ⌘, for showing keyboard shortcuts */
+export function CtrlOrCmd() {
+  if (window.electron.getPlatform() === 'darwin') return String.fromCharCode(0x2318);
+  return 'Ctrl';
+}

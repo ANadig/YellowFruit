@@ -393,10 +393,19 @@ function writeSqbsFile(files: SqbsExportFile[], idx: number, window: BrowserWind
   });
 }
 
-export async function handleImportGamesFromQbj(event: IpcMainInvokeEvent) {
+export function importGamesFromQbjMainLaunch(window: BrowserWindow) {
+  const fileAry = promptForQbjGamesToImport(window);
+  window.webContents.send(IpcMainToRend.ImportQbjGamesMainLaunch, fileAry);
+}
+
+export async function importGamesFromQbjRendererLaunch(event: IpcMainInvokeEvent) {
   const window = BrowserWindow.fromWebContents(event.sender);
   if (!window) return [];
 
+  return promptForQbjGamesToImport(window);
+}
+
+function promptForQbjGamesToImport(window: BrowserWindow) {
   const fileNameAry = dialog.showOpenDialogSync(window, {
     title: 'Import Games',
     filters: [{ name: 'Tournament Schema ', extensions: ['qbj', 'json'] }],

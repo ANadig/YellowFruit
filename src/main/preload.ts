@@ -26,6 +26,8 @@ const electronHandler = {
       }
     },
   },
+  /** Get the process.platform variable */
+  getPlatform: () => process.platform,
 };
 
 contextBridge.exposeInMainWorld('electron', electronHandler);

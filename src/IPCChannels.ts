@@ -61,6 +61,8 @@ export enum IpcMainToRend {
   MakeToast = 'MakeToast',
   /** Launch an informational help window */
   LaunchAboutYf = 'LaunchAboutYf',
+  /** QBJ game import workflow, triggered by Main process */
+  ImportQbjGamesMainLaunch = 'ImportQbjGamesMainLaunch',
 }
 
 /** Channels for both directions renderer<-->main */
@@ -71,7 +73,7 @@ export enum IpcBidirectional {
   /** Export QBJ schema file format */
   ExportQbjFile = 'ExportQbjFile',
   /** Import individual games from qbj files */
-  ImportQbjGames = 'ImportQbjGames',
+  ImportQbjGamesRendererLaunch = 'ImportQbjGames',
   /** For asking for and receiving the app version number */
   GetAppVersion = 'GetAppVersion',
   /** For the main process asking for and receiving SQBS files to save */
@@ -97,10 +99,11 @@ export const rendererListenableEvents = [
   IpcMainToRend.ImportQbjTeams,
   IpcMainToRend.ImportSqbsTeams,
   IpcMainToRend.MakeToast,
+  IpcMainToRend.ImportQbjGamesMainLaunch,
   IpcMainToRend.LaunchAboutYf,
   IpcBidirectional.LoadBackup,
   IpcBidirectional.ExportQbjFile,
-  IpcBidirectional.ImportQbjGames,
+  IpcBidirectional.ImportQbjGamesRendererLaunch,
   IpcBidirectional.GetAppVersion,
   IpcBidirectional.SqbsExport,
   IpcBidirectional.CheckForNewVersion,

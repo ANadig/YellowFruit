@@ -29,7 +29,7 @@ import {
   handleLoadBackup,
   handleExportQbjFile,
   createDirectories,
-  handleImportGamesFromQbj,
+  importGamesFromQbjRendererLaunch,
   readYftFileAndSendToRend,
   handleLaunchImportQbjTeamsFromRenderer,
   handleLaunchImportSqbsTeamsFromRenderer,
@@ -178,7 +178,7 @@ app
     ipcMain.on(IpcRendToMain.LaunchStatReportInBrowser, handlelaunchStatReportInBrowserWindow);
     ipcMain.on(IpcRendToMain.LaunchExternalWebPage, handleLaunchExternalWebPage);
     ipcMain.on(IpcBidirectional.CheckForNewVersion, checkForNewVersions);
-    ipcMain.handle(IpcBidirectional.ImportQbjGames, handleImportGamesFromQbj);
+    ipcMain.handle(IpcBidirectional.ImportQbjGamesRendererLaunch, importGamesFromQbjRendererLaunch);
     ipcMain.once(IpcBidirectional.LoadBackup, handleLoadBackup);
     ipcMain.once(IpcRendToMain.StartAutosave, () => {
       setInterval(() => generateBackup(mainWindow), autoSaveIntervalMS);

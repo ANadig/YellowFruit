@@ -194,7 +194,7 @@ function ResultTableRow(props: IResultTableRowProps) {
   return (
     <TableRow>
       {cols.includes(ResultTableColumns.RoundNo) && (
-        <TableCell width="10%">{`Round ${result.round?.number}`}</TableCell>
+        <TableCell width="10%">{`Round ${result.round?.number ?? 'unknown'}`}</TableCell>
       )}
       {cols.includes(ResultTableColumns.FileName) && (
         <TableCell width="20%">{getFileNameFromPath(result.filePath)}</TableCell>

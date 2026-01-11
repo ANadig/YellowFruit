@@ -29,7 +29,7 @@ import { Round } from '../DataModel/Round';
 import GamesViewByPool from './GamesPagePoolView';
 import { ValidationStatuses } from '../DataModel/Interfaces';
 import { Team } from '../DataModel/Team';
-import { trunc } from '../Utils/GeneralUtils';
+import { CtrlOrCmd, trunc } from '../Utils/GeneralUtils';
 
 // Defines the order the buttons should be in
 const viewList = ['By Round', 'By Pool'];
@@ -65,7 +65,7 @@ export default function GamesPage() {
               </ToggleButtonGroup>
             </Grid>
             <Grid xs>
-              <Tooltip placement="top" title="Import games from one file into multiple rounds">
+              <Tooltip placement="top" title={`Import games from one file into multiple rounds (${CtrlOrCmd()}+M)`}>
                 <span>
                   <Button
                     sx={{ marginTop: '1px' }}
