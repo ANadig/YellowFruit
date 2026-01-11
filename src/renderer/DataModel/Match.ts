@@ -756,9 +756,10 @@ export class Match implements IQbjMatch, IYftDataModelObject {
   }
 
   validateOvertimeTuhField(scoringRules: ScoringRules) {
-    if (this.overtimeTossupsRead === undefined || this.overtimeTossupsRead === 0) {
+    if (this.isForfeit() || this.overtimeTossupsRead === undefined || this.overtimeTossupsRead === 0) {
       this.overtimeTuhFieldValidation.setOk();
       this.modalBottomValidation.clearMsgType(MatchValidationType.OtTuhLessThanMinimum);
+      this.modalBottomValidation.clearMsgType(MatchValidationType.OvertimeTuhTooHigh);
       return;
     }
     if (this.overtimeTossupsRead < 0 || this.overtimeTossupsRead > 999) {
@@ -840,6 +841,7 @@ export class Match implements IQbjMatch, IYftDataModelObject {
 
   validateOvertimeScoreMath(scoringRules: ScoringRules) {
     if (
+      this.isForfeit() ||
       this.leftTeam.points === undefined ||
       this.rightTeam.points === undefined ||
       this.overtimeTossupsRead === undefined ||

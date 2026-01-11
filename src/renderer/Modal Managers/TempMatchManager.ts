@@ -136,6 +136,9 @@ export class TempMatchManager {
     if (this.tempMatch.isForfeit()) {
       this.tempMatch.leftTeam.matchPlayers = [];
       this.tempMatch.rightTeam.matchPlayers = [];
+      delete this.tempMatch.overtimeTossupsRead;
+      this.tempMatch.leftTeam.overTimeBuzzes.forEach((ac) => delete ac.number);
+      this.tempMatch.rightTeam.overTimeBuzzes.forEach((ac) => delete ac.number);
     }
     this.tempMatch.validateAll(this.tournament.scoringRules);
     this.validateTeamPools(false);
@@ -347,6 +350,7 @@ export class TempMatchManager {
     }
     this.tempMatch.validateForfeit();
     this.tempMatch.validateTotalTuh(this.tournament.scoringRules);
+    this.tempMatch.validateOvertimeTuhField(this.tournament.scoringRules);
     this.dataChangedReactCallback();
   }
 

@@ -791,6 +791,8 @@ function OvertimeSection() {
   const modalManager = useContext(MatchEditModalContext);
   const [formExpanded, setFormExpanded] = useState(false);
 
+  if (modalManager.tempMatch.isForfeit()) return null;
+
   return (
     <Card variant="outlined" sx={{ p: 1 }}>
       <Box sx={{ cursor: 'pointer' }}>
