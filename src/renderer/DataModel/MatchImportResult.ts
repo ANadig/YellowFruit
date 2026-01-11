@@ -1,5 +1,6 @@
 import { Match } from './Match';
 import { Phase } from './Phase';
+import { Pool } from './Pool';
 import { Round } from './Round';
 import { Team } from './Team';
 
@@ -44,15 +45,15 @@ class MatchImportResult {
       this.proceedWithImport = false;
       return;
     }
+    this.proceedWithImport = true;
+    this.validateSamePool();
     const warnings = m.getWarningMessages();
     if (warnings.length > 0) {
       this.status = ImportResultStatus.Warning;
       this.messages = warnings;
-      this.proceedWithImport = true;
-      return;
+    } else {
+      this.status = ImportResultStatus.Success;
     }
-    this.status = ImportResultStatus.Success;
-    this.proceedWithImport = true;
   }
 
   markFatal(msg: string) {
@@ -60,28 +61,52 @@ class MatchImportResult {
     this.messages = [msg];
   }
 
+  markWarning(msg?: string) {
+    if (msg) this.messages.push(msg);
+    if (this.status === ImportResultStatus.Success) this.status = ImportResultStatus.Warning;
+  }
+
+  /** Determine whether the match is between two teams from the same pool */
+  validateSamePool() {
+    if (!this.match || !this.phase) return;
+
+    const leftTeam = this.match.leftTeam.team;
+    const rightTeam = this.match.rightTeam.team;
+    const leftPool = leftTeam && this.phase.findPoolWithTeam(leftTeam);
+    const rightPool = rightTeam && this.phase.findPoolWithTeam(rightTeam);
+    if (leftPool !== rightPool || (!leftPool && !rightPool)) {
+      this.match.setSamePoolValidation(false, false);
+    }
+  }
+
   /**
    * Determine whether the user is trying to import multiple matches for the same team (for the same round)
    */
   static validateImportSetForTeamDups(results: MatchImportResult[]) {
-    const teamsFound: Team[] = [];
+    const sortedResults = results.slice().sort((a, b) => (a.round?.number ?? -1) - (b.round?.number ?? -1));
+    let curRound: Round | undefined = undefined;
+    let teamsInRound: Team[] = [];
     for (const rslt of results) {
-      const { match } = rslt;
-      if (!match) continue;
+      const { match, round } = rslt;
+      if (!match || !round) continue;
+
+      if (curRound !== round) {
+        curRound = round;
+        teamsInRound = [];
+      }
 
       const leftTeam = match.leftTeam.team;
       const rightTeam = match.rightTeam.team;
-      const leftDup = leftTeam && teamsFound.includes(leftTeam);
-      const rightDup = rightTeam && teamsFound.includes(rightTeam);
+      const leftDup = leftTeam && teamsInRound.includes(leftTeam);
+      const rightDup = rightTeam && teamsInRound.includes(rightTeam);
       let msg = '';
       if (leftDup) msg += `You are importing multiple games for ${leftTeam.name} into this round.`;
       if (rightDup) msg += `You are importing multiple games for ${rightTeam.name} into this round.`;
       if (leftDup || rightDup) {
-        rslt.messages.push(msg);
-        if (rslt.status === ImportResultStatus.Success) rslt.status = ImportResultStatus.Warning;
+        rslt.markWarning(msg);
       }
-      if (leftTeam && !leftDup) teamsFound.push(leftTeam);
-      if (rightTeam && !rightDup) teamsFound.push(rightTeam);
+      if (leftTeam && !leftDup) teamsInRound.push(leftTeam);
+      if (rightTeam && !rightDup) teamsInRound.push(rightTeam);
     }
   }
 }
