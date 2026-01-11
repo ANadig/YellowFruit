@@ -754,7 +754,7 @@ export default class HtmlReportGenerator {
     }
     if (this.tournament.scoringRules.bonusesBounceBack) {
       cells.push(stdTdHeader(teamStats.bounceBackPartsHeard?.toString() ?? '0', true));
-      cells.push(stdTdHeader(teamStats.bounceBackPartsHeard?.toString() ?? '0', true));
+      cells.push(stdTdHeader(teamStats.bounceBackPoints.toString() ?? '0', true));
       cells.push(stdTdHeader(teamStats.getBouncebackConvPctString(), true));
     }
     if (this.tournament.scoringRules.useLightningRounds()) {

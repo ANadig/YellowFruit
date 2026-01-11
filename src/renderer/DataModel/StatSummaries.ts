@@ -522,7 +522,6 @@ export class PoolTeamStats {
 
   bonusPoints: number = 0;
 
-  /** currently unused */
   bounceBackPoints: number = 0;
 
   bounceBackPartsHeard: number = 0;
@@ -635,6 +634,7 @@ export class PoolTeamStats {
       this.bounceBackPartsConverted +=
         (matchTeam.bonusBouncebackPoints || 0) / (this.scoringRules.pointsPerBonusPart || 10);
       this.bounceBackPartsHeard += match.getBouncebackPartsHeard(whichTeam, this.scoringRules) || 0;
+      this.bounceBackPoints += matchTeam.bonusBouncebackPoints || 0;
     }
     this.lightningPoints += matchTeam.lightningPoints || 0;
 
