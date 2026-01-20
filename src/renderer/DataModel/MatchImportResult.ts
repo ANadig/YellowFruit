@@ -86,7 +86,7 @@ class MatchImportResult {
     const sortedResults = results.slice().sort((a, b) => (a.round?.number ?? -1) - (b.round?.number ?? -1));
     let curRound: Round | undefined = undefined;
     let teamsInRound: Team[] = [];
-    for (const rslt of results) {
+    for (const rslt of sortedResults) {
       const { match, round } = rslt;
       if (!match || !round) continue;
 
