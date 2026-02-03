@@ -847,12 +847,10 @@ export default class FileParser {
       nameToMatch = (qbjTeam as IQbjTeam).name;
     }
 
-    const importResult = getYfTeamFromName(nameToMatch, this.importPhase);
+    const importResult = getYfTeamFromName(nameToMatch, this.tourn.getListOfAllTeams());
     if (importResult.confidence < stringSimConfThreshold) {
       throw new Error(
-        `Couldn't find team '${nameToMatch}' within ${this.importPhase.name}. Closest team name found: ${
-          importResult.matchedObj?.name || 'none'
-        }.`,
+        `Couldn't find team '${nameToMatch}'. Closest team name found: ${importResult.matchedObj?.name || 'none'}.`,
       );
     }
     return importResult.matchedObj;
@@ -1181,17 +1179,14 @@ interface IStringMatchResult<T> {
   confidence: number;
 }
 
-function getYfTeamFromName(name: string, phase?: Phase) {
+function getYfTeamFromName(name: string, possibleTeams: Team[]) {
   const result: IStringMatchResult<Team> = { confidence: 0 };
-  if (!phase) return result;
 
-  for (const pool of phase.pools) {
-    for (const pt of pool.poolTeams) {
-      const conf = stringSimilarity(name, pt.team.name);
-      if (conf >= result.confidence) {
-        result.confidence = conf;
-        result.matchedObj = pt.team;
-      }
+  for (const t of possibleTeams) {
+    const conf = stringSimilarity(name, t.name);
+    if (conf >= result.confidence) {
+      result.confidence = conf;
+      result.matchedObj = t;
     }
   }
   return result;

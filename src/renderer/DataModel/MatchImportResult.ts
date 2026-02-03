@@ -69,6 +69,7 @@ class MatchImportResult {
   /** Determine whether the match is between two teams from the same pool */
   validateSamePool() {
     if (!this.match || !this.phase) return;
+    if (!this.phase.isFullPhase()) return;
 
     const leftTeam = this.match.leftTeam.team;
     const rightTeam = this.match.rightTeam.team;
