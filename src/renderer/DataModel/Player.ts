@@ -10,7 +10,7 @@ import { QbjTypeNames } from './QbjEnums';
 import { makeQbjRefPointer } from './QbjUtils';
 
 /** Grades/years in school */
-enum PlayerYear {
+export enum PlayerYear {
   NotApplicable = -1,
   Kindergarten = 0,
   Grade1 = 1,
@@ -149,7 +149,7 @@ export class Player implements IQbjPlayer, IYftDataModelObject {
     14: ['so'],
     15: ['ju', 'jr'],
     16: ['sen', 'sr'],
-    17: ['post-s', 'post s'],
+    17: ['post-s', 'post s', '5s', '5 s', '5th y', '5th-y', '5ths', '5th s'],
     18: ['grad'],
   };
 
