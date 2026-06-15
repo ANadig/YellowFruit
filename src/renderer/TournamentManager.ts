@@ -770,7 +770,7 @@ export class TournamentManager {
     this.makeToast('File saved');
   }
 
-  private setFilePath(path: string | null) {
+  protected setFilePath(path: string | null) {
     this.filePath = path || null;
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.setYftFilePath, path || '');
   }
@@ -1610,6 +1610,9 @@ class NullTournamentManager extends TournamentManager {
 
   // eslint-disable-next-line class-methods-use-this
   checkForNewVersion(): void {}
+
+  // eslint-disable-next-line class-methods-use-this
+  setFilePath(): void {}
 }
 
 /** React context that elements can use to access the TournamentManager and its data without

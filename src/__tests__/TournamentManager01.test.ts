@@ -15,6 +15,12 @@ class TestTournamentManager extends TournamentManager {
 
   // eslint-disable-next-line class-methods-use-this
   requestBackupFile(): void {}
+
+  // eslint-disable-next-line class-methods-use-this
+  checkForNewVersion(): void {}
+
+  // eslint-disable-next-line class-methods-use-this
+  setFilePath(): void {}
 }
 
 // #region setTournamentName
