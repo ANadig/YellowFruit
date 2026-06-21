@@ -1,5 +1,8 @@
 // QBJ schema uses a different case for property names than the internal YF data structures do
 
+import { versionLt } from '../Utils/GeneralUtils';
+import { QbjTypeNames } from './QbjEnums';
+
 export function camelCaseToSnakeCase(obj: any) {
   if (typeof obj !== 'object') return;
 
@@ -43,7 +46,6 @@ export function camelCaseToSnakeCase(obj: any) {
   obj.replacement_tossup_start_time = obj.replacementTossupStartTime;
   obj.replacement_tossup_question_match_teams = obj.replacementTossupQuestionMatchTeams;
   obj.bonus_points = obj.bonusPoints;
-  obj.bonus_bounceback_points = obj.bonusBouncebackPoints;
   obj.bonus_start_time = obj.bonusStartTime;
   obj.replacement_bonus = obj.replacementBonus;
   obj.buzz_position = obj.buzzPosition;
@@ -56,6 +58,8 @@ export function camelCaseToSnakeCase(obj: any) {
   obj.bonus_points = obj.bonusPoints;
   obj.correct_tossups_without_bonuses = obj.correctTossupsWithoutBonuses;
   obj.bonus_bounceback_points = obj.bonusBouncebackPoints;
+  obj.lightning_points = obj.lightningPoints;
+  obj.lightning_bounceback_points = obj.lightningBouncebackPoints;
   obj.match_players = obj.matchPlayers;
   obj.suppress_from_statistics = obj.suppressFromStatistics;
   obj.tossups_heard = obj.tossupsHeard;
@@ -106,7 +110,6 @@ export function camelCaseToSnakeCase(obj: any) {
   delete obj.replacementTossupStartTime;
   delete obj.replacementTossupQuestionMatchTeams;
   delete obj.bonusPoints;
-  delete obj.bonusBouncebackPoints;
   delete obj.bonusStartTime;
   delete obj.replacementBonus;
   delete obj.buzzPosition;
@@ -119,6 +122,8 @@ export function camelCaseToSnakeCase(obj: any) {
   delete obj.bonusPoints;
   delete obj.correctTossupsWithoutBonuses;
   delete obj.bonusBouncebackPoints;
+  delete obj.lightningPoints;
+  delete obj.lightningBouncebackPoints;
   delete obj.matchPlayers;
   delete obj.suppressFromStatistics;
   delete obj.tossupsHeard;
@@ -177,7 +182,6 @@ export function snakeCaseToCamelCase(obj: any) {
   obj.replacementTossupStartTime = obj.replacement_tossup_start_time;
   obj.replacementTossupQuestionMatchTeams = obj.replacement_tossup_question_match_teams;
   obj.bonusPoints = obj.bonus_points;
-  obj.bonusBouncebackPoints = obj.bonus_bounceback_points;
   obj.bonusStartTime = obj.bonus_start_time;
   obj.replacementBonus = obj.replacement_bonus;
   obj.buzzPosition = obj.buzz_position;
@@ -190,6 +194,8 @@ export function snakeCaseToCamelCase(obj: any) {
   obj.bonusPoints = obj.bonus_points;
   obj.correctTossupsWithoutBonuses = obj.correct_tossups_without_bonuses;
   obj.bonusBouncebackPoints = obj.bonus_bounceback_points;
+  obj.lightningPoints = obj.lightning_points;
+  obj.lightningBouncebackPoints = obj.lightning_bounceback_points;
   obj.matchPlayers = obj.match_players;
   obj.suppressFromStatistics = obj.suppress_from_statistics;
   obj.tossupsHeard = obj.tossups_heard;
@@ -240,7 +246,6 @@ export function snakeCaseToCamelCase(obj: any) {
   delete obj.replacement_tossup_start_time;
   delete obj.replacement_tossup_question_match_teams;
   delete obj.bonus_points;
-  delete obj.bonus_bounceback_points;
   delete obj.bonus_start_time;
   delete obj.replacement_bonus;
   delete obj.buzz_position;
@@ -253,6 +258,8 @@ export function snakeCaseToCamelCase(obj: any) {
   delete obj.bonus_points;
   delete obj.correct_tossups_without_bonuses;
   delete obj.bonus_bounceback_points;
+  delete obj.lightning_points;
+  delete obj.lightning_bounceback_points;
   delete obj.match_players;
   delete obj.suppress_from_statistics;
   delete obj.tossups_heard;
@@ -265,5 +272,38 @@ export function snakeCaseToCamelCase(obj: any) {
 
   for (const prop in obj) {
     if (typeof obj[prop] === 'object') snakeCaseToCamelCase(obj[prop]);
+  }
+}
+
+/**
+ *  Data conversions that need to be run on a .yft file immediately after parsing the JSON, *before* running snakeCaseToCamelCase
+ * @param fileObj The top-level object representing the whole yft file
+ */
+export function earlyYftFileConversions(fileObj: any) {
+  let version = '';
+  try {
+    const yftObjects: any[] = fileObj.objects;
+    const tournamentObj = yftObjects.find((o) => o.type === QbjTypeNames.Tournament);
+    version = tournamentObj?.YfData?.YfVersion;
+  } catch {
+    return;
+  }
+
+  console.log(version);
+
+  if (!version) return;
+
+  if (versionLt(version, '4.0.18')) {
+    fixLightningPointsConversion(fileObj);
+  }
+}
+
+/** In older versions, the lightning points attribute was in camel case. Fix it so that snakeCaseToCamelCase doesn't wipe it out */
+function fixLightningPointsConversion(obj: any) {
+  obj.lightning_points = obj.lightningPoints;
+  delete obj.lightningPoints;
+
+  for (const prop in obj) {
+    if (typeof obj[prop] === 'object') fixLightningPointsConversion(obj[prop]);
   }
 }

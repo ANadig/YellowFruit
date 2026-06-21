@@ -30,7 +30,7 @@ import { Round } from './DataModel/Round';
 import TempPhaseManager from './Modal Managers/TempPhaseManager';
 import TempPoolManager from './Modal Managers/TempPoolManager';
 import TempRankManager from './Modal Managers/TempRankManager';
-import { snakeCaseToCamelCase, camelCaseToSnakeCase } from './DataModel/CaseConversion';
+import { snakeCaseToCamelCase, camelCaseToSnakeCase, earlyYftFileConversions } from './DataModel/CaseConversion';
 import { CommonRuleSets } from './DataModel/ScoringRules';
 import { qbjFileValidVersion } from './DataModel/QbjUtils';
 import PoolAssignmentModalManager from './Modal Managers/PoolAssignmentModalManager';
@@ -298,6 +298,7 @@ export class TournamentManager {
   }
 
   private parseYftFile(filePath: string, objFromFile: object, curYfVersion?: string) {
+    earlyYftFileConversions(objFromFile);
     snakeCaseToCamelCase(objFromFile);
     const loadedTournament = this.loadTournamentFromQbjObjects(objFromFile as IQbjWholeFile, curYfVersion);
     if (loadedTournament === null) {

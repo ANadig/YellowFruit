@@ -25,6 +25,8 @@ export interface IQbjMatchTeam extends IQbjObject {
   bonusBouncebackPoints?: number;
   /** The number of points this team earned on lightning questions */
   lightningPoints?: number;
+  /** Points earned from lightning questions bounced back from opponent (not currently implemented) */
+  lightningBounceBackPoints?: number;
   /** The performances of the players on this team */
   matchPlayers?: IQbjMatchPlayer[];
 }
