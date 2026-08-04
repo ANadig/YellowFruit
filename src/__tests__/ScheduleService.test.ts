@@ -1,5 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import { ScheduledMatch, ScheduledMatchStatus } from '../renderer/DataModel/ScheduledMatch';
+import { Phase, PhaseTypes } from '../renderer/DataModel/Phase';
+import { Pool } from '../renderer/DataModel/Pool';
+import { PoolTeam } from '../renderer/DataModel/PoolTeam';
+import { Team } from '../renderer/DataModel/Team';
 import { TournamentRoom } from '../renderer/DataModel/TournamentRoom';
 import {
   IScheduleIssue,
@@ -8,10 +12,12 @@ import {
   checkRoomDeletion,
   generateSchedule,
   hasBlockingIssue,
+  mergeGeneratedSchedule,
   moveRoom,
   normalizeRoomOrder,
   roundsWithGames,
   summarizeRound,
+  validatePhaseScheduleCompleteness,
   validateDraft,
   validateSchedule,
 } from '../renderer/Services/ScheduleService';
@@ -232,6 +238,13 @@ describe('room deletion', () => {
 
     expect(check.canDelete).toBe(false);
     expect(check.reason).toContain('in progress');
+  });
+
+  test('a room with a rejected result needing attention cannot be deleted', () => {
+    const rooms = makeRooms(['Room 101']);
+    const scheduled = [makeScheduled(1, teamNames[0], teamNames[1], rooms[0].id, ScheduledMatchStatus.NeedsAttention)];
+
+    expect(checkRoomDeletion(rooms[0], scheduled).canDelete).toBe(false);
   });
 
   test('games in a different room do not block deletion', () => {
@@ -731,6 +744,16 @@ describe('summarizeRound', () => {
     expect(summary.complete).toBe(true);
   });
 
+  test('a round made entirely of cancelled games is resolved', () => {
+    const scheduled = eightGameRound();
+    for (const match of scheduled) match.status = ScheduledMatchStatus.Cancelled;
+
+    const summary = summarizeRound(scheduled, 4);
+
+    expect(summary.expected).toBe(0);
+    expect(summary.complete).toBe(true);
+  });
+
   test('a submitted game still awaiting review keeps the round incomplete', () => {
     const scheduled = eightGameRound();
     for (const match of scheduled) match.status = ScheduledMatchStatus.Accepted;
@@ -754,5 +777,51 @@ describe('summarizeRound', () => {
     const scheduled = [makeScheduled(7, 'A', 'B'), makeScheduled(2, 'C', 'D'), makeScheduled(7, 'E', 'F')];
 
     expect(roundsWithGames(scheduled)).toEqual([2, 7]);
+  });
+});
+
+describe('generated schedule application', () => {
+  const rooms = makeRooms(['101', '102']);
+
+  test('replaces future assignments but retains accepted history', () => {
+    const accepted = makeScheduled(1, 'A', 'B', rooms[0].id, ScheduledMatchStatus.Accepted);
+    accepted.resultMatchId = 'Match_1';
+    const future = makeScheduled(2, 'A', 'C', rooms[0].id, ScheduledMatchStatus.Ready);
+    const laterFuture = makeScheduled(5, 'C', 'D', rooms[1].id, ScheduledMatchStatus.Scheduled);
+    const generated = makeScheduled(2, 'B', 'D', rooms[1].id);
+
+    const result = mergeGeneratedSchedule([accepted, future, laterFuture], [generated], rooms);
+
+    expect(result.preservedMatches).toEqual([accepted, laterFuture]);
+    expect(result.replacedFutureCount).toBe(1);
+    expect(result.scheduledMatches).toEqual([accepted, generated, laterFuture]);
+    expect(result.scheduledMatches.find((match) => match.resultMatchId === 'Match_1')).toBe(accepted);
+  });
+
+  test('does not add a generated duplicate for an accepted pairing', () => {
+    const accepted = makeScheduled(1, 'A', 'B', rooms[0].id, ScheduledMatchStatus.Accepted);
+    const generated = makeScheduled(1, 'B', 'A', rooms[1].id);
+
+    const result = mergeGeneratedSchedule([accepted], [generated], rooms);
+
+    expect(result.scheduledMatches).toHaveLength(1);
+    expect(result.scheduledMatches[0]).toBe(accepted);
+  });
+
+  test('detects a missing configured pairing before rebracketing', () => {
+    const phase = new Phase(PhaseTypes.Prelim, 1, 3, 'prelim');
+    const syntheticPool = new Pool(3, 1, 'Pool', false, 1, 3);
+    syntheticPool.roundRobins = 1;
+    syntheticPool.poolTeams = ['A', 'B', 'C'].map((name) => new PoolTeam(new Team(name)));
+    phase.pools = [syntheticPool];
+
+    const onlyFirstGame = [makeScheduled(1, 'A', 'B', rooms[0].id, ScheduledMatchStatus.Accepted)];
+    const issues = validatePhaseScheduleCompleteness(phase, onlyFirstGame);
+
+    expect(issues.map((issue) => issue.message)).toEqual([
+      'Round 1 is missing C vs B.',
+      'Round 2 is missing C vs A.',
+      'Round 3 is missing A vs B.',
+    ]);
   });
 });

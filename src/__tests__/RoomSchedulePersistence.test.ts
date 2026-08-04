@@ -183,6 +183,34 @@ describe('scheduled matches in the .yft file', () => {
   });
 });
 
+describe('round release metadata in the .yft file', () => {
+  test('released round, automatic release, and rebracket checkpoints round-trip', () => {
+    const { original, reopened, written } = saveAndReopen((tourn) => {
+      tourn.releasedRoundNumber = 4;
+      tourn.autoReleaseNextRound = true;
+      tourn.rebracketedPhaseCodes = ['prelim'];
+    });
+
+    expect(written.YfData.releasedRoundNumber).toBe(4);
+    expect(reopened.releasedRoundNumber).toBe(original.releasedRoundNumber);
+    expect(reopened.autoReleaseNextRound).toBe(true);
+    expect(reopened.rebracketedPhaseCodes).toEqual(['prelim']);
+  });
+
+  test('legacy files without release metadata remain closed until a round is released', () => {
+    const { written } = saveAndReopen(() => {});
+    delete written.YfData.releasedRoundNumber;
+    delete written.YfData.autoReleaseNextRound;
+    delete written.YfData.rebracketedPhaseCodes;
+
+    const reopened = reopen(written);
+
+    expect(reopened.releasedRoundNumber).toBeNull();
+    expect(reopened.autoReleaseNextRound).toBe(false);
+    expect(reopened.rebracketedPhaseCodes).toEqual([]);
+  });
+});
+
 describe('QBJ export stays clean', () => {
   test('rooms and scheduled matches are not written to QBJ', () => {
     const tourn = makeTestTournament();

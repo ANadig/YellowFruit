@@ -169,6 +169,14 @@ export default class FileParser {
       this.tourn.appVersion = yfExtraData.YfVersion || '';
       this.tourn.rooms = FileParser.parseRoomList(yfExtraData.rooms);
       this.tourn.scheduledMatches = FileParser.parseScheduledMatchList(yfExtraData.scheduledMatches);
+      this.tourn.releasedRoundNumber =
+        typeof yfExtraData.releasedRoundNumber === 'number' && Number.isFinite(yfExtraData.releasedRoundNumber)
+          ? yfExtraData.releasedRoundNumber
+          : null;
+      this.tourn.autoReleaseNextRound = yfExtraData.autoReleaseNextRound === true;
+      this.tourn.rebracketedPhaseCodes = Array.isArray(yfExtraData.rebracketedPhaseCodes)
+        ? yfExtraData.rebracketedPhaseCodes.filter((code): code is string => typeof code === 'string')
+        : [];
     } else {
       this.tourn.inferCarryoverStatus();
     }

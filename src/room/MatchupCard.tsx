@@ -9,7 +9,12 @@
  * No celebration when a game lands. A submitted result is a piece of tournament administration, and
  * the useful thing to show is what happens next.
  */
-import { IRoomAssignmentResponse, IRoomMatchupSummary, RoomBlockedReason } from '../main/server/ServerTypes';
+import {
+  IRoomAssignmentResponse,
+  IRoomMatchupSummary,
+  RoomBlockedReason,
+  SessionStatus,
+} from '../main/server/ServerTypes';
 
 export interface IMatchupCardProps {
   assignment: IRoomAssignmentResponse;
@@ -37,10 +42,20 @@ function ContextLine({ label, matchup }: { label: string; matchup: IRoomMatchupS
   );
 }
 
+function startButtonLabel(starting: boolean, awaitingControl: boolean): string {
+  if (starting) return 'Starting…';
+  if (awaitingControl) return 'Waiting for tournament control';
+  return 'Start Match';
+}
+
 export default function MatchupCard(props: IMatchupCardProps) {
   const { assignment, online, starting, startError, pendingFinal, submittedSummary, canStart, blockedReason, onStart } =
     props;
   const { current, previous, next, roomName, tournamentName } = assignment;
+  const awaitingControl =
+    pendingFinal ||
+    assignment.session?.status === SessionStatus.Submitted ||
+    assignment.session?.finalReceived === true;
 
   return (
     <div className="room-shell">
@@ -96,8 +111,14 @@ export default function MatchupCard(props: IMatchupCardProps) {
 
           {startError !== '' && <div className="room-banner room-banner-error">{startError}</div>}
 
+          {awaitingControl && (
+            <div className="room-banner room-banner-info">
+              <strong>Match submitted.</strong> Waiting for tournament control to accept the result.
+            </div>
+          )}
+
           <button type="button" className="room-button" onClick={onStart} disabled={!canStart || starting}>
-            {starting ? 'Starting…' : 'Start Match'}
+            {startButtonLabel(starting, awaitingControl)}
           </button>
         </div>
       )}

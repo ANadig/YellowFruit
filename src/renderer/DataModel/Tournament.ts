@@ -79,6 +79,12 @@ interface ITournamentExtraData {
   rooms?: IYftFileRoom[];
   /** Games the tournament intends to play, as opposed to ones it has played */
   scheduledMatches?: IYftFileScheduledMatch[];
+  /** The last round explicitly released to room scorekeepers */
+  releasedRoundNumber?: number;
+  /** Whether control should release the next round after the current one is complete */
+  autoReleaseNextRound?: boolean;
+  /** Full phases whose advancement checkpoint has already been confirmed */
+  rebracketedPhaseCodes?: string[];
 }
 
 /** YellowFruit implementation of the Tournament object */
@@ -152,6 +158,15 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
    */
   scheduledMatches: ScheduledMatch[] = [];
 
+  /** The highest round rooms are currently allowed to start. Null means no round is released. */
+  releasedRoundNumber: number | null = null;
+
+  /** Optional convenience for continuous prelims; rebracket boundaries still require confirmation. */
+  autoReleaseNextRound: boolean = false;
+
+  /** Explicit confirmation history for phase boundaries; never inferred from generated schedules. */
+  rebracketedPhaseCodes: string[] = [];
+
   htmlGenerator: HtmlReportGenerator;
 
   appVersion: string = '';
@@ -202,6 +217,9 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       rooms: this.rooms.length > 0 ? this.rooms.map((room) => room.toYftFileObject()) : undefined,
       scheduledMatches:
         this.scheduledMatches.length > 0 ? this.scheduledMatches.map((match) => match.toYftFileObject()) : undefined,
+      releasedRoundNumber: this.releasedRoundNumber ?? undefined,
+      autoReleaseNextRound: this.autoReleaseNextRound || undefined,
+      rebracketedPhaseCodes: this.rebracketedPhaseCodes.length > 0 ? this.rebracketedPhaseCodes : undefined,
     };
     const yftFileObj = { YfData: metadata, ...qbjObject };
 

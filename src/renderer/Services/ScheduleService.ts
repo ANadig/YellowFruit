@@ -10,6 +10,7 @@
  * scorekeeper picks the wrong one; a game handed to a disabled room means nobody shows up.
  */
 import { ScheduledMatch, ScheduledMatchStatus } from '../DataModel/ScheduledMatch';
+import { Phase } from '../DataModel/Phase';
 import { TournamentRoom } from '../DataModel/TournamentRoom';
 import { IAllocatableRoom, IPoolPairingRequest, allocateRooms, generatePhasePairings } from './RoundRobinScheduler';
 
@@ -260,11 +261,16 @@ export function checkRoomDeletion(room: TournamentRoom, scheduled: ScheduledMatc
     };
   }
 
-  const inProgress = inThisRoom.filter((match) => match.status === ScheduledMatchStatus.Playing);
+  const inProgress = inThisRoom.filter(
+    (match) => match.status === ScheduledMatchStatus.Playing || match.status === ScheduledMatchStatus.NeedsAttention,
+  );
   if (inProgress.length > 0) {
+    const hasNeedsAttention = inProgress.some((match) => match.status === ScheduledMatchStatus.NeedsAttention);
     return {
       canDelete: false,
-      reason: `${room.name} has a game in progress. Wait for it to finish before deleting the room.`,
+      reason: hasNeedsAttention
+        ? `${room.name} has a game that still needs attention. Resolve it before deleting the room.`
+        : `${room.name} has a game in progress. Wait for it to finish before deleting the room.`,
       affectedScheduledMatchIds: inProgress.map((p) => p.id),
     };
   }
@@ -383,6 +389,47 @@ export function generateSchedule(request: IGenerationRequest, rooms: TournamentR
   return { scheduledMatches, issues };
 }
 
+export interface IMergedScheduleResult {
+  scheduledMatches: ScheduledMatch[];
+  /** Accepted, cancelled, playing, submitted, and needs-attention games retained from history/state. */
+  preservedMatches: ScheduledMatch[];
+  /** Future scheduled/ready games that were replaced by the preview. */
+  replacedFutureCount: number;
+  issues: IScheduleIssue[];
+}
+
+/**
+ * Apply a generated preview without erasing anything that has already happened or is currently in
+ * flight. This is intentionally a separate pure operation so the UI can show the exact replacement
+ * impact before it mutates the tournament.
+ */
+export function mergeGeneratedSchedule(
+  existing: ScheduledMatch[],
+  generated: ScheduledMatch[],
+  rooms: TournamentRoom[],
+): IMergedScheduleResult {
+  const generatedRoundNumbers = new Set(generated.map((match) => match.roundNumber));
+  const preservedMatches = existing.filter(
+    (match) =>
+      (match.status !== ScheduledMatchStatus.Scheduled && match.status !== ScheduledMatchStatus.Ready) ||
+      !generatedRoundNumbers.has(match.roundNumber),
+  );
+  const protectedPairs = new Set(preservedMatches.map((match) => `${match.roundNumber}\u0000${match.teamPairKey()}`));
+  const generatedToKeep = generated.filter(
+    (match) => !protectedPairs.has(`${match.roundNumber}\u0000${match.teamPairKey()}`),
+  );
+  const scheduledMatches = [...preservedMatches, ...generatedToKeep].sort(
+    (a, b) => a.roundNumber - b.roundNumber || a.roomId?.localeCompare(b.roomId ?? '') || a.id.localeCompare(b.id),
+  );
+
+  return {
+    scheduledMatches,
+    preservedMatches,
+    replacedFutureCount: existing.length - preservedMatches.length,
+    issues: validateSchedule(scheduledMatches, rooms),
+  };
+}
+
 // #endregion
 
 // #region Round readiness
@@ -427,13 +474,54 @@ export function summarizeRound(scheduled: ScheduledMatch[], roundNumber: number)
     waiting: countOf(ScheduledMatchStatus.Scheduled) + countOf(ScheduledMatchStatus.Ready),
     cancelled,
     needsAttention: countOf(ScheduledMatchStatus.NeedsAttention),
-    complete: expected > 0 && accepted === expected,
+    complete: inRound.length > 0 && accepted + cancelled === inRound.length,
   };
 }
 
 /** Every round that has scheduled games, in order */
 export function roundsWithGames(scheduled: ScheduledMatch[]): number[] {
   return Array.from(new Set(scheduled.map((match) => match.roundNumber))).sort((a, b) => a - b);
+}
+
+/**
+ * Check that a pool-based phase has every pairing its configured round robin requires.
+ *
+ * This is intentionally separate from `validateSchedule`: an otherwise conflict-free schedule can
+ * still be incomplete if one generated game was deleted or never assigned. Manual/ad-hoc games are
+ * allowed; only missing configured pairings are errors.
+ */
+export function validatePhaseScheduleCompleteness(phase: Phase, scheduled: ScheduledMatch[]): IScheduleIssue[] {
+  if (phase.pools.length === 0) return [];
+
+  const generated = generatePhasePairings(
+    phase.pools.map((pool, index) => ({
+      poolId: `${phase.code}-${index}`,
+      teamIds: pool.poolTeams.map((poolTeam) => poolTeam.team.name),
+      roundRobins: pool.roundRobins,
+    })),
+  );
+  const actual = new Set(
+    scheduled
+      .filter(
+        (match) => phase.includesRoundNumber(match.roundNumber) && match.status !== ScheduledMatchStatus.Cancelled,
+      )
+      .map((match) => `${match.roundNumber}\u0000${match.teamPairKey()}`),
+  );
+  const roundNumbers = phase.rounds.map((round) => round.number).sort((a, b) => a - b);
+  const issues: IScheduleIssue[] = [];
+
+  for (const round of generated) {
+    const roundNumber = roundNumbers[round.roundIndex - 1];
+    if (roundNumber === undefined) continue;
+    for (const pairing of round.pairings) {
+      const pairKey = [pairing.leftTeamId, pairing.rightTeamId].sort().join('\u0000');
+      if (!actual.has(`${roundNumber}\u0000${pairKey}`)) {
+        issues.push(error(`Round ${roundNumber} is missing ${pairing.leftTeamId} vs ${pairing.rightTeamId}.`));
+      }
+    }
+  }
+
+  return issues;
 }
 
 // #endregion

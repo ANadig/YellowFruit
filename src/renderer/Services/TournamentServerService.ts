@@ -8,6 +8,7 @@ import scoringRulesToModaqGameFormat from './YellowFruitScoringRulesToModaq';
 import { IpcBidirectional, IpcMainToRend, IpcRendToMain } from '../../IPCChannels';
 import {
   IMatchSubmission,
+  IRoomPresence,
   IServerStatus,
   ISessionSummary,
   ISubmissionVerdict,
@@ -27,6 +28,7 @@ export interface IInboxItem {
   /** The scheduled game this is a result for, when the room was playing an assignment */
   scheduledMatchId?: string;
   roomId?: string;
+  roomName?: string;
   /** Result of running the submission through the shared QBJ importer */
   importResult: MatchImportResult;
 }
@@ -62,6 +64,9 @@ export default class TournamentServerService {
   /** Submissions awaiting the statskeeper's decision, newest first */
   inbox: IInboxItem[] = [];
 
+  /** Last check-in for every configured room, including idle rooms with no open session */
+  roomPresence: IRoomPresence[] = [];
+
   /** Set when starting the server fails, so the Rooms page can show why */
   lastError: string = '';
 
@@ -82,17 +87,23 @@ export default class TournamentServerService {
   /** Called when a match is accepted, so TournamentManager can mark the file dirty and recompile */
   onMatchAccepted: (result: MatchImportResult) => void;
 
+  /** Called when operational scheduling state changes outside of a result import. */
+  onScheduleChanged: () => void;
+
   private tournament: Tournament;
 
   constructor(tournament: Tournament) {
     this.tournament = tournament;
     this.dataChangedReactCallback = () => {};
     this.onMatchAccepted = () => {};
+    this.onScheduleChanged = () => {};
   }
 
   setTournament(tournament: Tournament) {
     this.tournament = tournament;
-    if (this.status.running) this.pushTournamentSnapshot();
+    // Push even while stopped so the main process can scope any recovery data before the next
+    // start. This does not bind a port or make the optional server visible on the LAN.
+    this.pushTournamentSnapshot();
   }
 
   /** Subscribe to the main process's tournament-server messages */
@@ -154,7 +165,20 @@ export default class TournamentServerService {
           status: match.status,
         })),
       currentRoundNumber: this.currentRoundNumber,
+      releasedRoundNumber: this.tournament.releasedRoundNumber,
+      recoveryKey: this.recoveryKey(),
     };
+  }
+
+  /** Stable identity for transient recovery; live status and scores are intentionally excluded. */
+  private recoveryKey(): string {
+    return JSON.stringify({
+      name: this.tournament.name,
+      roomIds: this.tournament.rooms.map((room) => room.id).sort(),
+      scheduled: this.tournament.scheduledMatches
+        .map((match) => [match.id, match.roundNumber, match.leftTeamName, match.rightTeamName])
+        .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+    });
   }
 
   /**
@@ -178,8 +202,90 @@ export default class TournamentServerService {
   /** Open a round explicitly. A control-room action; rooms cannot do this. */
   setRoundOverride(roundNumber: number | null) {
     this.roundOverride = roundNumber;
+    this.tournament.releasedRoundNumber = roundNumber;
+    if (roundNumber !== null) {
+      for (const scheduled of this.tournament.scheduledMatches) {
+        if (scheduled.roundNumber === roundNumber && scheduled.status === ScheduledMatchStatus.Scheduled) {
+          scheduled.status = ScheduledMatchStatus.Ready;
+        }
+      }
+    }
     if (this.status.running) this.pushTournamentSnapshot();
+    this.onScheduleChanged();
     this.dataChangedReactCallback();
+  }
+
+  get releasedRoundNumber(): number | null {
+    return this.tournament.releasedRoundNumber;
+  }
+
+  /** Release one round to rooms without touching accepted history. */
+  releaseRound(roundNumber: number): boolean {
+    const hasGames = this.tournament.scheduledMatches.some((match) => match.roundNumber === roundNumber);
+    if (!hasGames) return false;
+
+    this.tournament.releasedRoundNumber = roundNumber;
+    this.roundOverride = null;
+    for (const scheduled of this.tournament.scheduledMatches) {
+      if (scheduled.roundNumber === roundNumber && scheduled.status === ScheduledMatchStatus.Scheduled) {
+        scheduled.status = ScheduledMatchStatus.Ready;
+      }
+    }
+    this.pushTournamentSnapshot();
+    this.onScheduleChanged();
+    this.dataChangedReactCallback();
+    return true;
+  }
+
+  clearReleasedRound() {
+    this.tournament.releasedRoundNumber = null;
+    this.roundOverride = null;
+    this.pushTournamentSnapshot();
+    this.onScheduleChanged();
+    this.dataChangedReactCallback();
+  }
+
+  setAutoReleaseNextRound(enabled: boolean) {
+    this.tournament.autoReleaseNextRound = enabled;
+    this.pushTournamentSnapshot();
+    this.onScheduleChanged();
+    this.dataChangedReactCallback();
+  }
+
+  /** Candidate next round for the manual release control. */
+  nextRoundToRelease(): number | null {
+    const rounds = Array.from(new Set(this.tournament.scheduledMatches.map((match) => match.roundNumber))).sort(
+      (a, b) => a - b,
+    );
+    const released = this.tournament.releasedRoundNumber;
+    if (released === null) {
+      return (
+        rounds.find((roundNumber) =>
+          this.tournament.scheduledMatches.some((match) => match.roundNumber === roundNumber && !match.isResolved()),
+        ) ?? null
+      );
+    }
+    return rounds.find((roundNumber) => roundNumber > released) ?? null;
+  }
+
+  /** Automatically release only after the current round is actually complete. */
+  private maybeAutoReleaseNextRound() {
+    if (!this.tournament.autoReleaseNextRound) return;
+    const released = this.tournament.releasedRoundNumber;
+    if (released === null) return;
+
+    const releasedMatches = this.tournament.scheduledMatches.filter((match) => match.roundNumber === released);
+    if (releasedMatches.length === 0 || releasedMatches.some((match) => !match.isResolved())) return;
+
+    const next = this.nextRoundToRelease();
+    if (next === null) return;
+
+    // A phase boundary is a deliberate TD checkpoint. The next phase can only be released after
+    // rebracketing confirmation, even when continuous release is enabled for ordinary rounds.
+    const previousPhase = this.tournament.whichPhaseIsRoundNumberIn(released);
+    const nextPhase = this.tournament.whichPhaseIsRoundNumberIn(next);
+    if (previousPhase && nextPhase && previousPhase !== nextPhase) return;
+    this.releaseRound(next);
   }
 
   /** Find a scheduled match by id */
@@ -204,12 +310,16 @@ export default class TournamentServerService {
     ) {
       scheduled.status = ScheduledMatchStatus.Playing;
       this.pushTournamentSnapshot();
+      this.onScheduleChanged();
       this.dataChangedReactCallback();
     }
   }
 
   /** Send the current tournament projection to the main process so the server can serve it */
   pushTournamentSnapshot() {
+    // TournamentManager is also exercised in Node-only tests where the Electron preload bridge
+    // does not exist yet. The real renderer always has window.electron.
+    if (typeof window === 'undefined' || !window.electron) return;
     window.electron.ipcRenderer.sendMessage(IpcRendToMain.TournamentServerSetSnapshot, this.buildTournamentSnapshot());
   }
 
@@ -241,6 +351,11 @@ export default class TournamentServerService {
     this.status = (await window.electron.ipcRenderer.invoke(
       IpcBidirectional.TournamentServerGetStatus,
     )) as IServerStatus;
+    const pending = (await window.electron.ipcRenderer.invoke(
+      IpcBidirectional.TournamentServerGetPendingSubmissions,
+    )) as IMatchSubmission[];
+    pending.forEach((submission) => this.handleSubmission(submission));
+    await this.refreshPresence();
     this.dataChangedReactCallback();
   }
 
@@ -250,6 +365,14 @@ export default class TournamentServerService {
     this.sessions =
       ((await window.electron.ipcRenderer.invoke(IpcBidirectional.TournamentServerGetSessions)) as ISessionSummary[]) ??
       [];
+    this.dataChangedReactCallback();
+  }
+
+  async refreshPresence() {
+    this.roomPresence =
+      ((await window.electron.ipcRenderer.invoke(
+        IpcBidirectional.TournamentServerGetRoomPresence,
+      )) as IRoomPresence[]) ?? [];
     this.dataChangedReactCallback();
   }
 
@@ -312,11 +435,15 @@ export default class TournamentServerService {
         submittedAt: submission.submittedAt,
         scheduledMatchId: submission.scheduledMatchId,
         roomId: submission.roomId,
+        roomName: submission.roomId
+          ? this.tournament.rooms.find((room) => room.id === submission.roomId)?.name
+          : undefined,
         importResult,
       },
       ...this.inbox.filter((item) => item.sessionId !== submission.sessionId),
     ];
     this.pushTournamentSnapshot();
+    this.onScheduleChanged();
     this.dataChangedReactCallback();
   }
 
@@ -375,6 +502,7 @@ export default class TournamentServerService {
     this.inbox = this.inbox.filter((i) => i.sessionId !== sessionId);
     this.sendVerdict({ sessionId, accepted: true });
     this.onMatchAccepted(importResult);
+    this.maybeAutoReleaseNextRound();
     // The accepted result may have made the next round current, so rooms need to hear about it.
     this.pushTournamentSnapshot();
     this.dataChangedReactCallback();
@@ -394,6 +522,7 @@ export default class TournamentServerService {
     this.inbox = this.inbox.filter((i) => i.sessionId !== sessionId);
     this.sendVerdict({ sessionId, accepted: false, reason });
     this.pushTournamentSnapshot();
+    this.onScheduleChanged();
     this.dataChangedReactCallback();
     return true;
   }
@@ -414,6 +543,7 @@ export default class TournamentServerService {
     this.inbox = [];
     this.sessions = [];
     this.conflicts = [];
+    this.roomPresence = [];
     this.roundOverride = null;
   }
 }

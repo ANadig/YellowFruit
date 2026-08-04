@@ -124,6 +124,7 @@ export class TournamentManager {
     // Created before addIpcListeners so that its own listeners can be registered alongside ours.
     this.tournamentServerService = new TournamentServerService(this.tournament);
     this.tournamentServerService.onMatchAccepted = () => this.onRemoteMatchAccepted();
+    this.tournamentServerService.onScheduleChanged = () => this.markTournamentDataChanged();
     this.addIpcListeners();
 
     this.genericModalManager = new GenericModalManager();
@@ -1416,6 +1417,17 @@ export class TournamentManager {
     if (doesntAffectFile) return;
 
     this.markFileDirty();
+  }
+
+  /**
+   * Public bridge for the tournament-operations surface.
+   *
+   * Room and scheduled-match controls live beside the server service rather than inside the older
+   * modal managers, but their edits still need the normal dirty-file and React notification path.
+   */
+  markTournamentDataChanged() {
+    this.tournamentServerService.pushTournamentSnapshot();
+    this.onDataChanged();
   }
 
   private markFileDirty() {

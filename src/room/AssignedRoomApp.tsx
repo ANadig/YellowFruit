@@ -304,7 +304,9 @@ export default function AssignedRoomApp({ identity }: { identity: IRoomIdentity 
         assignment.current !== null &&
         assignment.blockedReason === undefined &&
         assignment.gameFormat !== null &&
-        !pendingFinal
+        !pendingFinal &&
+        assignment.session?.status !== SessionStatus.Submitted &&
+        assignment.session?.finalReceived !== true
       }
       blockedReason={assignment.blockedReason as RoomBlockedReason | undefined}
     />
