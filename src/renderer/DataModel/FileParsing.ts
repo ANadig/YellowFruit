@@ -19,7 +19,9 @@ import { IQbjRank } from './Rank';
 import { IQbjRanking, OverallRanking, Ranking } from './Ranking';
 import Registration, { IQbjRegistration, IYftFileRegistration } from './Registration';
 import { IQbjRound, IYftFileRound, Round, sortRounds } from './Round';
+import { ScheduledMatch } from './ScheduledMatch';
 import { IQbjScoringRules, IYftFileScoringRules, ScoringRules } from './ScoringRules';
+import { TournamentRoom } from './TournamentRoom';
 import { IQbjTeam, IYftFileTeam, Team } from './Team';
 import Tournament, { IQbjTournament, IYftFileTournament } from './Tournament';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
@@ -165,12 +167,42 @@ export default class FileParser {
       this.tourn.finalRankingsReady = yfExtraData.finalRankingsReady || false;
       this.tourn.usingScheduleTemplate = yfExtraData.usingScheduleTemplate || false;
       this.tourn.appVersion = yfExtraData.YfVersion || '';
+      this.tourn.rooms = FileParser.parseRoomList(yfExtraData.rooms);
+      this.tourn.scheduledMatches = FileParser.parseScheduledMatchList(yfExtraData.scheduledMatches);
     } else {
       this.tourn.inferCarryoverStatus();
     }
 
     this.tourn.calcHasMatchData();
     return this.tourn;
+  }
+
+  /**
+   * Read the tournament's rooms back.
+   *
+   * Rooms are YellowFruit-only metadata, so a file written by an older version or by another program
+   * simply has none. An unreadable individual room is skipped rather than failing the whole open:
+   * losing one room's configuration is recoverable, losing the tournament file is not.
+   */
+  static parseRoomList(source: unknown): TournamentRoom[] {
+    if (!Array.isArray(source)) return [];
+    const rooms: TournamentRoom[] = [];
+    source.forEach((entry, index) => {
+      const room = TournamentRoom.fromYftFileObject(entry, index);
+      if (room) rooms.push(room);
+    });
+    return rooms.sort(TournamentRoom.compare);
+  }
+
+  /** Read the tournament's scheduled matches back. Unreadable entries are skipped, as with rooms. */
+  static parseScheduledMatchList(source: unknown): ScheduledMatch[] {
+    if (!Array.isArray(source)) return [];
+    const scheduled: ScheduledMatch[] = [];
+    for (const entry of source) {
+      const match = ScheduledMatch.fromYftFileObject(entry);
+      if (match) scheduled.push(match);
+    }
+    return scheduled;
   }
 
   parseTournamentSite(obj: IIndeterminateQbj): TournamentSite {

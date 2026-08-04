@@ -17,6 +17,8 @@ import StandardSchedule from './StandardSchedule';
 import { AggregateStandings, PhaseStandings } from './StatSummaries';
 import { Team } from './Team';
 import { IQbjTournamentSite, TournamentSite } from './TournamentSite';
+import { IYftFileScheduledMatch, ScheduledMatch } from './ScheduledMatch';
+import { IYftFileRoom, TournamentRoom } from './TournamentRoom';
 
 /**
  * Represents the data for a tournament.
@@ -73,6 +75,10 @@ interface ITournamentExtraData {
   trackDiv2: boolean;
   finalRankingsReady?: boolean;
   usingScheduleTemplate?: boolean;
+  /** Physical playing locations, for the tournament server's room workflow */
+  rooms?: IYftFileRoom[];
+  /** Games the tournament intends to play, as opposed to ones it has played */
+  scheduledMatches?: IYftFileScheduledMatch[];
 }
 
 /** YellowFruit implementation of the Tournament object */
@@ -130,6 +136,22 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
 
   finalRankingsReady: boolean = false;
 
+  /**
+   * Physical playing locations for the tournament server's room workflow.
+   *
+   * Configuration only. A room's live state — connected, what it's playing, how far in — is server
+   * session state and is deliberately not part of the tournament file.
+   */
+  rooms: TournamentRoom[] = [];
+
+  /**
+   * Games the tournament intends to play.
+   *
+   * Kept separate from `Match`, which always means a game that happened and has statistics. A
+   * scheduled match points at its `Match` through `resultMatchId` once one has been accepted.
+   */
+  scheduledMatches: ScheduledMatch[] = [];
+
   htmlGenerator: HtmlReportGenerator;
 
   appVersion: string = '';
@@ -175,6 +197,11 @@ class Tournament implements IQbjTournament, IYftDataModelObject {
       trackDiv2: this.trackDiv2,
       finalRankingsReady: this.finalRankingsReady,
       usingScheduleTemplate: this.usingScheduleTemplate,
+      // Omitted entirely when there are none, so a tournament that never used the server writes the
+      // same file it always did.
+      rooms: this.rooms.length > 0 ? this.rooms.map((room) => room.toYftFileObject()) : undefined,
+      scheduledMatches:
+        this.scheduledMatches.length > 0 ? this.scheduledMatches.map((match) => match.toYftFileObject()) : undefined,
     };
     const yftFileObj = { YfData: metadata, ...qbjObject };
 
