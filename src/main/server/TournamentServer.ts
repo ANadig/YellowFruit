@@ -36,6 +36,11 @@ export interface ITournamentServerOptions {
   onFinalSubmission: (submission: IMatchSubmission) => void;
   /** Called when any session changes, so the desktop dashboard can refresh */
   onSessionsChanged?: (sessions: ISessionSummary[]) => void;
+  /**
+   * Called when a room starts its assigned game, so the desktop can move that scheduled match to
+   * playing.
+   */
+  onSessionStarted?: (sessionId: string, scheduledMatchId: string) => void;
 }
 
 /**
@@ -68,6 +73,13 @@ export default class TournamentServer {
       getSnapshot: () => this.snapshot,
       onFinalSubmission: (sessionId) => this.handleFinalSubmission(sessionId),
       onSnapshot: () => this.notifySessionsChanged(),
+      onSessionStarted: (sessionId) => {
+        const session = this.sessions.get(sessionId);
+        if (session?.scheduledMatchId) {
+          this.options.onSessionStarted?.(sessionId, session.scheduledMatchId);
+        }
+        this.notifySessionsChanged();
+      },
       serveStatic: (req, res, pathname) => this.serveStatic(req, res, pathname),
     };
     this.router = new Router(host);
@@ -213,6 +225,8 @@ export default class TournamentServer {
       roundNumber: session.roundNumber,
       leftTeam: session.leftTeam,
       rightTeam: session.rightTeam,
+      roomId: session.roomId,
+      scheduledMatchId: session.scheduledMatchId,
       qbj: session.latestQbj,
       submittedAt: session.lastSeenAt,
     };

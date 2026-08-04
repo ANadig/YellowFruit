@@ -26,6 +26,9 @@ function makeSnapshot(): ITournamentSnapshot {
     gameFormatErrors: formatResult.ok ? [] : formatResult.errors,
     gameFormatWarnings: formatResult.ok ? formatResult.warnings : [],
     timedRounds: false,
+    rooms: [],
+    assignments: [],
+    currentRoundNumber: null,
   };
 }
 
@@ -169,15 +172,7 @@ describe('read-only tournament endpoints', () => {
     expect(body.teamCount).toBe(4);
     // No internal object graph, no registrations, no existing match data.
     expect(Object.keys(body).sort()).toEqual(
-      [
-        'gameFormat',
-        'gameFormatErrors',
-        'gameFormatWarnings',
-        'name',
-        'roundCount',
-        'teamCount',
-        'timedRounds',
-      ].sort(),
+      ['gameFormat', 'gameFormatErrors', 'gameFormatWarnings', 'name', 'roundCount', 'teamCount', 'timedRounds'].sort(),
     );
   });
 

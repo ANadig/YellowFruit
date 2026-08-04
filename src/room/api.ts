@@ -7,11 +7,13 @@
  */
 import {
   ICreateSessionRequest,
+  IRoomAssignmentResponse,
   IRoomRound,
   IRoomTeam,
   ISessionCreatedResponse,
   ISessionStateResponse,
   apiPrefix,
+  roomTokenHeader,
   sessionTokenHeader,
 } from '../main/server/ServerTypes';
 import { IModaqGameFormat } from '../renderer/Services/YellowFruitScoringRulesToModaq';
@@ -34,6 +36,27 @@ export interface ITournamentInfo {
 export interface ISessionCredentials {
   sessionId: string;
   token: string;
+}
+
+/** Which room this page is, read from its permanent URL */
+export interface IRoomIdentity {
+  roomId: string;
+  token: string;
+}
+
+/**
+ * Work out which room this page is from its own URL.
+ *
+ * The permanent room URL is `/room/<roomId>?token=<token>`, which is what the QR code encodes and
+ * what the Chromebook stays on all day. A page opened without one falls back to the manual
+ * team-picking workflow, which is still how a tournament that hasn't configured rooms works.
+ */
+export function readRoomIdentity(location: { pathname: string; search: string }): IRoomIdentity | null {
+  const match = /^\/room\/([^/]+)\/?$/.exec(location.pathname);
+  if (!match) return null;
+  const token = new URLSearchParams(location.search).get('token');
+  if (!token) return null;
+  return { roomId: decodeURIComponent(match[1]), token };
 }
 
 /** How long to wait on a request before treating the server as unreachable */
@@ -97,6 +120,36 @@ export function getRounds(): Promise<ApiResult<{ rounds: IRoomRound[] }>> {
 
 export function getTeams(): Promise<ApiResult<{ teams: IRoomTeam[] }>> {
   return request(`${apiPrefix}/teams`);
+}
+
+/**
+ * What this room should be playing right now.
+ *
+ * Polled continuously, so a change tournament control makes reaches the room without anyone
+ * reloading anything. Also the recovery path: the response carries any open session's token, so a
+ * page that has just been refreshed can resume the game it was already scoring in one round trip.
+ */
+export function getRoomAssignment(identity: IRoomIdentity): Promise<ApiResult<IRoomAssignmentResponse>> {
+  return request(`${apiPrefix}/rooms/${encodeURIComponent(identity.roomId)}/assignment`, {
+    headers: { [roomTokenHeader]: identity.token },
+  });
+}
+
+/**
+ * Start the game this room is assigned.
+ *
+ * The teams and the round are decided by the server from the assignment; this only says which
+ * assignment the page believes it is starting, so a stale page is refused rather than obeyed.
+ */
+export function startAssignedMatch(
+  identity: IRoomIdentity,
+  scheduledMatchId: string,
+): Promise<ApiResult<ISessionCreatedResponse>> {
+  return request(`${apiPrefix}/rooms/${encodeURIComponent(identity.roomId)}/sessions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', [roomTokenHeader]: identity.token },
+    body: JSON.stringify({ scheduledMatchId }),
+  });
 }
 
 export function createSession(body: ICreateSessionRequest): Promise<ApiResult<ISessionCreatedResponse>> {

@@ -1,6 +1,7 @@
 import { randomUUID, randomBytes } from 'crypto';
 import {
   ISession,
+  ISessionResumeInfo,
   ISessionScoreLine,
   ISessionStateResponse,
   ISessionSummary,
@@ -14,6 +15,8 @@ export enum SessionWriteError {
   NotFound = 'NotFound',
   BadToken = 'BadToken',
   AlreadyResolved = 'AlreadyResolved',
+  /** The submitted QBJ is for different teams than the session's assignment */
+  TeamMismatch = 'TeamMismatch',
 }
 
 export interface ISessionWriteFailure {
@@ -52,7 +55,12 @@ export default class SessionStore {
   }
 
   /** Create a new session for a room game. Ids and tokens are cryptographically random. */
-  create(roundNumber: number, leftTeam: string, rightTeam: string): ISession {
+  create(
+    roundNumber: number,
+    leftTeam: string,
+    rightTeam: string,
+    linkage: { roomId?: string; scheduledMatchId?: string } = {},
+  ): ISession {
     const timestamp = this.now().toISOString();
     const session: ISession = {
       id: randomUUID(),
@@ -60,6 +68,8 @@ export default class SessionStore {
       roundNumber,
       leftTeam,
       rightTeam,
+      roomId: linkage.roomId,
+      scheduledMatchId: linkage.scheduledMatchId,
       createdAt: timestamp,
       lastSeenAt: timestamp,
       status: SessionStatus.Created,
@@ -68,6 +78,21 @@ export default class SessionStore {
     };
     this.sessions.set(session.id, session);
     return session;
+  }
+
+  /**
+   * An existing session for a scheduled game that is still open.
+   *
+   * This is what stops a page reload from creating a second session for the same game. A resolved
+   * session is not returned, so a rejected-and-resubmitted game gets a clean one.
+   */
+  findResumableForScheduledMatch(scheduledMatchId: string): ISession | undefined {
+    return this.getAll().find(
+      (session) =>
+        session.scheduledMatchId === scheduledMatchId &&
+        session.status !== SessionStatus.Accepted &&
+        session.status !== SessionStatus.Rejected,
+    );
   }
 
   get(sessionId: string): ISession | undefined {
@@ -112,6 +137,40 @@ export default class SessionStore {
   }
 
   /**
+   * The two team names in a QBJ match, in a stable order for comparison.
+   *
+   * Returns null when the payload doesn't name two teams, which the caller treats as unverifiable
+   * rather than mismatched.
+   */
+  static teamNamesFromQbj(qbj: unknown): [string, string] | null {
+    const matchTeams = (qbj as any)?.match_teams;
+    if (!Array.isArray(matchTeams) || matchTeams.length < 2) return null;
+    const names = matchTeams.slice(0, 2).map((matchTeam: any) => matchTeam?.team?.name);
+    if (names.some((name) => typeof name !== 'string' || name === '')) return null;
+    return names.sort() as [string, string];
+  }
+
+  /**
+   * Do the teams in this payload match the ones the session is for?
+   *
+   * Side order is not a mismatch: a scorekeeper can set the two teams up either way round in MODAQ.
+   * Playing entirely different teams is, and must not be recorded against this assignment.
+   *
+   * Only enforced for a session that came from a scheduled assignment, where the tournament has an
+   * authoritative answer about who was supposed to play. A session whose teams the scorekeeper picked
+   * by hand has no such authority, so a disagreement there goes to the statskeeper through the normal
+   * QBJ import validation, which explains the problem far better than a bare rejection would.
+   */
+  static qbjTeamsMatchSession(session: ISession, qbj: unknown): boolean {
+    if (!session.scheduledMatchId) return true;
+    const submitted = SessionStore.teamNamesFromQbj(qbj);
+    // Nothing to compare against; other validation will catch a malformed payload.
+    if (submitted === null) return true;
+    const expected = [session.leftTeam, session.rightTeam].slice().sort();
+    return submitted[0] === expected[0] && submitted[1] === expected[1];
+  }
+
+  /**
    * Record a final submission.
    * @returns isNew false if a final had already been recorded for this session, so the caller
    * doesn't create a second candidate match for the same game.
@@ -121,6 +180,12 @@ export default class SessionStore {
     if (!auth.ok) return auth;
 
     const { session } = auth;
+
+    // The session decides which teams played, not the browser. A room that somehow scored the wrong
+    // game must not be able to file it against this assignment.
+    if (!SessionStore.qbjTeamsMatchSession(session, qbj)) {
+      return { ok: false, error: SessionWriteError.TeamMismatch };
+    }
     if (session.status === SessionStatus.Accepted) {
       // Already a real match in the tournament. Acknowledge without doing anything, so a room
       // retrying after a flaky network doesn't produce a duplicate game.
@@ -174,6 +239,17 @@ export default class SessionStore {
       status: session.status,
       createdAt: session.createdAt,
       lastSeenAt: session.lastSeenAt,
+      rejectionReason: session.rejectionReason,
+    };
+  }
+
+  /** Enough for a reloaded room page to resume writing to the game it was already scoring */
+  static toResumeInfo(session: ISession): ISessionResumeInfo {
+    return {
+      sessionId: session.id,
+      token: session.token,
+      status: session.status,
+      finalReceived: session.finalReceived,
       rejectionReason: session.rejectionReason,
     };
   }
@@ -241,6 +317,8 @@ export default class SessionStore {
           roundNumber: session.roundNumber,
           leftTeam: session.leftTeam,
           rightTeam: session.rightTeam,
+          roomId: session.roomId,
+          scheduledMatchId: session.scheduledMatchId,
           status: session.status,
           displayState: SessionStore.displayState(session, msSinceLastSeen),
           createdAt: session.createdAt,

@@ -73,6 +73,8 @@ export enum IpcMainToRend {
   TournamentServerMatchSubmitted = 'TournamentServerMatchSubmitted',
   /** The set of active room sessions changed, so the live dashboard should refresh */
   TournamentServerSessionsChanged = 'TournamentServerSessionsChanged',
+  /** A room started its assigned game, so the scheduled match should show as being played */
+  TournamentServerSessionStarted = 'TournamentServerSessionStarted',
 }
 
 /** Channels for both directions renderer<-->main */
@@ -122,6 +124,7 @@ export const rendererListenableEvents = [
   IpcMainToRend.TournamentServerStatusChanged,
   IpcMainToRend.TournamentServerMatchSubmitted,
   IpcMainToRend.TournamentServerSessionsChanged,
+  IpcMainToRend.TournamentServerSessionStarted,
   IpcBidirectional.LoadBackup,
   IpcBidirectional.ExportQbjFile,
   IpcBidirectional.ImportQbjGamesRendererLaunch,

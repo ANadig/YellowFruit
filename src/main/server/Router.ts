@@ -1,12 +1,14 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import SessionStore, { SessionWriteError, SessionWriteResult } from './SessionStore';
 import normalizeQbjMatch from '../../renderer/Services/QbjMatchNormalizer';
+import { authorizeRoom, buildAssignmentResponse, checkCanStart, findAssignmentForRoom } from './RoomDirectory';
 import {
   ICreateSessionRequest,
   ISessionCreatedResponse,
   ITournamentSnapshot,
   apiPrefix,
   maxRequestBodyBytes,
+  roomTokenHeader,
   sessionTokenHeader,
 } from './ServerTypes';
 
@@ -25,6 +27,11 @@ export interface IRouterHost {
   onFinalSubmission: (sessionId: string) => void;
   /** Called whenever a live snapshot arrives, so the desktop dashboard can refresh */
   onSnapshot?: (sessionId: string) => void;
+  /**
+   * Called when a room starts its assigned game, so the desktop can move the scheduled match to
+   * playing. Not called when an existing session is resumed.
+   */
+  onSessionStarted?: (sessionId: string) => void;
   /** Serve the browser room application for non-API routes */
   serveStatic: (req: IncomingMessage, res: ServerResponse, pathname: string) => void;
 }
@@ -118,17 +125,29 @@ function sendSessionWriteError(res: ServerResponse, result: { error: SessionWrit
     case SessionWriteError.AlreadyResolved:
       sendError(res, 409, 'This game has already been resolved by tournament control.');
       break;
+    case SessionWriteError.TeamMismatch:
+      sendError(
+        res,
+        409,
+        'The teams in this game are not the teams this room was assigned. Check with tournament control before submitting.',
+      );
+      break;
     default:
       sendError(res, 400, 'Session could not be updated.');
   }
 }
 
-/** Pull the session token out of the request headers */
-function tokenFrom(req: IncomingMessage): string | undefined {
-  const raw = req.headers[sessionTokenHeader];
+/** Pull a token out of the request headers */
+function headerToken(req: IncomingMessage, header: string): string | undefined {
+  const raw = req.headers[header];
   if (typeof raw === 'string') return raw;
   if (Array.isArray(raw)) return raw[0];
   return undefined;
+}
+
+/** Pull the session token out of the request headers */
+function tokenFrom(req: IncomingMessage): string | undefined {
+  return headerToken(req, sessionTokenHeader);
 }
 
 /** Validate a create-session request body against the tournament we're actually running */
@@ -256,6 +275,30 @@ export default class Router {
       return;
     }
 
+    if (segments[0] === 'rooms' && segments.length >= 2) {
+      const roomId = segments[1];
+
+      // GET /api/v1/rooms/:roomId/assignment
+      if (segments.length === 3 && segments[2] === 'assignment') {
+        if (method !== 'GET') {
+          sendError(res, 405, `${method} is not allowed for this endpoint.`);
+          return;
+        }
+        this.getRoomAssignment(req, res, roomId);
+        return;
+      }
+
+      // POST /api/v1/rooms/:roomId/sessions
+      if (segments.length === 3 && segments[2] === 'sessions') {
+        if (method !== 'POST') {
+          sendError(res, 405, `${method} is not allowed for this endpoint.`);
+          return;
+        }
+        await this.startAssignedMatch(req, res, roomId);
+        return;
+      }
+    }
+
     // POST /api/v1/sessions
     if (segments.length === 1 && segments[0] === 'sessions') {
       if (method !== 'POST') {
@@ -316,6 +359,106 @@ export default class Router {
       return;
     }
     handler();
+  }
+
+  /**
+   * Identify the calling room, or send the refusal.
+   *
+   * An unknown room and a bad token get the same 403, so a caller with no valid token can't use the
+   * difference to work out which room ids exist.
+   */
+  private authorizeRoomOrRefuse(req: IncomingMessage, res: ServerResponse, roomId: string) {
+    const result = authorizeRoom(this.host.getSnapshot(), roomId, headerToken(req, roomTokenHeader));
+    if (!result.ok) {
+      sendError(res, 403, 'This room link is not valid for the tournament that is currently open.');
+      return null;
+    }
+    return result.room;
+  }
+
+  /**
+   * What this room should be playing.
+   *
+   * The endpoint a Chromebook polls all day. It answers in one round trip so a room coming back from
+   * a network drop recovers immediately, and it includes the token of any session already open for
+   * the current game so a reload resumes rather than starting a second session.
+   */
+  private getRoomAssignment(req: IncomingMessage, res: ServerResponse, roomId: string) {
+    const room = this.authorizeRoomOrRefuse(req, res, roomId);
+    if (!room) return;
+
+    const snapshot = this.host.getSnapshot();
+    const response = buildAssignmentResponse(snapshot, room);
+
+    const scheduledMatchId = response.current?.scheduledMatchId;
+    const existing = scheduledMatchId ? this.host.sessions.findResumableForScheduledMatch(scheduledMatchId) : undefined;
+
+    sendJson(res, 200, {
+      ...response,
+      session: existing ? SessionStore.toResumeInfo(existing) : null,
+    });
+  }
+
+  /**
+   * Start the game this room is assigned.
+   *
+   * Everything that ends up recorded — the round and both teams — comes from the tournament
+   * snapshot, not the request. The room only says which assignment it believes it is starting, and
+   * that is checked against what the room is actually assigned, so a stale page cannot start a game
+   * that has moved or been finished.
+   */
+  private async startAssignedMatch(req: IncomingMessage, res: ServerResponse, roomId: string) {
+    const room = this.authorizeRoomOrRefuse(req, res, roomId);
+    if (!room) {
+      req.resume();
+      return;
+    }
+
+    const bodyResult = await readJsonBody(req);
+    if (!bodyResult.ok) {
+      sendError(res, bodyResult.status, bodyResult.message);
+      return;
+    }
+
+    const scheduledMatchId = (bodyResult.body as Record<string, unknown>)?.scheduledMatchId;
+    if (typeof scheduledMatchId !== 'string' || scheduledMatchId === '') {
+      sendError(res, 400, 'scheduledMatchId must be a string.');
+      return;
+    }
+
+    const snapshot = this.host.getSnapshot();
+    const assignment = findAssignmentForRoom(snapshot, roomId, scheduledMatchId);
+    if (!assignment) {
+      sendError(res, 409, 'That game is not assigned to this room any more. This page will refresh itself.');
+      return;
+    }
+
+    const block = checkCanStart(snapshot, room, assignment);
+    if (block) {
+      sendJson(res, 409, { error: block.message, blockedReason: block.reason });
+      return;
+    }
+
+    // A reload, or a second tab, must not produce a second session for the same game.
+    const existing = this.host.sessions.findResumableForScheduledMatch(scheduledMatchId);
+    const session =
+      existing ??
+      this.host.sessions.create(assignment.roundNumber, assignment.leftTeam, assignment.rightTeam, {
+        roomId,
+        scheduledMatchId,
+      });
+
+    const payload: ISessionCreatedResponse = {
+      sessionId: session.id,
+      token: session.token,
+      roundNumber: session.roundNumber,
+      leftTeam: session.leftTeam,
+      rightTeam: session.rightTeam,
+      status: session.status,
+    };
+    // 200 rather than 201 when resuming, so the client can tell it didn't create anything.
+    sendJson(res, existing ? 200 : 201, payload);
+    if (!existing) this.host.onSessionStarted?.(session.id);
   }
 
   /**

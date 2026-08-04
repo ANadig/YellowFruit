@@ -50,6 +50,9 @@ function snapshotFor(t: Tournament): ITournamentSnapshot {
     gameFormatErrors: formatResult.ok ? [] : formatResult.errors,
     gameFormatWarnings: formatResult.ok ? formatResult.warnings : [],
     timedRounds: false,
+    rooms: [],
+    assignments: [],
+    currentRoundNumber: null,
   };
 }
 

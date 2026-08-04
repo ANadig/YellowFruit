@@ -45,12 +45,17 @@ function handleSessionsChanged(sessions: ISessionSummary[]) {
   sendToRenderer(IpcMainToRend.TournamentServerSessionsChanged, sessions);
 }
 
+function handleSessionStarted(sessionId: string, scheduledMatchId: string) {
+  sendToRenderer(IpcMainToRend.TournamentServerSessionStarted, { sessionId, scheduledMatchId });
+}
+
 function getServer(): TournamentServer {
   if (!server) {
     server = new TournamentServer({
       roomBundleDirectory: roomBundleDirectory(),
       onFinalSubmission: handleFinalSubmission,
       onSessionsChanged: handleSessionsChanged,
+      onSessionStarted: handleSessionStarted,
     });
   }
   return server;

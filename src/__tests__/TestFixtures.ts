@@ -149,8 +149,7 @@ export function makeModaqCycleExport(options: {
       match_players: allPlayers.map((name) => ({
         player: { name },
         tossups_heard: heardFor(name),
-        answer_counts:
-          name === buzzingPlayer ? [{ number: playedIndices.length, answer: { value: 10 } }] : [],
+        answer_counts: name === buzzingPlayer ? [{ number: playedIndices.length, answer: { value: 10 } }] : [],
       })),
     };
   };

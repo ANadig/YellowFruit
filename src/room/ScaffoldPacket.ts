@@ -1,16 +1,21 @@
 /**
- * Builds a placeholder packet so MODAQ has something to score into.
+ * Builds the structural packet MODAQ needs in order to work as a digital scoresheet.
  *
- * MODAQ creates one scoring cycle per tossup in its packet (GameState.loadPacket), and works out how
- * many points a buzz is worth from the position of the buzzed word relative to the power markers in
- * the question text (PacketState.getPointsAtPosition). With no packet at all it has zero cycles and
- * no buzzable words, so the scoresheet can't be used.
+ * # Why a packet has to exist at all
  *
- * YellowFruit deliberately doesn't store or serve question packets, so instead of question text this
- * builds a scaffold: each tossup is a short row of clickable placeholder tokens with the power
- * markers in the right places, so the scorekeeper picks a buzz value by clicking the token that
- * matches what happened. If a real packet is wanted, the scorekeeper can still load one from inside
- * MODAQ, which replaces this scaffold.
+ * MODAQ creates one scoring cycle per tossup in its packet (`GameState.loadPacket`), and it works out
+ * what a buzz is worth from where the buzzed *word* sits relative to the power markers in the
+ * question text (`PacketState.getPointsAtPosition`). With no packet it has no cycles and no buzzable
+ * words, so the scoresheet cannot be used at all.
+ *
+ * YellowFruit deliberately doesn't store or serve question packets. So instead of question text, each
+ * tossup is a short row of scoring bands: the scorekeeper clicks the band matching what happened.
+ * This is a scoresheet control, not a packet, and the room UI says so — the questions are being read
+ * by a person from paper or another device.
+ *
+ * The tokens are written to read as a value scale rather than as prose, because a row that looks like
+ * sentence fragments invites a scorekeeper to think YellowFruit has the packet and is showing it
+ * badly. A real packet can still be loaded from inside MODAQ, which replaces this entirely.
  */
 import { IModaqGameFormat } from '../renderer/Services/YellowFruitScoringRulesToModaq';
 
@@ -21,39 +26,70 @@ export interface IScaffoldPacket {
   name?: string;
 }
 
-/** How many tossups of overtime headroom to allow beyond regulation */
+/**
+ * How many tossups of overtime headroom to allow beyond regulation.
+ *
+ * MODAQ can't be given more cycles once a game is under way (`packet` is documented as set-once), so
+ * the headroom has to cover the longest overtime anyone will realistically play. It is also why
+ * `QbjMatchNormalizer` exists: MODAQ counts questions from the packet's length, so this padding has
+ * to be subtracted back out of the exported result.
+ */
 export const overtimeHeadroomTossups = 20;
 
-/** Tokens offered in each scoring band. Enough to click comfortably, few enough to stay readable. */
+/** Clickable positions offered in each scoring band */
 const tokensPerBand = 3;
 
+/** What a scorekeeper clicks for a correct answer outside power. MODAQ hardcodes 10 there. */
+const baseTokenLabel = '10';
+
+/** Clicked for a wrong answer at the very end of a question, which MODAQ scores as 0 rather than a neg */
+const endToken = 'no-buzz';
+
+/** The name shown wherever MODAQ would name the packet */
+export const scaffoldPacketName = 'Scoresheet — questions read externally';
+
+/** Text on the answer line, which MODAQ shows to the scorekeeper */
+const scaffoldAnswerText = 'Questions are read externally. Click the value band matching the buzz.';
+
 /**
- * One tossup's placeholder text.
+ * One tossup's scoring bands.
  *
- * Power markers are laid out in descending point order, matching how MODAQ scans `format.powers`:
- * it returns the first power whose marker appears after the buzzed word, so the highest-value marker
- * has to come first for a buzz before it to score the most.
+ * Power markers are laid out in descending point order because that's how MODAQ scans
+ * `format.powers`: it returns the first power whose marker appears after the buzzed word, so the
+ * highest-value marker has to come first for an early buzz to score the most.
  */
 function buildQuestionText(gameFormat: IModaqGameFormat): string {
   const words: string[] = [];
 
-  // Powers are already sorted highest-value-first by the scoring rules adapter, but don't rely on
-  // the caller for something this easy to get wrong.
+  // Already sorted highest-first by the scoring rules adapter, but this is too easy to get wrong to
+  // rely on the caller for.
   const powers = gameFormat.powers.slice().sort((a, b) => b.points - a.points);
 
   for (const power of powers) {
-    for (let i = 0; i < tokensPerBand; i++) words.push(`${power.points}pts`);
+    for (let i = 0; i < tokensPerBand; i++) words.push(String(power.points));
     words.push(power.marker);
   }
 
-  // Anything after the last power marker is worth MODAQ's standard 10.
-  for (let i = 0; i < tokensPerBand; i++) words.push('10pts');
+  for (let i = 0; i < tokensPerBand; i++) words.push(baseTokenLabel);
 
-  // A final token to buzz on for a wrong answer at the end of the question, which MODAQ scores as 0
-  // rather than a neg.
-  words.push('(end)');
+  words.push(endToken);
 
   return words.join(' ');
+}
+
+/**
+ * A human-readable description of the bands, for the room's own header.
+ *
+ * The scorekeeper needs to know what they're clicking, and saying it once in YellowFruit's own UI is
+ * clearer than trying to make MODAQ's question line explain itself.
+ */
+export function describeScoringBands(gameFormat: IModaqGameFormat): string {
+  const powers = gameFormat.powers.slice().sort((a, b) => b.points - a.points);
+  const bands = powers.map((power) => `${power.points} for a buzz before ${power.marker}`);
+  bands.push(`${baseTokenLabel} after it`);
+  if (gameFormat.negValue !== 0) bands.push(`${gameFormat.negValue} for an early wrong answer`);
+  bands.push(`click "${endToken}" for a wrong answer at the end`);
+  return bands.join(' · ');
 }
 
 /**
@@ -66,13 +102,10 @@ export default function buildScaffoldPacket(gameFormat: IModaqGameFormat): IScaf
 
   const tossups = [];
   for (let i = 0; i < tossupCount; i++) {
-    tossups.push({
-      question: questionText,
-      answer: 'No packet loaded — click the token matching the buzz value',
-    });
+    tossups.push({ question: questionText, answer: scaffoldAnswerText });
   }
 
-  const packet: IScaffoldPacket = { tossups, name: 'No packet loaded' };
+  const packet: IScaffoldPacket = { tossups, name: scaffoldPacketName };
 
   if (gameFormat.pairTossupsBonuses) {
     // MODAQ takes bonus part values from the packet. The scoring rules adapter has already refused
@@ -80,7 +113,7 @@ export default function buildScaffoldPacket(gameFormat: IModaqGameFormat): IScaf
     const bonuses = [];
     for (let i = 0; i < tossupCount; i++) {
       bonuses.push({
-        leadin: 'No packet loaded.',
+        leadin: 'Bonus read externally.',
         parts: ['Part 1', 'Part 2', 'Part 3'],
         answers: ['', '', ''],
         values: [10, 10, 10],

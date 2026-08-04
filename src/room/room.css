@@ -1,50 +1,185 @@
-/* Styles for the browser room application. Kept deliberately plain: MODAQ brings its own Fluent UI
-   theming for the scoresheet itself, and everything here is the thin shell around it. */
+/* Styles for the browser room application.
+ *
+ * Restrained on purpose. MODAQ brings its own Fluent UI theming for the scoresheet, and everything
+ * here is the thin shell around it: a scorekeeper should be looking at the scoresheet, not at our
+ * chrome. The between-games screen is the one place that goes large, because it is read across a
+ * noisy room from a few feet away.
+ *
+ * Spacing follows a 4 / 8 / 12 / 16 / 24 / 32 rhythm.
+ */
 
 :root {
-  --room-text: #202020;
-  --room-muted: #606060;
-  --room-border: #d0d0d0;
+  --room-text: #1c1d20;
+  --room-muted: #5c6066;
+  --room-faint: #8a8f96;
+  --room-border: #d8dade;
+  --room-border-strong: #c2c5ca;
+  --room-surface: #ffffff;
+  --room-surface-sunken: #f6f7f8;
   --room-accent: #1565c0;
-  --room-warning-bg: #fff4e5;
-  --room-warning-border: #ffb74d;
-  --room-error-bg: #fdecea;
-  --room-error-border: #ef5350;
-  --room-info-bg: #e8f4fd;
-  --room-info-border: #64b5f6;
+  --room-accent-hover: #10529c;
+  --room-success: #1e6b32;
+  --room-success-bg: #e8f3ea;
+  --room-warning: #8a5300;
+  --room-warning-bg: #fdf3e3;
+  --room-warning-border: #e0a33c;
+  --room-error: #a8231b;
+  --room-error-bg: #fceceb;
+  --room-error-border: #d9534f;
+  --room-info-bg: #eaf3fb;
+  --room-info-border: #6aa9dd;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: var(--room-text);
+  background: var(--room-surface);
+  -webkit-font-smoothing: antialiased;
 }
 
 .room-shell {
-  max-width: 520px;
+  max-width: 560px;
   margin: 0 auto;
-  padding: 24px 16px 48px;
-}
-
-.room-shell h1 {
-  margin-bottom: 4px;
-  font-size: 1.6rem;
+  padding: 32px 16px 48px;
 }
 
 .room-muted {
   color: var(--room-muted);
   margin-top: 0;
+  line-height: 1.5;
 }
+
+/* #region Between games */
+
+.room-header {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--room-border);
+}
+
+.room-tournament {
+  margin: 0 0 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--room-faint);
+}
+
+.room-name {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+/* The matchup is the one thing a scorekeeper reads from across the room. */
+.room-matchup {
+  padding: 32px 0 24px;
+  text-align: center;
+}
+
+.room-matchup-round {
+  margin: 0 0 24px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--room-muted);
+}
+
+.room-matchup-team {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.room-matchup-vs {
+  margin: 8px 0;
+  font-size: 1rem;
+  color: var(--room-faint);
+}
+
+.room-matchup .room-button {
+  margin-top: 32px;
+}
+
+.room-blocked {
+  margin: 24px 0 0;
+  padding: 12px;
+  background: var(--room-surface-sunken);
+  border: 1px solid var(--room-border);
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--room-muted);
+  text-align: left;
+}
+
+.room-empty {
+  padding: 40px 0;
+  text-align: center;
+}
+
+.room-empty-title {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+/* Previous and next games: present, but clearly secondary. */
+.room-context {
+  margin-top: 24px;
+  border-top: 1px solid var(--room-border);
+}
+
+.room-context-line {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--room-border);
+}
+
+.room-context-label {
+  flex: 0 0 64px;
+  font-weight: 600;
+  color: var(--room-faint);
+}
+
+.room-context-round {
+  flex: 0 0 72px;
+  color: var(--room-muted);
+}
+
+.room-context-teams {
+  color: var(--room-muted);
+}
+
+.room-connection {
+  margin: 24px 0 0;
+  font-size: 0.875rem;
+}
+
+/* #endregion */
+
+/* #region Controls */
 
 .room-field {
   display: block;
-  margin: 20px 0;
+  margin: 24px 0;
 }
 
 .room-field > span {
   display: block;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .room-field select {
@@ -52,35 +187,55 @@ body {
   /* Large enough to be a comfortable touch target on a Chromebook. */
   padding: 12px;
   font-size: 1rem;
-  border: 1px solid var(--room-border);
-  border-radius: 4px;
-  background: #fff;
+  border: 1px solid var(--room-border-strong);
+  border-radius: 6px;
+  background: var(--room-surface);
+  color: inherit;
 }
 
 .room-button {
   width: 100%;
   padding: 14px;
-  font-size: 1.05rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: #fff;
   background: var(--room-accent);
-  border: none;
-  border-radius: 4px;
+  border: 1px solid transparent;
+  border-radius: 6px;
   cursor: pointer;
 }
 
+.room-button:hover:not(:disabled) {
+  background: var(--room-accent-hover);
+}
+
 .room-button:disabled {
-  background: #9e9e9e;
+  background: var(--room-surface-sunken);
+  border-color: var(--room-border);
+  color: var(--room-faint);
   cursor: default;
 }
 
+/* Keyboard users must be able to see where they are. */
+.room-button:focus-visible,
+.room-field select:focus-visible {
+  outline: 2px solid var(--room-accent);
+  outline-offset: 2px;
+}
+
+/* #endregion */
+
+/* #region Banners */
+
 .room-banner {
-  padding: 12px 14px;
+  padding: 12px;
   margin: 16px 0;
-  border-left: 4px solid var(--room-border);
-  border-radius: 4px;
-  font-size: 0.95rem;
-  line-height: 1.4;
+  border: 1px solid var(--room-border);
+  border-left-width: 3px;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-align: left;
 }
 
 .room-banner ul {
@@ -90,50 +245,143 @@ body {
 
 .room-banner-warning {
   background: var(--room-warning-bg);
-  border-left-color: var(--room-warning-border);
+  border-color: var(--room-warning-border);
+  color: var(--room-warning);
 }
 
 .room-banner-error {
   background: var(--room-error-bg);
-  border-left-color: var(--room-error-border);
+  border-color: var(--room-error-border);
+  color: var(--room-error);
 }
 
 .room-banner-info {
   background: var(--room-info-bg);
-  border-left-color: var(--room-info-border);
+  border-color: var(--room-info-border);
 }
 
-/* Scoring view: MODAQ fills the rest of the page below a compact status strip. */
+/* #endregion */
+
+/* #region Scoring */
+
+/* MODAQ fills the page below a compact status strip. */
 .room-scoring {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-.room-scoring-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--room-border);
-  font-size: 0.95rem;
+.room-scoring .room-banner {
+  margin: 0;
+  border-radius: 0;
+  border-left-width: 1px;
+  border-top: none;
 }
 
-.room-pill {
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 0.8rem;
+.room-statusbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 8px 12px;
+  background: var(--room-surface-sunken);
+  border-bottom: 1px solid var(--room-border);
+  font-size: 0.875rem;
+}
+
+.room-statusbar-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.room-statusbar-room {
+  font-weight: 650;
+}
+
+.room-statusbar-sep {
+  color: var(--room-faint);
+}
+
+.room-statusbar-teams {
+  color: var(--room-muted);
+}
+
+.room-statusbar-vs {
+  color: var(--room-faint);
+}
+
+.room-statusbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.room-tag {
+  padding: 2px 8px;
+  border: 1px solid var(--room-border-strong);
+  border-radius: 4px;
+  background: var(--room-surface);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Overtime is worth distinguishing: it changes how the question count is read. */
+.room-tag-overtime {
+  border-color: var(--room-warning-border);
+  background: var(--room-warning-bg);
+  color: var(--room-warning);
+}
+
+.room-tag-pending {
+  border-color: var(--room-warning-border);
+  background: var(--room-warning-bg);
+  color: var(--room-warning);
+}
+
+/* Status is never conveyed by colour alone; the text says it too. */
+.room-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
 }
 
-.room-pill-online {
-  background: #e6f4ea;
-  color: #1e6b32;
+.room-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentcolor;
 }
 
-.room-pill-offline {
-  background: var(--room-error-bg);
-  color: #b3261e;
+.room-status-online {
+  color: var(--room-success);
 }
+
+.room-status-offline {
+  color: var(--room-error);
+}
+
+/* Says plainly that this is a scoresheet and the questions come from elsewhere. */
+.room-scoresheet-note {
+  margin: 0;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--room-border);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--room-faint);
+}
+
+.room-modaq {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* #endregion */

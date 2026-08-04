@@ -104,6 +104,18 @@ function lastPlayedIndex(questions: any[]): number {
   return -1;
 }
 
+/**
+ * How many questions have been played, from a match's own question list.
+ *
+ * The room UI uses this to show the scorekeeper which question they're on, which MODAQ's public
+ * surface doesn't otherwise expose.
+ */
+export function countPlayedQuestions(match: unknown): number {
+  const questions = (match as any)?.match_questions;
+  if (!Array.isArray(questions)) return 0;
+  return lastPlayedIndex(questions) + 1;
+}
+
 /** The lineup in effect for a given 1-based question number */
 function activeLineupAt(lineups: IQbjLineup[], questionNumber: number): IQbjLineup | undefined {
   let active: IQbjLineup | undefined;
