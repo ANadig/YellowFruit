@@ -1,16 +1,19 @@
 import { createServer, IncomingMessage, Server, ServerResponse } from 'http';
 import { networkInterfaces } from 'os';
-import { createReadStream, existsSync, statSync } from 'fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'fs';
 import path from 'path';
 import Router, { IRouterHost } from './Router';
 import SessionStore from './SessionStore';
 import {
   IMatchSubmission,
+  IRoomPresence,
   IServerStatus,
   ISessionSummary,
+  ITournamentServerRecovery,
   ITournamentSnapshot,
   defaultServerPort,
   emptyTournamentSnapshot,
+  staleRoomThresholdMs,
 } from './ServerTypes';
 
 /** Content types for the handful of file types the room bundle is made of */
@@ -41,6 +44,8 @@ export interface ITournamentServerOptions {
    * playing.
    */
   onSessionStarted?: (sessionId: string, scheduledMatchId: string) => void;
+  /** Small versioned JSON file in app-data used to restore active room sessions after a restart. */
+  recoveryFilePath?: string;
 }
 
 /**
@@ -65,14 +70,21 @@ export default class TournamentServer {
 
   private options: ITournamentServerOptions;
 
+  private recoveryKey: string | undefined;
+
+  private roomLastSeenAt = new Map<string, string>();
+
   constructor(options: ITournamentServerOptions) {
     this.options = options;
+    this.restoreRecovery();
 
     const host: IRouterHost = {
       sessions: this.sessions,
       getSnapshot: () => this.snapshot,
       onFinalSubmission: (sessionId) => this.handleFinalSubmission(sessionId),
       onSnapshot: () => this.notifySessionsChanged(),
+      onRoomCheckIn: (roomId) => this.markRoomCheckIn(roomId),
+      onSessionChanged: () => this.notifySessionsChanged(),
       onSessionStarted: (sessionId) => {
         const session = this.sessions.get(sessionId);
         if (session?.scheduledMatchId) {
@@ -87,7 +99,15 @@ export default class TournamentServer {
 
   /** Replace the read-only tournament projection served to rooms */
   setTournamentSnapshot(snapshot: ITournamentSnapshot) {
+    if (snapshot.recoveryKey && this.recoveryKey && snapshot.recoveryKey !== this.recoveryKey) {
+      // A different tournament must never inherit another tournament's room credentials or final
+      // results. The renderer sends this stable key before the server can serve a request.
+      this.sessions.clear();
+      this.roomLastSeenAt.clear();
+    }
+    if (snapshot.recoveryKey) this.recoveryKey = snapshot.recoveryKey;
     this.snapshot = snapshot;
+    this.persistRecovery();
   }
 
   getTournamentSnapshot(): ITournamentSnapshot {
@@ -108,6 +128,10 @@ export default class TournamentServer {
    */
   start(port: number = defaultServerPort): Promise<IServerStatus> {
     if (this.isRunning()) return Promise.resolve(this.getStatus());
+
+    // `stop()` keeps the recovery file but clears memory, so a deliberate stop/start cycle has the
+    // same safe resume behavior as an application restart.
+    this.restoreRecovery();
 
     this.port = port;
     this.lastErrorMessage = undefined;
@@ -153,6 +177,7 @@ export default class TournamentServer {
     const { server } = this;
     if (!server) return Promise.resolve(this.getStatus());
 
+    this.persistRecovery();
     this.server = null;
     return new Promise((resolve) => {
       server.close(() => {
@@ -175,6 +200,38 @@ export default class TournamentServer {
 
   getSessionSummaries(): ISessionSummary[] {
     return this.sessions.summarize();
+  }
+
+  /** Finals that survived an application restart and still need a renderer-side decision. */
+  getPendingSubmissions(): IMatchSubmission[] {
+    return this.sessions
+      .getAll()
+      .filter((session) => session.status === 'submitted' && session.finalReceived && session.latestQbj !== null)
+      .map((session) => ({
+        sessionId: session.id,
+        roundNumber: session.roundNumber,
+        leftTeam: session.leftTeam,
+        rightTeam: session.rightTeam,
+        roomId: session.roomId,
+        scheduledMatchId: session.scheduledMatchId,
+        qbj: session.latestQbj as object,
+        submittedAt: session.lastSeenAt,
+      }));
+  }
+
+  /** Presence is separate from sessions so an idle room can still appear connected. */
+  getRoomPresence(): IRoomPresence[] {
+    const now = Date.now();
+    return this.snapshot.rooms.map((room) => {
+      const lastSeenAt = this.roomLastSeenAt.get(room.id) ?? null;
+      const msSinceLastSeen = lastSeenAt === null ? null : Math.max(0, now - new Date(lastSeenAt).getTime());
+      return {
+        roomId: room.id,
+        lastSeenAt,
+        msSinceLastSeen,
+        connected: msSinceLastSeen !== null && msSinceLastSeen <= staleRoomThresholdMs,
+      };
+    });
   }
 
   /**
@@ -212,13 +269,62 @@ export default class TournamentServer {
   }
 
   private notifySessionsChanged() {
+    this.persistRecovery();
     this.options.onSessionsChanged?.(this.getSessionSummaries());
+  }
+
+  private markRoomCheckIn(roomId: string) {
+    this.roomLastSeenAt.set(roomId, new Date().toISOString());
+    this.persistRecovery();
+  }
+
+  /** Load a corrupt or missing recovery file as an empty store rather than failing startup. */
+  private restoreRecovery() {
+    const filePath = this.options.recoveryFilePath;
+    if (!filePath || !existsSync(filePath)) return;
+    try {
+      const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as Partial<ITournamentServerRecovery>;
+      if (parsed.version !== 1 || typeof parsed.recoveryKey !== 'string') return;
+      this.recoveryKey = parsed.recoveryKey;
+      this.sessions.restore(parsed.sessions);
+      if (parsed.roomLastSeenAt && typeof parsed.roomLastSeenAt === 'object') {
+        for (const [roomId, timestamp] of Object.entries(parsed.roomLastSeenAt)) {
+          if (typeof timestamp === 'string') this.roomLastSeenAt.set(roomId, timestamp);
+        }
+      }
+    } catch (err: any) {
+      // Recovery is best effort. MODAQ and the browser queue remain the last-resort copy of a game.
+    }
+  }
+
+  /** Persist transient state atomically so a power loss cannot leave half a JSON document. */
+  private persistRecovery() {
+    const filePath = this.options.recoveryFilePath;
+    if (!filePath || !this.recoveryKey) return;
+    const directory = path.dirname(filePath);
+    try {
+      mkdirSync(directory, { recursive: true });
+      const payload: ITournamentServerRecovery = {
+        version: 1,
+        recoveryKey: this.recoveryKey,
+        savedAt: new Date().toISOString(),
+        sessions: this.sessions.toRecoverySessions(),
+        roomLastSeenAt: Object.fromEntries(this.roomLastSeenAt.entries()),
+      };
+      const temporaryPath = `${filePath}.tmp`;
+      writeFileSync(temporaryPath, JSON.stringify(payload), 'utf8');
+      renameSync(temporaryPath, filePath);
+    } catch (err: any) {
+      // A recovery write failure must not bring down live scoring; the browser keeps its own queue.
+    }
   }
 
   /** Hand a brand-new final submission to the host so it can reach the renderer for validation */
   private handleFinalSubmission(sessionId: string) {
     const session = this.sessions.get(sessionId);
     if (!session || !session.latestQbj) return;
+
+    this.persistRecovery();
 
     const submission: IMatchSubmission = {
       sessionId: session.id,

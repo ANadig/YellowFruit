@@ -12,6 +12,7 @@ import { IpcMainEvent, IpcMainInvokeEvent } from 'electron/main';
 import TournamentServer from './TournamentServer';
 import {
   IMatchSubmission,
+  IRoomPresence,
   IServerStatus,
   ISessionSummary,
   ISubmissionVerdict,
@@ -28,6 +29,11 @@ function roomBundleDirectory(): string {
   // Packaged: dist/main/main.js -> dist/room. Dev: .erb/dll/main.bundle.dev.js -> release/app/dist/room.
   if (app.isPackaged) return path.join(__dirname, '../room');
   return path.resolve(__dirname, '../../release/app/dist/room');
+}
+
+/** Transient state belongs in app-data, not beside the .yft tournament file. */
+function recoveryFilePath(): string {
+  return path.join(app.getPath('userData'), 'tournament-server-recovery.json');
 }
 
 function sendToRenderer(channel: IpcMainToRend, payload: unknown) {
@@ -53,6 +59,7 @@ function getServer(): TournamentServer {
   if (!server) {
     server = new TournamentServer({
       roomBundleDirectory: roomBundleDirectory(),
+      recoveryFilePath: recoveryFilePath(),
       onFinalSubmission: handleFinalSubmission,
       onSessionsChanged: handleSessionsChanged,
       onSessionStarted: handleSessionStarted,
@@ -90,6 +97,14 @@ export default function registerTournamentServerIpc(getWindow: () => BrowserWind
   ipcMain.handle(IpcBidirectional.TournamentServerGetStatus, () => (server ? server.getStatus() : offlineStatus()));
 
   ipcMain.handle(IpcBidirectional.TournamentServerGetSessions, () => (server ? server.getSessionSummaries() : []));
+
+  ipcMain.handle(IpcBidirectional.TournamentServerGetPendingSubmissions, () =>
+    server ? server.getPendingSubmissions() : [],
+  );
+
+  ipcMain.handle(IpcBidirectional.TournamentServerGetRoomPresence, () =>
+    server ? server.getRoomPresence() : ([] as IRoomPresence[]),
+  );
 
   ipcMain.on(IpcRendToMain.TournamentServerSetSnapshot, (_event: IpcMainEvent, snapshot: ITournamentSnapshot) => {
     // Only ever stored and served verbatim; the main process doesn't interpret the tournament.

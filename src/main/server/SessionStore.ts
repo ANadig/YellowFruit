@@ -103,6 +103,60 @@ export default class SessionStore {
     return Array.from(this.sessions.values());
   }
 
+  /**
+   * Restore sessions from the versioned app-data recovery file.
+   *
+   * Recovery is deliberately defensive: a damaged transient file must not prevent YellowFruit from
+   * opening the tournament. Invalid entries are skipped, while valid sessions retain their original
+   * ids and capability tokens so a room can resume its existing game.
+   */
+  restore(source: unknown) {
+    if (!Array.isArray(source)) return;
+    const knownStatuses = new Set(Object.values(SessionStatus));
+    for (const candidate of source) {
+      if (typeof candidate !== 'object' || candidate === null) continue;
+      const value = candidate as Partial<ISession>;
+      if (
+        typeof value.id !== 'string' ||
+        value.id === '' ||
+        typeof value.token !== 'string' ||
+        value.token === '' ||
+        typeof value.roundNumber !== 'number' ||
+        !Number.isFinite(value.roundNumber) ||
+        typeof value.leftTeam !== 'string' ||
+        typeof value.rightTeam !== 'string' ||
+        typeof value.createdAt !== 'string' ||
+        typeof value.lastSeenAt !== 'string' ||
+        typeof value.status !== 'string' ||
+        !knownStatuses.has(value.status as SessionStatus)
+      ) {
+        continue;
+      }
+
+      const session: ISession = {
+        id: value.id,
+        token: value.token,
+        roundNumber: value.roundNumber,
+        leftTeam: value.leftTeam,
+        rightTeam: value.rightTeam,
+        roomId: typeof value.roomId === 'string' ? value.roomId : undefined,
+        scheduledMatchId: typeof value.scheduledMatchId === 'string' ? value.scheduledMatchId : undefined,
+        createdAt: value.createdAt,
+        lastSeenAt: value.lastSeenAt,
+        status: value.status as SessionStatus,
+        latestQbj: value.latestQbj && typeof value.latestQbj === 'object' ? value.latestQbj : null,
+        finalReceived: value.finalReceived === true,
+        rejectionReason: typeof value.rejectionReason === 'string' ? value.rejectionReason : undefined,
+      };
+      this.sessions.set(session.id, session);
+    }
+  }
+
+  /** Plain JSON representation for the app-data recovery store. */
+  toRecoverySessions(): ISession[] {
+    return this.getAll().map((session) => ({ ...session }));
+  }
+
   /** Look up a session and check the caller is allowed to write to it */
   private authorize(sessionId: string, token: string | undefined): SessionWriteResult {
     const session = this.sessions.get(sessionId);

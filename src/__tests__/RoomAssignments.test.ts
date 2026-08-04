@@ -331,6 +331,25 @@ describe('operational safeguards', () => {
     expect(body.blockedReason).toBe(RoomBlockedReason.FutureRound);
   });
 
+  test('a scheduled round is blocked until tournament control releases it', async () => {
+    server.setTournamentSnapshot(makeSnapshot({ releasedRoundNumber: null }));
+
+    const { res, body } = await startMatch('room-101', 'token-for-101', 'sched-r1-101');
+
+    expect(res.status).toBe(409);
+    expect(body.blockedReason).toBe(RoomBlockedReason.FutureRound);
+  });
+
+  test('releasing a round allows its ready assignment to start', async () => {
+    const assignments = makeAssignments();
+    assignments[0].status = ScheduledMatchStatus.Ready;
+    server.setTournamentSnapshot(makeSnapshot({ assignments, releasedRoundNumber: 1 }));
+
+    const { res } = await startMatch('room-101', 'token-for-101', 'sched-r1-101');
+
+    expect(res.status).toBe(201);
+  });
+
   test('unusable scoring rules block a room and explain why', async () => {
     server.setTournamentSnapshot(
       makeSnapshot({ gameFormat: null, gameFormatErrors: ['Lightning rounds cannot be scored.'] }),

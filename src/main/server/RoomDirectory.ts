@@ -183,7 +183,12 @@ export function checkCanStart(
     };
   }
 
-  if (snapshot.currentRoundNumber === null || assignment.roundNumber > snapshot.currentRoundNumber) {
+  // A derived current round tells us what is next; the explicit release is the gate that prevents
+  // a Chromebook from starting that round before the director has published it. Older snapshots
+  // did not carry a release field, so their current round remains the compatibility fallback.
+  const releasedRound =
+    snapshot.releasedRoundNumber === undefined ? snapshot.currentRoundNumber : snapshot.releasedRoundNumber;
+  if (releasedRound === null || assignment.roundNumber > releasedRound) {
     return {
       reason: RoomBlockedReason.FutureRound,
       message: `Round ${assignment.roundName} has not started yet. This page will update when tournament control opens the round.`,
@@ -226,6 +231,8 @@ export function buildAssignmentResponse(
     gameFormatErrors: snapshot.gameFormatErrors,
     gameFormatWarnings: snapshot.gameFormatWarnings,
     timedRounds: snapshot.timedRounds,
+    releasedRoundNumber:
+      snapshot.releasedRoundNumber === undefined ? snapshot.currentRoundNumber : snapshot.releasedRoundNumber,
   };
 }
 

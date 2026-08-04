@@ -100,6 +100,10 @@ export enum IpcBidirectional {
   TournamentServerGetStatus = 'TournamentServerGetStatus',
   /** Ask for the current room sessions, for the live dashboard */
   TournamentServerGetSessions = 'TournamentServerGetSessions',
+  /** Ask for finals recovered from the app-data session store */
+  TournamentServerGetPendingSubmissions = 'TournamentServerGetPendingSubmissions',
+  /** Ask for the last check-in time of each configured room */
+  TournamentServerGetRoomPresence = 'TournamentServerGetRoomPresence',
 }
 
 export type IpcChannels = IpcRendToMain | IpcMainToRend | IpcBidirectional;
@@ -135,4 +139,6 @@ export const rendererListenableEvents = [
   IpcBidirectional.TournamentServerStop,
   IpcBidirectional.TournamentServerGetStatus,
   IpcBidirectional.TournamentServerGetSessions,
+  IpcBidirectional.TournamentServerGetPendingSubmissions,
+  IpcBidirectional.TournamentServerGetRoomPresence,
 ];

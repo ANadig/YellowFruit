@@ -32,6 +32,9 @@ export const apiPrefix = '/api/v1';
 /** How long without a snapshot before the desktop UI considers a room stale */
 export const staleSessionThresholdMs = 60 * 1000;
 
+/** A room is considered connected while its permanent page is still polling this server. */
+export const staleRoomThresholdMs = 60 * 1000;
+
 // #region Tournament projection served to rooms
 
 /** One player on a team roster, as a room needs it */
@@ -86,6 +89,10 @@ export interface ITournamentSnapshot {
    * scoring a game whose teams are still playing the current round. Null means no round is in play.
    */
   currentRoundNumber: number | null;
+  /** The round tournament control has released to rooms. Kept separate from the derived current round. */
+  releasedRoundNumber?: number | null;
+  /** Stable tournament identity used to scope app-data recovery state. Never served to rooms. */
+  recoveryKey?: string;
 }
 
 /** A playing location, as the server needs to know it */
@@ -124,6 +131,7 @@ export const emptyTournamentSnapshot: ITournamentSnapshot = {
   rooms: [],
   assignments: [],
   currentRoundNumber: null,
+  releasedRoundNumber: null,
 };
 
 // #endregion
@@ -283,6 +291,8 @@ export interface IRoomAssignmentResponse {
   gameFormatErrors: string[];
   gameFormatWarnings: string[];
   timedRounds: boolean;
+  /** The highest round the director has released, if any. */
+  releasedRoundNumber?: number | null;
 }
 
 /** Enough to pick up an in-progress session after a reload */
@@ -327,6 +337,23 @@ export interface ISessionSummary {
   msSinceLastSeen: number;
   score: ISessionScoreLine | null;
   rejectionReason?: string;
+}
+
+/** Presence of a permanent room page, including rooms that are waiting between games. */
+export interface IRoomPresence {
+  roomId: string;
+  lastSeenAt: string | null;
+  msSinceLastSeen: number | null;
+  connected: boolean;
+}
+
+/** Versioned app-data recovery payload. The .yft remains the tournament source of truth. */
+export interface ITournamentServerRecovery {
+  version: 1;
+  recoveryKey: string;
+  savedAt: string;
+  sessions: ISession[];
+  roomLastSeenAt: Record<string, string>;
 }
 
 // #endregion

@@ -32,6 +32,10 @@ export interface IRouterHost {
    * playing. Not called when an existing session is resumed.
    */
   onSessionStarted?: (sessionId: string) => void;
+  /** Called when a permanent room page polls, including while it is waiting between games. */
+  onRoomCheckIn?: (roomId: string) => void;
+  /** Called after any session mutation so transient recovery state can be flushed. */
+  onSessionChanged?: () => void;
   /** Serve the browser room application for non-API routes */
   serveStatic: (req: IncomingMessage, res: ServerResponse, pathname: string) => void;
 }
@@ -387,6 +391,8 @@ export default class Router {
     const room = this.authorizeRoomOrRefuse(req, res, roomId);
     if (!room) return;
 
+    this.host.onRoomCheckIn?.(roomId);
+
     const snapshot = this.host.getSnapshot();
     const response = buildAssignmentResponse(snapshot, room);
 
@@ -458,6 +464,7 @@ export default class Router {
     };
     // 200 rather than 201 when resuming, so the client can tell it didn't create anything.
     sendJson(res, existing ? 200 : 201, payload);
+    this.host.onSessionChanged?.();
     if (!existing) this.host.onSessionStarted?.(session.id);
   }
 
@@ -502,6 +509,7 @@ export default class Router {
       status: session.status,
     };
     sendJson(res, 201, payload);
+    this.host.onSessionChanged?.();
   }
 
   private async writeSession(req: IncomingMessage, res: ServerResponse, sessionId: string, kind: 'snapshot' | 'final') {
@@ -545,10 +553,12 @@ export default class Router {
 
     if (kind === 'snapshot') {
       this.host.onSnapshot?.(sessionId);
+      this.host.onSessionChanged?.();
     } else if (result.isNew) {
       // Only a genuinely new final gets handed to the statskeeper. A retry of the same submission
       // is acknowledged without creating a second candidate match.
       this.host.onFinalSubmission(sessionId);
+      this.host.onSessionChanged?.();
     }
 
     sendJson(res, 200, {
