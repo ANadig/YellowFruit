@@ -28,6 +28,10 @@ export enum IpcRendToMain {
   LaunchStatReportInBrowser = 'LaunchStatReportInBrowser',
   /** Launch an arbitrary web page in an external browser window */
   LaunchExternalWebPage = 'LaunchExternalWebPage',
+  /** Push the read-only tournament projection that the tournament server serves to room clients */
+  TournamentServerSetSnapshot = 'TournamentServerSetSnapshot',
+  /** The statskeeper accepted or rejected a match a room submitted */
+  TournamentServerSubmissionVerdict = 'TournamentServerSubmissionVerdict',
 }
 
 /** Channels for main sending messages to renderer */
@@ -63,6 +67,12 @@ export enum IpcMainToRend {
   LaunchAboutYf = 'LaunchAboutYf',
   /** QBJ game import workflow, triggered by Main process */
   ImportQbjGamesMainLaunch = 'ImportQbjGamesMainLaunch',
+  /** The tournament server's running state changed */
+  TournamentServerStatusChanged = 'TournamentServerStatusChanged',
+  /** A room submitted a final match result that needs the statskeeper's decision */
+  TournamentServerMatchSubmitted = 'TournamentServerMatchSubmitted',
+  /** The set of active room sessions changed, so the live dashboard should refresh */
+  TournamentServerSessionsChanged = 'TournamentServerSessionsChanged',
 }
 
 /** Channels for both directions renderer<-->main */
@@ -80,6 +90,14 @@ export enum IpcBidirectional {
   SqbsExport = 'SqbsExport',
   /** See if there's a newer version the user should condider downloading */
   CheckForNewVersion = 'CheckForNewVersion',
+  /** Start the local tournament server. Replies with the resulting status. */
+  TournamentServerStart = 'TournamentServerStart',
+  /** Stop the local tournament server. Replies with the resulting status. */
+  TournamentServerStop = 'TournamentServerStop',
+  /** Ask for the tournament server's current status, including its LAN addresses */
+  TournamentServerGetStatus = 'TournamentServerGetStatus',
+  /** Ask for the current room sessions, for the live dashboard */
+  TournamentServerGetSessions = 'TournamentServerGetSessions',
 }
 
 export type IpcChannels = IpcRendToMain | IpcMainToRend | IpcBidirectional;
@@ -101,10 +119,17 @@ export const rendererListenableEvents = [
   IpcMainToRend.MakeToast,
   IpcMainToRend.ImportQbjGamesMainLaunch,
   IpcMainToRend.LaunchAboutYf,
+  IpcMainToRend.TournamentServerStatusChanged,
+  IpcMainToRend.TournamentServerMatchSubmitted,
+  IpcMainToRend.TournamentServerSessionsChanged,
   IpcBidirectional.LoadBackup,
   IpcBidirectional.ExportQbjFile,
   IpcBidirectional.ImportQbjGamesRendererLaunch,
   IpcBidirectional.GetAppVersion,
   IpcBidirectional.SqbsExport,
   IpcBidirectional.CheckForNewVersion,
+  IpcBidirectional.TournamentServerStart,
+  IpcBidirectional.TournamentServerStop,
+  IpcBidirectional.TournamentServerGetStatus,
+  IpcBidirectional.TournamentServerGetSessions,
 ];

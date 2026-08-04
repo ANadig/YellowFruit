@@ -4,7 +4,7 @@ import { IpcBidirectional } from '../IPCChannels';
 
 const octokit = new Octokit();
 
-export async function checkForNewVersions(event: IpcMainEvent) {
+export default async function checkForNewVersions(event: IpcMainEvent) {
   const response = await octokit.request('GET /repos/ANadig/YellowFruit/releases/latest', {
     headers: { 'X-GitHub-Api-Version': '2022-11-28' },
   });

@@ -40,7 +40,8 @@ import {
 } from './FileUtils';
 import { IpcBidirectional, IpcRendToMain } from '../IPCChannels';
 import { FileSwitchActions, statReportProtocol } from '../SharedUtils';
-import { checkForNewVersions } from './UpdateChecker';
+import checkForNewVersions from './UpdateChecker';
+import registerTournamentServerIpc, { shutDownTournamentServer } from './server/ServerIpc';
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -158,6 +159,11 @@ app.on('window-all-closed', () => {
   }
 });
 
+// Release the tournament server's port rather than leaving it bound after the app closes.
+app.on('will-quit', () => {
+  shutDownTournamentServer();
+});
+
 app
   .whenReady()
   .then(() => {
@@ -186,6 +192,8 @@ app
     ipcMain.on(IpcBidirectional.GetAppVersion, (event) =>
       event.reply(IpcBidirectional.GetAppVersion, app.getVersion()),
     );
+    // Registers handlers only. The tournament server binds a port only when the user starts it.
+    registerTournamentServerIpc(() => mainWindow);
 
     protocol.handle(statReportProtocol, (request) => {
       const url = pathToFileURL(path.resolve(inAppStatReportDirectory, parseStatReportPath(request.url)));

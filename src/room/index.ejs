@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      Everything this page needs is served from the YellowFruit computer, so nothing off-origin is
+      permitted. connect-src stays on 'self' because the room app only ever talks to the server that
+      served it.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'"
+    />
+    <title>YellowFruit Scorekeeping</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

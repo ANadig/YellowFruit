@@ -1,6 +1,5 @@
 import { Match } from './Match';
 import { Phase } from './Phase';
-import { Pool } from './Pool';
 import { Round } from './Round';
 import { Team } from './Team';
 
@@ -85,7 +84,7 @@ class MatchImportResult {
    */
   static validateImportSetForTeamDups(results: MatchImportResult[]) {
     const sortedResults = results.slice().sort((a, b) => (a.round?.number ?? -1) - (b.round?.number ?? -1));
-    let curRound: Round | undefined = undefined;
+    let curRound: Round | undefined;
     let teamsInRound: Team[] = [];
     for (const rslt of sortedResults) {
       const { match, round } = rslt;

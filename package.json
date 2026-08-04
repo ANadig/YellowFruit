@@ -12,10 +12,11 @@
   },
   "main": "./.erb/dll/main.bundle.dev.js",
   "scripts": {
-    "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
+    "build": "concurrently \"npm run build:main\" \"npm run build:renderer\" \"npm run build:room\"",
     "build:dll": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
+    "build:room": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.room.prod.ts",
     "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && npm run build:dll",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
     "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish never && npm run build:dll",
@@ -27,7 +28,9 @@
     "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.preload.dev.ts",
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./.erb/configs/webpack.config.renderer.dev.ts",
     "jesttest": "jest",
-    "test": "vitest"
+    "room:harness": "ts-node --compiler-options {\\\"module\\\":\\\"commonjs\\\"} src/room/devHarness.ts",
+    "test": "vitest",
+    "typecheck": "tsc -p tsconfig.typecheck.json"
   },
   "browserslist": [],
   "prettier": {
@@ -89,6 +92,7 @@
     "electron-debug": "^3.2.0",
     "electron-log": "^4.4.8",
     "electron-updater": "^6.3.0",
+    "modaq": "^1.41.1",
     "octokit": "^5.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

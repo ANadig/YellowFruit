@@ -109,6 +109,31 @@ const GamesPageHelpText: HelpTextSection[] = [
   },
 ];
 
+const RoomsPageHelpText: HelpTextSection[] = [
+  {
+    header: 'Tournament Server',
+    content: [
+      'Starting the tournament server lets other devices on the same network open a scorekeeping page served by this computer, so scorekeepers can enter games in a browser instead of exporting a file and importing it here by hand.',
+      "The server is off until you start it, only runs while YellowFruit is open, and is only reachable from your local network. Use one of the addresses shown to open the scorekeeping page on the scorekeeper's device.",
+      "Some scoring rules can't be used for room scorekeeping, because the browser scorekeeping interface can't represent them. If that's the case, the reasons are listed and the server won't let rooms start games.",
+    ],
+  },
+  {
+    header: 'Active Games',
+    content: [
+      'Each room uploads its game every few seconds so you can follow along. These live scores are for monitoring only and never affect standings.',
+      "A room shown as disconnected hasn't reported in for a while. The scorekeeper can keep scoring regardless: their game is saved in their browser and will be submitted once the network comes back.",
+    ],
+  },
+  {
+    header: 'Match Inbox',
+    content: [
+      'When a room finishes a game, it appears here with the same validation YellowFruit applies to a QBJ file you import by hand. Games are never accepted automatically.',
+      'Accepting a game adds it to its round exactly as importing a file would, so standings and the stat report update normally. Rejecting it tells the room, and they can fix the problem and submit again.',
+    ],
+  },
+];
+
 const StatReportPageHelpText: HelpTextSection[] = [
   {
     content: [
@@ -129,6 +154,8 @@ export default function getAppPageHelpText(page: ApplicationPages) {
       return TeamsPageHelpText;
     case ApplicationPages.Games:
       return GamesPageHelpText;
+    case ApplicationPages.Rooms:
+      return RoomsPageHelpText;
     case ApplicationPages.StatReport:
       return StatReportPageHelpText;
     default:

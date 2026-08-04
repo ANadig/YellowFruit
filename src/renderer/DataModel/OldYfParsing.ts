@@ -323,7 +323,7 @@ function parseGames(tourn: Tournament, oldYfGames: IOldYfGame[]) {
     const carryOverPhases = g.phases
       .filter((phName) => phName !== mainPhase?.name)
       .map((phName) => tourn.findPhaseByName(phName))
-      .filter((ph) => ph !== undefined);
+      .filter((ph): ph is Phase => ph !== undefined);
     const leftTeam = tourn.findTeamByName(g.team1);
     const rightTeam = tourn.findTeamByName(g.team2);
     if (!leftTeam || !rightTeam) continue;

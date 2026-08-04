@@ -23,6 +23,7 @@ const pageNames = {
   [ApplicationPages.Schedule]: 'Schedule',
   [ApplicationPages.Teams]: 'Teams',
   [ApplicationPages.Games]: 'Games',
+  [ApplicationPages.Rooms]: 'Rooms',
   [ApplicationPages.StatReport]: 'Stat Report',
 };
 // Which order the pages should be in
@@ -32,6 +33,7 @@ export const applicationPageOrder = [
   ApplicationPages.Schedule,
   ApplicationPages.Teams,
   ApplicationPages.Games,
+  ApplicationPages.Rooms,
   ApplicationPages.StatReport,
 ];
 

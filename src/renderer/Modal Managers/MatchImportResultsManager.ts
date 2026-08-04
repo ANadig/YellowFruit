@@ -4,7 +4,6 @@ import { Round } from '../DataModel/Round';
 import { StatsValidity } from '../DataModel/Match';
 import { getFileNameFromPath } from '../Utils/GeneralUtils';
 import Tournament from '../DataModel/Tournament';
-import { Phase } from '../DataModel/Phase';
 
 export default class MatchImportResultsManager {
   modalIsOpen: boolean = false;

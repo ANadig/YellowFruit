@@ -1,0 +1,139 @@
+/* Styles for the browser room application. Kept deliberately plain: MODAQ brings its own Fluent UI
+   theming for the scoresheet itself, and everything here is the thin shell around it. */
+
+:root {
+  --room-text: #202020;
+  --room-muted: #606060;
+  --room-border: #d0d0d0;
+  --room-accent: #1565c0;
+  --room-warning-bg: #fff4e5;
+  --room-warning-border: #ffb74d;
+  --room-error-bg: #fdecea;
+  --room-error-border: #ef5350;
+  --room-info-bg: #e8f4fd;
+  --room-info-border: #64b5f6;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--room-text);
+}
+
+.room-shell {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.room-shell h1 {
+  margin-bottom: 4px;
+  font-size: 1.6rem;
+}
+
+.room-muted {
+  color: var(--room-muted);
+  margin-top: 0;
+}
+
+.room-field {
+  display: block;
+  margin: 20px 0;
+}
+
+.room-field > span {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.room-field select {
+  width: 100%;
+  /* Large enough to be a comfortable touch target on a Chromebook. */
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid var(--room-border);
+  border-radius: 4px;
+  background: #fff;
+}
+
+.room-button {
+  width: 100%;
+  padding: 14px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--room-accent);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.room-button:disabled {
+  background: #9e9e9e;
+  cursor: default;
+}
+
+.room-banner {
+  padding: 12px 14px;
+  margin: 16px 0;
+  border-left: 4px solid var(--room-border);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.room-banner ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.room-banner-warning {
+  background: var(--room-warning-bg);
+  border-left-color: var(--room-warning-border);
+}
+
+.room-banner-error {
+  background: var(--room-error-bg);
+  border-left-color: var(--room-error-border);
+}
+
+.room-banner-info {
+  background: var(--room-info-bg);
+  border-left-color: var(--room-info-border);
+}
+
+/* Scoring view: MODAQ fills the rest of the page below a compact status strip. */
+.room-scoring {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.room-scoring-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--room-border);
+  font-size: 0.95rem;
+}
+
+.room-pill {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.room-pill-online {
+  background: #e6f4ea;
+  color: #1e6b32;
+}
+
+.room-pill-offline {
+  background: var(--room-error-bg);
+  color: #b3261e;
+}

@@ -1,0 +1,12 @@
+// Type-checking-only config. The webpack builds use ts-loader with transpileOnly, so
+// `npm run typecheck` is what actually validates types. skipLibCheck is on because several
+// third-party packages ship types that need a newer moduleResolution than the app itself uses.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

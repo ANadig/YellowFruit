@@ -5,6 +5,7 @@ export enum ApplicationPages {
   Schedule,
   Teams,
   Games,
+  Rooms,
   StatReport,
 }
 

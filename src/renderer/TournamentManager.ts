@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
+import { AlertColor } from '@mui/material';
 import Tournament, { IYftFileTournament, NullTournament } from './DataModel/Tournament';
 import { dateFieldChanged, getFileNameFromPath, textFieldChanged, versionLt } from './Utils/GeneralUtils';
 import { NullObjects } from './Utils/UtilTypes';
@@ -14,7 +15,7 @@ import { GenericModalManager } from './Modal Managers/GenericModalManager';
 import { collectRefTargets, findTournamentObject } from './DataModel/QbjUtils2';
 import FileParser from './DataModel/FileParsing';
 import { TempMatchManager } from './Modal Managers/TempMatchManager';
-import { IModaqMatch, IQbjMatch, Match } from './DataModel/Match';
+import { Match } from './DataModel/Match';
 import {
   FileSwitchActions,
   IMatchImportFileRequest,
@@ -40,7 +41,8 @@ import { parseOldYfFile, isOldYftFile } from './DataModel/OldYfParsing';
 import parseTeamsFromSqbsFile from './DataModel/SqbsParsing';
 import SqbsExportModalManager from './Modal Managers/SqbsExportModalManager';
 import SqbsGenerator from './DataModel/SqbsFileGeneration';
-import { AlertColor } from '@mui/material';
+import MatchImportService, { invalidJsonMessage } from './Services/MatchImportService';
+import TournamentServerService from './Services/TournamentServerService';
 
 /** Holds the tournament the application is currently editing */
 export class TournamentManager {
@@ -98,6 +100,9 @@ export class TournamentManager {
 
   sqbsExportModalManager: SqbsExportModalManager;
 
+  /** Optional local tournament server for browser-based room scorekeeping. Off unless started. */
+  tournamentServerService: TournamentServerService;
+
   aboutYfDialogOpen: boolean = false;
 
   /** When did we last update the stat report? */
@@ -110,12 +115,15 @@ export class TournamentManager {
   /** The version of the app that is currently running */
   appVersion: string = '';
 
-  /** The latest published version of the app that's available to download*/
+  /** The latest published version of the app that's available to download */
   latestAvailVersion: string = '';
 
   constructor() {
     this.dataChangedReactCallback = () => {};
     this.makeToast = () => {};
+    // Created before addIpcListeners so that its own listeners can be registered alongside ours.
+    this.tournamentServerService = new TournamentServerService(this.tournament);
+    this.tournamentServerService.onMatchAccepted = () => this.onRemoteMatchAccepted();
     this.addIpcListeners();
 
     this.genericModalManager = new GenericModalManager();
@@ -138,6 +146,7 @@ export class TournamentManager {
   }
 
   protected addIpcListeners() {
+    this.tournamentServerService.addIpcListeners();
     window.electron.ipcRenderer.on(IpcMainToRend.CheckForUnsavedData, (action) => {
       this.checkForUnsavedData(action as FileSwitchActions);
     });
@@ -212,7 +221,7 @@ export class TournamentManager {
     window.electron.ipcRenderer.sendMessage(IpcBidirectional.LoadBackup);
   }
 
-  //eslint-disable-next-line class-methods-use-this
+  // eslint-disable-next-line class-methods-use-this
   protected checkForNewVersion() {
     window.electron.ipcRenderer.sendMessage(IpcBidirectional.CheckForNewVersion);
   }
@@ -318,14 +327,9 @@ export class TournamentManager {
   }
 
   private parseJSON(fileContents: string) {
-    let objFromFile: object | null = null;
-    try {
-      objFromFile = JSON.parse(fileContents, (key, value) => {
-        if (TournamentManager.isNameOfDateField(key)) return dayjs(value).toDate(); // must be ISO 8601 format
-        return value;
-      });
-    } catch (err: any) {
-      this.openGenericModal('Invalid File', 'This file does not contain valid JSON.');
+    const objFromFile = MatchImportService.parseJson(fileContents);
+    if (!objFromFile) {
+      this.openGenericModal('Invalid File', invalidJsonMessage);
     }
     return objFromFile;
   }
@@ -544,114 +548,13 @@ export class TournamentManager {
   private importMatchesFromQbj(fileAry: IMatchImportFileRequest[], round?: Round) {
     if (fileAry.length === 0) return;
 
-    const phase = round ? this.tournament.findPhaseByRound(round) : undefined;
-
-    let results: MatchImportResult[] = [];
-    for (const oneFile of fileAry) {
-      const { filePath, fileContents } = oneFile;
-      const objFromFile = this.parseJSON(fileContents);
-      if (!objFromFile) return;
-
-      snakeCaseToCamelCase(objFromFile);
-
-      if ((objFromFile as IQbjWholeFile).objects) {
-        results = results.concat(this.importMatchesFromWholeQbj(objFromFile as IQbjWholeFile, filePath, phase, round));
-      } else {
-        const oneResult: MatchImportResult = new MatchImportResult(filePath);
-        results.push(oneResult);
-        const roundToUse = round ?? this.tournament.getRoundObjByNumber((objFromFile as IModaqMatch)._round);
-        if (!roundToUse) {
-          oneResult.markFatal("Couldn't determine a round for the game in this file");
-          continue;
-        }
-        const phaseToUse = phase ?? this.tournament.findPhaseByRound(roundToUse);
-        if (!phaseToUse) {
-          continue; // just ignore this match; this isn't plausible and I don't know how I would explain it to a user
-        }
-        this.importSingleMatchObj(objFromFile as IQbjMatch, phaseToUse, roundToUse, oneResult);
-      }
-    }
-
-    MatchImportResult.validateImportSetForTeamDups(results);
-    this.tournament.setMatchIdCounter();
-    this.openMatchImportModal(results, round);
-  }
-
-  /**
-   * Import multiple matches from an arbitrary QBJ file
-   * @param fileObj top-level file JSON object
-   * @param phase phase we're importing matches into
-   * @param round round we're importing matches into
-   * @param filePath file that we're importing
-   */
-  private importMatchesFromWholeQbj(fileObj: IQbjWholeFile, filePath: string, phase?: Phase, round?: Round) {
-    const objectList = fileObj.objects;
-    const importResults: MatchImportResult[] = [];
-    const wholeFileFailureResult = new MatchImportResult(filePath);
-    if (!qbjFileValidVersion(fileObj as IQbjWholeFile)) {
-      wholeFileFailureResult.markFatal("This file doesn't use a supported version of the tournament schema.");
-      importResults.push(wholeFileFailureResult);
-      return importResults;
-    }
-
-    let refTargets: IRefTargetDict = {};
-    try {
-      refTargets = collectRefTargets(objectList);
-    } catch (err: any) {
-      wholeFileFailureResult.markFatal(err.message);
-      importResults.push(wholeFileFailureResult);
-      return importResults;
-    }
-
-    const matchesWithRoundNums = FileParser.findMatches(objectList);
-    if (matchesWithRoundNums.length === 0) {
-      wholeFileFailureResult.markFatal(`The file ${filePath} contains no Match objects.`);
-      importResults.push(wholeFileFailureResult);
-      return importResults;
-    }
-
-    const parser = new FileParser(refTargets, this.tournament, phase);
-    parser.buildTypesByIdArrays(objectList);
-    for (const matchAndRound of matchesWithRoundNums) {
-      const singleResult = new MatchImportResult(filePath);
-      const roundToUse = round ?? this.tournament.getRoundObjByNumber(Number.parseInt(matchAndRound.roundName, 10));
-      if (roundToUse === undefined) {
-        singleResult.markFatal(`Couldn't find a round in this tournament matching "${matchAndRound.roundName}"`);
-        continue;
-      }
-      const phaseToUse = phase ?? this.tournament.findPhaseByRound(roundToUse);
-      if (phaseToUse === undefined) {
-        continue; // just ignore this match; this isn't plausible and I don't know how I would explain it to a user
-      }
-      this.importSingleMatchObj(matchAndRound.match, phaseToUse, roundToUse, singleResult, parser);
-      importResults.push(singleResult);
-    }
-    return importResults;
-  }
-
-  /** Import a match based only on a single QBJ Match object and nothing else */
-  private importSingleMatchObj(
-    match: IQbjMatch,
-    phase: Phase,
-    round: Round,
-    importResult: MatchImportResult,
-    existingParser?: FileParser,
-  ) {
-    importResult.phase = phase;
-    importResult.round = round;
-    const parser = existingParser ?? new FileParser({}, this.tournament);
-    parser.importPhase = phase;
-    let yfMatch;
-    try {
-      yfMatch = parser.parseMatch(match as IIndeterminateQbj);
-    } catch (err: any) {
-      importResult.markFatal(err.message);
+    const { results, hadInvalidJson } = new MatchImportService(this.tournament).importMatches(fileAry, round);
+    if (hadInvalidJson) {
+      this.openGenericModal('Invalid File', invalidJsonMessage);
       return;
     }
-    if (yfMatch) {
-      Tournament.validateHaveTeamsPlayedInRound(yfMatch, round, phase, false);
-      importResult.evaluateMatch(yfMatch);
-    }
+
+    this.openMatchImportModal(results, round);
   }
 
   /** Save the tournament to the given file and switch context to that file */
@@ -821,6 +724,9 @@ export class TournamentManager {
   modalManagersSetTournament() {
     this.teamModalManager.tournament = this.tournament;
     this.matchModalManager.tournament = this.tournament;
+    // A different tournament means any pending room submissions are about the wrong thing.
+    this.tournamentServerService.reset();
+    this.tournamentServerService.setTournament(this.tournament);
   }
 
   /** Keep track of which view the user is on, so that they can leave the Teams page, then
@@ -1391,6 +1297,15 @@ export class TournamentManager {
     } else {
       this.matchModalManager.closeModal();
     }
+  }
+
+  /**
+   * A match submitted by a room was accepted by the statskeeper. It's already been inserted into the
+   * round, so from here it's treated exactly like a manually imported match.
+   */
+  private onRemoteMatchAccepted() {
+    this.tournament.setMatchIdCounter();
+    this.onDataChanged();
   }
 
   openMatchImportModal(importResults: MatchImportResult[], round?: Round) {

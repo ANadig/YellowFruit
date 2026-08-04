@@ -183,10 +183,10 @@ export class Team implements IQbjTeam, IYftDataModelObject {
   /** Get a truncated name to use in match IDs */
   getLinkIdAbbrName() {
     const targetLength = 20;
-    let name = this.name.replaceAll(/\W/g, '');
+    const name = this.name.replaceAll(/\W/g, '');
     if (name.length <= targetLength) return name;
 
-    let letter = this.letter.replaceAll(/\W/g, '');
+    const letter = this.letter.replaceAll(/\W/g, '');
     if (letter === '' || letter.length > 10) return name.substring(0, targetLength);
     return `${name.substring(0, targetLength - letter.length)}${letter}`;
   }
