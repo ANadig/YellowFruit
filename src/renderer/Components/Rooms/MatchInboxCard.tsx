@@ -1,161 +1,205 @@
 import { useContext, useState } from 'react';
-import { Alert, Box, Button, Chip, Divider, Stack, TextField, Typography } from '@mui/material';
-import { Check, Close, Warning } from '@mui/icons-material';
-import YfCard from '../YfCard';
-import { TournamentServerContext, IInboxItem } from '../../Services/TournamentServerService';
+import { Box, Button, Divider, Stack, TextField, Typography } from '@mui/material';
+import { Check, Close } from '@mui/icons-material';
+import { IInboxItem, IMatchSubmissionConflict, TournamentServerContext } from '../../Services/TournamentServerService';
 import { ImportResultStatus } from '../../DataModel/MatchImportResult';
 
-/** Chip summarizing whether a submission passed validation */
-function validationChip(status: ImportResultStatus) {
-  switch (status) {
-    case ImportResultStatus.Success:
-      return <Chip size="small" color="success" icon={<Check />} label="No validation errors" />;
-    case ImportResultStatus.Warning:
-      return <Chip size="small" color="warning" icon={<Warning />} label="Warnings" />;
-    case ImportResultStatus.ErrNonFatal:
-      return <Chip size="small" color="error" label="Errors" />;
-    case ImportResultStatus.FatalErr:
-    default:
-      return <Chip size="small" color="error" label="Can't be imported" />;
-  }
+function submittedTime(value: string): string {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 }
 
 function InboxRow({ item }: { item: IInboxItem }) {
   const service = useContext(TournamentServerContext);
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
-
   if (!service) return null;
 
   const { importResult } = item;
-  const { status, messages, match } = importResult;
+  const { match, status, messages } = importResult;
   const isFatal = status === ImportResultStatus.FatalErr;
   const needsOverride = status === ImportResultStatus.ErrNonFatal;
-
-  // Prefer the names the importer resolved, since those are the tournament's actual teams.
   const leftName = match?.leftTeam.team?.name ?? item.leftTeam;
   const rightName = match?.rightTeam.team?.name ?? item.rightTeam;
-
-  const handleReject = () => {
-    service.rejectSubmission(item.sessionId, reason.trim() === '' ? undefined : reason.trim());
-  };
+  const leftScore = match?.leftTeam.points ?? '–';
+  const rightScore = match?.rightTeam.points ?? '–';
 
   return (
-    <Box>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="subtitle2">Round {item.roundNumber}</Typography>
-        {validationChip(status)}
+    <div className="rooms-inbox-row">
+      <div className="rooms-inbox-teams">
+        <Typography variant="caption" color="text.secondary">
+          Round {item.roundNumber} · {item.roomName ?? (item.roomId ? `Room ${item.roomId}` : 'Manual room')}
+        </Typography>
+        <strong>
+          {leftName} <span className="rooms-secondary">vs</span> {rightName}
+        </strong>
+        <div className="rooms-inbox-score">
+          {leftScore} <span className="rooms-secondary">–</span> {rightScore}
+        </div>
       </div>
 
-      <Typography variant="body1" sx={{ mt: 0.5 }}>
-        {leftName} {match ? match.leftTeam.points ?? '–' : '–'} &ndash; {match ? match.rightTeam.points ?? '–' : '–'}{' '}
-        {rightName}
-      </Typography>
+      <div>
+        {status === ImportResultStatus.Success && (
+          <div className="rooms-validation-clean" aria-label="No validation issues">
+            ✓ No validation issues
+          </div>
+        )}
+        {needsOverride && <div className="rooms-validation-warning">Warning · review before accepting</div>}
+        {isFatal && <div className="rooms-state is-error">Cannot be imported</div>}
+        {messages.length > 0 && (
+          <div className="rooms-inline-message">
+            {messages.map((message) => (
+              <div key={message}>{message}</div>
+            ))}
+          </div>
+        )}
+      </div>
 
-      <Typography variant="caption" color="text.secondary" component="div">
-        From {importResult.filePath}
-      </Typography>
+      <div className="rooms-secondary">
+        Submitted {submittedTime(item.submittedAt)}
+        <br />
+        Session {item.sessionId.slice(0, 8)}
+        {needsOverride && <div className="rooms-inline-message">Accepting anyway omits this result from stats.</div>}
+        {isFatal && <div className="rooms-inline-message">Reject it and have the room correct the game.</div>}
+      </div>
 
-      {messages.length > 0 && (
-        <Alert severity={isFatal || needsOverride ? 'error' : 'warning'} sx={{ mt: 1 }}>
-          {messages.map((message) => (
-            <div key={message}>{message}</div>
-          ))}
-        </Alert>
-      )}
-
-      {rejecting ? (
-        <Stack direction="row" spacing={1} sx={{ mt: 1 }} alignItems="center">
-          <TextField
-            size="small"
-            label="Reason (optional)"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            sx={{ width: 280 }}
-          />
-          <Button size="small" variant="contained" color="error" onClick={handleReject}>
-            Send Rejection
-          </Button>
-          <Button size="small" onClick={() => setRejecting(false)}>
-            Cancel
-          </Button>
-        </Stack>
-      ) : (
-        <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-          {!isFatal && !needsOverride && (
+      <div className="rooms-inbox-actions">
+        {rejecting ? (
+          <Stack direction="row" spacing={1} alignItems="center">
+            <TextField
+              size="small"
+              label="Reason (optional)"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              sx={{ width: 190 }}
+            />
             <Button
               size="small"
               variant="contained"
-              startIcon={<Check />}
-              onClick={() => service.acceptSubmission(item.sessionId)}
+              color="error"
+              onClick={() => service.rejectSubmission(item.sessionId, reason.trim() || undefined)}
             >
-              Accept
+              Reject
             </Button>
-          )}
-          {needsOverride && (
-            <Button
-              size="small"
-              variant="outlined"
-              color="warning"
-              onClick={() => service.acceptSubmission(item.sessionId, true)}
-            >
-              Accept Anyway
+            <Button size="small" onClick={() => setRejecting(false)}>
+              Cancel
             </Button>
-          )}
-          <Button size="small" color="error" startIcon={<Close />} onClick={() => setRejecting(true)}>
-            Reject
-          </Button>
-        </Stack>
-      )}
-
-      {needsOverride && (
-        <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 0.5 }}>
-          Accepting this game anyway will leave it out of the stat report, the same as a manually imported game with
-          errors.
-        </Typography>
-      )}
-      {isFatal && (
-        <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 0.5 }}>
-          This submission can&apos;t be imported. Reject it and have the room fix the problem, or enter the game by
-          hand.
-        </Typography>
-      )}
-    </Box>
+          </Stack>
+        ) : (
+          <Stack direction="row" spacing={1} justifyContent="flex-end">
+            {!isFatal && !needsOverride && (
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<Check />}
+                onClick={() => service.acceptSubmission(item.sessionId)}
+              >
+                Accept
+              </Button>
+            )}
+            {needsOverride && (
+              <Button
+                size="small"
+                variant="outlined"
+                color="warning"
+                onClick={() => service.acceptSubmission(item.sessionId, true)}
+              >
+                Accept anyway
+              </Button>
+            )}
+            <Button size="small" color="error" startIcon={<Close />} onClick={() => setRejecting(true)}>
+              Reject
+            </Button>
+          </Stack>
+        )}
+      </div>
+    </div>
   );
 }
 
-/**
- * Games submitted by rooms, awaiting the statskeeper's decision.
- *
- * Nothing here is ever accepted automatically. Each submission has already been run through the same
- * QBJ importer the manual file import uses, and accepting one inserts it into its round exactly as a
- * manual import would.
- */
 export default function MatchInboxCard() {
   const service = useContext(TournamentServerContext);
   if (!service) return null;
 
-  const { inbox } = service;
-
   return (
-    <YfCard
-      title="Match Inbox"
-      secondaryHeader={
-        inbox.length > 0 ? <Chip size="small" color="warning" label={`${inbox.length} waiting`} /> : undefined
-      }
-    >
-      {inbox.length === 0 ? (
-        <Typography variant="body2">
-          No games are waiting for approval. Games submitted from a room show up here for you to accept before they
-          count toward standings.
-        </Typography>
+    <section className="rooms-panel" aria-labelledby="match-inbox-heading">
+      <div className="rooms-panel-header">
+        <div>
+          <h2 id="match-inbox-heading">Match Inbox</h2>
+          <p>Final QBJ results stay here until tournament control accepts them into standings.</p>
+        </div>
+        {service.inbox.length > 0 && <Typography color="warning.main">{service.inbox.length} pending</Typography>}
+      </div>
+      {service.inbox.length === 0 ? (
+        <div className="rooms-empty-state">
+          <strong>No finals waiting for review</strong>
+          Submitted room results will appear here with validation details and inline actions.
+        </div>
       ) : (
-        <Stack divider={<Divider flexItem />} spacing={2}>
-          {inbox.map((item) => (
+        <Box>
+          {service.inbox.map((item) => (
             <InboxRow key={item.sessionId} item={item} />
           ))}
-        </Stack>
+        </Box>
       )}
-    </YfCard>
+
+      {service.conflicts.length > 0 && (
+        <Box sx={{ borderTop: '1px solid #d9dde3' }}>
+          <Box sx={{ px: 2, py: 1.5 }}>
+            <Typography variant="subtitle2">Submission conflicts</Typography>
+            <Typography variant="body2" color="text.secondary">
+              An accepted game was not overwritten. Review the incoming QBJ before deciding what to keep.
+            </Typography>
+          </Box>
+          <Divider />
+          {service.conflicts.map((conflict) => (
+            <ConflictRow
+              key={conflict.submission.sessionId}
+              conflict={conflict}
+              onKeep={() => service.dismissConflict(conflict.submission.sessionId)}
+            />
+          ))}
+        </Box>
+      )}
+    </section>
+  );
+}
+
+function ConflictRow({ conflict, onKeep }: { conflict: IMatchSubmissionConflict; onKeep: () => void }) {
+  const [reviewing, setReviewing] = useState(false);
+  return (
+    <Box sx={{ px: 2, py: 1.5 }}>
+      <Typography variant="body2">
+        Round {conflict.submission.roundNumber} · {conflict.submission.leftTeam} vs {conflict.submission.rightTeam}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" component="div">
+        Existing match {conflict.existingMatchId} · incoming session {conflict.submission.sessionId.slice(0, 8)}
+      </Typography>
+      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+        <Button size="small" variant="outlined" onClick={onKeep}>
+          Keep existing
+        </Button>
+        <Button size="small" onClick={() => setReviewing((current) => !current)}>
+          {reviewing ? 'Hide incoming QBJ' : 'Review incoming QBJ'}
+        </Button>
+      </Stack>
+      {reviewing && (
+        <Box
+          component="pre"
+          sx={{
+            maxHeight: 240,
+            overflow: 'auto',
+            mt: 1,
+            p: 1,
+            backgroundColor: '#f7f8fa',
+            fontSize: '0.7rem',
+            whiteSpace: 'pre-wrap',
+            overflowWrap: 'anywhere',
+          }}
+        >
+          {JSON.stringify(conflict.submission.qbj, null, 2)}
+        </Box>
+      )}
+    </Box>
   );
 }
