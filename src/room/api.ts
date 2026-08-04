@@ -24,6 +24,8 @@ export interface ITournamentInfo {
   gameFormat: IModaqGameFormat | null;
   gameFormatErrors: string[];
   gameFormatWarnings: string[];
+  /** Timed rounds can end before every regulation tossup is read */
+  timedRounds: boolean;
   roundCount: number;
   teamCount: number;
 }

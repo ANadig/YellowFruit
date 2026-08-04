@@ -1,5 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import SessionStore, { SessionWriteError, SessionWriteResult } from './SessionStore';
+import normalizeQbjMatch from '../../renderer/Services/QbjMatchNormalizer';
 import {
   ICreateSessionRequest,
   ISessionCreatedResponse,
@@ -235,6 +236,7 @@ export default class Router {
           gameFormat: snapshot.gameFormat,
           gameFormatErrors: snapshot.gameFormatErrors,
           gameFormatWarnings: snapshot.gameFormatWarnings,
+          timedRounds: snapshot.timedRounds,
           roundCount: snapshot.rounds.length,
           teamCount: snapshot.teams.length,
         });
@@ -316,6 +318,22 @@ export default class Router {
     handler();
   }
 
+  /**
+   * Correct the question counts on an incoming QBJ match against the format we're running.
+   *
+   * With no usable game format there's nothing to correct against, so the payload is stored as sent
+   * rather than guessed at.
+   */
+  private normalizeSubmission(qbj: object): object {
+    const { gameFormat, timedRounds } = this.host.getSnapshot();
+    if (!gameFormat) return qbj;
+    return normalizeQbjMatch(qbj, {
+      regulationTossupCount: gameFormat.regulationTossupCount,
+      minimumOvertimeQuestionCount: gameFormat.minimumOvertimeQuestionCount,
+      gameMayEndEarly: timedRounds,
+    }).qbj;
+  }
+
   private async createSession(req: IncomingMessage, res: ServerResponse) {
     const bodyResult = await readJsonBody(req);
     if (!bodyResult.ok) {
@@ -365,11 +383,16 @@ export default class Router {
       return;
     }
 
+    // The room client corrects MODAQ's scaffold-inflated question counts before it uploads, but do
+    // it again here so a stale or cached room bundle can't put bad counts into the tournament. The
+    // correction is idempotent, so re-running it on an already-corrected match changes nothing.
+    const qbj = this.normalizeSubmission(bodyResult.body);
+
     let result: SessionWriteResult;
     if (kind === 'snapshot') {
-      result = this.host.sessions.updateSnapshot(sessionId, token, bodyResult.body);
+      result = this.host.sessions.updateSnapshot(sessionId, token, qbj);
     } else {
-      result = this.host.sessions.submitFinal(sessionId, token, bodyResult.body);
+      result = this.host.sessions.submitFinal(sessionId, token, qbj);
     }
 
     if (!result.ok) {

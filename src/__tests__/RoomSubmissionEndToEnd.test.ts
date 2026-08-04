@@ -49,6 +49,7 @@ function snapshotFor(t: Tournament): ITournamentSnapshot {
     gameFormat: formatResult.ok ? formatResult.gameFormat : null,
     gameFormatErrors: formatResult.ok ? [] : formatResult.errors,
     gameFormatWarnings: formatResult.ok ? formatResult.warnings : [],
+    timedRounds: false,
   };
 }
 

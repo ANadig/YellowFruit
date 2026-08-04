@@ -13,7 +13,7 @@ import {
 } from '../main/server/ServerTypes';
 import scoringRulesToModaqGameFormat from '../renderer/Services/YellowFruitScoringRulesToModaq';
 import { CommonRuleSets, ScoringRules } from '../renderer/DataModel/ScoringRules';
-import { makeStandardModaqMatch, testTeamNames } from './TestFixtures';
+import { makeModaqCycleExport, makeStandardModaqMatch, testTeamNames } from './TestFixtures';
 
 /** Snapshot matching the test fixtures: 3 rounds, 4 teams, ACF-with-powers rules */
 function makeSnapshot(): ITournamentSnapshot {
@@ -25,6 +25,7 @@ function makeSnapshot(): ITournamentSnapshot {
     gameFormat: formatResult.ok ? formatResult.gameFormat : null,
     gameFormatErrors: formatResult.ok ? [] : formatResult.errors,
     gameFormatWarnings: formatResult.ok ? formatResult.warnings : [],
+    timedRounds: false,
   };
 }
 
@@ -168,7 +169,15 @@ describe('read-only tournament endpoints', () => {
     expect(body.teamCount).toBe(4);
     // No internal object graph, no registrations, no existing match data.
     expect(Object.keys(body).sort()).toEqual(
-      ['gameFormat', 'gameFormatErrors', 'gameFormatWarnings', 'name', 'roundCount', 'teamCount'].sort(),
+      [
+        'gameFormat',
+        'gameFormatErrors',
+        'gameFormatWarnings',
+        'name',
+        'roundCount',
+        'teamCount',
+        'timedRounds',
+      ].sort(),
     );
   });
 
@@ -492,6 +501,72 @@ describe('final submissions', () => {
     expect(res.status).toBe(200);
     expect((await res.json()).newSubmission).toBe(true);
     expect(submissions).toHaveLength(2);
+  });
+});
+
+describe('question counts on incoming submissions', () => {
+  /**
+   * A tied game as MODAQ really exports it from a scaffold packet: `playableCycles` never found a
+   * checkpoint where the score wasn't tied, so it handed back the packet's whole padded capacity.
+   */
+  function makeInflatedTiedGame() {
+    return makeModaqCycleExport({
+      cycleCount: 40,
+      playedIndices: Array.from({ length: 23 }, (_, i) => i),
+      left: { name: testTeamNames[0], starters: [`${testTeamNames[0]} Player 1`] },
+      right: { name: testTeamNames[1], starters: [`${testTeamNames[1]} Player 1`] },
+    });
+  }
+
+  test('the server corrects an inflated final rather than storing the scaffold size', async () => {
+    const { body: session } = await createSession();
+    const inflated = makeInflatedTiedGame();
+    expect(inflated.tossups_read).toBe(40);
+
+    const res = await fetch(`${baseUrl}/api/v1/sessions/${session.sessionId}/final`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', [sessionTokenHeader]: session.token },
+      body: JSON.stringify(inflated),
+    });
+
+    expect(res.status).toBe(200);
+    // 20 regulation plus the 3 overtime questions that were actually heard.
+    const submitted = submissions[0].qbj as any;
+    expect(submitted.tossups_read).toBe(23);
+    expect(submitted.match_questions).toHaveLength(23);
+    expect(submitted.match_teams[0].match_players[0].tossups_heard).toBe(23);
+  });
+
+  test('an inflated live snapshot reports the corrected count to the dashboard', async () => {
+    const { body: session } = await createSession();
+
+    await fetch(`${baseUrl}/api/v1/sessions/${session.sessionId}/snapshot`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', [sessionTokenHeader]: session.token },
+      body: JSON.stringify(makeInflatedTiedGame()),
+    });
+
+    expect(server.getSessionSummaries()[0].score?.tossupsRead).toBe(23);
+  });
+
+  test('a normal 20-tossup game is stored unchanged', async () => {
+    const { body: session } = await createSession();
+    const normal = makeModaqCycleExport({
+      cycleCount: 20,
+      playedIndices: Array.from({ length: 20 }, (_, i) => i),
+      left: { name: testTeamNames[0], starters: [`${testTeamNames[0]} Player 1`] },
+      right: { name: testTeamNames[1], starters: [`${testTeamNames[1]} Player 1`] },
+    });
+
+    await fetch(`${baseUrl}/api/v1/sessions/${session.sessionId}/final`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', [sessionTokenHeader]: session.token },
+      body: JSON.stringify(normal),
+    });
+
+    const submitted = submissions[0].qbj as any;
+    expect(submitted.tossups_read).toBe(20);
+    expect(submitted.match_questions).toHaveLength(20);
   });
 });
 

@@ -78,6 +78,116 @@ export function makeModaqQbjMatch(options: {
   return match;
 }
 
+/** One team in a cycle-level MODAQ export */
+interface IModaqCycleTeam {
+  name: string;
+  /** Starters, present in the lineup from question 1 */
+  starters: string[];
+  /** Players who enter partway through: question number they first appear on */
+  substitutes?: { name: string; firstQuestion: number }[];
+}
+
+/**
+ * Build a MODAQ QBJ export at cycle granularity, the way a scaffold-packet game really comes out.
+ *
+ * MODAQ emits one `match_questions` entry per playable cycle and counts `tossups_read` and every
+ * player's `tossups_heard` from that same list, so a fixture has to model all three together to be
+ * worth testing against. `cycleCount` is what MODAQ's `playableCycles` returned — which is the
+ * padded scaffold size when a game stayed tied — and `playedIndices` are the cycles that actually
+ * saw a buzz.
+ */
+export function makeModaqCycleExport(options: {
+  /** Cycles in the export, i.e. what MODAQ's playableCycles returned */
+  cycleCount: number;
+  /** 0-based indices of cycles that recorded a buzz */
+  playedIndices: number[];
+  /** 0-based indices of cycles with a thrown-out tossup but no buzz */
+  thrownOutIndices?: number[];
+  left?: IModaqCycleTeam;
+  right?: IModaqCycleTeam;
+}): Record<string, any> {
+  const {
+    cycleCount,
+    playedIndices,
+    thrownOutIndices = [],
+    left = { name: testTeamNames[0], starters: [`${testTeamNames[0]} Player 1`] },
+    right = { name: testTeamNames[1], starters: [`${testTeamNames[1]} Player 1`] },
+  } = options;
+
+  const played = new Set(playedIndices);
+  const thrownOut = new Set(thrownOutIndices);
+
+  const matchTeam = (line: IModaqCycleTeam, buzzingPlayer: string) => {
+    const subs = line.substitutes ?? [];
+    // MODAQ's first lineup is the starters, and each substitution appends a whole new lineup.
+    const lineups: { first_question: number; players: { name: string }[] }[] = [
+      { first_question: 1, players: line.starters.map((name) => ({ name })) },
+    ];
+    for (const sub of [...subs].sort((a, b) => a.firstQuestion - b.firstQuestion)) {
+      const previous = lineups[lineups.length - 1];
+      lineups.push({
+        first_question: sub.firstQuestion,
+        players: previous.players.concat({ name: sub.name }),
+      });
+    }
+
+    // MODAQ credits a tossup heard for every question a player was in the lineup for.
+    const heardFor = (name: string) => {
+      let heard = 0;
+      for (let questionNumber = 1; questionNumber <= cycleCount; questionNumber++) {
+        const lineup = lineups.filter((l) => l.first_question <= questionNumber).pop();
+        if (lineup?.players.some((p) => p.name === name)) heard++;
+      }
+      return heard;
+    };
+
+    const allPlayers = line.starters.concat(subs.map((s) => s.name));
+    return {
+      team: { name: line.name },
+      bonus_points: 0,
+      lineups,
+      match_players: allPlayers.map((name) => ({
+        player: { name },
+        tossups_heard: heardFor(name),
+        answer_counts:
+          name === buzzingPlayer ? [{ number: playedIndices.length, answer: { value: 10 } }] : [],
+      })),
+    };
+  };
+
+  const matchQuestions = [];
+  for (let i = 0; i < cycleCount; i++) {
+    const question: Record<string, any> = {
+      question_number: i + 1,
+      buzzes: [],
+      tossup_question: { parts: 1, type: 'tossup', question_number: i + 1 },
+    };
+    if (played.has(i)) {
+      // Alternate which side buzzes so the running score changes, as a real game's would.
+      const team = i % 2 === 0 ? left : right;
+      question.buzzes = [
+        {
+          buzz_position: { word_index: 3 },
+          player: { name: team.starters[0] },
+          team: { name: team.name },
+          result: { value: 10 },
+        },
+      ];
+    }
+    if (thrownOut.has(i)) {
+      question.replacement_tossup_question = { parts: 1, type: 'tossup', question_number: i + 2 };
+    }
+    matchQuestions.push(question);
+  }
+
+  return {
+    // MODAQ derives this straight from playableCycles.length.
+    tossups_read: cycleCount,
+    match_teams: [matchTeam(left, left.starters[0]), matchTeam(right, right.starters[0])],
+    match_questions: matchQuestions,
+  };
+}
+
 /** A well-formed MODAQ match between the first two test teams. 300-165 with powers. */
 export function makeStandardModaqMatch(round?: number): Record<string, any> {
   return makeModaqQbjMatch({

@@ -12,6 +12,7 @@ import {
   putSnapshot,
 } from './api';
 import { IRoomRound, IRoomTeam } from '../main/server/ServerTypes';
+import normalizeQbjMatch, { IQbjNormalizeOptions } from '../renderer/Services/QbjMatchNormalizer';
 import {
   clearPendingSubmission,
   flushPendingSubmission,
@@ -74,10 +75,19 @@ export default function RoomApp() {
   const [submitMessage, setSubmitMessage] = useState('');
   const [lastSnapshotError, setLastSnapshotError] = useState('');
 
-  // Held in a ref so MODAQ's export callback always sees the current session without being
-  // re-created (which would reset MODAQ's export interval).
+  // Held in refs so MODAQ's export callback always sees current values without being re-created
+  // (which would reset MODAQ's export interval).
   const credentialsRef = useRef<ISessionCredentials | null>(null);
   credentialsRef.current = credentials;
+
+  const normalizeOptionsRef = useRef<IQbjNormalizeOptions | null>(null);
+  normalizeOptionsRef.current = tournament?.gameFormat
+    ? {
+        regulationTossupCount: tournament.gameFormat.regulationTossupCount,
+        minimumOvertimeQuestionCount: tournament.gameFormat.minimumOvertimeQuestionCount,
+        gameMayEndEarly: tournament.timedRounds,
+      }
+    : null;
 
   // Load the tournament projection once.
   useEffect(() => {
@@ -182,13 +192,18 @@ export default function RoomApp() {
    * dashboard and must never be treated as a finished game. Pressing Next on the last tossup, or
    * choosing the export item in MODAQ's menu, is a real submission.
    */
-  const handleExport = useCallback(async (qbj: object, context?: { source: ExportSource }): Promise<ModaqStatus> => {
+  const handleExport = useCallback(async (rawQbj: object, context?: { source: ExportSource }): Promise<ModaqStatus> => {
     const activeCredentials = credentialsRef.current;
     if (!activeCredentials) {
       return { isError: true, status: 'This room is not connected to a game yet.' };
     }
 
     const source = context?.source ?? 'Menu';
+
+    // MODAQ counts questions from the scaffold packet's length, which overstates them for a game
+    // that stayed tied. Correct that here so nothing downstream ever sees the inflated counts.
+    const normalizeOptions = normalizeOptionsRef.current;
+    const qbj = normalizeOptions ? normalizeQbjMatch(rawQbj, normalizeOptions).qbj : rawQbj;
 
     if (source === 'Timer') {
       const result = await putSnapshot(activeCredentials, qbj);

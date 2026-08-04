@@ -61,6 +61,11 @@ export interface ITournamentSnapshot {
   gameFormat: IModaqGameFormat | null;
   gameFormatErrors: string[];
   gameFormatWarnings: string[];
+  /**
+   * True when a round can end before every regulation tossup is read, i.e. timed rounds. Rooms need
+   * this to work out how many tossups were actually heard; see `QbjMatchNormalizer`.
+   */
+  timedRounds: boolean;
 }
 
 /** An empty snapshot, used before the renderer has pushed anything or with no tournament open */
@@ -71,6 +76,7 @@ export const emptyTournamentSnapshot: ITournamentSnapshot = {
   gameFormat: null,
   gameFormatErrors: ['YellowFruit has not sent tournament information to the server yet.'],
   gameFormatWarnings: [],
+  timedRounds: false,
 };
 
 // #endregion
