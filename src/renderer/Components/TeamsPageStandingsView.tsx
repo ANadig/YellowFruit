@@ -32,7 +32,16 @@ export default function StandingsView() {
   const phases = tournManager.tournament.getFullPhases();
   const [updateTime] = useSubscription(tournManager.inAppStatReportGenerated);
 
-  if (phases.length === 0) return null;
+  if (phases.length === 0) {
+    return (
+      <Box sx={{ px: 2, py: 4, textAlign: 'center' }}>
+        <Typography variant="subtitle2">No standings yet</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          Enter a schedule and games to build tournament standings.
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <div key={updateTime.toISOString()}>
@@ -194,6 +203,7 @@ function AdvanceToCell(props: IAdvanceToCellProps) {
       <Tooltip placement="right" title="Change assignment">
         <IconButton
           size="small"
+          aria-label={`Change assignment for ${ptStats.poolTeam.team.name}`}
           onClick={() =>
             tournManager.openPoolAssignmentModal(ptStats.poolTeam.team, nextPhase, handleModalAccept, poolToShow)
           }
@@ -301,7 +311,7 @@ function TiebreakerOrFinalsInfo(props: ITiebreakerOrFinalsInfoProps) {
         {matches.map((match) => (
           <div key={match.id}>
             {match.getWinnerLoserString()}{' '}
-            <IconButton size="small" onClick={() => editExisting(match)}>
+            <IconButton size="small" onClick={() => editExisting(match)} aria-label={`Edit game ${match.id}`}>
               <Edit />
             </IconButton>
           </div>
@@ -343,7 +353,11 @@ function FinalRankCell(props: IFinalRankCellProps) {
   return (
     <TableCell align="right">
       {explicitRank || ptStats.finalRankCalculated}&emsp;
-      <IconButton size="small" onClick={() => tournManager.openRankModal(ptStats.team)}>
+      <IconButton
+        size="small"
+        onClick={() => tournManager.openRankModal(ptStats.team)}
+        aria-label={`Edit rank for ${ptStats.team.name}`}
+      >
         <Edit />
       </IconButton>
     </TableCell>

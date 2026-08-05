@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -82,14 +81,15 @@ function TossupSettingsCard() {
               addPointValue={addAnswerType}
               disabled={readOnly}
             />
-            <Chip
-              key="custom"
+            <Button
               variant="outlined"
-              label="Custom..."
+              size="small"
+              startIcon={<Add />}
               disabled={readOnly}
-              onDelete={() => setCustomPtValFormOpen(true)}
-              deleteIcon={<Add />}
-            />
+              onClick={() => setCustomPtValFormOpen(true)}
+            >
+              Custom value
+            </Button>
           </Box>
         </>
       )}
@@ -157,14 +157,16 @@ function AvailableStandardPtValuesList(props: IAvailableStandardPtValuesListProp
   const { pointValues, addPointValue, disabled } = props;
 
   return pointValues.map((value) => (
-    <Chip
+    <Button
       key={value}
       variant="outlined"
-      label={`${value} pts`}
+      size="small"
+      startIcon={<Add />}
       disabled={disabled}
-      onDelete={() => addPointValue(value)}
-      deleteIcon={<Add />}
-    />
+      onClick={() => addPointValue(value)}
+    >
+      {value} pts
+    </Button>
   ));
 }
 

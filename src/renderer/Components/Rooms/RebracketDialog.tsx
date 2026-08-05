@@ -54,7 +54,10 @@ export default function RebracketDialog(props: IRebracketDialogProps) {
     setStandings(phaseStandings?.pools ?? []);
     setGeneratedPreview(null);
     setPreviewIssues([]);
-  }, [open, completedPhase, manager, tournament, tournament.stats]);
+    // `compileStats` replaces `tournament.stats` and notifies the app. Depending on that array here
+    // would reopen this effect after every compile and create an update loop while the dialog is open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, completedPhase, manager, tournament]);
 
   const roundNumbers = useMemo(() => phaseRoundNumbers(completedPhase), [completedPhase]);
   const phaseMatches = tournament.scheduledMatches.filter((match) => roundNumbers.includes(match.roundNumber));

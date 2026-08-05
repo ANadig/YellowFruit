@@ -4,12 +4,16 @@ import {
   Alert,
   Button,
   Checkbox,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControlLabel,
+  FormControl,
   IconButton,
+  MenuItem,
+  Select,
   Stack,
   TextField,
   Tooltip,
@@ -22,7 +26,6 @@ import {
   ContentCopy,
   Delete,
   Edit,
-  ExpandMore,
   PlayArrow,
   Print,
   QrCode2,
@@ -56,6 +59,7 @@ import { ConfirmDialog, RoomDetailDialog, RoomEditorDialog, RoomQrDialog, RoomSe
 import { MatchEditorDialog, ScheduleGeneratorDialog } from './ScheduleDialogs';
 import RebracketDialog from './RebracketDialog';
 import MatchInboxCard from './MatchInboxCard';
+import { YfPageHeader } from '../../Utils/GeneralReactUtils';
 import './rooms.css';
 
 const pollIntervalMs = 3000;
@@ -190,11 +194,29 @@ function releaseMessage(
   return `Rooms may start through Round ${releasedRound}.`;
 }
 
+function serverStatusLabel(statusLoading: boolean, running: boolean): string {
+  if (statusLoading) return 'Checking server…';
+  return running ? 'Server running' : 'Server offline';
+}
+
+function serverStatusColor(statusLoading: boolean, running: boolean): 'default' | 'success' | 'error' {
+  if (statusLoading) return 'default';
+  return running ? 'success' : 'error';
+}
+
+function serverAddressLabel(statusLoading: boolean, running: boolean, address: string): string {
+  if (statusLoading) return 'Checking Tournament Server…';
+  if (!running) return 'Tournament Server is off';
+  return address || 'No LAN address found';
+}
+
 export default function RoomsPage() {
   const manager = useContext(TournamentContext);
   const service = manager.tournamentServerService;
   const { tournament } = manager;
   const [, setRefresh] = useState(0);
+  const [statusLoading, setStatusLoading] = useState(true);
+  const [statusError, setStatusError] = useState('');
   const [roomDetail, setRoomDetail] = useState<TournamentRoom | null>(null);
   const [roomEditor, setRoomEditor] = useState<TournamentRoom | null | undefined>(undefined);
   const [qrRoom, setQrRoom] = useState<TournamentRoom | null>(null);
@@ -207,22 +229,49 @@ export default function RoomsPage() {
   const [scheduleError, setScheduleError] = useState('');
 
   useEffect(() => {
-    service.dataChangedReactCallback = () => setRefresh((current) => current + 1);
-    service.refreshStatus();
+    let active = true;
+    const previousDataChangedCallback = service.dataChangedReactCallback;
+    const handleServiceDataChanged = () => {
+      setRefresh((current) => current + 1);
+      previousDataChangedCallback();
+    };
+    service.dataChangedReactCallback = handleServiceDataChanged;
+    service
+      .refreshStatus()
+      .catch((error: unknown) => {
+        if (!active) return;
+        setStatusError(error instanceof Error ? error.message : 'Could not check the Tournament Server.');
+      })
+      .finally(() => {
+        if (active) setStatusLoading(false);
+      })
+      .catch(() => undefined);
     return () => {
-      service.dataChangedReactCallback = () => {};
+      active = false;
+      if (service.dataChangedReactCallback === handleServiceDataChanged) {
+        service.dataChangedReactCallback = previousDataChangedCallback;
+      }
     };
   }, [service]);
 
   useEffect(() => {
     if (!service.status.running) return undefined;
-    service.refreshSessions();
-    service.refreshPresence();
+    let active = true;
+    const reportRefreshError = (error: unknown) => {
+      if (active) setStatusError(error instanceof Error ? error.message : 'Could not refresh room status.');
+    };
+    const refreshLiveData = () => {
+      service.refreshSessions().catch(reportRefreshError);
+      service.refreshPresence().catch(reportRefreshError);
+    };
+    refreshLiveData();
     const handle = setInterval(() => {
-      service.refreshSessions();
-      service.refreshPresence();
+      refreshLiveData();
     }, pollIntervalMs);
-    return () => clearInterval(handle);
+    return () => {
+      active = false;
+      clearInterval(handle);
+    };
   }, [service, service.status.running]);
 
   const rooms = tournament.rooms.slice().sort(TournamentRoom.compare);
@@ -403,22 +452,32 @@ export default function RoomsPage() {
 
   return (
     <TournamentServerContext.Provider value={service}>
-      <main className="rooms-operations">
-        <header className="rooms-page-header">
-          <div>
-            <h1>Rooms</h1>
-            <p>Tournament operations, room readiness, live games, and final-result review.</p>
-          </div>
-          <div className={`rooms-server-state ${service.status.running ? 'is-running' : 'is-offline'}`}>
-            Server · {service.status.running ? 'Running' : 'Offline'}
-          </div>
-        </header>
+      <div className="rooms-operations">
+        <YfPageHeader
+          title="Rooms"
+          description="Tournament operations, room readiness, live games, and final-result review."
+          status={
+            <Chip
+              size="small"
+              color={serverStatusColor(statusLoading, service.status.running)}
+              label={serverStatusLabel(statusLoading, service.status.running)}
+            />
+          }
+          actions={
+            <Button
+              size="small"
+              variant={service.status.running ? 'outlined' : 'contained'}
+              startIcon={service.status.running ? <Settings /> : <PlayArrow />}
+              onClick={() => setServerSettingsOpen(true)}
+            >
+              {service.status.running ? 'Server settings' : 'Start server'}
+            </Button>
+          }
+        />
 
         <div className="rooms-server-toolbar">
           <div className="rooms-server-address">
-            <strong>
-              {service.status.running ? serverAddress || 'No LAN address found' : 'Tournament Server is off'}
-            </strong>
+            <strong>{serverAddressLabel(statusLoading, service.status.running, serverAddress)}</strong>
             {service.status.running && service.status.addresses.length > 1 && (
               <span> · {service.status.addresses.length} network addresses</span>
             )}
@@ -428,20 +487,19 @@ export default function RoomsPage() {
               Copy address
             </Button>
           )}
-          <Button size="small" startIcon={<Settings />} onClick={() => setServerSettingsOpen(true)}>
-            Server settings
-          </Button>
-          {!service.status.running && (
-            <Button
-              size="small"
-              variant="contained"
-              startIcon={<PlayArrow />}
-              onClick={() => setServerSettingsOpen(true)}
-            >
-              Start server
-            </Button>
-          )}
         </div>
+
+        {service.lastError !== '' ? (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {service.lastError}
+          </Alert>
+        ) : (
+          statusError !== '' && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setStatusError('')}>
+              {statusError}
+            </Alert>
+          )
+        )}
 
         <div className="rooms-summary-strip" aria-label="Tournament progress summary">
           <SummaryItem label="Current round" value={currentRound === null ? '—' : `Round ${currentRound}`} />
@@ -612,15 +670,6 @@ export default function RoomsPage() {
                                 aria-label={`Show QR for ${room.name}`}
                               >
                                 <QrCode2 fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Room details">
-                              <IconButton
-                                size="small"
-                                onClick={() => setRoomDetail(room)}
-                                aria-label={`Open ${room.name} details`}
-                              >
-                                <ExpandMore fontSize="small" />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Delete room">
@@ -836,7 +885,7 @@ export default function RoomsPage() {
             onConfirm={confirmState.onConfirm}
           />
         )}
-      </main>
+      </div>
     </TournamentServerContext.Provider>
   );
 }
@@ -1001,7 +1050,7 @@ function ScheduleGroup({
   }
   return (
     <div>
-      <div className="rooms-dialog-section" style={{ padding: '12px 16px 4px' }}>
+      <div className="rooms-dialog-section rooms-schedule-group-title">
         <Typography variant="subtitle2">{title}</Typography>
       </div>
       {roundNumbers.map((roundNumber) => (
@@ -1048,19 +1097,22 @@ function ScheduleRow({
   return (
     <div className="rooms-schedule-row">
       <div className="rooms-schedule-room">
-        <select
-          aria-label={`Room for ${match.describe()}`}
-          value={match.roomId ?? ''}
-          onChange={(event) => onRoomChange(match, event.target.value)}
-          disabled={!editable}
-        >
-          <option value="">Unassigned</option>
-          {rooms.map((room) => (
-            <option value={room.id} key={room.id} disabled={!room.enabled}>
-              {room.name}
-            </option>
-          ))}
-        </select>
+        <FormControl fullWidth size="small">
+          <Select
+            value={match.roomId ?? ''}
+            displayEmpty
+            inputProps={{ 'aria-label': `Room for ${match.describe()}` }}
+            onChange={(event) => onRoomChange(match, event.target.value as string)}
+            disabled={!editable}
+          >
+            <MenuItem value="">Unassigned</MenuItem>
+            {rooms.map((room) => (
+              <MenuItem value={room.id} key={room.id} disabled={!room.enabled}>
+                {room.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </div>
       <div className="rooms-schedule-teams">
         <strong>{match.leftTeamName}</strong> <span className="rooms-secondary">vs</span>{' '}

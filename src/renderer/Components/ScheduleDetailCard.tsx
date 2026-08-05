@@ -122,6 +122,7 @@ function PhaseAccordionHeader(props: PhaseAccordionHeaderProps) {
         <PhaseTitle phase={phase} />
         <IconButton
           size="small"
+          aria-label={`Edit ${phase.name}`}
           onClick={(e) => {
             e.stopPropagation();
             tournManager.openPhaseModal(phase);
@@ -137,6 +138,7 @@ function PhaseAccordionHeader(props: PhaseAccordionHeaderProps) {
               <span>
                 <IconButton
                   size="small"
+                  aria-label={`Move ${phase.name} up`}
                   disabled={!canMoveUp}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -151,6 +153,7 @@ function PhaseAccordionHeader(props: PhaseAccordionHeaderProps) {
               <span>
                 <IconButton
                   size="small"
+                  aria-label={`Move ${phase.name} down`}
                   disabled={!canMoveDown}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -168,6 +171,7 @@ function PhaseAccordionHeader(props: PhaseAccordionHeaderProps) {
             <span>
               <IconButton
                 size="small"
+                aria-label={`Delete ${phase.name}`}
                 disabled={matchesExist}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -286,6 +290,7 @@ function PhaseEditor(props: IPhaseEditorProps) {
                   secondaryAction={
                     <IconButton
                       size="small"
+                      aria-label={`Edit ${pool.name}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         tournManager.openPoolModal(phase, pool);
@@ -411,24 +416,15 @@ function ScheduleZeroState() {
   const tournManager = useContext(TournamentContext);
 
   return (
-    <Grid container>
-      <Grid size={{ xs: 'grow' }} />
-      <Grid size={{ xs: 'auto' }}>
-        <Box sx={{ py: 13 }}>
-          <div>
-            <Typography variant="body2" sx={{ marginBottom: 1 }}>
-              Choose a template to get started
-            </Typography>
-          </div>
-          <div>
-            <LinkButton onClick={() => tournManager.startNewCustomSchedule()}>
-              <Tune fontSize="small" /> Create a custom schedule instead
-            </LinkButton>
-          </div>
-        </Box>
-      </Grid>
-      <Grid size={{ xs: 'grow' }} />
-    </Grid>
+    <Box sx={{ py: 4, textAlign: 'center' }}>
+      <Typography variant="subtitle2">No schedule yet</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+        Choose a template to get started, or create a custom schedule.
+      </Typography>
+      <LinkButton sx={{ mt: 1 }} onClick={() => tournManager.startNewCustomSchedule()}>
+        <Tune fontSize="small" /> Create custom schedule
+      </LinkButton>
+    </Box>
   );
 }
 

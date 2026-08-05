@@ -169,7 +169,7 @@ export default function MatchInboxCard() {
       )}
 
       {service.conflicts.length > 0 && (
-        <Box sx={{ borderTop: '1px solid #d9dde3' }}>
+        <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
           <Box sx={{ px: 2, py: 1.5 }}>
             <Typography variant="subtitle2">Submission conflicts</Typography>
             <Typography
@@ -227,7 +227,7 @@ function ConflictRow({ conflict, onKeep }: { conflict: IMatchSubmissionConflict;
             overflow: 'auto',
             mt: 1,
             p: 1,
-            backgroundColor: '#f7f8fa',
+            backgroundColor: 'action.hover',
             fontSize: '0.7rem',
             whiteSpace: 'pre-wrap',
             overflowWrap: 'anywhere',

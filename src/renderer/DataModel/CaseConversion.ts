@@ -289,8 +289,6 @@ export function earlyYftFileConversions(fileObj: any) {
     return;
   }
 
-  console.log(version);
-
   if (!version) return;
 
   if (versionLt(version, '4.0.18')) {

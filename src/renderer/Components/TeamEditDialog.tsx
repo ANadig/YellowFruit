@@ -311,21 +311,34 @@ const SaveAndNewButtons = forwardRef((props: ISaveAndNewButtonsProps, ref: React
     setDropdownOpen(false);
   };
 
+  const saveAndNextLetter = () => {
+    setDropdownOpen(false);
+    onClickSaveAndNextLetter();
+  };
+
   return (
     <>
       <ButtonGroup ref={anchorRef}>
         <Button disabled={disabled} onClick={onClickSaveAndNew} ref={ref}>
           {hotkeyFormat('&Save {AMP} New')}
         </Button>
-        <Button size="small" disabled={disabled} onClick={() => setDropdownOpen(!dropdownOpen)}>
+        <Button
+          size="small"
+          disabled={disabled}
+          aria-label="More save options"
+          aria-expanded={dropdownOpen}
+          aria-haspopup="menu"
+          aria-controls={dropdownOpen ? 'save-and-new-menu' : undefined}
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+        >
           <ArrowDropDown />
         </Button>
       </ButtonGroup>
       <Popper open={dropdownOpen} anchorEl={anchorRef.current} disablePortal>
         <Paper>
           <ClickAwayListener onClickAway={handleClose}>
-            <MenuList id="split-button-menu" autoFocusItem>
-              <MenuItem selected={dropdownOpen} onClick={() => onClickSaveAndNextLetter()}>
+            <MenuList id="save-and-new-menu" autoFocusItem>
+              <MenuItem onClick={saveAndNextLetter}>
                 {hotkeyFormat('Save {AMP} Next &Team for This Organization')}
               </MenuItem>
             </MenuList>
@@ -486,7 +499,11 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
       )}
       {teamHasPlayed && player?.sourcePlayer && (
         <Grid size={{ xs: 1 }}>
-          <IconButton disabled={playerHasPlayed} onClick={() => modalManager.deletePlayer(rowIdx)}>
+          <IconButton
+            disabled={playerHasPlayed}
+            onClick={() => modalManager.deletePlayer(rowIdx)}
+            aria-label={`Delete player ${rowIdx + 1}`}
+          >
             <Delete />
           </IconButton>
         </Grid>

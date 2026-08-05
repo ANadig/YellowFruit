@@ -16,6 +16,7 @@ import {
   TableHead,
   TableRow,
   Tooltip,
+  Typography,
 } from '@mui/material';
 import { ArrowDropDown, ArrowDropUp, Edit, Error, Lock } from '@mui/icons-material';
 import YfCard from './YfCard';
@@ -74,7 +75,11 @@ function SeedList() {
 
   return (
     <YfCard title="Seeds">
-      {seedList.length > 0 && (
+      {seedList.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">
+          Register teams first, then assign their preliminary seed order here.
+        </Typography>
+      ) : (
         <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'divider' }}>
           <List dense sx={{ py: 0 }}>
             {listItems}
@@ -129,12 +134,22 @@ function SeedListItem(props: ISeedListItemProps) {
       <ListItem
         secondaryAction={
           <>
-            <IconButton size="small" disabled={!canMoveUp} onClick={() => tournManager.shiftSeedUp(seedNo)}>
+            <IconButton
+              size="small"
+              disabled={!canMoveUp}
+              aria-label={`Move seed ${seedNo} up`}
+              onClick={() => tournManager.shiftSeedUp(seedNo)}
+            >
               <ArrowDropUp
                 sx={{ color: !canMoveUp ? 'transparent' : undefined, pointerEvents: ptrEventsForInteractiveChld }}
               />
             </IconButton>
-            <IconButton size="small" disabled={!canMoveDown} onClick={() => tournManager.shiftSeedDown(seedNo)}>
+            <IconButton
+              size="small"
+              disabled={!canMoveDown}
+              aria-label={`Move seed ${seedNo} down`}
+              onClick={() => tournManager.shiftSeedDown(seedNo)}
+            >
               <ArrowDropDown
                 sx={{ color: !canMoveDown ? 'transparent' : undefined, pointerEvents: ptrEventsForInteractiveChld }}
               />
@@ -157,7 +172,13 @@ function PoolView() {
   const [phase] = useSubscription(thisTournament.getPrelimPhase());
   const [usingTemplate] = useSubscription(thisTournament.usingScheduleTemplate);
 
-  if (!phase) return null;
+  if (!phase) {
+    return (
+      <Typography variant="body2" color="text.secondary">
+        Choose a schedule with preliminary pools to assign teams.
+      </Typography>
+    );
+  }
 
   const unassignedTeams = thisTournament.getTeamsNotInAPool(phase);
   return (
@@ -364,6 +385,7 @@ function PoolViewTableRowUnseeded(props: IPoolViewTableRowUnseededProps) {
           <Tooltip title="Change pool assignment">
             <IconButton
               size="small"
+              aria-label={`Change pool assignment for ${team.name}`}
               onClick={() => tournManager.openPoolAssignmentModal(team, phase, handleModalAccept, pool ?? undefined)}
             >
               <Edit />

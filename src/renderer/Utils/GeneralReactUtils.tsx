@@ -77,15 +77,38 @@ export function CollapsibleArea(props: React.PropsWithChildren<ICollapsibleAreaP
   const { title, secondaryTitle, children } = props;
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const toggleExpanded = () => setIsExpanded((current) => !current);
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    toggleExpanded();
+  };
+
   return (
     <>
-      <Grid container sx={{ cursor: 'pointer' }} onClick={() => setIsExpanded(!isExpanded)}>
+      <Grid
+        container
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        onClick={toggleExpanded}
+        onKeyDown={handleKeyDown}
+        sx={{
+          cursor: 'pointer',
+          borderRadius: 1,
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: 2,
+          },
+        }}
+      >
         <Grid size={{ xs: 'grow' }}>
           {title}
           {!isExpanded && secondaryTitle}
         </Grid>
         <Grid size={{ xs: 'auto' }}>
-          <ExpandButton expand={isExpanded} sx={{ py: 0 }}>
+          <ExpandButton component="span" expand={isExpanded} tabIndex={-1} aria-hidden sx={{ py: 0 }}>
             <ExpandMore />
           </ExpandButton>
         </Grid>

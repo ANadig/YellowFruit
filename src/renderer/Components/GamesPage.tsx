@@ -11,10 +11,9 @@ import {
   Tooltip,
   Autocomplete,
   TextField,
-  Skeleton,
   Button,
 } from '@mui/material';
-import React, { useContext, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { Add, Delete, Edit, Error, ExpandMore, FileUpload, FilterAlt, Warning } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
@@ -114,7 +113,7 @@ function TeamFilterField(props: ITeamFilterFieldProps) {
     return value === '' && option === teamSelectNullOption;
   };
 
-  const allTeamNames = useMemo(() => thisTourn.getListOfAllTeams().map((tm) => tm.name), [thisTourn]);
+  const allTeamNames = thisTourn.getListOfAllTeams().map((tm) => tm.name);
   const filterOptions = [teamSelectNullOption].concat(allTeamNames);
 
   return (
@@ -142,6 +141,16 @@ function GamesViewByRound(props: IGameViewByRoundProps) {
   const { filterTeam } = props;
   const tournManager = useContext(TournamentContext);
   const [phases] = useSubscription(tournManager.tournament.phases);
+
+  if (phases.length === 0) {
+    return (
+      <YfCard title="No schedule yet">
+        <Typography variant="body2" color="text.secondary">
+          Choose a schedule before entering or importing games.
+        </Typography>
+      </YfCard>
+    );
+  }
 
   return (
     <Stack spacing={2}>
@@ -190,7 +199,6 @@ function SingleRound(props: ISingleRoundProps) {
   const [expanded, setExpanded] = useState(expandedProp);
   const canAddMatch = useMemo(() => tournManager.tournament.readyToAddMatches(), [tournManager]);
   const [numErrs, numWarns] = filterTeam === undefined ? round.countErrorsAndWarnings() : [0, 0];
-  const [prevFilterTeam, setPrevFilterTeam] = useState<Team | undefined>(undefined);
 
   const matchesToShow = useMemo(
     () => (filterTeam ? round.matches.filter((m) => m.includesTeam(filterTeam)) : round.matches),
@@ -198,11 +206,13 @@ function SingleRound(props: ISingleRoundProps) {
   );
   const numMatches = matchesToShow.length;
 
-  if (prevFilterTeam !== filterTeam) {
-    if (filterTeam && numMatches > 0) setExpanded(true);
-    else setExpanded(false);
-    setPrevFilterTeam(filterTeam);
-  }
+  useEffect(() => {
+    if (filterTeam) {
+      setExpanded(numMatches > 0);
+    } else {
+      setExpanded(expandedProp);
+    }
+  }, [expandedProp, filterTeam, numMatches]);
 
   const newMatchForRound = () => {
     tournManager.openMatchModalNewMatchForRound(round);
@@ -283,11 +293,7 @@ function SingleRound(props: ISingleRoundProps) {
         </Box>
       </AccordionSummary>
       <AccordionDetails sx={{ px: 2, pb: 2 }}>
-        {expanded ? (
-          <SingleRoundMatchList round={round} matchList={matchesToShow} />
-        ) : (
-          <PlaceholderMatchList listSize={Math.min(matchesToShow.length, 6)} />
-        )}
+        <SingleRoundMatchList round={round} matchList={matchesToShow} />
       </AccordionDetails>
     </Accordion>
   );
@@ -300,42 +306,29 @@ interface ISingleRoundMatchListProps {
 
 function SingleRoundMatchList(props: ISingleRoundMatchListProps) {
   const { round, matchList } = props;
-  return (
-    round.matches.length > 0 && (
-      <Box
-        sx={{
-          border: 1,
-          borderColor: 'divider',
-          borderRadius: 2,
-          overflow: 'hidden',
-          '& > * + *': { borderTop: 1, borderColor: 'divider' },
-        }}
-      >
-        {matchList.map((m) => (
-          <MatchListItem key={m.id} match={m} round={round} />
-        ))}
-      </Box>
-    )
-  );
-}
-
-interface IPlaceholderMatchListProps {
-  listSize: number;
-}
-
-function PlaceholderMatchList(props: IPlaceholderMatchListProps) {
-  const { listSize } = props;
-  if (listSize === 0) return null;
-
-  const placeholders: React.JSX.Element[] = [];
-  for (let i = 1; i <= listSize; i++) {
-    const widthPct = 15 + 35 * Math.random();
-    placeholders.push(
-      <Skeleton key={i} variant="text" width={`${widthPct.toPrecision(2)}%`} sx={{ fontSize: '16pt' }} />,
+  if (matchList.length === 0) {
+    return (
+      <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
+        {round.matches.length === 0 ? 'No games in this round yet.' : 'No games match the selected team.'}
+      </Typography>
     );
   }
 
-  return <Stack spacing={2}>{placeholders}</Stack>;
+  return (
+    <Box
+      sx={{
+        border: 1,
+        borderColor: 'divider',
+        borderRadius: 2,
+        overflow: 'hidden',
+        '& > * + *': { borderTop: 1, borderColor: 'divider' },
+      }}
+    >
+      {matchList.map((m) => (
+        <MatchListItem key={m.id} match={m} round={round} />
+      ))}
+    </Box>
+  );
 }
 
 interface IMatchListItemProps {
@@ -347,6 +340,7 @@ function MatchListItem(props: IMatchListItemProps) {
   const { match, round } = props;
   const tournManager = useContext(TournamentContext);
   const validationStatus = match.getOverallValidationStatus();
+  const openMatch = () => tournManager.openMatchEditModalExistingMatch(match, round);
 
   return (
     <Box
@@ -358,9 +352,27 @@ function MatchListItem(props: IMatchListItemProps) {
         py: 1,
         '&:hover': { backgroundColor: 'action.hover' },
       }}
-      onDoubleClick={() => tournManager.openMatchEditModalExistingMatch(match, round)}
+      role="group"
+      aria-label={`Game ${match.getScoreString()}`}
+      onDoubleClick={openMatch}
     >
-      <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+      <Box
+        sx={{
+          minWidth: 0,
+          flexGrow: 1,
+          cursor: 'pointer',
+          borderRadius: 1,
+          '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Edit game ${match.getScoreString()}`}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          openMatch();
+        }}
+      >
         <Typography variant="subtitle1">{match.getScoreString()}</Typography>
         {match.carryoverPhases.length > 0 && (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
@@ -397,12 +409,20 @@ function MatchListItem(props: IMatchListItemProps) {
       </Box>
       <Box sx={{ display: 'flex', gap: 0.25, flexShrink: 0 }}>
         <Tooltip title="Edit game">
-          <IconButton size="small" onClick={() => tournManager.openMatchEditModalExistingMatch(match, round)}>
+          <IconButton
+            size="small"
+            onClick={() => tournManager.openMatchEditModalExistingMatch(match, round)}
+            aria-label={`Edit game ${match.getScoreString()}`}
+          >
             <Edit fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Delete game">
-          <IconButton size="small" onClick={() => tournManager.tryDeleteMatch(match, round)}>
+          <IconButton
+            size="small"
+            onClick={() => tournManager.tryDeleteMatch(match, round)}
+            aria-label={`Delete game ${match.getScoreString()}`}
+          >
             <Delete fontSize="small" />
           </IconButton>
         </Tooltip>

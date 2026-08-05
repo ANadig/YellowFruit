@@ -23,6 +23,7 @@ import { nextAlphabetLetter } from '../Utils/GeneralUtils';
 import SeedingView from './TeamsPageSeedingView';
 import StandingsView from './TeamsPageStandingsView';
 import { YfPageHeader } from '../Utils/GeneralReactUtils';
+import YfCard from './YfCard';
 
 // Defines the order the tabs should be in
 const viewList = ['Registration', 'Prelim assignments', 'Rebracket / final ranks'];
@@ -66,22 +67,12 @@ function RegistrationView() {
   const cantAddMoreTeams = expectedNumTeams !== null && numberOfTeams >= expectedNumTeams;
 
   return (
-    <Paper variant="outlined">
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 2,
-          px: 2,
-          py: 1.25,
-          borderBottom: numberOfTeams > 0 ? 1 : 0,
-          borderColor: 'divider',
-        }}
-      >
-        <Typography variant="subtitle2">{teamTotDisp}</Typography>
-        <ImportButtons disabled={cantAddMoreTeams} />
-      </Box>
+    <YfCard
+      title="Registrations"
+      description={teamTotDisp}
+      secondaryHeader={<ImportButtons disabled={cantAddMoreTeams} />}
+      flush
+    >
       {numberOfTeams === 0 ? (
         <EmptyState title="No teams yet" body="Add teams one at a time, or import them from a QBJ or SQBS file." />
       ) : (
@@ -91,7 +82,7 @@ function RegistrationView() {
           ))}
         </Box>
       )}
-    </Paper>
+    </YfCard>
   );
 }
 
@@ -130,6 +121,11 @@ function ImportButtons(props: IImportButtonsProps) {
     setDropdownOpen(false);
   };
 
+  const runImport = (importTeams: () => void) => {
+    setDropdownOpen(false);
+    importTeams();
+  };
+
   return (
     <>
       <ButtonGroup ref={anchorRef} size="small" variant="contained">
@@ -143,6 +139,9 @@ function ImportButtons(props: IImportButtonsProps) {
         <Button
           disabled={disabled}
           aria-label="more ways to add teams"
+          aria-expanded={dropdownOpen}
+          aria-haspopup="menu"
+          aria-controls={dropdownOpen ? 'split-button-menu' : undefined}
           sx={{ px: 0.25 }}
           onClick={() => setDropdownOpen(!dropdownOpen)}
         >
@@ -153,10 +152,10 @@ function ImportButtons(props: IImportButtonsProps) {
         <Paper variant="outlined" sx={{ mt: 0.5, boxShadow: 5 }}>
           <ClickAwayListener onClickAway={handleDropDownClose}>
             <MenuList id="split-button-menu">
-              <MenuItem onClick={() => tournManager.launchImportQbjTeamsWorkflow()}>
+              <MenuItem onClick={() => runImport(() => tournManager.launchImportQbjTeamsWorkflow())}>
                 Import teams from QBJ/JSON (MODAQ) file
               </MenuItem>
-              <MenuItem onClick={() => tournManager.launchImportSqbsTeamsWorkflow()}>
+              <MenuItem onClick={() => runImport(() => tournManager.launchImportSqbsTeamsWorkflow())}>
                 Import teams from SQBS file
               </MenuItem>
             </MenuList>
@@ -204,6 +203,7 @@ function TeamListItem(props: ITeamListItemProps) {
   const { registration, team, isLastForReg, cantAddMoreTeams } = props;
   const tournManager = useContext(TournamentContext);
   const hasPlayed = tournManager.tournament.teamHasPlayedAnyMatch(team);
+  const openTeamEditor = () => tournManager.openTeamEditModalExistingTeam(registration, team);
 
   let nextLetter = '';
   if (isLastForReg) nextLetter = team.letter === '' ? 'B' : nextAlphabetLetter(team.letter);
@@ -219,9 +219,26 @@ function TeamListItem(props: ITeamListItemProps) {
         py: 1,
         '&:hover': { backgroundColor: 'action.hover' },
       }}
-      onDoubleClick={() => tournManager.openTeamEditModalExistingTeam(registration, team)}
+      role="group"
+      aria-label={`${team.name}, ${teamInfoDisplay(registration, team)}`}
+      onDoubleClick={openTeamEditor}
     >
-      <Box sx={{ minWidth: 0 }}>
+      <Box
+        sx={{
+          minWidth: 0,
+          cursor: 'pointer',
+          borderRadius: 1,
+          '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Edit ${team.name}`}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          openTeamEditor();
+        }}
+      >
         <Typography variant="subtitle1" noWrap>
           {team.name}
         </Typography>
@@ -234,6 +251,7 @@ function TeamListItem(props: ITeamListItemProps) {
           <Tooltip title={`Add ${nextLetter} team`}>
             <IconButton
               size="small"
+              aria-label={`Add ${nextLetter} team for ${registration.name}`}
               onClick={() => tournManager.startNextTeamForRegistration(registration, nextLetter)}
             >
               <CopyAll fontSize="small" />
@@ -241,7 +259,7 @@ function TeamListItem(props: ITeamListItemProps) {
           </Tooltip>
         )}
         <Tooltip title="Edit team">
-          <IconButton size="small" onClick={() => tournManager.openTeamEditModalExistingTeam(registration, team)}>
+          <IconButton size="small" onClick={openTeamEditor} aria-label={`Edit ${team.name}`}>
             <Edit fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -250,6 +268,7 @@ function TeamListItem(props: ITeamListItemProps) {
             <IconButton
               size="small"
               disabled={hasPlayed}
+              aria-label={`Delete ${team.name}`}
               onClick={() => tournManager.tryDeleteTeam(registration, team)}
             >
               <Delete fontSize="small" />

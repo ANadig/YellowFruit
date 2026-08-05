@@ -342,6 +342,7 @@ export default class TournamentServerService {
   async stopServer() {
     const status = (await window.electron.ipcRenderer.invoke(IpcBidirectional.TournamentServerStop)) as IServerStatus;
     this.status = status;
+    this.lastError = status.errorMessage ?? '';
     this.sessions = [];
     this.dataChangedReactCallback();
     return status;
@@ -351,6 +352,7 @@ export default class TournamentServerService {
     this.status = (await window.electron.ipcRenderer.invoke(
       IpcBidirectional.TournamentServerGetStatus,
     )) as IServerStatus;
+    this.lastError = this.status.errorMessage ?? '';
     const pending = (await window.electron.ipcRenderer.invoke(
       IpcBidirectional.TournamentServerGetPendingSubmissions,
     )) as IMatchSubmission[];

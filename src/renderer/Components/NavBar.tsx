@@ -2,6 +2,7 @@ import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
+import Badge from '@mui/material/Badge';
 import Typography from '@mui/material/Typography';
 import Menu from '@mui/material/Menu';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -15,6 +16,7 @@ import { ApplicationPages } from '../Enums';
 import { hotkeyFormat } from '../Utils/GeneralReactUtils';
 import getAppPageHelpText from './PageLevelHelpText';
 import { headerHeight, macTitlebarInset } from '../Theme/tokens';
+import { TournamentContext } from '../TournamentManager';
 
 // Display names for the buttons
 const pageNames = {
@@ -57,6 +59,8 @@ interface INavBarProps {
 
 function NavBar(props: INavBarProps) {
   const { activePage, setActivePage } = props;
+  const manager = React.useContext(TournamentContext);
+  const pendingRoomResults = manager.tournamentServerService.pendingCount();
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [tipsDialogOpen, setTipsDialogOpen] = React.useState(false);
 
@@ -170,6 +174,7 @@ function NavBar(props: INavBarProps) {
               <NavTab
                 key={page}
                 label={pageNames[page]}
+                badge={page === ApplicationPages.Rooms ? pendingRoomResults : undefined}
                 selected={page === activePage}
                 onClick={() => handlePageButtonClick(page)}
                 tabRef={(el) => {
@@ -199,7 +204,12 @@ function NavBar(props: INavBarProps) {
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
             <ColorModeButton />
             <Tooltip title="Show help for this form">
-              <IconButton size="small" onClick={() => setTipsDialogOpen(true)} sx={noDragSx}>
+              <IconButton
+                size="small"
+                aria-label={`Help for ${pageNames[activePage]}`}
+                onClick={() => setTipsDialogOpen(true)}
+                sx={noDragSx}
+              >
                 <HelpOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -218,7 +228,13 @@ function NavBar(props: INavBarProps) {
         >
           {applicationPageOrder.map((page) => (
             <MenuItem key={page} selected={page === activePage} onClick={() => handlePageButtonClick(page)}>
-              {pageNames[page]}
+              {page === ApplicationPages.Rooms && pendingRoomResults > 0 ? (
+                <Badge color="warning" badgeContent={pendingRoomResults} sx={{ mr: 2 }}>
+                  {pageNames[page]}
+                </Badge>
+              ) : (
+                pageNames[page]
+              )}
             </MenuItem>
           ))}
         </Menu>
@@ -230,6 +246,8 @@ function NavBar(props: INavBarProps) {
 
 interface INavTabProps {
   label: string;
+  // eslint-disable-next-line react/require-default-props
+  badge?: number;
   selected: boolean;
   onClick: () => void;
   tabRef: (el: HTMLDivElement | null) => void;
@@ -244,7 +262,7 @@ interface INavTabProps {
  * tabs mid-transition and make the sliding indicator chase a moving target.
  */
 function NavTab(props: INavTabProps) {
-  const { label, selected, onClick, tabRef } = props;
+  const { label, badge, selected, onClick, tabRef } = props;
 
   return (
     <Box ref={tabRef} sx={{ alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}>
@@ -263,7 +281,13 @@ function NavTab(props: INavTabProps) {
           '&:hover': { backgroundColor: 'action.hover', color: selected ? 'primary.main' : 'text.primary' },
         }}
       >
-        {label}
+        {badge && badge > 0 ? (
+          <Badge color="warning" badgeContent={badge} sx={{ '& .MuiBadge-badge': { right: -12 } }}>
+            {label}
+          </Badge>
+        ) : (
+          label
+        )}
       </Button>
     </Box>
   );

@@ -19,52 +19,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.rooms-page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-  margin-bottom: 16px;
-}
-
-.rooms-page-header h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.rooms-page-header p {
-  margin: 4px 0 0;
-  color: var(--ops-muted);
-  font-size: 0.8125rem;
-}
-
-.rooms-server-state {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.rooms-server-state::before {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentcolor;
-  content: '';
-}
-
-.rooms-server-state.is-running {
-  color: var(--ops-success);
-}
-
-.rooms-server-state.is-offline {
-  color: var(--ops-danger);
-}
-
 .rooms-server-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -341,31 +295,22 @@
   color: var(--ops-muted);
 }
 
-/* Native select, restyled to sit alongside the MUI controls without pulling in a MUI Select. */
-.rooms-schedule-room select {
-  width: 100%;
+.rooms-schedule-room .MuiFormControl-root {
+  min-width: 0;
+}
+
+.rooms-schedule-room .MuiOutlinedInput-root {
   min-height: 30px;
-  padding: 4px 8px;
-  border: 1px solid var(--ops-border);
-  border-radius: 8px;
-  background: var(--ops-surface);
-  color: var(--ops-text);
-  font: inherit;
   font-size: 0.8125rem;
 }
 
-.rooms-schedule-room select:hover:not(:disabled) {
-  border-color: var(--ops-faint);
+.rooms-schedule-room .MuiSelect-select {
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
-.rooms-schedule-room select:focus-visible {
-  outline: 2px solid var(--ops-accent);
-  outline-offset: -1px;
-}
-
-.rooms-schedule-room select:disabled {
-  color: var(--ops-faint);
-  opacity: 1;
+.rooms-schedule-group-title {
+  padding: 12px 16px 4px;
 }
 
 .rooms-schedule-teams {
@@ -507,11 +452,6 @@
 }
 
 @media (max-width: 820px) {
-  .rooms-page-header {
-    flex-direction: column;
-    gap: 8px;
-  }
-
   .rooms-schedule-row {
     grid-template-columns: 90px minmax(180px, 1fr) 120px auto;
   }

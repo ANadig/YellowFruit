@@ -1,4 +1,14 @@
-import { IconButton, Stack, Table, TableBody, TableCell, TableContainer, TableRow, Tooltip } from '@mui/material';
+import {
+  IconButton,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { useContext, useMemo } from 'react';
 import Grid from '@mui/material/Grid';
 import { Add, Edit, JoinRight } from '@mui/icons-material';
@@ -11,6 +21,16 @@ import { Team } from '../DataModel/Team';
 export default function GamesViewByPool() {
   const tournManager = useContext(TournamentContext);
   const phases = tournManager.tournament.getFullPhases();
+
+  if (phases.length === 0) {
+    return (
+      <YfCard title="No schedule yet">
+        <Typography variant="body2" color="text.secondary">
+          Choose a schedule before viewing games by pool.
+        </Typography>
+      </YfCard>
+    );
+  }
 
   return (
     <Stack spacing={2} sx={{ '& .MuiSvgIcon-root': { fontSize: '1rem' } }}>
@@ -146,7 +166,11 @@ function MatrixCell(props: IMatrixCellProps) {
     return (
       <TableCell align="center">
         {canAddMatch && (
-          <IconButton size="small" onClick={() => tournManager.openMatchModalNewMatchForTeams(team, opponent)}>
+          <IconButton
+            size="small"
+            onClick={() => tournManager.openMatchModalNewMatchForTeams(team, opponent)}
+            aria-label={`Add game between ${team.name} and ${opponent.name}`}
+          >
             <Add />
           </IconButton>
         )}
@@ -169,7 +193,11 @@ function MatrixCell(props: IMatrixCellProps) {
   return (
     <TableCell align="center" sx={{ backgroundColor }}>
       {resultDisp}
-      <IconButton size="small" onClick={editExisting}>
+      <IconButton
+        size="small"
+        onClick={editExisting}
+        aria-label={`Edit game between ${team.name} and ${opponent.name}`}
+      >
         <Edit />
       </IconButton>
       &nbsp;

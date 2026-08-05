@@ -10,6 +10,7 @@ import {
   DialogActions,
   Button,
   TextField,
+  Typography,
   FormControl,
   InputLabel,
   MenuItem,
@@ -23,18 +24,16 @@ import {
   FormControlLabel,
   Paper,
   Card,
-  Collapse,
   IconButton,
   Tooltip,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
-import { DragIndicator, ExpandMore, Restore, VisibilityOff } from '@mui/icons-material';
+import { DragIndicator, Restore, VisibilityOff } from '@mui/icons-material';
 import { MatchEditModalContext } from '../Modal Managers/TempMatchManager';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import {
   CollapsibleArea,
-  ExpandButton,
   YfAcceptButton,
   YfCancelButton,
   YfCssClasses,
@@ -796,26 +795,15 @@ function LightningRow(props: ILightningRowProps) {
 function OvertimeSection() {
   const tournManager = useContext(TournamentContext);
   const modalManager = useContext(MatchEditModalContext);
-  const [formExpanded, setFormExpanded] = useState(false);
 
   if (modalManager.tempMatch.isForfeit()) return null;
 
   return (
     <Card variant="outlined" sx={{ p: 1 }}>
-      <Box sx={{ cursor: 'pointer' }}>
-        <Grid container onClick={() => setFormExpanded(!formExpanded)}>
-          <Grid size={{ xs: 'grow' }}>
-            <b>Overtime&emsp;</b>
-            {!formExpanded && <span>{modalManager.tempMatch.getOvertimeSummary()}</span>}
-          </Grid>
-          <Grid size={{ xs: 'auto' }}>
-            <ExpandButton expand={formExpanded} sx={{ p: 0 }}>
-              <ExpandMore />
-            </ExpandButton>
-          </Grid>
-        </Grid>
-      </Box>
-      <Collapse in={formExpanded}>
+      <CollapsibleArea
+        title={<Typography variant="subtitle2">Overtime</Typography>}
+        secondaryTitle={<Typography variant="body2">{modalManager.tempMatch.getOvertimeSummary()}</Typography>}
+      >
         <Grid container columnSpacing={1} sx={{ marginTop: 1, paddingBottom: 1 }}>
           <Grid size={{ xs: 3 }}>
             <OvertimeTuReadField />
@@ -834,7 +822,7 @@ function OvertimeSection() {
             <OvertimeBuzzesRow whichTeam="right" />
           </Grid>
         </Grid>
-      </Collapse>
+      </CollapsibleArea>
     </Card>
   );
 }
@@ -933,7 +921,11 @@ function SuppressedValInfo() {
       <span>{numSuppressed}</span>
       <VisibilityOff fontSize="small" sx={{ verticalAlign: 'sub' }} />
       <Tooltip title={`Restore ${numSuppressed} ignored warning${numSuppressed > 1 ? 's' : ''}`} placement="top">
-        <IconButton sx={{ paddingTop: '4px' }} onClick={() => modalManager.restoreSuppressedMsgs()}>
+        <IconButton
+          sx={{ paddingTop: '4px' }}
+          onClick={() => modalManager.restoreSuppressedMsgs()}
+          aria-label={`Restore ${numSuppressed} ignored warnings`}
+        >
           <Restore />
         </IconButton>
       </Tooltip>

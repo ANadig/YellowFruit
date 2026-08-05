@@ -197,12 +197,12 @@ function GenericToast() {
   const action =
     urlToLaunch === '' ? null : (
       <>
-        <Tooltip title="Download the lastest version from GitHub">
-          <IconButton color="inherit" size="small" onClick={handleLaunchUrl}>
+        <Tooltip title="Download the latest version from GitHub">
+          <IconButton color="inherit" size="small" onClick={handleLaunchUrl} aria-label="Download latest version">
             <Launch fontSize="small" />
           </IconButton>
         </Tooltip>
-        <IconButton color="inherit" size="small" onClick={handleClose}>
+        <IconButton color="inherit" size="small" onClick={handleClose} aria-label="Close notification">
           <Close fontSize="small" />
         </IconButton>
       </>

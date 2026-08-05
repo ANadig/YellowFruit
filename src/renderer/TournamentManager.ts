@@ -123,6 +123,9 @@ export class TournamentManager {
     this.makeToast = () => {};
     // Created before addIpcListeners so that its own listeners can be registered alongside ours.
     this.tournamentServerService = new TournamentServerService(this.tournament);
+    // Keep server events visible to the shell even when the Rooms page is not mounted. The page
+    // adds its own local refresh callback while open, but this bridge is the app-wide subscription.
+    this.tournamentServerService.dataChangedReactCallback = () => this.dataChangedReactCallback();
     this.tournamentServerService.onMatchAccepted = () => this.onRemoteMatchAccepted();
     this.tournamentServerService.onScheduleChanged = () => this.markTournamentDataChanged();
     this.addIpcListeners();

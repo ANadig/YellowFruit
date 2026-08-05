@@ -49,17 +49,22 @@ interface IMatchEditorDialogProps {
 
 export function MatchEditorDialog(props: IMatchEditorDialogProps) {
   const { open, match, tournament, rooms, manager, onClose } = props;
-  const rounds = availableRounds(tournament);
-  const teams = tournament
-    .getListOfAllTeams()
-    .map((team) => team.name)
-    .sort((a, b) => a.localeCompare(b));
+  const rounds = useMemo(() => availableRounds(tournament), [tournament]);
+  const teams = useMemo(
+    () =>
+      tournament
+        .getListOfAllTeams()
+        .map((team) => team.name)
+        .sort((a, b) => a.localeCompare(b)),
+    [tournament],
+  );
   const [round, setRound] = useState<number>(rounds[0] ?? 1);
   const [leftTeam, setLeftTeam] = useState('');
   const [rightTeam, setRightTeam] = useState('');
   const [roomId, setRoomId] = useState('');
   const [isAdHoc, setIsAdHoc] = useState(false);
   const [issues, setIssues] = useState<ReturnType<typeof validateDraft>>([]);
+  const draft: IScheduledMatchDraft = { roundNumber: round, leftTeamName: leftTeam, rightTeamName: rightTeam, roomId };
 
   useEffect(() => {
     if (!open) return;
@@ -71,16 +76,20 @@ export function MatchEditorDialog(props: IMatchEditorDialogProps) {
     setIssues([]);
   }, [open, match, rounds, teams]);
 
-  const draft: IScheduledMatchDraft = { roundNumber: round, leftTeamName: leftTeam, rightTeamName: rightTeam, roomId };
-
-  const runValidation = () => {
-    const nextIssues = validateDraft(draft, tournament.scheduledMatches, rooms, match?.id);
-    setIssues(nextIssues);
-    return nextIssues;
-  };
+  useEffect(() => {
+    if (!open || leftTeam === '' || rightTeam === '') {
+      setIssues([]);
+      return;
+    }
+    setIssues(validateDraft(draft, tournament.scheduledMatches, rooms, match?.id));
+    // `draft` is derived from the primitive fields above; listing those fields keeps validation
+    // live as the director changes a team, round, or room.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, round, leftTeam, rightTeam, roomId, tournament.scheduledMatches, rooms, match?.id]);
 
   const save = () => {
-    const nextIssues = runValidation();
+    const nextIssues = validateDraft(draft, tournament.scheduledMatches, rooms, match?.id);
+    setIssues(nextIssues);
     if (hasBlockingIssue(nextIssues)) return;
     if (match) {
       match.roundNumber = round;
@@ -218,11 +227,6 @@ export function MatchEditorDialog(props: IMatchEditorDialogProps) {
                 <div key={issue.message}>{issue.message}</div>
               ))}
             </Alert>
-          )}
-          {issues.length === 0 && leftTeam !== '' && rightTeam !== '' && (
-            <Button variant="text" size="small" onClick={runValidation} sx={{ alignSelf: 'flex-start' }}>
-              Check for schedule conflicts
-            </Button>
           )}
         </Stack>
       </DialogContent>
