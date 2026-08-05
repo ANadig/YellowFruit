@@ -104,7 +104,14 @@ const yfTheme = createTheme({
 
     MuiCssBaseline: {
       styleOverrides: {
-        html: { WebkitFontSmoothing: 'antialiased', MozOsxFontSmoothing: 'grayscale' },
+        html: {
+          WebkitFontSmoothing: 'antialiased',
+          MozOsxFontSmoothing: 'grayscale',
+          // Always reserve the scrollbar gutter. Without it, navigating from a short page to a
+          // tall one narrows the viewport, which shifts every centered thing on screen — most
+          // visibly the header nav, right as its indicator is animating.
+          scrollbarGutter: 'stable',
+        },
         body: { fontVariantNumeric: 'tabular-nums' },
         // Slim, unobtrusive scrollbars to match the flatter surfaces.
         '*::-webkit-scrollbar': { width: 10, height: 10 },

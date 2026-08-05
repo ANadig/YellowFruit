@@ -60,6 +60,39 @@ function NavBar(props: INavBarProps) {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [tipsDialogOpen, setTipsDialogOpen] = React.useState(false);
 
+  // One shared indicator that slides between tabs, rather than a separate underline per tab that
+  // would pop in and out. Its geometry is measured from whichever tab is active.
+  const navRef = React.useRef<HTMLElement | null>(null);
+  const tabRefs = React.useRef<Array<HTMLDivElement | null>>([]);
+  const [indicator, setIndicator] = React.useState({ left: 0, width: 0 });
+  const [indicatorReady, setIndicatorReady] = React.useState(false);
+  const activeIndex = applicationPageOrder.indexOf(activePage);
+
+  React.useLayoutEffect(() => {
+    const measure = () => {
+      const el = tabRefs.current[activeIndex];
+      if (!el) return;
+      // offsetLeft is relative to the nav, which is the indicator's positioned ancestor.
+      setIndicator((prev) =>
+        prev.left === el.offsetLeft && prev.width === el.offsetWidth
+          ? prev
+          : { left: el.offsetLeft, width: el.offsetWidth },
+      );
+    };
+    measure();
+    // Anything that reflows the nav (window resize, font swap, the nav folding in or out) has to
+    // re-seat the indicator, or it ends up under the wrong tab.
+    const observer = new ResizeObserver(measure);
+    if (navRef.current) observer.observe(navRef.current);
+    return () => observer.disconnect();
+  }, [activeIndex]);
+
+  // Only start transitioning once we've measured, so the bar doesn't slide in from zero width
+  // on the very first render.
+  React.useEffect(() => {
+    if (indicator.width > 0) setIndicatorReady(true);
+  }, [indicator.width]);
+
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
   };
@@ -123,22 +156,44 @@ function NavBar(props: INavBarProps) {
 
           <Box
             component="nav"
+            ref={navRef}
             aria-label="Application pages"
             sx={{
               ...noDragSx,
+              position: 'relative',
               display: 'none',
               alignItems: 'stretch',
               [navExpandQuery]: { display: 'flex' },
             }}
           >
-            {applicationPageOrder.map((page) => (
+            {applicationPageOrder.map((page, idx) => (
               <NavTab
                 key={page}
                 label={pageNames[page]}
                 selected={page === activePage}
                 onClick={() => handlePageButtonClick(page)}
+                tabRef={(el) => {
+                  tabRefs.current[idx] = el;
+                }}
               />
             ))}
+            <Box
+              aria-hidden
+              sx={{
+                position: 'absolute',
+                left: 0,
+                // Overlap the header's 1px bottom border instead of clearing it.
+                bottom: '-1px',
+                height: '2px',
+                borderRadius: '2px 2px 0 0',
+                backgroundColor: 'primary.main',
+                transitionProperty: 'transform, width',
+                transitionDuration: indicatorReady ? '260ms' : '0ms',
+                transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+              // Inline so moving the bar doesn't mint a new emotion class on every page change.
+              style={{ width: `${indicator.width}px`, transform: `translateX(${indicator.left}px)` }}
+            />
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
@@ -177,36 +232,22 @@ interface INavTabProps {
   label: string;
   selected: boolean;
   onClick: () => void;
+  tabRef: (el: HTMLDivElement | null) => void;
 }
 
 /**
- * One page link in the centered header nav. The wrapper spans the full header height so the
- * active indicator can sit flush on the bottom border, while the button itself stays control-sized
- * so its hover stays a compact inset shape rather than a full-height block.
+ * One page link in the centered header nav. The wrapper spans the full header height and is what
+ * the shared indicator measures itself against; the button inside stays control-sized so its hover
+ * is a compact inset shape rather than a full-height block.
+ *
+ * Font weight deliberately does not change with selection: a bolder active label would resize the
+ * tabs mid-transition and make the sliding indicator chase a moving target.
  */
 function NavTab(props: INavTabProps) {
-  const { label, selected, onClick } = props;
+  const { label, selected, onClick, tabRef } = props;
 
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        alignSelf: 'stretch',
-        display: 'flex',
-        alignItems: 'center',
-        '&::after': selected
-          ? {
-              content: '""',
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              bottom: -1,
-              height: '2px',
-              backgroundColor: 'primary.main',
-            }
-          : undefined,
-      }}
-    >
+    <Box ref={tabRef} sx={{ alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}>
       <Button
         onClick={onClick}
         aria-current={selected ? 'page' : undefined}
@@ -216,8 +257,9 @@ function NavTab(props: INavTabProps) {
           py: 0.25,
           borderRadius: 1.5,
           fontSize: '0.8125rem',
-          fontWeight: selected ? 600 : 500,
+          fontWeight: 500,
           color: selected ? 'primary.main' : 'text.secondary',
+          transition: 'color 160ms cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': { backgroundColor: 'action.hover', color: selected ? 'primary.main' : 'text.primary' },
         }}
       >
