@@ -135,12 +135,12 @@ function MatchEditDialogCore() {
               </Grid>
               {/** third row */}
               <Grid sx={{ marginBottom: 3 }} size={{ xs: 12, md: 6 }}>
-                <Paper elevation={4} sx={{ p: 1, marginRight: 1 }}>
+                <Paper variant="outlined" sx={{ p: 1, marginRight: 1 }}>
                   <PlayerGrid whichTeam="left" />
                 </Paper>
               </Grid>
               <Grid sx={{ marginBottom: 3 }} size={{ xs: 12, md: 6 }}>
-                <Paper elevation={4} sx={{ p: 1, marginLeft: 1 }}>
+                <Paper variant="outlined" sx={{ p: 1, marginLeft: 1 }}>
                   <PlayerGrid whichTeam="right" />
                 </Paper>
               </Grid>
@@ -988,7 +988,6 @@ function ValidationMessage(props: IValidationMessageProps) {
   return (
     <Alert
       sx={{ my: 0.5 }}
-      variant="filled"
       severity={getMuiSeverity(status)}
       action={
         suppressable && (

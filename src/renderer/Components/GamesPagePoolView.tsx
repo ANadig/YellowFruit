@@ -62,7 +62,7 @@ function NullMatrix(props: INullMatrixProps) {
 
   return (
     <Grid size={{ xs: 12 }}>
-      <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+      <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'divider' }}>
         <Table size="small">
           <TableBody>
             <TableRow>
@@ -88,7 +88,7 @@ function PoolMatrix(props: IPoolMatrixProps) {
 
   return (
     <Grid size={{ xs: 12 }}>
-      <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+      <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'divider' }}>
         <Table size="small">
           <TableBody>
             <TableRow>
@@ -139,7 +139,7 @@ function MatrixCell(props: IMatrixCellProps) {
   const canAddMatch = useMemo(() => tournManager.tournament.readyToAddMatches(), [tournManager]);
 
   if (team === opponent) {
-    return <TableCell sx={{ backgroundColor: 'lightgray' }} />;
+    return <TableCell sx={{ backgroundColor: 'action.disabledBackground' }} />;
   }
   const match = tournManager.tournament.findMatchBetweenTeams(team, opponent, phase, nthRoundRobin);
   if (!match) {

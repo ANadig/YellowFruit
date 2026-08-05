@@ -135,6 +135,14 @@ const createWindow = async () => {
     }, 1500);
     mainWindow.on('closed', () => clearInterval(timer));
   }
+  // TEMP(ui-qa): force a specific content size so layouts can be checked at known widths.
+  if (isDebug && process.env.YF_UI_WINDOW_SIZE) {
+    const [w, h] = process.env.YF_UI_WINDOW_SIZE.split('x').map((n) => Number.parseInt(n, 10));
+    if (Number.isInteger(w) && Number.isInteger(h)) {
+      const resize = () => mainWindow?.setContentSize(w, h);
+      mainWindow.once('ready-to-show', () => setTimeout(resize, 500));
+    }
+  }
 
   const syncWindowBackground = () => {
     mainWindow?.setBackgroundColor(nativeTheme.shouldUseDarkColors ? headerSurfaceDark : headerSurfaceLight);

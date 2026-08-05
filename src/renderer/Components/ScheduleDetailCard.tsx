@@ -30,7 +30,7 @@ import { Phase, PhaseTypes, WildCardRankingMethod } from '../DataModel/Phase';
 import { Pool, advOpportunityDisplay } from '../DataModel/Pool';
 import { LinkButton } from '../Utils/GeneralReactUtils';
 
-const cardTitle = 'Schedule Detail';
+const cardTitle = 'Schedule detail';
 const unlockCustSchedTooltip =
   'Add, remove, or modify stages and pools. Seeding and rebracketing assistance is not available for custom schedules.';
 const usingCustSchedTooltip = 'Using a custom schedule. Seeding and rebracketing assistance are not available.';
@@ -87,7 +87,7 @@ export default function ScheduleDetailCard() {
             onClick={() => tournManager.addPlayoffPhase()}
             startIcon={<Add />}
           >
-            Add Playoff Stage
+            Add playoff stage
           </Button>
         </Tooltip>
       )}
@@ -238,7 +238,7 @@ function PhaseEditor(props: IPhaseEditorProps) {
           size={{ xs: 12 }}
         >
           <FormControl>
-            <FormLabel>Cross-Pool (Wild Card) Ranking Method</FormLabel>
+            <FormLabel>Cross-pool (wild card) ranking method</FormLabel>
             <RadioGroup
               value={wcRankValue}
               onChange={(e) => handleWcRankMethodChange(e.target.value as WildCardRankingMethod)}
@@ -263,7 +263,7 @@ function PhaseEditor(props: IPhaseEditorProps) {
             marginTop: 1,
             border: 1,
             borderRadius: 1,
-            borderColor: 'lightgray',
+            borderColor: 'divider',
             '& .MuiListItem-root': { p: 0 },
             '& .MuiSvgIcon-root': { fontSize: '1.2rem' },
           }}

@@ -90,12 +90,8 @@ function MatchImportResultDialogCore() {
       <DialogContent>
         {successes.length > 0 && (
           <>
-            <Typography variant="h6">Success</Typography>
-            <Box
-              sx={{
-                paddingLeft: 2,
-              }}
-            >
+            <Typography variant="subtitle2">Success</Typography>
+            <Box sx={{ mt: 0.5 }}>
               <Alert severity="success" sx={{ marginBottom: 1 }}>
                 {sectionHelpText[ImportResultStatus.Success]}
               </Alert>
@@ -105,19 +101,10 @@ function MatchImportResultDialogCore() {
         )}
         {warnings.length > 0 && (
           <>
-            <Typography
-              variant="h6"
-              sx={{
-                marginTop: 2,
-              }}
-            >
-              Games with Warnings
+            <Typography variant="subtitle2" sx={{ mt: 2 }}>
+              Games with warnings
             </Typography>
-            <Box
-              sx={{
-                paddingLeft: 2,
-              }}
-            >
+            <Box sx={{ mt: 0.5 }}>
               <Alert severity="warning" sx={{ marginBottom: 1 }}>
                 {sectionHelpText[ImportResultStatus.Warning]}
               </Alert>
@@ -127,19 +114,10 @@ function MatchImportResultDialogCore() {
         )}
         {errs.length > 0 && (
           <>
-            <Typography
-              variant="h6"
-              sx={{
-                marginTop: 2,
-              }}
-            >
-              Games with Errors
+            <Typography variant="subtitle2" sx={{ mt: 2 }}>
+              Games with errors
             </Typography>
-            <Box
-              sx={{
-                paddingLeft: 2,
-              }}
-            >
+            <Box sx={{ mt: 0.5 }}>
               <Alert severity="error" sx={{ marginBottom: 1 }}>
                 {sectionHelpText[ImportResultStatus.ErrNonFatal]}
               </Alert>
@@ -149,19 +127,10 @@ function MatchImportResultDialogCore() {
         )}
         {fatals.length > 0 && (
           <>
-            <Typography
-              variant="h6"
-              sx={{
-                marginTop: 2,
-              }}
-            >
-              Cannot be Imported
+            <Typography variant="subtitle2" sx={{ mt: 2 }}>
+              Cannot be imported
             </Typography>
-            <Box
-              sx={{
-                paddingLeft: 2,
-              }}
-            >
+            <Box sx={{ mt: 0.5 }}>
               <Alert severity="error" icon={<Cancel />} sx={{ marginBottom: 1 }}>
                 {sectionHelpText[ImportResultStatus.FatalErr]}
               </Alert>
@@ -191,7 +160,7 @@ function ResultTable(props: IResultTableProps) {
   }
 
   return (
-    <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
+    <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'divider' }}>
       <Table size="small">
         <TableBody>
           {resultList.map((rslt, idx) => (

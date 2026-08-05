@@ -1,6 +1,4 @@
 import {
-  Card,
-  CardContent,
   ToggleButtonGroup,
   ToggleButton,
   Stack,
@@ -11,13 +9,11 @@ import {
   IconButton,
   Box,
   Tooltip,
-  Divider,
   Autocomplete,
   TextField,
   Skeleton,
   Button,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import React, { useContext, useMemo, useState } from 'react';
 import { Add, Delete, Edit, Error, ExpandMore, FileUpload, FilterAlt, Warning } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
@@ -30,9 +26,10 @@ import GamesViewByPool from './GamesPagePoolView';
 import { ValidationStatuses } from '../DataModel/Interfaces';
 import { Team } from '../DataModel/Team';
 import { CtrlOrCmd, trunc } from '../Utils/GeneralUtils';
+import { YfPageHeader } from '../Utils/GeneralReactUtils';
 
 // Defines the order the buttons should be in
-const viewList = ['By Round', 'By Pool'];
+const viewList = ['By round', 'By pool'];
 
 const teamSelectNullOption = '';
 
@@ -43,51 +40,52 @@ export default function GamesPage() {
 
   return (
     <>
-      <Card sx={{ marginBottom: 2, '& .MuiCardContent-root': { paddingBottom: 2.1 } }}>
-        <CardContent>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 'auto' }}>
-              <ToggleButtonGroup
-                size="small"
-                color="primary"
-                exclusive
-                value={curView}
-                onChange={(e, newValue) => {
-                  if (newValue === null) return;
-                  tournManager.setGamesPageView(newValue);
-                }}
-              >
-                {viewList.map((val, idx) => (
-                  <ToggleButton key={val} value={idx}>
-                    {val}
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
-            </Grid>
-            <Grid size={{ xs: 'grow' }}>
-              <Tooltip placement="top" title={`Import games from one file into multiple rounds (${CtrlOrCmd()}+M)`}>
-                <span>
-                  <Button
-                    sx={{ marginTop: '1px' }}
-                    variant="outlined"
-                    size="medium"
-                    startIcon={<FileUpload />}
-                    disabled={tournManager.tournament.phases.length === 0}
-                    onClick={() => tournManager.launchImportMatchWorkflow()}
-                  >
-                    Import
-                  </Button>
-                </span>
-              </Tooltip>
-            </Grid>
-            {curView === 0 && (
-              <Grid size={{ xs: 5 }}>
-                <TeamFilterField filterByTeam={setFilterTeam} />
-              </Grid>
-            )}
-          </Grid>
-        </CardContent>
-      </Card>
+      <YfPageHeader title="Games" description="Every game entered for this tournament, by round or by pool." />
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          flexWrap: 'wrap',
+          pb: 2,
+          mb: 2,
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <ToggleButtonGroup
+          color="primary"
+          exclusive
+          value={curView}
+          onChange={(e, newValue) => {
+            if (newValue === null) return;
+            tournManager.setGamesPageView(newValue);
+          }}
+        >
+          {viewList.map((val, idx) => (
+            <ToggleButton key={val} value={idx}>
+              {val}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+        <Tooltip placement="top" title={`Import games from one file into multiple rounds (${CtrlOrCmd()}+M)`}>
+          <span>
+            <Button
+              variant="outlined"
+              startIcon={<FileUpload />}
+              disabled={tournManager.tournament.phases.length === 0}
+              onClick={() => tournManager.launchImportMatchWorkflow()}
+            >
+              Import
+            </Button>
+          </span>
+        </Tooltip>
+        {curView === 0 && (
+          <Box sx={{ ml: 'auto', width: { xs: '100%', sm: 320 } }}>
+            <TeamFilterField filterByTeam={setFilterTeam} />
+          </Box>
+        )}
+      </Box>
       {curView === 0 && <GamesViewByRound filterTeam={filterTeam} />}
       {curView === 1 && <GamesViewByPool />}
     </>
@@ -163,16 +161,18 @@ function GamesForPhaseByRound(props: IGamesForPhaseByRoundProps) {
   const { phase, filterTeam } = props;
 
   return (
-    <YfCard title={phase.name}>
-      {phase.rounds.map((round) => (
-        <SingleRound
-          key={round.name}
-          round={round}
-          expanded={!!filterTeam}
-          forceNumericDisplay={phase.forceNumericRounds || false}
-          filterTeam={filterTeam}
-        />
-      ))}
+    <YfCard title={phase.name} flush>
+      <Box sx={{ '& > * + *': { borderTop: 1, borderColor: 'divider' } }}>
+        {phase.rounds.map((round) => (
+          <SingleRound
+            key={round.name}
+            round={round}
+            expanded={!!filterTeam}
+            forceNumericDisplay={phase.forceNumericRounds || false}
+            filterTeam={filterTeam}
+          />
+        ))}
+      </Box>
     </YfCard>
   );
 }
@@ -212,73 +212,77 @@ function SingleRound(props: ISingleRoundProps) {
   };
 
   return (
+    // Borderless inside the phase panel: the panel already provides the containment, and the
+    // rounds are separated by the parent's hairlines.
     <Accordion
       expanded={expanded}
-      elevation={expanded ? 4 : 1}
-      sx={{
-        '& .MuiAccordionSummary-content.Mui-expanded': { my: 0 },
-        '& .MuiButtonBase-root-MuiAccordionSummary-root.Mui-expanded': { minHeight: '48px' },
-      }}
+      sx={{ border: 0, borderRadius: 0, '& + &': { mt: 0 } }}
       onChange={() => setExpanded(!expanded)}
     >
-      <AccordionSummary expandIcon={<ExpandMore />}>
-        <Typography sx={{ width: '33%', flexShrink: 0 }}>{round.displayName(forceNumericDisplay)}</Typography>
-        <Typography sx={{ width: '34%', color: 'text.secondary' }}>
-          {numMatches === 1 ? '1 game' : `${numMatches} games`}
-          {!!filterTeam && <FilterAlt fontSize="small" sx={{ verticalAlign: 'sub' }} />}
-        </Typography>
-        <Typography sx={{ width: '28%' }}>
-          {numErrs > 0 && (
-            <>
-              <span>{numErrs}</span>
+      <AccordionSummary expandIcon={<ExpandMore fontSize="small" />} sx={{ px: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', pr: 1 }}>
+          <Typography variant="subtitle2" sx={{ width: 140, flexShrink: 0 }}>
+            {round.displayName(forceNumericDisplay)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {numMatches === 1 ? '1 game' : `${numMatches} games`}
+            {!!filterTeam && <FilterAlt fontSize="small" />}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 'auto' }}>
+            {numErrs > 0 && (
               <Tooltip title={roundValidationIconTooltip(numErrs, 'e')}>
-                <Error color="error" sx={{ verticalAlign: 'text-bottom', marginTop: '-3px' }} />
+                <Typography
+                  variant="caption"
+                  color="error.main"
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.375, fontWeight: 600 }}
+                >
+                  <Error color="error" sx={{ fontSize: 16 }} />
+                  {numErrs}
+                </Typography>
               </Tooltip>
-            </>
-          )}
-          {numWarns > 0 && (
-            <>
-              <span>{numWarns}</span>
+            )}
+            {numWarns > 0 && (
               <Tooltip title={roundValidationIconTooltip(numWarns, 'w')}>
-                <Warning color="warning" sx={{ verticalAlign: 'text-bottom', marginTop: '-3px' }} />
+                <Typography
+                  variant="caption"
+                  color="warning.main"
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.375, fontWeight: 600 }}
+                >
+                  <Warning color="warning" sx={{ fontSize: 16 }} />
+                  {numWarns}
+                </Typography>
               </Tooltip>
-            </>
-          )}
-        </Typography>
-        {canAddMatch && (
-          <>
-            <Tooltip title="Enter a new game for this round" placement="left">
-              <IconButton
-                size="small"
-                sx={{ p: 0 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  newMatchForRound();
-                }}
-              >
-                <Add />
-              </IconButton>
-            </Tooltip>
-            <Tooltip
-              placement="top-start"
-              title="Import games from other files into this round"
-              slotProps={{ popper: { modifiers: [{ name: 'offset', options: { offset: [0, 6] } }] } }}
-            >
-              <IconButton
-                size="small"
-                sx={{ p: 0 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  importMatches();
-                }}
-              >
-                <FileUpload />
-              </IconButton>
-            </Tooltip>
-          </>
-        )}
+            )}
+            {canAddMatch && (
+              <Box sx={{ display: 'flex', gap: 0.25 }}>
+                <Tooltip title="Enter a new game for this round" placement="left">
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      newMatchForRound();
+                    }}
+                  >
+                    <Add fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip placement="top" title="Import games from other files into this round">
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      importMatches();
+                    }}
+                  >
+                    <FileUpload fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            )}
+          </Box>
+        </Box>
       </AccordionSummary>
-      <AccordionDetails>
+      <AccordionDetails sx={{ px: 2, pb: 2 }}>
         {expanded ? (
           <SingleRoundMatchList round={round} matchList={matchesToShow} />
         ) : (
@@ -298,12 +302,17 @@ function SingleRoundMatchList(props: ISingleRoundMatchListProps) {
   const { round, matchList } = props;
   return (
     round.matches.length > 0 && (
-      <Box sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
-        {matchList.map((m, idx) => (
-          <div key={m.id}>
-            {idx !== 0 && <Divider />}
-            <MatchListItem match={m} round={round} />
-          </div>
+      <Box
+        sx={{
+          border: 1,
+          borderColor: 'divider',
+          borderRadius: 2,
+          overflow: 'hidden',
+          '& > * + *': { borderTop: 1, borderColor: 'divider' },
+        }}
+      >
+        {matchList.map((m) => (
+          <MatchListItem key={m.id} match={m} round={round} />
         ))}
       </Box>
     )
@@ -340,30 +349,36 @@ function MatchListItem(props: IMatchListItemProps) {
   const validationStatus = match.getOverallValidationStatus();
 
   return (
-    <Grid
-      container
-      sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.5,
+        px: 1.5,
+        py: 1,
+        '&:hover': { backgroundColor: 'action.hover' },
+      }}
       onDoubleClick={() => tournManager.openMatchEditModalExistingMatch(match, round)}
     >
-      <Grid size={{ xs: 8 }}>
-        <Box
-          sx={{
-            typography: 'h6',
-          }}
-        >
-          {match.getScoreString()}
-        </Box>
-        <Typography variant="body2">
-          {match.carryoverPhases.length > 0 && `Carries over to: ${match.listCarryoverPhases()}`}
-        </Typography>
-        {match.importedFile && <Typography variant="body2">{`Imported from ${match.importedFile}`}</Typography>}
+      <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+        <Typography variant="subtitle1">{match.getScoreString()}</Typography>
+        {match.carryoverPhases.length > 0 && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            {`Carries over to: ${match.listCarryoverPhases()}`}
+          </Typography>
+        )}
+        {match.importedFile && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            {`Imported from ${match.importedFile}`}
+          </Typography>
+        )}
         {match.notes && (
-          <Typography variant="body2" color="gray">
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
             {match.notes}
           </Typography>
         )}
-      </Grid>
-      <Grid size={{ xs: 2 }}>
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
         {validationStatus === ValidationStatuses.Error && (
           <Tooltip
             title={`This game has errors that prevent it from counting in the stat report: ${trunc(
@@ -371,30 +386,28 @@ function MatchListItem(props: IMatchListItemProps) {
               120,
             )}`}
           >
-            <Error color="error" sx={{ verticalAlign: 'text-bottom', marginTop: 1 }} />
+            <Error color="error" sx={{ fontSize: 18 }} />
           </Tooltip>
         )}
         {validationStatus === ValidationStatuses.Warning && (
           <Tooltip title={`This game has validation warnings: ${trunc(match.getWarningMessages().join('; '), 120)}`}>
-            <Warning color="warning" sx={{ verticalAlign: 'text-bottom', marginTop: 1 }} />
+            <Warning color="warning" sx={{ fontSize: 18 }} />
           </Tooltip>
         )}
-      </Grid>
-      <Grid size={{ xs: 2 }}>
-        <Box sx={{ float: 'right' }}>
-          <Tooltip title="Edit game">
-            <IconButton onClick={() => tournManager.openMatchEditModalExistingMatch(match, round)}>
-              <Edit />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete game">
-            <IconButton onClick={() => tournManager.tryDeleteMatch(match, round)}>
-              <Delete />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </Grid>
-    </Grid>
+      </Box>
+      <Box sx={{ display: 'flex', gap: 0.25, flexShrink: 0 }}>
+        <Tooltip title="Edit game">
+          <IconButton size="small" onClick={() => tournManager.openMatchEditModalExistingMatch(match, round)}>
+            <Edit fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Delete game">
+          <IconButton size="small" onClick={() => tournManager.tryDeleteMatch(match, round)}>
+            <Delete fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    </Box>
   );
 }
 

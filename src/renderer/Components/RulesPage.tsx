@@ -28,19 +28,19 @@ function RulesPage() {
       <Stack spacing={2}>
         <StandardRuleSetCard />
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 6, xl: 4 }}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <Stack spacing={2}>
               <RoundLengthSettingsCard />
               <TossupSettingsCard />
             </Stack>
           </Grid>
-          <Grid size={{ xs: 12, md: 6, xl: 4 }}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <Stack spacing={2}>
               <BonusSettingsCard />
               <LightningRoundSettingsCard />
             </Stack>
           </Grid>
-          <Grid size={{ xs: 12, md: 6, xl: 4 }}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }}>
             <Stack spacing={2}>
               <OvertimeSettingsCard />
               <MaxPlayersSettingsCard />

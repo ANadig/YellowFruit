@@ -1,25 +1,14 @@
 import { useContext, useEffect, useState } from 'react';
-import {
-  Alert,
-  Button,
-  FormControl,
-  InputLabel,
-  List,
-  ListItem,
-  ListItemText,
-  MenuItem,
-  Select,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Alert, Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { AutoAwesome } from '@mui/icons-material';
 import YfCard from './YfCard';
 import { getTemplateList, sizesWithTemplates, getStdSchedule } from '../DataModel/ScheduleUtils';
 import StandardSchedule from '../DataModel/StandardSchedule';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
+import { SettingRow, SettingsList } from '../Utils/GeneralReactUtils';
 
-const sizeSelectLabel = 'Tournament Size';
+const sizeSelectLabel = 'Tournament size';
 const templateSelectLabel = 'Template';
 
 export default function SchedulePickerCard() {
@@ -58,9 +47,9 @@ export default function SchedulePickerCard() {
   };
 
   return (
-    <YfCard title="Browse Templates">
-      <Stack sx={{ marginTop: 2 }} spacing={2}>
-        <FormControl sx={{ maxWidth: 300 }} size="small">
+    <YfCard title="Browse templates" description="Prebuilt schedules for common tournament sizes.">
+      <Stack spacing={2}>
+        <FormControl fullWidth>
           <InputLabel>{sizeSelectLabel}</InputLabel>
           <Select
             label={sizeSelectLabel}
@@ -69,11 +58,11 @@ export default function SchedulePickerCard() {
             onChange={(e) => handleSizeChange(e.target.value)}
           >
             {sizesWithTemplates.map((val) => (
-              <MenuItem key={val} value={val} disabled={val < numTeamsRegistered}>{`${val} Teams`}</MenuItem>
+              <MenuItem key={val} value={val} disabled={val < numTeamsRegistered}>{`${val} teams`}</MenuItem>
             ))}
           </Select>
         </FormControl>
-        <FormControl sx={{ maxWidth: 300 }} size="small">
+        <FormControl fullWidth>
           <InputLabel>{templateSelectLabel}</InputLabel>
           <Select
             label={templateSelectLabel}
@@ -90,36 +79,38 @@ export default function SchedulePickerCard() {
         </FormControl>
       </Stack>
       {previewedSchedule && (
-        <>
-          <Typography variant="subtitle2" sx={{ marginTop: 3 }}>
-            {previewedSchedule.fullName}
-          </Typography>
+        <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Typography variant="subtitle2">{previewedSchedule.fullName}</Typography>
           {!tournManager.tournament.scoringRules.useBonuses && previewedSchedule.usesWC && (
-            <Alert severity="warning" variant="filled">
+            <Alert severity="warning" sx={{ mt: 1.5 }}>
               This schedule should only be used for tournaments that use bonuses because it requires re-seeding teams
               based on points per bonus
             </Alert>
           )}
-          <List dense>
-            <ListItem>
-              <ListItemText>Rounds: {previewedSchedule.rounds}</ListItemText>
-            </ListItem>
-            <ListItem>
-              <ListItemText>Minimum games: {previewedSchedule.minGames}</ListItemText>
-            </ListItem>
-            <ListItem>
-              <ListItemText>Rooms: {previewedSchedule.rooms}</ListItemText>
-            </ListItem>
-            <ListItem>
-              <ListItemText>Rebracket after: {rebracketRoundList(previewedSchedule)}</ListItemText>
-            </ListItem>
-          </List>
-          <Button variant="outlined" endIcon={<AutoAwesome />} onClick={applySchedule}>
-            Use this template!
+          <SettingsList>
+            <SettingRow label="Rounds" control={<SummaryValue text={String(previewedSchedule.rounds)} />} />
+            <SettingRow label="Minimum games" control={<SummaryValue text={String(previewedSchedule.minGames)} />} />
+            <SettingRow label="Rooms" control={<SummaryValue text={String(previewedSchedule.rooms)} />} />
+            <SettingRow
+              label="Rebracket after"
+              control={<SummaryValue text={rebracketRoundList(previewedSchedule)} />}
+            />
+          </SettingsList>
+          <Button fullWidth variant="contained" endIcon={<AutoAwesome />} sx={{ mt: 2 }} onClick={applySchedule}>
+            Use this template
           </Button>
-        </>
+        </Box>
       )}
     </YfCard>
+  );
+}
+
+function SummaryValue(props: { text: string }) {
+  const { text } = props;
+  return (
+    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+      {text}
+    </Typography>
   );
 }
 

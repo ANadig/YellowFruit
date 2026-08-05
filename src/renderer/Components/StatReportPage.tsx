@@ -1,8 +1,7 @@
-import { Button, Card, CardContent } from '@mui/material';
+import { Box, Button, Paper } from '@mui/material';
 import { useContext } from 'react';
 import { FileDownload, Launch } from '@mui/icons-material';
-import Grid from '@mui/material/Grid';
-import { LinkButton, YfCssClasses } from '../Utils/GeneralReactUtils';
+import { YfCssClasses, YfPageHeader } from '../Utils/GeneralReactUtils';
 import { statReportProtocol } from '../../SharedUtils';
 import { StatReportFileNames, StatReportPages } from '../Enums';
 import useSubscription from '../Utils/CustomHooks';
@@ -15,37 +14,34 @@ export default function StatReportPage() {
 
   return (
     <>
-      <Card sx={{ marginBottom: 2, '& .MuiCardContent-root': { paddingBottom: 2.1 } }}>
-        <CardContent>
-          <Grid container>
-            <Grid size={{ xs: 'grow' }}>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<FileDownload />}
-                onClick={() => tournManager.exportStatReports()}
-              >
-                Export report
-              </Button>
-            </Grid>
-            <Grid size={{ xs: 'auto' }}>
-              <LinkButton sx={{ marginTop: 1 }} onClick={() => tournManager.launchStatReportInBrowserWindow()}>
-                <Launch fontSize="small" /> View report in browser
-              </LinkButton>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-      <Card>
-        <iframe
+      <YfPageHeader
+        title="Stat report"
+        description="A live preview of the standings. Export it or open the full report in a browser."
+        actions={
+          <>
+            <Button
+              variant="outlined"
+              startIcon={<Launch />}
+              onClick={() => tournManager.launchStatReportInBrowserWindow()}
+            >
+              Open in browser
+            </Button>
+            <Button variant="contained" startIcon={<FileDownload />} onClick={() => tournManager.exportStatReports()}>
+              Export report
+            </Button>
+          </>
+        }
+      />
+      <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
+        <Box
+          component="iframe"
           key={updateTime.toISOString()}
           src={path}
           className={YfCssClasses.StatReportIFrame}
-          style={{ border: 'none', padding: '12px' }}
+          sx={{ border: 'none', p: 1.5, width: '100%' }}
           title="Stat Report"
-          width="100%"
         />
-      </Card>
+      </Paper>
     </>
   );
 }

@@ -3,22 +3,17 @@ import {
   Box,
   Button,
   ButtonGroup,
-  Card,
-  CardContent,
   ClickAwayListener,
-  Divider,
   IconButton,
   MenuItem,
   MenuList,
   Paper,
   Popper,
-  Stack,
-  ToggleButton,
-  ToggleButtonGroup,
+  Tab,
+  Tabs,
   Tooltip,
   Typography,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import { useContext, useRef, useState } from 'react';
 import Registration from '../DataModel/Registration';
 import useSubscription from '../Utils/CustomHooks';
@@ -27,9 +22,10 @@ import { Team } from '../DataModel/Team';
 import { nextAlphabetLetter } from '../Utils/GeneralUtils';
 import SeedingView from './TeamsPageSeedingView';
 import StandingsView from './TeamsPageStandingsView';
+import { YfPageHeader } from '../Utils/GeneralReactUtils';
 
-// Defines the order the buttons should be in
-const viewList = ['Registration', 'Prelim Assignments', 'Rebracket / Final Ranks'];
+// Defines the order the tabs should be in
+const viewList = ['Registration', 'Prelim assignments', 'Rebracket / final ranks'];
 
 function TeamsPage() {
   const tournManager = useContext(TournamentContext);
@@ -44,26 +40,14 @@ function TeamsPage() {
 
   return (
     <>
-      <Card sx={{ marginBottom: 2, '& .MuiCardContent-root': { paddingBottom: 2.1 } }}>
-        <CardContent>
-          <ToggleButtonGroup
-            size="small"
-            color="primary"
-            exclusive
-            value={curView}
-            onChange={(e, newValue) => {
-              if (newValue === null) return;
-              setView(newValue);
-            }}
-          >
-            {viewList.map((val, idx) => (
-              <ToggleButton key={val} value={idx}>
-                {val}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
-        </CardContent>
-      </Card>
+      <YfPageHeader title="Teams" description="Registrations, pool assignments and final ranks." />
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+        <Tabs value={curView} onChange={(e, newValue) => setView(newValue)}>
+          {viewList.map((val) => (
+            <Tab key={val} label={val} />
+          ))}
+        </Tabs>
+      </Box>
       {curView === 0 && <RegistrationView />}
       {curView === 1 && <SeedingView />}
       {curView === 2 && <StandingsView />}
@@ -82,30 +66,50 @@ function RegistrationView() {
   const cantAddMoreTeams = expectedNumTeams !== null && numberOfTeams >= expectedNumTeams;
 
   return (
-    <Card>
-      <CardContent>
-        <Grid container spacing={1}>
-          <Grid sx={{ display: 'flex', alignItems: 'center' }} size={{ xs: 'grow' }}>
-            {teamTotDisp}
-          </Grid>
-          <Grid size={{ xs: 'auto' }}>
-            <ImportButtons disabled={cantAddMoreTeams} />
-          </Grid>
-        </Grid>
-        {numberOfTeams > 0 && (
-          <Box sx={{ marginTop: 1, border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
-            <Stack>
-              {registrations.map((reg, idx) => (
-                <div key={reg.name}>
-                  {idx !== 0 && <Divider />}
-                  <RegistrationList registration={reg} cantAddMoreTeams={cantAddMoreTeams} />
-                </div>
-              ))}
-            </Stack>
-          </Box>
-        )}
-      </CardContent>
-    </Card>
+    <Paper variant="outlined">
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 2,
+          px: 2,
+          py: 1.25,
+          borderBottom: numberOfTeams > 0 ? 1 : 0,
+          borderColor: 'divider',
+        }}
+      >
+        <Typography variant="subtitle2">{teamTotDisp}</Typography>
+        <ImportButtons disabled={cantAddMoreTeams} />
+      </Box>
+      {numberOfTeams === 0 ? (
+        <EmptyState title="No teams yet" body="Add teams one at a time, or import them from a QBJ or SQBS file." />
+      ) : (
+        <Box sx={{ '& > * + *': { borderTop: 1, borderColor: 'divider' } }}>
+          {registrations.map((reg) => (
+            <RegistrationList key={reg.name} registration={reg} cantAddMoreTeams={cantAddMoreTeams} />
+          ))}
+        </Box>
+      )}
+    </Paper>
+  );
+}
+
+interface IEmptyStateProps {
+  title: string;
+  body: string;
+}
+
+/** Quiet placeholder for a panel with nothing in it yet. */
+export function EmptyState(props: IEmptyStateProps) {
+  const { title, body } = props;
+  return (
+    <Box sx={{ px: 2, py: 5, textAlign: 'center' }}>
+      <Typography variant="subtitle2">{title}</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+        {body}
+      </Typography>
+    </Box>
   );
 }
 
@@ -128,25 +132,25 @@ function ImportButtons(props: IImportButtonsProps) {
 
   return (
     <>
-      <ButtonGroup ref={anchorRef}>
+      <ButtonGroup ref={anchorRef} size="small" variant="contained">
         <Tooltip placement="top" title="Enter a new team">
           <span>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              disabled={disabled}
-              onClick={() => tournManager.openTeamEditModalNewTeam()}
-            >
+            <Button startIcon={<Add />} disabled={disabled} onClick={() => tournManager.openTeamEditModalNewTeam()}>
               Add team
             </Button>
           </span>
         </Tooltip>
-        <Button size="small" variant="contained" disabled={disabled} onClick={() => setDropdownOpen(!dropdownOpen)}>
-          <ArrowDropDown />
+        <Button
+          disabled={disabled}
+          aria-label="more ways to add teams"
+          sx={{ px: 0.25 }}
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+        >
+          <ArrowDropDown fontSize="small" />
         </Button>
       </ButtonGroup>
-      <Popper open={dropdownOpen} anchorEl={anchorRef.current}>
-        <Paper>
+      <Popper open={dropdownOpen} anchorEl={anchorRef.current} placement="bottom-end" sx={{ zIndex: 'modal' }}>
+        <Paper variant="outlined" sx={{ mt: 0.5, boxShadow: 5 }}>
           <ClickAwayListener onClickAway={handleDropDownClose}>
             <MenuList id="split-button-menu">
               <MenuItem onClick={() => tournManager.launchImportQbjTeamsWorkflow()}>
@@ -173,18 +177,19 @@ function RegistrationList(props: IRegistrationListProps) {
   const { registration, cantAddMoreTeams } = props;
   const [teams] = useSubscription(registration.teams);
 
-  return teams.map((team, idx) => (
-    <div key={team.name}>
-      {idx !== 0 && <Divider />}
-      <TeamListItem
-        key={team.name}
-        registration={registration}
-        team={team}
-        isLastForReg={idx === teams.length - 1}
-        cantAddMoreTeams={cantAddMoreTeams}
-      />
-    </div>
-  ));
+  return (
+    <Box sx={{ '& > * + *': { borderTop: 1, borderColor: 'divider' } }}>
+      {teams.map((team, idx) => (
+        <TeamListItem
+          key={team.name}
+          registration={registration}
+          team={team}
+          isLastForReg={idx === teams.length - 1}
+          cantAddMoreTeams={cantAddMoreTeams}
+        />
+      ))}
+    </Box>
+  );
 }
 
 interface ITeamListItemProps {
@@ -204,45 +209,55 @@ function TeamListItem(props: ITeamListItemProps) {
   if (isLastForReg) nextLetter = team.letter === '' ? 'B' : nextAlphabetLetter(team.letter);
 
   return (
-    <Grid
-      container
-      sx={{ p: 1, '&:hover': { backgroundColor: 'ivory' } }}
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 2,
+        px: 2,
+        py: 1,
+        '&:hover': { backgroundColor: 'action.hover' },
+      }}
       onDoubleClick={() => tournManager.openTeamEditModalExistingTeam(registration, team)}
     >
-      <Grid size={{ xs: 9 }}>
-        <Box
-          sx={{
-            typography: 'h5',
-          }}
-        >
+      <Box sx={{ minWidth: 0 }}>
+        <Typography variant="subtitle1" noWrap>
           {team.name}
-        </Box>
-        <Typography variant="body2">{teamInfoDisplay(registration, team)}</Typography>
-      </Grid>
-      <Grid size={{ xs: 3 }}>
-        <Box sx={{ float: 'right' }}>
-          {nextLetter && !cantAddMoreTeams && (
-            <Tooltip title={`Add ${nextLetter} team`}>
-              <IconButton onClick={() => tournManager.startNextTeamForRegistration(registration, nextLetter)}>
-                <CopyAll />
-              </IconButton>
-            </Tooltip>
-          )}
-          <Tooltip title="Edit team">
-            <IconButton onClick={() => tournManager.openTeamEditModalExistingTeam(registration, team)}>
-              <Edit />
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {teamInfoDisplay(registration, team)}
+        </Typography>
+      </Box>
+      <Box sx={{ display: 'flex', gap: 0.25, flexShrink: 0 }}>
+        {nextLetter && !cantAddMoreTeams && (
+          <Tooltip title={`Add ${nextLetter} team`}>
+            <IconButton
+              size="small"
+              onClick={() => tournManager.startNextTeamForRegistration(registration, nextLetter)}
+            >
+              <CopyAll fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title={hasPlayed ? 'You cannot delete a team for which games have been entered' : 'Delete team'}>
-            <span>
-              <IconButton disabled={hasPlayed} onClick={() => tournManager.tryDeleteTeam(registration, team)}>
-                <Delete />
-              </IconButton>
-            </span>
-          </Tooltip>
-        </Box>
-      </Grid>
-    </Grid>
+        )}
+        <Tooltip title="Edit team">
+          <IconButton size="small" onClick={() => tournManager.openTeamEditModalExistingTeam(registration, team)}>
+            <Edit fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={hasPlayed ? 'You cannot delete a team for which games have been entered' : 'Delete team'}>
+          <span>
+            <IconButton
+              size="small"
+              disabled={hasPlayed}
+              onClick={() => tournManager.tryDeleteTeam(registration, team)}
+            >
+              <Delete fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </Box>
+    </Box>
   );
 }
 
@@ -261,7 +276,7 @@ function teamInfoDisplay(reg: Registration, team: Team) {
   if (team.isD2) attributes.push('D2');
   attributes.push(numPlayersDisplay(team.players.length));
 
-  return attributes.join(' | ');
+  return attributes.join(' · ');
 }
 
 function numPlayersDisplay(num: number) {

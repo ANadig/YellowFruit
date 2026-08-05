@@ -1,22 +1,21 @@
+/*
+ * The Rooms console is dense enough that plain CSS beats a wall of sx props. It still has to
+ * belong to the same design system, so every color here resolves to a MUI theme CSS variable
+ * and follows light/dark automatically.
+ */
 .rooms-operations {
-  --ops-border: #d9dde3;
-  --ops-border-strong: #c4cad2;
-  --ops-surface: #ffffff;
-  --ops-surface-muted: #f7f8fa;
-  --ops-text: #20242a;
-  --ops-muted: #626a75;
-  --ops-faint: #89919c;
-  --ops-accent: #245c9c;
-  --ops-accent-soft: #eaf1f8;
-  --ops-success: #2f6f46;
-  --ops-success-soft: #edf6ef;
-  --ops-warning: #8a5a12;
-  --ops-warning-soft: #fff7e8;
-  --ops-danger: #9d332c;
-  --ops-danger-soft: #fdf0ef;
+  --ops-border: var(--mui-palette-divider);
+  --ops-surface: var(--mui-palette-background-paper);
+  --ops-surface-muted: var(--mui-palette-action-hover);
+  --ops-text: var(--mui-palette-text-primary);
+  --ops-muted: var(--mui-palette-text-secondary);
+  --ops-faint: var(--mui-palette-text-disabled);
+  --ops-accent: var(--mui-palette-primary-main);
+  --ops-accent-soft: var(--mui-palette-action-selected);
+  --ops-success: var(--mui-palette-success-main);
+  --ops-warning: var(--mui-palette-warning-main);
+  --ops-danger: var(--mui-palette-error-main);
   color: var(--ops-text);
-  max-width: 1500px;
-  margin: 0 auto;
   font-variant-numeric: tabular-nums;
 }
 
@@ -25,20 +24,20 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 24px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .rooms-page-header h1 {
   margin: 0;
-  font-size: 1.75rem;
-  font-weight: 500;
+  font-size: 1.5rem;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 .rooms-page-header p {
-  margin: 5px 0 0;
+  margin: 4px 0 0;
   color: var(--ops-muted);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 .rooms-server-state {
@@ -75,7 +74,7 @@
   margin-bottom: 16px;
   background: var(--ops-surface);
   border: 1px solid var(--ops-border);
-  border-radius: 6px;
+  border-radius: 10px;
 }
 
 .rooms-server-address {
@@ -99,7 +98,7 @@
   margin-bottom: 16px;
   background: var(--ops-surface);
   border: 1px solid var(--ops-border);
-  border-radius: 6px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
@@ -135,7 +134,7 @@
   margin-bottom: 16px;
   background: var(--ops-surface);
   border: 1px solid var(--ops-border);
-  border-radius: 6px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
@@ -199,7 +198,7 @@
 }
 
 .rooms-table tbody tr:hover {
-  background: #fbfcfd;
+  background: var(--mui-palette-action-hover);
 }
 
 .rooms-room-name {
@@ -340,6 +339,33 @@
 
 .rooms-schedule-room {
   color: var(--ops-muted);
+}
+
+/* Native select, restyled to sit alongside the MUI controls without pulling in a MUI Select. */
+.rooms-schedule-room select {
+  width: 100%;
+  min-height: 30px;
+  padding: 4px 8px;
+  border: 1px solid var(--ops-border);
+  border-radius: 8px;
+  background: var(--ops-surface);
+  color: var(--ops-text);
+  font: inherit;
+  font-size: 0.8125rem;
+}
+
+.rooms-schedule-room select:hover:not(:disabled) {
+  border-color: var(--ops-faint);
+}
+
+.rooms-schedule-room select:focus-visible {
+  outline: 2px solid var(--ops-accent);
+  outline-offset: -1px;
+}
+
+.rooms-schedule-room select:disabled {
+  color: var(--ops-faint);
+  opacity: 1;
 }
 
 .rooms-schedule-teams {
@@ -506,6 +532,7 @@
 @media print {
   body {
     background: #fff !important;
+    color: #000 !important;
   }
 
   .rooms-operations > *:not(.rooms-print-only) {
