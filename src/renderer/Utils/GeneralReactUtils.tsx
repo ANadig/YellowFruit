@@ -1,13 +1,16 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {
+  Box,
   Button,
   ButtonProps,
   Collapse,
   IconButton,
   IconButtonProps,
+  Stack,
   styled,
   TextField,
   TextFieldProps,
+  Typography,
 } from '@mui/material';
 import React, { forwardRef, useState } from 'react';
 import Grid from '@mui/material/Grid';
@@ -130,5 +133,113 @@ export function YfCancelButton(props: ButtonProps) {
     <Button variant="outlined" color="error" startIcon={<Close />} {...other}>
       {hotkeyFormat('&Cancel')}
     </Button>
+  );
+}
+
+interface IYfPageHeaderProps {
+  title: string;
+  // eslint-disable-next-line react/require-default-props
+  description?: string;
+  // eslint-disable-next-line react/require-default-props
+  actions?: React.ReactNode;
+  // eslint-disable-next-line react/require-default-props
+  status?: React.ReactNode;
+}
+
+/** Consistent title block at the top of a page. */
+export function YfPageHeader(props: IYfPageHeaderProps) {
+  const { title, description, actions, status } = props;
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 3,
+        flexWrap: 'wrap',
+        mb: 2,
+      }}
+    >
+      <Box sx={{ minWidth: 0 }}>
+        <Typography variant="h1" component="h1">
+          {title}
+        </Typography>
+        {description && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            {description}
+          </Typography>
+        )}
+      </Box>
+      {(actions || status) && (
+        <Stack direction="row" sx={{ alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          {status}
+          {actions}
+        </Stack>
+      )}
+    </Box>
+  );
+}
+
+/** A run of `SettingRow`s, separated by hairlines. */
+export function SettingsList(props: React.PropsWithChildren<unknown>) {
+  const { children } = props;
+  return <Box sx={{ '& > * + *': { borderTop: 1, borderColor: 'divider' } }}>{children}</Box>;
+}
+
+interface ISettingRowProps {
+  label: React.ReactNode;
+  // eslint-disable-next-line react/require-default-props
+  description?: React.ReactNode;
+  /** The control, rendered right-aligned. */
+  // eslint-disable-next-line react/require-default-props
+  control?: React.ReactNode;
+  /** Stack the control under the label instead of beside it (for wide fields). */
+  // eslint-disable-next-line react/require-default-props
+  stacked?: boolean;
+}
+
+/**
+ * One line in a settings panel: label (plus optional helper text) on the left, control on the
+ * right. Wrap a run of them in `SettingsList` to get hairlines between rows.
+ */
+export function SettingRow(props: React.PropsWithChildren<ISettingRowProps>) {
+  const { label, description, control, stacked, children } = props;
+  const theControl = control ?? children;
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: stacked ? 'column' : 'row',
+        alignItems: stacked ? 'stretch' : 'center',
+        justifyContent: 'space-between',
+        gap: stacked ? 0.75 : 2,
+        py: 1,
+      }}
+    >
+      <Box sx={{ minWidth: 0 }}>
+        <Typography component="div" variant="body1" sx={{ lineHeight: 1.4 }}>
+          {label}
+        </Typography>
+        {description && (
+          <Typography component="div" variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
+            {description}
+          </Typography>
+        )}
+      </Box>
+      {theControl && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: stacked ? 'stretch' : 'flex-end',
+            gap: 1,
+            flexShrink: 0,
+          }}
+        >
+          {theControl}
+        </Box>
+      )}
+    </Box>
   );
 }

@@ -1,12 +1,9 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
 import './App.css';
 
 import CssBaseline from '@mui/material/CssBaseline';
+import { ThemeProvider } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Box from '@mui/material/Box';
@@ -35,6 +32,10 @@ import MatchImportResultDialog from './Components/MatchImportResultDialog';
 import SqbsExportDialog from './Components/SqbsExportDialog';
 import AboutYfDialog from './Components/AboutYfDialog';
 import RoomsPage from './Components/Rooms/RoomsPage';
+import yfTheme from './Theme/yfTheme';
+import { headerHeight, macTitlebarInset } from './Theme/tokens';
+
+const isMac = window.electron.getPlatform() === 'darwin';
 
 window.onerror = () => window.electron.ipcRenderer.sendMessage(IpcRendToMain.WebPageCrashed);
 window.electron.ipcRenderer.removeAllListeners(); // needed in dev environemnt so that you don't end up with duplicate listers when the app reloads
@@ -61,14 +62,14 @@ function YellowFruit() {
   }, [mgr]);
 
   return (
-    <>
+    <ThemeProvider theme={yfTheme} defaultMode="system">
       <CssBaseline />
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <TournamentContext.Provider value={mgr}>
           <TournamentEditor />
         </TournamentContext.Provider>
       </LocalizationProvider>
-    </>
+    </ThemeProvider>
   );
 }
 
@@ -113,8 +114,18 @@ function TournamentEditor() {
   return (
     <>
       <NavBar activePage={activePage} setActivePage={changePage} />
-      <Box sx={{ p: 3 }}>
-        <ActivePage whichPage={activePage} />
+      <Box
+        component="main"
+        sx={{
+          // The sticky header already owns the macOS titlebar inset, so content starts right below it.
+          minHeight: `calc(100vh - ${headerHeight + (isMac ? macTitlebarInset.paddingTop : 0)}px)`,
+          px: { xs: 2, md: 3 },
+          py: 2.5,
+        }}
+      >
+        <Box sx={{ maxWidth: 1500, mx: 'auto' }}>
+          <ActivePage whichPage={activePage} />
+        </Box>
       </Box>
       <GenericDialog />
       <TeamEditDialog />

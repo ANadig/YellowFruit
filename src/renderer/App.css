@@ -1,11 +1,10 @@
 /*
  * @NOTE: Prepend a `~` to css file paths that are in your node_modules
  *        See https://github.com/webpack-contrib/sass-loader#imports
+ *
+ * Surfaces, colors and typography come from the MUI theme (src/renderer/Theme). Only put
+ * behavioral or layout-hack rules here.
  */
-
- body {
-  background-color: #f4f4f4 !important;
- }
 
 .drop-target * {
   pointer-events: none;
@@ -26,6 +25,8 @@
 /* This is hacky, but actually dynamically sizing the iframe is a headache due to cross-frame scripting guardrails */
 .stat-report-iframe {
   height: 420px;
+  display: block;
+  background-color: #ffffff;
 }
 
 @media screen and (min-height: 670px) {

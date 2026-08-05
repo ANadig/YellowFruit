@@ -1208,7 +1208,10 @@ function getHtmlHeader(pageTitle: string) {
 }
 
 function getPageStyle() {
-  const body = cssSelector('HTML', { attr: 'font-family', val: 'Roboto, sans-serif' });
+  const body = cssSelector('HTML', {
+    attr: 'font-family',
+    val: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
+  });
   const table = cssSelector(
     'table',
     { attr: 'font-size', val: '11pt' },

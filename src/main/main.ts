@@ -9,7 +9,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain, protocol, net, dialog } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, protocol, net, dialog, nativeTheme } from 'electron';
 import { pathToFileURL } from 'url';
 import { IpcMainEvent } from 'electron/main';
 import MenuBuilder from './menu';
@@ -51,6 +51,11 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 let mainWindow: BrowserWindow | null = null;
+
+// Kept in sync with the renderer theme's header surface (see src/renderer/Theme/yfTheme.ts) so the
+// window chrome doesn't flash a different color while the page loads.
+const headerSurfaceLight = '#ffffff';
+const headerSurfaceDark = '#171b1f';
 
 ipcMain.on(IpcBidirectional.ipcExample, async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
@@ -98,8 +103,6 @@ const createWindow = async () => {
   };
 
   const isMac = process.platform === 'darwin';
-  // Match the MUI AppBar's default primary color while the content fills the titlebar.
-  const macToolbarColor = '#1976d2';
   if (isMac) {
     app.dock?.setIcon(getAssetPath('icon-macos.png'));
   }
@@ -108,19 +111,24 @@ const createWindow = async () => {
     show: false,
     width: 1200,
     height: 728,
+    minWidth: 900,
+    minHeight: 600,
     icon: getAssetPath('icon.png'),
-    ...(isMac
-      ? {
-          titleBarStyle: 'hiddenInset' as const,
-          backgroundColor: macToolbarColor,
-        }
-      : {}),
+    // Match the app header's neutral surface so there's no colored flash before the renderer paints.
+    backgroundColor: nativeTheme.shouldUseDarkColors ? headerSurfaceDark : headerSurfaceLight,
+    ...(isMac ? { titleBarStyle: 'hiddenInset' as const } : {}),
     webPreferences: {
       preload: app.isPackaged ? path.join(__dirname, 'preload.js') : path.join(__dirname, '../../.erb/dll/preload.js'),
     },
   });
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
+
+  const syncWindowBackground = () => {
+    mainWindow?.setBackgroundColor(nativeTheme.shouldUseDarkColors ? headerSurfaceDark : headerSurfaceLight);
+  };
+  nativeTheme.on('updated', syncWindowBackground);
+  mainWindow.on('closed', () => nativeTheme.off('updated', syncWindowBackground));
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
