@@ -37,6 +37,13 @@ export const applicationPageOrder = [
   ApplicationPages.StatReport,
 ];
 
+const isMac = window.electron.getPlatform() === 'darwin';
+const macTitlebarInsetSx = {
+  // Leave the native traffic lights their own space in the full-size titlebar.
+  paddingTop: '20px',
+  paddingLeft: '48px',
+};
+
 interface INavBarProps {
   activePage: ApplicationPages;
   setActivePage: (page: ApplicationPages) => void;
@@ -64,7 +71,7 @@ function NavBar(props: INavBarProps) {
     <>
       <AppBar position="sticky">
         <Container maxWidth="xl">
-          <Toolbar disableGutters>
+          <Toolbar disableGutters sx={isMac ? macTitlebarInsetSx : undefined}>
             <Box sx={{ flexGrow: 1, display: { xs: 'flex', sm: 'none' } }}>
               <IconButton
                 size="large"
@@ -108,7 +115,7 @@ function NavBar(props: INavBarProps) {
                   onClick={() => handlePageButtonClick(page)}
                   sx={{
                     my: 0,
-                    py: 2.5,
+                    py: isMac ? 1 : 2.5,
                     color: 'white',
                     display: 'block',
                     backgroundColor: page === activePage ? '#ffffff30' : 'transparent',

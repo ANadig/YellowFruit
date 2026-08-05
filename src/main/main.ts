@@ -97,11 +97,24 @@ const createWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
+  const isMac = process.platform === 'darwin';
+  // Match the MUI AppBar's default primary color while the content fills the titlebar.
+  const macToolbarColor = '#1976d2';
+  if (isMac) {
+    app.dock?.setIcon(getAssetPath('icon-macos.png'));
+  }
+
   mainWindow = new BrowserWindow({
     show: false,
     width: 1200,
     height: 728,
     icon: getAssetPath('icon.png'),
+    ...(isMac
+      ? {
+          titleBarStyle: 'hiddenInset' as const,
+          backgroundColor: macToolbarColor,
+        }
+      : {}),
     webPreferences: {
       preload: app.isPackaged ? path.join(__dirname, 'preload.js') : path.join(__dirname, '../../.erb/dll/preload.js'),
     },
