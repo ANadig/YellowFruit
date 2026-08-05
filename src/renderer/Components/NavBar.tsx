@@ -179,25 +179,21 @@ interface INavTabProps {
   onClick: () => void;
 }
 
-/** One page link in the centered header nav. Underline + blue text marks the active page. */
+/**
+ * One page link in the centered header nav. The wrapper spans the full header height so the
+ * active indicator can sit flush on the bottom border, while the button itself stays control-sized
+ * so its hover stays a compact inset shape rather than a full-height block.
+ */
 function NavTab(props: INavTabProps) {
   const { label, selected, onClick } = props;
 
   return (
-    <Button
-      onClick={onClick}
-      aria-current={selected ? 'page' : undefined}
+    <Box
       sx={{
         position: 'relative',
         alignSelf: 'stretch',
-        px: 1.5,
-        py: 0,
-        borderRadius: 0,
-        fontSize: '0.8125rem',
-        fontWeight: selected ? 600 : 500,
-        color: selected ? 'primary.main' : 'text.secondary',
-        '&:hover': { backgroundColor: 'action.hover', color: selected ? 'primary.main' : 'text.primary' },
-        // The indicator overlaps the header's 1px bottom border rather than clearing it.
+        display: 'flex',
+        alignItems: 'center',
         '&::after': selected
           ? {
               content: '""',
@@ -211,8 +207,23 @@ function NavTab(props: INavTabProps) {
           : undefined,
       }}
     >
-      {label}
-    </Button>
+      <Button
+        onClick={onClick}
+        aria-current={selected ? 'page' : undefined}
+        sx={{
+          minHeight: 28,
+          px: 1.25,
+          py: 0.25,
+          borderRadius: 1.5,
+          fontSize: '0.8125rem',
+          fontWeight: selected ? 600 : 500,
+          color: selected ? 'primary.main' : 'text.secondary',
+          '&:hover': { backgroundColor: 'action.hover', color: selected ? 'primary.main' : 'text.primary' },
+        }}
+      >
+        {label}
+      </Button>
+    </Box>
   );
 }
 

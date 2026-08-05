@@ -124,26 +124,6 @@ const createWindow = async () => {
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
-  // TEMP(ui-qa): dev-only window capture so UI work can be reviewed without screen-recording access.
-  if (isDebug && process.env.YF_UI_SCREENSHOT_PATH) {
-    const shotPath = process.env.YF_UI_SCREENSHOT_PATH;
-    const timer = setInterval(() => {
-      mainWindow?.webContents
-        .capturePage()
-        .then((image) => require('fs').promises.writeFile(shotPath, image.toPNG()))
-        .catch(() => {});
-    }, 1500);
-    mainWindow.on('closed', () => clearInterval(timer));
-  }
-  // TEMP(ui-qa): force a specific content size so layouts can be checked at known widths.
-  if (isDebug && process.env.YF_UI_WINDOW_SIZE) {
-    const [w, h] = process.env.YF_UI_WINDOW_SIZE.split('x').map((n) => Number.parseInt(n, 10));
-    if (Number.isInteger(w) && Number.isInteger(h)) {
-      const resize = () => mainWindow?.setContentSize(w, h);
-      mainWindow.once('ready-to-show', () => setTimeout(resize, 500));
-    }
-  }
-
   const syncWindowBackground = () => {
     mainWindow?.setBackgroundColor(nativeTheme.shouldUseDarkColors ? headerSurfaceDark : headerSurfaceLight);
   };

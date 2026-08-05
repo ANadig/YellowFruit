@@ -76,7 +76,7 @@ function YellowFruit() {
 /** The actual UI of the application */
 function TournamentEditor() {
   const mgr = useContext(TournamentContext);
-  const [activePage, setactivePage] = useState(ApplicationPages.Teams);
+  const [activePage, setactivePage] = useState(ApplicationPages.General);
 
   useEffect(() => {
     if (activePage === ApplicationPages.StatReport) {
