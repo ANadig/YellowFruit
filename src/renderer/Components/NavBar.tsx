@@ -39,6 +39,13 @@ export const applicationPageOrder = [
 
 const isMac = window.electron.getPlatform() === 'darwin';
 
+/**
+ * Below this width the seven page links plus the branding and actions stop fitting, so the nav
+ * folds into a menu. It's a measured value rather than a theme breakpoint because what matters is
+ * the nav's own content width, not a generic device size.
+ */
+const navExpandQuery = '@media (min-width: 800px)';
+
 /** Let the user drag the window by the empty parts of the header (macOS uses an inset titlebar). */
 const dragRegionSx = isMac ? ({ WebkitAppRegion: 'drag' } as const) : undefined;
 const noDragSx = isMac ? ({ WebkitAppRegion: 'no-drag' } as const) : undefined;
@@ -76,7 +83,9 @@ function NavBar(props: INavBarProps) {
             // 1fr / auto / 1fr keeps the nav centered in the window itself rather than in
             // whatever space the left and right clusters happen to leave over.
             gridTemplateColumns: '1fr auto 1fr',
-            alignItems: 'center',
+            // Stretch, not center: the nav owns the full height of the row so the active-page
+            // underline can sit flush on the header's bottom border instead of floating above it.
+            alignItems: 'stretch',
             columnGap: 2,
             minHeight: `${headerHeight}px`,
             px: 1.5,
@@ -94,7 +103,7 @@ function NavBar(props: INavBarProps) {
               aria-controls="menu-appbar"
               aria-haspopup="true"
               onClick={handleOpenNavMenu}
-              sx={{ ...noDragSx, display: { xs: 'inline-flex', md: 'none' } }}
+              sx={{ ...noDragSx, alignSelf: 'center', [navExpandQuery]: { display: 'none' } }}
             >
               <MenuIcon fontSize="small" />
             </IconButton>
@@ -115,7 +124,12 @@ function NavBar(props: INavBarProps) {
           <Box
             component="nav"
             aria-label="Application pages"
-            sx={{ ...noDragSx, display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 0.25 }}
+            sx={{
+              ...noDragSx,
+              display: 'none',
+              alignItems: 'stretch',
+              [navExpandQuery]: { display: 'flex' },
+            }}
           >
             {applicationPageOrder.map((page) => (
               <NavTab
@@ -145,7 +159,7 @@ function NavBar(props: INavBarProps) {
           transformOrigin={{ vertical: 'top', horizontal: 'left' }}
           open={Boolean(anchorElNav)}
           onClose={handleCloseNavMenu}
-          sx={{ display: { xs: 'block', md: 'none' } }}
+          sx={{ [navExpandQuery]: { display: 'none' } }}
         >
           {applicationPageOrder.map((page) => (
             <MenuItem key={page} selected={page === activePage} onClick={() => handlePageButtonClick(page)}>
@@ -175,23 +189,23 @@ function NavTab(props: INavTabProps) {
       aria-current={selected ? 'page' : undefined}
       sx={{
         position: 'relative',
-        minHeight: 30,
-        px: 1.25,
-        py: 0.5,
-        borderRadius: 1.5,
+        alignSelf: 'stretch',
+        px: 1.5,
+        py: 0,
+        borderRadius: 0,
         fontSize: '0.8125rem',
         fontWeight: selected ? 600 : 500,
         color: selected ? 'primary.main' : 'text.secondary',
         '&:hover': { backgroundColor: 'action.hover', color: selected ? 'primary.main' : 'text.primary' },
+        // The indicator overlaps the header's 1px bottom border rather than clearing it.
         '&::after': selected
           ? {
               content: '""',
               position: 'absolute',
-              left: 10,
-              right: 10,
-              bottom: -7,
+              left: 0,
+              right: 0,
+              bottom: -1,
               height: '2px',
-              borderRadius: '2px 2px 0 0',
               backgroundColor: 'primary.main',
             }
           : undefined,

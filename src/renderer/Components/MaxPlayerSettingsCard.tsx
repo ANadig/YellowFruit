@@ -1,11 +1,9 @@
-import { HelpOutlined } from '@mui/icons-material';
-import { Tooltip } from '@mui/material';
 import { useContext } from 'react';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
 import { ScoringRules } from '../DataModel/ScoringRules';
-import { YfNumericField } from '../Utils/GeneralReactUtils';
+import { SettingRow, SettingsList, YfNumericField } from '../Utils/GeneralReactUtils';
 
 const maxPlayersFieldHelpText = 'The maximum number of players that can be active for one team at once';
 
@@ -34,22 +32,22 @@ function MaxPlayersSettingsCard() {
 
   return (
     <YfCard title="Players">
-      <YfNumericField
-        sx={{ marginTop: 1, width: '14ch' }}
-        size="small"
-        slotProps={{ htmlInput: { min: 1, disabled: readOnly } }}
-        label="Max Active/Team"
-        value={numPlayers}
-        error={!numPlayersIsValid()}
-        onChange={(e) => setNumPlayers(e.target.value)}
-        onBlur={saveNumPlayersSetting}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') saveNumPlayersSetting();
-        }}
-      />
-      <Tooltip sx={{ marginTop: 2, mx: 1 }} title={maxPlayersFieldHelpText} placement="right">
-        <HelpOutlined fontSize="small" />
-      </Tooltip>
+      <SettingsList>
+        <SettingRow label="Max active per team" description={maxPlayersFieldHelpText}>
+          <YfNumericField
+            hiddenLabel
+            sx={{ width: '9ch' }}
+            slotProps={{ htmlInput: { min: 1, disabled: readOnly } }}
+            value={numPlayers}
+            error={!numPlayersIsValid()}
+            onChange={(e) => setNumPlayers(e.target.value)}
+            onBlur={saveNumPlayersSetting}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') saveNumPlayersSetting();
+            }}
+          />
+        </SettingRow>
+      </SettingsList>
     </YfCard>
   );
 }

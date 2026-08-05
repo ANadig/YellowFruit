@@ -1,17 +1,5 @@
 import Grid from '@mui/material/Grid';
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
-  List,
-  ListItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Alert, AlertTitle, Box, Button, Divider, Stack, Switch, TextField, Typography } from '@mui/material';
 import { useContext } from 'react';
 import { DatePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
@@ -20,28 +8,31 @@ import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import YfCard from './YfCard';
 import { NullDate } from '../Utils/UtilTypes';
-import { CollapsibleArea } from '../Utils/GeneralReactUtils';
+import { CollapsibleArea, SettingRow, SettingsList, YfPageHeader } from '../Utils/GeneralReactUtils';
 import { Round } from '../DataModel/Round';
 
 function GeneralPage() {
   return (
-    <Grid container spacing={2}>
+    <>
+      <YfPageHeader title="General" description="What, where and when this tournament is, and what you track." />
       <BackupRecoveryNotice />
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <GeneralInfoCard />
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <Stack spacing={2}>
+            <TournamentInfoPanel />
+            <QuestionSetPanel />
+          </Stack>
+        </Grid>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <TrackingPanel />
+        </Grid>
       </Grid>
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <Stack spacing={2}>
-          <QuestionSetCard />
-          <AttributeSettingsCard />
-        </Stack>
-      </Grid>
-    </Grid>
+    </>
   );
 }
 
 /** Miscellaneous what/where/when info about the tournament */
-function GeneralInfoCard() {
+function TournamentInfoPanel() {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
   const [tournName, setTournName] = useSubscription(thisTournament.name);
@@ -52,14 +43,12 @@ function GeneralInfoCard() {
   const [endDate, setEndDate] = useSubscription(initialEndDateVal);
 
   return (
-    <YfCard title="General">
-      <Box sx={{ '& .MuiTextField-root': { my: 1 } }}>
+    <YfCard title="Tournament">
+      <Stack spacing={2}>
         <TextField
-          label="Tournament Name"
+          label="Tournament name"
           spellCheck={false}
           fullWidth
-          variant="outlined"
-          size="small"
           value={tournName}
           onChange={(e) => setTournName(e.target.value)}
           onBlur={() => tournManager.setTournamentName(tournName)}
@@ -68,11 +57,9 @@ function GeneralInfoCard() {
           }}
         />
         <TextField
-          label="Tournament Location"
+          label="Location"
           spellCheck={false}
           fullWidth
-          variant="outlined"
-          size="small"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           onBlur={() => tournManager.setTournamentSiteName(location)}
@@ -80,53 +67,55 @@ function GeneralInfoCard() {
             if (e.key === 'Enter') tournManager.setTournamentSiteName(location);
           }}
         />
-        <Box sx={{ '& .MuiInputBase-root': { height: '40px' }, '& .MuiFormLabel-root': { marginTop: '-7px' } }}>
-          <DatePicker
-            sx={{ marginRight: 2 }}
-            label="Date"
-            value={startDate}
-            onChange={(newValue) => {
-              setStartDate(newValue);
-              tournManager.setTournamentStartDate(newValue);
-            }}
-          />
-          <DatePicker
-            label="End Date (if multi-day)"
-            value={endDate}
-            onChange={(newValue) => {
-              setEndDate(newValue);
-              tournManager.setTournamentEndDate(newValue);
-            }}
-          />
-        </Box>
-      </Box>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DatePicker
+              label="Start date"
+              value={startDate}
+              slotProps={{ textField: { fullWidth: true, size: 'small' } }}
+              onChange={(newValue) => {
+                setStartDate(newValue);
+                tournManager.setTournamentStartDate(newValue);
+              }}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <DatePicker
+              label="End date (if multi-day)"
+              value={endDate}
+              slotProps={{ textField: { fullWidth: true, size: 'small' } }}
+              onChange={(newValue) => {
+                setEndDate(newValue);
+                tournManager.setTournamentEndDate(newValue);
+              }}
+            />
+          </Grid>
+        </Grid>
+      </Stack>
     </YfCard>
   );
 }
 
-function QuestionSetCard() {
+function QuestionSetPanel() {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
   const [qsetName, setQsetName] = useSubscription<string>(thisTournament.questionSet);
 
   return (
-    <YfCard title="Question Set">
-      <Box sx={{ '& .MuiTextField-root': { my: 1 }, paddingBottom: 2 }}>
-        <TextField
-          label="Question Set"
-          spellCheck={false}
-          fullWidth
-          variant="outlined"
-          size="small"
-          value={qsetName}
-          onChange={(e) => setQsetName(e.target.value)}
-          onBlur={() => tournManager.setQuestionSetname(qsetName)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') tournManager.setQuestionSetname(qsetName);
-          }}
-        />
-      </Box>
-      <CollapsibleArea title={<Typography variant="subtitle1">Packet Names</Typography>} secondaryTitle={null}>
+    <YfCard title="Question set">
+      <TextField
+        label="Question set"
+        spellCheck={false}
+        fullWidth
+        value={qsetName}
+        onChange={(e) => setQsetName(e.target.value)}
+        onBlur={() => tournManager.setQuestionSetname(qsetName)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') tournManager.setQuestionSetname(qsetName);
+        }}
+      />
+      <Divider sx={{ mt: 1.5 }} />
+      <CollapsibleArea title={<Typography variant="subtitle2">Packet names</Typography>} secondaryTitle={null}>
         <PacketNameFields />
       </CollapsibleArea>
     </YfCard>
@@ -137,17 +126,25 @@ function PacketNameFields() {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
 
-  return thisTournament.phases.map((ph) => (
-    <div key={ph.name}>
-      <Typography variant="subtitle2" sx={{ paddingTop: 2 }}>
-        <div>{ph.name}</div>
+  if (thisTournament.phases.length === 0) {
+    return (
+      <Typography variant="body2" color="text.secondary" sx={{ pb: 1 }}>
+        Pick a schedule first and its rounds will show up here.
       </Typography>
-      <Box sx={{ marginLeft: 2 }}>
+    );
+  }
+
+  return thisTournament.phases.map((ph) => (
+    <Box key={ph.name} sx={{ pb: 1 }}>
+      <Typography variant="overline" color="text.secondary" sx={{ display: 'block', pt: 1 }}>
+        {ph.name}
+      </Typography>
+      <SettingsList>
         {ph.rounds.map((round) => (
           <PacketNameField key={round.name} round={round} />
         ))}
-      </Box>
-    </div>
+      </SettingsList>
+    </Box>
   ));
 }
 
@@ -162,26 +159,22 @@ function PacketNameField(props: IPacketNameFieldProps) {
   const [packetName, setPacketName] = useSubscription(packet.name);
 
   return (
-    <Grid container sx={{ p: 1 }}>
-      <Grid size={{ xs: 3 }}>{round.displayName()}</Grid>
-      <Grid size={{ xs: 9 }}>
-        <TextField
-          variant="standard"
-          size="small"
-          fullWidth
-          value={packetName}
-          onChange={(e) => setPacketName(e.target.value)}
-          onBlur={() => tournManager.setPacketName(round, packetName)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') tournManager.setPacketName(round, packetName);
-          }}
-        />
-      </Grid>
-    </Grid>
+    <SettingRow label={round.displayName()}>
+      <TextField
+        hiddenLabel
+        sx={{ width: 220 }}
+        value={packetName}
+        onChange={(e) => setPacketName(e.target.value)}
+        onBlur={() => tournManager.setPacketName(round, packetName)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') tournManager.setPacketName(round, packetName);
+        }}
+      />
+    </SettingRow>
   );
 }
 
-function AttributeSettingsCard() {
+function TrackingPanel() {
   const tournManager = useContext(TournamentContext);
   const thisTournament = tournManager.tournament;
   const [trackPlayerYear, setTrackPlayerYear] = useSubscription(thisTournament.trackPlayerYear);
@@ -216,29 +209,27 @@ function AttributeSettingsCard() {
   };
 
   return (
-    <YfCard title="Team/Player Attributes">
-      <FormGroup>
-        <FormControlLabel
-          label="Track Player Year/Grade"
-          control={<Checkbox checked={trackPlayerYear} onChange={(e) => handleTrackYearChange(e.target.checked)} />}
-        />
-        <FormControlLabel
-          label="Track Small School"
-          control={<Checkbox checked={trackSS} onChange={(e) => handleTrackSS(e.target.checked)} />}
-        />
-        <FormControlLabel
-          label="Track Junior Varsity"
-          control={<Checkbox checked={trackJV} onChange={(e) => handleTrackJV(e.target.checked)} />}
-        />
-        <FormControlLabel
-          label="Track Undergrad"
-          control={<Checkbox checked={trackUG} onChange={(e) => handleTrackUG(e.target.checked)} />}
-        />
-        <FormControlLabel
-          label="Track Division 2"
-          control={<Checkbox checked={trackD2} onChange={(e) => handleTrackD2(e.target.checked)} />}
-        />
-      </FormGroup>
+    <YfCard title="Tracking" description="Extra attributes to record for teams and players.">
+      <SettingsList>
+        <SettingRow
+          label="Track player year/grade"
+          description="Adds a year field to each player and to the stat report."
+        >
+          <Switch checked={trackPlayerYear} onChange={(e) => handleTrackYearChange(e.target.checked)} />
+        </SettingRow>
+        <SettingRow label="Track small school">
+          <Switch checked={trackSS} onChange={(e) => handleTrackSS(e.target.checked)} />
+        </SettingRow>
+        <SettingRow label="Track junior varsity">
+          <Switch checked={trackJV} onChange={(e) => handleTrackJV(e.target.checked)} />
+        </SettingRow>
+        <SettingRow label="Track undergrad">
+          <Switch checked={trackUG} onChange={(e) => handleTrackUG(e.target.checked)} />
+        </SettingRow>
+        <SettingRow label="Track division 2">
+          <Switch checked={trackD2} onChange={(e) => handleTrackD2(e.target.checked)} />
+        </SettingRow>
+      </SettingsList>
     </YfCard>
   );
 }
@@ -251,36 +242,36 @@ function BackupRecoveryNotice() {
 
   const firstLine = "YellowFruit didn't shut down correctly. The following file is available to recover:"; // IDE gets mad about the unescaped apostrophe if I put this in raw
   return (
-    <Grid size={{ xs: 12 }}>
-      <Alert
-        variant="filled"
-        severity="info"
-        action={
+    <Alert
+      severity="info"
+      sx={{ mb: 2, alignItems: 'flex-start' }}
+      action={
+        <Stack direction="row" sx={{ gap: 1, pt: 0.5 }}>
+          <Button size="small" startIcon={<Restore />} onClick={() => tournManager.useRecoveredBackup()}>
+            Restore file
+          </Button>
           <Button
-            variant="outlined"
+            size="small"
             color="inherit"
             startIcon={<Delete />}
             onClick={() => tournManager.discardRecoveredBackup()}
           >
             Discard
           </Button>
-        }
-      >
+        </Stack>
+      }
+    >
+      <AlertTitle>Unsaved work recovered</AlertTitle>
+      <Typography variant="body2" color="text.secondary">
         {firstLine}
-        <List>
-          <ListItem>{recoveredBackup.filePath || '(New file)'}</ListItem>
-          <ListItem>{`Saved at ${recoveredBackup.savedAtTime}`}</ListItem>
-        </List>
-        <Button
-          variant="outlined"
-          color="inherit"
-          startIcon={<Restore />}
-          onClick={() => tournManager.useRecoveredBackup()}
-        >
-          Restore file
-        </Button>
-      </Alert>
-    </Grid>
+      </Typography>
+      <Typography variant="body2" sx={{ mt: 0.5, fontWeight: 500 }}>
+        {recoveredBackup.filePath || '(New file)'}
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
+        {`Saved at ${recoveredBackup.savedAtTime}`}
+      </Typography>
+    </Alert>
   );
 }
 

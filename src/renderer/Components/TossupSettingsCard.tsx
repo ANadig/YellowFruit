@@ -10,8 +10,6 @@ import {
   FormHelperText,
   IconButton,
   InputAdornment,
-  List,
-  ListItem,
   OutlinedInput,
   Tooltip,
   Typography,
@@ -23,7 +21,7 @@ import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import AnswerType, { sortAnswerTypes } from '../DataModel/AnswerType';
-import { hotkeyFormat } from '../Utils/GeneralReactUtils';
+import { hotkeyFormat, SettingRow, SettingsList } from '../Utils/GeneralReactUtils';
 import { ScoringRules } from '../DataModel/ScoringRules';
 
 const commonPointValues = [-5, 10, 15, 20];
@@ -68,26 +66,32 @@ function TossupSettingsCard() {
   };
 
   return (
-    <YfCard title="Toss-Ups">
-      <Typography variant="subtitle2">Point values</Typography>
+    <YfCard title="Toss-ups">
+      <Typography variant="overline" color="text.secondary" sx={{ display: 'block' }}>
+        Point values
+      </Typography>
       <ActivePointValueList answerTypes={activeAnswerTypes} deleteItem={deleteAnswerType} allDisabled={readOnly} />
-      {canAddMoreValues && <Typography variant="subtitle2">Add more point values</Typography>}
       {canAddMoreValues && (
-        <Box sx={{ py: 1 }}>
-          <AvailableStandardPtValuesList
-            pointValues={pointValuesForChips}
-            addPointValue={addAnswerType}
-            disabled={readOnly}
-          />
-          <Chip
-            key="custom"
-            sx={{ marginBottom: 1 }}
-            label="Custom..."
-            disabled={readOnly}
-            onDelete={() => setCustomPtValFormOpen(true)}
-            deleteIcon={<Add />}
-          />
-        </Box>
+        <>
+          <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+            Add a point value
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, pt: 1 }}>
+            <AvailableStandardPtValuesList
+              pointValues={pointValuesForChips}
+              addPointValue={addAnswerType}
+              disabled={readOnly}
+            />
+            <Chip
+              key="custom"
+              variant="outlined"
+              label="Custom..."
+              disabled={readOnly}
+              onDelete={() => setCustomPtValFormOpen(true)}
+              deleteIcon={<Add />}
+            />
+          </Box>
+        </>
       )}
       <CustomPtValDialog
         isOpen={customPtValFormOpen}
@@ -117,32 +121,29 @@ function ActivePointValueList(props: IActivePointValueListProps) {
   const cantDeletePositive = positivePtValues.length === 1;
 
   return (
-    <List sx={{ width: '75%' }}>
+    <SettingsList>
       {answerTypes.map((answerType) => {
         const disableDelete = cantDeletePositive && answerType.value > 0;
         const tooltip = disableDelete ? 'You must have at least one positive point value' : 'Delete this point value';
 
         return (
-          <ListItem
-            key={answerType.value}
-            sx={{ '&:hover': { backgroundColor: 'ivory' } }}
-            secondaryAction={
-              <Tooltip title={tooltip} placement="right">
-                <span>
-                  <IconButton
-                    sx={{ '&:hover': { backgroundColor: 'transparent' } }}
-                    disabled={disableDelete || allDisabled}
-                    onClick={() => deleteItem(answerType.value)}
-                  >
-                    <Delete />
-                  </IconButton>
-                </span>
-              </Tooltip>
-            }
-          >{`${answerType.value} pts`}</ListItem>
+          <SettingRow key={answerType.value} label={`${answerType.value} pts`}>
+            <Tooltip title={tooltip} placement="left">
+              <span>
+                <IconButton
+                  size="small"
+                  disabled={disableDelete || allDisabled}
+                  onClick={() => deleteItem(answerType.value)}
+                  aria-label={`Delete ${answerType.value} point value`}
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </SettingRow>
         );
       })}
-    </List>
+    </SettingsList>
   );
 }
 
@@ -158,7 +159,7 @@ function AvailableStandardPtValuesList(props: IAvailableStandardPtValuesListProp
   return pointValues.map((value) => (
     <Chip
       key={value}
-      sx={{ marginRight: 1, marginBottom: 1 }}
+      variant="outlined"
       label={`${value} pts`}
       disabled={disabled}
       onDelete={() => addPointValue(value)}

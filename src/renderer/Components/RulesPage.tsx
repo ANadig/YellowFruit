@@ -11,42 +11,44 @@ import RoundLengthSettingsCard from './RoundLengthSettingsCard';
 import LightningRoundSettingsCard from './LightningRoundSettingsCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
+import { YfPageHeader } from '../Utils/GeneralReactUtils';
 
 function RulesPage() {
   const tournManager = useContext(TournamentContext);
   const [readOnly] = useSubscription(tournManager.tournament.hasMatchData);
 
   return (
-    <Grid container spacing={2}>
+    <>
+      <YfPageHeader title="Rules" description="How games are scored. Start from a standard rule set, then adjust." />
       {readOnly && (
-        <Grid size={{ xs: 12 }}>
-          <Alert variant="filled" severity="info" icon={<Lock fontSize="small" />}>
-            Settings are read-only
-          </Alert>
-        </Grid>
+        <Alert severity="info" icon={<Lock fontSize="small" />} sx={{ mb: 2 }}>
+          Games have already been entered, so scoring rules are read-only.
+        </Alert>
       )}
-      <Grid size={{ xs: 12 }}>
+      <Stack spacing={2}>
         <StandardRuleSetCard />
-      </Grid>
-      <Grid size={{ xs: 12, sm: 4 }}>
-        <Stack spacing={2}>
-          <RoundLengthSettingsCard />
-          <TossupSettingsCard />
-        </Stack>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 4 }}>
-        <Stack spacing={2}>
-          <BonusSettingsCard />
-          <LightningRoundSettingsCard />
-        </Stack>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 4 }}>
-        <Stack spacing={2}>
-          <MaxPlayersSettingsCard />
-          <OvertimeSettingsCard />
-        </Stack>
-      </Grid>
-    </Grid>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6, xl: 4 }}>
+            <Stack spacing={2}>
+              <RoundLengthSettingsCard />
+              <TossupSettingsCard />
+            </Stack>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6, xl: 4 }}>
+            <Stack spacing={2}>
+              <BonusSettingsCard />
+              <LightningRoundSettingsCard />
+            </Stack>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6, xl: 4 }}>
+            <Stack spacing={2}>
+              <OvertimeSettingsCard />
+              <MaxPlayersSettingsCard />
+            </Stack>
+          </Grid>
+        </Grid>
+      </Stack>
+    </>
   );
 }
 

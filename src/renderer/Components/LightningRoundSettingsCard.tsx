@@ -1,11 +1,11 @@
-import { FormGroup, FormControlLabel, Switch, Box, Typography } from '@mui/material';
+import { Divider, Switch, Typography } from '@mui/material';
 import { ChangeEvent, useContext } from 'react';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
 import { parseAndValidateStringToInt } from '../Utils/GeneralUtils';
 import { AdvancedNumericRuleField } from './BonusSettingsCard';
-import { CollapsibleArea } from '../Utils/GeneralReactUtils';
+import { CollapsibleArea, SettingRow, SettingsList } from '../Utils/GeneralReactUtils';
 
 function LightningRoundSettingsCard() {
   const tournManager = useContext(TournamentContext);
@@ -19,17 +19,19 @@ function LightningRoundSettingsCard() {
   };
 
   return (
-    <YfCard title="Lightning Round">
-      <FormGroup sx={{ paddingBottom: useLightning ? 2 : 0 }}>
-        <FormControlLabel
-          label="Use Lightning Round"
-          control={<Switch checked={useLightning} disabled={readOnly} onChange={handleUseLightningChange} />}
-        />
-      </FormGroup>
+    <YfCard title="Lightning round">
+      <SettingsList>
+        <SettingRow label="Use lightning round">
+          <Switch checked={useLightning} disabled={readOnly} onChange={handleUseLightningChange} />
+        </SettingRow>
+      </SettingsList>
       {useLightning && (
-        <CollapsibleArea title={<Typography variant="subtitle2">Advanced</Typography>} secondaryTitle={null}>
-          <AdvancedSection />
-        </CollapsibleArea>
+        <>
+          <Divider sx={{ mt: 1 }} />
+          <CollapsibleArea title={<Typography variant="subtitle2">Advanced</Typography>} secondaryTitle={null}>
+            <AdvancedSection />
+          </CollapsibleArea>
+        </>
       )}
     </YfCard>
   );
@@ -47,7 +49,7 @@ function AdvancedSection() {
   };
 
   return (
-    <Box sx={{ '& .MuiInputBase-root': { fontSize: 12 } }}>
+    <SettingsList>
       <AdvancedNumericRuleField
         label="Divisor"
         required
@@ -58,7 +60,7 @@ function AdvancedSection() {
         onChange={setDivisor}
         onBlur={() => handleDivisorChange(divisor)}
       />
-    </Box>
+    </SettingsList>
   );
 }
 

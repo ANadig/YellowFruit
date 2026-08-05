@@ -1,11 +1,10 @@
-import Grid from '@mui/material/Grid';
-import { FormGroup, FormControlLabel, Switch, Typography, Stack, Box } from '@mui/material';
+import { Divider, Switch, Typography } from '@mui/material';
 import { ChangeEvent, useContext, useEffect, useState } from 'react';
 import YfCard from './YfCard';
 import useSubscription from '../Utils/CustomHooks';
 import { TournamentContext } from '../TournamentManager';
 import { parseAndValidateStringToInt, invalidInteger } from '../Utils/GeneralUtils';
-import { CollapsibleArea, YfNumericField } from '../Utils/GeneralReactUtils';
+import { CollapsibleArea, SettingRow, SettingsList, YfNumericField } from '../Utils/GeneralReactUtils';
 
 function BonusSettingsCard() {
   const tournManager = useContext(TournamentContext);
@@ -26,22 +25,21 @@ function BonusSettingsCard() {
 
   return (
     <YfCard title="Bonuses">
-      <FormGroup sx={{ paddingBottom: useBonuses ? 2 : 0 }}>
-        <FormControlLabel
-          label="Bonuses"
-          control={<Switch disabled={readOnly} checked={useBonuses} onChange={handleUseBonusesChange} />}
-        />
-        <FormControlLabel
-          label="Bouncebacks"
-          control={
-            <Switch disabled={readOnly || !useBonuses} checked={bonusesBounce} onChange={handleBonusesBounceChange} />
-          }
-        />
-      </FormGroup>
+      <SettingsList>
+        <SettingRow label="Bonuses" description="Teams answer a bonus after converting a toss-up.">
+          <Switch disabled={readOnly} checked={useBonuses} onChange={handleUseBonusesChange} />
+        </SettingRow>
+        <SettingRow label="Bouncebacks">
+          <Switch disabled={readOnly || !useBonuses} checked={bonusesBounce} onChange={handleBonusesBounceChange} />
+        </SettingRow>
+      </SettingsList>
       {useBonuses && (
-        <CollapsibleArea title={<Typography variant="subtitle2">Advanced</Typography>} secondaryTitle={null}>
-          <AdvancedBonusSection />
-        </CollapsibleArea>
+        <>
+          <Divider sx={{ mt: 1 }} />
+          <CollapsibleArea title={<Typography variant="subtitle2">Advanced</Typography>} secondaryTitle={null}>
+            <AdvancedBonusSection />
+          </CollapsibleArea>
+        </>
       )}
     </YfCard>
   );
@@ -118,60 +116,58 @@ function AdvancedBonusSection() {
   };
 
   return (
-    <Box sx={{ '& .MuiInputBase-root': { fontSize: 12 } }}>
-      <Stack>
-        <AdvancedNumericRuleField
-          label="Max bonus score"
-          required
-          value={maxBonusScore}
-          disabled={readOnly || ptsPerPart !== ''}
-          minValue={1}
-          maxValue={1000}
-          onChange={setMaxBonusScore}
-          onBlur={() => handleMaxBonusScoreChange(maxBonusScore)}
-        />
-        <AdvancedNumericRuleField
-          label="Min parts per bonus"
-          required
-          value={minBonusParts}
-          disabled={readOnly}
-          minValue={1}
-          maxValue={parseInt(maxBonusParts, 10)}
-          onChange={setMinBonusParts}
-          onBlur={() => handleMinBonusPartsChange(minBonusParts)}
-        />
-        <AdvancedNumericRuleField
-          label="Max parts per bonus"
-          required
-          value={maxBonusParts}
-          disabled={readOnly}
-          minValue={parseInt(minBonusParts, 10)}
-          maxValue={1000}
-          onChange={setMaxBonusParts}
-          onBlur={() => handleMaxBonusPartsChange(maxBonusParts)}
-        />
-        <AdvancedNumericRuleField
-          label="Pts per bonus part"
-          required={false}
-          value={ptsPerPart}
-          disabled={readOnly}
-          minValue={1}
-          maxValue={1000}
-          onChange={setPtsPerPart}
-          onBlur={() => handlePtsPerPartChange(ptsPerPart)}
-        />
-        <AdvancedNumericRuleField
-          label="Divisor"
-          required
-          value={divisor}
-          disabled={readOnly || ptsPerPart !== ''}
-          minValue={1}
-          maxValue={parseInt(maxBonusScore, 10)}
-          onChange={setDivisor}
-          onBlur={() => handleDivisorChange(divisor)}
-        />
-      </Stack>
-    </Box>
+    <SettingsList>
+      <AdvancedNumericRuleField
+        label="Max bonus score"
+        required
+        value={maxBonusScore}
+        disabled={readOnly || ptsPerPart !== ''}
+        minValue={1}
+        maxValue={1000}
+        onChange={setMaxBonusScore}
+        onBlur={() => handleMaxBonusScoreChange(maxBonusScore)}
+      />
+      <AdvancedNumericRuleField
+        label="Min parts per bonus"
+        required
+        value={minBonusParts}
+        disabled={readOnly}
+        minValue={1}
+        maxValue={parseInt(maxBonusParts, 10)}
+        onChange={setMinBonusParts}
+        onBlur={() => handleMinBonusPartsChange(minBonusParts)}
+      />
+      <AdvancedNumericRuleField
+        label="Max parts per bonus"
+        required
+        value={maxBonusParts}
+        disabled={readOnly}
+        minValue={parseInt(minBonusParts, 10)}
+        maxValue={1000}
+        onChange={setMaxBonusParts}
+        onBlur={() => handleMaxBonusPartsChange(maxBonusParts)}
+      />
+      <AdvancedNumericRuleField
+        label="Pts per bonus part"
+        required={false}
+        value={ptsPerPart}
+        disabled={readOnly}
+        minValue={1}
+        maxValue={1000}
+        onChange={setPtsPerPart}
+        onBlur={() => handlePtsPerPartChange(ptsPerPart)}
+      />
+      <AdvancedNumericRuleField
+        label="Divisor"
+        required
+        value={divisor}
+        disabled={readOnly || ptsPerPart !== ''}
+        minValue={1}
+        maxValue={parseInt(maxBonusScore, 10)}
+        onChange={setDivisor}
+        onBlur={() => handleDivisorChange(divisor)}
+      />
+    </SettingsList>
   );
 }
 
@@ -207,35 +203,21 @@ export function AdvancedNumericRuleField(props: IAdvancedNumericRuleFieldProps) 
   };
 
   return (
-    <Grid container>
-      <Grid size={{ xs: 'grow' }}>
-        <InlineLabel text={label} />
-      </Grid>
-      <Grid size={{ xs: 'auto' }}>
-        <YfNumericField
-          sx={{ marginTop: 1, width: '8ch' }}
-          size="small"
-          slotProps={{ htmlInput: { min: 0 } }}
-          disabled={disabled}
-          error={error}
-          value={value}
-          onChange={(e) => handleChange(e.target.value)}
-          onBlur={() => onBlur(value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') onBlur(value);
-          }}
-        />
-      </Grid>
-    </Grid>
-  );
-}
-
-function InlineLabel(props: { text: string }) {
-  const { text } = props;
-  return (
-    <div style={{ marginTop: '1rem' }}>
-      <Typography variant="body2">{text}</Typography>
-    </div>
+    <SettingRow label={label}>
+      <YfNumericField
+        hiddenLabel
+        sx={{ width: '9ch' }}
+        slotProps={{ htmlInput: { min: 0 } }}
+        disabled={disabled}
+        error={error}
+        value={value}
+        onChange={(e) => handleChange(e.target.value)}
+        onBlur={() => onBlur(value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') onBlur(value);
+        }}
+      />
+    </SettingRow>
   );
 }
 

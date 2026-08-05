@@ -14,9 +14,8 @@ function StandardRuleSetCard() {
   const readOnly = tournManager.tournament.hasMatchData;
 
   return (
-    <YfCard title="Standard Rule Sets">
+    <YfCard title="Ruleset" description="Applies a full set of defaults. Anything below can still be changed.">
       <ToggleButtonGroup
-        size="small"
         color="primary"
         exclusive
         disabled={readOnly}

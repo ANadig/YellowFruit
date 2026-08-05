@@ -1,10 +1,10 @@
-import { FormGroup, FormControlLabel, Switch } from '@mui/material';
+import { Switch } from '@mui/material';
 import { ChangeEvent, useContext } from 'react';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { ScoringRules } from '../DataModel/ScoringRules';
-import { YfNumericField } from '../Utils/GeneralReactUtils';
+import { SettingRow, SettingsList, YfNumericField } from '../Utils/GeneralReactUtils';
 
 function OvertimeSettingsCard() {
   const tournManager = useContext(TournamentContext);
@@ -57,35 +57,30 @@ function OvertimeSettingsCard() {
 
   return (
     <YfCard title="Overtime">
-      <FormGroup>
-        <FormControlLabel
-          label="Sudden Death"
-          control={<Switch checked={suddenDeath} disabled={readOnly} onChange={handleSuddenDeathChange} />}
-        />
-      </FormGroup>
-      {minTossupsVisible && (
-        <YfNumericField
-          sx={{ marginTop: 1, marginLeft: 6, width: '13ch' }}
-          size="small"
-          slotProps={{ htmlInput: { min: 1, disabled: readOnly } }}
-          label="Min Toss-Ups"
-          value={minTossups}
-          error={!numPlayersIsValid()}
-          onChange={(e) => setMinTossups(e.target.value)}
-          onBlur={saveMinTossupsSetting}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') saveMinTossupsSetting();
-          }}
-        />
-      )}
-      <FormGroup>
-        <FormControlLabel
-          label="Use Bonuses"
-          control={
-            <Switch checked={otUseBonuses} disabled={readOnly || !tournUseBonuses} onChange={handleUseBonusChange} />
-          }
-        />
-      </FormGroup>
+      <SettingsList>
+        <SettingRow label="Sudden death" description="Overtime ends as soon as one team converts a toss-up.">
+          <Switch checked={suddenDeath} disabled={readOnly} onChange={handleSuddenDeathChange} />
+        </SettingRow>
+        {minTossupsVisible && (
+          <SettingRow label="Min toss-ups">
+            <YfNumericField
+              hiddenLabel
+              sx={{ width: '9ch' }}
+              slotProps={{ htmlInput: { min: 1, disabled: readOnly } }}
+              value={minTossups}
+              error={!numPlayersIsValid()}
+              onChange={(e) => setMinTossups(e.target.value)}
+              onBlur={saveMinTossupsSetting}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') saveMinTossupsSetting();
+              }}
+            />
+          </SettingRow>
+        )}
+        <SettingRow label="Use bonuses">
+          <Switch checked={otUseBonuses} disabled={readOnly || !tournUseBonuses} onChange={handleUseBonusChange} />
+        </SettingRow>
+      </SettingsList>
     </YfCard>
   );
 }

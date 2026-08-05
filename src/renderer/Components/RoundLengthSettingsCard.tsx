@@ -1,15 +1,14 @@
-import { FormControlLabel, FormGroup, Switch, Tooltip } from '@mui/material';
+import { Switch } from '@mui/material';
 import { useState, ChangeEvent, useContext } from 'react';
-import { HelpOutlined } from '@mui/icons-material';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import { ScoringRules } from '../DataModel/ScoringRules';
 import useSubscription from '../Utils/CustomHooks';
-import { YfNumericField } from '../Utils/GeneralReactUtils';
+import { SettingRow, SettingsList, YfNumericField } from '../Utils/GeneralReactUtils';
 
-const standardTusLabel = 'Toss-Ups';
+const standardTusLabel = 'Toss-ups per round';
 const standardTusHelpText = 'The number of toss-ups read per round (not including overtime)';
-const timedTusLabel = 'Max Toss-Ups';
+const timedTusLabel = 'Max toss-ups per round';
 const timedTusHelpText = 'The maximum number of toss-ups that could be read per round (not including overtime)';
 
 function getTuFieldLabel(timed: boolean) {
@@ -55,29 +54,26 @@ function RoundLengthSettingsCard() {
   };
 
   return (
-    <YfCard title="Round Length">
-      <FormGroup>
-        <FormControlLabel
-          label="Timed Rounds"
-          control={<Switch disabled={readOnly} checked={timedRoundsChecked} onChange={handleTimedRoundsChange} />}
-        />
-      </FormGroup>
-      <YfNumericField
-        sx={{ marginTop: 1, width: '13ch' }}
-        size="small"
-        slotProps={{ htmlInput: { min: 1, disabled: readOnly } }}
-        label={numTusLabel}
-        value={numTus}
-        error={!tuNumberIsValid()}
-        onChange={(e) => setNumTus(e.target.value)}
-        onBlur={saveNumTusSetting}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') saveNumTusSetting();
-        }}
-      />
-      <Tooltip sx={{ marginTop: 2, mx: 1 }} title={numTusHelpText} placement="right">
-        <HelpOutlined fontSize="small" />
-      </Tooltip>
+    <YfCard title="Regulation">
+      <SettingsList>
+        <SettingRow label="Timed rounds" description="Rounds end on the clock rather than after a fixed count.">
+          <Switch disabled={readOnly} checked={timedRoundsChecked} onChange={handleTimedRoundsChange} />
+        </SettingRow>
+        <SettingRow label={numTusLabel} description={numTusHelpText}>
+          <YfNumericField
+            hiddenLabel
+            sx={{ width: '9ch' }}
+            slotProps={{ htmlInput: { min: 1, disabled: readOnly } }}
+            value={numTus}
+            error={!tuNumberIsValid()}
+            onChange={(e) => setNumTus(e.target.value)}
+            onBlur={saveNumTusSetting}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') saveNumTusSetting();
+            }}
+          />
+        </SettingRow>
+      </SettingsList>
     </YfCard>
   );
 }
