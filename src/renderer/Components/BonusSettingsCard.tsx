@@ -1,4 +1,4 @@
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { FormGroup, FormControlLabel, Switch, Typography, Stack, Box } from '@mui/material';
 import { ChangeEvent, useContext, useEffect, useState } from 'react';
 import YfCard from './YfCard';
@@ -208,14 +208,14 @@ export function AdvancedNumericRuleField(props: IAdvancedNumericRuleFieldProps) 
 
   return (
     <Grid container>
-      <Grid xs>
+      <Grid size={{ xs: 'grow' }}>
         <InlineLabel text={label} />
       </Grid>
-      <Grid xs="auto">
+      <Grid size={{ xs: 'auto' }}>
         <YfNumericField
           sx={{ marginTop: 1, width: '8ch' }}
           size="small"
-          inputProps={{ min: 0 }}
+          slotProps={{ htmlInput: { min: 0 } }}
           disabled={disabled}
           error={error}
           value={value}

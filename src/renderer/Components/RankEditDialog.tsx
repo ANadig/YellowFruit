@@ -72,7 +72,7 @@ function RankField() {
   return (
     <YfNumericField
       sx={{ marginTop: 1, width: '15ch' }}
-      inputProps={{ min: 1 }}
+      slotProps={{ htmlInput: { min: 1 } }}
       autoFocus
       variant="outlined"
       size="small"

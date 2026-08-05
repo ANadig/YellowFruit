@@ -85,7 +85,13 @@ export default function ServerControlCard() {
               can&apos;t reach it. Connect to the same Wi-Fi as your scorekeeping devices.
             </Alert>
           ) : (
-            <Stack sx={{ mt: 1 }} spacing={0.5} alignItems="flex-start">
+            <Stack
+              spacing={0.5}
+              sx={{
+                alignItems: 'flex-start',
+                mt: 1,
+              }}
+            >
               {status.addresses.map((address) => (
                 // A button rather than a link: this opens an external browser window instead of
                 // navigating anywhere in the app.
@@ -101,7 +107,12 @@ export default function ServerControlCard() {
             </Stack>
           )}
           {status.addresses.length > 1 && (
-            <Typography variant="caption" color="text.secondary">
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               More than one network was found. Use whichever address your scorekeeping devices can reach.
             </Typography>
           )}

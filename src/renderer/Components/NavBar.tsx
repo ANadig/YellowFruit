@@ -103,7 +103,13 @@ function NavBar(props: INavBarProps) {
               >
                 {applicationPageOrder.map((page) => (
                   <MenuItem key={page} onClick={() => handlePageButtonClick(page)}>
-                    <Typography textAlign="center">{pageNames[page]}</Typography>
+                    <Typography
+                      sx={{
+                        textAlign: 'center',
+                      }}
+                    >
+                      {pageNames[page]}
+                    </Typography>
                   </MenuItem>
                 ))}
               </Menu>

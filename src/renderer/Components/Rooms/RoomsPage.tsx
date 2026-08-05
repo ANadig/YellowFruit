@@ -559,7 +559,13 @@ export default function RoomsPage() {
                           )}
                         </td>
                         <td>
-                          <Stack direction="row" justifyContent="flex-end" spacing={0.25}>
+                          <Stack
+                            direction="row"
+                            spacing={0.25}
+                            sx={{
+                              justifyContent: 'flex-end',
+                            }}
+                          >
                             <Tooltip title="Move up">
                               <span>
                                 <IconButton
@@ -693,8 +699,21 @@ export default function RoomsPage() {
                   </div>
                 );
               })}
-              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1.5 }}>
-                <Typography variant="body2" color="text.secondary">
+              <Stack
+                direction="row"
+                sx={{
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  px: 2,
+                  py: 1.5,
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {releaseMessage(service.releasedRoundNumber, currentRound, currentSummary)}
                 </Typography>
                 <Button variant="contained" onClick={releaseRound} disabled={nextRelease === null || releaseBlocked}>
@@ -1093,7 +1112,13 @@ function ServerSettingsDialog({
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Tournament Server settings</DialogTitle>
       <DialogContent>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'text.secondary',
+            mb: 2,
+          }}
+        >
           The server binds to every LAN interface on this computer. Room pages only work while it is running.
         </Typography>
         {!service.status.running && (

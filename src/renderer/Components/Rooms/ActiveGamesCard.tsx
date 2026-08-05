@@ -56,7 +56,14 @@ function GameRow({ session }: { session: ISessionSummary }) {
           </Typography>
         </div>
       </Stack>
-      <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 0.5 }}>
+      <Typography
+        variant="caption"
+        component="div"
+        sx={{
+          color: 'text.secondary',
+          mt: 0.5,
+        }}
+      >
         {score ? `Question ${score.tossupsRead} — ` : ''}
         Last update: {relativeTime(session.msSinceLastSeen)}
       </Typography>
@@ -104,7 +111,14 @@ export default function ActiveGamesCard() {
         ))}
       </Stack>
       {running && sessions.length > 0 && (
-        <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 2 }}>
+        <Typography
+          variant="caption"
+          component="div"
+          sx={{
+            color: 'text.secondary',
+            mt: 2,
+          }}
+        >
           Live scores are for monitoring only. Standings update when you accept a game in the Match Inbox.
         </Typography>
       )}

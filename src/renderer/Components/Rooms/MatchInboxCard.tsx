@@ -27,7 +27,12 @@ function InboxRow({ item }: { item: IInboxItem }) {
   return (
     <div className="rooms-inbox-row">
       <div className="rooms-inbox-teams">
-        <Typography variant="caption" color="text.secondary">
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           Round {item.roundNumber} · {item.roomName ?? (item.roomId ? `Room ${item.roomId}` : 'Manual room')}
         </Typography>
         <strong>
@@ -65,7 +70,13 @@ function InboxRow({ item }: { item: IInboxItem }) {
 
       <div className="rooms-inbox-actions">
         {rejecting ? (
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <TextField
               size="small"
               label="Reason (optional)"
@@ -86,7 +97,13 @@ function InboxRow({ item }: { item: IInboxItem }) {
             </Button>
           </Stack>
         ) : (
-          <Stack direction="row" spacing={1} justifyContent="flex-end">
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              justifyContent: 'flex-end',
+            }}
+          >
             {!isFatal && !needsOverride && (
               <Button
                 size="small"
@@ -128,7 +145,15 @@ export default function MatchInboxCard() {
           <h2 id="match-inbox-heading">Match Inbox</h2>
           <p>Final QBJ results stay here until tournament control accepts them into standings.</p>
         </div>
-        {service.inbox.length > 0 && <Typography color="warning.main">{service.inbox.length} pending</Typography>}
+        {service.inbox.length > 0 && (
+          <Typography
+            sx={{
+              color: 'warning.main',
+            }}
+          >
+            {service.inbox.length} pending
+          </Typography>
+        )}
       </div>
       {service.inbox.length === 0 ? (
         <div className="rooms-empty-state">
@@ -147,7 +172,12 @@ export default function MatchInboxCard() {
         <Box sx={{ borderTop: '1px solid #d9dde3' }}>
           <Box sx={{ px: 2, py: 1.5 }}>
             <Typography variant="subtitle2">Submission conflicts</Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               An accepted game was not overwritten. Review the incoming QBJ before deciding what to keep.
             </Typography>
           </Box>
@@ -172,7 +202,13 @@ function ConflictRow({ conflict, onKeep }: { conflict: IMatchSubmissionConflict;
       <Typography variant="body2">
         Round {conflict.submission.roundNumber} · {conflict.submission.leftTeam} vs {conflict.submission.rightTeam}
       </Typography>
-      <Typography variant="caption" color="text.secondary" component="div">
+      <Typography
+        variant="caption"
+        component="div"
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         Existing match {conflict.existingMatchId} · incoming session {conflict.submission.sessionId.slice(0, 8)}
       </Typography>
       <Stack direction="row" spacing={1} sx={{ mt: 1 }}>

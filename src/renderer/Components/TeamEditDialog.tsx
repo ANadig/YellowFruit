@@ -24,7 +24,7 @@ import {
   MenuList,
   IconButton,
 } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import React, { ReactElement, forwardRef, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { ArrowDropDown, Delete } from '@mui/icons-material';
@@ -178,7 +178,7 @@ const OrgAndLetterFields = forwardRef((props: TeamAndLetterFieldsProps, orgNameF
 
   return (
     <>
-      <Grid xs={9} sm={6}>
+      <Grid size={{ xs: 9, sm: 6 }}>
         <TextField
           inputRef={orgNameFieldRef}
           sx={{ marginTop: 1 }}
@@ -198,7 +198,7 @@ const OrgAndLetterFields = forwardRef((props: TeamAndLetterFieldsProps, orgNameF
           }}
         />
       </Grid>
-      <Grid xs={3} sm={2}>
+      <Grid size={{ xs: 3, sm: 2 }}>
         <TextField
           sx={{ marginTop: 1, width: '10ch' }}
           placeholder="A, B, etc."
@@ -254,7 +254,7 @@ function TeamCheckBoxes() {
   return (
     <>
       {thisTournament.trackSmallSchool && (
-        <Grid xs={2} md={1} sx={{ display: 'flex', alignItems: 'end' }}>
+        <Grid sx={{ display: 'flex', alignItems: 'end' }} size={{ xs: 2, md: 1 }}>
           <TeamFormCheckBox
             label="SS"
             extraSpace
@@ -263,7 +263,7 @@ function TeamCheckBoxes() {
         </Grid>
       )}
       {thisTournament.trackJV && (
-        <Grid xs={2} md={1}>
+        <Grid size={{ xs: 2, md: 1 }}>
           <TeamFormCheckBox
             label="JV"
             extraSpace
@@ -272,7 +272,7 @@ function TeamCheckBoxes() {
         </Grid>
       )}
       {thisTournament.trackUG && (
-        <Grid xs={2} md={1}>
+        <Grid size={{ xs: 2, md: 1 }}>
           <TeamFormCheckBox
             label="UG"
             extraSpace
@@ -281,7 +281,7 @@ function TeamCheckBoxes() {
         </Grid>
       )}
       {thisTournament.trackDiv2 && (
-        <Grid xs={2} md={1}>
+        <Grid size={{ xs: 2, md: 1 }}>
           <TeamFormCheckBox
             label="D2"
             extraSpace
@@ -423,7 +423,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
 
   return (
     <Grid container spacing={1}>
-      <Grid xs={5} md={6}>
+      <Grid size={{ xs: 5, md: 6 }}>
         <TextField
           id={playerNameFieldId(rowIdx)}
           placeholder="Player Name"
@@ -445,7 +445,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
         />
       </Grid>
       {thisTournament.trackPlayerYear && (
-        <Grid xs={2}>
+        <Grid size={{ xs: 2 }}>
           <TextField
             id={playerYearFieldId(rowIdx)}
             placeholder="Grade / Yr."
@@ -467,7 +467,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
         </Grid>
       )}
       {thisTournament.trackUG && (
-        <Grid xs={2} md={1}>
+        <Grid size={{ xs: 2, md: 1 }}>
           <TeamFormCheckBox
             label="UG"
             extraSpace={warningExists}
@@ -476,7 +476,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
         </Grid>
       )}
       {thisTournament.trackDiv2 && (
-        <Grid xs={2} md={1}>
+        <Grid size={{ xs: 2, md: 1 }}>
           <TeamFormCheckBox
             label="D2"
             extraSpace={warningExists}
@@ -485,7 +485,7 @@ function PlayerGridRow(props: IPlayerGridRowProps) {
         </Grid>
       )}
       {teamHasPlayed && player?.sourcePlayer && (
-        <Grid xs={1}>
+        <Grid size={{ xs: 1 }}>
           <IconButton disabled={playerHasPlayed} onClick={() => modalManager.deletePlayer(rowIdx)}>
             <Delete />
           </IconButton>

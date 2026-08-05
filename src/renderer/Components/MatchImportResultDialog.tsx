@@ -91,7 +91,11 @@ function MatchImportResultDialogCore() {
         {successes.length > 0 && (
           <>
             <Typography variant="h6">Success</Typography>
-            <Box paddingLeft={2}>
+            <Box
+              sx={{
+                paddingLeft: 2,
+              }}
+            >
               <Alert severity="success" sx={{ marginBottom: 1 }}>
                 {sectionHelpText[ImportResultStatus.Success]}
               </Alert>
@@ -101,10 +105,19 @@ function MatchImportResultDialogCore() {
         )}
         {warnings.length > 0 && (
           <>
-            <Typography variant="h6" marginTop={2}>
+            <Typography
+              variant="h6"
+              sx={{
+                marginTop: 2,
+              }}
+            >
               Games with Warnings
             </Typography>
-            <Box paddingLeft={2}>
+            <Box
+              sx={{
+                paddingLeft: 2,
+              }}
+            >
               <Alert severity="warning" sx={{ marginBottom: 1 }}>
                 {sectionHelpText[ImportResultStatus.Warning]}
               </Alert>
@@ -114,10 +127,19 @@ function MatchImportResultDialogCore() {
         )}
         {errs.length > 0 && (
           <>
-            <Typography variant="h6" marginTop={2}>
+            <Typography
+              variant="h6"
+              sx={{
+                marginTop: 2,
+              }}
+            >
               Games with Errors
             </Typography>
-            <Box paddingLeft={2}>
+            <Box
+              sx={{
+                paddingLeft: 2,
+              }}
+            >
               <Alert severity="error" sx={{ marginBottom: 1 }}>
                 {sectionHelpText[ImportResultStatus.ErrNonFatal]}
               </Alert>
@@ -127,10 +149,19 @@ function MatchImportResultDialogCore() {
         )}
         {fatals.length > 0 && (
           <>
-            <Typography variant="h6" marginTop={2}>
+            <Typography
+              variant="h6"
+              sx={{
+                marginTop: 2,
+              }}
+            >
               Cannot be Imported
             </Typography>
-            <Box paddingLeft={2}>
+            <Box
+              sx={{
+                paddingLeft: 2,
+              }}
+            >
               <Alert severity="error" icon={<Cancel />} sx={{ marginBottom: 1 }}>
                 {sectionHelpText[ImportResultStatus.FatalErr]}
               </Alert>

@@ -1,6 +1,6 @@
 import { IconButton, Stack, Table, TableBody, TableCell, TableContainer, TableRow, Tooltip } from '@mui/material';
 import { useContext, useMemo } from 'react';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { Add, Edit, JoinRight } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import YfCard from './YfCard';
@@ -61,7 +61,7 @@ function NullMatrix(props: INullMatrixProps) {
   const { message } = props;
 
   return (
-    <Grid xs={12}>
+    <Grid size={{ xs: 12 }}>
       <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
         <Table size="small">
           <TableBody>
@@ -87,7 +87,7 @@ function PoolMatrix(props: IPoolMatrixProps) {
   if (pool.poolTeams.length === 0) return null;
 
   return (
-    <Grid xs={12}>
+    <Grid size={{ xs: 12 }}>
       <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
         <Table size="small">
           <TableBody>

@@ -15,9 +15,9 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Delete, HelpOutline } from '@mui/icons-material';
+import { Delete, HelpOutlined } from '@mui/icons-material';
 import { TournamentContext } from '../TournamentManager';
 import useSubscription from '../Utils/CustomHooks';
 import { YfAcceptButton, YfCancelButton, YfNumericField } from '../Utils/GeneralReactUtils';
@@ -77,13 +77,13 @@ function PoolEditDialogCore() {
           <PoolNameField />
           <NumberOfTeamsField />
           <Grid container columnSpacing={1} sx={{ marginTop: 1 }}>
-            <Grid xs={3}>
+            <Grid size={{ xs: 3 }}>
               <Typography sx={{ paddingTop: 1 }}>Round Robin:</Typography>
             </Grid>
-            <Grid xs={5}>
+            <Grid size={{ xs: 5 }}>
               <RoundRobinsField />
             </Grid>
-            <Grid xs={4}>{canSetCarryover && <CarryoverField />}</Grid>
+            <Grid size={{ xs: 4 }}>{canSetCarryover && <CarryoverField />}</Grid>
           </Grid>
         </Box>
       </DialogContent>
@@ -156,7 +156,7 @@ function NumberOfTeamsField() {
   return (
     <YfNumericField
       sx={{ verticalAlign: 'baseline', width: '10ch' }}
-      inputProps={{ min: Math.max(1, numTeamsInPool), max: 999 }}
+      slotProps={{ htmlInput: { min: Math.max(1, numTeamsInPool), max: 999 } }}
       variant="outlined"
       size="small"
       label="No. Teams"
@@ -219,7 +219,7 @@ function CarryoverField() {
           <>
             Carryover?
             <Tooltip sx={{ mx: 1, verticalAlign: 'text-bottom' }} title={carryoverFieldTooltip} placement="right">
-              <HelpOutline fontSize="small" />
+              <HelpOutlined fontSize="small" />
             </Tooltip>
           </>
         }

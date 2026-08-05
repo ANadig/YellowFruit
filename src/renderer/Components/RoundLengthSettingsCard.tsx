@@ -1,6 +1,6 @@
 import { FormControlLabel, FormGroup, Switch, Tooltip } from '@mui/material';
 import { useState, ChangeEvent, useContext } from 'react';
-import { HelpOutline } from '@mui/icons-material';
+import { HelpOutlined } from '@mui/icons-material';
 import YfCard from './YfCard';
 import { TournamentContext } from '../TournamentManager';
 import { ScoringRules } from '../DataModel/ScoringRules';
@@ -65,7 +65,7 @@ function RoundLengthSettingsCard() {
       <YfNumericField
         sx={{ marginTop: 1, width: '13ch' }}
         size="small"
-        inputProps={{ min: 1, disabled: readOnly }}
+        slotProps={{ htmlInput: { min: 1, disabled: readOnly } }}
         label={numTusLabel}
         value={numTus}
         error={!tuNumberIsValid()}
@@ -76,7 +76,7 @@ function RoundLengthSettingsCard() {
         }}
       />
       <Tooltip sx={{ marginTop: 2, mx: 1 }} title={numTusHelpText} placement="right">
-        <HelpOutline fontSize="small" />
+        <HelpOutlined fontSize="small" />
       </Tooltip>
     </YfCard>
   );

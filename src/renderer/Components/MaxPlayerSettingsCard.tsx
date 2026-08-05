@@ -1,4 +1,4 @@
-import { HelpOutline } from '@mui/icons-material';
+import { HelpOutlined } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
 import { useContext } from 'react';
 import YfCard from './YfCard';
@@ -37,7 +37,7 @@ function MaxPlayersSettingsCard() {
       <YfNumericField
         sx={{ marginTop: 1, width: '14ch' }}
         size="small"
-        inputProps={{ min: 1, disabled: readOnly }}
+        slotProps={{ htmlInput: { min: 1, disabled: readOnly } }}
         label="Max Active/Team"
         value={numPlayers}
         error={!numPlayersIsValid()}
@@ -48,7 +48,7 @@ function MaxPlayersSettingsCard() {
         }}
       />
       <Tooltip sx={{ marginTop: 2, mx: 1 }} title={maxPlayersFieldHelpText} placement="right">
-        <HelpOutline fontSize="small" />
+        <HelpOutlined fontSize="small" />
       </Tooltip>
     </YfCard>
   );

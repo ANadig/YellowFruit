@@ -1,7 +1,7 @@
 import { Button, Card, CardContent } from '@mui/material';
 import { useContext } from 'react';
 import { FileDownload, Launch } from '@mui/icons-material';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { LinkButton, YfCssClasses } from '../Utils/GeneralReactUtils';
 import { statReportProtocol } from '../../SharedUtils';
 import { StatReportFileNames, StatReportPages } from '../Enums';
@@ -18,7 +18,7 @@ export default function StatReportPage() {
       <Card sx={{ marginBottom: 2, '& .MuiCardContent-root': { paddingBottom: 2.1 } }}>
         <CardContent>
           <Grid container>
-            <Grid xs>
+            <Grid size={{ xs: 'grow' }}>
               <Button
                 variant="contained"
                 size="small"
@@ -28,7 +28,7 @@ export default function StatReportPage() {
                 Export report
               </Button>
             </Grid>
-            <Grid xs="auto">
+            <Grid size={{ xs: 'auto' }}>
               <LinkButton sx={{ marginTop: 1 }} onClick={() => tournManager.launchStatReportInBrowserWindow()}>
                 <Launch fontSize="small" /> View report in browser
               </LinkButton>

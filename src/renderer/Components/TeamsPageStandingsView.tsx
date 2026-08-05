@@ -1,7 +1,7 @@
 /* eslint-disable react/require-default-props */
 /* eslint-disable prefer-destructuring */
 import { useContext } from 'react';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import {
   TableContainer,
   Table,
@@ -75,18 +75,18 @@ function PhaseStandings(props: IPhaseStandingsProps) {
         >
           {thisTournament.isLastFullPhase(phase) && (
             <>
-              <Grid xs={6}>
+              <Grid size={{ xs: 6 }}>
                 {thisTournament.getFinalsPhases().map((ph) => (
                   <TiebreakerOrFinalsInfo key={ph.code} tbOrFinalsPhase={ph} />
                 ))}
               </Grid>
-              <Grid xs={6} sx={{ textAlign: 'right', '& .MuiSvgIcon-root': { fontSize: '1.5rem' } }}>
+              <Grid sx={{ textAlign: 'right', '& .MuiSvgIcon-root': { fontSize: '1.5rem' } }} size={{ xs: 6 }}>
                 <ConfirmFinalRanksCheckbox />
               </Grid>
             </>
           )}
           {phaseStats.pools.map((poolStats) => (
-            <Grid key={poolStats.pool.name} xs={12}>
+            <Grid key={poolStats.pool.name} size={{ xs: 12 }}>
               <TableContainer sx={{ border: 1, borderRadius: 1, borderColor: 'lightgray' }}>
                 <Table size="small">
                   <TableHead>
@@ -296,7 +296,11 @@ function TiebreakerOrFinalsInfo(props: ITiebreakerOrFinalsInfoProps) {
   return (
     <Box sx={{ marginTop: isFinals ? 0 : 1, mx: 2 }}>
       <Typography variant="subtitle2">{isFinals ? tbOrFinalsPhase.name : 'Tiebreakers'}</Typography>
-      <Box typography="body2">
+      <Box
+        sx={{
+          typography: 'body2',
+        }}
+      >
         {matches.map((match) => (
           <div key={match.id}>
             {match.getWinnerLoserString()}{' '}

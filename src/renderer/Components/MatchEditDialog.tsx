@@ -27,7 +27,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { DragIndicator, ExpandMore, Restore, VisibilityOff } from '@mui/icons-material';
 import { MatchEditModalContext } from '../Modal Managers/TempMatchManager';
 import { TournamentContext } from '../TournamentManager';
@@ -99,83 +99,83 @@ function MatchEditDialogCore() {
         <DialogTitle>Edit Game</DialogTitle>
         <DialogContent>
           <Box
-            fontSize={14}
             sx={{
+              fontSize: 14,
               minHeight: 475,
               '& .MuiFormHelperText-root': { whiteSpace: 'nowrap' },
             }}
           >
             <Grid container columnSpacing={1} sx={{ marginTop: 1 }}>
-              <Grid xs={6} sm={2}>
+              <Grid size={{ xs: 6, sm: 2 }}>
                 <RoundField />
               </Grid>
-              <Grid xs={6} sm={3}>
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <MainPhaseField />
               </Grid>
-              <Grid xs={6} sm={4}>
+              <Grid size={{ xs: 6, sm: 4 }}>
                 <CarryoverPhaseSelect />
               </Grid>
-              <Grid xs={1} />
-              <Grid xs={5} sm={2}>
+              <Grid size={{ xs: 1 }} />
+              <Grid size={{ xs: 5, sm: 2 }}>
                 <TuhTotalField ref={tuhTotFieldRef} />
               </Grid>
               {/** second row */}
-              <Grid xs={9} md={3} lg={4}>
+              <Grid size={{ xs: 9, md: 3, lg: 4 }}>
                 <TeamSelect whichTeam="left" />
               </Grid>
-              <Grid xs={3} md={2} lg={1}>
+              <Grid size={{ xs: 3, md: 2, lg: 1 }}>
                 <TeamScoreField whichTeam="left" />
               </Grid>
-              <Grid md={1} sx={{ display: { xs: 'none', md: 'inherit' } }} />
-              <Grid xs={9} md={3} lg={4}>
+              <Grid sx={{ display: { xs: 'none', md: 'inherit' } }} size={{ md: 1 }} />
+              <Grid size={{ xs: 9, md: 3, lg: 4 }}>
                 <TeamSelect whichTeam="right" />
               </Grid>
-              <Grid xs={3} md={2} lg={1}>
+              <Grid size={{ xs: 3, md: 2, lg: 1 }}>
                 <TeamScoreField whichTeam="right" />
               </Grid>
               {/** third row */}
-              <Grid xs={12} md={6} sx={{ marginBottom: 3 }}>
+              <Grid sx={{ marginBottom: 3 }} size={{ xs: 12, md: 6 }}>
                 <Paper elevation={4} sx={{ p: 1, marginRight: 1 }}>
                   <PlayerGrid whichTeam="left" />
                 </Paper>
               </Grid>
-              <Grid xs={12} md={6} sx={{ marginBottom: 3 }}>
+              <Grid sx={{ marginBottom: 3 }} size={{ xs: 12, md: 6 }}>
                 <Paper elevation={4} sx={{ p: 1, marginLeft: 1 }}>
                   <PlayerGrid whichTeam="right" />
                 </Paper>
               </Grid>
               {/** fourth row */}
-              <Grid xs={6} md={5} sx={{ marginBottom: 3 }}>
+              <Grid sx={{ marginBottom: 3 }} size={{ xs: 6, md: 5 }}>
                 <BonusDisplay whichTeam="left" />
               </Grid>
-              <Grid xs={6} md={1}>
+              <Grid size={{ xs: 6, md: 1 }}>
                 <ForfeitControl whichTeam="left" />
               </Grid>
-              <Grid xs={6} md={5} sx={{ marginBottom: 3 }}>
+              <Grid sx={{ marginBottom: 3 }} size={{ xs: 6, md: 5 }}>
                 <BonusDisplay whichTeam="right" />
               </Grid>
-              <Grid xs={6} md={1}>
+              <Grid size={{ xs: 6, md: 1 }}>
                 <ForfeitControl whichTeam="right" />
               </Grid>
               {/** fifth row */}
-              <Grid xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <BounceBackRow whichTeam="left" />
               </Grid>
-              <Grid xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <BounceBackRow whichTeam="right" />
               </Grid>
               {/** sixth row */}
-              <Grid xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <LightningRow whichTeam="left" />
               </Grid>
-              <Grid xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <LightningRow whichTeam="right" />
               </Grid>
               {/** seventh row */}
-              <Grid xs={12} lg={6}>
+              <Grid size={{ xs: 12, lg: 6 }}>
                 <OvertimeSection />
               </Grid>
-              <Grid xs={12} lg={6}>
+              <Grid size={{ xs: 12, lg: 6 }}>
                 <NotesCard />
               </Grid>
             </Grid>
@@ -225,7 +225,7 @@ function RoundField() {
 
   return (
     <YfNumericField
-      inputProps={{ min: 1 }}
+      slotProps={{ htmlInput: { min: 1 } }}
       label="Round"
       fullWidth
       variant="outlined"
@@ -254,7 +254,7 @@ function MainPhaseField() {
       fullWidth
       variant="outlined"
       size="small"
-      inputProps={{ readOnly: true }}
+      slotProps={{ htmlInput: { readOnly: true } }}
       helperText={' '}
       value={phaseName}
     />
@@ -314,7 +314,7 @@ const TuhTotalField = forwardRef((props: {}, ref) => {
   return (
     <YfNumericField
       inputRef={ref}
-      inputProps={{ min: 1 }}
+      slotProps={{ htmlInput: { min: 1 } }}
       label="TU Read (incl. OT)"
       fullWidth
       variant="outlined"
@@ -419,7 +419,7 @@ function TeamScoreField(props: ITeamScoreProps) {
 
   return (
     <YfNumericField
-      inputProps={{ step: divisor }}
+      slotProps={{ htmlInput: { step: divisor } }}
       label="Score"
       fullWidth
       variant="outlined"
@@ -461,16 +461,16 @@ function PlayerGrid(props: IPlayerGridProps) {
   return (
     <Box sx={{ '& .MuiGrid2-container': { my: 2 } }}>
       <Grid container columns={48} columnSpacing={1}>
-        <Grid xs />
-        <Grid xs={numColumns}>
+        <Grid size={{ xs: 'grow' }} />
+        <Grid size={{ xs: numColumns }}>
           <b>TUH</b>
         </Grid>
         {thisTournament.scoringRules.answerTypes.map((at) => (
-          <Grid key={at.value} xs={numColumns}>
+          <Grid key={at.value} size={{ xs: numColumns }}>
             <b>{at.shortLabel}</b>
           </Grid>
         ))}
-        <Grid xs={numColumns}>
+        <Grid size={{ xs: numColumns }}>
           <b>Pts</b>
         </Grid>
       </Grid>
@@ -499,11 +499,11 @@ function ForfeitBox(props: IForfeitBoxProps) {
 
   return (
     <Grid container>
-      <Grid xs />
-      <Grid xs="auto">
+      <Grid size={{ xs: 'grow' }} />
+      <Grid size={{ xs: 'auto' }}>
         <Box sx={{ py: 13 }}>{text}</Box>
       </Grid>
-      <Grid xs />
+      <Grid size={{ xs: 'grow' }} />
     </Grid>
   );
 }
@@ -538,7 +538,6 @@ function PlayerRow(props: IPlayerRowProps) {
   return (
     <>
       <Grid
-        xs
         draggable
         onDragStart={(e) => e.dataTransfer.setData(dragKey, rowNumber.toString())}
         onDragEnter={(e) => e.preventDefault()}
@@ -548,6 +547,7 @@ function PlayerRow(props: IPlayerRowProps) {
           modalManager.reorderMatchPlayers(whichTeam, e.dataTransfer.getData(dragKey), rowNumber);
         }}
         onDragLeave={(e) => e.preventDefault()}
+        size={{ xs: 'grow' }}
       >
         <DragIndicator
           className={YfCssClasses.Draggable}
@@ -557,9 +557,9 @@ function PlayerRow(props: IPlayerRowProps) {
         />
         {playerName}
       </Grid>
-      <Grid xs={numColumns}>
+      <Grid size={{ xs: numColumns }}>
         <YfNumericField
-          inputProps={{ min: 0 }}
+          slotProps={{ htmlInput: { min: 0 } }}
           fullWidth
           variant="standard"
           size="small"
@@ -576,9 +576,16 @@ function PlayerRow(props: IPlayerRowProps) {
       {answerCounts.map((ac) => (
         <PlayerAnswerCountField key={ac.answerType.value} answerCount={ac} xs={numColumns} />
       ))}
-      <Grid xs={numColumns}>
+      <Grid size={{ xs: numColumns }}>
         {/** Don't use the MUI disabled property, which makes the text gray and hard to read */}
-        <TextField fullWidth variant="standard" size="small" hiddenLabel inputProps={{ disabled: true }} value={pts} />
+        <TextField
+          fullWidth
+          variant="standard"
+          size="small"
+          hiddenLabel
+          slotProps={{ htmlInput: { disabled: true } }}
+          value={pts}
+        />
       </Grid>
     </>
   );
@@ -611,9 +618,9 @@ function PlayerAnswerCountField(props: IPlayerAnswerCountFieldProps) {
   };
 
   return (
-    <Grid xs={xs}>
+    <Grid size={{ xs }}>
       <YfNumericField
-        inputProps={{ min: 0 }}
+        slotProps={{ htmlInput: { min: 0 } }}
         fullWidth
         variant={outlinedStyle ? 'outlined' : 'standard'}
         size="small"
@@ -719,7 +726,7 @@ function BounceBackRow(props: IBounceBackRowProps) {
       </div>
       <YfNumericField
         sx={{ width: '6ch' }}
-        inputProps={{ min: 0, step: divisor }}
+        slotProps={{ htmlInput: { min: 0, step: divisor } }}
         fullWidth
         variant="standard"
         size="small"
@@ -770,7 +777,7 @@ function LightningRow(props: ILightningRowProps) {
       <div>&emsp;&nbsp;Lightning Round:&emsp;</div>
       <YfNumericField
         sx={{ width: '6ch' }}
-        inputProps={{ min: 0, step: divisor }}
+        slotProps={{ htmlInput: { min: 0, step: divisor } }}
         fullWidth
         variant="standard"
         size="small"
@@ -797,11 +804,11 @@ function OvertimeSection() {
     <Card variant="outlined" sx={{ p: 1 }}>
       <Box sx={{ cursor: 'pointer' }}>
         <Grid container onClick={() => setFormExpanded(!formExpanded)}>
-          <Grid xs>
+          <Grid size={{ xs: 'grow' }}>
             <b>Overtime&emsp;</b>
             {!formExpanded && <span>{modalManager.tempMatch.getOvertimeSummary()}</span>}
           </Grid>
-          <Grid xs="auto">
+          <Grid size={{ xs: 'auto' }}>
             <ExpandButton expand={formExpanded} sx={{ p: 0 }}>
               <ExpandMore />
             </ExpandButton>
@@ -810,15 +817,15 @@ function OvertimeSection() {
       </Box>
       <Collapse in={formExpanded}>
         <Grid container columnSpacing={1} sx={{ marginTop: 1, paddingBottom: 1 }}>
-          <Grid xs={3}>
+          <Grid size={{ xs: 3 }}>
             <OvertimeTuReadField />
           </Grid>
-          <Grid xs={1} />
-          <Grid xs={8}>
+          <Grid size={{ xs: 1 }} />
+          <Grid size={{ xs: 8 }}>
             <Grid container columns={9} columnSpacing={1}>
-              <Grid xs md={4} lg />
+              <Grid size={{ xs: 'grow', md: 4, lg: 'grow' }} />
               {tournManager.tournament.scoringRules.answerTypes.map((at) => (
-                <Grid key={at.value} xs={1}>
+                <Grid key={at.value} size={{ xs: 1 }}>
                   &nbsp;&nbsp;<b>{at.shortLabel}</b>
                 </Grid>
               ))}
@@ -849,7 +856,7 @@ function OvertimeTuReadField() {
   return (
     <YfNumericField
       sx={{ top: '30px' }}
-      inputProps={{ min: 0 }}
+      slotProps={{ htmlInput: { min: 0 } }}
       label="TU Read"
       fullWidth
       variant="outlined"
@@ -878,7 +885,7 @@ function OvertimeBuzzesRow(props: IOverTimeRowProps) {
 
   return (
     <Grid container columns={9} columnSpacing={1}>
-      <Grid xs md={4} lg>
+      <Grid size={{ xs: 'grow', md: 4, lg: 'grow' }}>
         <span style={{ verticalAlign: 'sub' }}>{matchTeam.team?.getTruncatedName(30) || <span>&nbsp;</span>}</span>
       </Grid>
       {otBuzzes.map((ac) => (

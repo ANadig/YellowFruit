@@ -192,7 +192,7 @@ export function RoomDetailDialog(props: IRoomDetailDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={2}>
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
           <span>{room.name}</span>
           <Typography variant="caption" color={room.enabled ? 'success.main' : 'text.secondary'}>
             {room.enabled ? 'Enabled' : 'Disabled'}

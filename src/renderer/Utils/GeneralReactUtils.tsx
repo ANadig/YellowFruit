@@ -10,7 +10,7 @@ import {
   TextFieldProps,
 } from '@mui/material';
 import React, { forwardRef, useState } from 'react';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { Close, Done, ExpandMore } from '@mui/icons-material';
 
 export enum YfCssClasses {
@@ -77,11 +77,11 @@ export function CollapsibleArea(props: React.PropsWithChildren<ICollapsibleAreaP
   return (
     <>
       <Grid container sx={{ cursor: 'pointer' }} onClick={() => setIsExpanded(!isExpanded)}>
-        <Grid xs>
+        <Grid size={{ xs: 'grow' }}>
           {title}
           {!isExpanded && secondaryTitle}
         </Grid>
-        <Grid xs="auto">
+        <Grid size={{ xs: 'auto' }}>
           <ExpandButton expand={isExpanded} sx={{ py: 0 }}>
             <ExpandMore />
           </ExpandButton>

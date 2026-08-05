@@ -143,7 +143,13 @@ export default function RebracketDialog(props: IRebracketDialogProps) {
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
       <DialogTitle>Review standings and confirm next pools</DialogTitle>
       <DialogContent>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'text.secondary',
+            mb: 2,
+          }}
+        >
           {completedPhase?.name ?? 'Current phase'} is complete. YellowFruit will use its existing standings and pool
           advancement rules; it will stop if an advancement tie needs a human decision.
         </Typography>
@@ -189,7 +195,12 @@ export default function RebracketDialog(props: IRebracketDialogProps) {
         <div className="rooms-dialog-section">
           <h3>Current qualification results</h3>
           {standings.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Standings are not available for this phase yet.
             </Typography>
           ) : (
@@ -202,7 +213,11 @@ export default function RebracketDialog(props: IRebracketDialogProps) {
                   <Stack key={team.team.name} direction="row" spacing={2} sx={{ py: 0.5 }}>
                     <Typography sx={{ width: 45 }}>{team.rank ?? '—'}</Typography>
                     <Typography sx={{ flex: 1 }}>{team.team.name}</Typography>
-                    <Typography color="text.secondary">
+                    <Typography
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {team.wins}–{team.losses} · {team.currentSeed ? `Seed ${team.currentSeed}` : 'Does not advance'}
                     </Typography>
                   </Stack>

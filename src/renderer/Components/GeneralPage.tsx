@@ -1,4 +1,4 @@
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import {
   Alert,
   Box,
@@ -27,10 +27,10 @@ function GeneralPage() {
   return (
     <Grid container spacing={2}>
       <BackupRecoveryNotice />
-      <Grid xs={12} sm={6}>
+      <Grid size={{ xs: 12, sm: 6 }}>
         <GeneralInfoCard />
       </Grid>
-      <Grid xs={12} sm={6}>
+      <Grid size={{ xs: 12, sm: 6 }}>
         <Stack spacing={2}>
           <QuestionSetCard />
           <AttributeSettingsCard />
@@ -163,8 +163,8 @@ function PacketNameField(props: IPacketNameFieldProps) {
 
   return (
     <Grid container sx={{ p: 1 }}>
-      <Grid xs={3}>{round.displayName()}</Grid>
-      <Grid xs={9}>
+      <Grid size={{ xs: 3 }}>{round.displayName()}</Grid>
+      <Grid size={{ xs: 9 }}>
         <TextField
           variant="standard"
           size="small"
@@ -251,7 +251,7 @@ function BackupRecoveryNotice() {
 
   const firstLine = "YellowFruit didn't shut down correctly. The following file is available to recover:"; // IDE gets mad about the unescaped apostrophe if I put this in raw
   return (
-    <Grid xs={12}>
+    <Grid size={{ xs: 12 }}>
       <Alert
         variant="filled"
         severity="info"

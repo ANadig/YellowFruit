@@ -129,7 +129,13 @@ export function MatchEditorDialog(props: IMatchEditorDialogProps) {
               ))}
             </Select>
           </FormControl>
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <FormControl fullWidth disabled={isResolved}>
               <InputLabel id="left-team-label">Left team</InputLabel>
               <Select
@@ -145,7 +151,13 @@ export function MatchEditorDialog(props: IMatchEditorDialogProps) {
                 ))}
               </Select>
             </FormControl>
-            <Typography color="text.secondary">vs</Typography>
+            <Typography
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
+              vs
+            </Typography>
             <FormControl fullWidth disabled={isResolved}>
               <InputLabel id="right-team-label">Right team</InputLabel>
               <Select
@@ -321,7 +333,13 @@ export function ScheduleGeneratorDialog(props: IScheduleGeneratorDialogProps) {
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>Generate schedule</DialogTitle>
       <DialogContent>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'text.secondary',
+            mb: 2,
+          }}
+        >
           Preview a deterministic round robin before changing future assignments. Accepted and in-flight games are
           retained; only future scheduled games are replaced.
         </Typography>
@@ -347,7 +365,13 @@ export function ScheduleGeneratorDialog(props: IScheduleGeneratorDialogProps) {
               <Typography variant="subtitle2" gutterBottom>
                 Pools
               </Typography>
-              <Stack direction="row" flexWrap="wrap" gap={1}>
+              <Stack
+                direction="row"
+                sx={{
+                  flexWrap: 'wrap',
+                  gap: 1,
+                }}
+              >
                 {phase.pools.map((pool, index) => {
                   const id = `${phase.code}-${index}`;
                   return (
@@ -377,7 +401,9 @@ export function ScheduleGeneratorDialog(props: IScheduleGeneratorDialogProps) {
               type="number"
               value={fromRound}
               onChange={(event) => setFromRound(Number(event.target.value))}
-              inputProps={{ min: numericRounds[0] ?? 1, max: numericRounds[numericRounds.length - 1] ?? 1 }}
+              slotProps={{
+                htmlInput: { min: numericRounds[0] ?? 1, max: numericRounds[numericRounds.length - 1] ?? 1 },
+              }}
               sx={{ width: 150 }}
             />
             <TextField
@@ -385,7 +411,9 @@ export function ScheduleGeneratorDialog(props: IScheduleGeneratorDialogProps) {
               type="number"
               value={toRound}
               onChange={(event) => setToRound(Number(event.target.value))}
-              inputProps={{ min: numericRounds[0] ?? 1, max: numericRounds[numericRounds.length - 1] ?? 1 }}
+              slotProps={{
+                htmlInput: { min: numericRounds[0] ?? 1, max: numericRounds[numericRounds.length - 1] ?? 1 },
+              }}
               sx={{ width: 150 }}
             />
           </Stack>
@@ -397,7 +425,13 @@ export function ScheduleGeneratorDialog(props: IScheduleGeneratorDialogProps) {
             {enabledRooms.length === 0 ? (
               <Alert severity="error">No enabled rooms are available. Add or enable rooms before generating.</Alert>
             ) : (
-              <Stack direction="row" flexWrap="wrap" gap={1}>
+              <Stack
+                direction="row"
+                sx={{
+                  flexWrap: 'wrap',
+                  gap: 1,
+                }}
+              >
                 {enabledRooms.map((room) => (
                   <FormControlLabel
                     key={room.id}
@@ -429,7 +463,13 @@ export function ScheduleGeneratorDialog(props: IScheduleGeneratorDialogProps) {
                 {preview.generation.scheduledMatches.length} matches · {preview.roundCount} rounds · {preview.roomCount}{' '}
                 rooms available
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                  mt: 0.5,
+                }}
+              >
                 {preview.merged.preservedMatches.filter((match) => match.isAccepted()).length} accepted games retained ·{' '}
                 {preview.merged.replacedFutureCount} future assignments replaced
               </Typography>

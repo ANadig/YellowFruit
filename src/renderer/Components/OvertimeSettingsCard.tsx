@@ -67,7 +67,7 @@ function OvertimeSettingsCard() {
         <YfNumericField
           sx={{ marginTop: 1, marginLeft: 6, width: '13ch' }}
           size="small"
-          inputProps={{ min: 1, disabled: readOnly }}
+          slotProps={{ htmlInput: { min: 1, disabled: readOnly } }}
           label="Min Toss-Ups"
           value={minTossups}
           error={!numPlayersIsValid()}
