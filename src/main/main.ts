@@ -118,9 +118,11 @@ const createWindow = async () => {
       mainWindow.show();
     }
 
-    const argsLength = process.defaultApp ? 3 : 2;
-    if (process.env.NODE_ENV === 'production' && process.argv.length >= argsLength) {
-      readYftFileAndSendToRend(mainWindow, process.argv[argsLength - 1]);
+    const argStart = process.defaultApp ? 2 : 1;
+    // If program is started with flags, make sure a flag isn't mistaken for a file
+    const fileArg = process.argv.slice(argStart).find((a) => !a.startsWith('-'));
+    if (process.env.NODE_ENV === 'production' && fileArg) {
+      readYftFileAndSendToRend(mainWindow, fileArg);
     }
   });
 
